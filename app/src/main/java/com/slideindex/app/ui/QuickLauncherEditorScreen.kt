@@ -139,13 +139,12 @@ fun QuickLauncherEditorScreen(
     }
     var items by remember(currentPanel.id) { mutableStateOf(currentPanel.items) }
 
-    val (appearanceItems, shapeItems) = quickLauncherAppearanceCardItems(
+    val appearanceItems = quickLauncherAppearanceCardItems(
         display = settings.quickLauncherDisplay,
         enabled = true,
         onDisplayChange = onDisplayChange,
     )
     val appearanceSectionTitle = stringResource(R.string.quick_launcher_appearance_section)
-    val iconShapeSectionTitle = stringResource(R.string.quick_launcher_icon_shape_section)
 
     var defaultsSeeded by remember { mutableStateOf(false) }
 
@@ -323,62 +322,60 @@ fun QuickLauncherEditorScreen(
                             }
                         }
                     } else {
-                    item(key = "desc") {
-                        MiuixHintText(stringResource(R.string.quick_launcher_editor_desc))
-                    }
-                    settingsLazySmallTitle(
-                        key = "quick-launcher-appearance",
-                        title = appearanceSectionTitle,
-                    )
-                    quickLauncherAppearanceSettingsSection(
-                        appearanceItems = appearanceItems,
-                        shapeItems = shapeItems,
-                        iconShapeSectionTitle = iconShapeSectionTitle,
-                    )
-                    item(key = "panel_and_grid") {
-                        Column(modifier = Modifier.fillMaxWidth()) {
-                            QuickLauncherPanelManagementSection(
-                                panels = panels,
-                                selectedIndex = selectedPanelIndex,
-                                defaultColumns = settings.quickLauncherColumnsPerPage,
-                                defaultRows = settings.quickLauncherRowsPerPage,
-                                onPanelsChange = { updated ->
-                                    panels = updated
-                                    onSavePanels(updated)
-                                },
-                                onSelectedIndexChange = { selectedPanelIndex = it },
-                                modifier = Modifier.fillMaxWidth(),
-                            )
-                            MiuixSmallTitle(
-                                stringResource(R.string.quick_launcher_items_section),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = MiuixSmallTitleSectionTop),
-                            )
-                            Box(
-                                modifier = Modifier.fillMaxWidth(),
-                            ) {
-                                key(currentPanel.id) {
-                                    QuickLauncherGridEditor(
-                                        settings = settings,
-                                        items = items,
-                                        appsByPackage = appsByPackage,
-                                        onItemsChange = {
-                                            items = it
-                                            persistCurrentPanelItems(it)
-                                        },
-                                        onAdd = {
-                                            searchQuery = ""
-                                            mode = EditorMode.AddPicker
-                                        },
-                                        onInteractionActiveChange = { gridInteractionActive = it },
-                                        gridColumnsOverride = currentPanel.columnsPerPage,
-                                        gridRowsOverride = currentPanel.rowsPerPage,
-                                    )
+                        item(key = "desc") {
+                            MiuixHintText(stringResource(R.string.quick_launcher_editor_desc))
+                        }
+                        settingsLazySmallTitle(
+                            key = "quick-launcher-appearance",
+                            title = appearanceSectionTitle,
+                        )
+                        quickLauncherAppearanceSettingsSection(
+                            appearanceItems = appearanceItems,
+                        )
+                        item(key = "panel_and_grid") {
+                            Column(modifier = Modifier.fillMaxWidth()) {
+                                QuickLauncherPanelManagementSection(
+                                    panels = panels,
+                                    selectedIndex = selectedPanelIndex,
+                                    defaultColumns = settings.quickLauncherColumnsPerPage,
+                                    defaultRows = settings.quickLauncherRowsPerPage,
+                                    onPanelsChange = { updated ->
+                                        panels = updated
+                                        onSavePanels(updated)
+                                    },
+                                    onSelectedIndexChange = { selectedPanelIndex = it },
+                                    modifier = Modifier.fillMaxWidth(),
+                                )
+                                MiuixSmallTitle(
+                                    stringResource(R.string.quick_launcher_items_section),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = MiuixSmallTitleSectionTop),
+                                )
+                                Box(
+                                    modifier = Modifier.fillMaxWidth(),
+                                ) {
+                                    key(currentPanel.id) {
+                                        QuickLauncherGridEditor(
+                                            settings = settings,
+                                            items = items,
+                                            appsByPackage = appsByPackage,
+                                            onItemsChange = {
+                                                items = it
+                                                persistCurrentPanelItems(it)
+                                            },
+                                            onAdd = {
+                                                searchQuery = ""
+                                                mode = EditorMode.AddPicker
+                                            },
+                                            onInteractionActiveChange = { gridInteractionActive = it },
+                                            gridColumnsOverride = currentPanel.columnsPerPage,
+                                            gridRowsOverride = currentPanel.rowsPerPage,
+                                        )
+                                    }
                                 }
                             }
                         }
-                    }
                     }
                 }
             }

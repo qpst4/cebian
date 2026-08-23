@@ -1,6 +1,5 @@
 package com.slideindex.app.ui
 
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,13 +7,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,11 +20,20 @@ import com.slideindex.app.translate.TranslateDownloadPhase
 import com.slideindex.app.translate.TranslateDownloadState
 import com.slideindex.app.translate.TranslateDownloadStep
 import com.slideindex.app.translate.TranslateLanguageCatalog
+import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingSwitchRow
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import com.slideindex.app.ui.settings.components.settingsCardItems
+import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
+import top.yukonga.miuix.kmp.basic.LinearProgressIndicator
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 import kotlin.math.roundToInt
 import java.util.Locale
 
@@ -99,39 +100,27 @@ fun TranslateModelSettingsScreen(
 
         settingsLazySmallTitle(key = "translate-languages-section", title = languagesSectionTitle, sectionTop = true)
 
-        LazySettingsItem(key = "translate-languages") {
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp),
-                shape = MaterialTheme.shapes.large,
-                tonalElevation = 1.dp,
-            ) {
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    TranslateLanguageCatalog.options.forEachIndexed { index, option ->
-                        val rowDownloadState = downloadState?.takeIf { it.languageCode == option.code }
-                        TranslateLanguageRow(
-                            displayName = option.displayName,
-                            installed = option.code in installedLanguageCodes,
-                            downloadState = rowDownloadState,
-                            onDownload = { onDownloadLanguage(option.code) },
-                            onDelete = { onDeleteLanguage(option.code) },
-                        )
-                        if (index < TranslateLanguageCatalog.options.lastIndex) {
-                            Spacer(modifier = Modifier.height(1.dp))
-                        }
-                    }
+        groupedCardItems(
+            keyPrefix = "translate-languages",
+            items = TranslateLanguageCatalog.options.map { option ->
+                val rowDownloadState = downloadState?.takeIf { it.languageCode == option.code }
+                com.slideindex.app.ui.miuix.CardItem("lang-${option.code}") {
+                    TranslateLanguageRow(
+                        displayName = option.displayName,
+                        installed = option.code in installedLanguageCodes,
+                        downloadState = rowDownloadState,
+                        onDownload = { onDownloadLanguage(option.code) },
+                        onDelete = { onDeleteLanguage(option.code) },
+                    )
                 }
-            }
-        }
+            },
+        )
     }
 }
 
 @Composable
 private fun TranslateDownloadProgressCard(state: TranslateDownloadState) {
-    Surface(
-        shape = MaterialTheme.shapes.large,
-        tonalElevation = 2.dp,
+    Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp),
@@ -143,7 +132,7 @@ private fun TranslateDownloadProgressCard(state: TranslateDownloadState) {
             val fraction = state.progress
             if (fraction != null) {
                 LinearProgressIndicator(
-                    progress = { fraction.coerceIn(0f, 1f) },
+                    progress = fraction.coerceIn(0f, 1f),
                     modifier = Modifier.fillMaxWidth(),
                 )
             } else {
@@ -152,7 +141,7 @@ private fun TranslateDownloadProgressCard(state: TranslateDownloadState) {
             Spacer(modifier = Modifier.height(12.dp))
             Text(
                 text = translateDownloadProgressLabel(state),
-                style = MaterialTheme.typography.bodyMedium,
+                style = MiuixTheme.textStyles.body1,
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -177,26 +166,27 @@ private fun TranslateLanguageRow(
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = displayName, style = MaterialTheme.typography.bodyLarge)
+            Text(text = displayName, style = MiuixTheme.textStyles.title4)
+            Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = when {
                     downloading -> translateDownloadProgressLabel(downloadState)
                     installed -> stringResource(R.string.ocr_model_status_installed)
                     else -> stringResource(R.string.ocr_model_status_not_installed)
                 },
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MiuixTheme.textStyles.body2,
+                color = if (downloading) MiuixTheme.colorScheme.primary else MiuixTheme.colorScheme.onSurfaceSecondary,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
         }
         when {
             downloading -> {
-                val fraction = downloadState.progress
+                val fraction = downloadState?.progress
                 if (fraction != null) {
                     Text(
                         text = "${(fraction * 100).roundToInt()}%",
-                        style = MaterialTheme.typography.labelLarge,
+                        style = MiuixTheme.textStyles.subtitle,
                         modifier = Modifier.padding(start = 8.dp),
                     )
                 } else {
@@ -204,12 +194,17 @@ private fun TranslateLanguageRow(
                 }
             }
             installed -> {
-                OutlinedButton(onClick = onDelete) {
+                Button(
+                    onClick = onDelete,
+                ) {
                     Text(stringResource(R.string.ocr_model_delete))
                 }
             }
             else -> {
-                Button(onClick = onDownload) {
+                Button(
+                    onClick = onDownload,
+                    colors = ButtonDefaults.buttonColorsPrimary(),
+                ) {
                     Text(stringResource(R.string.ocr_model_download))
                 }
             }

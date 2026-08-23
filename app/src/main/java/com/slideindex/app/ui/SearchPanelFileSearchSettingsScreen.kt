@@ -3,7 +3,9 @@
 package com.slideindex.app.ui
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -22,14 +24,11 @@ import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.VideoLibrary
 import androidx.compose.material.icons.outlined.Visibility
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -321,72 +320,58 @@ private fun FolderSearchDialog(
         searching = false
     }
 
-    AlertDialog(
+    top.yukonga.miuix.kmp.window.WindowDialog(
+        show = true,
         onDismissRequest = onDismiss,
-        title = { Text(title) },
-        text = {
-            Column {
-                if (!hasPermission) {
-                    TextButton(onClick = onRequestPermission) {
-                        Text(stringResource(R.string.search_panel_file_permission_missing))
-                    }
-                }
-                OutlinedTextField(
-                    value = query,
-                    onValueChange = { query = it },
+        title = title,
+    ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            if (!hasPermission) {
+                top.yukonga.miuix.kmp.basic.TextButton(
+                    text = stringResource(R.string.search_panel_file_permission_missing),
+                    onClick = onRequestPermission,
                     modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    enabled = hasPermission,
-                    placeholder = {
-                        Text(stringResource(R.string.search_panel_file_folder_search_hint))
-                    },
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                    keyboardActions = KeyboardActions(onSearch = {
-                        scopeLaunch {
-                            if (hasPermission && query.trim().length >= 2) {
-                                searching = true
-                                results = searchFolders(query.trim())
-                                searching = false
-                            }
-                        }
-                    }),
                 )
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(max = 320.dp)
-                        .padding(top = 8.dp),
-                ) {
-                    if (query.trim().length >= 2 && !searching && results.isEmpty() && hasPermission) {
-                        item {
-                            Text(
-                                text = stringResource(R.string.search_panel_file_folder_no_results),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    }
-                    items(results, key = { it.uri.toString() }) { folder ->
-                        val path = FolderPathPatternMatcher.folderDisplayPath(folder)
-                        TextButton(
-                            onClick = { onPickFolder(folder) },
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Text(
-                                text = "/$path",
-                                modifier = Modifier.fillMaxWidth(),
-                            )
-                        }
+            }
+            com.slideindex.app.ui.miuix.MiuixSearchField(
+                query = query,
+                onQueryChange = { query = it },
+                hintResId = R.string.search_panel_file_folder_search_hint,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 280.dp)
+                    .padding(top = 8.dp),
+            ) {
+                if (query.trim().length >= 2 && !searching && results.isEmpty() && hasPermission) {
+                    item {
+                        top.yukonga.miuix.kmp.basic.Text(
+                            text = stringResource(R.string.search_panel_file_folder_no_results),
+                            style = top.yukonga.miuix.kmp.theme.MiuixTheme.textStyles.body2,
+                            color = top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.onSurfaceSecondary,
+                            modifier = Modifier.padding(vertical = 8.dp),
+                        )
                     }
                 }
+                items(results, key = { it.uri.toString() }) { folder ->
+                    val path = FolderPathPatternMatcher.folderDisplayPath(folder)
+                    top.yukonga.miuix.kmp.basic.TextButton(
+                        text = "/$path",
+                        onClick = { onPickFolder(folder) },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
             }
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(android.R.string.cancel))
-            }
-        },
-    )
+            androidx.compose.foundation.layout.Spacer(Modifier.height(16.dp))
+            top.yukonga.miuix.kmp.basic.TextButton(
+                text = stringResource(android.R.string.cancel),
+                onClick = onDismiss,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+    }
 }
 
 private fun orderedFileTypes(): List<FileType> = listOf(

@@ -1,24 +1,16 @@
 package com.slideindex.app.ui.notificationrule
 
-import com.slideindex.app.ui.miuix.MiuixLabeledTextField
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
-import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,6 +22,14 @@ import com.slideindex.app.notification.AppTarget
 import com.slideindex.app.notification.NotificationRuleChargeMask
 import com.slideindex.app.notification.ScreenMode
 import com.slideindex.app.notification.TextMatchMode
+import com.slideindex.app.ui.miuix.MiuixLabeledTextField
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.preference.ArrowPreference
+import top.yukonga.miuix.kmp.preference.CheckboxPreference
+import top.yukonga.miuix.kmp.preference.WindowDropdownPreference
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -69,180 +69,216 @@ internal fun NotificationRuleConditionEditor(
     chargeWireless: Boolean,
     onChargeWirelessChange: (Boolean) -> Unit,
 ) {
-    MiuixLabeledTextField(
-        value = name,
-        onValueChange = onNameChange,
-        label = stringResource(R.string.notification_rule_name),
-    )
-
-    MiuixSmallTitle(stringResource(R.string.notification_rule_section_apps))
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        AppMatchMode.entries.forEach { mode ->
-            FilterChip(
-                selected = appMode == mode,
-                onClick = { onAppModeChange(mode) },
-                label = { Text(appModeLabel(mode)) },
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            MiuixLabeledTextField(
+                value = name,
+                onValueChange = onNameChange,
+                label = stringResource(R.string.notification_rule_name),
+            )
+            MiuixLabeledTextField(
+                value = channelId,
+                onValueChange = onChannelIdChange,
+                label = stringResource(R.string.notification_rule_channel),
             )
         }
     }
-    if (appMode != AppMatchMode.ALL) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(
+            modifier = Modifier.padding(vertical = 8.dp),
         ) {
-            Text(
-                text = stringResource(
-                    R.string.notification_rule_selected_apps_count,
-                    appTargets.size,
-                ),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface,
+            val appModes = AppMatchMode.entries
+            val appModeLabels = listOf(
+                stringResource(R.string.notification_rule_app_mode_all),
+                stringResource(R.string.notification_rule_app_mode_include),
+                stringResource(R.string.notification_rule_app_mode_exclude),
             )
-            IconButton(onClick = onPickApps) {
-                Icon(
-                    Icons.AutoMirrored.Filled.List,
-                    contentDescription = stringResource(R.string.notification_rule_pick_app),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            WindowDropdownPreference(
+                title = stringResource(R.string.notification_rule_section_apps),
+                items = appModeLabels,
+                selectedIndex = appModes.indexOf(appMode).coerceAtLeast(0),
+                onSelectedIndexChange = { index ->
+                    if (index in appModes.indices) {
+                        onAppModeChange(appModes[index])
+                    }
+                },
+            )
+            if (appMode != AppMatchMode.ALL) {
+                ArrowPreference(
+                    title = stringResource(R.string.notification_rule_pick_app),
+                    summary = stringResource(
+                        R.string.notification_rule_selected_apps_count,
+                        appTargets.size,
+                    ),
+                    onClick = onPickApps,
                 )
+            }
+
+            val textModes = TextMatchMode.entries
+            val textModeLabels = listOf(
+                stringResource(R.string.notification_rule_text_mode_all),
+                stringResource(R.string.notification_rule_text_mode_contain_any),
+                stringResource(R.string.notification_rule_text_mode_not_contain_any),
+                stringResource(R.string.notification_rule_text_mode_contain_all),
+                stringResource(R.string.notification_rule_text_mode_not_contain_all),
+                stringResource(R.string.notification_rule_text_mode_contain_and_not),
+                stringResource(R.string.notification_rule_text_mode_regex),
+                stringResource(R.string.notification_rule_text_mode_advanced),
+            )
+            WindowDropdownPreference(
+                title = stringResource(R.string.notification_rule_section_text),
+                items = textModeLabels,
+                selectedIndex = textModes.indexOf(textMode).coerceAtLeast(0),
+                onSelectedIndexChange = { index ->
+                    if (index in textModes.indices) {
+                        onTextModeChange(textModes[index])
+                    }
+                },
+            )
+
+            when (textMode) {
+                TextMatchMode.CONTAIN_ANY, TextMatchMode.NOT_CONTAIN_ANY,
+                TextMatchMode.CONTAIN_ALL, TextMatchMode.NOT_CONTAIN_ALL,
+                -> {
+                    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                        MiuixLabeledTextField(
+                            value = keywordsText,
+                            onValueChange = onKeywordsTextChange,
+                            label = stringResource(R.string.notification_rule_keywords_hint),
+                            singleLine = false,
+                            minLines = 2,
+                            maxLines = 4,
+                        )
+                    }
+                }
+                TextMatchMode.CONTAIN_AND_NOT_CONTAIN -> {
+                    Column(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        MiuixLabeledTextField(
+                            value = keywordsText,
+                            onValueChange = onKeywordsTextChange,
+                            label = stringResource(R.string.notification_rule_keywords_hint),
+                            singleLine = false,
+                            minLines = 2,
+                            maxLines = 4,
+                        )
+                        MiuixLabeledTextField(
+                            value = keywordsExcludeText,
+                            onValueChange = onKeywordsExcludeTextChange,
+                            label = stringResource(R.string.notification_rule_keywords_exclude_hint),
+                            singleLine = false,
+                            minLines = 2,
+                            maxLines = 4,
+                        )
+                    }
+                }
+                TextMatchMode.REGEX -> {
+                    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                        MiuixLabeledTextField(
+                            value = regex,
+                            onValueChange = onRegexChange,
+                            label = stringResource(R.string.notification_rule_regex_hint),
+                        )
+                    }
+                }
+                TextMatchMode.ADVANCED -> {
+                    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                        MiuixLabeledTextField(
+                            value = advancedJson,
+                            onValueChange = onAdvancedJsonChange,
+                            label = stringResource(R.string.notification_rule_advanced_hint),
+                            singleLine = false,
+                            minLines = 4,
+                            maxLines = 8,
+                        )
+                    }
+                }
+                TextMatchMode.ALL -> Unit
             }
         }
     }
 
-    MiuixSmallTitle(stringResource(R.string.notification_rule_section_text), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        TextMatchMode.entries.forEach { mode ->
-            FilterChip(
-                selected = textMode == mode,
-                onClick = { onTextModeChange(mode) },
-                label = { Text(textModeLabel(mode)) },
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            MiuixSmallTitle(stringResource(R.string.notification_rule_section_time))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                MiuixLabeledTextField(
+                    value = timeStart,
+                    onValueChange = onTimeStartChange,
+                    label = stringResource(R.string.notification_rule_time_start),
+                    modifier = Modifier.weight(1f),
+                )
+                MiuixLabeledTextField(
+                    value = timeEnd,
+                    onValueChange = onTimeEndChange,
+                    label = stringResource(R.string.notification_rule_time_end),
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            Text(
+                text = stringResource(R.string.notification_rule_time_all_day),
+                style = MiuixTheme.textStyles.body2,
+                color = MiuixTheme.colorScheme.onSurfaceSecondary,
             )
-        }
-    }
-    when (textMode) {
-        TextMatchMode.CONTAIN_ANY, TextMatchMode.NOT_CONTAIN_ANY,
-        TextMatchMode.CONTAIN_ALL, TextMatchMode.NOT_CONTAIN_ALL,
-        -> {
-            MiuixLabeledTextField(
-                value = keywordsText,
-                onValueChange = onKeywordsTextChange,
-                label = stringResource(R.string.notification_rule_keywords_hint),
-                singleLine = false,
-                minLines = 2,
-                maxLines = 4,
-            )
-        }
-        TextMatchMode.CONTAIN_AND_NOT_CONTAIN -> {
-            MiuixLabeledTextField(
-                value = keywordsText,
-                onValueChange = onKeywordsTextChange,
-                label = stringResource(R.string.notification_rule_keywords_hint),
-                singleLine = false,
-                minLines = 2,
-                maxLines = 4,
-            )
-            MiuixLabeledTextField(
-                value = keywordsExcludeText,
-                onValueChange = onKeywordsExcludeTextChange,
-                label = stringResource(R.string.notification_rule_keywords_exclude_hint),
-                singleLine = false,
-                minLines = 2,
-                maxLines = 4,
-            )
-        }
-        TextMatchMode.REGEX -> {
-            MiuixLabeledTextField(
-                value = regex,
-                onValueChange = onRegexChange,
-                label = stringResource(R.string.notification_rule_regex_hint),
-            )
-        }
-        TextMatchMode.ADVANCED -> {
-            MiuixLabeledTextField(
-                value = advancedJson,
-                onValueChange = onAdvancedJsonChange,
-                label = stringResource(R.string.notification_rule_advanced_hint),
-                singleLine = false,
-                minLines = 4,
-                maxLines = 8,
-            )
-        }
-        TextMatchMode.ALL -> Unit
-    }
-    MiuixLabeledTextField(
-        value = channelId,
-        onValueChange = onChannelIdChange,
-        label = stringResource(R.string.notification_rule_channel),
-    )
 
-    MiuixSmallTitle(stringResource(R.string.notification_rule_section_time))
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-        MiuixLabeledTextField(
-            value = timeStart,
-            onValueChange = onTimeStartChange,
-            label = stringResource(R.string.notification_rule_time_start),
-            modifier = Modifier.weight(1f),
-        )
-        MiuixLabeledTextField(
-            value = timeEnd,
-            onValueChange = onTimeEndChange,
-            label = stringResource(R.string.notification_rule_time_end),
-            modifier = Modifier.weight(1f),
-        )
-    }
-    Text(
-        text = stringResource(R.string.notification_rule_time_all_day),
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
-    MiuixSmallTitle(stringResource(R.string.notification_rule_week_days))
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        (1..7).forEach { day ->
-            FilterChip(
-                selected = day in weekDays,
-                onClick = {
-                    onWeekDaysChange(if (day in weekDays) weekDays - day else weekDays + day)
-                },
-                label = { Text(weekDayLabel(day)) },
+            MiuixSmallTitle(stringResource(R.string.notification_rule_week_days), modifier = Modifier.padding(top = 4.dp))
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                (1..7).forEach { day ->
+                    FilterChip(
+                        selected = day in weekDays,
+                        onClick = {
+                            onWeekDaysChange(if (day in weekDays) weekDays - day else weekDays + day)
+                        },
+                        label = { Text(weekDayLabel(day)) },
+                    )
+                }
+            }
+
+            MiuixSmallTitle(stringResource(R.string.notification_rule_section_device), modifier = Modifier.padding(top = 4.dp))
+            CheckboxPreference(
+                title = stringResource(R.string.notification_rule_screen_on),
+                checked = screenOn,
+                onCheckedChange = onScreenOnChange,
+            )
+            CheckboxPreference(
+                title = stringResource(R.string.notification_rule_screen_off),
+                checked = screenOff,
+                onCheckedChange = onScreenOffChange,
+            )
+            CheckboxPreference(
+                title = stringResource(R.string.notification_rule_charge_battery),
+                checked = chargeBattery,
+                onCheckedChange = onChargeBatteryChange,
+            )
+            CheckboxPreference(
+                title = stringResource(R.string.notification_rule_charge_wired),
+                checked = chargeWired,
+                onCheckedChange = onChargeWiredChange,
+            )
+            CheckboxPreference(
+                title = stringResource(R.string.notification_rule_charge_wireless),
+                checked = chargeWireless,
+                onCheckedChange = onChargeWirelessChange,
             )
         }
-    }
-
-    MiuixSmallTitle(stringResource(R.string.notification_rule_section_device), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth().clickable { onScreenOnChange(!screenOn) }) {
-        Checkbox(checked = screenOn, onCheckedChange = onScreenOnChange)
-        Text(
-            stringResource(R.string.notification_rule_screen_on),
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-    }
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { onScreenOffChange(!screenOff) }) {
-        Checkbox(checked = screenOff, onCheckedChange = onScreenOffChange)
-        Text(
-            stringResource(R.string.notification_rule_screen_off),
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-    }
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { onChargeBatteryChange(!chargeBattery) }) {
-        Checkbox(checked = chargeBattery, onCheckedChange = onChargeBatteryChange)
-        Text(
-            stringResource(R.string.notification_rule_charge_battery),
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-    }
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { onChargeWiredChange(!chargeWired) }) {
-        Checkbox(checked = chargeWired, onCheckedChange = onChargeWiredChange)
-        Text(
-            stringResource(R.string.notification_rule_charge_wired),
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-    }
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { onChargeWirelessChange(!chargeWireless) }) {
-        Checkbox(checked = chargeWireless, onCheckedChange = onChargeWirelessChange)
-        Text(
-            stringResource(R.string.notification_rule_charge_wireless),
-            color = MaterialTheme.colorScheme.onSurface,
-        )
     }
 }
 

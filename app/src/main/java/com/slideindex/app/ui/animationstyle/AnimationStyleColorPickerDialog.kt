@@ -1,28 +1,9 @@
 package com.slideindex.app.ui.animationstyle
 
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import com.slideindex.app.ui.miuix.MiuixFormDialog
-import com.slideindex.app.ui.miuix.MiuixLabeledTextField
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -30,18 +11,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import kotlin.math.roundToInt
-import com.github.skydoves.colorpicker.compose.HsvColorPicker
-import com.github.skydoves.colorpicker.compose.rememberColorPickerController
 import com.slideindex.app.R
+import com.slideindex.app.ui.miuix.MiuixFormDialog
+import com.slideindex.app.ui.miuix.MiuixLabeledTextField
+import top.yukonga.miuix.kmp.basic.ColorPalette
 import top.yukonga.miuix.kmp.basic.Text as MiuixText
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
@@ -51,45 +28,19 @@ fun AnimationStyleColorPickerDialog(
     onDismissRequest: () -> Unit,
     onColorPicked: (Int) -> Unit,
 ) {
-    val colorController = rememberColorPickerController()
-    var alpha by remember(initialColor) { mutableIntStateOf(android.graphics.Color.alpha(initialColor)) }
+    var currentColorArgb by remember(initialColor) { mutableIntStateOf(initialColor) }
     var hexInput by remember(initialColor) { mutableStateOf(formatArgbHex(initialColor)) }
     var hexError by remember { mutableStateOf(false) }
-
-    fun combinedColor(): Int {
-        val rgb = colorController.selectedColor.value.toArgb() and 0x00FFFFFF
-        return (alpha shl 24) or rgb
-    }
-
-    fun applyCombinedColor(argb: Int, fromUser: Boolean) {
-        alpha = android.graphics.Color.alpha(argb)
-        val opaqueRgb = (argb and 0x00FFFFFF) or 0xFF000000.toInt()
-        colorController.selectByColor(Color(opaqueRgb), fromUser = fromUser)
-        hexInput = formatArgbHex(argb)
-        hexError = false
-    }
-
-    LaunchedEffect(initialColor) {
-        applyCombinedColor(initialColor, fromUser = false)
-    }
-
-    fun resolvedColor(): Int? {
-        parseHexColor(hexInput)?.let { return it }
-        return if (hexInput.isBlank()) {
-            combinedColor()
-        } else {
-            null
-        }
-    }
 
     MiuixFormDialog(
         show = true,
         onDismissRequest = onDismissRequest,
         title = stringResource(R.string.animation_style_color_picker_title),
         onConfirm = {
-            val picked = resolvedColor()
-            if (picked != null) {
-                onColorPicked(picked)
+            val parsed = parseHexColor(hexInput)
+            val finalColor = if (hexInput.isBlank()) currentColorArgb else parsed
+            if (finalColor != null) {
+                onColorPicked(finalColor)
                 onDismissRequest()
             } else {
                 hexError = true
@@ -97,182 +48,48 @@ fun AnimationStyleColorPickerDialog(
         },
         dismissOnConfirm = false,
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            HsvColorPicker(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(1f),
-                controller = colorController,
-                onColorChanged = {
-                    hexInput = formatArgbHex(combinedColor())
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            ColorPalette(
+                color = Color(currentColorArgb),
+                onColorChanged = { newColor ->
+                    val argb = newColor.toArgb()
+                    currentColorArgb = argb
+                    hexInput = formatArgbHex(argb)
                     hexError = false
                 },
+                modifier = Modifier.fillMaxWidth(),
             )
-            AlphaSliderRow(
-                alpha = alpha,
-                rgbArgb = colorController.selectedColor.value.toArgb() and 0x00FFFFFF,
-                onAlphaChange = { newAlpha ->
-                    alpha = newAlpha
-                    hexInput = formatArgbHex(combinedColor())
-                    hexError = false
-                },
-            )
-            Row(
+
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
             ) {
-                ColorPreviewSwatch(
-                    color = parseHexColor(hexInput)?.let { Color(it) }
-                        ?: Color(combinedColor()),
+                MiuixLabeledTextField(
+                    value = hexInput,
+                    onValueChange = { raw ->
+                        hexInput = sanitizeHexInput(raw)
+                        val parsed = parseHexColor(hexInput)
+                        if (parsed != null) {
+                            currentColorArgb = parsed
+                            hexError = false
+                        } else {
+                            hexError = false
+                        }
+                    },
+                    label = stringResource(R.string.animation_style_color_hex_label),
                 )
-                Column(
-                    modifier = Modifier
-                        .padding(start = 12.dp)
-                        .weight(1f),
-                ) {
-                    MiuixLabeledTextField(
-                        value = hexInput,
-                        onValueChange = { raw ->
-                            hexInput = sanitizeHexInput(raw)
-                            val parsed = parseHexColor(hexInput)
-                            if (parsed != null) {
-                                applyCombinedColor(parsed, fromUser = true)
-                            } else {
-                                hexError = false
-                            }
-                        },
-                        label = stringResource(R.string.animation_style_color_hex_label),
-                    )
-                    if (hexError) {
-                        MiuixText(
-                            text = stringResource(R.string.animation_style_color_hex_invalid),
-                            style = MiuixTheme.textStyles.subtitle,
-                            color = MiuixTheme.colorScheme.error,
-                            modifier = Modifier.padding(top = 4.dp),
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun ColorPreviewSwatch(color: Color) {
-    Box(
-        modifier = Modifier
-            .size(36.dp)
-            .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape)
-            .clip(CircleShape),
-    ) {
-        CheckerboardBackground(modifier = Modifier.fillMaxSize())
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(color),
-        )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun AlphaSliderRow(
-    alpha: Int,
-    rgbArgb: Int,
-    onAlphaChange: (Int) -> Unit,
-) {
-    val opaqueColor = Color((0xFF000000L or rgbArgb.toLong()).toInt())
-    val trackHeight = 4.dp
-    val trackShape = RoundedCornerShape(trackHeight / 2)
-    val sliderColors = SliderDefaults.colors(
-        activeTrackColor = Color.Transparent,
-        inactiveTrackColor = Color.Transparent,
-        disabledActiveTrackColor = Color.Transparent,
-        disabledInactiveTrackColor = Color.Transparent,
-    )
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 12.dp),
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = stringResource(R.string.animation_style_color_alpha_label),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.weight(1f),
-            )
-            Text(
-                text = "$alpha / 255",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        Slider(
-            value = alpha.toFloat(),
-            onValueChange = { onAlphaChange(it.roundToInt().coerceIn(0, 255)) },
-            valueRange = 0f..255f,
-            modifier = Modifier.fillMaxWidth(),
-            colors = sliderColors,
-            track = { sliderState ->
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(trackHeight),
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .clip(trackShape),
-                    ) {
-                        CheckerboardBackground(modifier = Modifier.fillMaxSize())
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(
-                                    Brush.horizontalGradient(
-                                        colors = listOf(
-                                            opaqueColor.copy(alpha = 0f),
-                                            opaqueColor,
-                                        ),
-                                    ),
-                                ),
-                        )
-                    }
-                    SliderDefaults.Track(
-                        sliderState = sliderState,
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = sliderColors,
-                        drawStopIndicator = null,
-                        thumbTrackGapSize = 0.dp,
-                        trackInsideCornerSize = trackHeight / 2,
+                if (hexError) {
+                    MiuixText(
+                        text = stringResource(R.string.animation_style_color_hex_invalid),
+                        style = MiuixTheme.textStyles.subtitle,
+                        color = MiuixTheme.colorScheme.error,
+                        modifier = Modifier.padding(top = 4.dp),
                     )
                 }
-            },
-        )
-    }
-}
-
-@Composable
-private fun CheckerboardBackground(modifier: Modifier = Modifier) {
-    Canvas(modifier = modifier) {
-        val cellSize = 6.dp.toPx()
-        val light = Color(0xFFE0E0E0)
-        val dark = Color(0xFFBDBDBD)
-        val cols = (size.width / cellSize).toInt() + 1
-        val rows = (size.height / cellSize).toInt() + 1
-        for (row in 0 until rows) {
-            for (col in 0 until cols) {
-                drawRect(
-                    color = if ((row + col) % 2 == 0) light else dark,
-                    topLeft = Offset(col * cellSize, row * cellSize),
-                    size = Size(cellSize, cellSize),
-                )
             }
         }
     }

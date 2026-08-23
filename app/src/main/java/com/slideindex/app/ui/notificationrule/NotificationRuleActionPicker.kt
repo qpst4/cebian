@@ -1,7 +1,5 @@
 package com.slideindex.app.ui.notificationrule
 
-import com.slideindex.app.ui.miuix.MiuixLabeledTextField
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -9,7 +7,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -23,50 +20,52 @@ import com.slideindex.app.R
 import com.slideindex.app.notification.NotificationFilterRule
 import com.slideindex.app.notification.NotificationRuleActionType
 import com.slideindex.app.notification.RuleActionEntry
+import com.slideindex.app.ui.miuix.MiuixLabeledTextField
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.preference.CheckboxPreference
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
 internal fun NotificationRuleActionPicker(
     actionEntries: List<RuleActionEntry>,
     onActionEntriesChange: (List<RuleActionEntry>) -> Unit,
 ) {
-    MiuixSmallTitle(stringResource(R.string.notification_rule_actions))
-    NotificationRuleActionType.entries.forEach { type ->
-        val selected = actionEntries.any { it.type == type }
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable {
-                    onActionEntriesChange(
-                        if (selected) {
-                            actionEntries.filterNot { it.type == type }
-                        } else {
-                            actionEntries + NotificationFilterRule.defaultAction(type)
-                        },
-                    )
-                },
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(
+            modifier = Modifier.padding(vertical = 8.dp),
         ) {
-            Checkbox(
-                checked = selected,
-                onCheckedChange = { enabled ->
-                    onActionEntriesChange(
-                        if (enabled) {
-                            actionEntries + NotificationFilterRule.defaultAction(type)
-                        } else {
-                            actionEntries.filterNot { it.type == type }
+            MiuixSmallTitle(
+                stringResource(R.string.notification_rule_actions),
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            )
+            NotificationRuleActionType.entries.forEach { type ->
+                val selected = actionEntries.any { it.type == type }
+                CheckboxPreference(
+                    title = actionTypeLabel(type),
+                    checked = selected,
+                    onCheckedChange = { enabled ->
+                        onActionEntriesChange(
+                            if (enabled) {
+                                actionEntries + NotificationFilterRule.defaultAction(type)
+                            } else {
+                                actionEntries.filterNot { it.type == type }
+                            },
+                        )
+                    },
+                )
+                if (selected) {
+                    ActionConfigFields(
+                        entry = actionEntries.first { it.type == type },
+                        onChange = { updated ->
+                            onActionEntriesChange(actionEntries.map { if (it.type == type) updated else it })
                         },
                     )
-                },
-            )
-            Text(actionTypeLabel(type))
-        }
-        if (selected) {
-            ActionConfigFields(
-                entry = actionEntries.first { it.type == type },
-                onChange = { updated ->
-                    onActionEntriesChange(actionEntries.map { if (it.type == type) updated else it })
-                },
-            )
+                }
+            }
         }
     }
 }
@@ -79,7 +78,7 @@ private fun ActionConfigFields(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 32.dp, bottom = 8.dp),
+            .padding(start = 16.dp, end = 16.dp, bottom = 8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         when (entry.type) {
@@ -89,13 +88,11 @@ private fun ActionConfigFields(
                     onValueChange = { onChange(entry.copy(delayTimeMs = it.toLongOrNull() ?: 0)) },
                     label = stringResource(R.string.notification_rule_action_delay),
                 )
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Checkbox(
-                        checked = entry.includeOngoing,
-                        onCheckedChange = { onChange(entry.copy(includeOngoing = it)) },
-                    )
-                    Text(stringResource(R.string.notification_rule_action_include_ongoing))
-                }
+                CheckboxPreference(
+                    title = stringResource(R.string.notification_rule_action_include_ongoing),
+                    checked = entry.includeOngoing,
+                    onCheckedChange = { onChange(entry.copy(includeOngoing = it)) },
+                )
             }
             NotificationRuleActionType.LATER -> {
                 MiuixLabeledTextField(

@@ -1,11 +1,10 @@
-﻿package com.slideindex.app.ui
+package com.slideindex.app.ui
 
 
 
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.Spacer
-
 import androidx.compose.foundation.layout.height
-
 import androidx.compose.foundation.layout.size
 
 import androidx.compose.material.icons.Icons
@@ -16,8 +15,6 @@ import androidx.compose.material.icons.outlined.Animation
 
 import androidx.compose.material.icons.outlined.Brush
 
-import androidx.compose.material3.AlertDialog
-
 import androidx.compose.material3.ExperimentalMaterial3Api
 
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -25,8 +22,6 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 
 import androidx.compose.material3.Text
-
-import androidx.compose.material3.TextButton
 
 import androidx.compose.runtime.Composable
 
@@ -520,35 +515,63 @@ private fun AlignOppositeGesturesMirrorDialog(
 
     val oppositeSideLabel = horizontalGestureSideLabel(currentSide.opposite())
 
-    AlertDialog(
+
+
+    top.yukonga.miuix.kmp.window.WindowDialog(
+
+        show = true,
 
         onDismissRequest = onDismiss,
 
-        title = { Text(stringResource(R.string.align_opposite_gestures_mirror_title)) },
+        title = stringResource(R.string.align_opposite_gestures_mirror_title),
 
-        text = { Text(stringResource(R.string.align_opposite_gestures_mirror_message)) },
+        summary = stringResource(R.string.align_opposite_gestures_mirror_message),
 
-        confirmButton = {
+    ) {
 
-            TextButton(onClick = onCopyCurrentToOpposite) {
+        androidx.compose.foundation.layout.Column(
 
-                Text(stringResource(R.string.align_opposite_gestures_use_this_side, currentSideLabel))
+            modifier = Modifier.fillMaxWidth(),
 
-            }
+            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(12.dp),
 
-        },
+        ) {
 
-        dismissButton = {
+            top.yukonga.miuix.kmp.basic.TextButton(
 
-            TextButton(onClick = onCopyOppositeToCurrent) {
+                text = stringResource(R.string.align_opposite_gestures_use_this_side, currentSideLabel),
 
-                Text(stringResource(R.string.align_opposite_gestures_use_opposite_side, oppositeSideLabel))
+                onClick = onCopyCurrentToOpposite,
 
-            }
+                modifier = Modifier.fillMaxWidth(),
 
-        },
+                colors = top.yukonga.miuix.kmp.basic.ButtonDefaults.textButtonColorsPrimary(),
 
-    )
+            )
+
+            top.yukonga.miuix.kmp.basic.TextButton(
+
+                text = stringResource(R.string.align_opposite_gestures_use_opposite_side, oppositeSideLabel),
+
+                onClick = onCopyOppositeToCurrent,
+
+                modifier = Modifier.fillMaxWidth(),
+
+            )
+
+            top.yukonga.miuix.kmp.basic.TextButton(
+
+                text = stringResource(android.R.string.cancel),
+
+                onClick = onDismiss,
+
+                modifier = Modifier.fillMaxWidth(),
+
+            )
+
+        }
+
+    }
 
 }
 

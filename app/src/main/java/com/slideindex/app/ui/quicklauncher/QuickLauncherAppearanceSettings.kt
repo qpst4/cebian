@@ -10,7 +10,6 @@ import com.slideindex.app.ui.miuix.CardItem
 import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.SETTINGS_SLIDER_PERCENT_KEY_POINTS_100
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
-import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import kotlin.math.roundToInt
 
 @Composable
@@ -18,8 +17,32 @@ fun quickLauncherAppearanceCardItems(
     display: QuickLauncherDisplaySettings,
     enabled: Boolean,
     onDisplayChange: (QuickLauncherDisplaySettings) -> Unit,
-): Pair<List<CardItem>, List<CardItem>> {
-    val appearanceItems = buildList {
+): List<CardItem> {
+    return buildList {
+        val shapes = listOf(
+            QuickLauncherDisplaySettings.ICON_SHAPE_DEFAULT,
+            QuickLauncherDisplaySettings.ICON_SHAPE_CIRCLE,
+            QuickLauncherDisplaySettings.ICON_SHAPE_ADAPTIVE,
+        )
+        add(
+            settingsCardScopeItem("icon-shape") {
+                SettingDropdownRow(
+                    title = stringResource(R.string.quick_launcher_icon_shape_section),
+                    items = listOf(
+                        stringResource(R.string.quick_launcher_icon_shape_default),
+                        stringResource(R.string.quick_launcher_icon_shape_circle),
+                        stringResource(R.string.quick_launcher_icon_shape_adaptive),
+                    ),
+                    selectedIndex = shapes.indexOf(
+                        QuickLauncherDisplaySettings.coerceIconShape(display.iconShape),
+                    ).coerceAtLeast(0),
+                    enabled = enabled,
+                    onSelectedIndexChange = { index ->
+                        onDisplayChange(display.copy(iconShape = shapes[index]))
+                    },
+                )
+            },
+        )
         add(
             settingsCardScopeItem("icon-size") {
                 SettingsSliderRow(
@@ -85,45 +108,10 @@ fun quickLauncherAppearanceCardItems(
             },
         )
     }
-    val shapeItems = buildList {
-        val shapes = listOf(
-            QuickLauncherDisplaySettings.ICON_SHAPE_DEFAULT,
-            QuickLauncherDisplaySettings.ICON_SHAPE_CIRCLE,
-            QuickLauncherDisplaySettings.ICON_SHAPE_ADAPTIVE,
-        )
-        add(
-            settingsCardScopeItem("icon-shape") {
-                SettingDropdownRow(
-                    title = stringResource(R.string.quick_launcher_icon_shape_section),
-                    items = listOf(
-                        stringResource(R.string.quick_launcher_icon_shape_default),
-                        stringResource(R.string.quick_launcher_icon_shape_circle),
-                        stringResource(R.string.quick_launcher_icon_shape_adaptive),
-                    ),
-                    selectedIndex = shapes.indexOf(
-                        QuickLauncherDisplaySettings.coerceIconShape(display.iconShape),
-                    ).coerceAtLeast(0),
-                    enabled = enabled,
-                    onSelectedIndexChange = { index ->
-                        onDisplayChange(display.copy(iconShape = shapes[index]))
-                    },
-                )
-            },
-        )
-    }
-    return appearanceItems to shapeItems
 }
 
 fun androidx.compose.foundation.lazy.LazyListScope.quickLauncherAppearanceSettingsSection(
     appearanceItems: List<CardItem>,
-    shapeItems: List<CardItem>,
-    iconShapeSectionTitle: String,
 ) {
     groupedCardItems("quick-launcher-appearance", appearanceItems)
-    settingsLazySmallTitle(
-        key = "quick-launcher-icon-shape",
-        title = iconShapeSectionTitle,
-        sectionTop = true,
-    )
-    groupedCardItems("quick-launcher-icon-shape", shapeItems)
 }

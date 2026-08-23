@@ -42,11 +42,9 @@ import com.slideindex.app.R
 import com.slideindex.app.launcher.QuickLauncherPanel
 import com.slideindex.app.launcher.QuickLauncherPanelDefaults
 import com.slideindex.app.launcher.QuickLauncherPanelMutator
-import com.slideindex.app.ui.SettingsSliderRow
+import com.slideindex.app.ui.miuix.MiuixSliderRow
 import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import com.slideindex.app.ui.miuix.MiuixTabRowWithContour
-import com.slideindex.app.ui.settings.components.SettingsCardScope
-import com.slideindex.app.ui.settings.components.settingsCardItems
 import top.yukonga.miuix.kmp.basic.Card
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -146,59 +144,77 @@ fun QuickLauncherPanelManagementSection(
         val displayName = currentPanel.name.ifBlank {
             stringResource(R.string.quick_launcher_panel_default_name, safeIndex + 1)
         }
-        val panelCard = settingsCardItems(currentPanel) {
-            PanelLayoutSliders(
-                panel = currentPanel,
-                onPanelChange = { updatePanel(safeIndex, it) },
-            )
-        }
-        Row(
+
+        Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 24.dp, end = 16.dp, top = 8.dp, bottom = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
+                .padding(horizontal = 12.dp),
         ) {
-            Text(
-                text = displayName,
+            Row(
                 modifier = Modifier
-                    .weight(1f)
-                    .clickable {
-                        renameTarget = currentPanel
-                        renameText = currentPanel.name
-                    }
-                    .padding(vertical = 8.dp),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            IconButton(
-                enabled = panels.size < QuickLauncherPanelDefaults.MAX_PANELS,
-                onClick = {
-                    val added = QuickLauncherPanelMutator.addPanel(
-                        panels = latestPanels,
-                        defaultColumns = defaultColumns,
-                        defaultRows = defaultRows,
-                    ) ?: return@IconButton
-                    onPanelsChange(added)
-                    onSelectedIndexChange(added.lastIndex)
-                },
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(
-                    Icons.Default.Add,
-                    contentDescription = stringResource(R.string.quick_launcher_panel_add),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                Text(
+                    text = displayName,
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable {
+                            renameTarget = currentPanel
+                            renameText = currentPanel.name
+                        }
+                        .padding(vertical = 8.dp),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
+                IconButton(
+                    enabled = panels.size < QuickLauncherPanelDefaults.MAX_PANELS,
+                    onClick = {
+                        val added = QuickLauncherPanelMutator.addPanel(
+                            panels = latestPanels,
+                            defaultColumns = defaultColumns,
+                            defaultRows = defaultRows,
+                        ) ?: return@IconButton
+                        onPanelsChange(added)
+                        onSelectedIndexChange(added.lastIndex)
+                    },
+                ) {
+                    Icon(
+                        Icons.Default.Add,
+                        contentDescription = stringResource(R.string.quick_launcher_panel_add),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                WindowIconDropdownMenu(entry = panelMenuEntry) {
+                    MiuixIcon(
+                        Icons.Default.MoreVert,
+                        contentDescription = renameLabel,
+                        tint = MiuixTheme.colorScheme.onBackground,
+                    )
+                }
             }
-            WindowIconDropdownMenu(entry = panelMenuEntry) {
-                MiuixIcon(
-                    Icons.Default.MoreVert,
-                    contentDescription = renameLabel,
-                    tint = MiuixTheme.colorScheme.onBackground,
-                )
-            }
+            MiuixSliderRow(
+                title = stringResource(R.string.quick_launcher_grid_columns),
+                value = currentPanel.columnsPerPage.toFloat(),
+                valueRange = 2f..6f,
+                steps = 3,
+                enabled = true,
+                label = stringResource(R.string.quick_launcher_grid_columns_label, currentPanel.columnsPerPage),
+                onValueChange = { updatePanel(safeIndex, currentPanel.copy(columnsPerPage = it.toInt())) },
+            )
+            MiuixSliderRow(
+                title = stringResource(R.string.quick_launcher_grid_rows),
+                value = currentPanel.rowsPerPage.toFloat(),
+                valueRange = 2f..9f,
+                steps = 6,
+                enabled = true,
+                label = stringResource(R.string.quick_launcher_grid_rows_label, currentPanel.rowsPerPage),
+                onValueChange = { updatePanel(safeIndex, currentPanel.copy(rowsPerPage = it.toInt())) },
+            )
         }
-        panelCard.RenderRows()
     }
 
     MiuixFormDialog(
@@ -240,30 +256,5 @@ fun QuickLauncherPanelManagementSection(
             }
             deleteTarget = null
         },
-    )
-}
-
-@Composable
-private fun SettingsCardScope.PanelLayoutSliders(
-    panel: QuickLauncherPanel,
-    onPanelChange: (QuickLauncherPanel) -> Unit,
-) {
-    SettingsSliderRow(
-        title = stringResource(R.string.quick_launcher_grid_columns),
-        value = panel.columnsPerPage.toFloat(),
-        valueRange = 2f..6f,
-        steps = 3,
-        enabled = true,
-        label = stringResource(R.string.quick_launcher_grid_columns_label, panel.columnsPerPage),
-        onValueChange = { onPanelChange(panel.copy(columnsPerPage = it.toInt())) },
-    )
-    SettingsSliderRow(
-        title = stringResource(R.string.quick_launcher_grid_rows),
-        value = panel.rowsPerPage.toFloat(),
-        valueRange = 2f..9f,
-        steps = 6,
-        enabled = true,
-        label = stringResource(R.string.quick_launcher_grid_rows_label, panel.rowsPerPage),
-        onValueChange = { onPanelChange(panel.copy(rowsPerPage = it.toInt())) },
     )
 }

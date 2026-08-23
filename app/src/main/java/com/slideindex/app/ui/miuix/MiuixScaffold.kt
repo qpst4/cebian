@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
@@ -89,7 +90,7 @@ fun MiuixListScaffold(
     val barBackdrop = rememberMiuixBlurBackdrop()
     val contentStartInset = LocalMainNavContentStartInset.current
     Scaffold(
-        modifier = modifier,
+        modifier = modifier.imePadding(),
         topBar = {
             Box(
                 Modifier
@@ -169,7 +170,9 @@ fun MiuixSettingsScreenScaffold(
     val contentStartInset = LocalMainNavContentStartInset.current
     CompositionLocalProvider(LocalMiuixScreenBackdrop provides barBackdrop) {
         Scaffold(
-            modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+            modifier = modifier
+                .nestedScroll(scrollBehavior.nestedScrollConnection)
+                .imePadding(),
             topBar = {
                 Box(
                     Modifier

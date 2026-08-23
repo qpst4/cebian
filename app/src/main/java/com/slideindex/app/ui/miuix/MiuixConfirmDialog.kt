@@ -1,8 +1,10 @@
 package com.slideindex.app.ui.miuix
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -100,9 +102,13 @@ fun MiuixFormDialog(
     val density = LocalDensity.current
     val windowHeightPx = LocalWindowInfo.current.containerSize.height
     val imeBottomPx = WindowInsets.ime.getBottom(density)
-    // 键盘弹出后限制可滚动区高度，避免色盘等大内容把 Hex 顶出可视区且无法滚动。
     val maxScrollHeight = with(density) {
-        ((windowHeightPx - imeBottomPx) * 0.72f).toDp().coerceAtLeast(160.dp)
+        val availableHeight = if (imeBottomPx > 0) {
+            (windowHeightPx - imeBottomPx) * 0.52f
+        } else {
+            windowHeightPx * 0.70f
+        }
+        availableHeight.toDp().coerceAtLeast(140.dp)
     }
 
     WindowDialog(
@@ -111,9 +117,7 @@ fun MiuixFormDialog(
         onDismissRequest = onDismissRequest,
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .imePadding(),
+            modifier = Modifier.fillMaxWidth(),
         ) {
             Column(
                 modifier = Modifier
@@ -123,7 +127,7 @@ fun MiuixFormDialog(
             ) {
                 content()
             }
-            Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(16.dp))
             if (dismissText != null) {
                 DialogActionsRow(
                     dismissText = dismissText,
@@ -146,7 +150,11 @@ fun MiuixFormDialog(
                             onDismissRequest()
                         }
                     },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .defaultMinSize(minHeight = 44.dp),
+                    minHeight = 44.dp,
+                    insideMargin = PaddingValues(horizontal = 16.dp, vertical = 10.dp),
                     colors = ButtonDefaults.textButtonColorsPrimary(),
                 )
             }
@@ -193,26 +201,41 @@ private fun DialogActionsRow(
     secondaryConfirmText: String? = null,
     onSecondaryConfirm: (() -> Unit)? = null,
 ) {
-    Row(modifier = Modifier.fillMaxWidth()) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+    ) {
         if (secondaryConfirmText != null && onSecondaryConfirm != null) {
             TextButton(
                 text = secondaryConfirmText,
                 onClick = onSecondaryConfirm,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier
+                    .weight(1f)
+                    .defaultMinSize(minHeight = 44.dp),
+                minHeight = 44.dp,
+                insideMargin = PaddingValues(horizontal = 12.dp, vertical = 10.dp),
             )
             Spacer(Modifier.width(12.dp))
         }
         TextButton(
             text = dismissText,
             onClick = onDismissRequest,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier
+                .weight(1f)
+                .defaultMinSize(minHeight = 44.dp),
+            minHeight = 44.dp,
+            insideMargin = PaddingValues(horizontal = 12.dp, vertical = 10.dp),
         )
         Spacer(Modifier.width(12.dp))
         TextButton(
             text = confirmText,
             onClick = onConfirm,
             enabled = confirmEnabled,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier
+                .weight(1f)
+                .defaultMinSize(minHeight = 44.dp),
+            minHeight = 44.dp,
+            insideMargin = PaddingValues(horizontal = 12.dp, vertical = 10.dp),
             colors = ButtonDefaults.textButtonColorsPrimary(),
         )
     }

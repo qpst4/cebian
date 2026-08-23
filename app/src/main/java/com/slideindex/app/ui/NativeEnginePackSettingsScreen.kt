@@ -1,6 +1,5 @@
 package com.slideindex.app.ui
 
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,14 +7,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Download
-import androidx.compose.material3.Button
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,11 +18,20 @@ import com.slideindex.app.nativeengine.NativeEnginePackDownloadState
 import com.slideindex.app.ui.viewmodel.NativeEnginePackRowState
 import com.slideindex.app.nativeengine.NativeEnginePackIds
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingSwitchRow
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import com.slideindex.app.ui.settings.components.settingsCardItems
+import com.slideindex.app.ui.settings.components.settingsCardScopeItem
+import com.slideindex.app.ui.settings.components.settingsLazyHint
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.LinearProgressIndicator
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 import java.util.Locale
 import kotlin.math.roundToInt
 
@@ -46,6 +46,7 @@ fun NativeEnginePackSettingsScreen(
     onWifiOnlyChange: (Boolean) -> Unit,
 ) {
     val packsSectionTitle = stringResource(R.string.native_engine_packs_section)
+    val packsHint = stringResource(R.string.native_engine_packs_hint)
 
     val downloadHeaderCard = settingsCardItems(settings.ocrDownloadWifiOnly, downloadState) {
         SettingSwitchRow(
@@ -76,42 +77,27 @@ fun NativeEnginePackSettingsScreen(
 
         settingsLazySmallTitle(key = "native-engine-packs-section", title = packsSectionTitle, sectionTop = true)
 
-        LazySettingsItem(key = "native-engine-packs") {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Surface(
-                    shape = MaterialTheme.shapes.large,
-                    tonalElevation = 1.dp,
-                ) {
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        packRows.forEachIndexed { index, row ->
-                            NativeEnginePackRow(
-                                row = row,
-                                downloading = downloadState?.packId == row.entry.id &&
-                                    downloadState.phase != NativeEnginePackDownloadPhase.READY &&
-                                    downloadState.phase != NativeEnginePackDownloadPhase.FAILED &&
-                                    downloadState.phase != NativeEnginePackDownloadPhase.CANCELLED,
-                                onDownload = { onDownloadPack(row.entry.id) },
-                                onDelete = { onDeletePack(row.entry.id) },
-                            )
-                            if (index < packRows.lastIndex) {
-                                Spacer(modifier = Modifier.height(1.dp))
-                            }
-                        }
-                    }
+        groupedCardItems(
+            keyPrefix = "native-engine-packs",
+            items = packRows.map { row ->
+                com.slideindex.app.ui.miuix.CardItem("pack-${row.entry.id}") {
+                    NativeEnginePackRow(
+                        row = row,
+                        downloading = downloadState?.packId == row.entry.id &&
+                            downloadState.phase != NativeEnginePackDownloadPhase.READY &&
+                            downloadState.phase != NativeEnginePackDownloadPhase.FAILED &&
+                            downloadState.phase != NativeEnginePackDownloadPhase.CANCELLED,
+                        onDownload = { onDownloadPack(row.entry.id) },
+                        onDelete = { onDeletePack(row.entry.id) },
+                    )
                 }
+            },
+        )
 
-                Text(
-                    text = stringResource(R.string.native_engine_packs_hint),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
+        settingsLazyHint(
+            key = "native-engine-packs-hint",
+            text = packsHint,
+        )
     }
 }
 
@@ -123,48 +109,58 @@ private fun NativeEnginePackRow(
     onDelete: () -> Unit,
 ) {
     val pack = row.entry
-    Column(modifier = Modifier.padding(16.dp)) {
-        Text(
-            text = packTitle(pack.id),
-            style = MaterialTheme.typography.titleMedium,
-        )
-        Text(
-            text = stringResource(
-                R.string.native_engine_pack_size,
-                formatMegabytes(pack.sizeBytes),
-            ),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Text(
-            text = nativeEnginePackVersionStatusText(
-                installed = row.installed,
-                installedRevision = row.installedRevision,
-                installedDisplayVersion = row.installedDisplayVersion,
-                latestRevision = pack.packRevision,
-                latestDisplayVersion = pack.displayVersion,
-                updateAvailable = row.updateAvailable,
-            ),
-            style = MaterialTheme.typography.bodySmall,
-            color = when {
-                row.updateAvailable -> MaterialTheme.colorScheme.tertiary
-                row.installed -> MaterialTheme.colorScheme.primary
-                else -> MaterialTheme.colorScheme.onSurfaceVariant
-            },
-        )
-        Spacer(modifier = Modifier.height(12.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            if (!row.installed) {
-                Button(
-                    onClick = onDownload,
-                    enabled = !downloading,
-                ) {
-                    Text(stringResource(R.string.native_engine_pack_download))
-                }
-            } else {
-                OutlinedButton(onClick = onDelete, enabled = !downloading) {
-                    Text(stringResource(R.string.native_engine_pack_delete))
-                }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = packTitle(pack.id),
+                style = MiuixTheme.textStyles.title4,
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = stringResource(
+                    R.string.native_engine_pack_size,
+                    formatMegabytes(pack.sizeBytes),
+                ),
+                style = MiuixTheme.textStyles.body2,
+                color = MiuixTheme.colorScheme.onSurfaceSecondary,
+            )
+            Text(
+                text = nativeEnginePackVersionStatusText(
+                    installed = row.installed,
+                    installedRevision = row.installedRevision,
+                    installedDisplayVersion = row.installedDisplayVersion,
+                    latestRevision = pack.packRevision,
+                    latestDisplayVersion = pack.displayVersion,
+                    updateAvailable = row.updateAvailable,
+                ),
+                style = MiuixTheme.textStyles.body2,
+                color = when {
+                    row.updateAvailable -> MiuixTheme.colorScheme.primary
+                    row.installed -> MiuixTheme.colorScheme.primary
+                    else -> MiuixTheme.colorScheme.onSurfaceSecondary
+                },
+            )
+        }
+        if (!row.installed) {
+            Button(
+                onClick = onDownload,
+                enabled = !downloading,
+                colors = ButtonDefaults.buttonColorsPrimary(),
+            ) {
+                Text(stringResource(R.string.native_engine_pack_download))
+            }
+        } else {
+            Button(
+                onClick = onDelete,
+                enabled = !downloading,
+            ) {
+                Text(stringResource(R.string.native_engine_pack_delete))
             }
         }
     }
@@ -172,9 +168,7 @@ private fun NativeEnginePackRow(
 
 @Composable
 private fun NativeEnginePackDownloadProgressCard(state: NativeEnginePackDownloadState) {
-    Surface(
-        shape = MaterialTheme.shapes.large,
-        tonalElevation = 2.dp,
+    Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp),
@@ -185,15 +179,15 @@ private fun NativeEnginePackDownloadProgressCard(state: NativeEnginePackDownload
         ) {
             Text(
                 text = packTitle(state.packId),
-                style = MaterialTheme.typography.titleSmall,
+                style = MiuixTheme.textStyles.title4,
             )
             Spacer(modifier = Modifier.height(8.dp))
             val progress = state.progress
             if (progress != null) {
-                LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth())
+                LinearProgressIndicator(progress = progress, modifier = Modifier.fillMaxWidth())
                 Text(
                     text = "${(progress * 100f).roundToInt()}%",
-                    style = MaterialTheme.typography.labelMedium,
+                    style = MiuixTheme.textStyles.subtitle,
                     modifier = Modifier.padding(top = 8.dp),
                 )
             } else {
@@ -202,8 +196,8 @@ private fun NativeEnginePackDownloadProgressCard(state: NativeEnginePackDownload
             state.errorMessage?.let { message ->
                 Text(
                     text = message,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error,
+                    style = MiuixTheme.textStyles.subtitle,
+                    color = MiuixTheme.colorScheme.error,
                     modifier = Modifier.padding(top = 8.dp),
                 )
             }

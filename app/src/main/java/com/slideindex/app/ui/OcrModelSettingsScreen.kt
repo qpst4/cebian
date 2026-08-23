@@ -1,6 +1,6 @@
 package com.slideindex.app.ui
 
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,17 +8,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Download
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,11 +21,23 @@ import com.slideindex.app.ocr.OcrModelDownloadStep
 import com.slideindex.app.ocr.OcrModelEntry
 import com.slideindex.app.nativeengine.NativeEnginePackVersionState
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingSwitchRow
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import com.slideindex.app.ui.settings.components.settingsCardItems
+import com.slideindex.app.ui.settings.components.settingsCardScopeItem
+import com.slideindex.app.ui.settings.components.settingsLazyHint
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
+import top.yukonga.miuix.kmp.basic.LinearProgressIndicator
+import top.yukonga.miuix.kmp.basic.RadioButton
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 import java.util.Locale
 import kotlin.math.roundToInt
 
@@ -59,6 +60,8 @@ fun OcrModelSettingsScreen(
     onWifiOnlyChange: (Boolean) -> Unit,
 ) {
     val modelsSectionTitle = stringResource(R.string.ocr_models_section_available)
+    val modelsHint = stringResource(R.string.ocr_models_hint)
+    val clearSelectionText = stringResource(R.string.ocr_models_clear_selection)
 
     val downloadHeaderCard = settingsCardItems(
         settings.ocrDownloadWifiOnly,
@@ -106,59 +109,46 @@ fun OcrModelSettingsScreen(
 
         settingsLazySmallTitle(key = "ocr-models-section", title = modelsSectionTitle, sectionTop = true)
 
-        LazySettingsItem(key = "ocr-models") {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                Surface(
-                    shape = MaterialTheme.shapes.large,
-                    tonalElevation = 1.dp,
-                ) {
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        catalogModels.forEachIndexed { index, model ->
-                            OcrModelRow(
-                                model = model,
-                                installed = model.id in installedModelIds,
-                                selected = settings.floatBallOcrModelId == model.id,
-                                downloading = downloadState?.modelId == model.id &&
-                                    downloadState.phase != OcrModelDownloadPhase.READY &&
-                                    downloadState.phase != OcrModelDownloadPhase.FAILED &&
-                                    downloadState.phase != OcrModelDownloadPhase.CANCELLED,
-                                onSelect = { onSelectModel(model.id) },
-                                onDownload = { onDownloadModel(model.id) },
-                                onDelete = { onDeleteModel(model.id) },
-                            )
-                            if (index < catalogModels.lastIndex) {
-                                Spacer(modifier = Modifier.height(1.dp))
-                            }
-                        }
-                    }
+        groupedCardItems(
+            keyPrefix = "ocr-models",
+            items = catalogModels.map { model ->
+                com.slideindex.app.ui.miuix.CardItem("model-${model.id}") {
+                    OcrModelRow(
+                        model = model,
+                        installed = model.id in installedModelIds,
+                        selected = settings.floatBallOcrModelId == model.id,
+                        downloading = downloadState?.modelId == model.id &&
+                            downloadState.phase != OcrModelDownloadPhase.READY &&
+                            downloadState.phase != OcrModelDownloadPhase.FAILED &&
+                            downloadState.phase != OcrModelDownloadPhase.CANCELLED,
+                        onSelect = { onSelectModel(model.id) },
+                        onDownload = { onDownloadModel(model.id) },
+                        onDelete = { onDeleteModel(model.id) },
+                    )
                 }
+            },
+        )
 
-                if (settings.floatBallOcrModelId.isNotBlank()) {
-                    TextButton(onClick = onClearSelectedModel) {
-                        Text(stringResource(R.string.ocr_models_clear_selection))
-                    }
-                }
-
-                Text(
-                    text = stringResource(R.string.ocr_models_hint),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+        if (settings.floatBallOcrModelId.isNotBlank()) {
+            LazySettingsItem(key = "ocr-clear-selection") {
+                TextButton(
+                    text = clearSelectionText,
+                    onClick = onClearSelectedModel,
+                    modifier = Modifier.padding(horizontal = 12.dp),
                 )
             }
         }
+
+        settingsLazyHint(
+            key = "ocr-models-hint",
+            text = modelsHint,
+        )
     }
 }
 
 @Composable
 private fun OcrModelDownloadProgressCard(state: OcrModelDownloadState) {
-    Surface(
-        shape = MaterialTheme.shapes.large,
-        tonalElevation = 2.dp,
+    Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp),
@@ -170,7 +160,7 @@ private fun OcrModelDownloadProgressCard(state: OcrModelDownloadState) {
             val fraction = state.progress
             if (fraction != null) {
                 LinearProgressIndicator(
-                    progress = { fraction.coerceIn(0f, 1f) },
+                    progress = fraction.coerceIn(0f, 1f),
                     modifier = Modifier.fillMaxWidth(),
                 )
             } else {
@@ -179,7 +169,7 @@ private fun OcrModelDownloadProgressCard(state: OcrModelDownloadState) {
             Spacer(modifier = Modifier.height(12.dp))
             Text(
                 text = ocrDownloadProgressLabel(state),
-                style = MaterialTheme.typography.bodyMedium,
+                style = MiuixTheme.textStyles.body1,
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -197,32 +187,41 @@ private fun OcrModelRow(
     onDownload: () -> Unit,
     onDelete: () -> Unit,
 ) {
-    val selectable = installed
+    val rowClickableModifier = if (installed) {
+        Modifier.clickable { onSelect() }
+    } else if (!downloading) {
+        Modifier.clickable { onDownload() }
+    } else {
+        Modifier
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 10.dp),
+            .then(rowClickableModifier)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         RadioButton(
             selected = selected,
-            onClick = if (selectable) onSelect else onDownload,
-            enabled = selectable,
+            onClick = null,
+            enabled = installed,
         )
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = ocrModelDisplayName(model.id),
-                style = MaterialTheme.typography.titleMedium,
+                style = MiuixTheme.textStyles.title4,
             )
+            Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = stringResource(
                     R.string.ocr_model_meta,
                     formatMegabytes(model.totalDownloadBytes),
                     ocrModelDisplayDescription(model.id),
                 ),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MiuixTheme.textStyles.body2,
+                color = MiuixTheme.colorScheme.onSurfaceSecondary,
             )
             Text(
                 text = when {
@@ -231,18 +230,21 @@ private fun OcrModelRow(
                     downloading -> stringResource(R.string.ocr_model_status_downloading)
                     else -> stringResource(R.string.ocr_model_status_not_installed)
                 },
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.primary,
+                style = MiuixTheme.textStyles.body2,
+                color = if (selected) MiuixTheme.colorScheme.primary else MiuixTheme.colorScheme.onSurfaceSecondary,
             )
         }
         if (installed) {
-            OutlinedButton(onClick = onDelete) {
+            Button(
+                onClick = onDelete,
+            ) {
                 Text(stringResource(R.string.ocr_model_delete))
             }
         } else {
             Button(
                 onClick = onDownload,
                 enabled = !downloading,
+                colors = ButtonDefaults.buttonColorsPrimary(),
             ) {
                 Text(stringResource(R.string.ocr_model_download))
             }

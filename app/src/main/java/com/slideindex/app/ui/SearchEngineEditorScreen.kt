@@ -24,17 +24,19 @@ import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Title
 import com.slideindex.app.ui.miuix.MiuixFormDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
+import top.yukonga.miuix.kmp.basic.Button as MiuixButton
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.CircularProgressIndicator as MiuixCircularProgressIndicator
+import top.yukonga.miuix.kmp.basic.TabRowWithContour
+import top.yukonga.miuix.kmp.basic.TextButton as MiuixTextButton
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import com.slideindex.app.ui.miuix.MiuixLabeledTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -267,11 +269,61 @@ fun SearchEngineEditorScreen(
         SearchEngineEditorSubScreen.Main -> Unit
     }
 
+    val saveAction: () -> Unit = {
+        val engine = if (isShareTextType) {
+            checkNotNull(initialEngine).copy(
+                name = name.trim(),
+                aliasCode = SearchPanelAliasResolver.normalizeAliasCode(aliasCode)
+                    .takeIf { it.isNotEmpty() },
+            )
+        } else {
+            buildEngine(
+                initialEngine = initialEngine,
+                name = name.trim(),
+                aliasCode = aliasCode,
+                engineType = engineType,
+                searchLink = searchLink.trim(),
+                externJumpLink = externJumpLink.trim(),
+                externJumpPackage = externJumpPackage.trim(),
+                targetPackage = targetPackage.trim(),
+                targetActivity = targetActivity.trim(),
+                autoInputEnter = autoInputEnter,
+                hasPendingIcon = pendingIconUri != null || pendingIconPath != null,
+                pendingIconPath = pendingIconPath,
+                pendingTextIcon = pendingTextIcon,
+            )
+        }
+        val normalizedAlias = SearchPanelAliasResolver.normalizeAliasCode(engine.aliasCode.orEmpty())
+        if (!SearchPanelAliasResolver.isValidAliasCode(normalizedAlias)) {
+            Toast.makeText(
+                context,
+                R.string.search_engine_alias_invalid,
+                Toast.LENGTH_SHORT,
+            ).show()
+        } else if (SearchEngineValidator.validate(engine)) {
+            onSave(
+                SearchEngineEditorResult(
+                    engine = engine.copy(
+                        aliasCode = normalizedAlias.takeIf { it.isNotEmpty() },
+                    ),
+                    iconUri = pendingIconUri,
+                    savedIconPath = pendingIconPath,
+                ),
+            )
+        }
+    }
+
     SettingsScreenScaffold(
         title = stringResource(
             if (isNew) R.string.search_engine_add_title else R.string.search_engine_edit_title,
         ),
         onBack = onBack,
+        actions = {
+            MiuixTextButton(
+                text = stringResource(R.string.search_engine_save),
+                onClick = saveAction,
+            )
+        },
     ) {
         LazySettingsItem(key = "search-engine-editor") {
         Column(
@@ -280,260 +332,244 @@ fun SearchEngineEditorScreen(
                 .padding(horizontal = 12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Row(
+            Card(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically,
             ) {
-                SearchEngineIcon(engine = previewEngine, modifier = Modifier.size(56.dp))
                 Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        IconSourceButton(
-                            onClick = { iconPicker.launch("image/*") },
-                            enabled = true,
-                            isLoading = false,
-                            icon = Icons.Default.Image,
-                            label = stringResource(R.string.search_engine_pick_icon),
+                        SearchEngineIcon(engine = previewEngine, modifier = Modifier.size(56.dp))
+                        Column(
                             modifier = Modifier.weight(1f),
-                        )
-                        IconSourceButton(
-                            onClick = {
-                                subScreen = SearchEngineEditorSubScreen.PickApp(
-                                    target = PackagePickerTarget.APP_ICON,
-                                    titleResId = R.string.search_engine_pick_app_icon_title,
-                                    selectedPackageName = "",
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                IconSourceButton(
+                                    onClick = { iconPicker.launch("image/*") },
+                                    enabled = true,
+                                    isLoading = false,
+                                    icon = Icons.Default.Image,
+                                    label = stringResource(R.string.search_engine_pick_icon),
+                                    modifier = Modifier.weight(1f),
                                 )
+                                IconSourceButton(
+                                    onClick = {
+                                        subScreen = SearchEngineEditorSubScreen.PickApp(
+                                            target = PackagePickerTarget.APP_ICON,
+                                            titleResId = R.string.search_engine_pick_app_icon_title,
+                                            selectedPackageName = "",
+                                        )
+                                    },
+                                    enabled = !isSavingAppIcon,
+                                    isLoading = isSavingAppIcon,
+                                    icon = Icons.Default.Apps,
+                                    label = stringResource(
+                                        if (isSavingAppIcon) {
+                                            R.string.search_engine_pick_app_icon_loading
+                                        } else {
+                                            R.string.search_engine_pick_app_icon
+                                        },
+                                    ),
+                                    modifier = Modifier.weight(1f),
+                                )
+                            }
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                IconSourceButton(
+                                    onClick = {
+                                        if (isFetchingFavicon) return@IconSourceButton
+                                        scope.launch {
+                                            isFetchingFavicon = true
+                                            val iconPath = SearchEngineFaviconFetcher.fetchAndSave(
+                                                context = context,
+                                                searchLink = searchLink.trim(),
+                                            )
+                                            isFetchingFavicon = false
+                                            if (iconPath != null) {
+                                                discardPendingIconPath(
+                                                    context,
+                                                    pendingIconPath,
+                                                    initialEngine?.iconPath,
+                                                )
+                                                pendingIconUri = null
+                                                pendingTextIcon = null
+                                                pendingIconPath = iconPath
+                                            } else {
+                                                Toast.makeText(
+                                                    context,
+                                                    fetchFaviconFailedMessage,
+                                                    Toast.LENGTH_SHORT,
+                                                ).show()
+                                            }
+                                        }
+                                    },
+                                    enabled = canFetchFavicon && !isFetchingFavicon,
+                                    isLoading = isFetchingFavicon,
+                                    icon = Icons.Default.Language,
+                                    label = stringResource(
+                                        if (isFetchingFavicon) {
+                                            R.string.search_engine_fetch_favicon_loading
+                                        } else {
+                                            R.string.search_engine_fetch_favicon
+                                        },
+                                    ),
+                                    modifier = Modifier.weight(1f),
+                                )
+                                IconSourceButton(
+                                    onClick = { showTextIconDialog = true },
+                                    enabled = true,
+                                    isLoading = false,
+                                    icon = Icons.Default.Title,
+                                    label = stringResource(R.string.search_engine_text_icon),
+                                    modifier = Modifier.weight(1f),
+                                )
+                            }
+                        }
+                    }
+
+                    if (showTextIconDialog) {
+                        TextIconDialog(
+                            initialText = pendingTextIcon ?: name.take(1),
+                            onDismiss = { showTextIconDialog = false },
+                            onConfirm = { text ->
+                                discardPendingIconPath(context, pendingIconPath, initialEngine?.iconPath)
+                                pendingIconUri = null
+                                pendingIconPath = null
+                                pendingTextIcon = text
+                                showTextIconDialog = false
                             },
-                            enabled = !isSavingAppIcon,
-                            isLoading = isSavingAppIcon,
-                            icon = Icons.Default.Apps,
-                            label = stringResource(
-                                if (isSavingAppIcon) {
-                                    R.string.search_engine_pick_app_icon_loading
-                                } else {
-                                    R.string.search_engine_pick_app_icon
-                                },
-                            ),
-                            modifier = Modifier.weight(1f),
                         )
                     }
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        IconSourceButton(
-                            onClick = {
-                                if (isFetchingFavicon) return@IconSourceButton
-                                scope.launch {
-                                    isFetchingFavicon = true
-                                    val iconPath = SearchEngineFaviconFetcher.fetchAndSave(
-                                        context = context,
-                                        searchLink = searchLink.trim(),
-                                    )
-                                    isFetchingFavicon = false
-                                    if (iconPath != null) {
-                                        discardPendingIconPath(
-                                            context,
-                                            pendingIconPath,
-                                            initialEngine?.iconPath,
-                                        )
-                                        pendingIconUri = null
-                                        pendingTextIcon = null
-                                        pendingIconPath = iconPath
-                                    } else {
-                                        Toast.makeText(
-                                            context,
-                                            fetchFaviconFailedMessage,
-                                            Toast.LENGTH_SHORT,
-                                        ).show()
-                                    }
+
+                    MiuixLabeledTextField(
+                        value = name,
+                        onValueChange = { name = it },
+                        label = stringResource(R.string.search_engine_name_hint),
+                    )
+                    if (editorCategory == SearchEngineEditorCategory.TEXT && !isShareImageType) {
+                        MiuixLabeledTextField(
+                            value = aliasCode,
+                            onValueChange = { aliasCode = it },
+                            label = stringResource(R.string.search_engine_alias_hint),
+                        )
+                        Text(
+                            text = stringResource(R.string.search_engine_alias_support),
+                            style = MiuixTheme.textStyles.body2,
+                            color = MiuixTheme.colorScheme.onSurfaceSecondary,
+                        )
+                    }
+                }
+            }
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    if (!isShareTextType && editorCategory == SearchEngineEditorCategory.TEXT) {
+                        MiuixSmallTitle(stringResource(R.string.search_engine_type_section))
+                        val types = remember { textSearchEngineTypes() }
+                        val typeLabels = types.map { searchEngineTypeLabel(it) }
+                        val selectedIndex = types.indexOf(engineType).coerceAtLeast(0)
+                        TabRowWithContour(
+                            tabs = typeLabels,
+                            selectedTabIndex = selectedIndex,
+                            onTabSelected = { index ->
+                                if (index in types.indices) {
+                                    engineType = types[index]
                                 }
                             },
-                            enabled = canFetchFavicon && !isFetchingFavicon,
-                            isLoading = isFetchingFavicon,
-                            icon = Icons.Default.Language,
-                            label = stringResource(
-                                if (isFetchingFavicon) {
-                                    R.string.search_engine_fetch_favicon_loading
-                                } else {
-                                    R.string.search_engine_fetch_favicon
-                                },
-                            ),
-                            modifier = Modifier.weight(1f),
-                        )
-                        IconSourceButton(
-                            onClick = { showTextIconDialog = true },
-                            enabled = true,
-                            isLoading = false,
-                            icon = Icons.Default.Title,
-                            label = stringResource(R.string.search_engine_text_icon),
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier.fillMaxWidth(),
                         )
                     }
-                }
-            }
 
-            if (showTextIconDialog) {
-                TextIconDialog(
-                    initialText = pendingTextIcon ?: name.take(1),
-                    onDismiss = { showTextIconDialog = false },
-                    onConfirm = { text ->
-                        discardPendingIconPath(context, pendingIconPath, initialEngine?.iconPath)
-                        pendingIconUri = null
-                        pendingIconPath = null
-                        pendingTextIcon = text
-                        showTextIconDialog = false
-                    },
-                )
-            }
-
-            MiuixLabeledTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = stringResource(R.string.search_engine_name_hint),
-            )
-            if (editorCategory == SearchEngineEditorCategory.TEXT && !isShareImageType) {
-                MiuixLabeledTextField(
-                    value = aliasCode,
-                    onValueChange = { aliasCode = it },
-                    label = stringResource(R.string.search_engine_alias_hint),
-                )
-                Text(
-                    text = stringResource(R.string.search_engine_alias_support),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-
-            if (!isShareTextType && editorCategory == SearchEngineEditorCategory.TEXT) {
-                MiuixSmallTitle(stringResource(R.string.search_engine_type_section))
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    textSearchEngineTypes().forEach { type ->
-                        FilterChip(
-                            selected = engineType == type,
-                            onClick = { engineType = type },
-                            label = { Text(searchEngineTypeLabel(type)) },
-                        )
-                    }
-                }
-            }
-
-            if (isShareTextType) {
-                MiuixHintText(stringResource(R.string.search_engine_share_type_readonly))
-            } else if (isShareImageType) {
-                MiuixSmallTitle(stringResource(R.string.search_engine_share_image_target_section), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
-                val targetSummary = when {
-                    targetPackage.isBlank() -> stringResource(R.string.search_engine_share_image_target_not_set)
-                    targetActivity.isBlank() -> targetPackage
-                    else -> "$targetPackage / ${targetActivity.substringAfterLast('.')}"
-                }
-                MiuixHintText(targetSummary)
-                OutlinedButton(
-                    onClick = { subScreen = SearchEngineEditorSubScreen.PickShareImageTarget }, modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(stringResource(R.string.search_engine_pick_share_image_target))
-                }
-            } else {
-                EditorTypeFields(
-                    engineType = engineType,
-                    onEngineTypeChange = { engineType = it },
-                    searchLink = searchLink,
-                    onSearchLinkChange = { searchLink = it },
-                    externJumpLink = externJumpLink,
-                    onExternJumpLinkChange = { externJumpLink = it },
-                    externJumpPackage = externJumpPackage,
-                    onExternJumpPackageChange = { externJumpPackage = it },
-                    targetPackage = targetPackage,
-                    onTargetPackageChange = { targetPackage = it },
-                    targetActivity = targetActivity,
-                    onTargetActivityChange = { targetActivity = it },
-                    autoInputEnter = autoInputEnter,
-                    onAutoInputEnterChange = { autoInputEnter = it },
-                    onPickTargetApp = {
-                        subScreen = SearchEngineEditorSubScreen.PickApp(
-                            target = PackagePickerTarget.TARGET,
-                            titleResId = R.string.search_engine_pick_app_title,
-                            selectedPackageName = targetPackage,
-                        )
-                    },
-                    onPickExternApp = {
-                        subScreen = SearchEngineEditorSubScreen.PickApp(
-                            target = PackagePickerTarget.EXTERN,
-                            titleResId = R.string.search_engine_pick_app_title,
-                            selectedPackageName = externJumpPackage,
-                        )
-                    },
-                    onPickActivity = {
-                        if (targetPackage.isBlank()) {
-                            Toast.makeText(
-                                context,
-                                pickActivityRequiresPackageMessage,
-                                Toast.LENGTH_SHORT,
-                            ).show()
-                        } else {
-                            subScreen = SearchEngineEditorSubScreen.PickActivity(
-                                packageName = targetPackage,
-                                selectedClassName = targetActivity,
-                            )
+                    if (isShareTextType) {
+                        MiuixHintText(stringResource(R.string.search_engine_share_type_readonly))
+                    } else if (isShareImageType) {
+                        MiuixSmallTitle(stringResource(R.string.search_engine_share_image_target_section))
+                        val targetSummary = when {
+                            targetPackage.isBlank() -> stringResource(R.string.search_engine_share_image_target_not_set)
+                            targetActivity.isBlank() -> targetPackage
+                            else -> "$targetPackage / ${targetActivity.substringAfterLast('.')}"
                         }
-                    },
-                )
+                        MiuixHintText(targetSummary)
+                        MiuixButton(
+                            onClick = { subScreen = SearchEngineEditorSubScreen.PickShareImageTarget },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(stringResource(R.string.search_engine_pick_share_image_target))
+                        }
+                    } else {
+                        EditorTypeFields(
+                            engineType = engineType,
+                            onEngineTypeChange = { engineType = it },
+                            searchLink = searchLink,
+                            onSearchLinkChange = { searchLink = it },
+                            externJumpLink = externJumpLink,
+                            onExternJumpLinkChange = { externJumpLink = it },
+                            externJumpPackage = externJumpPackage,
+                            onExternJumpPackageChange = { externJumpPackage = it },
+                            targetPackage = targetPackage,
+                            onTargetPackageChange = { targetPackage = it },
+                            targetActivity = targetActivity,
+                            onTargetActivityChange = { targetActivity = it },
+                            autoInputEnter = autoInputEnter,
+                            onAutoInputEnterChange = { autoInputEnter = it },
+                            onPickTargetApp = {
+                                subScreen = SearchEngineEditorSubScreen.PickApp(
+                                    target = PackagePickerTarget.TARGET,
+                                    titleResId = R.string.search_engine_pick_app_title,
+                                    selectedPackageName = targetPackage,
+                                )
+                            },
+                            onPickExternApp = {
+                                subScreen = SearchEngineEditorSubScreen.PickApp(
+                                    target = PackagePickerTarget.EXTERN,
+                                    titleResId = R.string.search_engine_pick_app_title,
+                                    selectedPackageName = externJumpPackage,
+                                )
+                            },
+                            onPickActivity = {
+                                if (targetPackage.isBlank()) {
+                                    Toast.makeText(
+                                        context,
+                                        pickActivityRequiresPackageMessage,
+                                        Toast.LENGTH_SHORT,
+                                    ).show()
+                                } else {
+                                    subScreen = SearchEngineEditorSubScreen.PickActivity(
+                                        packageName = targetPackage,
+                                        selectedClassName = targetActivity,
+                                    )
+                                }
+                            },
+                        )
+                    }
+                }
             }
 
-            Button(
-                onClick = {
-                    val engine = if (isShareTextType) {
-                        checkNotNull(initialEngine).copy(
-                            name = name.trim(),
-                            aliasCode = SearchPanelAliasResolver.normalizeAliasCode(aliasCode)
-                                .takeIf { it.isNotEmpty() },
-                        )
-                    } else {
-                        buildEngine(
-                            initialEngine = initialEngine,
-                            name = name.trim(),
-                            aliasCode = aliasCode,
-                            engineType = engineType,
-                            searchLink = searchLink.trim(),
-                            externJumpLink = externJumpLink.trim(),
-                            externJumpPackage = externJumpPackage.trim(),
-                            targetPackage = targetPackage.trim(),
-                            targetActivity = targetActivity.trim(),
-                            autoInputEnter = autoInputEnter,
-                            hasPendingIcon = pendingIconUri != null || pendingIconPath != null,
-                            pendingIconPath = pendingIconPath,
-                            pendingTextIcon = pendingTextIcon,
-                        )
-                    }
-                    val normalizedAlias = SearchPanelAliasResolver.normalizeAliasCode(engine.aliasCode.orEmpty())
-                    if (!SearchPanelAliasResolver.isValidAliasCode(normalizedAlias)) {
-                        Toast.makeText(
-                            context,
-                            R.string.search_engine_alias_invalid,
-                            Toast.LENGTH_SHORT,
-                        ).show()
-                        return@Button
-                    }
-                    if (!SearchEngineValidator.validate(engine)) return@Button
-                    onSave(
-                        SearchEngineEditorResult(
-                            engine = engine.copy(
-                                aliasCode = normalizedAlias.takeIf { it.isNotEmpty() },
-                            ),
-                            iconUri = pendingIconUri,
-                            savedIconPath = pendingIconPath,
-                        ),
-                    )
-                },
+            MiuixButton(
+                onClick = saveAction,
                 modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColorsPrimary(),
             ) {
-                Text(stringResource(R.string.search_engine_save))
+                top.yukonga.miuix.kmp.basic.Text(
+                    text = stringResource(R.string.search_engine_save),
+                    color = MiuixTheme.colorScheme.onPrimary,
+                )
             }
         }
         }
@@ -640,7 +676,9 @@ private fun PackageNameField(
             label = label,
             modifier = Modifier.weight(1f),
         )
-        OutlinedButton(onClick = onPickApp) {
+        MiuixButton(
+            onClick = onPickApp,
+        ) {
             Text(stringResource(R.string.search_engine_pick_app))
         }
     }
@@ -665,7 +703,7 @@ private fun ActivityNameField(
             label = label,
             modifier = Modifier.weight(1f),
         )
-        OutlinedButton(
+        MiuixButton(
             onClick = onPickActivity,
             enabled = packageName.isNotBlank(),
         ) {
@@ -794,14 +832,13 @@ private fun IconSourceButton(
     label: String,
     modifier: Modifier = Modifier,
 ) {
-    OutlinedButton(
+    MiuixButton(
         onClick = onClick,
         enabled = enabled && !isLoading,
         modifier = modifier,
-        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 6.dp),
     ) {
         if (isLoading) {
-            CircularProgressIndicator(modifier = Modifier.size(18.dp))
+            MiuixCircularProgressIndicator(modifier = Modifier.size(18.dp))
         } else {
             Icon(icon, contentDescription = null, modifier = Modifier.size(18.dp))
         }
