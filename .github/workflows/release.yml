@@ -1,0 +1,153 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-release:
+    name: Build (${{ matrix.variant }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - variant: full
+            task: assembleFullRelease
+            artifact: release-apk-full
+            apk_path: app/build/outputs/apk/full/release/*.apk
+          - variant: lite
+            task: assembleLiteRelease
+            artifact: release-apk-lite
+            apk_path: app/build/outputs/apk/lite/release/*.apk
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Setup Keystore & Build Release APK
+        env:
+          RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+          RELEASE_STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+        run: |
+          if [ -z "$RELEASE_KEYSTORE_BASE64" ]; then
+            echo "ERROR: RELEASE_KEYSTORE_BASE64 secret is not configured." >&2
+            exit 1
+          fi
+
+          mkdir -p app/keystore
+          echo "$RELEASE_KEYSTORE_BASE64" | base64 --decode > app/keystore/release.jks
+
+          cat > keystore.properties <<EOF
+          storeFile=app/keystore/release.jks
+          storePassword=${RELEASE_STORE_PASSWORD}
+          keyAlias=${RELEASE_KEY_ALIAS:-slideindex}
+          keyPassword=${RELEASE_KEY_PASSWORD}
+          EOF
+
+          ./gradlew ${{ matrix.task }} --build-cache
+
+      - name: Verify release APK
+        run: bash scripts/verify-release-apk.sh ${{ matrix.variant }}
+
+      - name: Upload release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.apk_path }}
+          if-no-files-found: error
+
+  publish-release:
+    name: Publish Release & Update Manifest
+    needs: build-release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python 3
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Download Full Release APK
+        uses: actions/download-artifact@v4
+        with:
+          name: release-apk-full
+          path: release-apk-full
+
+      - name: Download Lite Release APK
+        uses: actions/download-artifact@v4
+        with:
+          name: release-apk-lite
+          path: release-apk-lite
+
+      - name: Extract and Lint Changelog Section
+        run: |
+          python scripts/extract-changelog-section.py \
+            --version "${{ github.ref_name }}" \
+            --lint \
+            --out-file release-notes.md
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          body_path: release-notes.md
+          files: |
+            release-apk-full/cebian-*-full.apk
+            release-apk-lite/cebian-*-lite.apk
+          fail_on_unmatched_files: true
+
+      - name: Update update.json Manifest
+        run: |
+          LITE_APK=$(find release-apk-lite -name "cebian-*-lite.apk" | head -n 1)
+          python scripts/update-release-manifest.py \
+            --version "${{ github.ref_name }}" \
+            --apk-file "$LITE_APK" \
+            --purge-jsdelivr
+
+      - name: Commit & Push update.json to main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add update.json
+          if git diff --staged --quiet; then
+            echo "update.json already up-to-date."
+          else
+            git commit -m "chore(release): update update.json for ${{ github.ref_name }} [skip ci]"
+            git push origin HEAD:main
+          fi
+
+      - name: Verify Remote Manifests
+        run: |
+          LITE_APK=$(find release-apk-lite -name "cebian-*-lite.apk" | head -n 1)
+          python scripts/update-release-manifest.py \
+            --version "${{ github.ref_name }}" \
+            --apk-file "$LITE_APK" \
+            --verify-remote
