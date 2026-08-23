@@ -47,7 +47,6 @@ import com.slideindex.app.ui.miuix.MiuixBottomSheet
 import com.slideindex.app.ui.miuix.MiuixConfirmDialog
 import com.slideindex.app.ui.miuix.MiuixFormDialog
 import com.slideindex.app.ui.miuix.MiuixLabeledTextField
-import com.slideindex.app.ui.miuix.MiuixGroupedCard
 import com.slideindex.app.ui.miuix.MiuixSettingsFab
 import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
@@ -285,8 +284,8 @@ fun ActivityShortcutPresetsScreen(
             item(key = "presets-empty") {
                 Text(
                     text = stringResource(R.string.activity_shortcut_empty),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = top.yukonga.miuix.kmp.theme.MiuixTheme.textStyles.body2,
+                    color = top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.onSurfaceSecondary,
                     modifier = Modifier.padding(horizontal = 28.dp, vertical = 8.dp),
                 )
             }
@@ -328,8 +327,8 @@ private fun LazyListScope.activityShortcutMineListItems(
                 CardItem("empty") {
                     Text(
                         text = stringResource(R.string.activity_shortcut_empty),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = top.yukonga.miuix.kmp.theme.MiuixTheme.textStyles.body2,
+                        color = top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.onSurfaceSecondary,
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                     )
                 },
@@ -505,28 +504,22 @@ private fun ActivityShortcutAddBottomSheet(
         title = stringResource(R.string.activity_shortcut_add),
         onDismissRequest = onDismiss,
     ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            MiuixGroupedCard(index = 0, count = 3) {
-                ArrowPreference(
-                    title = stringResource(R.string.activity_shortcut_add_from_presets),
-                    summary = stringResource(R.string.activity_shortcut_add_from_presets_sub),
-                    onClick = onOpenPresets,
-                )
-            }
-            MiuixGroupedCard(index = 1, count = 3) {
-                ArrowPreference(
-                    title = stringResource(R.string.activity_shortcut_browse_custom),
-                    summary = stringResource(R.string.activity_shortcut_browse_custom_sub),
-                    onClick = onBrowseActivity,
-                )
-            }
-            MiuixGroupedCard(index = 2, count = 3) {
-                ArrowPreference(
-                    title = stringResource(R.string.activity_shortcut_add_from_shortcuts),
-                    summary = stringResource(R.string.activity_shortcut_add_from_shortcuts_sub),
-                    onClick = onAddAppShortcut,
-                )
-            }
+        top.yukonga.miuix.kmp.basic.Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)) {
+            ArrowPreference(
+                title = stringResource(R.string.activity_shortcut_add_from_presets),
+                summary = stringResource(R.string.activity_shortcut_add_from_presets_sub),
+                onClick = onOpenPresets,
+            )
+            ArrowPreference(
+                title = stringResource(R.string.activity_shortcut_browse_custom),
+                summary = stringResource(R.string.activity_shortcut_browse_custom_sub),
+                onClick = onBrowseActivity,
+            )
+            ArrowPreference(
+                title = stringResource(R.string.activity_shortcut_add_from_shortcuts),
+                summary = stringResource(R.string.activity_shortcut_add_from_shortcuts_sub),
+                onClick = onAddAppShortcut,
+            )
         }
     }
 }

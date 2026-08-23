@@ -1,8 +1,8 @@
-@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
-
 package com.slideindex.app.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,12 +12,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -36,6 +30,11 @@ import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.ui.navigation.NavPermissionSnapshot
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.window.WindowDialog
 
 private enum class OnboardingStep {
@@ -65,9 +64,10 @@ fun OnboardingDialog(
         outsideMargin = DpSize(0.dp, 0.dp),
         insideMargin = DpSize(0.dp, 0.dp),
     ) {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.surface,
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MiuixTheme.colorScheme.surface),
         ) {
             OnboardingContent(
                 permissions = permissions,
@@ -145,11 +145,10 @@ private fun OnboardingContent(
     ) {
         Column(modifier = Modifier.weight(1f)) {
             TextButton(
+                text = stringResource(R.string.onboarding_skip),
                 onClick = onSkip,
                 modifier = Modifier.align(Alignment.End),
-            ) {
-                Text(stringResource(R.string.onboarding_skip))
-            }
+            )
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier
@@ -199,6 +198,7 @@ private fun OnboardingContent(
                         scope.launch { pagerState.scrollToPage(pagerState.currentPage + 1) }
                     }
                 },
+                colors = ButtonDefaults.buttonColorsPrimary(),
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(
@@ -207,6 +207,8 @@ private fun OnboardingContent(
                     } else {
                         stringResource(R.string.onboarding_next)
                     },
+                    style = MiuixTheme.textStyles.button,
+                    color = MiuixTheme.colorScheme.onPrimary,
                 )
             }
             if (!isLastPage) {
@@ -218,8 +220,8 @@ private fun OnboardingContent(
                     ),
                     modifier = Modifier.fillMaxWidth(),
                     textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MiuixTheme.textStyles.footnote1,
+                    color = MiuixTheme.colorScheme.onSurfaceSecondary,
                 )
             }
         }
@@ -240,12 +242,13 @@ private fun OnboardingAccessibilityPage(
     ) {
         Text(
             text = stringResource(R.string.onboarding_accessibility_title),
-            style = MaterialTheme.typography.headlineSmallEmphasized,
+            style = MiuixTheme.textStyles.title2,
+            color = MiuixTheme.colorScheme.onSurface,
         )
         Text(
             text = stringResource(R.string.onboarding_accessibility_body),
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MiuixTheme.textStyles.body1,
+            color = MiuixTheme.colorScheme.onSurfaceSecondary,
         )
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             steps.forEachIndexed { index, step ->
@@ -255,13 +258,13 @@ private fun OnboardingAccessibilityPage(
                 ) {
                     Text(
                         text = "${index + 1}.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.primary,
+                        style = MiuixTheme.textStyles.body2,
+                        color = MiuixTheme.colorScheme.primary,
                     )
                     Text(
                         text = step,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MiuixTheme.textStyles.body2,
+                        color = MiuixTheme.colorScheme.onSurfaceSecondary,
                         modifier = Modifier.weight(1f),
                     )
                 }
@@ -271,12 +274,19 @@ private fun OnboardingAccessibilityPage(
         if (granted) {
             Text(
                 text = stringResource(R.string.onboarding_permission_granted),
-                color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.labelLarge,
+                color = MiuixTheme.colorScheme.primary,
+                style = MiuixTheme.textStyles.button,
             )
         } else {
-            Button(onClick = onAction) {
-                Text(stringResource(R.string.onboarding_grant_accessibility))
+            Button(
+                onClick = onAction,
+                colors = ButtonDefaults.buttonColorsPrimary(),
+            ) {
+                Text(
+                    text = stringResource(R.string.onboarding_grant_accessibility),
+                    style = MiuixTheme.textStyles.button,
+                    color = MiuixTheme.colorScheme.onPrimary,
+                )
             }
         }
     }
@@ -298,26 +308,35 @@ private fun OnboardingPage(
     ) {
         Text(
             text = title,
-            style = MaterialTheme.typography.headlineSmallEmphasized,
+            style = MiuixTheme.textStyles.title2,
+            color = MiuixTheme.colorScheme.onSurface,
         )
         Text(
             text = body,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MiuixTheme.textStyles.body1,
+            color = MiuixTheme.colorScheme.onSurfaceSecondary,
         )
         if (actionLabel != null && onAction != null) {
             Spacer(modifier = Modifier.height(8.dp))
             if (granted) {
                 Text(
                     text = stringResource(R.string.onboarding_permission_granted),
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.labelLarge,
+                    color = MiuixTheme.colorScheme.primary,
+                    style = MiuixTheme.textStyles.button,
                 )
             } else {
-                Button(onClick = onAction) {
-                    Text(actionLabel)
+                Button(
+                    onClick = onAction,
+                    colors = ButtonDefaults.buttonColorsPrimary(),
+                ) {
+                    Text(
+                        text = actionLabel,
+                        style = MiuixTheme.textStyles.button,
+                        color = MiuixTheme.colorScheme.onPrimary,
+                    )
                 }
             }
         }
     }
 }
+

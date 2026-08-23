@@ -21,12 +21,26 @@ import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.GestureTriggerType
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.ui.compose.LocalAppDependencies
+import com.slideindex.app.ui.GestureExecuteShellCommandScreen
 import com.slideindex.app.ui.GestureActionPickerScreen
 import com.slideindex.app.ui.miuix.theme.ModuleTheme
+import com.slideindex.app.ui.picker.ActivityShortcutPickActivityScreen
+import com.slideindex.app.ui.picker.ActivityShortcutPickAppScreen
+import com.slideindex.app.ui.picker.MyShortcutsFolderScreen
+import com.slideindex.app.ui.picker.PresetShortcutsFolderScreen
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+
+private sealed interface CornerSlotPickerPage {
+    data object Main : CornerSlotPickerPage
+    data object MyShortcuts : CornerSlotPickerPage
+    data object PresetShortcuts : CornerSlotPickerPage
+    data object PickApp : CornerSlotPickerPage
+    data class PickActivity(val packageName: String) : CornerSlotPickerPage
+    data class ShellCommand(val initialCommand: String) : CornerSlotPickerPage
+}
 
 @AndroidEntryPoint
 class CornerGestureSlotPickTrampolineActivity : ComponentActivity() {
@@ -60,6 +74,7 @@ class CornerGestureSlotPickTrampolineActivity : ComponentActivity() {
             val scope = rememberCoroutineScope()
             var appSettings by remember { mutableStateOf(AppSettings()) }
             var currentAction by remember { mutableStateOf<GestureAction>(GestureAction.None) }
+            var page by remember { mutableStateOf<CornerSlotPickerPage>(CornerSlotPickerPage.Main) }
 
             LaunchedEffect(corner, slotIndex) {
                 val overlay = deps.settingsRepository.overlaySettings.first()
@@ -77,30 +92,105 @@ class CornerGestureSlotPickTrampolineActivity : ComponentActivity() {
                 appSettings = deps.settingsRepository.settings.first()
             }
 
-            BackHandler { finishPicker() }
+            val saveCornerAction: (GestureAction) -> Unit = { action ->
+                scope.launch {
+                    val overlay = deps.settingsRepository.overlaySettings.first()
+                    val unified = overlay.cornerGestureSettings.unifiedSlots
+                    when {
+                        unified -> deps.settingsRepository.setCornerGestureLeftSlotAction(slotIndex, action)
+                        corner == CORNER_RIGHT ->
+                            deps.settingsRepository.setCornerGestureRightSlotAction(slotIndex, action)
+                        else ->
+                            deps.settingsRepository.setCornerGestureLeftSlotAction(slotIndex, action)
+                    }
+                    finishPicker()
+                }
+            }
+
+            BackHandler {
+                if (page == CornerSlotPickerPage.Main) {
+                    finishPicker()
+                } else {
+                    page = CornerSlotPickerPage.Main
+                }
+            }
 
             CompositionLocalProvider(LocalAppDependencies provides deps) {
                 ModuleTheme(settings = appSettings) {
-                    GestureActionPickerScreen(
-                        trigger = GestureTriggerType.SHORT_SWIPE_IN,
-                        current = currentAction,
-                        onDismiss = { finishPicker() },
-                        onSelect = { action ->
-                            if (action is GestureAction.FloatingPointer) return@GestureActionPickerScreen
-                            scope.launch {
-                                val overlay = deps.settingsRepository.overlaySettings.first()
-                                val unified = overlay.cornerGestureSettings.unifiedSlots
-                                when {
-                                    unified -> deps.settingsRepository.setCornerGestureLeftSlotAction(slotIndex, action)
-                                    corner == CORNER_RIGHT ->
-                                        deps.settingsRepository.setCornerGestureRightSlotAction(slotIndex, action)
-                                    else ->
-                                        deps.settingsRepository.setCornerGestureLeftSlotAction(slotIndex, action)
-                                }
-                                finishPicker()
-                            }
-                        },
-                    )
+                    when (val screen = page) {
+                        CornerSlotPickerPage.Main -> {
+                            GestureActionPickerScreen(
+                                trigger = GestureTriggerType.SHORT_SWIPE_IN,
+                                current = currentAction,
+                                onDismiss = { finishPicker() },
+                                onSelect = { action ->
+                                    if (action is GestureAction.FloatingPointer) {
+                                        return@GestureActionPickerScreen
+                                    }
+                                    saveCornerAction(action)
+                                },
+                                onOpenMyShortcuts = { page = CornerSlotPickerPage.MyShortcuts },
+                                onOpenPresetShortcuts = { page = CornerSlotPickerPage.PresetShortcuts },
+                                onOpenPickApp = { page = CornerSlotPickerPage.PickApp },
+                                onOpenExecuteShellCommand = { command ->
+                                    page = CornerSlotPickerPage.ShellCommand(command)
+                                },
+                            )
+                        }
+
+                        CornerSlotPickerPage.MyShortcuts -> {
+                            MyShortcutsFolderScreen(
+                                activityShortcuts = appSettings.activityShortcuts,
+                                onBack = { page = CornerSlotPickerPage.Main },
+                                onBrowseNewShortcut = { page = CornerSlotPickerPage.PickApp },
+                                currentAction = currentAction,
+                                onSelectRadio = saveCornerAction,
+                            )
+                        }
+
+                        CornerSlotPickerPage.PresetShortcuts -> {
+                            PresetShortcutsFolderScreen(
+                                onBack = { page = CornerSlotPickerPage.Main },
+                                currentAction = currentAction,
+                                onSelectRadio = saveCornerAction,
+                            )
+                        }
+
+                        CornerSlotPickerPage.PickApp -> {
+                            ActivityShortcutPickAppScreen(
+                                onBack = { page = CornerSlotPickerPage.Main },
+                                onSelectApp = { app ->
+                                    page = CornerSlotPickerPage.PickActivity(app.packageName)
+                                },
+                            )
+                        }
+
+                        is CornerSlotPickerPage.PickActivity -> {
+                            ActivityShortcutPickActivityScreen(
+                                packageName = screen.packageName,
+                                onBack = { page = CornerSlotPickerPage.PickApp },
+                                onSelectActivity = { activity ->
+                                    saveCornerAction(
+                                        GestureAction.LaunchShortcut.component(
+                                            "${activity.packageName}/${activity.className}",
+                                            activity.label,
+                                        ),
+                                    )
+                                },
+                            )
+                        }
+
+                        is CornerSlotPickerPage.ShellCommand -> {
+                            GestureExecuteShellCommandScreen(
+                                initialCommand = screen.initialCommand,
+                                shellCommands = appSettings.shellCommands,
+                                onBack = { page = CornerSlotPickerPage.Main },
+                                onConfirm = { command ->
+                                    saveCornerAction(GestureAction.ExecuteShellCommand(command))
+                                },
+                            )
+                        }
+                    }
                 }
             }
         }

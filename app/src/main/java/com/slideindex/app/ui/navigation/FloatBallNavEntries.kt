@@ -2,12 +2,16 @@ package com.slideindex.app.ui.navigation
 
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.yukonga.miuix.kmp.nav.core.NavEntryBuilder
 import com.slideindex.app.floatball.FloatBallGestureType
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.GestureTriggerType
+import com.slideindex.app.search.SearchEngineIconStorage
 import com.slideindex.app.settings.toMinimalAppSettings
 import com.slideindex.app.ui.FloatBallAppearanceSettingsScreen
 import com.slideindex.app.ui.FloatBallGestureSettingsScreen
@@ -27,6 +31,11 @@ import com.slideindex.app.ui.SearchEnginePreviewSortScreen
 import com.slideindex.app.ui.SearchEngineSettingsScreen
 import com.slideindex.app.ui.ShareImageOcrHistoryScreen
 import com.slideindex.app.ui.TranslateModelSettingsScreen
+import com.slideindex.app.ui.picker.ActivityShortcutPickActivityScreen
+import com.slideindex.app.ui.picker.ActivityShortcutPickAppScreen
+import com.slideindex.app.ui.picker.MyShortcutsFolderScreen
+import com.slideindex.app.ui.picker.PresetShortcutsFolderScreen
+import com.slideindex.app.ui.picker.ShareImageTargetPickScreen
 import com.slideindex.app.ui.resolveImageSearchEngine
 import com.slideindex.app.ui.viewmodel.ExtensionSettingsViewModel
 import com.slideindex.app.ui.viewmodel.FloatBallPickSettingsViewModel
@@ -35,6 +44,9 @@ import com.slideindex.app.ui.viewmodel.OcrModelSettingsViewModel
 import com.slideindex.app.ui.viewmodel.SearchEngineSettingsViewModel
 import com.slideindex.app.ui.viewmodel.ShareImageOcrHistoryViewModel
 import com.slideindex.app.ui.viewmodel.TranslateSettingsViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 fun NavEntryBuilder.floatBallNavEntries(ctx: MainNavContext) {
     hiltEntry<AppNavKey.FloatBall> {
@@ -87,13 +99,161 @@ fun NavEntryBuilder.floatBallNavEntries(ctx: MainNavContext) {
         val settings = overlaySettings.toMinimalAppSettings()
         val initialEngine = key.engineId.takeIf { it.isNotEmpty() }
             ?.let { id -> settings.searchEngines.find { it.id == id } }
-        SearchEngineEditorScreen(
-            initialEngine = initialEngine,
-            editorCategory = SearchEngineEditorCategory.TEXT,
-            onBack = { ctx.navigateBackTo(AppNavKey.FloatBallSearchEngine) },
-            onSave = { result ->
-                viewModel.upsertEngine(result)
-                ctx.navigateBackTo(AppNavKey.FloatBallSearchEngine)
+        LaunchedEffect(key.engineId) {
+            viewModel.initDraft(initialEngine, SearchEngineEditorCategory.TEXT)
+        }
+        val draft by viewModel.editorDraft.collectAsStateWithLifecycle()
+        draft?.let { currentDraft ->
+            SearchEngineEditorScreen(
+                initialEngine = initialEngine,
+                draft = currentDraft,
+                editorCategory = SearchEngineEditorCategory.TEXT,
+                onBack = {
+                    viewModel.clearDraft()
+                    ctx.navigateBackTo(AppNavKey.FloatBallSearchEngine)
+                },
+                onSave = { result ->
+                    viewModel.upsertEngine(result)
+                    viewModel.clearDraft()
+                    ctx.navigateBackTo(AppNavKey.FloatBallSearchEngine)
+                },
+                onUpdateDraft = viewModel::updateDraft,
+                onPickApp = { target, titleResId, pkg ->
+                    ctx.navigate(
+                        AppNavKey.SearchEnginePickApp(
+                            isImageSearch = false,
+                            target = target,
+                            titleResId = titleResId,
+                            selectedPackageName = pkg,
+                        ),
+                    )
+                },
+                onPickActivity = { pkg, cls ->
+                    ctx.navigate(
+                        AppNavKey.SearchEnginePickActivity(
+                            isImageSearch = false,
+                            packageName = pkg,
+                            selectedClassName = cls,
+                        ),
+                    )
+                },
+                onPickShareTarget = { pkg, cls ->
+                    ctx.navigate(
+                        AppNavKey.SearchEnginePickShareTarget(
+                            isImageSearch = false,
+                            selectedPackageName = pkg,
+                            selectedActivityClassName = cls,
+                        ),
+                    )
+                },
+            )
+        }
+    }
+
+    hiltEntry<AppNavKey.SearchEnginePickApp> { key ->
+        val viewModel: SearchEngineSettingsViewModel = hiltViewModel()
+        val context = LocalContext.current
+        val scope = rememberCoroutineScope()
+        val returnKey = if (key.isImageSearch) {
+            AppNavKey.FloatBallImageSearchEngineEditor(viewModel.editorDraft.value?.engineId.orEmpty())
+        } else {
+            AppNavKey.FloatBallSearchEngineEditor(viewModel.editorDraft.value?.engineId.orEmpty())
+        }
+        ActivityShortcutPickAppScreen(
+            titleResId = key.titleResId,
+            selectedPackageName = key.selectedPackageName,
+            onBack = { ctx.navigateBackTo(returnKey) },
+            onSelectApp = { app ->
+                when (key.target) {
+                    "TARGET" -> {
+                        viewModel.updateDraft { draft ->
+                            val previousPackage = draft.targetPackage
+                            draft.copy(
+                                targetPackage = app.packageName,
+                                targetActivity = if (previousPackage != app.packageName) "" else draft.targetActivity,
+                            )
+                        }
+                    }
+                    "EXTERN" -> {
+                        viewModel.updateDraft { it.copy(externJumpPackage = app.packageName) }
+                    }
+                    "APP_ICON" -> {
+                        scope.launch {
+                            val iconPath = withContext(Dispatchers.IO) {
+                                SearchEngineIconStorage.saveIconFromPackage(context, app.packageName)
+                            }
+                            if (iconPath != null) {
+                                viewModel.updateDraft {
+                                    it.copy(
+                                        pendingIconPath = iconPath,
+                                        pendingIconUri = null,
+                                        pendingTextIcon = null,
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+                ctx.navigateBackTo(returnKey)
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.SearchEnginePickActivity> { key ->
+        val viewModel: SearchEngineSettingsViewModel = hiltViewModel()
+        val returnKey = if (key.isImageSearch) {
+            AppNavKey.FloatBallImageSearchEngineEditor(viewModel.editorDraft.value?.engineId.orEmpty())
+        } else {
+            AppNavKey.FloatBallSearchEngineEditor(viewModel.editorDraft.value?.engineId.orEmpty())
+        }
+        ActivityShortcutPickActivityScreen(
+            packageName = key.packageName,
+            selectedClassName = key.selectedClassName,
+            onBack = { ctx.navigateBackTo(returnKey) },
+            onSelectActivity = { activity ->
+                viewModel.updateDraft { it.copy(targetActivity = activity.className) }
+                ctx.navigateBackTo(returnKey)
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.SearchEnginePickShareTarget> { key ->
+        val viewModel: SearchEngineSettingsViewModel = hiltViewModel()
+        val context = LocalContext.current
+        val scope = rememberCoroutineScope()
+        val returnKey = if (key.isImageSearch) {
+            AppNavKey.FloatBallImageSearchEngineEditor(viewModel.editorDraft.value?.engineId.orEmpty())
+        } else {
+            AppNavKey.FloatBallSearchEngineEditor(viewModel.editorDraft.value?.engineId.orEmpty())
+        }
+        ShareImageTargetPickScreen(
+            selectedPackageName = key.selectedPackageName,
+            selectedActivityClassName = key.selectedActivityClassName,
+            onBack = { ctx.navigateBackTo(returnKey) },
+            onSelectTarget = { target ->
+                viewModel.updateDraft { draft ->
+                    val nextName = if (draft.name.isBlank()) target.appLabel.ifBlank { target.label } else draft.name
+                    draft.copy(
+                        targetPackage = target.packageName,
+                        targetActivity = target.activityClassName,
+                        name = nextName,
+                    )
+                }
+                scope.launch {
+                    val iconPath = withContext(Dispatchers.IO) {
+                        SearchEngineIconStorage.saveIconFromPackage(context, target.packageName)
+                    }
+                    if (iconPath != null) {
+                        viewModel.updateDraft {
+                            it.copy(
+                                pendingIconPath = iconPath,
+                                pendingIconUri = null,
+                                pendingTextIcon = null,
+                            )
+                        }
+                    }
+                }
+                ctx.navigateBackTo(returnKey)
             },
         )
     }
@@ -199,17 +359,84 @@ fun NavEntryBuilder.floatBallNavEntries(ctx: MainNavContext) {
                 viewModel.setFloatBallGestureAction(gestureType, action)
                 ctx.navigateBackTo(returnKey)
             },
+            onOpenMyShortcuts = { ctx.navigate(AppNavKey.FloatBallGestureMyShortcuts(key.gestureTypeId)) },
+            onOpenPresetShortcuts = { ctx.navigate(AppNavKey.FloatBallGesturePresetShortcuts(key.gestureTypeId)) },
+            onOpenPickApp = { ctx.navigate(AppNavKey.FloatBallGesturePickApp(key.gestureTypeId)) },
+            onOpenExecuteShellCommand = { cmd -> ctx.navigate(AppNavKey.FloatBallGestureShellCommand(key.gestureTypeId, cmd)) },
+        )
+    }
+
+    hiltEntry<AppNavKey.FloatBallGestureMyShortcuts> { key ->
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val appSettings by viewModel.settings.collectAsStateWithLifecycle()
+        val gestureType = FloatBallGestureType.fromId(key.gestureTypeId) ?: FloatBallGestureType.SINGLE_TAP
+        val currentAction = appSettings.floatBallGestureActions[gestureType] ?: GestureAction.None
+        val returnKey = AppNavKey.FloatBallGestureActionPick(key.gestureTypeId)
+        MyShortcutsFolderScreen(
+            activityShortcuts = appSettings.activityShortcuts,
+            onBack = { ctx.navigateBackTo(returnKey) },
+            onBrowseNewShortcut = { ctx.navigate(AppNavKey.FloatBallGesturePickApp(key.gestureTypeId)) },
+            currentAction = currentAction,
+            onSelectRadio = { action ->
+                viewModel.setFloatBallGestureAction(gestureType, action)
+                ctx.navigateBackTo(AppNavKey.FloatBallGesture)
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.FloatBallGesturePresetShortcuts> { key ->
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val appSettings by viewModel.settings.collectAsStateWithLifecycle()
+        val gestureType = FloatBallGestureType.fromId(key.gestureTypeId) ?: FloatBallGestureType.SINGLE_TAP
+        val currentAction = appSettings.floatBallGestureActions[gestureType] ?: GestureAction.None
+        val returnKey = AppNavKey.FloatBallGestureActionPick(key.gestureTypeId)
+        PresetShortcutsFolderScreen(
+            onBack = { ctx.navigateBackTo(returnKey) },
+            currentAction = currentAction,
+            onSelectRadio = { action ->
+                viewModel.setFloatBallGestureAction(gestureType, action)
+                ctx.navigateBackTo(AppNavKey.FloatBallGesture)
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.FloatBallGesturePickApp> { key ->
+        val returnKey = AppNavKey.FloatBallGestureActionPick(key.gestureTypeId)
+        ActivityShortcutPickAppScreen(
+            onBack = { ctx.navigateBackTo(returnKey) },
+            onSelectApp = { app ->
+                ctx.navigate(AppNavKey.FloatBallGesturePickActivity(key.gestureTypeId, app.packageName))
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.FloatBallGesturePickActivity> { key ->
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val gestureType = FloatBallGestureType.fromId(key.gestureTypeId) ?: FloatBallGestureType.SINGLE_TAP
+        ActivityShortcutPickActivityScreen(
+            packageName = key.packageName,
+            onBack = { ctx.backStack.removeLastOrNull() },
+            onSelectActivity = { activity ->
+                viewModel.setFloatBallGestureAction(
+                    gestureType,
+                    GestureAction.LaunchShortcut.component(
+                        "${activity.packageName}/${activity.className}",
+                        activity.label,
+                    ),
+                )
+                ctx.navigateBackTo(AppNavKey.FloatBallGesture)
+            },
         )
     }
 
     hiltEntry<AppNavKey.FloatBallGestureShellCommand> { key ->
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
-        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val appSettings by viewModel.settings.collectAsStateWithLifecycle()
         val gestureType = FloatBallGestureType.fromId(key.gestureTypeId) ?: FloatBallGestureType.SINGLE_TAP
         val returnKey = AppNavKey.FloatBallGesture
         GestureExecuteShellCommandScreen(
             initialCommand = key.initialCommand,
-            shellCommands = overlaySettings.toMinimalAppSettings().shellCommands,
+            shellCommands = appSettings.shellCommands,
             onBack = { ctx.backStack.removeLastOrNull() },
             onConfirm = { command ->
                 viewModel.setFloatBallGestureAction(
@@ -248,15 +475,55 @@ fun NavEntryBuilder.floatBallNavEntries(ctx: MainNavContext) {
         val settings = overlaySettings.toMinimalAppSettings()
         val initialEngine = key.engineId.takeIf { it.isNotEmpty() }
             ?.let { id -> settings.searchEngines.find { it.id == id } }
-        SearchEngineEditorScreen(
-            initialEngine = initialEngine,
-            editorCategory = SearchEngineEditorCategory.IMAGE_SHARE,
-            onBack = { ctx.navigateBackTo(AppNavKey.FloatBallImageSearchEngine) },
-            onSave = { result ->
-                viewModel.upsertEngine(result)
-                ctx.navigateBackTo(AppNavKey.FloatBallImageSearchEngine)
-            },
-        )
+        LaunchedEffect(key.engineId) {
+            viewModel.initDraft(initialEngine, SearchEngineEditorCategory.IMAGE_SHARE)
+        }
+        val draft by viewModel.editorDraft.collectAsStateWithLifecycle()
+        draft?.let { currentDraft ->
+            SearchEngineEditorScreen(
+                initialEngine = initialEngine,
+                draft = currentDraft,
+                editorCategory = SearchEngineEditorCategory.IMAGE_SHARE,
+                onBack = {
+                    viewModel.clearDraft()
+                    ctx.navigateBackTo(AppNavKey.FloatBallImageSearchEngine)
+                },
+                onSave = { result ->
+                    viewModel.upsertEngine(result)
+                    viewModel.clearDraft()
+                    ctx.navigateBackTo(AppNavKey.FloatBallImageSearchEngine)
+                },
+                onUpdateDraft = viewModel::updateDraft,
+                onPickApp = { target, titleResId, pkg ->
+                    ctx.navigate(
+                        AppNavKey.SearchEnginePickApp(
+                            isImageSearch = true,
+                            target = target,
+                            titleResId = titleResId,
+                            selectedPackageName = pkg,
+                        ),
+                    )
+                },
+                onPickActivity = { pkg, cls ->
+                    ctx.navigate(
+                        AppNavKey.SearchEnginePickActivity(
+                            isImageSearch = true,
+                            packageName = pkg,
+                            selectedClassName = cls,
+                        ),
+                    )
+                },
+                onPickShareTarget = { pkg, cls ->
+                    ctx.navigate(
+                        AppNavKey.SearchEnginePickShareTarget(
+                            isImageSearch = true,
+                            selectedPackageName = pkg,
+                            selectedActivityClassName = cls,
+                        ),
+                    )
+                },
+            )
+        }
     }
 
     hiltEntry<AppNavKey.FloatBallImageSearchEngineDetail> { key ->

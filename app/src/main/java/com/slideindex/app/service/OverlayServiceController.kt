@@ -60,8 +60,11 @@ class OverlayServiceController(
             PermissionHelper.isBatteryOptimizationExempt(context)
         permissionStates.writeSecureSettingsGranted.value =
             SecureSettingsHelper.hasWriteSecureSettings(context)
-        permissionStates.notificationListenerEnabled.value =
-            com.slideindex.app.util.MediaSessionHelper.isNotificationListenerEnabled(context)
+        val listenerEnabled = com.slideindex.app.util.MediaSessionHelper.isNotificationListenerEnabled(context)
+        permissionStates.notificationListenerEnabled.value = listenerEnabled
+        if (listenerEnabled) {
+            com.slideindex.app.util.MediaSessionHelper.ensureNotificationListenerConnected(context)
+        }
         if (permissionStates.shizukuGranted.value) {
             TaskManagerUtil.warmUp()
         }

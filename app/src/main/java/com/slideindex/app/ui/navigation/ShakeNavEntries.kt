@@ -1,4 +1,4 @@
-﻿package com.slideindex.app.ui.navigation
+package com.slideindex.app.ui.navigation
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -18,7 +18,10 @@ import com.slideindex.app.ui.ShakeGestureBlacklistScreen
 import com.slideindex.app.ui.ShakeGesturesScreen
 import com.slideindex.app.ui.ShakeIndependentAppSettingsScreen
 import com.slideindex.app.ui.ShakeIndependentSensitivityScreen
+import com.slideindex.app.ui.picker.ActivityShortcutPickActivityScreen
 import com.slideindex.app.ui.picker.ActivityShortcutPickAppScreen
+import com.slideindex.app.ui.picker.MyShortcutsFolderScreen
+import com.slideindex.app.ui.picker.PresetShortcutsFolderScreen
 import com.slideindex.app.settings.toMinimalAppSettings
 import com.slideindex.app.ui.viewmodel.ExtensionSettingsViewModel
 import com.slideindex.app.ui.viewmodel.ShakeHubViewModel
@@ -107,18 +110,156 @@ fun NavEntryBuilder.shakeNavEntries(ctx: MainNavContext) {
                 applyShakePickedAction(viewModel, key.target, gestureType, key.packageName, action)
                 ctx.navigateBackTo(returnKey)
             },
+            onOpenMyShortcuts = {
+                ctx.navigate(
+                    AppNavKey.ShakeGestureActionMyShortcuts(
+                        target = key.target,
+                        gestureTypeId = key.gestureTypeId,
+                        packageName = key.packageName,
+                    ),
+                )
+            },
+            onOpenPresetShortcuts = {
+                ctx.navigate(
+                    AppNavKey.ShakeGestureActionPresetShortcuts(
+                        target = key.target,
+                        gestureTypeId = key.gestureTypeId,
+                        packageName = key.packageName,
+                    ),
+                )
+            },
+            onOpenPickApp = {
+                ctx.navigate(
+                    AppNavKey.ShakeGestureActionPickApp(
+                        target = key.target,
+                        gestureTypeId = key.gestureTypeId,
+                        packageName = key.packageName,
+                    ),
+                )
+            },
+            onOpenExecuteShellCommand = { cmd ->
+                ctx.navigate(
+                    AppNavKey.ShakeGestureActionShellCommand(
+                        target = key.target,
+                        gestureTypeId = key.gestureTypeId,
+                        packageName = key.packageName,
+                        initialCommand = cmd,
+                    ),
+                )
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.ShakeGestureActionMyShortcuts> { key ->
+        val viewModel: ShakeHubViewModel = hiltViewModel()
+        val extensionViewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val appSettings by extensionViewModel.settings.collectAsStateWithLifecycle()
+        val gestureType = ShakeGestureType.fromId(key.gestureTypeId) ?: ShakeGestureType.LEFT_FLIP
+        val returnKey = AppNavKey.ShakeGestureActionPick(key.target, key.gestureTypeId, key.packageName)
+        val currentAction = when (key.target) {
+            ShakeActionPickTarget.BASIC ->
+                viewModel.shakeUiSettings.value.shakeGestureSettings.actionFor(gestureType)
+            ShakeActionPickTarget.FACE_DOWN ->
+                viewModel.shakeUiSettings.value.faceDownGestureSettings.action
+            ShakeActionPickTarget.LOCK_SCREEN ->
+                viewModel.shakeUiSettings.value.shakeGestureSettings.lockScreenActions[gestureType] ?: GestureAction.None
+            ShakeActionPickTarget.PER_APP ->
+                viewModel.shakeUiSettings.value.shakeGestureSettings.perAppActions[key.packageName]
+                    ?.get(gestureType) ?: GestureAction.None
+        }
+        MyShortcutsFolderScreen(
+            activityShortcuts = appSettings.activityShortcuts,
+            onBack = { ctx.navigateBackTo(returnKey) },
+            onBrowseNewShortcut = {
+                ctx.navigate(
+                    AppNavKey.ShakeGestureActionPickApp(
+                        target = key.target,
+                        gestureTypeId = key.gestureTypeId,
+                        packageName = key.packageName,
+                    ),
+                )
+            },
+            currentAction = currentAction,
+            onSelectRadio = { action ->
+                applyShakePickedAction(viewModel, key.target, gestureType, key.packageName, action)
+                ctx.navigateBackTo(key.target.returnNavKey(key.packageName))
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.ShakeGestureActionPresetShortcuts> { key ->
+        val viewModel: ShakeHubViewModel = hiltViewModel()
+        val gestureType = ShakeGestureType.fromId(key.gestureTypeId) ?: ShakeGestureType.LEFT_FLIP
+        val returnKey = AppNavKey.ShakeGestureActionPick(key.target, key.gestureTypeId, key.packageName)
+        val currentAction = when (key.target) {
+            ShakeActionPickTarget.BASIC ->
+                viewModel.shakeUiSettings.value.shakeGestureSettings.actionFor(gestureType)
+            ShakeActionPickTarget.FACE_DOWN ->
+                viewModel.shakeUiSettings.value.faceDownGestureSettings.action
+            ShakeActionPickTarget.LOCK_SCREEN ->
+                viewModel.shakeUiSettings.value.shakeGestureSettings.lockScreenActions[gestureType] ?: GestureAction.None
+            ShakeActionPickTarget.PER_APP ->
+                viewModel.shakeUiSettings.value.shakeGestureSettings.perAppActions[key.packageName]
+                    ?.get(gestureType) ?: GestureAction.None
+        }
+        PresetShortcutsFolderScreen(
+            onBack = { ctx.navigateBackTo(returnKey) },
+            currentAction = currentAction,
+            onSelectRadio = { action ->
+                applyShakePickedAction(viewModel, key.target, gestureType, key.packageName, action)
+                ctx.navigateBackTo(key.target.returnNavKey(key.packageName))
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.ShakeGestureActionPickApp> { key ->
+        val returnKey = AppNavKey.ShakeGestureActionPick(key.target, key.gestureTypeId, key.packageName)
+        ActivityShortcutPickAppScreen(
+            onBack = { ctx.navigateBackTo(returnKey) },
+            onSelectApp = { app ->
+                ctx.navigate(
+                    AppNavKey.ShakeGestureActionPickActivity(
+                        target = key.target,
+                        gestureTypeId = key.gestureTypeId,
+                        packageName = key.packageName,
+                        appPackageName = app.packageName,
+                    ),
+                )
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.ShakeGestureActionPickActivity> { key ->
+        val viewModel: ShakeHubViewModel = hiltViewModel()
+        val gestureType = ShakeGestureType.fromId(key.gestureTypeId) ?: ShakeGestureType.LEFT_FLIP
+        ActivityShortcutPickActivityScreen(
+            packageName = key.appPackageName,
+            onBack = { ctx.backStack.removeLastOrNull() },
+            onSelectActivity = { activity ->
+                applyShakePickedAction(
+                    viewModel,
+                    key.target,
+                    gestureType,
+                    key.packageName,
+                    GestureAction.LaunchShortcut.component(
+                        "${activity.packageName}/${activity.className}",
+                        activity.label,
+                    ),
+                )
+                ctx.navigateBackTo(key.target.returnNavKey(key.packageName))
+            },
         )
     }
 
     hiltEntry<AppNavKey.ShakeGestureActionShellCommand> { key ->
         val viewModel: ShakeHubViewModel = hiltViewModel()
         val extensionViewModel: ExtensionSettingsViewModel = hiltViewModel()
-        val overlaySettings by extensionViewModel.overlaySettings.collectAsStateWithLifecycle()
+        val appSettings by extensionViewModel.settings.collectAsStateWithLifecycle()
         val gestureType = ShakeGestureType.fromId(key.gestureTypeId) ?: ShakeGestureType.LEFT_FLIP
         val returnKey = key.target.returnNavKey(key.packageName)
         GestureExecuteShellCommandScreen(
             initialCommand = key.initialCommand,
-            shellCommands = overlaySettings.toMinimalAppSettings().shellCommands,
+            shellCommands = appSettings.shellCommands,
             onBack = { ctx.backStack.removeLastOrNull() },
             onConfirm = { command ->
                 applyShakePickedAction(

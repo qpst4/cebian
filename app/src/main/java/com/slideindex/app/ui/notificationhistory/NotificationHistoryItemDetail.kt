@@ -14,17 +14,16 @@ import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.DropdownDefaults
 import top.yukonga.miuix.kmp.basic.DropdownEntry
 import top.yukonga.miuix.kmp.basic.DropdownItem
 import top.yukonga.miuix.kmp.popup.WindowDropdownPopup
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -121,10 +120,6 @@ internal fun NotificationHistoryRow(
                     onClick = onOpen,
                     onLongClick = { showMenu = true },
                 ),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-            ),
-            shape = MaterialTheme.shapes.large,
         ) {
             Row(
                 modifier = Modifier
@@ -140,7 +135,7 @@ internal fun NotificationHistoryRow(
                         imageVector = Icons.Default.Notifications,
                         contentDescription = stringResource(R.string.cd_notification_icon),
                         modifier = Modifier.size(40.dp),
-                        tint = MaterialTheme.colorScheme.primary,
+                        tint = MiuixTheme.colorScheme.primary,
                     )
                 }
                 Column(
@@ -153,7 +148,8 @@ internal fun NotificationHistoryRow(
                     ) {
                         Text(
                             text = displayTitle,
-                            style = MaterialTheme.typography.titleSmall,
+                            style = MiuixTheme.textStyles.title4,
+                            color = MiuixTheme.colorScheme.onSurface,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.weight(1f),
@@ -163,15 +159,15 @@ internal fun NotificationHistoryRow(
                                 imageVector = Icons.Default.VisibilityOff,
                                 contentDescription = stringResource(R.string.notification_filter_hidden_badge),
                                 modifier = Modifier.size(18.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                tint = MiuixTheme.colorScheme.onSurfaceSecondary,
                             )
                         }
                     }
                     if (item.text.isNotBlank()) {
                         Text(
                             text = item.text,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MiuixTheme.textStyles.body2,
+                            color = MiuixTheme.colorScheme.onSurfaceSecondary,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
                         )
@@ -183,8 +179,8 @@ internal fun NotificationHistoryRow(
                         ) {
                             Text(
                                 text = stringResource(R.string.otp_extracted_code_label, item.extractedCode!!),
-                                style = MaterialTheme.typography.titleSmall,
-                                color = MaterialTheme.colorScheme.primary,
+                                style = MiuixTheme.textStyles.title4,
+                                color = MiuixTheme.colorScheme.primary,
                             )
                             IconButton(
                                 onClick = {
@@ -196,6 +192,7 @@ internal fun NotificationHistoryRow(
                                     imageVector = Icons.Default.ContentCopy,
                                     contentDescription = stringResource(R.string.otp_copy_action),
                                     modifier = Modifier.size(18.dp),
+                                    tint = MiuixTheme.colorScheme.onSurfaceSecondary,
                                 )
                             }
                         }
@@ -210,32 +207,23 @@ internal fun NotificationHistoryRow(
                                 append(stringResource(R.string.notification_filter_active_in_shade))
                             }
                         },
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
+                        style = MiuixTheme.textStyles.footnote1,
+                        color = MiuixTheme.colorScheme.onSurfaceSecondary.copy(alpha = 0.75f),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
                 if (showRestoreAction) {
                     TextButton(
+                        text = stringResource(R.string.notification_restore_action),
                         onClick = onUnhide,
                         modifier = Modifier.align(Alignment.CenterVertically),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Visibility,
-                            contentDescription = stringResource(R.string.notification_restore_action),
-                            modifier = Modifier.size(18.dp),
-                        )
-                        Text(
-                            text = stringResource(R.string.notification_restore_action),
-                            modifier = Modifier.padding(start = 4.dp),
-                        )
-                    }
+                    )
                 }
             }
         }
         WindowDropdownPopup(
-            entries = listOf(menuEntry),
+            entry = menuEntry,
             show = showMenu,
             onDismiss = { showMenu = false },
             onDismissFinished = {},

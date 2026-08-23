@@ -4,8 +4,11 @@ import android.content.Context
 import androidx.core.net.toUri
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.launcher.QuickLauncherItem
+import com.slideindex.app.launcher.QuickLauncherItemCodec
+import com.slideindex.app.launcher.QuickLauncherItemType
 import com.slideindex.app.launcher.QuickLauncherPanel
 import com.slideindex.app.launcher.QuickLauncherPanelDefaults
+import com.slideindex.app.overlay.honeycombRuntimeItems
 import com.slideindex.app.settings.FloatingPointerEdgeSide
 import com.slideindex.app.settings.FloatingPointerTrailType
 import com.slideindex.app.settings.FloatBallPositionMode
@@ -21,6 +24,15 @@ import com.slideindex.app.widget.WidgetPanelPage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+
+data class QuickLauncherFolderDraft(
+    val panelId: String,
+    val name: String = "",
+    val items: List<QuickLauncherItem> = emptyList(),
+)
 
 @HiltViewModel
 class ExtensionSettingsViewModel @Inject constructor(
@@ -28,6 +40,50 @@ class ExtensionSettingsViewModel @Inject constructor(
     userMessageBus: UserMessageBus,
     @ApplicationContext context: Context,
 ) : SettingsViewModel(settingsRepository, userMessageBus, context) {
+    private val _folderDraft = MutableStateFlow<QuickLauncherFolderDraft?>(null)
+    val folderDraft: StateFlow<QuickLauncherFolderDraft?> = _folderDraft.asStateFlow()
+
+    fun initFolderDraft(panelId: String) {
+        val current = _folderDraft.value
+        if (current == null || current.panelId != panelId) {
+            _folderDraft.value = QuickLauncherFolderDraft(panelId)
+        }
+    }
+
+    fun updateFolderDraftName(name: String) {
+        _folderDraft.value = _folderDraft.value?.copy(name = name)
+    }
+
+    fun toggleFolderDraftItem(item: QuickLauncherItem, added: Boolean) {
+        val draft = _folderDraft.value ?: return
+        val items = if (added) {
+            draft.items.filterNot { it.type == item.type && it.payload == item.payload }
+        } else {
+            draft.items + item
+        }
+        _folderDraft.value = draft.copy(items = items)
+    }
+
+    fun addFolderDraftItem(item: QuickLauncherItem) {
+        val draft = _folderDraft.value ?: return
+        if (draft.items.none { it.type == item.type && it.payload == item.payload }) {
+            _folderDraft.value = draft.copy(items = draft.items + item)
+        }
+    }
+
+    fun clearFolderDraft() {
+        _folderDraft.value = null
+    }
+
+    fun commitFolderDraft(name: String) {
+        val draft = _folderDraft.value ?: return
+        addQuickLauncherPanelItem(
+            draft.panelId,
+            QuickLauncherItem.folder(name, draft.items),
+        )
+        _folderDraft.value = null
+    }
+
     fun setQuickLauncherPanels(panels: List<QuickLauncherPanel>) = launchSettingsWrite {
         settingsRepository.setQuickLauncherPanels(
             QuickLauncherPanelDefaults.effectivePanels(panels),
@@ -51,6 +107,62 @@ class ExtensionSettingsViewModel @Inject constructor(
         launchSettingsWrite {
             settingsRepository.setHoneycombDisplaySettings(settings)
         }
+
+    fun toggleQuickLauncherPanelItem(panelId: String, item: QuickLauncherItem, added: Boolean) = launchSettingsWrite {
+        val currentPanels = QuickLauncherPanelDefaults.effectivePanels(settingsRepository.readSnapshot().quickLauncherPanels)
+        val updated = currentPanels.map { panel ->
+            if (panel.id == panelId) {
+                val nextItems = if (added) {
+                    when (item.type) {
+                        QuickLauncherItemType.APP -> panel.items.filterNot { it.type == QuickLauncherItemType.APP && it.payload == item.payload }
+                        QuickLauncherItemType.SHORTCUT -> {
+                            val key = QuickLauncherItemCodec.shortcutItemKey(item)
+                            panel.items.filterNot { it.type == QuickLauncherItemType.SHORTCUT && QuickLauncherItemCodec.shortcutItemKey(it) == key }
+                        }
+                        QuickLauncherItemType.ACTION -> {
+                            val actionKey = QuickLauncherItemCodec.parseActionPayload(item.payload)?.let(QuickLauncherItemCodec::actionKey)
+                            panel.items.filterNot { it.type == QuickLauncherItemType.ACTION && QuickLauncherItemCodec.parseActionPayload(it.payload)?.let(QuickLauncherItemCodec::actionKey) == actionKey }
+                        }
+                        QuickLauncherItemType.WIDGET -> panel.items.filterNot { it.type == QuickLauncherItemType.WIDGET && it.payload == item.payload }
+                        QuickLauncherItemType.FOLDER -> panel.items.filterNot { it.type == QuickLauncherItemType.FOLDER && it.payload == item.payload && it.label == item.label }
+                    }
+                } else {
+                    panel.items + item
+                }
+                panel.copy(items = nextItems)
+            } else {
+                panel
+            }
+        }
+        settingsRepository.setQuickLauncherPanels(QuickLauncherPanelDefaults.effectivePanels(updated))
+    }
+
+    fun addQuickLauncherPanelItem(panelId: String, item: QuickLauncherItem) =
+        toggleQuickLauncherPanelItem(panelId, item, added = false)
+
+    fun toggleHoneycombItem(item: QuickLauncherItem, added: Boolean) = launchSettingsWrite {
+        val current = settingsRepository.readSnapshot().honeycombLauncher.honeycombRuntimeItems()
+        val next = if (added) {
+            when (item.type) {
+                QuickLauncherItemType.APP -> current.filterNot { it.type == QuickLauncherItemType.APP && it.payload == item.payload }
+                QuickLauncherItemType.SHORTCUT -> {
+                    val key = QuickLauncherItemCodec.shortcutItemKey(item) ?: return@launchSettingsWrite Result.success(Unit)
+                    current.filterNot { it.type == QuickLauncherItemType.SHORTCUT && QuickLauncherItemCodec.shortcutItemKey(it) == key }
+                }
+                QuickLauncherItemType.ACTION -> {
+                    val actionKey = QuickLauncherItemCodec.parseActionPayload(item.payload)?.let(QuickLauncherItemCodec::actionKey) ?: return@launchSettingsWrite Result.success(Unit)
+                    current.filterNot { it.type == QuickLauncherItemType.ACTION && QuickLauncherItemCodec.parseActionPayload(it.payload)?.let(QuickLauncherItemCodec::actionKey) == actionKey }
+                }
+                else -> return@launchSettingsWrite Result.success(Unit)
+            }
+        } else {
+            current + item
+        }
+        settingsRepository.setHoneycombLauncherItems(next.honeycombRuntimeItems())
+    }
+
+    fun addHoneycombItem(item: QuickLauncherItem) =
+        toggleHoneycombItem(item, added = false)
 
     fun setQuickLauncherColumnsPerPage(value: Int) = launchSettingsWrite {
         settingsRepository.setQuickLauncherColumnsPerPage(value)

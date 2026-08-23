@@ -134,6 +134,13 @@ internal fun QuickLauncherAddOverlaySheetBody(
     onSubScreenChange: (QuickLauncherAddSubScreen) -> Unit,
     selectedTab: Int,
     singleSelect: Boolean = false,
+    folderName: String = "",
+    folderItems: List<QuickLauncherItem> = emptyList(),
+    folderPickerActive: Boolean = false,
+    onFolderNameChange: (String) -> Unit = {},
+    onToggleFolderItem: (QuickLauncherItem, Boolean) -> Unit = { _, _ -> },
+    onEnterFolderLibrary: () -> Unit = {},
+    onClearFolderDraft: () -> Unit = {},
 ) {
     var visitedTabs by remember { mutableStateOf(setOf(selectedTab)) }
     LaunchedEffect(selectedTab) {
@@ -159,19 +166,42 @@ internal fun QuickLauncherAddOverlaySheetBody(
                 GestureExecuteShellCommandScreen(
                     initialCommand = screen.initialCommand,
                     shellCommands = shellCommands,
-                    onBack = { onSubScreenChange(QuickLauncherAddSubScreen.Main) },
+                    enableBackHandler = false,
+                    onBack = {
+                        onSubScreenChange(
+                            if (folderPickerActive) {
+                                QuickLauncherAddSubScreen.CreateFolder
+                            } else {
+                                QuickLauncherAddSubScreen.Main
+                            },
+                        )
+                    },
                     onConfirm = { command ->
                         val label = displayLabelForExecuteShellCommand(command, shellCommands)
                         val action = com.slideindex.app.gesture.GestureAction.ExecuteShellCommand(command)
-                        onToggle(QuickLauncherItem.action(action, label), false)
-                        onSubScreenChange(QuickLauncherAddSubScreen.Main)
+                        val item = QuickLauncherItem.action(action, label)
+                        if (folderPickerActive) {
+                            onToggleFolderItem(item, false)
+                            onSubScreenChange(QuickLauncherAddSubScreen.CreateFolder)
+                        } else {
+                            onToggle(item, false)
+                            onSubScreenChange(QuickLauncherAddSubScreen.Main)
+                        }
                     },
                 )
             }
             QuickLauncherAddSubScreen.PickApp -> {
                 ActivityShortcutPickAppScreen(
                     embedInParentChrome = true,
-                    onBack = { onSubScreenChange(QuickLauncherAddSubScreen.Main) },
+                    onBack = {
+                        onSubScreenChange(
+                            if (folderPickerActive) {
+                                QuickLauncherAddSubScreen.CreateFolder
+                            } else {
+                                QuickLauncherAddSubScreen.Main
+                            },
+                        )
+                    },
                     onSelectApp = { app ->
                         onSubScreenChange(QuickLauncherAddSubScreen.PickActivity(app.packageName))
                     },
@@ -183,14 +213,17 @@ internal fun QuickLauncherAddOverlaySheetBody(
                     embedInParentChrome = true,
                     onBack = { onSubScreenChange(QuickLauncherAddSubScreen.PickApp) },
                     onSelectActivity = { activity ->
-                        onToggle(
-                            QuickLauncherItem.shortcut(
-                                "${activity.packageName}/${activity.className}",
-                                activity.label,
-                            ),
-                            false,
+                        val item = QuickLauncherItem.shortcut(
+                            "${activity.packageName}/${activity.className}",
+                            activity.label,
                         )
-                        onSubScreenChange(QuickLauncherAddSubScreen.Main)
+                        if (folderPickerActive) {
+                            onToggleFolderItem(item, false)
+                            onSubScreenChange(QuickLauncherAddSubScreen.CreateFolder)
+                        } else {
+                            onToggle(item, false)
+                            onSubScreenChange(QuickLauncherAddSubScreen.Main)
+                        }
                     },
                 )
             }
@@ -199,38 +232,85 @@ internal fun QuickLauncherAddOverlaySheetBody(
                     apps = apps,
                     activityShortcuts = activityShortcuts,
                     shellCommands = shellCommands,
+                    folderName = folderName,
+                    folderItems = folderItems,
+                    onFolderNameChange = onFolderNameChange,
+                    onToggleFolderItem = onToggleFolderItem,
                     onCreateFolder = { name, items ->
                         onToggle(QuickLauncherItem.folder(name, items), false)
+                        onClearFolderDraft()
                         onSubScreenChange(QuickLauncherAddSubScreen.Main)
                     },
-                    onBack = { onSubScreenChange(QuickLauncherAddSubScreen.Main) },
+                    onBack = {
+                        onClearFolderDraft()
+                        onSubScreenChange(QuickLauncherAddSubScreen.Main)
+                    },
                     launchCreateShortcut = launchCreateShortcut,
                     onBrowseActivityShortcut = {
+                        onEnterFolderLibrary()
                         onSubScreenChange(QuickLauncherAddSubScreen.PickApp)
                     },
                     selectedTab = selectedTab,
                     searchQuery = searchQuery,
-                    onSubScreenChange = onSubScreenChange,
+                    onSubScreenChange = { next ->
+                        if (next !is QuickLauncherAddSubScreen.CreateFolder) {
+                            onEnterFolderLibrary()
+                        }
+                        onSubScreenChange(next)
+                    },
                     modifier = Modifier.fillMaxSize(),
                 )
             }
             QuickLauncherAddSubScreen.MyShortcuts -> {
+                val shortcutKeys = if (folderPickerActive) {
+                    folderItems.filter { it.type == QuickLauncherItemType.SHORTCUT }
+                        .mapNotNull { QuickLauncherItemCodec.shortcutItemKey(it) }
+                        .toSet()
+                } else {
+                    addedShortcutKeys
+                }
                 com.slideindex.app.ui.picker.MyShortcutsFolderScreen(
                     activityShortcuts = activityShortcuts,
-                    onBack = { onSubScreenChange(QuickLauncherAddSubScreen.Main) },
-                    onBrowseNewShortcut = { onSubScreenChange(QuickLauncherAddSubScreen.PickApp) },
-                    configuredShortcutKeys = addedShortcutKeys,
-                    onToggle = onToggle,
+                    onBack = {
+                        onSubScreenChange(
+                            if (folderPickerActive) {
+                                QuickLauncherAddSubScreen.CreateFolder
+                            } else {
+                                QuickLauncherAddSubScreen.Main
+                            },
+                        )
+                    },
+                    onBrowseNewShortcut = {
+                        onEnterFolderLibrary()
+                        onSubScreenChange(QuickLauncherAddSubScreen.PickApp)
+                    },
+                    configuredShortcutKeys = shortcutKeys,
+                    onToggle = if (folderPickerActive) onToggleFolderItem else onToggle,
                     overlayMode = true,
                     embedInParentChrome = true,
                     searchQuery = searchQuery,
                 )
             }
             QuickLauncherAddSubScreen.PresetShortcuts -> {
+                val shortcutKeys = if (folderPickerActive) {
+                    folderItems.filter { it.type == QuickLauncherItemType.SHORTCUT }
+                        .mapNotNull { QuickLauncherItemCodec.shortcutItemKey(it) }
+                        .toSet()
+                } else {
+                    addedShortcutKeys
+                }
                 com.slideindex.app.ui.picker.PresetShortcutsFolderScreen(
-                    onBack = { onSubScreenChange(QuickLauncherAddSubScreen.Main) },
-                    configuredShortcutKeys = addedShortcutKeys,
-                    onToggle = onToggle,
+                    onBack = {
+                        onSubScreenChange(
+                            if (folderPickerActive) {
+                                QuickLauncherAddSubScreen.CreateFolder
+                            } else {
+                                QuickLauncherAddSubScreen.Main
+                            },
+                        )
+                    },
+                    configuredShortcutKeys = shortcutKeys,
+                    onToggle = if (folderPickerActive) onToggleFolderItem else onToggle,
                     overlayMode = true,
                     embedInParentChrome = true,
                     searchQuery = searchQuery,
@@ -591,6 +671,10 @@ internal fun QuickLauncherCreateFolderScreen(
     apps: List<AppInfo>,
     activityShortcuts: List<ActivityShortcut>,
     shellCommands: List<com.slideindex.app.shell.ShellCommand>,
+    folderName: String,
+    folderItems: List<QuickLauncherItem>,
+    onFolderNameChange: (String) -> Unit,
+    onToggleFolderItem: (QuickLauncherItem, Boolean) -> Unit,
     onCreateFolder: (String, List<QuickLauncherItem>) -> Unit,
     onBack: () -> Unit,
     launchCreateShortcut: (
@@ -603,31 +687,20 @@ internal fun QuickLauncherCreateFolderScreen(
     searchQuery: String = "",
     onSubScreenChange: (QuickLauncherAddSubScreen) -> Unit = {},
 ) {
-    var folderName by remember { mutableStateOf("") }
-    var selectedItems by remember { mutableStateOf<List<QuickLauncherItem>>(emptyList()) }
-
-    val configuredActionKeys = remember(selectedItems) {
-        selectedItems.filter { it.type == QuickLauncherItemType.ACTION }
+    val configuredActionKeys = remember(folderItems) {
+        folderItems.filter { it.type == QuickLauncherItemType.ACTION }
             .mapNotNull { QuickLauncherItemCodec.parseActionPayload(it.payload)?.let(QuickLauncherItemCodec::actionKey) }
             .toSet()
     }
-    val configuredAppPackages = remember(selectedItems) {
-        selectedItems.filter { it.type == QuickLauncherItemType.APP }
+    val configuredAppPackages = remember(folderItems) {
+        folderItems.filter { it.type == QuickLauncherItemType.APP }
             .map { it.payload }
             .toSet()
     }
-    val configuredShortcutKeys = remember(selectedItems) {
-        selectedItems.filter { it.type == QuickLauncherItemType.SHORTCUT }
+    val configuredShortcutKeys = remember(folderItems) {
+        folderItems.filter { it.type == QuickLauncherItemType.SHORTCUT }
             .mapNotNull { QuickLauncherItemCodec.shortcutItemKey(it) }
             .toSet()
-    }
-
-    fun toggleItem(item: QuickLauncherItem, added: Boolean) {
-        selectedItems = if (added) {
-            selectedItems.filterNot { it.type == item.type && it.payload == item.payload }
-        } else {
-            selectedItems + item
-        }
     }
 
     Column(modifier = modifier.fillMaxSize()) {
@@ -638,13 +711,13 @@ internal fun QuickLauncherCreateFolderScreen(
         ) {
             MiuixLabeledTextField(
                 value = folderName,
-                onValueChange = { folderName = it },
+                onValueChange = onFolderNameChange,
                 label = stringResource(R.string.quick_launcher_folder_name),
                 modifier = Modifier.fillMaxWidth(),
             )
-            if (selectedItems.isNotEmpty()) {
+            if (folderItems.isNotEmpty()) {
                 Text(
-                    text = stringResource(R.string.quick_launcher_folder_items_count, selectedItems.size),
+                    text = stringResource(R.string.quick_launcher_folder_items_count, folderItems.size),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(top = 4.dp, start = 4.dp),
@@ -661,7 +734,7 @@ internal fun QuickLauncherCreateFolderScreen(
                 0 -> QuickLauncherAddActionsTab(
                     searchQuery = searchQuery,
                     configuredActionKeys = configuredActionKeys,
-                    onToggleItem = ::toggleItem,
+                    onToggleItem = onToggleFolderItem,
                     onOpenExecuteShellCommand = {
                         onSubScreenChange(QuickLauncherAddSubScreen.ShellCommandConfig())
                     },
@@ -673,7 +746,7 @@ internal fun QuickLauncherCreateFolderScreen(
                     apps = apps,
                     configuredAppPackages = configuredAppPackages,
                     onToggle = { app, added ->
-                        toggleItem(QuickLauncherItem.app(app.packageName, app.label), added)
+                        onToggleFolderItem(QuickLauncherItem.app(app.packageName, app.label), added)
                     },
                     singleSelect = false,
                     modifier = Modifier.fillMaxSize(),
@@ -683,7 +756,7 @@ internal fun QuickLauncherCreateFolderScreen(
                     searchQuery = searchQuery,
                     configuredShortcutKeys = configuredShortcutKeys,
                     activityShortcuts = activityShortcuts,
-                    onToggle = ::toggleItem,
+                    onToggle = onToggleFolderItem,
                     onBrowseActivityShortcut = onBrowseActivityShortcut,
                     onSubScreenChange = onSubScreenChange,
                     launchCreateShortcut = launchCreateShortcut,
@@ -703,7 +776,7 @@ internal fun QuickLauncherCreateFolderScreen(
                 onClick = {
                     val defaultName = "文件夹"
                     val finalName = folderName.trim().ifBlank { defaultName }
-                    onCreateFolder(finalName, selectedItems)
+                    onCreateFolder(finalName, folderItems)
                 },
                 modifier = Modifier.fillMaxWidth(),
             ) {

@@ -8,67 +8,70 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.yukonga.miuix.kmp.nav.core.NavEntryBuilder
-import com.slideindex.app.launcher.QuickLauncherPanelDefaults
 import com.slideindex.app.R
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.GestureTriggerMode
 import com.slideindex.app.gesture.GestureTriggerType
+import com.slideindex.app.gesture.TriggerHandleDesign
 import com.slideindex.app.gesture.preferredTriggerMode
 import com.slideindex.app.gesture.supportsAction
-import com.slideindex.app.settings.AppLaunchPolicy
-import com.slideindex.app.settings.descRes
-import com.slideindex.app.settings.titleRes
-import com.slideindex.app.settings.FreeWindowMode
-import com.slideindex.app.settings.actionFor
-import com.slideindex.app.settings.defaultTriggerModeFor
-import com.slideindex.app.settings.displayTriggerMode
-import com.slideindex.app.settings.gestureConfigSide
-import com.slideindex.app.ui.GestureActionPickerScreen
-import com.slideindex.app.ui.QuickLauncherPanelPickScreen
-import com.slideindex.app.ui.GestureExecuteShellCommandScreen
-import com.slideindex.app.ui.SideGestureSlotConfigScreen
-import com.slideindex.app.ui.SideGestureTriggerModePickerScreen
-import com.slideindex.app.ui.requestPermissionForAdjustAction
-import com.slideindex.app.gesture.TriggerHandleDesign
-import com.slideindex.app.settings.FreeWindowUiSettings
-import com.slideindex.app.settings.resolvedFreeWindowMode
-import com.slideindex.app.settings.toMinimalAppSettings
-import com.slideindex.app.settings.forLandscapeEditing
-import com.slideindex.app.ui.trigger.TriggerLandscapeOrientationEffect
-import com.slideindex.app.ui.trigger.TriggerSettingsLandscapeSession
-import com.slideindex.app.settings.resolvedLaunchPolicy
-import com.slideindex.app.ui.SettingRadioRow
-import com.slideindex.app.ui.SettingsRadioPickerScreen
-import com.slideindex.app.ui.settings.components.settingsCardScopeItem
+import com.slideindex.app.launcher.QuickLauncherPanelDefaults
 import com.slideindex.app.overlay.LayoutPreviewContent
 import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.service.OverlayService
+import com.slideindex.app.settings.AppLaunchPolicy
+import com.slideindex.app.settings.FreeWindowMode
+import com.slideindex.app.settings.FreeWindowUiSettings
 import com.slideindex.app.settings.GestureHintStyle
+import com.slideindex.app.settings.actionFor
 import com.slideindex.app.settings.activeBubbleStyle
 import com.slideindex.app.settings.activeCapsuleStyle
 import com.slideindex.app.settings.activeWaveStyle
+import com.slideindex.app.settings.defaultTriggerModeFor
+import com.slideindex.app.settings.descRes
+import com.slideindex.app.settings.displayTriggerMode
+import com.slideindex.app.settings.forLandscapeEditing
+import com.slideindex.app.settings.gestureConfigSide
+import com.slideindex.app.settings.resolvedFreeWindowMode
+import com.slideindex.app.settings.resolvedLaunchPolicy
+import com.slideindex.app.settings.titleRes
+import com.slideindex.app.settings.toMinimalAppSettings
 import com.slideindex.app.ui.AppKeepAliveSettingsScreen
-import com.slideindex.app.ui.ExcludedAppsScreen
-import com.slideindex.app.ui.ExcludedAppPickScreen
 import com.slideindex.app.ui.CornerGestureInteractionScreen
 import com.slideindex.app.ui.CornerGestureSettingsScreen
 import com.slideindex.app.ui.CornerGestureSlotsSettingsScreen
+import com.slideindex.app.ui.ExcludedAppPickScreen
+import com.slideindex.app.ui.ExcludedAppsScreen
 import com.slideindex.app.ui.FreeWindowPreviewScreen
 import com.slideindex.app.ui.FreeWindowSettingsScreen
+import com.slideindex.app.ui.GestureActionPickerScreen
 import com.slideindex.app.ui.GestureAngleSettingsScreen
+import com.slideindex.app.ui.GestureExecuteShellCommandScreen
 import com.slideindex.app.ui.HiddenAppsScreen
 import com.slideindex.app.ui.LayoutSettingsScreen
 import com.slideindex.app.ui.MainScreen
-import com.slideindex.app.ui.SideGestureSettingsScreen
+import com.slideindex.app.ui.QuickLauncherPanelPickScreen
+import com.slideindex.app.ui.SettingRadioRow
+import com.slideindex.app.ui.SettingsRadioPickerScreen
 import com.slideindex.app.ui.ShakeGestureBlacklistScreen
+import com.slideindex.app.ui.SideGestureSettingsScreen
+import com.slideindex.app.ui.SideGestureSlotConfigScreen
+import com.slideindex.app.ui.SideGestureTriggerModePickerScreen
 import com.slideindex.app.ui.TriggerAppearanceSettingsScreen
 import com.slideindex.app.ui.TriggerCollectionScreen
 import com.slideindex.app.ui.TriggerDesignSettingsScreen
-import com.slideindex.app.ui.picker.ActivityShortcutPickAppScreen
 import com.slideindex.app.ui.animationstyle.AnimationStyleSelectScreen
 import com.slideindex.app.ui.animationstyle.BubbleStyleSettingsScreen
 import com.slideindex.app.ui.animationstyle.CapsuleStyleSettingsScreen
 import com.slideindex.app.ui.animationstyle.WaveStyleSettingsScreen
+import com.slideindex.app.ui.picker.ActivityShortcutPickActivityScreen
+import com.slideindex.app.ui.picker.ActivityShortcutPickAppScreen
+import com.slideindex.app.ui.picker.MyShortcutsFolderScreen
+import com.slideindex.app.ui.picker.PresetShortcutsFolderScreen
+import com.slideindex.app.ui.requestPermissionForAdjustAction
+import com.slideindex.app.ui.settings.components.settingsCardScopeItem
+import com.slideindex.app.ui.trigger.TriggerLandscapeOrientationEffect
+import com.slideindex.app.ui.trigger.TriggerSettingsLandscapeSession
 import com.slideindex.app.ui.viewmodel.HomeDetailSettingsViewModel
 import com.slideindex.app.ui.viewmodel.HomeViewModel
 import com.slideindex.app.ui.viewmodel.KeepAliveSettingsViewModel
@@ -333,16 +336,97 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
         val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
         val corner = overlaySettings.cornerGestureSettings
+        val returnKey = AppNavKey.HomeCornerGestureSlots
         GestureActionPickerScreen(
             trigger = GestureTriggerType.SHORT_SWIPE_IN,
             current = corner.innerZoneAction,
-            onDismiss = { ctx.navigateBackTo(AppNavKey.HomeCornerGestureSlots) },
+            onDismiss = { ctx.navigateBackTo(returnKey) },
             onSelect = { action ->
                 if (action is GestureAction.FloatingPointer) return@GestureActionPickerScreen
                 viewModel.setCornerGestureInnerZoneAction(action)
+                ctx.navigateBackTo(returnKey)
+            },
+            onOpenMyShortcuts = { ctx.navigate(AppNavKey.HomeCornerGestureInnerZoneMyShortcuts) },
+            onOpenPresetShortcuts = { ctx.navigate(AppNavKey.HomeCornerGestureInnerZonePresetShortcuts) },
+            onOpenPickApp = { ctx.navigate(AppNavKey.HomeCornerGestureInnerZonePickApp) },
+            onOpenExecuteShellCommand = { cmd -> ctx.navigate(AppNavKey.HomeCornerGestureInnerZoneShellCommand(cmd)) },
+            includeCornerInnerZoneActions = true,
+        )
+    }
+
+    hiltEntry<AppNavKey.HomeCornerGestureInnerZoneMyShortcuts> {
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val appSettings by viewModel.settings.collectAsStateWithLifecycle()
+        val corner = overlaySettings.cornerGestureSettings
+        val returnKey = AppNavKey.HomeCornerGestureInnerZoneActionPick
+        MyShortcutsFolderScreen(
+            activityShortcuts = appSettings.activityShortcuts,
+            onBack = { ctx.navigateBackTo(returnKey) },
+            onBrowseNewShortcut = { ctx.navigate(AppNavKey.HomeCornerGestureInnerZonePickApp) },
+            currentAction = corner.innerZoneAction,
+            onSelectRadio = { action ->
+                viewModel.setCornerGestureInnerZoneAction(action)
                 ctx.navigateBackTo(AppNavKey.HomeCornerGestureSlots)
             },
-            includeCornerInnerZoneActions = true,
+        )
+    }
+
+    hiltEntry<AppNavKey.HomeCornerGestureInnerZonePresetShortcuts> {
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val corner = overlaySettings.cornerGestureSettings
+        val returnKey = AppNavKey.HomeCornerGestureInnerZoneActionPick
+        PresetShortcutsFolderScreen(
+            onBack = { ctx.navigateBackTo(returnKey) },
+            currentAction = corner.innerZoneAction,
+            onSelectRadio = { action ->
+                viewModel.setCornerGestureInnerZoneAction(action)
+                ctx.navigateBackTo(AppNavKey.HomeCornerGestureSlots)
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.HomeCornerGestureInnerZonePickApp> {
+        val returnKey = AppNavKey.HomeCornerGestureInnerZoneActionPick
+        ActivityShortcutPickAppScreen(
+            onBack = { ctx.navigateBackTo(returnKey) },
+            onSelectApp = { app ->
+                ctx.navigate(AppNavKey.HomeCornerGestureInnerZonePickActivity(app.packageName))
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.HomeCornerGestureInnerZonePickActivity> { key ->
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        ActivityShortcutPickActivityScreen(
+            packageName = key.packageName,
+            onBack = { ctx.backStack.removeLastOrNull() },
+            onSelectActivity = { activity ->
+                viewModel.setCornerGestureInnerZoneAction(
+                    GestureAction.LaunchShortcut.component(
+                        "${activity.packageName}/${activity.className}",
+                        activity.label,
+                    ),
+                )
+                ctx.navigateBackTo(AppNavKey.HomeCornerGestureSlots)
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.HomeCornerGestureInnerZoneShellCommand> { key ->
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val appSettings by viewModel.settings.collectAsStateWithLifecycle()
+        val returnKey = AppNavKey.HomeCornerGestureSlots
+        GestureExecuteShellCommandScreen(
+            initialCommand = key.initialCommand,
+            shellCommands = appSettings.shellCommands,
+            onBack = { ctx.backStack.removeLastOrNull() },
+            onConfirm = { command ->
+                viewModel.setCornerGestureInnerZoneAction(GestureAction.ExecuteShellCommand(command))
+                ctx.navigateBackTo(returnKey)
+            },
         )
     }
 
@@ -360,10 +444,11 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
             }
             else -> corner.leftSlots.getOrElse(key.slotIndex) { GestureAction.None }
         }
+        val returnKey = AppNavKey.HomeCornerGestureSlots
         GestureActionPickerScreen(
             trigger = GestureTriggerType.SHORT_SWIPE_IN,
             current = current,
-            onDismiss = { ctx.navigateBackTo(AppNavKey.HomeCornerGestureSlots) },
+            onDismiss = { ctx.navigateBackTo(returnKey) },
             onSelect = { action ->
                 if (action is GestureAction.FloatingPointer) return@GestureActionPickerScreen
                 if (corner.unifiedSlots || key.corner != "right") {
@@ -371,7 +456,114 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
                 } else {
                     viewModel.setCornerGestureRightSlotAction(key.slotIndex, action)
                 }
+                ctx.navigateBackTo(returnKey)
+            },
+            onOpenMyShortcuts = { ctx.navigate(AppNavKey.HomeCornerGestureSlotMyShortcuts(key.corner, key.slotIndex)) },
+            onOpenPresetShortcuts = { ctx.navigate(AppNavKey.HomeCornerGestureSlotPresetShortcuts(key.corner, key.slotIndex)) },
+            onOpenPickApp = { ctx.navigate(AppNavKey.HomeCornerGestureSlotPickApp(key.corner, key.slotIndex)) },
+            onOpenExecuteShellCommand = { cmd -> ctx.navigate(AppNavKey.HomeCornerGestureSlotShellCommand(key.corner, key.slotIndex, cmd)) },
+        )
+    }
+
+    hiltEntry<AppNavKey.HomeCornerGestureSlotMyShortcuts> { key ->
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val appSettings by viewModel.settings.collectAsStateWithLifecycle()
+        val corner = overlaySettings.cornerGestureSettings
+        val current = when (key.corner) {
+            "right" -> if (corner.unifiedSlots) corner.leftSlots.getOrElse(key.slotIndex) { GestureAction.None } else corner.rightSlots.getOrElse(key.slotIndex) { GestureAction.None }
+            else -> corner.leftSlots.getOrElse(key.slotIndex) { GestureAction.None }
+        }
+        val returnKey = AppNavKey.HomeCornerGestureSlotActionPick(key.corner, key.slotIndex)
+        MyShortcutsFolderScreen(
+            activityShortcuts = appSettings.activityShortcuts,
+            onBack = { ctx.navigateBackTo(returnKey) },
+            onBrowseNewShortcut = { ctx.navigate(AppNavKey.HomeCornerGestureSlotPickApp(key.corner, key.slotIndex)) },
+            currentAction = current,
+            onSelectRadio = { action ->
+                if (corner.unifiedSlots || key.corner != "right") {
+                    viewModel.setCornerGestureLeftSlotAction(key.slotIndex, action)
+                } else {
+                    viewModel.setCornerGestureRightSlotAction(key.slotIndex, action)
+                }
                 ctx.navigateBackTo(AppNavKey.HomeCornerGestureSlots)
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.HomeCornerGestureSlotPresetShortcuts> { key ->
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val corner = overlaySettings.cornerGestureSettings
+        val current = when (key.corner) {
+            "right" -> if (corner.unifiedSlots) corner.leftSlots.getOrElse(key.slotIndex) { GestureAction.None } else corner.rightSlots.getOrElse(key.slotIndex) { GestureAction.None }
+            else -> corner.leftSlots.getOrElse(key.slotIndex) { GestureAction.None }
+        }
+        val returnKey = AppNavKey.HomeCornerGestureSlotActionPick(key.corner, key.slotIndex)
+        PresetShortcutsFolderScreen(
+            onBack = { ctx.navigateBackTo(returnKey) },
+            currentAction = current,
+            onSelectRadio = { action ->
+                if (corner.unifiedSlots || key.corner != "right") {
+                    viewModel.setCornerGestureLeftSlotAction(key.slotIndex, action)
+                } else {
+                    viewModel.setCornerGestureRightSlotAction(key.slotIndex, action)
+                }
+                ctx.navigateBackTo(AppNavKey.HomeCornerGestureSlots)
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.HomeCornerGestureSlotPickApp> { key ->
+        val returnKey = AppNavKey.HomeCornerGestureSlotActionPick(key.corner, key.slotIndex)
+        ActivityShortcutPickAppScreen(
+            onBack = { ctx.navigateBackTo(returnKey) },
+            onSelectApp = { app ->
+                ctx.navigate(AppNavKey.HomeCornerGestureSlotPickActivity(key.corner, key.slotIndex, app.packageName))
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.HomeCornerGestureSlotPickActivity> { key ->
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val corner = overlaySettings.cornerGestureSettings
+        ActivityShortcutPickActivityScreen(
+            packageName = key.packageName,
+            onBack = { ctx.backStack.removeLastOrNull() },
+            onSelectActivity = { activity ->
+                val action = GestureAction.LaunchShortcut.component(
+                    "${activity.packageName}/${activity.className}",
+                    activity.label,
+                )
+                if (corner.unifiedSlots || key.corner != "right") {
+                    viewModel.setCornerGestureLeftSlotAction(key.slotIndex, action)
+                } else {
+                    viewModel.setCornerGestureRightSlotAction(key.slotIndex, action)
+                }
+                ctx.navigateBackTo(AppNavKey.HomeCornerGestureSlots)
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.HomeCornerGestureSlotShellCommand> { key ->
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val appSettings by viewModel.settings.collectAsStateWithLifecycle()
+        val corner = overlaySettings.cornerGestureSettings
+        val returnKey = AppNavKey.HomeCornerGestureSlots
+        GestureExecuteShellCommandScreen(
+            initialCommand = key.initialCommand,
+            shellCommands = appSettings.shellCommands,
+            onBack = { ctx.backStack.removeLastOrNull() },
+            onConfirm = { command ->
+                val action = GestureAction.ExecuteShellCommand(command)
+                if (corner.unifiedSlots || key.corner != "right") {
+                    viewModel.setCornerGestureLeftSlotAction(key.slotIndex, action)
+                } else {
+                    viewModel.setCornerGestureRightSlotAction(key.slotIndex, action)
+                }
+                ctx.navigateBackTo(returnKey)
             },
         )
     }
@@ -568,6 +760,120 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
                     currentMode
                 }
                 viewModel.setSlotConfig(side, trigger, resolved, mode, key.handleId)
+                ctx.navigateBackTo(slotConfigKey)
+            },
+            onOpenMyShortcuts = { ctx.navigate(AppNavKey.HomeSideGestureSlotMyShortcuts(key.side, key.handleId, key.triggerId)) },
+            onOpenPresetShortcuts = { ctx.navigate(AppNavKey.HomeSideGestureSlotPresetShortcuts(key.side, key.handleId, key.triggerId)) },
+            onOpenPickApp = { ctx.navigate(AppNavKey.HomeSideGestureSlotPickApp(key.side, key.handleId, key.triggerId)) },
+            onOpenExecuteShellCommand = { cmd -> ctx.navigate(AppNavKey.HomeSideGestureSlotShellCommand(key.side, key.handleId, key.triggerId, cmd)) },
+        )
+    }
+
+    hiltEntry<AppNavKey.HomeSideGestureSlotMyShortcuts> { key ->
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val landscapeEditing = TriggerSettingsLandscapeSession.active
+        val settings = gestureSettings.toMinimalAppSettings().let { base ->
+            if (landscapeEditing) base.forLandscapeEditing() else base
+        }
+        TriggerLandscapeOrientationEffect(landscapeEditing)
+        val side = key.side.toPanelSide()
+        val configSide = settings.gestureConfigSide(side, key.handleId)
+        val trigger = GestureTriggerType.fromId(key.triggerId) ?: GestureTriggerType.SHORT_SWIPE_IN
+        val currentAction = settings.actionFor(configSide, trigger, key.handleId)
+        val currentMode = settings.displayTriggerMode(configSide, trigger, key.handleId)
+        val slotConfigKey = AppNavKey.HomeSideGestureSlotConfig(key.side, key.handleId, key.triggerId)
+        val returnKey = AppNavKey.HomeSideGestureSlotActionPick(key.side, key.handleId, key.triggerId)
+        MyShortcutsFolderScreen(
+            activityShortcuts = settings.activityShortcuts,
+            onBack = { ctx.navigateBackTo(returnKey) },
+            onBrowseNewShortcut = { ctx.navigate(AppNavKey.HomeSideGestureSlotPickApp(key.side, key.handleId, key.triggerId)) },
+            currentAction = currentAction,
+            onSelectRadio = { action ->
+                val mode = if (!currentMode.supportsAction(action, trigger)) {
+                    action.preferredTriggerMode(trigger) ?: GestureTriggerMode.ON_RELEASE
+                } else {
+                    currentMode
+                }
+                viewModel.setSlotConfig(side, trigger, action, mode, key.handleId)
+                ctx.navigateBackTo(slotConfigKey)
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.HomeSideGestureSlotPresetShortcuts> { key ->
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val landscapeEditing = TriggerSettingsLandscapeSession.active
+        val settings = gestureSettings.toMinimalAppSettings().let { base ->
+            if (landscapeEditing) base.forLandscapeEditing() else base
+        }
+        TriggerLandscapeOrientationEffect(landscapeEditing)
+        val side = key.side.toPanelSide()
+        val configSide = settings.gestureConfigSide(side, key.handleId)
+        val trigger = GestureTriggerType.fromId(key.triggerId) ?: GestureTriggerType.SHORT_SWIPE_IN
+        val currentAction = settings.actionFor(configSide, trigger, key.handleId)
+        val currentMode = settings.displayTriggerMode(configSide, trigger, key.handleId)
+        val slotConfigKey = AppNavKey.HomeSideGestureSlotConfig(key.side, key.handleId, key.triggerId)
+        val returnKey = AppNavKey.HomeSideGestureSlotActionPick(key.side, key.handleId, key.triggerId)
+        PresetShortcutsFolderScreen(
+            onBack = { ctx.navigateBackTo(returnKey) },
+            currentAction = currentAction,
+            onSelectRadio = { action ->
+                val mode = if (!currentMode.supportsAction(action, trigger)) {
+                    action.preferredTriggerMode(trigger) ?: GestureTriggerMode.ON_RELEASE
+                } else {
+                    currentMode
+                }
+                viewModel.setSlotConfig(side, trigger, action, mode, key.handleId)
+                ctx.navigateBackTo(slotConfigKey)
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.HomeSideGestureSlotPickApp> { key ->
+        val returnKey = AppNavKey.HomeSideGestureSlotActionPick(key.side, key.handleId, key.triggerId)
+        ActivityShortcutPickAppScreen(
+            onBack = { ctx.navigateBackTo(returnKey) },
+            onSelectApp = { app ->
+                ctx.navigate(
+                    AppNavKey.HomeSideGestureSlotPickActivity(
+                        side = key.side,
+                        handleId = key.handleId,
+                        triggerId = key.triggerId,
+                        packageName = app.packageName,
+                    ),
+                )
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.HomeSideGestureSlotPickActivity> { key ->
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val landscapeEditing = TriggerSettingsLandscapeSession.active
+        val settings = gestureSettings.toMinimalAppSettings().let { base ->
+            if (landscapeEditing) base.forLandscapeEditing() else base
+        }
+        val side = key.side.toPanelSide()
+        val configSide = settings.gestureConfigSide(side, key.handleId)
+        val trigger = GestureTriggerType.fromId(key.triggerId) ?: GestureTriggerType.SHORT_SWIPE_IN
+        val currentMode = settings.displayTriggerMode(configSide, trigger, key.handleId)
+        val slotConfigKey = AppNavKey.HomeSideGestureSlotConfig(key.side, key.handleId, key.triggerId)
+        ActivityShortcutPickActivityScreen(
+            packageName = key.packageName,
+            onBack = { ctx.backStack.removeLastOrNull() },
+            onSelectActivity = { activity ->
+                val action = GestureAction.LaunchShortcut.component(
+                    "${activity.packageName}/${activity.className}",
+                    activity.label,
+                )
+                val mode = if (!currentMode.supportsAction(action, trigger)) {
+                    action.preferredTriggerMode(trigger) ?: GestureTriggerMode.ON_RELEASE
+                } else {
+                    currentMode
+                }
+                viewModel.setSlotConfig(side, trigger, action, mode, key.handleId)
                 ctx.navigateBackTo(slotConfigKey)
             },
         )

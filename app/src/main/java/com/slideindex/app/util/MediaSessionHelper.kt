@@ -3,10 +3,12 @@ package com.slideindex.app.util
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.media.AudioManager
 import android.media.session.MediaSessionManager
 import android.media.session.PlaybackState
 import android.provider.Settings
+import android.service.notification.NotificationListenerService
 import com.slideindex.app.service.MediaNotificationListener
 
 /**
@@ -53,6 +55,28 @@ object MediaSessionHelper {
         ) ?: return false
         val component = ComponentName(context, MediaNotificationListener::class.java)
         return enabled.contains(component.flattenToString(), ignoreCase = true)
+    }
+
+    fun ensureNotificationListenerConnected(context: Context) {
+        if (!isNotificationListenerEnabled(context)) return
+        if (MediaNotificationListener.instance != null) return
+        val component = ComponentName(context, MediaNotificationListener::class.java)
+        runCatching {
+            NotificationListenerService.requestRebind(component)
+        }
+        runCatching {
+            val pm = context.packageManager
+            pm.setComponentEnabledSetting(
+                component,
+                PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                PackageManager.DONT_KILL_APP,
+            )
+            pm.setComponentEnabledSetting(
+                component,
+                PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+                PackageManager.DONT_KILL_APP,
+            )
+        }
     }
 
     fun notificationListenerSettingsIntent(): Intent =

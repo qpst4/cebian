@@ -1,29 +1,20 @@
 package com.slideindex.app.ui
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.res.stringResource
-import androidx.annotation.StringRes
 import com.slideindex.app.R
+import top.yukonga.miuix.kmp.basic.InputField
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
- * M3 outlined search field — safe inside [LazyColumn] items (no expandable SearchBar shell).
+ * Miuix native search input field — safe inside [LazyColumn] items and standalone headers.
  */
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SearchBar(
     query: String,
@@ -32,10 +23,16 @@ fun SearchBar(
     @StringRes hintResId: Int = R.string.search_hint,
     focusRequester: FocusRequester? = null,
     onFocusChanged: ((Boolean) -> Unit)? = null,
+    onSearch: (String) -> Unit = {},
 ) {
-    OutlinedTextField(
-        value = query,
-        onValueChange = onQueryChange,
+    InputField(
+        query = query,
+        onQueryChange = onQueryChange,
+        onSearch = onSearch,
+        expanded = false,
+        onExpandedChange = {},
+        label = stringResource(hintResId),
+        color = MiuixTheme.colorScheme.surfaceContainerHigh,
         modifier = modifier
             .fillMaxWidth()
             .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier)
@@ -46,35 +43,5 @@ fun SearchBar(
                     Modifier
                 },
             ),
-        placeholder = {
-            Text(
-                text = stringResource(hintResId),
-                style = MaterialTheme.typography.bodyLarge,
-            )
-        },
-        leadingIcon = {
-            Icon(
-                imageVector = Icons.Default.Search,
-                contentDescription = stringResource(R.string.search_hint),
-            )
-        },
-        trailingIcon = {
-            if (query.isNotEmpty()) {
-                IconButton(onClick = { onQueryChange("") }) {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = stringResource(R.string.search_clear),
-                    )
-                }
-            }
-        },
-        singleLine = true,
-        shape = MaterialTheme.shapes.extraLarge,
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = MaterialTheme.colorScheme.primary,
-            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
-            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-        ),
     )
 }

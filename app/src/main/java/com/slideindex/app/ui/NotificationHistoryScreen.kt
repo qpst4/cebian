@@ -1,4 +1,4 @@
-﻿package com.slideindex.app.ui
+package com.slideindex.app.ui
 
 import com.slideindex.app.ui.viewmodel.NotificationHistoryViewModel
 import androidx.compose.material.icons.Icons
@@ -29,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.slideindex.app.R
@@ -89,7 +90,9 @@ fun NotificationHistoryScreen(
     val classification = uiState.classification
     val dateFormat = remember { DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT) }
 
+    val context = LocalContext.current
     LaunchedEffect(Unit) {
+        com.slideindex.app.util.MediaSessionHelper.ensureNotificationListenerConnected(context)
         viewModel.loadApps()
     }
 

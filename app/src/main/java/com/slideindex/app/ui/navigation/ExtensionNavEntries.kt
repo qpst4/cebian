@@ -36,6 +36,17 @@ import com.slideindex.app.ui.FloatBallSettingsScreen
 import com.slideindex.app.ui.QuickLauncherEditorScreen
 import com.slideindex.app.ui.HoneycombDisplaySettingsScreen
 import com.slideindex.app.ui.HoneycombLauncherEditorScreen
+import com.slideindex.app.ui.quicklauncher.QuickLauncherAddPickerScreen
+import com.slideindex.app.ui.quicklauncher.QuickLauncherCreateFolderScreen
+import com.slideindex.app.ui.quicklauncher.HoneycombLauncherAddPickerScreen
+import com.slideindex.app.ui.picker.MyShortcutsFolderScreen
+import com.slideindex.app.ui.picker.PresetShortcutsFolderScreen
+import com.slideindex.app.ui.displayLabelForExecuteShellCommand
+import com.slideindex.app.launcher.QuickLauncherItem
+import com.slideindex.app.launcher.QuickLauncherItemCodec
+import com.slideindex.app.launcher.QuickLauncherItemType
+import com.slideindex.app.launcher.QuickLauncherPanelDefaults
+import com.slideindex.app.overlay.honeycombRuntimeItems
 import com.slideindex.app.ui.PrivacyPolicyScreen
 import com.slideindex.app.ui.SettingsBackupScreen
 import com.slideindex.app.ui.MissingGesturePermissionsScreen
@@ -56,6 +67,9 @@ import com.slideindex.app.shell.ShellCommand
 import com.slideindex.app.ui.SearchEngineEditorCategory
 import com.slideindex.app.ui.SearchEngineEditorScreen
 import com.slideindex.app.activity.ActivityShortcut
+import com.slideindex.app.activity.activityShortcutFromQuickLauncherItem
+import com.slideindex.app.activity.findForQuickLauncherItem
+import com.slideindex.app.activity.toQuickLauncherItem
 import com.slideindex.app.ui.ActivityShortcutScreen
 import com.slideindex.app.ui.ActivityShortcutPresetsScreen
 import com.slideindex.app.ui.picker.ActivityShortcutPickActivityScreen
@@ -203,6 +217,207 @@ fun NavEntryBuilder.extensionNavEntries(ctx: MainNavContext) {
             onBack = { ctx.navigateBackTo(AppNavKey.ExtensionHub) },
             onSavePanels = viewModel::setQuickLauncherPanels,
             onDisplayChange = viewModel::setQuickLauncherDisplaySettings,
+            onAdd = { panelId -> ctx.navigate(AppNavKey.QuickLauncherAdd(panelId)) },
+        )
+    }
+
+    hiltEntry<AppNavKey.QuickLauncherAdd> { key ->
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings()
+        QuickLauncherAddPickerScreen(
+            panelId = key.panelId,
+            settings = settings,
+            onBack = { ctx.navigateBackTo(AppNavKey.QuickLauncher) },
+            onToggleItem = { item, added -> viewModel.toggleQuickLauncherPanelItem(key.panelId, item, added) },
+            onAddItem = { item -> viewModel.addQuickLauncherPanelItem(key.panelId, item) },
+            onPickApp = { ctx.navigate(AppNavKey.QuickLauncherPickApp(key.panelId)) },
+            onMyShortcuts = { ctx.navigate(AppNavKey.QuickLauncherMyShortcuts(key.panelId)) },
+            onPresetShortcuts = { ctx.navigate(AppNavKey.QuickLauncherPresetShortcuts(key.panelId)) },
+            onOpenExecuteShellCommand = { cmd -> ctx.navigate(AppNavKey.QuickLauncherShellCommand(key.panelId, cmd)) },
+            onOpenCreateFolder = { ctx.navigate(AppNavKey.QuickLauncherCreateFolder(key.panelId)) },
+        )
+    }
+
+    hiltEntry<AppNavKey.QuickLauncherPickApp> { key ->
+        ActivityShortcutPickAppScreen(
+            onBack = { ctx.backStack.removeLastOrNull() },
+            onSelectApp = { app ->
+                ctx.navigate(
+                    AppNavKey.QuickLauncherPickActivity(
+                        panelId = key.panelId,
+                        packageName = app.packageName,
+                        fromCreateFolder = key.fromCreateFolder,
+                    ),
+                )
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.QuickLauncherPickActivity> { key ->
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel(ctx.activity)
+        ActivityShortcutPickActivityScreen(
+            packageName = key.packageName,
+            onBack = { ctx.backStack.removeLastOrNull() },
+            onSelectActivity = { activity ->
+                val item = QuickLauncherItem.shortcut(
+                    "${activity.packageName}/${activity.className}",
+                    activity.label,
+                )
+                if (key.fromCreateFolder) {
+                    viewModel.addFolderDraftItem(item)
+                } else {
+                    viewModel.addQuickLauncherPanelItem(key.panelId, item)
+                }
+                ctx.backStack.removeLastOrNull()
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.QuickLauncherMyShortcuts> { key ->
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel(ctx.activity)
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val folderDraft by viewModel.folderDraft.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings()
+        val panel = remember(settings.quickLauncherPanels, key.panelId) {
+            QuickLauncherPanelDefaults.effectivePanels(settings.quickLauncherPanels).find { it.id == key.panelId }
+                ?: QuickLauncherPanelDefaults.defaultPanel()
+        }
+        val sourceItems = if (key.fromCreateFolder) folderDraft?.items.orEmpty() else panel.items
+        val configuredShortcutKeys = remember(sourceItems) {
+            sourceItems.filter { it.type == QuickLauncherItemType.SHORTCUT }.mapNotNull { item ->
+                QuickLauncherItemCodec.shortcutItemKey(item)
+            }.toSet()
+        }
+        MyShortcutsFolderScreen(
+            activityShortcuts = settings.activityShortcuts,
+            onBack = { ctx.backStack.removeLastOrNull() },
+            onBrowseNewShortcut = {
+                ctx.navigate(
+                    AppNavKey.QuickLauncherPickApp(
+                        panelId = key.panelId,
+                        fromCreateFolder = key.fromCreateFolder,
+                    ),
+                )
+            },
+            configuredShortcutKeys = configuredShortcutKeys,
+            onToggle = { item, added ->
+                if (key.fromCreateFolder) {
+                    viewModel.toggleFolderDraftItem(item, added)
+                } else {
+                    viewModel.toggleQuickLauncherPanelItem(key.panelId, item, added)
+                }
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.QuickLauncherPresetShortcuts> { key ->
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel(ctx.activity)
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val folderDraft by viewModel.folderDraft.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings()
+        val panel = remember(settings.quickLauncherPanels, key.panelId) {
+            QuickLauncherPanelDefaults.effectivePanels(settings.quickLauncherPanels).find { it.id == key.panelId }
+                ?: QuickLauncherPanelDefaults.defaultPanel()
+        }
+        val sourceItems = if (key.fromCreateFolder) folderDraft?.items.orEmpty() else panel.items
+        val configuredShortcutKeys = remember(sourceItems) {
+            sourceItems.filter { it.type == QuickLauncherItemType.SHORTCUT }.mapNotNull { item ->
+                QuickLauncherItemCodec.shortcutItemKey(item)
+            }.toSet()
+        }
+        PresetShortcutsFolderScreen(
+            onBack = { ctx.backStack.removeLastOrNull() },
+            configuredShortcutKeys = configuredShortcutKeys,
+            onToggle = { item, added ->
+                if (key.fromCreateFolder) {
+                    viewModel.toggleFolderDraftItem(item, added)
+                } else {
+                    viewModel.toggleQuickLauncherPanelItem(key.panelId, item, added)
+                }
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.QuickLauncherShellCommand> { key ->
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel(ctx.activity)
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings()
+        GestureExecuteShellCommandScreen(
+            initialCommand = key.initialCommand,
+            shellCommands = settings.shellCommands,
+            onBack = { ctx.backStack.removeLastOrNull() },
+            onConfirm = { command ->
+                val label = displayLabelForExecuteShellCommand(command, settings.shellCommands)
+                val item = QuickLauncherItem.action(
+                    GestureAction.ExecuteShellCommand(command),
+                    label,
+                )
+                if (key.fromCreateFolder) {
+                    viewModel.addFolderDraftItem(item)
+                } else {
+                    viewModel.addQuickLauncherPanelItem(key.panelId, item)
+                }
+                ctx.backStack.removeLastOrNull()
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.QuickLauncherCreateFolder> { key ->
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel(ctx.activity)
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val folderDraft by viewModel.folderDraft.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings()
+        LaunchedEffect(key.panelId) {
+            viewModel.initFolderDraft(key.panelId)
+        }
+        QuickLauncherCreateFolderScreen(
+            settings = settings,
+            draft = folderDraft,
+            onFolderNameChange = viewModel::updateFolderDraftName,
+            onToggleItem = viewModel::toggleFolderDraftItem,
+            onAddItem = viewModel::addFolderDraftItem,
+            onBack = {
+                viewModel.clearFolderDraft()
+                ctx.navigateBackTo(AppNavKey.QuickLauncherAdd(key.panelId))
+            },
+            onConfirmCreateFolder = { folderName, _ ->
+                viewModel.commitFolderDraft(folderName)
+                ctx.navigateBackTo(AppNavKey.QuickLauncher)
+            },
+            onOpenExecuteShellCommand = { cmd ->
+                ctx.navigate(
+                    AppNavKey.QuickLauncherShellCommand(
+                        panelId = key.panelId,
+                        initialCommand = cmd,
+                        fromCreateFolder = true,
+                    ),
+                )
+            },
+            onPickApp = {
+                ctx.navigate(
+                    AppNavKey.QuickLauncherPickApp(
+                        panelId = key.panelId,
+                        fromCreateFolder = true,
+                    ),
+                )
+            },
+            onMyShortcuts = {
+                ctx.navigate(
+                    AppNavKey.QuickLauncherMyShortcuts(
+                        panelId = key.panelId,
+                        fromCreateFolder = true,
+                    ),
+                )
+            },
+            onPresetShortcuts = {
+                ctx.navigate(
+                    AppNavKey.QuickLauncherPresetShortcuts(
+                        panelId = key.panelId,
+                        fromCreateFolder = true,
+                    ),
+                )
+            },
         )
     }
 
@@ -215,6 +430,110 @@ fun NavEntryBuilder.extensionNavEntries(ctx: MainNavContext) {
             onBack = { ctx.navigateBackTo(AppNavKey.ExtensionHub) },
             onSaveItems = viewModel::setHoneycombLauncherItems,
             onOpenDisplaySettings = { ctx.navigate(AppNavKey.HoneycombDisplaySettings) },
+            onAdd = { ctx.navigate(AppNavKey.HoneycombLauncherAdd) },
+        )
+    }
+
+    hiltEntry<AppNavKey.HoneycombLauncherAdd> {
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings()
+        HoneycombLauncherAddPickerScreen(
+            settings = settings,
+            onBack = { ctx.navigateBackTo(AppNavKey.HoneycombLauncher) },
+            onToggleItem = { item, added -> viewModel.toggleHoneycombItem(item, added) },
+            onAddItem = { item -> viewModel.addHoneycombItem(item) },
+            onPickApp = { ctx.navigate(AppNavKey.HoneycombLauncherPickApp) },
+            onMyShortcuts = { ctx.navigate(AppNavKey.HoneycombLauncherMyShortcuts) },
+            onPresetShortcuts = { ctx.navigate(AppNavKey.HoneycombLauncherPresetShortcuts) },
+            onOpenExecuteShellCommand = { cmd -> ctx.navigate(AppNavKey.HoneycombLauncherShellCommand(cmd)) },
+        )
+    }
+
+    hiltEntry<AppNavKey.HoneycombLauncherPickApp> {
+        ActivityShortcutPickAppScreen(
+            onBack = { ctx.navigateBackTo(AppNavKey.HoneycombLauncherAdd) },
+            onSelectApp = { app ->
+                ctx.navigate(AppNavKey.HoneycombLauncherPickActivity(app.packageName))
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.HoneycombLauncherPickActivity> { key ->
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        ActivityShortcutPickActivityScreen(
+            packageName = key.packageName,
+            onBack = { ctx.backStack.removeLastOrNull() },
+            onSelectActivity = { activity ->
+                viewModel.addHoneycombItem(
+                    QuickLauncherItem.shortcut(
+                        "${activity.packageName}/${activity.className}",
+                        activity.label,
+                    ),
+                )
+                ctx.navigateBackTo(AppNavKey.HoneycombLauncherAdd)
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.HoneycombLauncherMyShortcuts> {
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings()
+        val items = remember(settings.honeycombLauncher) {
+            settings.honeycombLauncher.honeycombRuntimeItems()
+        }
+        val configuredShortcutKeys = remember(items) {
+            items.filter { it.type == QuickLauncherItemType.SHORTCUT }.mapNotNull { item ->
+                QuickLauncherItemCodec.shortcutItemKey(item)
+            }.toSet()
+        }
+        MyShortcutsFolderScreen(
+            activityShortcuts = settings.activityShortcuts,
+            onBack = { ctx.navigateBackTo(AppNavKey.HoneycombLauncherAdd) },
+            onBrowseNewShortcut = { ctx.navigate(AppNavKey.HoneycombLauncherPickApp) },
+            configuredShortcutKeys = configuredShortcutKeys,
+            onToggle = { item, added -> viewModel.toggleHoneycombItem(item, added) },
+        )
+    }
+
+    hiltEntry<AppNavKey.HoneycombLauncherPresetShortcuts> {
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings()
+        val items = remember(settings.honeycombLauncher) {
+            settings.honeycombLauncher.honeycombRuntimeItems()
+        }
+        val configuredShortcutKeys = remember(items) {
+            items.filter { it.type == QuickLauncherItemType.SHORTCUT }.mapNotNull { item ->
+                QuickLauncherItemCodec.shortcutItemKey(item)
+            }.toSet()
+        }
+        PresetShortcutsFolderScreen(
+            onBack = { ctx.navigateBackTo(AppNavKey.HoneycombLauncherAdd) },
+            configuredShortcutKeys = configuredShortcutKeys,
+            onToggle = { item, added -> viewModel.toggleHoneycombItem(item, added) },
+        )
+    }
+
+    hiltEntry<AppNavKey.HoneycombLauncherShellCommand> { key ->
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings()
+        GestureExecuteShellCommandScreen(
+            initialCommand = key.initialCommand,
+            shellCommands = settings.shellCommands,
+            onBack = { ctx.navigateBackTo(AppNavKey.HoneycombLauncherAdd) },
+            onConfirm = { command ->
+                val label = displayLabelForExecuteShellCommand(command, settings.shellCommands)
+                viewModel.addHoneycombItem(
+                    QuickLauncherItem.action(
+                        GestureAction.ExecuteShellCommand(command),
+                        label,
+                    ),
+                )
+                ctx.navigateBackTo(AppNavKey.HoneycombLauncherAdd)
+            },
         )
     }
 
@@ -271,11 +590,43 @@ fun NavEntryBuilder.extensionNavEntries(ctx: MainNavContext) {
         ActivityShortcutPickAppShortcutScreen(
             existingIdentityKeys = settings.activityShortcuts.map { it.identityKey() }.toSet(),
             onBack = { ctx.navigateBackTo(AppNavKey.ActivityShortcuts) },
+            onOpenPresetShortcuts = { ctx.navigate(AppNavKey.ActivityShortcutPickAppShortcutPresets) },
             onAddShortcut = { shortcut ->
                 if (settings.activityShortcuts.none { it.identityKey() == shortcut.identityKey() }) {
                     viewModel.setActivityShortcuts(settings.activityShortcuts + shortcut)
                 }
                 ctx.navigateBackTo(AppNavKey.ActivityShortcuts)
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.ActivityShortcutPickAppShortcutPresets> {
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings()
+        val configuredShortcutKeys = remember(settings.activityShortcuts) {
+            settings.activityShortcuts.mapNotNull { shortcut ->
+                com.slideindex.app.launcher.QuickLauncherItemCodec.shortcutItemKey(
+                    shortcut.toQuickLauncherItem(),
+                )
+            }.toSet()
+        }
+        val returnKey = AppNavKey.ActivityShortcutPickAppShortcut
+        PresetShortcutsFolderScreen(
+            onBack = { ctx.navigateBackTo(returnKey) },
+            configuredShortcutKeys = configuredShortcutKeys,
+            onToggle = { item, added ->
+                val existing = settings.activityShortcuts.findForQuickLauncherItem(item)
+                if (added) {
+                    if (existing != null) {
+                        viewModel.setActivityShortcuts(settings.activityShortcuts - existing)
+                    }
+                } else {
+                    val shortcut = activityShortcutFromQuickLauncherItem(item)
+                    if (shortcut != null && existing == null) {
+                        viewModel.setActivityShortcuts(settings.activityShortcuts + shortcut)
+                    }
+                }
             },
         )
     }
@@ -761,16 +1112,95 @@ fun NavEntryBuilder.extensionNavEntries(ctx: MainNavContext) {
                     }
                 }
             },
+            onOpenMyShortcuts = { ctx.navigate(AppNavKey.FloatingPointerRadialMyShortcuts(key.target, key.slotIndex)) },
+            onOpenPresetShortcuts = { ctx.navigate(AppNavKey.FloatingPointerRadialPresetShortcuts(key.target, key.slotIndex)) },
+            onOpenPickApp = { ctx.navigate(AppNavKey.FloatingPointerRadialPickApp(key.target, key.slotIndex)) },
+            onOpenExecuteShellCommand = { cmd -> ctx.navigate(AppNavKey.FloatingPointerRadialShellCommand(key.slotIndex, cmd)) },
+        )
+    }
+
+    hiltEntry<AppNavKey.FloatingPointerRadialMyShortcuts> { key ->
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val appSettings by viewModel.settings.collectAsStateWithLifecycle()
+        val returnKey = AppNavKey.FloatingPointerRadialActionPick(key.target, key.slotIndex)
+        val current = when (key.target) {
+            FloatingPointerRadialActionTarget.LONG_PRESS -> appSettings.floatingPointerJoystickLongPressAction
+            FloatingPointerRadialActionTarget.SLOT ->
+                appSettings.floatingPointerRadialSlotActions.getOrElse(key.slotIndex) { GestureAction.None }
+        }
+        MyShortcutsFolderScreen(
+            activityShortcuts = appSettings.activityShortcuts,
+            onBack = { ctx.navigateBackTo(returnKey) },
+            onBrowseNewShortcut = { ctx.navigate(AppNavKey.FloatingPointerRadialPickApp(key.target, key.slotIndex)) },
+            currentAction = current,
+            onSelectRadio = { action ->
+                when (key.target) {
+                    FloatingPointerRadialActionTarget.LONG_PRESS -> viewModel.setFloatingPointerJoystickLongPressAction(action)
+                    FloatingPointerRadialActionTarget.SLOT -> viewModel.setFloatingPointerRadialSlotAction(key.slotIndex, action)
+                }
+                ctx.navigateBackTo(AppNavKey.FloatingPointerRadialMenu)
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.FloatingPointerRadialPresetShortcuts> { key ->
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val appSettings by viewModel.settings.collectAsStateWithLifecycle()
+        val returnKey = AppNavKey.FloatingPointerRadialActionPick(key.target, key.slotIndex)
+        val current = when (key.target) {
+            FloatingPointerRadialActionTarget.LONG_PRESS -> appSettings.floatingPointerJoystickLongPressAction
+            FloatingPointerRadialActionTarget.SLOT ->
+                appSettings.floatingPointerRadialSlotActions.getOrElse(key.slotIndex) { GestureAction.None }
+        }
+        PresetShortcutsFolderScreen(
+            onBack = { ctx.navigateBackTo(returnKey) },
+            currentAction = current,
+            onSelectRadio = { action ->
+                when (key.target) {
+                    FloatingPointerRadialActionTarget.LONG_PRESS -> viewModel.setFloatingPointerJoystickLongPressAction(action)
+                    FloatingPointerRadialActionTarget.SLOT -> viewModel.setFloatingPointerRadialSlotAction(key.slotIndex, action)
+                }
+                ctx.navigateBackTo(AppNavKey.FloatingPointerRadialMenu)
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.FloatingPointerRadialPickApp> { key ->
+        val returnKey = AppNavKey.FloatingPointerRadialActionPick(key.target, key.slotIndex)
+        ActivityShortcutPickAppScreen(
+            onBack = { ctx.navigateBackTo(returnKey) },
+            onSelectApp = { app ->
+                ctx.navigate(AppNavKey.FloatingPointerRadialPickActivity(key.target, key.slotIndex, app.packageName))
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.FloatingPointerRadialPickActivity> { key ->
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        ActivityShortcutPickActivityScreen(
+            packageName = key.packageName,
+            onBack = { ctx.backStack.removeLastOrNull() },
+            onSelectActivity = { activity ->
+                val action = GestureAction.LaunchShortcut.component(
+                    "${activity.packageName}/${activity.className}",
+                    activity.label,
+                )
+                when (key.target) {
+                    FloatingPointerRadialActionTarget.LONG_PRESS -> viewModel.setFloatingPointerJoystickLongPressAction(action)
+                    FloatingPointerRadialActionTarget.SLOT -> viewModel.setFloatingPointerRadialSlotAction(key.slotIndex, action)
+                }
+                ctx.navigateBackTo(AppNavKey.FloatingPointerRadialMenu)
+            },
         )
     }
 
     hiltEntry<AppNavKey.FloatingPointerRadialShellCommand> { key ->
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
-        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val appSettings by viewModel.settings.collectAsStateWithLifecycle()
         val returnKey = AppNavKey.FloatingPointerRadialMenu
         GestureExecuteShellCommandScreen(
             initialCommand = key.initialCommand,
-            shellCommands = overlaySettings.toMinimalAppSettings().shellCommands,
+            shellCommands = appSettings.shellCommands,
             onBack = { ctx.backStack.removeLastOrNull() },
             onConfirm = { command ->
                 viewModel.setFloatingPointerRadialSlotAction(
@@ -864,17 +1294,92 @@ fun NavEntryBuilder.extensionNavEntries(ctx: MainNavContext) {
                 viewModel.setFloatingPointerEdgeBarSlotAction(side, key.slotIndex, action)
                 ctx.navigateBackTo(returnKey)
             },
+            onOpenMyShortcuts = { ctx.navigate(AppNavKey.FloatingPointerEdgeMyShortcuts(key.side, key.slotIndex)) },
+            onOpenPresetShortcuts = { ctx.navigate(AppNavKey.FloatingPointerEdgePresetShortcuts(key.side, key.slotIndex)) },
+            onOpenPickApp = { ctx.navigate(AppNavKey.FloatingPointerEdgePickApp(key.side, key.slotIndex)) },
+            onOpenExecuteShellCommand = { cmd -> ctx.navigate(AppNavKey.FloatingPointerEdgeShellCommand(key.side, key.slotIndex, cmd)) },
+        )
+    }
+
+    hiltEntry<AppNavKey.FloatingPointerEdgeMyShortcuts> { key ->
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val appSettings by viewModel.settings.collectAsStateWithLifecycle()
+        val side = key.side.toFloatingPointerEdgeSide()
+        val returnKey = AppNavKey.FloatingPointerEdgeActionPick(key.side, key.slotIndex)
+        val current = appSettings.floatingPointerEdgeActionsConfig
+            .bar(side)
+            .layoutSlots()
+            .getOrNull(key.slotIndex)
+            ?.action
+            ?: GestureAction.None
+        MyShortcutsFolderScreen(
+            activityShortcuts = appSettings.activityShortcuts,
+            onBack = { ctx.navigateBackTo(returnKey) },
+            onBrowseNewShortcut = { ctx.navigate(AppNavKey.FloatingPointerEdgePickApp(key.side, key.slotIndex)) },
+            currentAction = current,
+            onSelectRadio = { action ->
+                viewModel.setFloatingPointerEdgeBarSlotAction(side, key.slotIndex, action)
+                ctx.navigateBackTo(AppNavKey.FloatingPointerEdgeSideSettings(key.side))
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.FloatingPointerEdgePresetShortcuts> { key ->
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val appSettings by viewModel.settings.collectAsStateWithLifecycle()
+        val side = key.side.toFloatingPointerEdgeSide()
+        val returnKey = AppNavKey.FloatingPointerEdgeActionPick(key.side, key.slotIndex)
+        val current = appSettings.floatingPointerEdgeActionsConfig
+            .bar(side)
+            .layoutSlots()
+            .getOrNull(key.slotIndex)
+            ?.action
+            ?: GestureAction.None
+        PresetShortcutsFolderScreen(
+            onBack = { ctx.navigateBackTo(returnKey) },
+            currentAction = current,
+            onSelectRadio = { action ->
+                viewModel.setFloatingPointerEdgeBarSlotAction(side, key.slotIndex, action)
+                ctx.navigateBackTo(AppNavKey.FloatingPointerEdgeSideSettings(key.side))
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.FloatingPointerEdgePickApp> { key ->
+        val returnKey = AppNavKey.FloatingPointerEdgeActionPick(key.side, key.slotIndex)
+        ActivityShortcutPickAppScreen(
+            onBack = { ctx.navigateBackTo(returnKey) },
+            onSelectApp = { app ->
+                ctx.navigate(AppNavKey.FloatingPointerEdgePickActivity(key.side, key.slotIndex, app.packageName))
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.FloatingPointerEdgePickActivity> { key ->
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val side = key.side.toFloatingPointerEdgeSide()
+        ActivityShortcutPickActivityScreen(
+            packageName = key.packageName,
+            onBack = { ctx.backStack.removeLastOrNull() },
+            onSelectActivity = { activity ->
+                val action = GestureAction.LaunchShortcut.component(
+                    "${activity.packageName}/${activity.className}",
+                    activity.label,
+                )
+                viewModel.setFloatingPointerEdgeBarSlotAction(side, key.slotIndex, action)
+                ctx.navigateBackTo(AppNavKey.FloatingPointerEdgeSideSettings(key.side))
+            },
         )
     }
 
     hiltEntry<AppNavKey.FloatingPointerEdgeShellCommand> { key ->
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
-        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val appSettings by viewModel.settings.collectAsStateWithLifecycle()
         val side = key.side.toFloatingPointerEdgeSide()
         val returnKey = AppNavKey.FloatingPointerEdgeSideSettings(key.side)
         GestureExecuteShellCommandScreen(
             initialCommand = key.initialCommand,
-            shellCommands = overlaySettings.toMinimalAppSettings().shellCommands,
+            shellCommands = appSettings.shellCommands,
             onBack = { ctx.backStack.removeLastOrNull() },
             onConfirm = { command ->
                 viewModel.setFloatingPointerEdgeBarSlotAction(

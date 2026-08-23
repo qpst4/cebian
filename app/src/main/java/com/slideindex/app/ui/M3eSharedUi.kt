@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -132,62 +134,51 @@ fun PendingPermissionsCardContent(
     items: List<PendingPermissionItem>,
     modifier: Modifier = Modifier,
 ) {
-    val shape = MaterialTheme.shapes.extraLarge
-    val alertColor = MaterialTheme.colorScheme.error
-    Box(
+    top.yukonga.miuix.kmp.basic.Card(
         modifier = modifier
             .fillMaxWidth()
-            .clip(shape)
-            .background(alertColor.copy(alpha = 0.14f))
-            .padding(1.5.dp)
-            .clip(shape)
-            .background(MaterialTheme.colorScheme.errorContainer),
+            .padding(horizontal = 12.dp),
+        colors = top.yukonga.miuix.kmp.basic.CardDefaults.defaultColors(
+            color = top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.errorContainer,
+            contentColor = top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.onErrorContainer,
+        ),
     ) {
-        com.slideindex.app.ui.miuix.CardSegment(
-            isFirst = true,
-            isLast = true,
-            color = androidx.compose.ui.graphics.Color.Transparent,
-            contentColor = MaterialTheme.colorScheme.onErrorContainer,
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.padding(bottom = 12.dp),
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Warning,
-                        contentDescription = null,
-                        tint = alertColor,
-                        modifier = Modifier.size(22.dp),
-                    )
-                    Text(
-                        text = stringResource(R.string.permissions_pending_title),
-                        style = MaterialTheme.typography.titleMediumEmphasized,
-                        color = alertColor,
-                    )
-                }
-                items.forEachIndexed { index, item ->
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.padding(bottom = 12.dp),
+            ) {
+                top.yukonga.miuix.kmp.basic.Icon(
+                    imageVector = Icons.Default.Warning,
+                    contentDescription = null,
+                    tint = top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.error,
+                    modifier = Modifier.size(22.dp),
+                )
+                top.yukonga.miuix.kmp.basic.Text(
+                    text = stringResource(R.string.permissions_pending_title),
+                    style = top.yukonga.miuix.kmp.theme.MiuixTheme.textStyles.title4,
+                    color = top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.error,
+                )
+            }
+            items.forEachIndexed { index, item ->
                 if (index > 0) {
-                    HorizontalDivider(
-                        modifier = Modifier.padding(vertical = 12.dp),
-                        color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.12f),
-                    )
+                    androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(12.dp))
                 }
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(
+                        top.yukonga.miuix.kmp.basic.Text(
                             text = item.title,
-                            style = MaterialTheme.typography.titleSmallEmphasized,
-                            color = MaterialTheme.colorScheme.onErrorContainer,
+                            style = top.yukonga.miuix.kmp.theme.MiuixTheme.textStyles.title4,
+                            color = top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.onErrorContainer,
                         )
-                        Text(
+                        top.yukonga.miuix.kmp.basic.Text(
                             text = item.description,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.85f),
+                            style = top.yukonga.miuix.kmp.theme.MiuixTheme.textStyles.body2,
+                            color = top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.onErrorContainer.copy(alpha = 0.85f),
                             modifier = Modifier.padding(top = 4.dp),
                         )
                     }
@@ -196,7 +187,6 @@ fun PendingPermissionsCardContent(
                         onClick = item.onGrant,
                         colors = top.yukonga.miuix.kmp.basic.ButtonDefaults.textButtonColorsPrimary(),
                     )
-                }
                 }
             }
         }

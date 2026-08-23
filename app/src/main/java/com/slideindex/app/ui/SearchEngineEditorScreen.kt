@@ -1,41 +1,34 @@
-@file:OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalLayoutApi::class)
-
 package com.slideindex.app.ui
 
-import com.slideindex.app.ui.miuix.MiuixHintText
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
-import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Apps
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.Language
-import androidx.compose.material.icons.filled.Title
-import com.slideindex.app.ui.miuix.MiuixFormDialog
-import top.yukonga.miuix.kmp.basic.Button as MiuixButton
-import top.yukonga.miuix.kmp.basic.ButtonDefaults
-import top.yukonga.miuix.kmp.basic.Card
-import top.yukonga.miuix.kmp.basic.CircularProgressIndicator as MiuixCircularProgressIndicator
-import top.yukonga.miuix.kmp.basic.TabRowWithContour
-import top.yukonga.miuix.kmp.basic.TextButton as MiuixTextButton
-import top.yukonga.miuix.kmp.theme.MiuixTheme
+import androidx.compose.material.icons.filled.TextFields
+import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import com.slideindex.app.ui.miuix.MiuixLabeledTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -45,52 +38,42 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.slideindex.app.R
-import com.slideindex.app.overlay.pickresult.SearchEngineIcon
-import com.slideindex.app.ui.picker.ActivityShortcutPickActivityScreen
-import com.slideindex.app.ui.picker.ActivityShortcutPickAppScreen
-import androidx.activity.compose.BackHandler
-import com.slideindex.app.ui.picker.ShareImageTargetPickScreen
 import com.slideindex.app.search.SearchEngineFaviconFetcher
 import com.slideindex.app.search.SearchEngineIconStorage
 import com.slideindex.app.search.SearchEngineValidator
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import com.slideindex.app.settings.SearchEngineConfig
 import com.slideindex.app.settings.SearchEngineType
 import com.slideindex.app.settings.SearchIconType
+import com.slideindex.app.overlay.pickresult.SearchEngineIcon
 import com.slideindex.app.overlay.searchpanel.SearchPanelAliasResolver
+import com.slideindex.app.ui.miuix.MiuixFormDialog
+import com.slideindex.app.ui.miuix.MiuixHintText
+import com.slideindex.app.ui.miuix.MiuixLabeledTextField
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import com.slideindex.app.ui.miuix.MiuixSwitchRow
+import com.slideindex.app.ui.miuix.MiuixTabRowWithContour
 import com.slideindex.app.ui.settings.components.LazySettingsItem
-import top.yukonga.miuix.kmp.preference.SwitchPreference
-import java.util.UUID
+import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
+import com.slideindex.app.ui.viewmodel.SearchEngineDraft
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import top.yukonga.miuix.kmp.basic.Button as MiuixButton
+import top.yukonga.miuix.kmp.basic.CircularProgressIndicator as MiuixCircularProgressIndicator
+import top.yukonga.miuix.kmp.basic.TextButton as MiuixTextButton
 
 enum class SearchEngineEditorCategory {
     TEXT,
     IMAGE_SHARE,
-}
-
-private enum class PackagePickerTarget {
-    TARGET,
-    EXTERN,
-    APP_ICON,
-}
-
-private sealed interface SearchEngineEditorSubScreen {
-    data object Main : SearchEngineEditorSubScreen
-    data class PickApp(
-        val target: PackagePickerTarget,
-        val titleResId: Int,
-        val selectedPackageName: String,
-    ) : SearchEngineEditorSubScreen
-    data class PickActivity(
-        val packageName: String,
-        val selectedClassName: String,
-    ) : SearchEngineEditorSubScreen
-    data object PickShareImageTarget : SearchEngineEditorSubScreen
 }
 
 data class SearchEngineEditorResult(
@@ -103,47 +86,34 @@ data class SearchEngineEditorResult(
 @Composable
 fun SearchEngineEditorScreen(
     initialEngine: SearchEngineConfig?,
+    draft: SearchEngineDraft,
     editorCategory: SearchEngineEditorCategory = SearchEngineEditorCategory.TEXT,
     onBack: () -> Unit,
     onSave: (SearchEngineEditorResult) -> Unit,
+    onUpdateDraft: ((SearchEngineDraft) -> SearchEngineDraft) -> Unit,
+    onPickApp: (target: String, titleResId: Int, selectedPackageName: String) -> Unit,
+    onPickActivity: (packageName: String, selectedClassName: String) -> Unit,
+    onPickShareTarget: (selectedPackageName: String, selectedActivityClassName: String) -> Unit,
 ) {
     val isNew = initialEngine == null
-    var name by remember(initialEngine?.id) { mutableStateOf(initialEngine?.name.orEmpty()) }
-    var aliasCode by remember(initialEngine?.id) {
-        mutableStateOf(initialEngine?.aliasCode.orEmpty())
-    }
-    var engineType by remember(initialEngine?.id) {
-        mutableStateOf(
-            when {
-                editorCategory == SearchEngineEditorCategory.IMAGE_SHARE ->
-                    SearchEngineType.SHARE_IMAGE_TO_APP
-                else -> initialEngine?.engineType ?: SearchEngineType.DIRECT_LINK
-            },
-        )
-    }
-    var searchLink by remember(initialEngine?.id) { mutableStateOf(initialEngine?.searchLink.orEmpty()) }
-    var externJumpLink by remember(initialEngine?.id) { mutableStateOf(initialEngine?.externJumpLink.orEmpty()) }
-    var externJumpPackage by remember(initialEngine?.id) { mutableStateOf(initialEngine?.externJumpPackage.orEmpty()) }
-    var targetPackage by remember(initialEngine?.id) { mutableStateOf(initialEngine?.targetPackage.orEmpty()) }
-    var targetActivity by remember(initialEngine?.id) { mutableStateOf(initialEngine?.targetActivity.orEmpty()) }
-    var autoInputEnter by remember(initialEngine?.id) { mutableStateOf(initialEngine?.autoInputEnter ?: true) }
-    var pendingIconUri by remember(initialEngine?.id) { mutableStateOf<Uri?>(null) }
-    var pendingIconPath by remember(initialEngine?.id) { mutableStateOf<String?>(null) }
-    var pendingTextIcon by remember(initialEngine?.id) {
-        mutableStateOf(
-            initialEngine?.textIcon?.takeIf { initialEngine.iconType == SearchIconType.TEXT },
-        )
-    }
-    var isFetchingFavicon by remember(initialEngine?.id) { mutableStateOf(false) }
-    var subScreen by remember(initialEngine?.id) {
-        mutableStateOf<SearchEngineEditorSubScreen>(SearchEngineEditorSubScreen.Main)
-    }
+    val name = draft.name
+    val aliasCode = draft.aliasCode
+    val engineType = draft.engineType
+    val searchLink = draft.searchLink
+    val externJumpLink = draft.externJumpLink
+    val externJumpPackage = draft.externJumpPackage
+    val targetPackage = draft.targetPackage
+    val targetActivity = draft.targetActivity
+    val autoInputEnter = draft.autoInputEnter
+    val pendingIconUri = draft.pendingIconUri
+    val pendingIconPath = draft.pendingIconPath
+    val pendingTextIcon = draft.pendingTextIcon
+
     var showTextIconDialog by remember(initialEngine?.id) { mutableStateOf(false) }
-    var isSavingAppIcon by remember(initialEngine?.id) { mutableStateOf(false) }
+    var isFetchingFavicon by remember(initialEngine?.id) { mutableStateOf(false) }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val fetchFaviconFailedMessage = stringResource(R.string.search_engine_fetch_favicon_failed)
-    val pickAppIconFailedMessage = stringResource(R.string.search_engine_pick_app_icon_failed)
     val pickActivityRequiresPackageMessage =
         stringResource(R.string.search_engine_pick_activity_requires_package)
     val isShareTextType = initialEngine?.engineType == SearchEngineType.SHARE_TO_APP
@@ -174,99 +144,13 @@ fun SearchEngineEditorScreen(
         contract = ActivityResultContracts.GetContent(),
     ) { uri ->
         discardPendingIconPath(context, pendingIconPath, initialEngine?.iconPath)
-        pendingIconPath = null
-        pendingTextIcon = null
-        pendingIconUri = uri
-    }
-
-    BackHandler(
-        enabled = subScreen != SearchEngineEditorSubScreen.Main,
-        onBack = { subScreen = SearchEngineEditorSubScreen.Main },
-    )
-
-    when (val screen = subScreen) {
-        is SearchEngineEditorSubScreen.PickApp -> {
-            ActivityShortcutPickAppScreen(
-                titleResId = screen.titleResId,
-                selectedPackageName = screen.selectedPackageName,
-                onBack = { subScreen = SearchEngineEditorSubScreen.Main },
-                onSelectApp = { app ->
-                    when (screen.target) {
-                        PackagePickerTarget.TARGET -> {
-                            val previousPackage = targetPackage
-                            targetPackage = app.packageName
-                            if (previousPackage != app.packageName) {
-                                targetActivity = ""
-                            }
-                        }
-                        PackagePickerTarget.EXTERN -> externJumpPackage = app.packageName
-                        PackagePickerTarget.APP_ICON -> {
-                            scope.launch {
-                                isSavingAppIcon = true
-                                val iconPath = withContext(Dispatchers.IO) {
-                                    SearchEngineIconStorage.saveIconFromPackage(context, app.packageName)
-                                }
-                                isSavingAppIcon = false
-                                if (iconPath != null) {
-                                    discardPendingIconPath(context, pendingIconPath, initialEngine?.iconPath)
-                                    pendingIconUri = null
-                                    pendingTextIcon = null
-                                    pendingIconPath = iconPath
-                                } else {
-                                    Toast.makeText(
-                                        context,
-                                        pickAppIconFailedMessage,
-                                        Toast.LENGTH_SHORT,
-                                    ).show()
-                                }
-                            }
-                        }
-                    }
-                    subScreen = SearchEngineEditorSubScreen.Main
-                },
+        onUpdateDraft {
+            it.copy(
+                pendingIconPath = null,
+                pendingTextIcon = null,
+                pendingIconUri = uri,
             )
-            return
         }
-        is SearchEngineEditorSubScreen.PickActivity -> {
-            ActivityShortcutPickActivityScreen(
-                packageName = screen.packageName,
-                selectedClassName = screen.selectedClassName,
-                onBack = { subScreen = SearchEngineEditorSubScreen.Main },
-                onSelectActivity = { activity ->
-                    targetActivity = activity.className
-                    subScreen = SearchEngineEditorSubScreen.Main
-                },
-            )
-            return
-        }
-        SearchEngineEditorSubScreen.PickShareImageTarget -> {
-            ShareImageTargetPickScreen(
-                selectedPackageName = targetPackage,
-                selectedActivityClassName = targetActivity,
-                onBack = { subScreen = SearchEngineEditorSubScreen.Main },
-                onSelectTarget = { target ->
-                    targetPackage = target.packageName
-                    targetActivity = target.activityClassName
-                    if (name.isBlank()) {
-                        name = target.appLabel.ifBlank { target.label }
-                    }
-                    subScreen = SearchEngineEditorSubScreen.Main
-                    scope.launch {
-                        val iconPath = withContext(Dispatchers.IO) {
-                            SearchEngineIconStorage.saveIconFromPackage(context, target.packageName)
-                        }
-                        if (iconPath != null) {
-                            discardPendingIconPath(context, pendingIconPath, initialEngine?.iconPath)
-                            pendingIconUri = null
-                            pendingTextIcon = null
-                            pendingIconPath = iconPath
-                        }
-                    }
-                },
-            )
-            return
-        }
-        SearchEngineEditorSubScreen.Main -> Unit
     }
 
     val saveAction: () -> Unit = {
@@ -339,16 +223,33 @@ fun SearchEngineEditorScreen(
                     modifier = Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
+                    MiuixSmallTitle(stringResource(R.string.search_engine_pick_icon))
+
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        SearchEngineIcon(engine = previewEngine, modifier = Modifier.size(56.dp))
-                        Column(
-                            modifier = Modifier.weight(1f),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
+                        SearchEngineIcon(
+                            engine = previewEngine,
+                            modifier = Modifier.size(56.dp),
+                        )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = name.ifBlank { stringResource(R.string.search_engine_name_hint) },
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                            Text(
+                                text = engineTypeLabel(previewEngine.engineType),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+
+                    if (!isShareTextType) {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -363,22 +264,16 @@ fun SearchEngineEditorScreen(
                                 )
                                 IconSourceButton(
                                     onClick = {
-                                        subScreen = SearchEngineEditorSubScreen.PickApp(
-                                            target = PackagePickerTarget.APP_ICON,
-                                            titleResId = R.string.search_engine_pick_app_icon_title,
-                                            selectedPackageName = "",
+                                        onPickApp(
+                                            "APP_ICON",
+                                            R.string.search_engine_pick_app_icon_title,
+                                            "",
                                         )
                                     },
-                                    enabled = !isSavingAppIcon,
-                                    isLoading = isSavingAppIcon,
+                                    enabled = true,
+                                    isLoading = false,
                                     icon = Icons.Default.Apps,
-                                    label = stringResource(
-                                        if (isSavingAppIcon) {
-                                            R.string.search_engine_pick_app_icon_loading
-                                        } else {
-                                            R.string.search_engine_pick_app_icon
-                                        },
-                                    ),
+                                    label = stringResource(R.string.search_engine_pick_app_icon),
                                     modifier = Modifier.weight(1f),
                                 )
                             }
@@ -402,9 +297,13 @@ fun SearchEngineEditorScreen(
                                                     pendingIconPath,
                                                     initialEngine?.iconPath,
                                                 )
-                                                pendingIconUri = null
-                                                pendingTextIcon = null
-                                                pendingIconPath = iconPath
+                                                onUpdateDraft {
+                                                    it.copy(
+                                                        pendingIconUri = null,
+                                                        pendingTextIcon = null,
+                                                        pendingIconPath = iconPath,
+                                                    )
+                                                }
                                             } else {
                                                 Toast.makeText(
                                                     context,
@@ -414,9 +313,9 @@ fun SearchEngineEditorScreen(
                                             }
                                         }
                                     },
-                                    enabled = canFetchFavicon && !isFetchingFavicon,
+                                    enabled = canFetchFavicon,
                                     isLoading = isFetchingFavicon,
-                                    icon = Icons.Default.Language,
+                                    icon = Icons.Default.Download,
                                     label = stringResource(
                                         if (isFetchingFavicon) {
                                             R.string.search_engine_fetch_favicon_loading
@@ -430,44 +329,12 @@ fun SearchEngineEditorScreen(
                                     onClick = { showTextIconDialog = true },
                                     enabled = true,
                                     isLoading = false,
-                                    icon = Icons.Default.Title,
+                                    icon = Icons.Default.TextFields,
                                     label = stringResource(R.string.search_engine_text_icon),
                                     modifier = Modifier.weight(1f),
                                 )
                             }
                         }
-                    }
-
-                    if (showTextIconDialog) {
-                        TextIconDialog(
-                            initialText = pendingTextIcon ?: name.take(1),
-                            onDismiss = { showTextIconDialog = false },
-                            onConfirm = { text ->
-                                discardPendingIconPath(context, pendingIconPath, initialEngine?.iconPath)
-                                pendingIconUri = null
-                                pendingIconPath = null
-                                pendingTextIcon = text
-                                showTextIconDialog = false
-                            },
-                        )
-                    }
-
-                    MiuixLabeledTextField(
-                        value = name,
-                        onValueChange = { name = it },
-                        label = stringResource(R.string.search_engine_name_hint),
-                    )
-                    if (editorCategory == SearchEngineEditorCategory.TEXT && !isShareImageType) {
-                        MiuixLabeledTextField(
-                            value = aliasCode,
-                            onValueChange = { aliasCode = it },
-                            label = stringResource(R.string.search_engine_alias_hint),
-                        )
-                        Text(
-                            text = stringResource(R.string.search_engine_alias_support),
-                            style = MiuixTheme.textStyles.body2,
-                            color = MiuixTheme.colorScheme.onSurfaceSecondary,
-                        )
                     }
                 }
             }
@@ -479,22 +346,18 @@ fun SearchEngineEditorScreen(
                     modifier = Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    if (!isShareTextType && editorCategory == SearchEngineEditorCategory.TEXT) {
-                        MiuixSmallTitle(stringResource(R.string.search_engine_type_section))
-                        val types = remember { textSearchEngineTypes() }
-                        val typeLabels = types.map { searchEngineTypeLabel(it) }
-                        val selectedIndex = types.indexOf(engineType).coerceAtLeast(0)
-                        TabRowWithContour(
-                            tabs = typeLabels,
-                            selectedTabIndex = selectedIndex,
-                            onTabSelected = { index ->
-                                if (index in types.indices) {
-                                    engineType = types[index]
-                                }
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
+                    MiuixLabeledTextField(
+                        value = name,
+                        onValueChange = { onUpdateDraft { d -> d.copy(name = it) } },
+                        label = stringResource(R.string.search_engine_name_hint),
+                    )
+
+                    MiuixLabeledTextField(
+                        value = aliasCode,
+                        onValueChange = { onUpdateDraft { d -> d.copy(aliasCode = it) } },
+                        label = stringResource(R.string.search_engine_alias_hint),
+                    )
+                    MiuixHintText(stringResource(R.string.search_engine_alias_support))
 
                     if (isShareTextType) {
                         MiuixHintText(stringResource(R.string.search_engine_share_type_readonly))
@@ -507,7 +370,7 @@ fun SearchEngineEditorScreen(
                         }
                         MiuixHintText(targetSummary)
                         MiuixButton(
-                            onClick = { subScreen = SearchEngineEditorSubScreen.PickShareImageTarget },
+                            onClick = { onPickShareTarget(targetPackage, targetActivity) },
                             modifier = Modifier.fillMaxWidth(),
                         ) {
                             Text(stringResource(R.string.search_engine_pick_share_image_target))
@@ -515,31 +378,31 @@ fun SearchEngineEditorScreen(
                     } else {
                         EditorTypeFields(
                             engineType = engineType,
-                            onEngineTypeChange = { engineType = it },
+                            onEngineTypeChange = { onUpdateDraft { d -> d.copy(engineType = it) } },
                             searchLink = searchLink,
-                            onSearchLinkChange = { searchLink = it },
+                            onSearchLinkChange = { onUpdateDraft { d -> d.copy(searchLink = it) } },
                             externJumpLink = externJumpLink,
-                            onExternJumpLinkChange = { externJumpLink = it },
+                            onExternJumpLinkChange = { onUpdateDraft { d -> d.copy(externJumpLink = it) } },
                             externJumpPackage = externJumpPackage,
-                            onExternJumpPackageChange = { externJumpPackage = it },
+                            onExternJumpPackageChange = { onUpdateDraft { d -> d.copy(externJumpPackage = it) } },
                             targetPackage = targetPackage,
-                            onTargetPackageChange = { targetPackage = it },
+                            onTargetPackageChange = { onUpdateDraft { d -> d.copy(targetPackage = it) } },
                             targetActivity = targetActivity,
-                            onTargetActivityChange = { targetActivity = it },
+                            onTargetActivityChange = { onUpdateDraft { d -> d.copy(targetActivity = it) } },
                             autoInputEnter = autoInputEnter,
-                            onAutoInputEnterChange = { autoInputEnter = it },
+                            onAutoInputEnterChange = { onUpdateDraft { d -> d.copy(autoInputEnter = it) } },
                             onPickTargetApp = {
-                                subScreen = SearchEngineEditorSubScreen.PickApp(
-                                    target = PackagePickerTarget.TARGET,
-                                    titleResId = R.string.search_engine_pick_app_title,
-                                    selectedPackageName = targetPackage,
+                                onPickApp(
+                                    "TARGET",
+                                    R.string.search_engine_pick_app_title,
+                                    targetPackage,
                                 )
                             },
                             onPickExternApp = {
-                                subScreen = SearchEngineEditorSubScreen.PickApp(
-                                    target = PackagePickerTarget.EXTERN,
-                                    titleResId = R.string.search_engine_pick_app_title,
-                                    selectedPackageName = externJumpPackage,
+                                onPickApp(
+                                    "EXTERN",
+                                    R.string.search_engine_pick_app_title,
+                                    externJumpPackage,
                                 )
                             },
                             onPickActivity = {
@@ -550,10 +413,7 @@ fun SearchEngineEditorScreen(
                                         Toast.LENGTH_SHORT,
                                     ).show()
                                 } else {
-                                    subScreen = SearchEngineEditorSubScreen.PickActivity(
-                                        packageName = targetPackage,
-                                        selectedClassName = targetActivity,
-                                    )
+                                    onPickActivity(targetPackage, targetActivity)
                                 }
                             },
                         )
@@ -564,19 +424,32 @@ fun SearchEngineEditorScreen(
             MiuixButton(
                 onClick = saveAction,
                 modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColorsPrimary(),
             ) {
-                top.yukonga.miuix.kmp.basic.Text(
-                    text = stringResource(R.string.search_engine_save),
-                    color = MiuixTheme.colorScheme.onPrimary,
-                )
+                Text(stringResource(R.string.search_engine_save))
             }
         }
         }
     }
+
+    if (showTextIconDialog) {
+        TextIconDialog(
+            initialText = pendingTextIcon.orEmpty().ifBlank { name.take(2) },
+            onDismiss = { showTextIconDialog = false },
+            onConfirm = { text ->
+                discardPendingIconPath(context, pendingIconPath, initialEngine?.iconPath)
+                onUpdateDraft {
+                    it.copy(
+                        pendingIconUri = null,
+                        pendingIconPath = null,
+                        pendingTextIcon = text,
+                    )
+                }
+                showTextIconDialog = false
+            },
+        )
+    }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 private fun EditorTypeFields(
     engineType: SearchEngineType,
@@ -597,32 +470,49 @@ private fun EditorTypeFields(
     onPickExternApp: () -> Unit,
     onPickActivity: () -> Unit,
 ) {
+    val engineTypes = listOf(
+        SearchEngineType.DIRECT_LINK to stringResource(R.string.search_engine_type_direct_link),
+        SearchEngineType.JUMP_TO_ACTIVITY to stringResource(R.string.search_engine_type_jump_activity),
+        SearchEngineType.EXTERN_JUMP_LINK to stringResource(R.string.search_engine_type_extern_jump),
+    )
+
+    MiuixTabRowWithContour(
+        tabs = engineTypes.map { it.second },
+        selectedTabIndex = engineTypes.indexOfFirst { it.first == engineType }.coerceAtLeast(0),
+        onTabSelected = { index ->
+            if (index in engineTypes.indices) {
+                onEngineTypeChange(engineTypes[index].first)
+            }
+        },
+        modifier = Modifier.fillMaxWidth(),
+    )
+
     when (engineType) {
-        SearchEngineType.DIRECT_LINK,
-        SearchEngineType.EXTERN_JUMP_LINK -> {
+        SearchEngineType.DIRECT_LINK -> {
             MiuixLabeledTextField(
-                value = searchLink.ifBlank { externJumpLink },
-                onValueChange = {
-                    onSearchLinkChange(it)
-                    onExternJumpLinkChange(it)
-                },
+                value = searchLink,
+                onValueChange = onSearchLinkChange,
                 label = stringResource(R.string.search_engine_url_link_hint),
             )
-            Text(
-                text = stringResource(R.string.search_engine_url_link_support),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            PackageNameField(
-                value = targetPackage.ifBlank { externJumpPackage },
-                onValueChange = {
-                    onTargetPackageChange(it)
-                    onExternJumpPackageChange(it)
-                },
-                label = stringResource(R.string.search_engine_target_package_hint),
-                onPickApp = onPickTargetApp,
-            )
-            SwitchPreference(
+            MiuixHintText(stringResource(R.string.search_engine_search_link_support))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                MiuixLabeledTextField(
+                    value = targetPackage,
+                    onValueChange = onTargetPackageChange,
+                    label = stringResource(R.string.search_engine_target_package_hint),
+                    modifier = Modifier.weight(1f),
+                )
+                MiuixButton(onClick = onPickTargetApp) {
+                    Text(stringResource(R.string.search_engine_pick_app))
+                }
+            }
+
+            MiuixSwitchRow(
                 title = stringResource(R.string.search_engine_auto_input_enter),
                 summary = stringResource(R.string.search_engine_auto_input_enter_desc),
                 checked = autoInputEnter,
@@ -630,21 +520,41 @@ private fun EditorTypeFields(
             )
             MiuixHintText(stringResource(R.string.search_engine_url_link_flow_desc))
         }
+
         SearchEngineType.JUMP_TO_ACTIVITY -> {
-            PackageNameField(
-                value = targetPackage,
-                onValueChange = onTargetPackageChange,
-                label = stringResource(R.string.search_engine_target_package_hint),
-                onPickApp = onPickTargetApp,
-            )
-            ActivityNameField(
-                value = targetActivity,
-                onValueChange = onTargetActivityChange,
-                label = stringResource(R.string.search_engine_target_activity_hint),
-                packageName = targetPackage,
-                onPickActivity = onPickActivity,
-            )
-            SwitchPreference(
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                MiuixLabeledTextField(
+                    value = targetPackage,
+                    onValueChange = onTargetPackageChange,
+                    label = stringResource(R.string.search_engine_target_package_hint),
+                    modifier = Modifier.weight(1f),
+                )
+                MiuixButton(onClick = onPickTargetApp) {
+                    Text(stringResource(R.string.search_engine_pick_app))
+                }
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                MiuixLabeledTextField(
+                    value = targetActivity,
+                    onValueChange = onTargetActivityChange,
+                    label = stringResource(R.string.search_engine_target_activity_hint),
+                    modifier = Modifier.weight(1f),
+                )
+                MiuixButton(onClick = onPickActivity, enabled = targetPackage.isNotBlank()) {
+                    Text(stringResource(R.string.search_engine_pick_activity))
+                }
+            }
+
+            MiuixSwitchRow(
                 title = stringResource(R.string.search_engine_auto_input_enter),
                 summary = stringResource(R.string.search_engine_auto_input_enter_desc),
                 checked = autoInputEnter,
@@ -652,87 +562,43 @@ private fun EditorTypeFields(
             )
             MiuixHintText(stringResource(R.string.search_engine_jump_activity_flow_desc))
         }
+
+        SearchEngineType.EXTERN_JUMP_LINK -> {
+            MiuixLabeledTextField(
+                value = externJumpLink,
+                onValueChange = onExternJumpLinkChange,
+                label = stringResource(R.string.search_engine_extern_link_hint),
+            )
+            MiuixHintText(stringResource(R.string.search_engine_url_link_support))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                MiuixLabeledTextField(
+                    value = externJumpPackage,
+                    onValueChange = onExternJumpPackageChange,
+                    label = stringResource(R.string.search_engine_extern_package_hint),
+                    modifier = Modifier.weight(1f),
+                )
+                MiuixButton(onClick = onPickExternApp) {
+                    Text(stringResource(R.string.search_engine_pick_app))
+                }
+            }
+
+            MiuixSwitchRow(
+                title = stringResource(R.string.search_engine_auto_input_enter),
+                summary = stringResource(R.string.search_engine_auto_input_enter_desc),
+                checked = autoInputEnter,
+                onCheckedChange = onAutoInputEnterChange,
+            )
+            MiuixHintText(stringResource(R.string.search_engine_url_link_flow_desc))
+        }
+
         SearchEngineType.SHARE_TO_APP,
         SearchEngineType.SHARE_IMAGE_TO_APP,
         -> Unit
-    }
-}
-
-@Composable
-private fun PackageNameField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    label: String,
-    onPickApp: () -> Unit,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        MiuixLabeledTextField(
-            value = value,
-            onValueChange = onValueChange,
-            label = label,
-            modifier = Modifier.weight(1f),
-        )
-        MiuixButton(
-            onClick = onPickApp,
-        ) {
-            Text(stringResource(R.string.search_engine_pick_app))
-        }
-    }
-}
-
-@Composable
-private fun ActivityNameField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    label: String,
-    packageName: String,
-    onPickActivity: () -> Unit,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        MiuixLabeledTextField(
-            value = value,
-            onValueChange = onValueChange,
-            label = label,
-            modifier = Modifier.weight(1f),
-        )
-        MiuixButton(
-            onClick = onPickActivity,
-            enabled = packageName.isNotBlank(),
-        ) {
-            Text(stringResource(R.string.search_engine_pick_activity))
-        }
-    }
-}
-
-private fun textSearchEngineTypes(): List<SearchEngineType> = listOf(
-    SearchEngineType.DIRECT_LINK,
-    SearchEngineType.JUMP_TO_ACTIVITY,
-)
-
-@Composable
-private fun searchEngineTypeLabel(type: SearchEngineType): String = when (type) {
-    SearchEngineType.DIRECT_LINK -> stringResource(R.string.search_engine_type_direct_link)
-    SearchEngineType.JUMP_TO_ACTIVITY -> stringResource(R.string.search_engine_type_jump_activity)
-    SearchEngineType.EXTERN_JUMP_LINK -> stringResource(R.string.search_engine_type_extern_jump)
-    SearchEngineType.SHARE_TO_APP -> stringResource(R.string.search_engine_type_share)
-    SearchEngineType.SHARE_IMAGE_TO_APP -> stringResource(R.string.search_engine_type_share_image)
-}
-
-private fun discardPendingIconPath(
-    context: android.content.Context,
-    pendingIconPath: String?,
-    initialIconPath: String?,
-) {
-    pendingIconPath?.takeIf { it != initialIconPath }?.let { path ->
-        SearchEngineIconStorage.deleteIconIfOwned(context, path)
     }
 }
 
@@ -744,27 +610,21 @@ private fun buildPreviewEngine(
     pendingIconPath: String?,
     pendingTextIcon: String?,
 ): SearchEngineConfig {
-    val base = initialEngine ?: SearchEngineConfig(name = name.ifBlank { "?" }, engineType = engineType)
-    val hasPendingIcon = hasPendingIconUri || pendingIconPath != null
     val iconType = when {
-        hasPendingIcon -> SearchIconType.URI
-        pendingTextIcon != null -> SearchIconType.TEXT
-        else -> base.iconType
+        hasPendingIconUri || pendingIconPath != null -> SearchIconType.URI
+        !pendingTextIcon.isNullOrBlank() -> SearchIconType.TEXT
+        else -> initialEngine?.iconType ?: SearchIconType.OTHER
     }
-    return base.copy(
-        name = name.ifBlank { base.name },
+    return (initialEngine ?: SearchEngineConfig(
+        id = "preview",
+        name = name,
+        engineType = engineType,
+    )).copy(
+        name = name,
         engineType = engineType,
         iconType = iconType,
-        iconPath = when {
-            hasPendingIcon -> pendingIconPath
-            pendingTextIcon != null -> null
-            else -> base.iconPath.takeIf { !hasPendingIconUri }
-        },
-        textIcon = when {
-            pendingTextIcon != null -> pendingTextIcon
-            hasPendingIcon -> null
-            else -> base.textIcon
-        },
+        iconPath = pendingIconPath ?: initialEngine?.iconPath,
+        textIcon = pendingTextIcon ?: initialEngine?.textIcon,
     )
 }
 
@@ -783,44 +643,48 @@ private fun buildEngine(
     pendingIconPath: String?,
     pendingTextIcon: String?,
 ): SearchEngineConfig {
-    val id = initialEngine?.id ?: UUID.randomUUID().toString()
-    val sortOrder = initialEngine?.sortOrder ?: 0
+    val id = initialEngine?.id ?: "engine_${System.currentTimeMillis()}"
     val iconType = when {
         hasPendingIcon -> SearchIconType.URI
-        pendingTextIcon != null -> SearchIconType.TEXT
-        initialEngine != null -> initialEngine.iconType
-        targetPackage.isNotBlank() || externJumpPackage.isNotBlank() -> SearchIconType.OTHER
-        else -> SearchIconType.OTHER
-    }
-    val iconPath = when {
-        pendingIconPath != null -> pendingIconPath
-        hasPendingIcon -> null
-        iconType == SearchIconType.TEXT -> null
-        else -> initialEngine?.iconPath
-    }
-    val textIcon = when {
-        pendingTextIcon != null -> pendingTextIcon
-        hasPendingIcon -> null
-        iconType == SearchIconType.TEXT -> initialEngine?.textIcon
-        else -> null
+        !pendingTextIcon.isNullOrBlank() -> SearchIconType.TEXT
+        else -> initialEngine?.iconType ?: SearchIconType.OTHER
     }
     return SearchEngineConfig(
         id = id,
         name = name,
+        aliasCode = aliasCode.takeIf { it.isNotEmpty() },
         engineType = engineType,
-        iconType = iconType,
-        iconPath = iconPath,
-        textIcon = textIcon,
-        aliasCode = SearchPanelAliasResolver.normalizeAliasCode(aliasCode).takeIf { it.isNotEmpty() },
-        searchLink = searchLink.takeIf { it.isNotBlank() },
-        externJumpLink = externJumpLink.takeIf { it.isNotBlank() },
-        externJumpPackage = externJumpPackage.takeIf { it.isNotBlank() },
-        targetPackage = targetPackage.takeIf { it.isNotBlank() },
-        targetActivity = targetActivity.takeIf { it.isNotBlank() },
+        searchLink = if (engineType == SearchEngineType.DIRECT_LINK || engineType == SearchEngineType.EXTERN_JUMP_LINK) searchLink else null,
+        externJumpLink = if (engineType == SearchEngineType.EXTERN_JUMP_LINK) externJumpLink.takeIf { it.isNotEmpty() } else null,
+        externJumpPackage = if (engineType == SearchEngineType.EXTERN_JUMP_LINK) externJumpPackage.takeIf { it.isNotEmpty() } else null,
+        targetPackage = if (engineType == SearchEngineType.JUMP_TO_ACTIVITY || engineType == SearchEngineType.DIRECT_LINK) targetPackage else null,
+        targetActivity = if (engineType == SearchEngineType.JUMP_TO_ACTIVITY) targetActivity.takeIf { it.isNotEmpty() } else null,
         autoInputEnter = autoInputEnter,
-        showInPickPanel = true,
-        sortOrder = sortOrder,
+        iconType = iconType,
+        iconPath = pendingIconPath ?: initialEngine?.iconPath,
+        textIcon = pendingTextIcon ?: initialEngine?.textIcon,
     )
+}
+
+private fun discardPendingIconPath(
+    context: android.content.Context,
+    pendingIconPath: String?,
+    savedIconPath: String?,
+) {
+    if (pendingIconPath != null && pendingIconPath != savedIconPath) {
+        SearchEngineIconStorage.deleteIconIfOwned(context, pendingIconPath)
+    }
+}
+
+@Composable
+private fun engineTypeLabel(type: SearchEngineType): String {
+    return when (type) {
+        SearchEngineType.DIRECT_LINK -> stringResource(R.string.search_engine_type_direct_link)
+        SearchEngineType.JUMP_TO_ACTIVITY -> stringResource(R.string.search_engine_type_jump_activity)
+        SearchEngineType.EXTERN_JUMP_LINK -> stringResource(R.string.search_engine_type_extern_jump)
+        SearchEngineType.SHARE_TO_APP -> stringResource(R.string.search_engine_type_share)
+        SearchEngineType.SHARE_IMAGE_TO_APP -> stringResource(R.string.search_engine_type_share_image)
+    }
 }
 
 @Composable

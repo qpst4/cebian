@@ -31,6 +31,7 @@ fun GestureExecuteShellCommandScreen(
     shellCommands: List<ShellCommand> = emptyList(),
     onBack: () -> Unit,
     onConfirm: (String) -> Unit,
+    enableBackHandler: Boolean = true,
 ) {
     var command by remember(initialCommand) { mutableStateOf(initialCommand) }
     val canSave = command.isNotBlank()
@@ -44,6 +45,7 @@ fun GestureExecuteShellCommandScreen(
     SettingsScreenScaffold(
         title = stringResource(R.string.gesture_shell_command_config_title),
         onBack = onBack,
+        enableBackHandler = enableBackHandler,
         actions = {
             MiuixTextButton(
                 text = stringResource(R.string.shell_panel_save),

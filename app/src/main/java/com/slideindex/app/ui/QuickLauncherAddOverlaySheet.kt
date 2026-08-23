@@ -63,7 +63,17 @@ import com.slideindex.app.ui.quicklauncher.addQuickLauncherItem
 import com.slideindex.app.ui.quicklauncher.removeQuickLauncherItem
 import com.slideindex.app.util.AppShortcutLoader
 import com.slideindex.app.util.AppShortcutLoader.CreatedShortcut
+import com.slideindex.app.util.AppShortcutLoader.toQuickLauncherItem
 import kotlinx.coroutines.delay
+
+data class PendingQuickLauncherFolderShortcut(
+    val folderName: String,
+    val items: List<QuickLauncherItem>,
+)
+
+object QuickLauncherCreateShortcutBridge {
+    var pendingFolder: PendingQuickLauncherFolderShortcut? = null
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -87,11 +97,19 @@ fun QuickLauncherAddOverlaySheet(
 ) {
     var visible by remember { mutableStateOf(false) }
     var subScreen by remember { mutableStateOf<QuickLauncherAddSubScreen>(QuickLauncherAddSubScreen.Main) }
+    var folderName by remember { mutableStateOf("") }
+    var folderItems by remember { mutableStateOf<List<QuickLauncherItem>>(emptyList()) }
+    var folderPickerActive by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
     var selectedTab by remember { mutableIntStateOf(0) }
     var searchExpanded by remember { mutableStateOf(false) }
     val searchFocusRequester = remember { FocusRequester() }
     val requestDismiss = remember { { visible = false } }
+    val clearFolderDraft = {
+        folderName = ""
+        folderItems = emptyList()
+        folderPickerActive = false
+    }
     val handleOverlayBack: () -> Unit = {
         when (subScreen) {
             QuickLauncherAddSubScreen.Main -> {
@@ -106,12 +124,30 @@ fun QuickLauncherAddOverlaySheet(
                     requestDismiss()
                 }
             }
-            QuickLauncherAddSubScreen.PickApp -> subScreen = QuickLauncherAddSubScreen.Main
+            QuickLauncherAddSubScreen.PickApp -> subScreen = if (folderPickerActive) {
+                QuickLauncherAddSubScreen.CreateFolder
+            } else {
+                QuickLauncherAddSubScreen.Main
+            }
             is QuickLauncherAddSubScreen.PickActivity -> subScreen = QuickLauncherAddSubScreen.PickApp
-            is QuickLauncherAddSubScreen.ShellCommandConfig -> subScreen = QuickLauncherAddSubScreen.Main
-            QuickLauncherAddSubScreen.CreateFolder -> subScreen = QuickLauncherAddSubScreen.Main
-            QuickLauncherAddSubScreen.MyShortcuts -> subScreen = QuickLauncherAddSubScreen.Main
-            QuickLauncherAddSubScreen.PresetShortcuts -> subScreen = QuickLauncherAddSubScreen.Main
+            is QuickLauncherAddSubScreen.ShellCommandConfig -> subScreen = if (folderPickerActive) {
+                QuickLauncherAddSubScreen.CreateFolder
+            } else {
+                QuickLauncherAddSubScreen.Main
+            }
+            QuickLauncherAddSubScreen.CreateFolder -> {
+                clearFolderDraft()
+                subScreen = QuickLauncherAddSubScreen.Main
+            }
+            QuickLauncherAddSubScreen.MyShortcuts,
+            QuickLauncherAddSubScreen.PresetShortcuts,
+            -> {
+                subScreen = if (folderPickerActive) {
+                    QuickLauncherAddSubScreen.CreateFolder
+                } else {
+                    QuickLauncherAddSubScreen.Main
+                }
+            }
         }
     }
 
@@ -188,7 +224,10 @@ fun QuickLauncherAddOverlaySheet(
                             subScreen = subScreen,
                             onBack = handleOverlayBack,
                             onDone = requestDismiss,
-                            onCreateFolder = { subScreen = QuickLauncherAddSubScreen.CreateFolder },
+                            onCreateFolder = {
+                                clearFolderDraft()
+                                subScreen = QuickLauncherAddSubScreen.CreateFolder
+                            },
                             showPickerChrome = subScreen is QuickLauncherAddSubScreen.Main || isFolderSubScreen || subScreen is QuickLauncherAddSubScreen.CreateFolder,
                             selectedTab = selectedTab,
                             onTabSelected = { selectedTab = it },
@@ -217,11 +256,49 @@ fun QuickLauncherAddOverlaySheet(
                         onDismiss = requestDismiss,
                         onAdd = onAdd,
                         onRemove = onRemove,
-                        launchCreateShortcut = launchCreateShortcut,
+                        launchCreateShortcut = { host, _ ->
+                            if (subScreen == QuickLauncherAddSubScreen.CreateFolder || folderPickerActive) {
+                                QuickLauncherCreateShortcutBridge.pendingFolder =
+                                    PendingQuickLauncherFolderShortcut(folderName, folderItems)
+                            }
+                            launchCreateShortcut(host) { created ->
+                                val pending = QuickLauncherCreateShortcutBridge.pendingFolder
+                                QuickLauncherCreateShortcutBridge.pendingFolder = null
+                                    if (pending != null && created != null) {
+                                    val shortcutItem = created.toQuickLauncherItem()
+                                    val updatedItems = if (
+                                        pending.items.any {
+                                            it.type == shortcutItem.type && it.payload == shortcutItem.payload
+                                        }
+                                    ) {
+                                        pending.items
+                                    } else {
+                                        pending.items + shortcutItem
+                                    }
+                                    onAdd(QuickLauncherItem.folder(pending.folderName, updatedItems))
+                                    clearFolderDraft()
+                                } else if (created != null) {
+                                    onAdd(created.toQuickLauncherItem())
+                                }
+                            }
+                        },
                         subScreen = subScreen,
                         onSubScreenChange = { subScreen = it },
                         selectedTab = selectedTab,
                         searchQuery = searchQuery,
+                        folderName = folderName,
+                        folderItems = folderItems,
+                        folderPickerActive = folderPickerActive,
+                        onFolderNameChange = { folderName = it },
+                        onToggleFolderItem = { item, added ->
+                            folderItems = if (added) {
+                                folderItems.filterNot { it.type == item.type && it.payload == item.payload }
+                            } else {
+                                folderItems + item
+                            }
+                        },
+                        onEnterFolderLibrary = { folderPickerActive = true },
+                        onClearFolderDraft = clearFolderDraft,
                     )
                 }
             }
@@ -250,6 +327,13 @@ private fun QuickLauncherAddOverlaySheetContent(
     onSubScreenChange: (QuickLauncherAddSubScreen) -> Unit = {},
     selectedTab: Int = 0,
     searchQuery: String = "",
+    folderName: String = "",
+    folderItems: List<QuickLauncherItem> = emptyList(),
+    folderPickerActive: Boolean = false,
+    onFolderNameChange: (String) -> Unit = {},
+    onToggleFolderItem: (QuickLauncherItem, Boolean) -> Unit = { _, _ -> },
+    onEnterFolderLibrary: () -> Unit = {},
+    onClearFolderDraft: () -> Unit = {},
 ) {
     var addedAppPackages by remember { mutableStateOf(configuredAppPackages) }
     var addedShortcutKeys by remember { mutableStateOf(configuredShortcutKeys) }
@@ -302,6 +386,13 @@ private fun QuickLauncherAddOverlaySheetContent(
         onSubScreenChange = onSubScreenChange,
         selectedTab = selectedTab,
         singleSelect = false,
+        folderName = folderName,
+        folderItems = folderItems,
+        folderPickerActive = folderPickerActive,
+        onFolderNameChange = onFolderNameChange,
+        onToggleFolderItem = onToggleFolderItem,
+        onEnterFolderLibrary = onEnterFolderLibrary,
+        onClearFolderDraft = onClearFolderDraft,
     )
 }
 

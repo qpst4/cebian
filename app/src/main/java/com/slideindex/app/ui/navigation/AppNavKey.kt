@@ -33,6 +33,27 @@ sealed interface AppNavKey : NavKey {
         val handleId: String,
         val triggerId: Int,
     ) : AppNavKey
+    @Serializable data class HomeSideGestureSlotMyShortcuts(
+        val side: String,
+        val handleId: String,
+        val triggerId: Int,
+    ) : AppNavKey
+    @Serializable data class HomeSideGestureSlotPresetShortcuts(
+        val side: String,
+        val handleId: String,
+        val triggerId: Int,
+    ) : AppNavKey
+    @Serializable data class HomeSideGestureSlotPickApp(
+        val side: String,
+        val handleId: String,
+        val triggerId: Int,
+    ) : AppNavKey
+    @Serializable data class HomeSideGestureSlotPickActivity(
+        val side: String,
+        val handleId: String,
+        val triggerId: Int,
+        val packageName: String,
+    ) : AppNavKey
     @Serializable data class HomeSideGestureSlotModePick(
         val side: String,
         val handleId: String,
@@ -65,8 +86,35 @@ sealed interface AppNavKey : NavKey {
         val corner: String,
         val slotIndex: Int,
     ) : AppNavKey
+    @Serializable data class HomeCornerGestureSlotMyShortcuts(
+        val corner: String,
+        val slotIndex: Int,
+    ) : AppNavKey
+    @Serializable data class HomeCornerGestureSlotPresetShortcuts(
+        val corner: String,
+        val slotIndex: Int,
+    ) : AppNavKey
+    @Serializable data class HomeCornerGestureSlotPickApp(
+        val corner: String,
+        val slotIndex: Int,
+    ) : AppNavKey
+    @Serializable data class HomeCornerGestureSlotPickActivity(
+        val corner: String,
+        val slotIndex: Int,
+        val packageName: String,
+    ) : AppNavKey
+    @Serializable data class HomeCornerGestureSlotShellCommand(
+        val corner: String,
+        val slotIndex: Int,
+        val initialCommand: String = "",
+    ) : AppNavKey
 
     @Serializable data object HomeCornerGestureInnerZoneActionPick : AppNavKey
+    @Serializable data object HomeCornerGestureInnerZoneMyShortcuts : AppNavKey
+    @Serializable data object HomeCornerGestureInnerZonePresetShortcuts : AppNavKey
+    @Serializable data object HomeCornerGestureInnerZonePickApp : AppNavKey
+    @Serializable data class HomeCornerGestureInnerZonePickActivity(val packageName: String) : AppNavKey
+    @Serializable data class HomeCornerGestureInnerZoneShellCommand(val initialCommand: String = "") : AppNavKey
 
     // Shake tab
     @Serializable data object ShakeGestures : AppNavKey
@@ -81,6 +129,27 @@ sealed interface AppNavKey : NavKey {
         val target: ShakeActionPickTarget,
         val gestureTypeId: Int,
         val packageName: String = "",
+    ) : AppNavKey
+    @Serializable data class ShakeGestureActionMyShortcuts(
+        val target: ShakeActionPickTarget,
+        val gestureTypeId: Int,
+        val packageName: String = "",
+    ) : AppNavKey
+    @Serializable data class ShakeGestureActionPresetShortcuts(
+        val target: ShakeActionPickTarget,
+        val gestureTypeId: Int,
+        val packageName: String = "",
+    ) : AppNavKey
+    @Serializable data class ShakeGestureActionPickApp(
+        val target: ShakeActionPickTarget,
+        val gestureTypeId: Int,
+        val packageName: String = "",
+    ) : AppNavKey
+    @Serializable data class ShakeGestureActionPickActivity(
+        val target: ShakeActionPickTarget,
+        val gestureTypeId: Int,
+        val packageName: String = "",
+        val appPackageName: String,
     ) : AppNavKey
     @Serializable data class ShakeGestureActionShellCommand(
         val target: ShakeActionPickTarget,
@@ -99,6 +168,11 @@ sealed interface AppNavKey : NavKey {
     @Serializable data object MessageReminderAllowedApps : AppNavKey
     @Serializable data class MessageReminderAppFilterEdit(val packageName: String) : AppNavKey
     @Serializable data class MessageReminderGestureActionPick(val slot: String) : AppNavKey
+    @Serializable data class MessageReminderGestureMyShortcuts(val slot: String) : AppNavKey
+    @Serializable data class MessageReminderGesturePresetShortcuts(val slot: String) : AppNavKey
+    @Serializable data class MessageReminderGesturePickApp(val slot: String) : AppNavKey
+    @Serializable data class MessageReminderGesturePickActivity(val slot: String, val packageName: String) : AppNavKey
+    @Serializable data class MessageReminderGestureShellCommand(val slot: String, val initialCommand: String = "") : AppNavKey
     @Serializable data object MessageReminderDndApps : AppNavKey
     @Serializable data class MessageStyleDetail(val styleId: String) : AppNavKey
     @Serializable data object MessageStyleSideBubbleCount : AppNavKey
@@ -118,7 +192,38 @@ sealed interface AppNavKey : NavKey {
     @Serializable data object ExtensionThirdPartyNotices : AppNavKey
     @Serializable data class ExtensionLicenseText(val assetFileName: String) : AppNavKey
     @Serializable data object QuickLauncher : AppNavKey
+    @Serializable data class QuickLauncherAdd(val panelId: String) : AppNavKey
+    @Serializable data class QuickLauncherPickApp(
+        val panelId: String,
+        val fromCreateFolder: Boolean = false,
+    ) : AppNavKey
+    @Serializable data class QuickLauncherPickActivity(
+        val panelId: String,
+        val packageName: String,
+        val fromCreateFolder: Boolean = false,
+    ) : AppNavKey
+    @Serializable data class QuickLauncherMyShortcuts(
+        val panelId: String,
+        val fromCreateFolder: Boolean = false,
+    ) : AppNavKey
+    @Serializable data class QuickLauncherPresetShortcuts(
+        val panelId: String,
+        val fromCreateFolder: Boolean = false,
+    ) : AppNavKey
+    @Serializable data class QuickLauncherShellCommand(
+        val panelId: String,
+        val initialCommand: String = "",
+        val fromCreateFolder: Boolean = false,
+    ) : AppNavKey
+    @Serializable data class QuickLauncherCreateFolder(val panelId: String) : AppNavKey
+
     @Serializable data object HoneycombLauncher : AppNavKey
+    @Serializable data object HoneycombLauncherAdd : AppNavKey
+    @Serializable data object HoneycombLauncherPickApp : AppNavKey
+    @Serializable data class HoneycombLauncherPickActivity(val packageName: String) : AppNavKey
+    @Serializable data object HoneycombLauncherMyShortcuts : AppNavKey
+    @Serializable data object HoneycombLauncherPresetShortcuts : AppNavKey
+    @Serializable data class HoneycombLauncherShellCommand(val initialCommand: String = "") : AppNavKey
     @Serializable data object HoneycombDisplaySettings : AppNavKey
     @Serializable data object ShellCommands : AppNavKey
     @Serializable data object ActivityShortcuts : AppNavKey
@@ -126,6 +231,7 @@ sealed interface AppNavKey : NavKey {
     @Serializable data object ActivityShortcutPickApp : AppNavKey
     @Serializable data class ActivityShortcutPickActivity(val packageName: String) : AppNavKey
     @Serializable data object ActivityShortcutPickAppShortcut : AppNavKey
+    @Serializable data object ActivityShortcutPickAppShortcutPresets : AppNavKey
     @Serializable data object ShellCommandHistory : AppNavKey
     @Serializable data class ShellCommandEditor(val commandId: String = "") : AppNavKey
     @Serializable data object ShellCommandResult : AppNavKey
@@ -149,6 +255,10 @@ sealed interface AppNavKey : NavKey {
     @Serializable data object FloatBallStyle : AppNavKey
     @Serializable data object FloatBallGesture : AppNavKey
     @Serializable data class FloatBallGestureActionPick(val gestureTypeId: Int) : AppNavKey
+    @Serializable data class FloatBallGestureMyShortcuts(val gestureTypeId: Int) : AppNavKey
+    @Serializable data class FloatBallGesturePresetShortcuts(val gestureTypeId: Int) : AppNavKey
+    @Serializable data class FloatBallGesturePickApp(val gestureTypeId: Int) : AppNavKey
+    @Serializable data class FloatBallGesturePickActivity(val gestureTypeId: Int, val packageName: String) : AppNavKey
     @Serializable data class FloatBallGestureShellCommand(
         val gestureTypeId: Int,
         val initialCommand: String = "",
@@ -162,6 +272,22 @@ sealed interface AppNavKey : NavKey {
     @Serializable data object FloatBallImageSearchEngine : AppNavKey
     @Serializable data class FloatBallImageSearchEngineEditor(val engineId: String = "") : AppNavKey
     @Serializable data class FloatBallImageSearchEngineDetail(val engineId: String) : AppNavKey
+    @Serializable data class SearchEnginePickApp(
+        val isImageSearch: Boolean = false,
+        val target: String,
+        val titleResId: Int,
+        val selectedPackageName: String,
+    ) : AppNavKey
+    @Serializable data class SearchEnginePickActivity(
+        val isImageSearch: Boolean = false,
+        val packageName: String,
+        val selectedClassName: String,
+    ) : AppNavKey
+    @Serializable data class SearchEnginePickShareTarget(
+        val isImageSearch: Boolean = false,
+        val selectedPackageName: String,
+        val selectedActivityClassName: String,
+    ) : AppNavKey
     @Serializable data object TranslateModels : AppNavKey
     @Serializable data object FloatingPointerPointer : AppNavKey
     @Serializable data object FloatingPointerJoystick : AppNavKey
@@ -169,6 +295,23 @@ sealed interface AppNavKey : NavKey {
     @Serializable data class FloatingPointerRadialActionPick(
         val target: FloatingPointerRadialActionTarget,
         val slotIndex: Int = -1,
+    ) : AppNavKey
+    @Serializable data class FloatingPointerRadialMyShortcuts(
+        val target: FloatingPointerRadialActionTarget,
+        val slotIndex: Int = -1,
+    ) : AppNavKey
+    @Serializable data class FloatingPointerRadialPresetShortcuts(
+        val target: FloatingPointerRadialActionTarget,
+        val slotIndex: Int = -1,
+    ) : AppNavKey
+    @Serializable data class FloatingPointerRadialPickApp(
+        val target: FloatingPointerRadialActionTarget,
+        val slotIndex: Int = -1,
+    ) : AppNavKey
+    @Serializable data class FloatingPointerRadialPickActivity(
+        val target: FloatingPointerRadialActionTarget,
+        val slotIndex: Int = -1,
+        val packageName: String,
     ) : AppNavKey
     @Serializable data class FloatingPointerRadialShellCommand(
         val slotIndex: Int,
@@ -178,6 +321,10 @@ sealed interface AppNavKey : NavKey {
     @Serializable data object FloatingPointerEdgeActions : AppNavKey
     @Serializable data class FloatingPointerEdgeSideSettings(val side: String) : AppNavKey
     @Serializable data class FloatingPointerEdgeActionPick(val side: String, val slotIndex: Int) : AppNavKey
+    @Serializable data class FloatingPointerEdgeMyShortcuts(val side: String, val slotIndex: Int) : AppNavKey
+    @Serializable data class FloatingPointerEdgePresetShortcuts(val side: String, val slotIndex: Int) : AppNavKey
+    @Serializable data class FloatingPointerEdgePickApp(val side: String, val slotIndex: Int) : AppNavKey
+    @Serializable data class FloatingPointerEdgePickActivity(val side: String, val slotIndex: Int, val packageName: String) : AppNavKey
     @Serializable data class FloatingPointerEdgeShellCommand(
         val side: String,
         val slotIndex: Int,

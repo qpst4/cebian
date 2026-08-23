@@ -1,26 +1,24 @@
 package com.slideindex.app.receiver
 
 import android.content.BroadcastReceiver
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.service.notification.NotificationListenerService
 import android.util.Log
-import com.slideindex.app.service.MediaNotificationListener
+import com.slideindex.app.util.MediaSessionHelper
 
 /**
- * On device boot, request the notification listener to rebind so persisted filter rules
- * can be re-applied via [MediaNotificationListener.onListenerConnected].
+ * On device boot or package replace, request the notification listener to rebind so persisted filter rules
+ * can be re-applied via [com.slideindex.app.service.MediaNotificationListener.onListenerConnected].
  */
 class NotificationBootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
-        if (intent?.action != Intent.ACTION_BOOT_COMPLETED) return
-        val component = ComponentName(context, MediaNotificationListener::class.java)
+        val action = intent?.action
+        if (action != Intent.ACTION_BOOT_COMPLETED && action != Intent.ACTION_MY_PACKAGE_REPLACED) return
         runCatching {
-            NotificationListenerService.requestRebind(component)
-            Log.d(TAG, "Requested notification listener rebind after boot")
+            MediaSessionHelper.ensureNotificationListenerConnected(context)
+            Log.d(TAG, "Requested notification listener rebind after $action")
         }.onFailure { error ->
-            Log.w(TAG, "Failed to request notification listener rebind after boot", error)
+            Log.w(TAG, "Failed to request notification listener rebind after $action", error)
         }
     }
 

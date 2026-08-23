@@ -4,6 +4,7 @@ import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -12,15 +13,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.filled.SwapVert
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material.icons.filled.MailOutline
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -53,8 +49,10 @@ import top.yukonga.miuix.kmp.basic.DropdownEntry
 import top.yukonga.miuix.kmp.basic.DropdownItem
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.menu.WindowIconDropdownMenu
+import top.yukonga.miuix.kmp.squircle.squircleSurface
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.preference.RadioButtonLocation
 import top.yukonga.miuix.kmp.preference.RadioButtonPreference
@@ -239,8 +237,8 @@ fun LazyListScope.otpRecordsListItems(
         item(key = "filter_empty") {
             Text(
                 text = stringResource(R.string.otp_records_filter_empty),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MiuixTheme.textStyles.body2,
+                color = MiuixTheme.colorScheme.onSurfaceSecondary,
                 modifier = Modifier.padding(horizontal = 28.dp, vertical = 24.dp),
             )
         }
@@ -263,7 +261,7 @@ fun LazyListScope.otpRecordsListItems(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OtpRecordsScreen(
     onBack: (() -> Unit)? = null,
@@ -346,7 +344,7 @@ private fun OtpRecordsEmbeddedToolbar(
     ) {
         Text(
             text = stringResource(R.string.otp_records_title),
-            style = MaterialTheme.typography.titleMediumEmphasized,
+            style = MiuixTheme.textStyles.title4,
             modifier = Modifier.weight(1f),
         )
         OtpRecordsFilterSortActions(
@@ -376,7 +374,7 @@ private fun OtpRecordFilterOption(
 @Composable
 private fun OtpRecordsEmptyState(
     modifier: Modifier = Modifier,
-    onOpenTestFlow: (() -> Unit)?,
+    onOpenTestFlow: (() -> Unit)? = null,
     embeddedInHub: Boolean = false,
 ) {
     Column(
@@ -388,18 +386,19 @@ private fun OtpRecordsEmptyState(
             imageVector = Icons.Default.MailOutline,
             contentDescription = stringResource(R.string.otp_records_empty_title),
             modifier = Modifier.size(72.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+            tint = MiuixTheme.colorScheme.onSurfaceSecondary.copy(alpha = 0.5f),
         )
         Text(
             text = stringResource(R.string.otp_records_empty_title),
-            style = MaterialTheme.typography.titleLarge,
+            style = MiuixTheme.textStyles.title2,
+            color = MiuixTheme.colorScheme.onSurface,
             modifier = Modifier.padding(top = 20.dp),
             textAlign = TextAlign.Center,
         )
         Text(
             text = stringResource(R.string.otp_records_empty_subtitle),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MiuixTheme.textStyles.body2,
+            color = MiuixTheme.colorScheme.onSurfaceSecondary,
             modifier = Modifier.padding(top = 8.dp),
             textAlign = TextAlign.Center,
         )
@@ -453,8 +452,8 @@ private fun OtpRecordRow(
             ) {
                 Text(
                     text = record.code,
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.primary,
+                    style = MiuixTheme.textStyles.title1,
+                    color = MiuixTheme.colorScheme.primary,
                     modifier = Modifier.weight(1f),
                 )
                 OtpRecordFillBadge(
@@ -465,28 +464,29 @@ private fun OtpRecordRow(
             fillDetail?.let { detail ->
                 Text(
                     text = detail,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.error,
+                    style = MiuixTheme.textStyles.footnote1,
+                    color = MiuixTheme.colorScheme.error,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
             }
             Text(
                 text = sourceLabel,
-                style = MaterialTheme.typography.titleSmall,
+                style = MiuixTheme.textStyles.title4,
+                color = MiuixTheme.colorScheme.onSurface,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
                 text = timeLabel,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MiuixTheme.textStyles.footnote1,
+                color = MiuixTheme.colorScheme.onSurfaceSecondary,
             )
             if (snippet.isNotBlank()) {
                 Text(
                     text = snippet,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MiuixTheme.textStyles.body2,
+                    color = MiuixTheme.colorScheme.onSurfaceSecondary,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -494,8 +494,8 @@ private fun OtpRecordRow(
             record.ruleName?.let { ruleName ->
                 Text(
                     text = stringResource(R.string.otp_records_rule_label, ruleName),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.tertiary,
+                    style = MiuixTheme.textStyles.footnote1,
+                    color = MiuixTheme.colorScheme.primary,
                 )
             }
     }
@@ -507,28 +507,31 @@ private fun OtpRecordFillBadge(
     status: OtpRecordFillStatus,
 ) {
     val containerColor = when (status) {
-        OtpRecordFillStatus.LSPOSED -> MaterialTheme.colorScheme.primaryContainer
-        OtpRecordFillStatus.ACCESSIBILITY -> MaterialTheme.colorScheme.secondaryContainer
-        OtpRecordFillStatus.FAILED -> MaterialTheme.colorScheme.errorContainer
-        OtpRecordFillStatus.PENDING -> MaterialTheme.colorScheme.tertiaryContainer
-        OtpRecordFillStatus.NONE -> MaterialTheme.colorScheme.surfaceContainerHighest
+        OtpRecordFillStatus.LSPOSED -> MiuixTheme.colorScheme.primary.copy(alpha = 0.14f)
+        OtpRecordFillStatus.ACCESSIBILITY -> MiuixTheme.colorScheme.primary.copy(alpha = 0.10f)
+        OtpRecordFillStatus.FAILED -> MiuixTheme.colorScheme.error.copy(alpha = 0.12f)
+        OtpRecordFillStatus.PENDING -> MiuixTheme.colorScheme.onSurfaceSecondary.copy(alpha = 0.12f)
+        OtpRecordFillStatus.NONE -> MiuixTheme.colorScheme.onSurfaceSecondary.copy(alpha = 0.08f)
     }
     val contentColor = when (status) {
-        OtpRecordFillStatus.LSPOSED -> MaterialTheme.colorScheme.onPrimaryContainer
-        OtpRecordFillStatus.ACCESSIBILITY -> MaterialTheme.colorScheme.onSecondaryContainer
-        OtpRecordFillStatus.FAILED -> MaterialTheme.colorScheme.onErrorContainer
-        OtpRecordFillStatus.PENDING -> MaterialTheme.colorScheme.onTertiaryContainer
-        OtpRecordFillStatus.NONE -> MaterialTheme.colorScheme.onSurfaceVariant
+        OtpRecordFillStatus.LSPOSED -> MiuixTheme.colorScheme.primary
+        OtpRecordFillStatus.ACCESSIBILITY -> MiuixTheme.colorScheme.primary
+        OtpRecordFillStatus.FAILED -> MiuixTheme.colorScheme.error
+        OtpRecordFillStatus.PENDING -> MiuixTheme.colorScheme.onSurface
+        OtpRecordFillStatus.NONE -> MiuixTheme.colorScheme.onSurfaceSecondary
     }
-    Surface(
-        shape = RoundedCornerShape(6.dp),
-        color = containerColor,
+    Box(
+        modifier = Modifier
+            .squircleSurface(
+                color = containerColor,
+                cornerRadius = 6.dp,
+            )
+            .padding(horizontal = 8.dp, vertical = 3.dp),
     ) {
         Text(
             text = label,
-            style = MaterialTheme.typography.labelSmall,
+            style = MiuixTheme.textStyles.footnote1,
             color = contentColor,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
             maxLines = 1,
         )
     }

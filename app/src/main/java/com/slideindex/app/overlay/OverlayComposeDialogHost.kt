@@ -221,7 +221,7 @@ class OverlayComposeDialogHost(
         layoutParams = null
 
         detachedFromWindow = false
-
+        view.requestFocus()
         owner = null
 
         backPressedHandler = null

@@ -90,12 +90,7 @@ class QuickLauncherAddTrampolineActivity : ComponentActivity() {
                                 context = this@QuickLauncherAddTrampolineActivity,
                                 host = host,
                                 onPrepare = { finishPicker() },
-                                onResult = { created ->
-                                    created?.let { shortcut ->
-                                        QuickLauncherAddTrampoline.onItemAdd(shortcut.toQuickLauncherItem())
-                                    }
-                                    onResult(created)
-                                },
+                                onResult = onResult,
                             )
                         },
                     )

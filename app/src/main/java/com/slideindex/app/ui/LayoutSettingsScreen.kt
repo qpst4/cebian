@@ -24,7 +24,6 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.ExtensionHubSettings
 import com.slideindex.app.ui.miuix.MiuixArrowRow
 import com.slideindex.app.ui.miuix.MiuixBackNavigationIcon
-import com.slideindex.app.ui.miuix.MiuixGroupedCard
 import com.slideindex.app.ui.miuix.MiuixHintText
 import com.slideindex.app.ui.miuix.MiuixListScaffold
 import com.slideindex.app.ui.miuix.MiuixSliderRow
@@ -70,8 +69,8 @@ fun LayoutSettingsScreen(
             MiuixSmallTitle(stringResource(R.string.settings_section_panel), modifier = Modifier.fillMaxWidth())
         }
 
-        item(key = "index_height") {
-            MiuixGroupedCard(index = 0, count = panelSliderCount) {
+        item(key = "panel_sliders_card") {
+            top.yukonga.miuix.kmp.basic.Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)) {
                 MiuixSliderRow(
                     title = stringResource(R.string.index_height),
                     value = settings.indexHeightFraction,
@@ -85,11 +84,6 @@ fun LayoutSettingsScreen(
                     onLayoutPreviewValueChange = onIndexHeightPreviewChange,
                     onValueChange = onIndexHeightChange,
                 )
-            }
-        }
-
-        item(key = "apps_per_row") {
-            MiuixGroupedCard(index = 1, count = panelSliderCount) {
                 MiuixSliderRow(
                     title = stringResource(R.string.apps_per_row),
                     value = settings.appsPerRow.toFloat(),
@@ -103,11 +97,6 @@ fun LayoutSettingsScreen(
                     ),
                     onValueChange = { onAppsPerRowChange(it.roundToInt()) },
                 )
-            }
-        }
-
-        item(key = "panel_opacity") {
-            MiuixGroupedCard(index = 2, count = panelSliderCount) {
                 MiuixSliderRow(
                     title = stringResource(R.string.panel_opacity),
                     value = settings.panelOpacity,
@@ -131,7 +120,7 @@ fun LayoutSettingsScreen(
             } else {
                 stringResource(R.string.hidden_apps_entry_desc)
             }
-            MiuixGroupedCard(index = 0, count = 1) {
+            top.yukonga.miuix.kmp.basic.Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)) {
                 MiuixArrowRow(
                     title = stringResource(R.string.hidden_apps_entry_title),
                     summary = hiddenSubtitle,
@@ -145,7 +134,7 @@ fun LayoutSettingsScreen(
                 MiuixSmallTitle(stringResource(R.string.debug_section_title), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
             }
             item(key = "debug_perf") {
-                MiuixGroupedCard(index = 0, count = debugSwitchCount) {
+                top.yukonga.miuix.kmp.basic.Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)) {
                     MiuixSwitchRow(
                         title = stringResource(R.string.debug_performance_monitor),
                         summary = stringResource(R.string.debug_performance_monitor_desc),

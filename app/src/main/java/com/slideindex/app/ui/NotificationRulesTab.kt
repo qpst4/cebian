@@ -17,8 +17,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.Box
+import top.yukonga.miuix.kmp.squircle.squircleSurface
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -77,8 +79,8 @@ fun LazyListScope.notificationRulesItems(
             ) {
                 Text(
                     text = stringResource(R.string.notification_rule_empty),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MiuixTheme.textStyles.body2,
+                    color = MiuixTheme.colorScheme.onSurfaceSecondary,
                 )
             }
         }
@@ -153,7 +155,9 @@ private fun NotificationRuleRowContent(
             ) {
                 Text(
                     text = rule.displayName().ifBlank { stringResource(R.string.notification_rule_unnamed) },
-                    style = MaterialTheme.typography.titleMediumEmphasized, modifier = Modifier.weight(1f),
+                    style = MiuixTheme.textStyles.title4,
+                    color = MiuixTheme.colorScheme.onSurface,
+                    modifier = Modifier.weight(1f),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -162,7 +166,7 @@ private fun NotificationRuleRowContent(
                         Icon(
                             Icons.Default.Delete,
                             contentDescription = stringResource(R.string.notification_rule_delete),
-                            tint = MaterialTheme.colorScheme.error,
+                            tint = MiuixTheme.colorScheme.error,
                         )
                     }
                     Switch(checked = rule.enabled, onCheckedChange = onEnabledChange)
@@ -170,14 +174,14 @@ private fun NotificationRuleRowContent(
             }
             Text(
                 text = stringResource(R.string.notification_rule_package_summary, packageLabel),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MiuixTheme.textStyles.body2,
+                color = MiuixTheme.colorScheme.onSurfaceSecondary,
             )
             if (rule.textMode != TextMatchMode.ALL) {
                 Text(
                     text = stringResource(R.string.notification_rule_text_summary, textModeLabel(rule.textMode)),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MiuixTheme.textStyles.footnote1,
+                    color = MiuixTheme.colorScheme.onSurfaceSecondary,
                 )
             }
             FlowRow(
@@ -185,12 +189,20 @@ private fun NotificationRuleRowContent(
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 rule.actionEntries.forEach { action ->
-                    Text(
-                        text = actionTypeLabel(action.type),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(end = 4.dp),
-                    )
+                    Box(
+                        modifier = Modifier
+                            .squircleSurface(
+                                color = MiuixTheme.colorScheme.primary.copy(alpha = 0.12f),
+                                cornerRadius = 6.dp,
+                            )
+                            .padding(horizontal = 8.dp, vertical = 2.dp),
+                    ) {
+                        Text(
+                            text = actionTypeLabel(action.type),
+                            style = MiuixTheme.textStyles.footnote1,
+                            color = MiuixTheme.colorScheme.primary,
+                        )
+                    }
                 }
             }
     }

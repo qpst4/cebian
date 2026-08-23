@@ -31,6 +31,22 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import androidx.lifecycle.viewModelScope
 
+data class SearchEngineDraft(
+    val engineId: String = "",
+    val name: String = "",
+    val aliasCode: String = "",
+    val engineType: SearchEngineType = SearchEngineType.DIRECT_LINK,
+    val searchLink: String = "",
+    val externJumpLink: String = "",
+    val externJumpPackage: String = "",
+    val targetPackage: String = "",
+    val targetActivity: String = "",
+    val autoInputEnter: Boolean = true,
+    val pendingIconUri: Uri? = null,
+    val pendingIconPath: String? = null,
+    val pendingTextIcon: String? = null,
+)
+
 data class SearchEngineImportPreviewState(
     val uri: Uri,
     val sourceLabel: String,
@@ -46,6 +62,41 @@ class SearchEngineSettingsViewModel @Inject constructor(
     @ApplicationContext context: Context,
     private val searchHistoryRepository: SearchHistoryRepository,
 ) : SettingsViewModel(settingsRepository, userMessageBus, context) {
+    private val _editorDraft = MutableStateFlow<SearchEngineDraft?>(null)
+    val editorDraft: StateFlow<SearchEngineDraft?> = _editorDraft.asStateFlow()
+
+    fun initDraft(initialEngine: SearchEngineConfig?, category: com.slideindex.app.ui.SearchEngineEditorCategory) {
+        val currentDraft = _editorDraft.value
+        if (currentDraft != null && currentDraft.engineId == initialEngine?.id.orEmpty()) {
+            return
+        }
+        _editorDraft.value = SearchEngineDraft(
+            engineId = initialEngine?.id.orEmpty(),
+            name = initialEngine?.name.orEmpty(),
+            aliasCode = initialEngine?.aliasCode.orEmpty(),
+            engineType = when {
+                category == com.slideindex.app.ui.SearchEngineEditorCategory.IMAGE_SHARE -> SearchEngineType.SHARE_IMAGE_TO_APP
+                else -> initialEngine?.engineType ?: SearchEngineType.DIRECT_LINK
+            },
+            searchLink = initialEngine?.searchLink.orEmpty(),
+            externJumpLink = initialEngine?.externJumpLink.orEmpty(),
+            externJumpPackage = initialEngine?.externJumpPackage.orEmpty(),
+            targetPackage = initialEngine?.targetPackage.orEmpty(),
+            targetActivity = initialEngine?.targetActivity.orEmpty(),
+            autoInputEnter = initialEngine?.autoInputEnter ?: true,
+            pendingIconPath = initialEngine?.iconPath?.takeIf { initialEngine.iconType == SearchIconType.URI },
+            pendingTextIcon = initialEngine?.textIcon?.takeIf { initialEngine.iconType == SearchIconType.TEXT },
+        )
+    }
+
+    fun updateDraft(transform: (SearchEngineDraft) -> SearchEngineDraft) {
+        _editorDraft.value = _editorDraft.value?.let(transform)
+    }
+
+    fun clearDraft() {
+        _editorDraft.value = null
+    }
+
     private val _importPreviewState = MutableStateFlow<SearchEngineImportPreviewState?>(null)
     val importPreviewState: StateFlow<SearchEngineImportPreviewState?> = _importPreviewState.asStateFlow()
 

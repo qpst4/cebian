@@ -11,13 +11,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.FileUpload
-import androidx.compose.material3.Button
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -117,27 +117,39 @@ fun SettingsBackupScreen(
                         exportLauncher.launch(defaultName)
                     },
                     modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColorsPrimary(),
                 ) {
-                    Icon(Icons.Default.FileDownload, contentDescription = stringResource(R.string.cd_export_settings))
+                    Icon(
+                        Icons.Default.FileDownload,
+                        contentDescription = stringResource(R.string.cd_export_settings),
+                        tint = MiuixTheme.colorScheme.onPrimary,
+                    )
                     Text(
                         text = stringResource(R.string.settings_backup_export),
                         modifier = Modifier.padding(start = 8.dp),
-                        style = MaterialTheme.typography.labelLarge,
+                        style = MiuixTheme.textStyles.button,
+                        color = MiuixTheme.colorScheme.onPrimary,
                     )
                 }
-                OutlinedButton(
+                Button(
                     onClick = {
                         importLauncher.launch(
                             arrayOf("application/zip", "application/x-zip-compressed", "multipart/x-zip"),
                         )
                     },
                     modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(),
                 ) {
-                    Icon(Icons.Default.FileUpload, contentDescription = stringResource(R.string.cd_import_settings))
+                    Icon(
+                        Icons.Default.FileUpload,
+                        contentDescription = stringResource(R.string.cd_import_settings),
+                        tint = MiuixTheme.colorScheme.onSecondaryVariant,
+                    )
                     Text(
                         text = stringResource(R.string.settings_backup_import),
                         modifier = Modifier.padding(start = 8.dp),
-                        style = MaterialTheme.typography.labelLarge,
+                        style = MiuixTheme.textStyles.button,
+                        color = MiuixTheme.colorScheme.onSecondaryVariant,
                     )
                 }
             }
@@ -228,15 +240,15 @@ fun SettingsBackupScreen(
                 ).joinToString("、")
                 Text(
                     text = stringResource(R.string.settings_backup_preview_sensitive, sensitiveItems),
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyMedium,
+                    color = MiuixTheme.colorScheme.error,
+                    style = MiuixTheme.textStyles.body2,
                 )
             }
 
             Text(
                 text = stringResource(R.string.settings_backup_preview_warning),
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.labelLarge,
+                color = MiuixTheme.colorScheme.error,
+                style = MiuixTheme.textStyles.headline2,
                 modifier = Modifier.padding(top = 8.dp),
             )
         }
@@ -254,7 +266,7 @@ private fun SettingsBackupDiffSection(
                 R.string.settings_backup_diff_overwritten,
                 formatDomainDiffSummary(context, diff.overwrittenDomainCounts),
             ),
-            style = MaterialTheme.typography.bodyMedium,
+            style = MiuixTheme.textStyles.body2,
         )
     }
     if (diff.newDomainCounts.isNotEmpty()) {
@@ -263,7 +275,7 @@ private fun SettingsBackupDiffSection(
                 R.string.settings_backup_diff_new,
                 formatDomainDiffSummary(context, diff.newDomainCounts),
             ),
-            style = MaterialTheme.typography.bodyMedium,
+            style = MiuixTheme.textStyles.body2,
         )
     }
 }
