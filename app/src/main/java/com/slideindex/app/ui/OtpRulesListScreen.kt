@@ -363,6 +363,7 @@ internal fun OtpRuleEditorDialog(
     val keywordLabel = stringResource(R.string.otp_rules_keyword_field_label)
     val regexLabel = stringResource(R.string.otp_rules_regex_label)
     val packageLabel = stringResource(R.string.otp_rules_package_label)
+    val invalidMessage = stringResource(R.string.otp_rules_invalid)
 
     MiuixFormDialog(
         show = true,
@@ -381,7 +382,7 @@ internal fun OtpRuleEditorDialog(
             if (trimmedName.isEmpty() || trimmedKeyword.isEmpty() || trimmedRegex.isEmpty()) {
                 Toast.makeText(
                     context,
-                    context.getString(R.string.otp_rules_invalid),
+                    invalidMessage,
                     Toast.LENGTH_SHORT,
                 ).show()
                 return@MiuixFormDialog
@@ -391,7 +392,7 @@ internal fun OtpRuleEditorDialog(
             } catch (_: Exception) {
                 Toast.makeText(
                     context,
-                    context.getString(R.string.otp_rules_invalid),
+                    invalidMessage,
                     Toast.LENGTH_SHORT,
                 ).show()
                 return@MiuixFormDialog

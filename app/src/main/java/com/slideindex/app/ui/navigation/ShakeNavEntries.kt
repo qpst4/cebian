@@ -154,17 +154,18 @@ fun NavEntryBuilder.shakeNavEntries(ctx: MainNavContext) {
         val viewModel: ShakeHubViewModel = hiltViewModel()
         val extensionViewModel: ExtensionSettingsViewModel = hiltViewModel()
         val appSettings by extensionViewModel.settings.collectAsStateWithLifecycle()
+        val shakeSettings by viewModel.shakeUiSettings.collectAsStateWithLifecycle()
         val gestureType = ShakeGestureType.fromId(key.gestureTypeId) ?: ShakeGestureType.LEFT_FLIP
         val returnKey = AppNavKey.ShakeGestureActionPick(key.target, key.gestureTypeId, key.packageName)
         val currentAction = when (key.target) {
             ShakeActionPickTarget.BASIC ->
-                viewModel.shakeUiSettings.value.shakeGestureSettings.actionFor(gestureType)
+                shakeSettings.shakeGestureSettings.actionFor(gestureType)
             ShakeActionPickTarget.FACE_DOWN ->
-                viewModel.shakeUiSettings.value.faceDownGestureSettings.action
+                shakeSettings.faceDownGestureSettings.action
             ShakeActionPickTarget.LOCK_SCREEN ->
-                viewModel.shakeUiSettings.value.shakeGestureSettings.lockScreenActions[gestureType] ?: GestureAction.None
+                shakeSettings.shakeGestureSettings.lockScreenActions[gestureType] ?: GestureAction.None
             ShakeActionPickTarget.PER_APP ->
-                viewModel.shakeUiSettings.value.shakeGestureSettings.perAppActions[key.packageName]
+                shakeSettings.shakeGestureSettings.perAppActions[key.packageName]
                     ?.get(gestureType) ?: GestureAction.None
         }
         MyShortcutsFolderScreen(
@@ -189,17 +190,18 @@ fun NavEntryBuilder.shakeNavEntries(ctx: MainNavContext) {
 
     hiltEntry<AppNavKey.ShakeGestureActionPresetShortcuts> { key ->
         val viewModel: ShakeHubViewModel = hiltViewModel()
+        val shakeSettings by viewModel.shakeUiSettings.collectAsStateWithLifecycle()
         val gestureType = ShakeGestureType.fromId(key.gestureTypeId) ?: ShakeGestureType.LEFT_FLIP
         val returnKey = AppNavKey.ShakeGestureActionPick(key.target, key.gestureTypeId, key.packageName)
         val currentAction = when (key.target) {
             ShakeActionPickTarget.BASIC ->
-                viewModel.shakeUiSettings.value.shakeGestureSettings.actionFor(gestureType)
+                shakeSettings.shakeGestureSettings.actionFor(gestureType)
             ShakeActionPickTarget.FACE_DOWN ->
-                viewModel.shakeUiSettings.value.faceDownGestureSettings.action
+                shakeSettings.faceDownGestureSettings.action
             ShakeActionPickTarget.LOCK_SCREEN ->
-                viewModel.shakeUiSettings.value.shakeGestureSettings.lockScreenActions[gestureType] ?: GestureAction.None
+                shakeSettings.shakeGestureSettings.lockScreenActions[gestureType] ?: GestureAction.None
             ShakeActionPickTarget.PER_APP ->
-                viewModel.shakeUiSettings.value.shakeGestureSettings.perAppActions[key.packageName]
+                shakeSettings.shakeGestureSettings.perAppActions[key.packageName]
                     ?.get(gestureType) ?: GestureAction.None
         }
         PresetShortcutsFolderScreen(

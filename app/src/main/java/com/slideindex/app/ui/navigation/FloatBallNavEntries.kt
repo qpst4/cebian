@@ -154,10 +154,11 @@ fun NavEntryBuilder.floatBallNavEntries(ctx: MainNavContext) {
         val viewModel: SearchEngineSettingsViewModel = hiltViewModel()
         val context = LocalContext.current
         val scope = rememberCoroutineScope()
+        val editorDraft by viewModel.editorDraft.collectAsStateWithLifecycle()
         val returnKey = if (key.isImageSearch) {
-            AppNavKey.FloatBallImageSearchEngineEditor(viewModel.editorDraft.value?.engineId.orEmpty())
+            AppNavKey.FloatBallImageSearchEngineEditor(editorDraft?.engineId.orEmpty())
         } else {
-            AppNavKey.FloatBallSearchEngineEditor(viewModel.editorDraft.value?.engineId.orEmpty())
+            AppNavKey.FloatBallSearchEngineEditor(editorDraft?.engineId.orEmpty())
         }
         ActivityShortcutPickAppScreen(
             titleResId = key.titleResId,
@@ -201,10 +202,11 @@ fun NavEntryBuilder.floatBallNavEntries(ctx: MainNavContext) {
 
     hiltEntry<AppNavKey.SearchEnginePickActivity> { key ->
         val viewModel: SearchEngineSettingsViewModel = hiltViewModel()
+        val editorDraft by viewModel.editorDraft.collectAsStateWithLifecycle()
         val returnKey = if (key.isImageSearch) {
-            AppNavKey.FloatBallImageSearchEngineEditor(viewModel.editorDraft.value?.engineId.orEmpty())
+            AppNavKey.FloatBallImageSearchEngineEditor(editorDraft?.engineId.orEmpty())
         } else {
-            AppNavKey.FloatBallSearchEngineEditor(viewModel.editorDraft.value?.engineId.orEmpty())
+            AppNavKey.FloatBallSearchEngineEditor(editorDraft?.engineId.orEmpty())
         }
         ActivityShortcutPickActivityScreen(
             packageName = key.packageName,
@@ -221,10 +223,11 @@ fun NavEntryBuilder.floatBallNavEntries(ctx: MainNavContext) {
         val viewModel: SearchEngineSettingsViewModel = hiltViewModel()
         val context = LocalContext.current
         val scope = rememberCoroutineScope()
+        val editorDraft by viewModel.editorDraft.collectAsStateWithLifecycle()
         val returnKey = if (key.isImageSearch) {
-            AppNavKey.FloatBallImageSearchEngineEditor(viewModel.editorDraft.value?.engineId.orEmpty())
+            AppNavKey.FloatBallImageSearchEngineEditor(editorDraft?.engineId.orEmpty())
         } else {
-            AppNavKey.FloatBallSearchEngineEditor(viewModel.editorDraft.value?.engineId.orEmpty())
+            AppNavKey.FloatBallSearchEngineEditor(editorDraft?.engineId.orEmpty())
         }
         ShareImageTargetPickScreen(
             selectedPackageName = key.selectedPackageName,
