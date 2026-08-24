@@ -66,6 +66,7 @@ fun GestureSettings.toMinimalAppSettings(): AppSettings = AppSettings(
         fvAppSwitcherHorizontal = fvAppSwitcherHorizontal,
         fvAppSwitcherLinkAppearanceAxes = fvAppSwitcherLinkAppearanceAxes,
         fvAppSwitcherLinkSlotAxes = fvAppSwitcherLinkSlotAxes,
+        holographicLauncher = holographicLauncher,
         shellCommands = shellCommands,
         activityShortcuts = activityShortcuts,
         appLaunchPolicyId = appLaunchPolicyId,

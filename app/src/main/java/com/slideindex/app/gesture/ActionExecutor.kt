@@ -16,6 +16,7 @@ import com.slideindex.app.overlay.FloatingPointerOverlayWindow
 import com.slideindex.app.clipboard.ClipboardFocusReader
 import com.slideindex.app.overlay.HoneycombAppPickerOverlayWindow
 import com.slideindex.app.overlay.appswitcher.AppSwitcherOverlayWindow
+import com.slideindex.app.overlay.holographic.HolographicLauncherOverlayWindow
 import com.slideindex.app.overlay.OhoQuickToolsOverlayWindow
 import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.overlay.WidgetPopupOverlayWindow
@@ -170,6 +171,14 @@ class ActionExecutor(
                         onLaunch = { item, longPressArmed ->
                             launchQuickItem(item, settings, longPressArmed = longPressArmed, anchorRawY = y)
                         },
+                    )
+                }
+            GestureAction.HolographicLauncher ->
+                overlayPanels.showStandaloneOverlay(anchorRawY) { _ ->
+                    HolographicLauncherOverlayWindow.show(
+                        context = context,
+                        settings = settings,
+                        actionExecutor = this,
                     )
                 }
             GestureAction.WidgetPopupOverlay ->

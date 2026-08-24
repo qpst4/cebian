@@ -123,6 +123,31 @@ internal object ThinActionIcons {
         }
     }
 
+  /** 3D 球 / 全息启动器 */
+    val Globe: ImageVector by lazy {
+        createThinIcon("ThinGlobe") {
+            path(
+                stroke = strokeBrush,
+                strokeLineWidth = STROKE_WIDTH,
+                strokeLineCap = StrokeCap.Round,
+                strokeLineJoin = StrokeJoin.Round,
+            ) {
+                moveTo(12f, 21f)
+                arcTo(9f, 9f, 0f, true, false, 12f, 3f)
+                arcTo(9f, 9f, 0f, true, false, 12f, 21f)
+                close()
+                moveTo(3.6f, 9f)
+                lineTo(20.4f, 9f)
+                moveTo(3.6f, 15f)
+                lineTo(20.4f, 15f)
+                moveTo(12f, 3f)
+                arcTo(5.4f, 9f, 0f, false, true, 12f, 21f)
+                moveTo(12f, 3f)
+                arcTo(5.4f, 9f, 0f, false, false, 12f, 21f)
+            }
+        }
+    }
+
     val ViewCarousel: ImageVector by lazy {
         createThinIcon("ThinViewCarousel") {
             path(

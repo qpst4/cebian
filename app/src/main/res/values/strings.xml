@@ -617,6 +617,7 @@
     <string name="gesture_action_quick_launcher">快速启动器</string>
     <string name="gesture_action_honeycomb_launcher">蜂窝启动器</string>
     <string name="gesture_action_app_switcher">圆环启动器</string>
+    <string name="gesture_action_holographic_launcher">全息启动器</string>
     <string name="gesture_action_task_switcher">任务切换器</string>
     <string name="gesture_action_back">返回键</string>
     <string name="gesture_action_home">主屏幕</string>

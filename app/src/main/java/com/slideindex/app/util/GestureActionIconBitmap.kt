@@ -30,7 +30,7 @@ enum class GestureActionPlateShape {
 }
 
 object GestureActionIconBitmap {
-    private const val CACHE_VERSION = 34
+    private const val CACHE_VERSION = 35
 
     /** 保持与 Filled 面板内边距一致的比例（无底板时） */
     private const val CONTENT_SCALE_BARE = 0.75f
@@ -119,6 +119,7 @@ object GestureActionIconBitmap {
             GestureActionType.QUICK_LAUNCHER,
             GestureActionType.HONEYCOMB_LAUNCHER,
             GestureActionType.APP_SWITCHER,
+            GestureActionType.HOLOGRAPHIC_LAUNCHER,
             GestureActionType.SEARCH_PANEL,
             GestureActionType.QUICK_TOOLS_OVERLAY -> {
                 // 沉稳冷青灰

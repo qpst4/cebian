@@ -457,6 +457,15 @@ class GestureSession(
                 sessionContinuousPick.appSwitcher = false
                 callbacks.onShowAppSwitcher(continuousPick = false, rawX, rawY)
             }
+            GestureAction.HolographicLauncher -> {
+                callbacks.hapticConfirmLaunch()
+                actionExecutor.execute(
+                    action,
+                    sessionSettings,
+                    anchorRawX = rawX,
+                    anchorRawY = rawY,
+                )
+            }
             GestureAction.AdjustVolume -> {
                 active = true
                 val fraction = actionExecutor.readCurrentAdjustFraction(ContinuousAdjustController.Mode.VOLUME)

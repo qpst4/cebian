@@ -102,6 +102,7 @@ fun gestureActionLabelText(context: Context, action: GestureAction): String = wh
         GestureActionType.QUICK_LAUNCHER -> context.getString(R.string.gesture_action_quick_launcher)
         GestureActionType.HONEYCOMB_LAUNCHER -> context.getString(R.string.gesture_action_honeycomb_launcher)
         GestureActionType.APP_SWITCHER -> context.getString(R.string.gesture_action_app_switcher)
+        GestureActionType.HOLOGRAPHIC_LAUNCHER -> context.getString(R.string.gesture_action_holographic_launcher)
         GestureActionType.TASK_SWITCHER -> context.getString(R.string.gesture_action_task_switcher)
         GestureActionType.BACK -> context.getString(R.string.gesture_action_back)
         GestureActionType.HOME -> context.getString(R.string.gesture_action_home)
@@ -209,6 +210,7 @@ fun gestureActionLabel(action: GestureAction, settings: AppSettings? = null): St
         GestureActionType.QUICK_LAUNCHER -> stringResource(R.string.gesture_action_quick_launcher)
         GestureActionType.HONEYCOMB_LAUNCHER -> stringResource(R.string.gesture_action_honeycomb_launcher)
         GestureActionType.APP_SWITCHER -> stringResource(R.string.gesture_action_app_switcher)
+        GestureActionType.HOLOGRAPHIC_LAUNCHER -> stringResource(R.string.gesture_action_holographic_launcher)
         GestureActionType.TASK_SWITCHER -> stringResource(R.string.gesture_action_task_switcher)
         GestureActionType.BACK -> stringResource(R.string.gesture_action_back)
         GestureActionType.HOME -> stringResource(R.string.gesture_action_home)
@@ -381,6 +383,10 @@ fun gestureActionPermissionHintText(context: Context, action: GestureAction): St
             if (PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) return null
             context.getString(R.string.gesture_action_quick_tools_overlay_permission)
         }
+        GestureActionType.HOLOGRAPHIC_LAUNCHER -> {
+            if (PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) return null
+            context.getString(R.string.gesture_action_quick_tools_overlay_permission)
+        }
         GestureActionType.WIDGET_POPUP_OVERLAY -> {
             if (PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) return null
             context.getString(R.string.gesture_action_widget_popup_overlay_permission)
@@ -439,6 +445,11 @@ fun requestPermissionForAdjustAction(context: Context, action: GestureAction) {
             runCatching { context.startActivity(intent) }
         }
         GestureAction.QuickToolsOverlay -> {
+            if (!PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) {
+                context.startActivity(PermissionHelper.accessibilitySettingsIntent())
+            }
+        }
+        GestureAction.HolographicLauncher -> {
             if (!PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) {
                 context.startActivity(PermissionHelper.accessibilitySettingsIntent())
             }

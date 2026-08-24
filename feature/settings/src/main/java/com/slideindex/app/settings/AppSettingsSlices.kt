@@ -86,6 +86,7 @@ data class LauncherSettings(
     val fvAppSwitcherLinkAppearanceAxes: Boolean = FvAppSwitcherLinkFlags.DEFAULT_LINK_APPEARANCE_AXES,
     /** 为 true 时顶/底与左/右共用同一套槽位。 */
     val fvAppSwitcherLinkSlotAxes: Boolean = FvAppSwitcherLinkFlags.DEFAULT_LINK_SLOT_AXES,
+    val holographicLauncher: HolographicLauncherSettings = HolographicLauncherSettings(),
     val shellCommands: List<com.slideindex.app.shell.ShellCommand> = emptyList(),
     val activityShortcuts: List<com.slideindex.app.activity.ActivityShortcut> = emptyList(),
 )

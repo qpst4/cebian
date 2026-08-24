@@ -58,6 +58,7 @@ enum class GestureActionType(val id: Int) {
     CLIPBOARD_PICK(55),
     APP_SWITCHER(56),
     OPEN_CLIPBOARD_FLOAT(57),
+    HOLOGRAPHIC_LAUNCHER(58),
     ;
 
     companion object {
@@ -426,6 +427,12 @@ sealed class GestureAction {
         override val payload = ""
     }
 
+    /** 全屏 3D 球应用启动器，弹出后拖拽旋转、点击图标启动。 */
+    data object HolographicLauncher : GestureAction() {
+        override val type = GestureActionType.HOLOGRAPHIC_LAUNCHER
+        override val payload = ""
+    }
+
     companion object {
         /** Actions that support [GestureTriggerMode.CONTINUOUS] on compatible triggers. */
         val continuousTrackingActions: List<GestureAction> = listOf(
@@ -499,6 +506,7 @@ sealed class GestureAction {
                 GestureActionType.SNOOZE_OVERLAYS -> SnoozeOverlays
                 GestureActionType.HONEYCOMB_LAUNCHER -> HoneycombLauncher
                 GestureActionType.APP_SWITCHER -> AppSwitcher
+                GestureActionType.HOLOGRAPHIC_LAUNCHER -> HolographicLauncher
                 GestureActionType.NONE -> None
             }
         }

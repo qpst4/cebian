@@ -1380,6 +1380,7 @@
     <string name="gesture_action_quick_launcher">Quick launcher</string>
     <string name="gesture_action_honeycomb_launcher">Honeycomb launcher</string>
     <string name="gesture_action_app_switcher">Ring launcher</string>
+    <string name="gesture_action_holographic_launcher">Holographic launcher</string>
     <string name="gesture_action_task_switcher">Task switcher</string>
     <string name="gesture_action_back">Back</string>
     <string name="gesture_action_home">Home</string>

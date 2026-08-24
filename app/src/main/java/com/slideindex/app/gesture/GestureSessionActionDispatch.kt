@@ -193,7 +193,7 @@ internal fun GestureSession.handleClassifiedGesture(
             sessionContinuousPick.shell = false
             sessionCallbacks.hapticConfirmLaunch()
             sessionCallbacks.onOpenShellCommandPanel(continuousPick = false)
-            // Activity 浮窗不占 edge session；立刻结束，避免 UP 被拦截后 active 永久卡住。
+            // Activity ???? edge session???????? UP ???? active ?????
             endSession()
         }
 
@@ -208,6 +208,17 @@ internal fun GestureSession.handleClassifiedGesture(
             sessionContinuousPick.appSwitcher = false
             sessionCallbacks.hapticConfirmLaunch()
             sessionCallbacks.onShowAppSwitcher(continuousPick = false, rawX, rawY)
+            endSession()
+        }
+
+        GestureAction.HolographicLauncher -> {
+            sessionCallbacks.hapticConfirmLaunch()
+            sessionActionExecutor.execute(
+                action,
+                sessionSettings,
+                anchorRawX = rawX,
+                anchorRawY = rawY,
+            )
             endSession()
         }
 
@@ -276,6 +287,7 @@ internal fun GestureSession.handleClassifiedGesture(
         GestureAction.ScrollToTop,
         GestureAction.ScrollToBottom,
         GestureAction.QuickToolsOverlay,
+        GestureAction.HolographicLauncher,
         GestureAction.WidgetPopupOverlay,
         GestureAction.StashPanel,
         GestureAction.ClipboardPanel,

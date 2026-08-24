@@ -149,6 +149,7 @@ data class AppSettings(
     val fvAppSwitcherHorizontal get() = launcher.fvAppSwitcherHorizontal
     val fvAppSwitcherLinkAppearanceAxes get() = launcher.fvAppSwitcherLinkAppearanceAxes
     val fvAppSwitcherLinkSlotAxes get() = launcher.fvAppSwitcherLinkSlotAxes
+    val holographicLauncher get() = launcher.holographicLauncher
     val shellCommands get() = launcher.shellCommands
     val activityShortcuts get() = launcher.activityShortcuts
 

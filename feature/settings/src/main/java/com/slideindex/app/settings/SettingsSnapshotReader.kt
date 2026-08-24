@@ -192,6 +192,7 @@ internal object SettingsSnapshotReader {
             fvAppSwitcherHorizontal = FvAppSwitcherSettings.fromPreferences(prefs, FvAppSwitcherAxis.HORIZONTAL),
             fvAppSwitcherLinkAppearanceAxes = FvAppSwitcherSettings.linkFlagsFromPreferences(prefs).linkAppearanceAxes,
             fvAppSwitcherLinkSlotAxes = FvAppSwitcherSettings.linkFlagsFromPreferences(prefs).linkSlotAxes,
+            holographicLauncher = HolographicLauncherSettings.fromPreferences(prefs),
             shellCommands = ShellCommandCodec.decodeAll(prefs[SettingsPreferenceKeys.SHELL_COMMANDS] ?: emptySet()),
             activityShortcuts = ActivityShortcutCodec.decodeAll(
                 prefs[SettingsPreferenceKeys.ACTIVITY_SHORTCUTS] ?: emptySet(),
