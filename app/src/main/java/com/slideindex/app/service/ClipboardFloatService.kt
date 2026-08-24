@@ -65,6 +65,7 @@ import javax.inject.Inject
 import kotlin.math.roundToInt
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 @AndroidEntryPoint
 class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner {
@@ -102,6 +103,9 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
     private var imeTop = 0
     private var chipPosX = ClipboardFloatWindowMetrics.UNSET_POSITION
     private var chipPosY = ClipboardFloatWindowMetrics.UNSET_POSITION
+    /** 最近一次已知的 chip 屏幕坐标，大窗关窗写盘时兜底（避免只抓 panel 把 chip 写成 -1）。 */
+    private var rememberedChipPosX = ClipboardFloatWindowMetrics.UNSET_POSITION
+    private var rememberedChipPosY = ClipboardFloatWindowMetrics.UNSET_POSITION
     private var panelPosX = ClipboardFloatWindowMetrics.UNSET_POSITION
     private var panelPosY = ClipboardFloatWindowMetrics.UNSET_POSITION
     private var panelWidthDp by mutableIntStateOf(ClipboardFloatWindowMetrics.DEFAULT_WIDTH_DP)
@@ -157,10 +161,14 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
                     hideWindow()
                     return START_NOT_STICKY
                 }
-                persistGeometryOnClose()
+                persistGeometryOnClose(blocking = true)
                 return START_STICKY
             }
             ACTION_SHOW_EXPANDED -> {
+                if (viewAdded && displayMode == ClipboardFloatDisplayMode.Chip) {
+                    captureCurrentWindowPosition()
+                    persistGeometryOnClose(blocking = true)
+                }
                 expandedRetainedWithoutIme = true
                 displayMode = ClipboardFloatDisplayMode.Expanded
                 if (viewAdded) {
@@ -220,7 +228,10 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
         if (activeInstance === this) {
             activeInstance = null
         }
-        persistGeometryOnClose()
+        // hideWindow() 已落盘；此处仅处理未走 hideWindow 的异常销毁，且需能 capture 当前窗口
+        if (viewAdded) {
+            persistGeometryOnClose(blocking = true)
+        }
         if (viewAdded) {
             composeView?.let { runCatching { windowManager.removeView(it) } }
             viewAdded = false
@@ -242,7 +253,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
     }
 
     private fun loadSettingsSnapshot() {
-        val snapshot = deps.settingsRepository.readSnapshot()
+        val snapshot = runBlocking { deps.settingsRepository.readFreshSnapshot() }
         rememberPosition = snapshot.clipboardFloatPanelPinPosition
         showChipPref = snapshot.clipboardFloatShowChip
         clickAction = snapshot.clipboardFloatEntryClickAction
@@ -261,17 +272,54 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
         val geometry = orientationGeometry(snapshot, isLandscape)
         panelWidthDp = geometry.panelWidthDp
         panelHeightDp = geometry.panelHeightDp
+        rememberPosition = snapshot.clipboardFloatPanelPinPosition
         if (rememberPosition) {
             chipPosX = geometry.chipX
             chipPosY = geometry.chipY
             panelPosX = geometry.panelX
             panelPosY = geometry.panelY
+            syncRememberedChipFromChipPos()
         } else {
             chipPosX = ClipboardFloatWindowMetrics.UNSET_POSITION
             chipPosY = ClipboardFloatWindowMetrics.UNSET_POSITION
+            rememberedChipPosX = ClipboardFloatWindowMetrics.UNSET_POSITION
+            rememberedChipPosY = ClipboardFloatWindowMetrics.UNSET_POSITION
             panelPosX = ClipboardFloatWindowMetrics.UNSET_POSITION
             panelPosY = ClipboardFloatWindowMetrics.UNSET_POSITION
         }
+    }
+
+    private fun refreshRememberPositionFromDisk() {
+        rememberPosition = runBlocking {
+            deps.settingsRepository.readFreshSnapshot().clipboardFloatPanelPinPosition
+        }
+    }
+
+    private fun syncRememberedChipPosition(x: Int, y: Int) {
+        rememberedChipPosX = x
+        rememberedChipPosY = y
+    }
+
+    private fun syncRememberedChipFromChipPos() {
+        if (hasSavedChipPosition()) {
+            syncRememberedChipPosition(chipPosX, chipPosY)
+        }
+    }
+
+    private fun hasRememberedChipPosition(): Boolean =
+        rememberedChipPosX != ClipboardFloatWindowMetrics.UNSET_POSITION &&
+            rememberedChipPosY != ClipboardFloatWindowMetrics.UNSET_POSITION
+
+    private fun persistableChipX(): Int = when {
+        hasSavedChipPosition() -> chipPosX
+        hasRememberedChipPosition() -> rememberedChipPosX
+        else -> ClipboardFloatWindowMetrics.UNSET_POSITION
+    }
+
+    private fun persistableChipY(): Int = when {
+        hasSavedChipPosition() -> chipPosY
+        hasRememberedChipPosition() -> rememberedChipPosY
+        else -> ClipboardFloatWindowMetrics.UNSET_POSITION
     }
 
     private fun orientationGeometry(
@@ -287,32 +335,53 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
         val landscape = isLandscapeNow()
         if (orientationGeometryLoaded && landscape == isLandscape) return
         if (orientationGeometryLoaded) {
-            persistCurrentOrientationGeometry(isLandscape)
+            persistCurrentOrientationGeometry(isLandscape, blocking = true)
         }
         isLandscape = landscape
-        applyGeometryFromSnapshot(deps.settingsRepository.readSnapshot())
+        applyGeometryFromSnapshot(runBlocking { deps.settingsRepository.readFreshSnapshot() })
         orientationGeometryLoaded = true
     }
 
     private fun currentOrientationGeometry(): ClipboardFloatOrientationGeometry =
         ClipboardFloatOrientationGeometry(
-            panelX = if (rememberPosition) panelPosX else ClipboardFloatWindowMetrics.UNSET_POSITION,
-            panelY = if (rememberPosition) panelPosY else ClipboardFloatWindowMetrics.UNSET_POSITION,
+            panelX = if (rememberPosition) persistablePanelX() else ClipboardFloatWindowMetrics.UNSET_POSITION,
+            panelY = if (rememberPosition) persistablePanelY() else ClipboardFloatWindowMetrics.UNSET_POSITION,
             panelWidthDp = panelWidthDp,
             panelHeightDp = panelHeightDp,
-            chipX = if (rememberPosition) chipPosX else ClipboardFloatWindowMetrics.UNSET_POSITION,
-            chipY = if (rememberPosition) chipPosY else ClipboardFloatWindowMetrics.UNSET_POSITION,
+            chipX = if (rememberPosition) persistableChipX() else ClipboardFloatWindowMetrics.UNSET_POSITION,
+            chipY = if (rememberPosition) persistableChipY() else ClipboardFloatWindowMetrics.UNSET_POSITION,
         )
 
-    private fun persistCurrentOrientationGeometry(landscape: Boolean) {
-        val geometry = currentOrientationGeometry()
-        lifecycleScope.launch(Dispatchers.IO) {
-            deps.settingsRepository.setClipboardFloatOrientationGeometry(
-                landscape = landscape,
-                geometry = geometry,
-                chipFollowIme = !rememberPosition,
-            )
+    private fun persistablePanelX(): Int = when {
+        hasSavedPanelPosition() -> panelPosX
+        else -> ClipboardFloatWindowMetrics.UNSET_POSITION
+    }
+
+    private fun persistablePanelY(): Int = when {
+        hasSavedPanelPosition() -> panelPosY
+        else -> ClipboardFloatWindowMetrics.UNSET_POSITION
+    }
+
+    private fun captureCurrentWindowPosition() {
+        if (!viewAdded || !::params.isInitialized) return
+        when (displayMode) {
+            ClipboardFloatDisplayMode.Chip -> {
+                chipPosX = params.x
+                chipPosY = params.y
+                syncRememberedChipPosition(chipPosX, chipPosY)
+            }
+            ClipboardFloatDisplayMode.Expanded -> {
+                panelPosX = params.x
+                panelPosY = params.y
+            }
         }
+        syncRememberedChipFromChipPos()
+    }
+
+    private fun persistCurrentOrientationGeometry(landscape: Boolean, blocking: Boolean = false) {
+        captureCurrentWindowPosition()
+        val geometry = currentOrientationGeometry()
+        persistOrientationGeometry(landscape, geometry, blocking)
     }
 
     private fun hasSavedChipPosition(): Boolean =
@@ -324,7 +393,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
             panelPosY != ClipboardFloatWindowMetrics.UNSET_POSITION
 
     private fun shouldUseRememberedChipPosition(): Boolean =
-        rememberPosition && hasSavedChipPosition()
+        rememberPosition && (hasSavedChipPosition() || hasRememberedChipPosition())
 
     private fun shouldUseRememberedPanelPosition(): Boolean =
         rememberPosition && hasSavedPanelPosition()
@@ -333,6 +402,18 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
         chipRetainedAfterManualCollapse ||
             chipPositionCustomizedThisSession ||
             shouldUseRememberedChipPosition()
+
+    private fun effectiveChipPosX(): Int = when {
+        hasSavedChipPosition() -> chipPosX
+        hasRememberedChipPosition() -> rememberedChipPosX
+        else -> ClipboardFloatWindowMetrics.UNSET_POSITION
+    }
+
+    private fun effectiveChipPosY(): Int = when {
+        hasSavedChipPosition() -> chipPosY
+        hasRememberedChipPosition() -> rememberedChipPosY
+        else -> ClipboardFloatWindowMetrics.UNSET_POSITION
+    }
 
     private fun usesCustomPanelPosition(): Boolean =
         panelPositionCustomizedThisSession || shouldUseRememberedPanelPosition()
@@ -481,8 +562,8 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
             if (shouldUseDefaultChipPosition(forceDefaultPosition)) {
                 applyChipDefaultPosition(screenWidth, marginPx, density)
             } else {
-                params.x = chipPosX
-                params.y = chipPosY.coerceAtLeast(marginPx)
+                params.x = effectiveChipPosX()
+                params.y = effectiveChipPosY().coerceAtLeast(marginPx)
             }
         } else {
             params.flags = params.flags or WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
@@ -539,6 +620,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
             ClipboardFloatDisplayMode.Chip -> {
                 chipPosX = params.x
                 chipPosY = params.y
+                syncRememberedChipPosition(chipPosX, chipPosY)
                 chipPositionCustomizedThisSession = true
             }
             ClipboardFloatDisplayMode.Expanded -> {
@@ -552,7 +634,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
 
     private fun onDragWindowEnd() {
         isDraggingWindow = false
-        scheduleIdleGeometryPersist()
+        persistGeometryOnClose(blocking = true)
         resetAutoCloseTimer()
     }
 
@@ -587,31 +669,64 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
         idleGeometryPersistRunnable = null
     }
 
-    private fun persistGeometryOnClose() {
+    private fun persistGeometryOnClose(blocking: Boolean = false) {
         cancelIdleGeometryPersist()
+        refreshRememberPositionFromDisk()
+        captureCurrentWindowPosition()
         val landscape = isLandscapeNow()
         val geometry = currentOrientationGeometry()
-        lifecycleScope.launch(Dispatchers.IO) {
+        persistOrientationGeometry(landscape, geometry, blocking)
+    }
+
+    private fun persistOrientationGeometry(
+        landscape: Boolean,
+        geometry: ClipboardFloatOrientationGeometry,
+        blocking: Boolean,
+    ) {
+        val write: suspend () -> Unit = {
+            val snapshot = deps.settingsRepository.readFreshSnapshot()
+            val existing = if (landscape) {
+                snapshot.clipboardFloatLandscapeGeometry
+            } else {
+                snapshot.clipboardFloatPortraitGeometry
+            }
+            val toWrite = if (rememberPosition) {
+                geometry.mergePreservingUnset(existing)
+            } else {
+                existing.copy(
+                    panelWidthDp = geometry.panelWidthDp,
+                    panelHeightDp = geometry.panelHeightDp,
+                )
+            }
             deps.settingsRepository.setClipboardFloatOrientationGeometry(
                 landscape = landscape,
-                geometry = geometry,
+                geometry = toWrite,
                 chipFollowIme = !rememberPosition,
             )
+        }
+        if (blocking) {
+            runBlocking(Dispatchers.IO) { write() }
+        } else {
+            deps.applicationScope.launch(Dispatchers.IO) { write() }
         }
     }
 
     private fun expandWindow() {
+        captureCurrentWindowPosition()
+        persistGeometryOnClose(blocking = true)
         chipRetainedAfterManualCollapse = false
         expandedRetainedWithoutIme = false
         displayMode = ClipboardFloatDisplayMode.Expanded
         applyWindowGeometry(forceDefaultPosition = !shouldUseRememberedPanelPosition())
+        captureCurrentWindowPosition()
+        persistGeometryOnClose(blocking = true)
         resetAutoCloseTimer()
     }
 
     private fun collapseWindow() {
         collapseToChip(
             retainWhenKeyboardHides = true,
-            anchorChipToPanelPosition = true,
+            anchorChipToPanelPosition = false,
         )
     }
 
@@ -630,6 +745,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
             closeWindow()
             return
         }
+        captureCurrentWindowPosition()
         mainHandler.removeCallbacks(autoCloseRunnable)
         expandedRetainedWithoutIme = false
         clearSearchState()
@@ -637,6 +753,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
         if (anchorChipToPanelPosition) {
             chipPosX = params.x
             chipPosY = params.y
+            syncRememberedChipPosition(chipPosX, chipPosY)
             chipPositionCustomizedThisSession = true
         }
         displayMode = ClipboardFloatDisplayMode.Chip
@@ -662,7 +779,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
         chipRetainedAfterManualCollapse = false
         expandedRetainedWithoutIme = false
         clearSearchState()
-        persistGeometryOnClose()
+        persistGeometryOnClose(blocking = true)
         if (viewAdded) {
             composeView?.let { runCatching { windowManager.removeView(it) } }
             viewAdded = false

@@ -83,6 +83,9 @@ class SettingsRepository @Inject constructor(
 
     fun readSnapshot(): AppSettings = cachedSettings
 
+    suspend fun readFreshSnapshot(): AppSettings =
+        SettingsSnapshotReader.read(editor.readRawPreferences())
+
     suspend fun exportSettings(
         appVersionName: String,
         sensitive: SensitiveBackupSections? = null,
