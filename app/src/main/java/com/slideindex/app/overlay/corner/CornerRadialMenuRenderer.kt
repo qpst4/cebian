@@ -1,10 +1,10 @@
 package com.slideindex.app.overlay.corner
 
 import android.content.Context
+import android.graphics.Typeface
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.RectF
-import android.graphics.Typeface
 import android.text.TextPaint
 import android.text.TextUtils
 import android.graphics.Path
@@ -13,6 +13,8 @@ import androidx.core.graphics.withScale
 import com.slideindex.app.activity.ActivityShortcut
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.SelectedHintMetrics
+import com.slideindex.app.launcher.isShellActivityShortcut
+import com.slideindex.app.launcher.showsShellActivityShortcutBadge
 import com.slideindex.app.launcher.showsShellCommandBadge
 import com.slideindex.app.overlay.ShellCommandBadgeRenderer
 import com.slideindex.app.overlay.ShortcutBadgeRenderer
@@ -20,6 +22,7 @@ import com.slideindex.app.settings.CornerGestureSettings
 import com.slideindex.app.settings.CornerRadialMenuCodec
 import com.slideindex.app.shell.ShellCommand
 import com.slideindex.app.ui.gesturepicker.gestureActionLabelText
+import com.slideindex.app.ui.gesturepicker.launchShortcutDisplayLabel
 import kotlin.math.min
 
 internal object CornerRadialMenuRenderer {
@@ -41,6 +44,13 @@ internal object CornerRadialMenuRenderer {
     private const val PLUS_COLOR_HIGHLIGHT = 0xFF0D9488.toInt()
     private const val NAME_PILL_FILL = 0xDD20263F.toInt()
     private const val NAME_TEXT = 0xFFFFFFFF.toInt()
+    private const val SUBMENU_PILL_FILL = 0xFFFDFDFD.toInt()
+    private const val SUBMENU_PILL_FILL_HIGHLIGHT = 0xFFEFFCF9.toInt()
+    private const val SUBMENU_TEXT = 0xFF1E293B.toInt()
+    private const val SUBMENU_TEXT_HIGHLIGHT = 0xFF0F766E.toInt()
+    private const val SUBMENU_STROKE = 0x14000000
+    private const val SUBMENU_STROKE_HIGHLIGHT = 0xFF5EEAD4.toInt()
+    private const val SUBMENU_SHADOW = 0x28000000
 
     fun draw(
         context: Context,
@@ -59,6 +69,10 @@ internal object CornerRadialMenuRenderer {
         hintIconSizeDp: Int = SelectedHintMetrics.DEFAULT_ICON_SIZE_DP,
         activityShortcuts: List<ActivityShortcut> = emptyList(),
         shellCommands: List<ShellCommand> = emptyList(),
+        shortcutSubMenuItems: List<GestureAction.LaunchShortcut> = emptyList(),
+        shortcutSubMenuLayout: CornerShortcutSubMenuLayout? = null,
+        highlightedShortcutIndex: Int = -1,
+        shortcutSubMenuRevealProgress: Float = 1f,
     ) {
         val progress = revealProgress.coerceIn(0f, 1f)
         if (progress <= 0.01f) return
@@ -153,7 +167,9 @@ internal object CornerRadialMenuRenderer {
             strokePaint = strokePaint,
         )
 
-        if (settings.showSelectedName && !editMode && highlightedSlot >= 0) {
+        if (settings.showSelectedName && !editMode && highlightedSlot >= 0 &&
+            shortcutSubMenuLayout == null
+        ) {
             val action = slots.getOrElse(highlightedSlot) { GestureAction.None }
             if (action !is GestureAction.None) {
                 drawSelectedHint(
@@ -166,6 +182,155 @@ internal object CornerRadialMenuRenderer {
                     activityShortcuts = activityShortcuts,
                     shellCommands = shellCommands,
                 )
+            }
+        }
+
+        if (shortcutSubMenuLayout != null && shortcutSubMenuItems.isNotEmpty()) {
+            drawShortcutSubMenu(
+                context = context,
+                canvas = canvas,
+                items = shortcutSubMenuItems,
+                layout = shortcutSubMenuLayout,
+                highlightedIndex = highlightedShortcutIndex,
+                density = density,
+                progress = progress,
+                revealProgress = shortcutSubMenuRevealProgress,
+                activityShortcuts = activityShortcuts,
+                shellCommands = shellCommands,
+            )
+        }
+    }
+
+    private fun drawShortcutSubMenu(
+        context: Context,
+        canvas: Canvas,
+        items: List<GestureAction.LaunchShortcut>,
+        layout: CornerShortcutSubMenuLayout,
+        highlightedIndex: Int,
+        density: Float,
+        progress: Float,
+        revealProgress: Float,
+        activityShortcuts: List<ActivityShortcut>,
+        shellCommands: List<ShellCommand>,
+    ) {
+        val menuAlpha = (255f * progress).toInt().coerceIn(0, 255)
+        val reveal = revealProgress.coerceIn(0f, 1f)
+        if (menuAlpha <= 0 || reveal <= 0.01f) return
+
+        val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+        val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.STROKE
+            strokeWidth = 0.75f * density
+        }
+        val shadowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = SUBMENU_SHADOW }
+        val iconPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { isFilterBitmap = true }
+        val textPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
+            textAlign = Paint.Align.LEFT
+            textSize = 13f * density
+            typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
+        }
+        val iconLeading = 10f * density
+        val iconSize = 20f * density
+        val iconGap = 8f * density
+        val paddingRight = 12f * density
+        val iconContentWidth = CornerShortcutSubMenuLayoutCalculator.iconContentWidthPx(density)
+        val itemCount = items.size
+
+        items.forEachIndexed { index, shortcut ->
+            val rect = layout.itemRects.getOrNull(index) ?: return@forEachIndexed
+            val highlighted = index == highlightedIndex
+            val stagger = ((reveal * itemCount) - index).coerceIn(0f, 1f)
+            val itemAlpha = (menuAlpha * stagger).toInt().coerceIn(0, 255)
+            if (itemAlpha <= 0) return@forEachIndexed
+
+            val scale = 0.94f + 0.06f * stagger + if (highlighted) 0.03f else 0f
+            val centerX = rect.centerX()
+            val centerY = rect.centerY()
+            val drawWidth = rect.width() * scale
+            val drawHeight = rect.height() * scale
+            val drawRect = RectF(
+                centerX - drawWidth / 2f,
+                centerY - drawHeight / 2f,
+                centerX + drawWidth / 2f,
+                centerY + drawHeight / 2f,
+            )
+            val radius = drawHeight / 2f
+
+            fillPaint.color = if (highlighted) SUBMENU_PILL_FILL_HIGHLIGHT else SUBMENU_PILL_FILL
+            fillPaint.alpha = itemAlpha
+            strokePaint.color = if (highlighted) SUBMENU_STROKE_HIGHLIGHT else SUBMENU_STROKE
+            strokePaint.alpha = (itemAlpha * 0.85f).toInt().coerceIn(0, 255)
+
+            for (layer in 2 downTo 1) {
+                val offset = (layer * 1.2f * density * reveal)
+                shadowPaint.alpha = (itemAlpha * (0.14f * layer)).toInt().coerceIn(0, 255)
+                canvas.drawRoundRect(
+                    drawRect.left + offset,
+                    drawRect.top + offset,
+                    drawRect.right + offset,
+                    drawRect.bottom + offset,
+                    radius,
+                    radius,
+                    shadowPaint,
+                )
+            }
+            canvas.drawRoundRect(drawRect, radius, radius, fillPaint)
+            canvas.drawRoundRect(drawRect, radius, radius, strokePaint)
+
+            canvas.withClip(drawRect) {
+            val iconCenterX = drawRect.left + iconLeading + iconSize / 2f
+            val iconCenterY = drawRect.centerY()
+            val iconBitmap = CornerSlotIconBitmap.get(
+                context = context,
+                action = shortcut,
+                sizePx = iconSize.toInt().coerceAtLeast(12),
+                tintArgb = ICON_TINT,
+                activityShortcuts = activityShortcuts,
+                shellCommands = shellCommands,
+            )
+            val iconScale = iconSize / iconBitmap.width
+            canvas.withScale(iconScale, iconScale, iconCenterX, iconCenterY) {
+                drawBitmap(
+                    iconBitmap,
+                    iconCenterX - iconBitmap.width / 2f,
+                    iconCenterY - iconBitmap.height / 2f,
+                    iconPaint.apply { alpha = itemAlpha },
+                )
+            }
+            when {
+                shortcut.showsShellActivityShortcutBadge(activityShortcuts) -> {
+                    ShellCommandBadgeRenderer.draw(
+                        canvas,
+                        iconCenterX,
+                        iconCenterY,
+                        iconSize,
+                        itemAlpha / 255f,
+                        density,
+                    )
+                }
+                !shortcut.isShellActivityShortcut(activityShortcuts) -> {
+                    ShortcutBadgeRenderer.draw(
+                        canvas,
+                        iconCenterX,
+                        iconCenterY,
+                        iconSize,
+                        itemAlpha / 255f,
+                        density,
+                    )
+                }
+            }
+
+            val label = launchShortcutDisplayLabel(shortcut).ifBlank {
+                gestureActionLabelText(context, shortcut)
+            }
+            val textStart = drawRect.left + iconContentWidth
+            val textMaxWidth = (drawRect.right - paddingRight - textStart).coerceAtLeast(0f)
+            val fitted = TextUtils.ellipsize(label, textPaint, textMaxWidth, TextUtils.TruncateAt.END)
+            textPaint.color = if (highlighted) SUBMENU_TEXT_HIGHLIGHT else SUBMENU_TEXT
+            textPaint.alpha = itemAlpha
+            val metrics = textPaint.fontMetrics
+            val baseline = drawRect.centerY() - (metrics.ascent + metrics.descent) / 2f
+            canvas.drawText(fitted, 0, fitted.length, textStart, baseline, textPaint)
             }
         }
     }
@@ -243,14 +408,28 @@ internal object CornerRadialMenuRenderer {
             )
         }
         if (action is GestureAction.LaunchShortcut) {
-            ShortcutBadgeRenderer.draw(
-                canvas,
-                iconLeft + iconSize / 2f,
-                centerY,
-                iconSize,
-                progress,
-                density,
-            )
+            when {
+                action.showsShellActivityShortcutBadge(activityShortcuts) -> {
+                    ShellCommandBadgeRenderer.draw(
+                        canvas,
+                        iconLeft + iconSize / 2f,
+                        centerY,
+                        iconSize,
+                        progress,
+                        density,
+                    )
+                }
+                !action.isShellActivityShortcut(activityShortcuts) -> {
+                    ShortcutBadgeRenderer.draw(
+                        canvas,
+                        iconLeft + iconSize / 2f,
+                        centerY,
+                        iconSize,
+                        progress,
+                        density,
+                    )
+                }
+            }
         } else if (action.showsShellCommandBadge(shellCommands)) {
             ShellCommandBadgeRenderer.draw(
                 canvas,
@@ -308,14 +487,28 @@ internal object CornerRadialMenuRenderer {
         canvas.drawCircle(centerX, centerY, radius, strokePaint)
 
         if (action is GestureAction.LaunchShortcut) {
-            ShortcutBadgeRenderer.draw(
-                canvas,
-                centerX,
-                centerY,
-                drawSize,
-                progress,
-                density,
-            )
+            when {
+                action.showsShellActivityShortcutBadge(activityShortcuts) -> {
+                    ShellCommandBadgeRenderer.draw(
+                        canvas,
+                        centerX,
+                        centerY,
+                        drawSize,
+                        progress,
+                        density,
+                    )
+                }
+                !action.isShellActivityShortcut(activityShortcuts) -> {
+                    ShortcutBadgeRenderer.draw(
+                        canvas,
+                        centerX,
+                        centerY,
+                        drawSize,
+                        progress,
+                        density,
+                    )
+                }
+            }
         } else if (action.showsShellCommandBadge(shellCommands)) {
             ShellCommandBadgeRenderer.draw(
                 canvas,

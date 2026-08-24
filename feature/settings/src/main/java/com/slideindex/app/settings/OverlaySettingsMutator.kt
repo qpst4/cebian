@@ -1231,6 +1231,30 @@ class OverlaySettingsMutator @Inject constructor(
         }
     }
 
+    suspend fun setCornerSlotSubMenu(
+        isLeft: Boolean,
+        index: Int,
+        config: CornerSlotSubMenuConfig,
+    ) = editor.edit { prefs ->
+        if (index !in 0 until CornerRadialMenuCodec.SLOT_COUNT) return@edit
+        val key = if (isLeft) {
+            SettingsPreferenceKeys.CORNER_GESTURE_LEFT_SLOT_SUB_MENUS
+        } else {
+            SettingsPreferenceKeys.CORNER_GESTURE_RIGHT_SLOT_SUB_MENUS
+        }
+        val current = CornerSlotSubMenuCodec.decode(
+            prefs[key] ?: emptySet(),
+            CornerSlotSubMenuCodec.defaultSlotSubMenus(),
+        )
+        val updated = current.toMutableList()
+        updated[index] = config
+        val encoded = CornerSlotSubMenuCodec.encode(updated)
+        prefs[key] = encoded
+        if (prefs[SettingsPreferenceKeys.CORNER_GESTURE_UNIFIED_SLOTS] ?: true) {
+            prefs[SettingsPreferenceKeys.CORNER_GESTURE_RIGHT_SLOT_SUB_MENUS] = encoded
+        }
+    }
+
     suspend fun setCornerGestureCancelOutsideWheel(enabled: Boolean) = editor.edit {
         it[SettingsPreferenceKeys.CORNER_GESTURE_CANCEL_OUTSIDE_WHEEL] = enabled
     }
@@ -1274,6 +1298,12 @@ class OverlaySettingsMutator @Inject constructor(
                 CornerRadialMenuCodec.defaultLeftSlots(),
             )
             prefs[SettingsPreferenceKeys.CORNER_GESTURE_RIGHT_SLOTS] = CornerRadialMenuCodec.encode(left)
+            val leftSubMenus = CornerSlotSubMenuCodec.decode(
+                prefs[SettingsPreferenceKeys.CORNER_GESTURE_LEFT_SLOT_SUB_MENUS] ?: emptySet(),
+                CornerSlotSubMenuCodec.defaultSlotSubMenus(),
+            )
+            prefs[SettingsPreferenceKeys.CORNER_GESTURE_RIGHT_SLOT_SUB_MENUS] =
+                CornerSlotSubMenuCodec.encode(leftSubMenus)
         }
         prefs[SettingsPreferenceKeys.CORNER_GESTURE_UNIFIED_SLOTS] = enabled
     }

@@ -82,6 +82,10 @@ sealed interface AppNavKey : NavKey {
     @Serializable data object HomeCornerGesture : AppNavKey
     @Serializable data object HomeCornerGestureInteraction : AppNavKey
     @Serializable data object HomeCornerGestureSlots : AppNavKey
+    @Serializable data class HomeCornerGestureSlotEditor(
+        val corner: String,
+        val slotIndex: Int,
+    ) : AppNavKey
     @Serializable data class HomeCornerGestureSlotActionPick(
         val corner: String,
         val slotIndex: Int,
@@ -107,6 +111,27 @@ sealed interface AppNavKey : NavKey {
         val corner: String,
         val slotIndex: Int,
         val initialCommand: String = "",
+    ) : AppNavKey
+    @Serializable data class HomeCornerGestureSlotSubMenuPick(
+        val corner: String,
+        val slotIndex: Int,
+    ) : AppNavKey
+    @Serializable data class HomeCornerGestureSlotSubMenuMyShortcuts(
+        val corner: String,
+        val slotIndex: Int,
+    ) : AppNavKey
+    @Serializable data class HomeCornerGestureSlotSubMenuPresetShortcuts(
+        val corner: String,
+        val slotIndex: Int,
+    ) : AppNavKey
+    @Serializable data class HomeCornerGestureSlotSubMenuPickApp(
+        val corner: String,
+        val slotIndex: Int,
+    ) : AppNavKey
+    @Serializable data class HomeCornerGestureSlotSubMenuPickActivity(
+        val corner: String,
+        val slotIndex: Int,
+        val packageName: String,
     ) : AppNavKey
 
     @Serializable data object HomeCornerGestureInnerZoneActionPick : AppNavKey
@@ -234,6 +259,7 @@ sealed interface AppNavKey : NavKey {
     @Serializable data class ActivityShortcutPickActivity(val packageName: String) : AppNavKey
     @Serializable data object ActivityShortcutPickAppShortcut : AppNavKey
     @Serializable data object ActivityShortcutPickAppShortcutPresets : AppNavKey
+    @Serializable data object ActivityShortcutPickShell : AppNavKey
     @Serializable data object ShellCommandHistory : AppNavKey
     @Serializable data class ShellCommandEditor(val commandId: String = "") : AppNavKey
     @Serializable data object ShellCommandResult : AppNavKey

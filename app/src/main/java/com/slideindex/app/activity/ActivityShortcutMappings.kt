@@ -12,10 +12,15 @@ fun ActivityShortcut.toLaunchShortcut(): GestureAction.LaunchShortcut = when (ki
     ActivityShortcutKind.DYNAMIC ->
         GestureAction.LaunchShortcut.dynamic(packageName, shortcutId, label)
     ActivityShortcutKind.INTENT -> {
+        val hostPackage = packageName.takeIf { it.isNotBlank() }
         if (intentUris.size <= 1) {
-            GestureAction.LaunchShortcut.intent(intentUris.firstOrNull().orEmpty(), label)
+            GestureAction.LaunchShortcut.intent(
+                intentUris.firstOrNull().orEmpty(),
+                label,
+                hostPackage,
+            )
         } else {
-            GestureAction.LaunchShortcut.intents(intentUris, label)
+            GestureAction.LaunchShortcut.intents(intentUris, label, hostPackage)
         }
     }
 }

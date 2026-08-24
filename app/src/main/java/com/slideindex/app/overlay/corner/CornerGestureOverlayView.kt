@@ -9,6 +9,8 @@ import android.content.Intent
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.text.TextPaint
+import android.text.TextUtils
 import android.view.MotionEvent
 import android.view.View
 import android.view.animation.DecelerateInterpolator
@@ -24,6 +26,8 @@ import com.slideindex.app.settings.CornerRadialMenuCodec
 import com.slideindex.app.settings.effectiveLongPressDurationMs
 import com.slideindex.app.settings.launchPolicyLongPressEligible
 import com.slideindex.app.shell.ShellCommand
+import com.slideindex.app.ui.gesturepicker.gestureActionLabelText
+import com.slideindex.app.ui.gesturepicker.launchShortcutDisplayLabel
 import com.slideindex.app.util.HapticHelper
 import kotlin.math.hypot
 
@@ -64,6 +68,13 @@ internal class CornerGestureOverlayView(
     private var slotLongPressArmed = false
     private var slotLongPressTrackingIndex = -1
     private var slotLongPressRunnable: Runnable? = null
+    private var shortcutSubMenuVisible = false
+    private var shortcutSubMenuSlot = -1
+    private var shortcutSubMenuLayout: CornerShortcutSubMenuLayout? = null
+    private var highlightedShortcutIndex = -1
+    private var lastHapticHighlightedShortcutIndex = -1
+    private var shortcutSubMenuRevealProgress = 0f
+    private var subMenuRevealAnimator: ValueAnimator? = null
     private val dimPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.BLACK }
     private var menuVisualActive = false
 
@@ -184,7 +195,11 @@ internal class CornerGestureOverlayView(
             fingerY = rawY,
             density = density,
         )
-        val slot = resolveSlotAt(anchor, rawX, rawY)
+        val resolvedSlot = resolveSlotAt(anchor, rawX, rawY)
+        val slot = when {
+            shortcutSubMenuVisible && shortcutSubMenuSlot >= 0 && resolvedSlot < 0 -> shortcutSubMenuSlot
+            else -> resolvedSlot
+        }
         val innerRelease = isFingerInInnerZone(anchor, rawX, rawY)
         val outsideRelease = isFingerOutsideWheel(anchor, rawX, rawY)
         val innerAction = cornerSettings.innerZoneAction
@@ -225,6 +240,17 @@ internal class CornerGestureOverlayView(
                 return true
             }
             mode == SessionMode.NORMAL && slot >= 0 -> {
+                if (shortcutSubMenuVisible && highlightedShortcutIndex >= 0) {
+                    val shortcut = cornerSettings.slotSubMenuFor(anchor, slot).items
+                        .getOrNull(highlightedShortcutIndex)
+                    if (shortcut != null) {
+                        executeAction(shortcut, anchor, rawX, rawY, longPressArmed = false)
+                        cancelSlotLongPress()
+                        hideShortcutSubMenu()
+                        dismissWheel()
+                        return activated || fromPinned
+                    }
+                }
                 val action = cornerSettings.slotsFor(anchor).getOrElse(slot) { GestureAction.None }
                 if (action.isEffective()) {
                     val longPress = slotLongPressTriggered(event, slot, action)
@@ -268,6 +294,7 @@ internal class CornerGestureOverlayView(
         editModeEntered = false
         maxInwardSlop = 0f
         cancelSlotLongPress()
+        hideShortcutSubMenu()
         invalidate()
     }
 
@@ -287,8 +314,59 @@ internal class CornerGestureOverlayView(
         editModeEntered = true
         maxInwardSlop = 0f
         cancelSlotLongPress()
+        hideShortcutSubMenu()
         invalidate()
     }
+
+    private fun hideShortcutSubMenu() {
+        subMenuRevealAnimator?.cancel()
+        subMenuRevealAnimator = null
+        shortcutSubMenuVisible = false
+        shortcutSubMenuSlot = -1
+        shortcutSubMenuLayout = null
+        shortcutSubMenuRevealProgress = 0f
+        highlightedShortcutIndex = -1
+        lastHapticHighlightedShortcutIndex = -1
+    }
+
+    private fun showShortcutSubMenu(anchor: CornerAnchor, slot: Int) {
+        shortcutSubMenuVisible = true
+        shortcutSubMenuSlot = slot
+        rebuildShortcutSubMenuLayout(anchor, slot)
+        shortcutSubMenuRevealProgress = 0f
+        subMenuRevealAnimator?.cancel()
+        subMenuRevealAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
+            duration = 180L
+            interpolator = DecelerateInterpolator()
+            addUpdateListener { animator ->
+                shortcutSubMenuRevealProgress = animator.animatedValue as Float
+                invalidate()
+            }
+            start()
+        }
+    }
+
+    private fun fingerSubMenuSlopPx(): Float = 10f * density
+
+    private fun resolveSlotAtFinger(
+        anchor: CornerAnchor,
+        rawX: Float,
+        rawY: Float,
+        editMode: Boolean,
+        slots: List<GestureAction>,
+    ): Int? = CornerRadialMenuGeometry.slotIndexAt(
+        anchor = anchor,
+        anchorX = anchorCenter(anchor).first,
+        anchorY = anchorCenter(anchor).second,
+        fingerX = rawX,
+        fingerY = rawY,
+        settings = cornerSettings,
+        density = density,
+        slots = slots,
+        editMode = editMode,
+        activeLayerCount = menuActiveLayerCount(),
+        revealProgress = menuRevealProgress,
+    )
 
     private fun dismissWheel() {
         revealAnimator?.cancel()
@@ -311,6 +389,7 @@ internal class CornerGestureOverlayView(
         menuRevealProgress = 0f
         editModeEntered = false
         cancelSlotLongPress()
+        hideShortcutSubMenu()
         invalidate()
     }
 
@@ -395,6 +474,9 @@ internal class CornerGestureOverlayView(
         if (onEditButton) {
             highlightedSlot = -1
             lastHapticHighlightedSlot = -1
+            highlightedShortcutIndex = -1
+            lastHapticHighlightedShortcutIndex = -1
+            hideShortcutSubMenu()
             syncSlotPressTracking(-1, eventTime)
             if (!editModeEntered) {
                 sessionMode = SessionMode.EDIT
@@ -405,31 +487,63 @@ internal class CornerGestureOverlayView(
             return
         }
 
-        val slot = CornerRadialMenuGeometry.slotIndexAt(
+        if (shortcutSubMenuVisible && shortcutSubMenuSlot >= 0) {
+            val layout = shortcutSubMenuLayout
+            val slop = fingerSubMenuSlopPx()
+            val slotAtFinger = resolveSlotAtFinger(anchor, rawX, rawY, editMode, slots)
+            val onSubMenu = layout?.containsFinger(rawX, rawY, slop) == true
+            val onSlot = slotAtFinger == shortcutSubMenuSlot
+            if (onSubMenu || onSlot) {
+                highlightedSlot = shortcutSubMenuSlot
+                highlightedShortcutIndex = if (onSubMenu) {
+                    layout?.indexAt(rawX, rawY, slop) ?: -1
+                } else {
+                    -1
+                }
+                if (highlightedShortcutIndex >= 0) {
+                    maybeHapticForShortcutChange(highlightedShortcutIndex)
+                }
+                syncSlotPressTracking(shortcutSubMenuSlot, eventTime)
+                return
+            }
+            hideShortcutSubMenu()
+        }
+
+        val slot = resolveSlotAtFinger(
             anchor = anchor,
-            anchorX = anchorX,
-            anchorY = anchorY,
-            fingerX = rawX,
-            fingerY = rawY,
-            settings = cornerSettings,
-            density = density,
-            slots = slots,
+            rawX = rawX,
+            rawY = rawY,
             editMode = editMode,
-            activeLayerCount = menuActiveLayerCount(),
-            revealProgress = menuRevealProgress,
+            slots = slots,
         )
         if (slot != null) {
+            if (shortcutSubMenuVisible && slot != shortcutSubMenuSlot) {
+                hideShortcutSubMenu()
+            }
             highlightedSlot = slot
+            highlightedShortcutIndex = -1
+            lastHapticHighlightedShortcutIndex = -1
             maybeHapticForSlotChange(slot)
             syncSlotPressTracking(slot, eventTime)
             return
         }
 
-        highlightedSlot = -1
+        highlightedSlot = if (shortcutSubMenuVisible && shortcutSubMenuSlot >= 0) {
+            shortcutSubMenuSlot
+        } else {
+            -1
+        }
         lastHapticHighlightedSlot = -1
-        syncSlotPressTracking(-1, eventTime)
+        highlightedShortcutIndex = -1
+        lastHapticHighlightedShortcutIndex = -1
+        if (!shortcutSubMenuVisible) {
+            syncSlotPressTracking(-1, eventTime)
+        }
+        val inSubMenu = shortcutSubMenuVisible &&
+            shortcutSubMenuLayout?.containsFinger(rawX, rawY, fingerSubMenuSlopPx()) == true
         if (cornerSettings.cancelOutsideWheel &&
             !editMode &&
+            !inSubMenu &&
             CornerWheelLayout.isOutsideWheel(
                 anchor = anchor,
                 anchorX = anchorX,
@@ -467,6 +581,42 @@ internal class CornerGestureOverlayView(
         HapticHelper.appTick(this, settings)
     }
 
+    private fun maybeHapticForShortcutChange(index: Int) {
+        if (isMenuRevealing()) return
+        if (index == lastHapticHighlightedShortcutIndex) return
+        lastHapticHighlightedShortcutIndex = index
+        if (index < 0 || !cornerSettings.slotHapticEnabled) return
+        HapticHelper.appTick(this, settings)
+    }
+
+    private fun rebuildShortcutSubMenuLayout(anchor: CornerAnchor, slot: Int) {
+        val items = cornerSettings.slotSubMenuFor(anchor, slot).items
+        if (items.isEmpty()) {
+            shortcutSubMenuLayout = null
+            return
+        }
+        val (anchorX, anchorY) = anchorCenter(anchor)
+        val textPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply { textSize = 13f * density }
+        val textWidths = items.map { shortcut ->
+            val label = launchShortcutDisplayLabel(shortcut).ifBlank {
+                gestureActionLabelText(context, shortcut)
+            }
+            textPaint.measureText(label)
+        }
+        shortcutSubMenuLayout = CornerShortcutSubMenuLayoutCalculator.build(
+            anchor = anchor,
+            anchorX = anchorX,
+            anchorY = anchorY,
+            slotIndex = slot,
+            settings = cornerSettings,
+            density = density,
+            revealProgress = menuRevealProgress,
+            items = items,
+            textWidthsPx = textWidths,
+            screenWidth = width.toFloat(),
+        )
+    }
+
     private fun resolveSlotAt(anchor: CornerAnchor, rawX: Float, rawY: Float): Int {
         val (anchorX, anchorY) = anchorCenter(anchor)
         return CornerRadialMenuGeometry.slotIndexAt(
@@ -490,6 +640,11 @@ internal class CornerGestureOverlayView(
     }
 
     private fun isFingerOutsideWheel(anchor: CornerAnchor, rawX: Float, rawY: Float): Boolean {
+        if (shortcutSubMenuVisible &&
+            shortcutSubMenuLayout?.containsFinger(rawX, rawY, fingerSubMenuSlopPx()) == true
+        ) {
+            return false
+        }
         val (anchorX, anchorY) = anchorCenter(anchor)
         return CornerWheelLayout.isOutsideWheel(
             anchor = anchor,
@@ -538,25 +693,35 @@ internal class CornerGestureOverlayView(
             }
         } else {
             cancelSlotLongPress()
-            slotPressIndex = -1
-            slotPressDownTime = 0L
+            if (!shortcutSubMenuVisible) {
+                slotPressIndex = -1
+                slotPressDownTime = 0L
+            }
         }
     }
 
     private fun scheduleSlotLongPress(slot: Int) {
         cancelSlotLongPress()
         if (isMenuRevealing()) return
-        if (!settings.launchPolicyLongPressEligible()) return
+        if (sessionMode == SessionMode.EDIT) return
         val anchor = activeAnchor ?: return
+        val subMenu = cornerSettings.slotSubMenuFor(anchor, slot)
+        val hasSubMenu = subMenu.isActive()
         val action = cornerSettings.slotsFor(anchor).getOrElse(slot) { GestureAction.None }
-        if (!action.usesLaunchPolicy()) return
+        val launchPolicyTrack = settings.launchPolicyLongPressEligible() && action.usesLaunchPolicy()
+        if (!hasSubMenu && !launchPolicyTrack) return
         slotLongPressTrackingIndex = slot
         val runnable = Runnable {
-            if (highlightedSlot == slotLongPressTrackingIndex && slotLongPressTrackingIndex >= 0) {
-                slotLongPressArmed = true
-                HapticHelper.longThreshold(this, settings)
-                invalidate()
+            val tracking = slotLongPressTrackingIndex
+            if (tracking < 0) return@Runnable
+            if (hasSubMenu) {
+                showShortcutSubMenu(anchor, tracking)
             }
+            if (launchPolicyTrack) {
+                slotLongPressArmed = true
+            }
+            HapticHelper.longThreshold(this, settings)
+            invalidate()
         }
         slotLongPressRunnable = runnable
         postDelayed(runnable, settings.effectiveLongPressDurationMs().toLong())
@@ -658,6 +823,11 @@ internal class CornerGestureOverlayView(
         val anchor = activeAnchor ?: return
         val (anchorX, anchorY) = anchorCenter(anchor)
         drawBackgroundMask(canvas, menuRevealProgress)
+        val subMenuItems = if (shortcutSubMenuVisible && shortcutSubMenuSlot >= 0) {
+            cornerSettings.slotSubMenuFor(anchor, shortcutSubMenuSlot).items
+        } else {
+            emptyList()
+        }
         CornerRadialMenuRenderer.draw(
             context = context,
             canvas = canvas,
@@ -678,6 +848,10 @@ internal class CornerGestureOverlayView(
             hintIconSizeDp = cornerSettings.selectedHintIconSizeDp,
             activityShortcuts = settings.activityShortcuts,
             shellCommands = settings.shellCommands,
+            shortcutSubMenuItems = subMenuItems,
+            shortcutSubMenuLayout = if (shortcutSubMenuVisible) shortcutSubMenuLayout else null,
+            highlightedShortcutIndex = highlightedShortcutIndex,
+            shortcutSubMenuRevealProgress = shortcutSubMenuRevealProgress,
         )
     }
 }

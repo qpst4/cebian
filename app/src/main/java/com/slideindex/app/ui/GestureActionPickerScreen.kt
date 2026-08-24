@@ -28,6 +28,7 @@ import com.slideindex.app.ui.compose.rememberAppRepository
 import com.slideindex.app.ui.gesturepicker.ActionPickerTab
 import com.slideindex.app.ui.gesturepicker.actionPickerActionItems
 import com.slideindex.app.ui.gesturepicker.actionPickerAppItems
+import com.slideindex.app.ui.gesturepicker.ActionPickerShortcutRow
 import com.slideindex.app.ui.gesturepicker.actionPickerShortcutItems
 import com.slideindex.app.ui.gesturepicker.rememberActionPickerFilteredActions
 import com.slideindex.app.ui.gesturepicker.rememberActionPickerFilteredApps
@@ -190,6 +191,16 @@ fun GestureActionPickerScreen(
                         pendingCreateHost = host
                         runCatching { createLauncher.launch(host.createIntent()) }
                             .onFailure { pendingCreateHost = null }
+                    },
+                    shortcutRowContent = { group, shortcut, segmentIndex, segmentCount ->
+                        ActionPickerShortcutRow(
+                            shortcut = shortcut,
+                            packageName = group.app.packageName,
+                            segmentIndex = segmentIndex,
+                            segmentCount = segmentCount,
+                            current = current,
+                            onSelect = onSelect,
+                        )
                     },
                 )
             }

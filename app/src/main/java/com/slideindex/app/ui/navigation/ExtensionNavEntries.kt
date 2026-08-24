@@ -69,6 +69,8 @@ import com.slideindex.app.shell.ShellCommand
 import com.slideindex.app.ui.SearchEngineEditorCategory
 import com.slideindex.app.ui.SearchEngineEditorScreen
 import com.slideindex.app.activity.ActivityShortcut
+import com.slideindex.app.activity.ActivityShortcutShellIconBridge
+import com.slideindex.app.activity.ActivityShortcutShellSupport
 import com.slideindex.app.activity.activityShortcutFromQuickLauncherItem
 import com.slideindex.app.activity.findForQuickLauncherItem
 import com.slideindex.app.activity.toQuickLauncherItem
@@ -77,6 +79,7 @@ import com.slideindex.app.ui.ActivityShortcutPresetsScreen
 import com.slideindex.app.ui.picker.ActivityShortcutPickActivityScreen
 import com.slideindex.app.ui.picker.ActivityShortcutPickAppScreen
 import com.slideindex.app.ui.picker.ActivityShortcutPickAppShortcutScreen
+import com.slideindex.app.ui.picker.ActivityShortcutPickShellScreen
 import com.slideindex.app.ui.ShellCommandPanelScreen
 import com.slideindex.app.ui.ShellCommandEditorScreen
 import com.slideindex.app.ui.ShellOutputHistoryScreen
@@ -588,7 +591,25 @@ fun NavEntryBuilder.extensionNavEntries(ctx: MainNavContext) {
             onSaveShortcuts = viewModel::setActivityShortcuts,
             onAdd = { ctx.navigate(AppNavKey.ActivityShortcutPickApp) },
             onAddAppShortcut = { ctx.navigate(AppNavKey.ActivityShortcutPickAppShortcut) },
+            onAddShellCommand = { ctx.navigate(AppNavKey.ActivityShortcutPickShell) },
             onOpenPresets = { ctx.navigate(AppNavKey.ActivityShortcutPresets) },
+        )
+    }
+
+    hiltEntry<AppNavKey.ActivityShortcutPickShell> {
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings()
+        ActivityShortcutPickShellScreen(
+            shellCommands = settings.shellCommands,
+            onBack = { ctx.navigateBackTo(AppNavKey.ActivityShortcuts) },
+            onPick = { cmd ->
+                val shortcut = ActivityShortcutShellIconBridge.withCopiedIcon(ctx.activity, cmd)
+                if (settings.activityShortcuts.none { it.identityKey() == shortcut.identityKey() }) {
+                    viewModel.setActivityShortcuts(settings.activityShortcuts + shortcut)
+                }
+                ctx.navigateBackTo(AppNavKey.ActivityShortcuts)
+            },
         )
     }
 

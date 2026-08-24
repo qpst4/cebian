@@ -769,6 +769,8 @@ class SettingsRepository @Inject constructor(
         overlay.setCornerGestureLeftSlotAction(index, action)
     suspend fun setCornerGestureRightSlotAction(index: Int, action: GestureAction) =
         overlay.setCornerGestureRightSlotAction(index, action)
+    suspend fun setCornerSlotSubMenu(isLeft: Boolean, index: Int, config: CornerSlotSubMenuConfig) =
+        overlay.setCornerSlotSubMenu(isLeft, index, config)
 
     suspend fun setFaceDownGestureEnabled(enabled: Boolean) = shake.setFaceDownGestureEnabled(enabled)
     suspend fun setFaceDownGestureAction(action: GestureAction) = shake.setFaceDownGestureAction(action)

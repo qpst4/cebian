@@ -683,6 +683,14 @@ internal object SettingsSnapshotReader {
                 prefs[SettingsPreferenceKeys.CORNER_GESTURE_RIGHT_SLOTS] ?: emptySet(),
                 CornerRadialMenuCodec.defaultRightSlots(),
             ),
+            leftSlotSubMenus = CornerSlotSubMenuCodec.decode(
+                prefs[SettingsPreferenceKeys.CORNER_GESTURE_LEFT_SLOT_SUB_MENUS] ?: emptySet(),
+                CornerSlotSubMenuCodec.defaultSlotSubMenus(),
+            ),
+            rightSlotSubMenus = CornerSlotSubMenuCodec.decode(
+                prefs[SettingsPreferenceKeys.CORNER_GESTURE_RIGHT_SLOT_SUB_MENUS] ?: emptySet(),
+                CornerSlotSubMenuCodec.defaultSlotSubMenus(),
+            ),
         )
     }
 

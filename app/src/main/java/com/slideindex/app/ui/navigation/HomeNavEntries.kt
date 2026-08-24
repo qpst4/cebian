@@ -5,6 +5,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.yukonga.miuix.kmp.nav.core.NavEntryBuilder
@@ -324,10 +325,10 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
             onUnifiedSlotsChange = viewModel::setCornerGestureUnifiedSlots,
             onOpenInnerZoneActionPick = { ctx.navigate(AppNavKey.HomeCornerGestureInnerZoneActionPick) },
             onOpenLeftSlotActionPick = { slotIndex ->
-                ctx.navigate(AppNavKey.HomeCornerGestureSlotActionPick("left", slotIndex))
+                ctx.navigate(AppNavKey.HomeCornerGestureSlotEditor("left", slotIndex))
             },
             onOpenRightSlotActionPick = { slotIndex ->
-                ctx.navigate(AppNavKey.HomeCornerGestureSlotActionPick("right", slotIndex))
+                ctx.navigate(AppNavKey.HomeCornerGestureSlotEditor("right", slotIndex))
             },
         )
     }
@@ -430,143 +431,7 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
         )
     }
 
-    hiltEntry<AppNavKey.HomeCornerGestureSlotActionPick> { key ->
-        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
-        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
-        val corner = overlaySettings.cornerGestureSettings
-        val current = when (key.corner) {
-            "right" -> {
-                if (corner.unifiedSlots) {
-                    corner.leftSlots.getOrElse(key.slotIndex) { GestureAction.None }
-                } else {
-                    corner.rightSlots.getOrElse(key.slotIndex) { GestureAction.None }
-                }
-            }
-            else -> corner.leftSlots.getOrElse(key.slotIndex) { GestureAction.None }
-        }
-        val returnKey = AppNavKey.HomeCornerGestureSlots
-        GestureActionPickerScreen(
-            trigger = GestureTriggerType.SHORT_SWIPE_IN,
-            current = current,
-            onDismiss = { ctx.navigateBackTo(returnKey) },
-            onSelect = { action ->
-                if (action is GestureAction.FloatingPointer) return@GestureActionPickerScreen
-                if (corner.unifiedSlots || key.corner != "right") {
-                    viewModel.setCornerGestureLeftSlotAction(key.slotIndex, action)
-                } else {
-                    viewModel.setCornerGestureRightSlotAction(key.slotIndex, action)
-                }
-                ctx.navigateBackTo(returnKey)
-            },
-            onOpenMyShortcuts = { ctx.navigate(AppNavKey.HomeCornerGestureSlotMyShortcuts(key.corner, key.slotIndex)) },
-            onOpenPresetShortcuts = { ctx.navigate(AppNavKey.HomeCornerGestureSlotPresetShortcuts(key.corner, key.slotIndex)) },
-            onOpenPickApp = { ctx.navigate(AppNavKey.HomeCornerGestureSlotPickApp(key.corner, key.slotIndex)) },
-            onOpenExecuteShellCommand = { cmd -> ctx.navigate(AppNavKey.HomeCornerGestureSlotShellCommand(key.corner, key.slotIndex, cmd)) },
-        )
-    }
-
-    hiltEntry<AppNavKey.HomeCornerGestureSlotMyShortcuts> { key ->
-        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
-        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
-        val appSettings by viewModel.settings.collectAsStateWithLifecycle()
-        val corner = overlaySettings.cornerGestureSettings
-        val current = when (key.corner) {
-            "right" -> if (corner.unifiedSlots) corner.leftSlots.getOrElse(key.slotIndex) { GestureAction.None } else corner.rightSlots.getOrElse(key.slotIndex) { GestureAction.None }
-            else -> corner.leftSlots.getOrElse(key.slotIndex) { GestureAction.None }
-        }
-        val returnKey = AppNavKey.HomeCornerGestureSlotActionPick(key.corner, key.slotIndex)
-        MyShortcutsFolderScreen(
-            activityShortcuts = appSettings.activityShortcuts,
-            onBack = { ctx.navigateBackTo(returnKey) },
-            onBrowseNewShortcut = { ctx.navigate(AppNavKey.HomeCornerGestureSlotPickApp(key.corner, key.slotIndex)) },
-            currentAction = current,
-            onSelectRadio = { action ->
-                if (corner.unifiedSlots || key.corner != "right") {
-                    viewModel.setCornerGestureLeftSlotAction(key.slotIndex, action)
-                } else {
-                    viewModel.setCornerGestureRightSlotAction(key.slotIndex, action)
-                }
-                ctx.navigateBackTo(AppNavKey.HomeCornerGestureSlots)
-            },
-        )
-    }
-
-    hiltEntry<AppNavKey.HomeCornerGestureSlotPresetShortcuts> { key ->
-        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
-        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
-        val corner = overlaySettings.cornerGestureSettings
-        val current = when (key.corner) {
-            "right" -> if (corner.unifiedSlots) corner.leftSlots.getOrElse(key.slotIndex) { GestureAction.None } else corner.rightSlots.getOrElse(key.slotIndex) { GestureAction.None }
-            else -> corner.leftSlots.getOrElse(key.slotIndex) { GestureAction.None }
-        }
-        val returnKey = AppNavKey.HomeCornerGestureSlotActionPick(key.corner, key.slotIndex)
-        PresetShortcutsFolderScreen(
-            onBack = { ctx.navigateBackTo(returnKey) },
-            currentAction = current,
-            onSelectRadio = { action ->
-                if (corner.unifiedSlots || key.corner != "right") {
-                    viewModel.setCornerGestureLeftSlotAction(key.slotIndex, action)
-                } else {
-                    viewModel.setCornerGestureRightSlotAction(key.slotIndex, action)
-                }
-                ctx.navigateBackTo(AppNavKey.HomeCornerGestureSlots)
-            },
-        )
-    }
-
-    hiltEntry<AppNavKey.HomeCornerGestureSlotPickApp> { key ->
-        val returnKey = AppNavKey.HomeCornerGestureSlotActionPick(key.corner, key.slotIndex)
-        ActivityShortcutPickAppScreen(
-            onBack = { ctx.navigateBackTo(returnKey) },
-            onSelectApp = { app ->
-                ctx.navigate(AppNavKey.HomeCornerGestureSlotPickActivity(key.corner, key.slotIndex, app.packageName))
-            },
-        )
-    }
-
-    hiltEntry<AppNavKey.HomeCornerGestureSlotPickActivity> { key ->
-        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
-        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
-        val corner = overlaySettings.cornerGestureSettings
-        ActivityShortcutPickActivityScreen(
-            packageName = key.packageName,
-            onBack = { ctx.backStack.removeLastOrNull() },
-            onSelectActivity = { activity ->
-                val action = GestureAction.LaunchShortcut.component(
-                    "${activity.packageName}/${activity.className}",
-                    activity.label,
-                )
-                if (corner.unifiedSlots || key.corner != "right") {
-                    viewModel.setCornerGestureLeftSlotAction(key.slotIndex, action)
-                } else {
-                    viewModel.setCornerGestureRightSlotAction(key.slotIndex, action)
-                }
-                ctx.navigateBackTo(AppNavKey.HomeCornerGestureSlots)
-            },
-        )
-    }
-
-    hiltEntry<AppNavKey.HomeCornerGestureSlotShellCommand> { key ->
-        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
-        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
-        val appSettings by viewModel.settings.collectAsStateWithLifecycle()
-        val corner = overlaySettings.cornerGestureSettings
-        val returnKey = AppNavKey.HomeCornerGestureSlots
-        GestureExecuteShellCommandScreen(
-            initialCommand = key.initialCommand,
-            shellCommands = appSettings.shellCommands,
-            onBack = { ctx.backStack.removeLastOrNull() },
-            onConfirm = { command ->
-                val action = GestureAction.ExecuteShellCommand(command)
-                if (corner.unifiedSlots || key.corner != "right") {
-                    viewModel.setCornerGestureLeftSlotAction(key.slotIndex, action)
-                } else {
-                    viewModel.setCornerGestureRightSlotAction(key.slotIndex, action)
-                }
-                ctx.navigateBackTo(returnKey)
-            },
-        )
-    }
+    cornerGestureSlotNavEntries(ctx)
 
     hiltEntry<AppNavKey.HomeSideGestures> { key ->
         val viewModel: HomeDetailSettingsViewModel = hiltViewModel()

@@ -15,7 +15,9 @@ import com.slideindex.app.settings.CapsuleStyle
 import com.slideindex.app.settings.GestureHintStyle
 import com.slideindex.app.settings.ExcludedAppScopes
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.settings.CornerSlotSubMenuConfig
 import com.slideindex.app.settings.SettingsRepository
+import kotlinx.coroutines.flow.first
 import com.slideindex.app.settings.WaveStyle
 import com.slideindex.app.settings.withAddedBottomTriggerHandle
 import com.slideindex.app.settings.withAddedTopTriggerHandle
@@ -441,5 +443,22 @@ class HomeDetailSettingsViewModel @Inject constructor(
 
     fun setCornerGestureRightSlotAction(index: Int, action: GestureAction) = launchSettingsWrite {
         settingsRepository.setCornerGestureRightSlotAction(index, action)
+    }
+
+    fun setCornerSlotAction(corner: String, slotIndex: Int, action: GestureAction) = launchSettingsWrite {
+        val overlay = settingsRepository.overlaySettings.first()
+        val unified = overlay.cornerGestureSettings.unifiedSlots
+        when {
+            unified -> settingsRepository.setCornerGestureLeftSlotAction(slotIndex, action)
+            corner == "right" -> settingsRepository.setCornerGestureRightSlotAction(slotIndex, action)
+            else -> settingsRepository.setCornerGestureLeftSlotAction(slotIndex, action)
+        }
+    }
+
+    fun setCornerSlotSubMenu(corner: String, slotIndex: Int, config: CornerSlotSubMenuConfig) = launchSettingsWrite {
+        val overlay = settingsRepository.overlaySettings.first()
+        val unified = overlay.cornerGestureSettings.unifiedSlots
+        val isLeft = unified || corner != "right"
+        settingsRepository.setCornerSlotSubMenu(isLeft, slotIndex, config)
     }
 }

@@ -104,15 +104,15 @@ sealed class GestureAction {
                     label = label,
                 )
 
-            fun intent(intentUri: String, label: String = "") =
+            fun intent(intentUri: String, label: String = "", hostPackage: String? = null) =
                 LaunchShortcut(
-                    payloadKey = GestureShortcutPayload.encodeIntent(intentUri, label),
+                    payloadKey = GestureShortcutPayload.encodeIntent(intentUri, label, hostPackage),
                     label = label,
                 )
 
-            fun intents(intentUris: List<String>, label: String = "") =
+            fun intents(intentUris: List<String>, label: String = "", hostPackage: String? = null) =
                 LaunchShortcut(
-                    payloadKey = GestureShortcutPayload.encodeIntents(intentUris, label),
+                    payloadKey = GestureShortcutPayload.encodeIntents(intentUris, label, hostPackage),
                     label = label,
                 )
 

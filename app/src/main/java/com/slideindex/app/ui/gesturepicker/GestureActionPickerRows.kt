@@ -7,6 +7,7 @@ import com.slideindex.app.data.AppInfo
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.overlay.TaskSwitcherMenuItem
 import com.slideindex.app.ui.Md3PickerAppLeading
+import com.slideindex.app.ui.Md3PickerAppShortcutLeading
 import com.slideindex.app.ui.Md3PickerIconLeading
 import com.slideindex.app.ui.Md3PickerListRow
 import com.slideindex.app.ui.PickerTrailingMode
@@ -109,9 +110,10 @@ internal fun ActionPickerShortcutRow(
         selected = selected,
         onClick = { onSelect(action) },
         leadingContent = {
-            Md3PickerIconLeading(
-                icon = Icons.AutoMirrored.Outlined.Shortcut,
+            Md3PickerAppShortcutLeading(
+                packageName = packageName,
                 selected = selected,
+                contentDescription = shortcut.label,
             )
         },
         trailingMode = PickerTrailingMode.Radio,

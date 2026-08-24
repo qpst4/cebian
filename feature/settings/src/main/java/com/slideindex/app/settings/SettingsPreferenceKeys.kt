@@ -469,6 +469,8 @@ internal object SettingsPreferenceKeys {
     val CORNER_GESTURE_BUBBLE_SIZE_DP = floatPreferencesKey("corner_gesture_bubble_size_dp")
     val CORNER_GESTURE_LEFT_SLOTS = stringSetPreferencesKey("corner_gesture_left_slots")
     val CORNER_GESTURE_RIGHT_SLOTS = stringSetPreferencesKey("corner_gesture_right_slots")
+    val CORNER_GESTURE_LEFT_SLOT_SUB_MENUS = stringSetPreferencesKey("corner_gesture_left_slot_sub_menus")
+    val CORNER_GESTURE_RIGHT_SLOT_SUB_MENUS = stringSetPreferencesKey("corner_gesture_right_slot_sub_menus")
     val CORNER_GESTURE_CANCEL_OUTSIDE_WHEEL = booleanPreferencesKey("corner_gesture_cancel_outside_wheel")
     val CORNER_GESTURE_PROGRESSIVE_LAYERS = booleanPreferencesKey("corner_gesture_progressive_layers")
     val CORNER_GESTURE_SLOT_HAPTIC = booleanPreferencesKey("corner_gesture_slot_haptic")

@@ -189,6 +189,12 @@ fun LazyListScope.actionPickerShortcutItems(
     loading: Boolean,
     scanProgress: ShortcutScanProgress?,
     onCreateHostClick: (AppShortcutLoader.CreateShortcutHost) -> Unit,
+    shortcutRowContent: @Composable (
+        group: AppShortcutLoader.AppShortcutGroup,
+        shortcut: com.slideindex.app.overlay.TaskSwitcherMenuItem,
+        segmentIndex: Int,
+        segmentCount: Int,
+    ) -> Unit,
 ) {
     if (searchQuery.isBlank()) {
         shortcutFolderCardsSection(
@@ -211,15 +217,6 @@ fun LazyListScope.actionPickerShortcutItems(
         loading = loading,
         scanProgress = scanProgress,
         onCreateHostClick = onCreateHostClick,
-        shortcutRowContent = { group, shortcut, segmentIndex, segmentCount ->
-            ActionPickerShortcutRow(
-                shortcut = shortcut,
-                packageName = group.app.packageName,
-                segmentIndex = segmentIndex,
-                segmentCount = segmentCount,
-                current = current,
-                onSelect = onSelect,
-            )
-        },
+        shortcutRowContent = shortcutRowContent,
     )
 }

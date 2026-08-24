@@ -134,9 +134,12 @@ internal object KnownAppShortcuts {
     private fun alipayShortcuts(): List<TaskSwitcherMenuItem> {
         val flags = Intent.FLAG_ACTIVITY_NEW_TASK
         return listOf(
+            item("alipay_cainiao", "菜鸟", viewUri("alipays://platformapi/startapp?saId=2021001141626787", flags)),
+            item("alipay_forest", "蚂蚁森林", viewUri("alipays://platformapi/startapp?appId=60000002", flags)),
+            item("alipay_receive", "收款码", viewUri("alipayqr://platformapi/startapp?saId=20000123", flags)),
+            item("alipay_pay", "付款码", viewUri("alipayqr://platformapi/startapp?saId=20000056", flags)),
+            item("alipay_bus", "乘车码", viewUri("alipayqr://platformapi/startapp?saId=200011235", flags)),
             item("alipay_scan", "扫一扫", viewUri("alipayqr://platformapi/startapp?saId=10000007", flags)),
-            item("alipay_pay", "付款", viewUri("alipayqr://platformapi/startapp?saId=20000056", flags)),
-            item("alipay_transfer", "转账", viewUri("alipayqr://platformapi/startapp?saId=20000116", flags)),
         )
     }
 

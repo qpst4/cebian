@@ -46,7 +46,13 @@ import com.slideindex.app.R
 import com.slideindex.app.activity.ActivityShortcut
 import com.slideindex.app.activity.ActivityShortcutKind
 import com.slideindex.app.activity.ManagedShortcutIconResolver
+import com.slideindex.app.activity.findForLaunchShortcut
 import com.slideindex.app.data.AppInfo
+import com.slideindex.app.gesture.GestureAction
+import com.slideindex.app.launcher.isShellActivityShortcut
+import com.slideindex.app.launcher.showsShellActivityShortcutBadge
+import com.slideindex.app.overlay.ShellCommandBadgeOverlay
+import com.slideindex.app.overlay.ShortcutBadgeOverlay
 import com.slideindex.app.ui.miuix.miuixGroupedCardItem
 import com.slideindex.app.util.PickerAppIconBitmap
 import com.slideindex.app.util.toSafeImageBitmap
@@ -296,6 +302,68 @@ fun Md3PickerManagedShortcutLeading(
         }
     } else {
         Md3PickerIconLeading(icon = fallbackIcon, selected = selected)
+    }
+}
+
+@Composable
+fun Md3PickerAppShortcutLeading(
+    packageName: String,
+    selected: Boolean = false,
+    contentDescription: String? = null,
+) {
+    Box(
+        modifier = Modifier.size(40.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Md3PickerPackageLeading(
+            packageName = packageName,
+            contentDescription = contentDescription,
+            selected = selected,
+        )
+        ShortcutBadgeOverlay(
+            iconSize = 28.dp,
+            modifier = Modifier.size(28.dp),
+        )
+    }
+}
+
+@Composable
+fun Md3PickerLaunchShortcutLeading(
+    action: GestureAction.LaunchShortcut,
+    activityShortcuts: List<ActivityShortcut>,
+    selected: Boolean = false,
+) {
+    val managed = remember(action.payloadKey, activityShortcuts) {
+        activityShortcuts.findForLaunchShortcut(action.payloadKey)
+    }
+    Box(
+        modifier = Modifier.size(40.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        if (managed != null) {
+            Md3PickerManagedShortcutLeading(shortcut = managed, selected = selected)
+        } else {
+            val hostPackage = ManagedShortcutIconResolver.hostPackageForLaunchShortcut(action.payloadKey).orEmpty()
+            Md3PickerPackageLeading(
+                packageName = hostPackage,
+                contentDescription = action.label,
+                selected = selected,
+            )
+        }
+        when {
+            action.showsShellActivityShortcutBadge(activityShortcuts) -> {
+                ShellCommandBadgeOverlay(
+                    iconSize = 28.dp,
+                    modifier = Modifier.size(28.dp),
+                )
+            }
+            !action.isShellActivityShortcut(activityShortcuts) -> {
+                ShortcutBadgeOverlay(
+                    iconSize = 28.dp,
+                    modifier = Modifier.size(28.dp),
+                )
+            }
+        }
     }
 }
 

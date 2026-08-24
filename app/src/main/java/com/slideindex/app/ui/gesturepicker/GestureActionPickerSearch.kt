@@ -74,12 +74,15 @@ fun gestureActionDescriptionText(context: Context, action: GestureAction): Strin
         else -> null
     }
 
+fun launchShortcutDisplayLabel(action: GestureAction.LaunchShortcut): String =
+    action.label.ifBlank {
+        GestureShortcutPayload.decode(action.payloadKey)?.label.orEmpty()
+    }
+
 fun gestureActionLabelText(context: Context, action: GestureAction): String = when (action) {
     is GestureAction.LaunchApp -> launchAppActionLabel(context, action.packageName)
     is GestureAction.LaunchShortcut -> {
-        val shortcutLabel = action.label.ifBlank {
-            GestureShortcutPayload.decode(action.payloadKey)?.label.orEmpty()
-        }
+        val shortcutLabel = launchShortcutDisplayLabel(action)
         if (shortcutLabel.isBlank()) {
             context.getString(R.string.gesture_action_launch_shortcut)
         } else {
@@ -175,13 +178,11 @@ fun gestureActionLabel(action: GestureAction, settings: AppSettings? = null): St
         }
     }
     is GestureAction.LaunchShortcut -> {
-        val label = action.label.ifBlank {
-            GestureShortcutPayload.decode(action.payloadKey)?.label.orEmpty()
-        }
+        val label = launchShortcutDisplayLabel(action)
         if (label.isBlank()) {
             stringResource(R.string.gesture_action_launch_shortcut)
         } else {
-            stringResource(R.string.gesture_action_launch_shortcut_named, label)
+            label
         }
     }
     is GestureAction.QuickLauncher -> {

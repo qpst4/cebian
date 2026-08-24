@@ -15,7 +15,7 @@ import androidx.core.graphics.createBitmap
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.GestureShortcutPayload
 import com.slideindex.app.launcher.QuickLauncherItem
-import com.slideindex.app.launcher.QuickLauncherItemCodec
+import com.slideindex.app.shell.ShellCommandIconResolver
 import com.slideindex.app.launcher.QuickLauncherItemType
 
 /**
@@ -53,12 +53,19 @@ object ManagedShortcutIconResolver {
     }
 
     fun hostPackageForLaunchShortcut(payloadKey: String): String? {
-        return when (val decoded = GestureShortcutPayload.decode(payloadKey)) {
+        val decoded = GestureShortcutPayload.decode(payloadKey)
+        if (decoded is GestureShortcutPayload.Decoded.IntentShortcut &&
+            ActivityShortcutShellSupport.isShellUri(decoded.intentUri)
+        ) {
+            return ActivityShortcutShellSupport.HOST_PACKAGE
+        }
+        return when (decoded) {
             is GestureShortcutPayload.Decoded.Dynamic -> decoded.packageName
             is GestureShortcutPayload.Decoded.Component ->
                 decoded.componentFlat.substringBefore('/').takeIf { it.isNotBlank() }
             is GestureShortcutPayload.Decoded.IntentShortcut ->
-                packageFromIntentUri(decoded.intentUri)
+                GestureShortcutPayload.intentHostPackage(payloadKey)
+                    ?: packageFromIntentUri(decoded.intentUri)
             is GestureShortcutPayload.Decoded.IntentsShortcut ->
                 decoded.intentUris.firstNotNullOfOrNull { packageFromIntentUri(it) }
             null -> null
@@ -66,6 +73,11 @@ object ManagedShortcutIconResolver {
     }
 
     fun drawableForManaged(context: Context, shortcut: ActivityShortcut): Drawable? {
+        ActivityShortcutShellSupport.shellCommandFrom(shortcut)?.let { shell ->
+            ShellCommandIconResolver.resolveBitmap(context, shell, 96)?.let { bitmap ->
+                return bitmap.toDrawable(context.resources)
+            }
+        }
         shortcut.iconPath?.let { path ->
             ShortcutIconStorage.loadBitmap(context, path)?.let { bitmap ->
                 return bitmap.toDrawable(context.resources)

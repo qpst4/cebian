@@ -446,16 +446,19 @@ private fun LazyListScope.presetShortcutsListContent(
             key = { itemIndex -> "preset_item_${groupIndex}_${itemIndex}_${group.shortcuts[itemIndex].name}_${group.shortcuts[itemIndex].targetActionUrl.hashCode()}" },
         ) { index ->
             val item = group.shortcuts[index]
-            val shortcutLabel = "${group.appLabel} - ${item.name}"
             val qlItem = QuickLauncherItem.intentShortcut(
                 intentUri = item.targetActionUrl,
-                label = shortcutLabel,
+                label = item.name,
                 hostPackage = group.packageName,
             )
             val key = QuickLauncherItemCodec.shortcutItemKey(qlItem).orEmpty()
             val added = configuredShortcutKeys?.let { key in it } ?: false
 
-            val action = GestureAction.LaunchShortcut.intent(item.targetActionUrl, shortcutLabel)
+            val action = GestureAction.LaunchShortcut.intent(
+                item.targetActionUrl,
+                item.name,
+                group.packageName,
+            )
             val radioSelected = currentAction is GestureAction.LaunchShortcut && currentAction.payloadKey == action.payloadKey
 
             val trailingMode = when {
@@ -480,7 +483,7 @@ private fun LazyListScope.presetShortcutsListContent(
                             ShortcutEntry(
                                 packageName = group.packageName,
                                 shortcutId = "preset_${item.name.hashCode()}",
-                                label = shortcutLabel,
+                                label = item.name,
                                 sortKey = item.pinyinName,
                                 initialKey = item.initialName,
                                 iconBitmap = null,

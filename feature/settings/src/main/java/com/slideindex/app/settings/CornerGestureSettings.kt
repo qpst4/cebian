@@ -43,6 +43,8 @@ data class CornerGestureSettings(
     val innerZoneAction: GestureAction = GestureAction.CornerInnerCancel,
     val leftSlots: List<GestureAction> = CornerRadialMenuCodec.defaultLeftSlots(),
     val rightSlots: List<GestureAction> = CornerRadialMenuCodec.defaultRightSlots(),
+    val leftSlotSubMenus: List<CornerSlotSubMenuConfig> = CornerSlotSubMenuCodec.defaultSlotSubMenus(),
+    val rightSlotSubMenus: List<CornerSlotSubMenuConfig> = CornerSlotSubMenuCodec.defaultSlotSubMenus(),
 ) {
     fun hasActiveTriggerZone(): Boolean =
         (verticalEdgeWidthDp > 0f && verticalEdgeHeightDp > 0f) ||

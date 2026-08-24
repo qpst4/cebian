@@ -76,6 +76,7 @@ fun ActivityShortcutScreen(
     onSaveShortcuts: (List<ActivityShortcut>) -> Unit,
     onAdd: () -> Unit,
     onAddAppShortcut: () -> Unit,
+    onAddShellCommand: () -> Unit,
     onOpenPresets: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -161,6 +162,10 @@ fun ActivityShortcutScreen(
             showAddSheet = false
             onAddAppShortcut()
         },
+        onAddShellCommand = {
+            showAddSheet = false
+            onAddShellCommand()
+        },
     )
 
     val shortcutHint = stringResource(R.string.activity_shortcut_hint)
@@ -230,6 +235,13 @@ fun ActivityShortcutScreen(
                         title = stringResource(R.string.activity_shortcut_add_from_shortcuts),
                         summary = stringResource(R.string.activity_shortcut_add_from_shortcuts_sub),
                         onClick = onAddAppShortcut,
+                    )
+                },
+                CardItem("shell") {
+                    ArrowPreference(
+                        title = stringResource(R.string.activity_shortcut_add_from_shell),
+                        summary = stringResource(R.string.activity_shortcut_add_from_shell_sub),
+                        onClick = onAddShellCommand,
                     )
                 },
             ),
@@ -498,6 +510,7 @@ private fun ActivityShortcutAddBottomSheet(
     onOpenPresets: () -> Unit,
     onBrowseActivity: () -> Unit,
     onAddAppShortcut: () -> Unit,
+    onAddShellCommand: () -> Unit,
 ) {
     MiuixBottomSheet(
         show = show,
@@ -519,6 +532,11 @@ private fun ActivityShortcutAddBottomSheet(
                 title = stringResource(R.string.activity_shortcut_add_from_shortcuts),
                 summary = stringResource(R.string.activity_shortcut_add_from_shortcuts_sub),
                 onClick = onAddAppShortcut,
+            )
+            ArrowPreference(
+                title = stringResource(R.string.activity_shortcut_add_from_shell),
+                summary = stringResource(R.string.activity_shortcut_add_from_shell_sub),
+                onClick = onAddShellCommand,
             )
         }
     }

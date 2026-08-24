@@ -29,6 +29,19 @@ class GestureShortcutPayloadTest {
     }
 
     @Test
+    fun encodeDecode_intent_withHostPackage_roundTrip() {
+        val uri = "pinduoduo://com.xunmeng.pinduoduo/orders.html"
+        val encoded = GestureShortcutPayload.encodeIntent(uri, "订单", "com.xunmeng.pinduoduo")
+
+        val decoded = GestureShortcutPayload.decode(encoded) as GestureShortcutPayload.Decoded.IntentShortcut
+
+        assertEquals(uri, decoded.intentUri)
+        assertEquals("订单", decoded.label)
+        assertEquals("com.xunmeng.pinduoduo", GestureShortcutPayload.intentHostPackage(encoded))
+        assertEquals("intent:$uri", GestureShortcutPayload.shortcutToggleKey(encoded))
+    }
+
+    @Test
     fun encodeDecode_intent_roundTrip() {
         val uri = "#Intent;action=android.intent.action.VIEW;end"
         val encoded = GestureShortcutPayload.encodeIntent(uri, "打开")

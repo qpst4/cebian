@@ -81,6 +81,20 @@ object ActivityShortcutLauncher {
         longPressTriggered: Boolean,
     ): Boolean {
         for (uri in shortcut.intentUris) {
+            if (ActivityShortcutShellSupport.isShellUri(uri)) {
+                val command = ActivityShortcutShellSupport.decodeCommand(uri)
+                if (command.isNotBlank()) {
+                    com.slideindex.app.util.ShellCommandRunner.execute(
+                        context = context,
+                        command = com.slideindex.app.shell.ShellCommand(
+                            label = shortcut.label,
+                            command = command,
+                        ),
+                    )
+                    return true
+                }
+                continue
+            }
             val intent = runCatching {
                 Intent.parseUri(uri, Intent.URI_INTENT_SCHEME)
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
