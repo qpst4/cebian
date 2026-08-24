@@ -1,8 +1,8 @@
 package com.slideindex.app.ui
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -22,12 +22,13 @@ import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.overlay.honeycombRuntimeItems
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.ui.compose.rememberAppRepository
+import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.navigation.rememberContentReady
 import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.SettingsDeferredLoadingIndicator
-import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
-import com.slideindex.app.ui.settings.components.settingsCardItems
+import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffold
+import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -65,24 +66,28 @@ fun HoneycombLauncherEditorScreen(
         onSaveItems(normalized)
     }
 
-    val displaySettingsCard = settingsCardItems {
-        SettingNavigationRow(
-            icon = { label ->
-                Icon(Icons.Outlined.Tune, contentDescription = label)
-            },
-            title = stringResource(R.string.honeycomb_display_settings_entry),
-            subtitle = stringResource(R.string.honeycomb_display_settings_entry_desc),
-            onClick = onOpenDisplaySettings,
-        )
-    }
-
     val contentReady = rememberContentReady()
-    SettingsScreenScaffold(
+    SettingsLazyScreenScaffold(
         title = stringResource(R.string.honeycomb_launcher_editor_title),
         onBack = { saveAndBack() },
-        scrollContent = false,
         modifier = Modifier.fillMaxSize(),
+        userScrollEnabled = !layoutEditing,
     ) {
+        groupedCardItems(
+            keyPrefix = "honeycomb-display-entry",
+            items = listOf(
+                settingsCardScopeItem("display-settings") {
+                    SettingNavigationRow(
+                        icon = { label ->
+                            Icon(Icons.Outlined.Tune, contentDescription = label)
+                        },
+                        title = stringResource(R.string.honeycomb_display_settings_entry),
+                        subtitle = stringResource(R.string.honeycomb_display_settings_entry_desc),
+                        onClick = onOpenDisplaySettings,
+                    )
+                },
+            ),
+        )
         if (!contentReady) {
             LazySettingsItem(key = "honeycomb-launcher-loading", fillParentMaxSize = true) {
                 Box(
@@ -93,21 +98,19 @@ fun HoneycombLauncherEditorScreen(
                 }
             }
         } else {
-            LazySettingsItem(key = "honeycomb-launcher-main", fillParentMaxSize = true) {
-                Column(modifier = Modifier.fillMaxSize()) {
-                    displaySettingsCard.RenderRows()
-                    HoneycombLauncherItemsSection(
-                        modifier = Modifier.weight(1f),
-                        items = items,
-                        display = settings.honeycombDisplay,
-                        appsByPackage = appsByPackage,
-                        onItemsChange = ::persistItems,
-                        onAdd = onAdd,
-                        onInteractionActiveChange = { layoutEditing = it },
-                        activityShortcuts = settings.activityShortcuts,
-                        shellCommands = settings.shellCommands,
-                    )
-                }
+            LazySettingsItem(key = "honeycomb-launcher-items") {
+                HoneycombLauncherItemsSection(
+                    modifier = Modifier.fillMaxWidth(),
+                    nestedScrollEnabled = false,
+                    items = items,
+                    display = settings.honeycombDisplay,
+                    appsByPackage = appsByPackage,
+                    onItemsChange = ::persistItems,
+                    onAdd = onAdd,
+                    onInteractionActiveChange = { layoutEditing = it },
+                    activityShortcuts = settings.activityShortcuts,
+                    shellCommands = settings.shellCommands,
+                )
             }
         }
     }

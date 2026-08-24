@@ -113,6 +113,7 @@ fun HoneycombLauncherItemsSection(
     onAdd: () -> Unit,
     onInteractionActiveChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
+    nestedScrollEnabled: Boolean = true,
     descriptionResId: Int = R.string.honeycomb_launcher_editor_desc,
     activityShortcuts: List<com.slideindex.app.activity.ActivityShortcut> = emptyList(),
     shellCommands: List<com.slideindex.app.shell.ShellCommand> = emptyList(),
@@ -150,8 +151,15 @@ fun HoneycombLauncherItemsSection(
 
     Column(
         modifier = modifier
-            .fillMaxSize()
-            .verticalScroll(scrollState, enabled = !interactionActive)
+            .then(
+                if (nestedScrollEnabled) {
+                    Modifier
+                        .fillMaxSize()
+                        .verticalScroll(scrollState, enabled = !interactionActive)
+                } else {
+                    Modifier.fillMaxWidth()
+                },
+            )
             .padding(horizontal = 20.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
