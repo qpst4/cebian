@@ -30,6 +30,15 @@ class Ball3DView @JvmOverloads constructor(
     defStyleAttr: Int = 0,
 ) : View(context, attrs, defStyleAttr) {
 
+    companion object {
+        /** px/s → rad/帧，再经 density 归一化 */
+        private const val FLING_VELOCITY_SCALE = 2.5e-4f
+        private const val FLING_MIN_VELOCITY_PX_PER_S = 900f
+        private const val FLING_MAX_RAD_PER_FRAME = 0.85f
+        private const val FLING_DECAY = 0.96f
+        private const val FLING_STOP_THRESHOLD = 0.005f
+    }
+
     private data class AppNode(
         val app: HolographicLauncherApp,
         val originalX: Float,
@@ -220,8 +229,9 @@ class Ball3DView @JvmOverloads constructor(
                     isDragging = true
                 }
                 if (isDragging) {
-                    rotY += dx * sensitivity
-                    rotX += dy * sensitivity
+                    val density = resources.displayMetrics.density
+                    rotY += dx * sensitivity / density
+                    rotX += dy * sensitivity / density
                     maybeHapticOnRotate()
                     lastTouchX = event.x
                     lastTouchY = event.y
@@ -242,10 +252,10 @@ class Ball3DView @JvmOverloads constructor(
                     val elapsed = System.currentTimeMillis() - downTime
                     val movedX = abs(event.x - lastMoveX)
                     val movedY = abs(event.y - lastMoveY)
-                    val fast = abs(vx) > 400f || abs(vy) > 400f
+                    val fast = abs(vx) > FLING_MIN_VELOCITY_PX_PER_S || abs(vy) > FLING_MIN_VELOCITY_PX_PER_S
                     val far = movedX > touchSlop * 3f || movedY > touchSlop * 3f
                     if (fast && far && elapsed < 500) {
-                        startFling(vx * 8.0e-4f, vy * 8.0e-4f)
+                        startFling(vx, vy)
                     } else {
                         onRotationStateChange?.invoke(false)
                     }
@@ -304,23 +314,26 @@ class Ball3DView @JvmOverloads constructor(
         best?.let { onAppClick?.invoke(it.app) }
     }
 
-    private fun startFling(vx: Float, vy: Float) {
+    private fun startFling(vxPxPerS: Float, vyPxPerS: Float) {
+        val density = resources.displayMetrics.density
         onRotationStateChange?.invoke(true)
-        var velocityX = vx
-        var velocityY = vy
+        var velocityX = (vxPxPerS / density * FLING_VELOCITY_SCALE)
+            .coerceIn(-FLING_MAX_RAD_PER_FRAME, FLING_MAX_RAD_PER_FRAME)
+        var velocityY = (vyPxPerS / density * FLING_VELOCITY_SCALE)
+            .coerceIn(-FLING_MAX_RAD_PER_FRAME, FLING_MAX_RAD_PER_FRAME)
         val runnable = object : Runnable {
             override fun run() {
-                if (abs(velocityX) < 0.005f && abs(velocityY) < 0.005f) {
+                if (abs(velocityX) < FLING_STOP_THRESHOLD && abs(velocityY) < FLING_STOP_THRESHOLD) {
                     onRotationStateChange?.invoke(false)
                     flingRunnable = null
                     return
                 }
                 rotY += velocityX
                 rotX += velocityY
-                velocityX *= 0.96f
-                velocityY *= 0.96f
+                velocityX *= FLING_DECAY
+                velocityY *= FLING_DECAY
                 invalidate()
-                if (abs(velocityX) > 0.005f || abs(velocityY) > 0.005f) {
+                if (abs(velocityX) > FLING_STOP_THRESHOLD || abs(velocityY) > FLING_STOP_THRESHOLD) {
                     handler.postDelayed(this, 16L)
                 } else {
                     onRotationStateChange?.invoke(false)

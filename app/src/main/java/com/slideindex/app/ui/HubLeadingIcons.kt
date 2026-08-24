@@ -46,6 +46,9 @@ internal object HubLeadingIcons {
     fun appSwitcher(outlined: Boolean) =
         if (outlined) gestureActionTypeOutlinedIcon(GestureActionType.APP_SWITCHER) else Icons.Default.Apps
 
+    fun holographicLauncher(outlined: Boolean) =
+        if (outlined) gestureActionTypeOutlinedIcon(GestureActionType.HOLOGRAPHIC_LAUNCHER) else Icons.Default.Apps
+
     fun activityShortcut(outlined: Boolean) =
         homeLeadingIcon(outlined, Icons.AutoMirrored.Filled.Launch, Icons.AutoMirrored.Outlined.Launch)
 

@@ -34,6 +34,8 @@ import com.slideindex.app.ui.SearchPanelSettingsScreen
 import com.slideindex.app.ui.SearchPanelSystemSettingsSearchSettingsScreen
 import com.slideindex.app.ui.FloatBallSettingsScreen
 import com.slideindex.app.ui.QuickLauncherEditorScreen
+import com.slideindex.app.ui.HolographicLauncherSettingsScreen
+import com.slideindex.app.ui.HiddenAppsScreen
 import com.slideindex.app.ui.HoneycombDisplaySettingsScreen
 import com.slideindex.app.ui.HoneycombLauncherEditorScreen
 import com.slideindex.app.ui.quicklauncher.QuickLauncherAddPickerScreen
@@ -125,6 +127,7 @@ fun NavEntryBuilder.extensionNavEntries(ctx: MainNavContext) {
             onOpenLayoutSettings = { ctx.navigate(AppNavKey.HomeLayout) },
             onOpenQuickLauncher = { ctx.navigate(AppNavKey.QuickLauncher) },
             onOpenHoneycombLauncher = { ctx.navigate(AppNavKey.HoneycombLauncher) },
+            onOpenHolographicLauncher = { ctx.navigate(AppNavKey.HolographicLauncherSettings) },
             onOpenActivityShortcuts = { ctx.navigate(AppNavKey.ActivityShortcuts) },
             onOpenShellCommands = { ctx.navigate(AppNavKey.ShellCommands) },
             onOpenWidgetPanel = { ctx.navigate(AppNavKey.WidgetPanel) },
@@ -545,6 +548,33 @@ fun NavEntryBuilder.extensionNavEntries(ctx: MainNavContext) {
             display = settings.honeycombDisplay,
             onBack = { ctx.navigateBackTo(AppNavKey.HoneycombLauncher) },
             onDisplayChange = viewModel::setHoneycombDisplaySettings,
+        )
+    }
+
+    hiltEntry<AppNavKey.HolographicLauncherSettings> {
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val holographicSettings = gestureSettings.holographicLauncher
+        HolographicLauncherSettingsScreen(
+            settings = holographicSettings,
+            onBack = { ctx.navigateBackTo(AppNavKey.ExtensionHub) },
+            onTimeoutSecondsChange = viewModel::setHolographicLauncherTimeoutSeconds,
+            onRotationSensitivityChange = viewModel::setHolographicRotationSensitivity,
+            onHapticLevelChange = viewModel::setHolographicHapticLevel,
+            onOpenHiddenApps = { ctx.navigate(AppNavKey.HolographicLauncherHiddenApps) },
+        )
+    }
+
+    hiltEntry<AppNavKey.HolographicLauncherHiddenApps> {
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        HiddenAppsScreen(
+            hiddenPackages = gestureSettings.holographicLauncher.hiddenAppPackages,
+            onBack = { ctx.navigateBackTo(AppNavKey.HolographicLauncherSettings) },
+            onHideApp = viewModel::addHolographicHiddenApp,
+            onUnhideApp = viewModel::removeHolographicHiddenApp,
+            titleRes = R.string.holographic_hidden_apps_title,
+            descriptionRes = R.string.holographic_hidden_apps_desc,
         )
     }
 

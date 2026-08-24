@@ -109,6 +109,26 @@ class ExtensionSettingsViewModel @Inject constructor(
             settingsRepository.setHoneycombDisplaySettings(settings)
         }
 
+    fun setHolographicLauncherTimeoutSeconds(value: Int) = launchSettingsWrite {
+        settingsRepository.setHolographicLauncherTimeoutSeconds(value)
+    }
+
+    fun setHolographicRotationSensitivity(value: Float) = launchSettingsWrite {
+        settingsRepository.setHolographicRotationSensitivity(value)
+    }
+
+    fun setHolographicHapticLevel(value: Int) = launchSettingsWrite {
+        settingsRepository.setHolographicHapticLevel(value)
+    }
+
+    fun addHolographicHiddenApp(packageName: String) = launchSettingsWrite {
+        settingsRepository.addHolographicHiddenApp(packageName)
+    }
+
+    fun removeHolographicHiddenApp(packageName: String) = launchSettingsWrite {
+        settingsRepository.removeHolographicHiddenApp(packageName)
+    }
+
     fun toggleQuickLauncherPanelItem(panelId: String, item: QuickLauncherItem, added: Boolean) = launchSettingsWrite {
         val currentPanels = QuickLauncherPanelDefaults.effectivePanels(settingsRepository.readSnapshot().quickLauncherPanels)
         val updated = currentPanels.map { panel ->

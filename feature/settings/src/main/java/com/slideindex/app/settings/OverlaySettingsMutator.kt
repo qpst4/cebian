@@ -1295,4 +1295,34 @@ class OverlaySettingsMutator @Inject constructor(
             prefs[SettingsPreferenceKeys.CORNER_GESTURE_RIGHT_SLOTS] = CornerRadialMenuCodec.encode(updated)
         }
     }
+
+    suspend fun setHolographicLauncherTimeoutSeconds(value: Int) = editor.edit {
+        it[SettingsPreferenceKeys.HOLOGRAPHIC_TIMEOUT_SECONDS] = value.coerceIn(
+            HolographicLauncherSettings.MIN_TIMEOUT_SECONDS,
+            HolographicLauncherSettings.MAX_TIMEOUT_SECONDS,
+        )
+    }
+
+    suspend fun setHolographicRotationSensitivity(value: Float) = editor.edit {
+        it[SettingsPreferenceKeys.HOLOGRAPHIC_ROTATION_SENSITIVITY] = value.coerceIn(
+            HolographicLauncherSettings.MIN_ROTATION_SENSITIVITY,
+            HolographicLauncherSettings.MAX_ROTATION_SENSITIVITY,
+        )
+    }
+
+    suspend fun setHolographicHapticLevel(value: Int) = editor.edit {
+        it[SettingsPreferenceKeys.HOLOGRAPHIC_HAPTIC_LEVEL] = value.coerceIn(0, 3)
+    }
+
+    suspend fun addHolographicHiddenApp(packageName: String) = editor.edit {
+        val current = it[SettingsPreferenceKeys.HOLOGRAPHIC_HIDDEN_APP_PACKAGES]?.toMutableSet() ?: mutableSetOf()
+        current.add(packageName)
+        it[SettingsPreferenceKeys.HOLOGRAPHIC_HIDDEN_APP_PACKAGES] = current
+    }
+
+    suspend fun removeHolographicHiddenApp(packageName: String) = editor.edit {
+        val current = it[SettingsPreferenceKeys.HOLOGRAPHIC_HIDDEN_APP_PACKAGES]?.toMutableSet() ?: return@edit
+        current.remove(packageName)
+        it[SettingsPreferenceKeys.HOLOGRAPHIC_HIDDEN_APP_PACKAGES] = current
+    }
 }

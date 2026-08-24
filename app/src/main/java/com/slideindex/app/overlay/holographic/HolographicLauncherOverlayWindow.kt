@@ -112,7 +112,7 @@ object HolographicLauncherOverlayWindow {
         settings: AppSettings,
         appRepository: AppRepository,
     ): List<HolographicLauncherApp> {
-        val hidden = settings.hiddenAppPackages
+        val hidden = settings.holographicLauncher.hiddenAppPackages
         val selfPackage = context.packageName
         return appRepository.getCachedApps()
             .filter { it.packageName != selfPackage && it.packageName !in hidden }

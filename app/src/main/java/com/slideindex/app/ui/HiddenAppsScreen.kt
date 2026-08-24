@@ -25,7 +25,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.data.AppInfo
-import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.ui.compose.rememberAppRepository
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffoldWithExpandableSearch
@@ -34,10 +33,12 @@ import com.slideindex.app.util.PinyinHelper
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun HiddenAppsScreen(
-    settings: AppSettings,
+    hiddenPackages: Set<String>,
     onBack: () -> Unit,
     onHideApp: (String) -> Unit,
     onUnhideApp: (String) -> Unit,
+    titleRes: Int = R.string.hidden_apps_title,
+    descriptionRes: Int = R.string.hidden_apps_desc,
 ) {
     val appRepository = rememberAppRepository()
     var allApps by remember { mutableStateOf<List<AppInfo>>(emptyList()) }
@@ -49,7 +50,6 @@ fun HiddenAppsScreen(
         isLoading = false
     }
 
-    val hiddenPackages = settings.hiddenAppPackages
     val appsByPackage = remember(allApps) { allApps.associateBy { it.packageName } }
     val hiddenEntries = remember(hiddenPackages, allApps) {
         hiddenPackages.sorted().map { packageName ->
@@ -71,13 +71,13 @@ fun HiddenAppsScreen(
     }
 
     SettingsLazyScreenScaffoldWithExpandableSearch(
-        title = stringResource(R.string.hidden_apps_title),
+        title = stringResource(titleRes),
         searchQuery = searchQuery,
         onSearchQueryChange = { searchQuery = it },
         onBack = onBack,
     ) {
         item(key = "desc") {
-            MiuixHintText(stringResource(R.string.hidden_apps_desc))
+            MiuixHintText(stringResource(descriptionRes))
         }
         item(key = "section-hidden") {
             MiuixSmallTitle(stringResource(R.string.hidden_apps_section_hidden))
@@ -156,15 +156,17 @@ fun HiddenAppsScreen(
 fun SettingsCardScope.HiddenAppsEntryCard(
     hiddenCount: Int,
     onClick: () -> Unit,
+    titleRes: Int = R.string.hidden_apps_entry_title,
+    descriptionRes: Int = R.string.hidden_apps_entry_desc,
 ) {
     val subtitle = if (hiddenCount > 0) {
         stringResource(R.string.hidden_apps_entry_count, hiddenCount)
     } else {
-        stringResource(R.string.hidden_apps_entry_desc)
+        stringResource(descriptionRes)
     }
     SettingNavigationRow(
         icon = { label -> Icon(Icons.Default.VisibilityOff, contentDescription = label) },
-        title = stringResource(R.string.hidden_apps_entry_title),
+        title = stringResource(titleRes),
         subtitle = subtitle,
         onClick = onClick,
     )

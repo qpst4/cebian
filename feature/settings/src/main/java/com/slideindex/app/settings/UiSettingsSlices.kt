@@ -92,6 +92,7 @@ data class ExtensionHubSettings(
     val floatingPointerSensitivityFraction: Float = 0.52f,
     val clipboardBackgroundMonitoring: Boolean = true,
     val clipboardBackgroundMonitoringMode: ClipboardMonitoringMode = ClipboardMonitoringMode.SHIZUKU_LOGS,
+    val holographicHiddenAppCount: Int = 0,
 ) {
     companion object {
         fun from(settings: AppSettings): ExtensionHubSettings = ExtensionHubSettings(
@@ -106,6 +107,7 @@ data class ExtensionHubSettings(
             floatingPointerSensitivityFraction = settings.floatingPointerSensitivityFraction,
             clipboardBackgroundMonitoring = settings.clipboardBackgroundMonitoring,
             clipboardBackgroundMonitoringMode = settings.clipboardBackgroundMonitoringMode,
+            holographicHiddenAppCount = settings.holographicLauncher.hiddenAppPackages.size,
         )
     }
 }

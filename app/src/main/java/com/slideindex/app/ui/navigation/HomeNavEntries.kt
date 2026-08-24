@@ -1256,7 +1256,7 @@ fun NavEntryBuilder.layoutSettingsNavEntries(ctx: MainNavContext) {
         val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
         val settings = gestureSettings.toMinimalAppSettings()
         HiddenAppsScreen(
-            settings = settings,
+            hiddenPackages = settings.hiddenAppPackages,
             onBack = { ctx.navigateBackTo(AppNavKey.HomeLayout) },
             onHideApp = viewModel::addHiddenApp,
             onUnhideApp = viewModel::removeHiddenApp,

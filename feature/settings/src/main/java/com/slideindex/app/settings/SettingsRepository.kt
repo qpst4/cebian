@@ -384,6 +384,21 @@ class SettingsRepository @Inject constructor(
     suspend fun setHoneycombDisplaySettings(settings: HoneycombDisplaySettings) =
         overlay.setHoneycombDisplaySettings(settings)
 
+    suspend fun setHolographicLauncherTimeoutSeconds(value: Int) =
+        overlay.setHolographicLauncherTimeoutSeconds(value)
+
+    suspend fun setHolographicRotationSensitivity(value: Float) =
+        overlay.setHolographicRotationSensitivity(value)
+
+    suspend fun setHolographicHapticLevel(value: Int) =
+        overlay.setHolographicHapticLevel(value)
+
+    suspend fun addHolographicHiddenApp(packageName: String) =
+        overlay.addHolographicHiddenApp(packageName)
+
+    suspend fun removeHolographicHiddenApp(packageName: String) =
+        overlay.removeHolographicHiddenApp(packageName)
+
     suspend fun setShellCommands(items: List<ShellCommand>) = overlay.setShellCommands(items)
     suspend fun setActivityShortcuts(items: List<com.slideindex.app.activity.ActivityShortcut>) =
         overlay.setActivityShortcuts(items)

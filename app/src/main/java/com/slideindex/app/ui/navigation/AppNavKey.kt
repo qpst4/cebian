@@ -225,6 +225,8 @@ sealed interface AppNavKey : NavKey {
     @Serializable data object HoneycombLauncherPresetShortcuts : AppNavKey
     @Serializable data class HoneycombLauncherShellCommand(val initialCommand: String = "") : AppNavKey
     @Serializable data object HoneycombDisplaySettings : AppNavKey
+    @Serializable data object HolographicLauncherSettings : AppNavKey
+    @Serializable data object HolographicLauncherHiddenApps : AppNavKey
     @Serializable data object ShellCommands : AppNavKey
     @Serializable data object ActivityShortcuts : AppNavKey
     @Serializable data object ActivityShortcutPresets : AppNavKey

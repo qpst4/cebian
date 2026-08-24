@@ -142,6 +142,7 @@ internal object SettingsPreferenceKeys {
     val HOLOGRAPHIC_TIMEOUT_SECONDS = intPreferencesKey("holographic_timeout_seconds")
     val HOLOGRAPHIC_ROTATION_SENSITIVITY = floatPreferencesKey("holographic_rotation_sensitivity")
     val HOLOGRAPHIC_HAPTIC_LEVEL = intPreferencesKey("holographic_haptic_level")
+    val HOLOGRAPHIC_HIDDEN_APP_PACKAGES = stringSetPreferencesKey("holographic_hidden_app_packages")
     val SHELL_COMMANDS = stringSetPreferencesKey("shell_commands")
     val ACTIVITY_SHORTCUTS = stringSetPreferencesKey("activity_shortcuts")
     val HIDE_TRIGGER_LANDSCAPE = booleanPreferencesKey("hide_trigger_landscape")
