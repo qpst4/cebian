@@ -86,7 +86,8 @@ class GestureSession(
             val classification = pathRecognizer.classifyPartial(lastRawX, lastRawY, classifyOptions()) ?: return@Runnable
             when (sessionSettings.resolvedTriggerMode(side, classification.trigger, sessionActiveHandleId)) {
                 GestureTriggerMode.IMMEDIATE -> {
-                    if (!sessionMoveTimeActionFired &&
+                    if (sessionMoveTimeActionFired) return@Runnable
+                    if (pathRecognizer.isLongPressArmed() ||
                         pathRecognizer.hasMetThreshold(classification.trigger, lastRawX, lastRawY)
                     ) {
                         dispatchMoveTimeGesture(
@@ -98,7 +99,16 @@ class GestureSession(
                         )
                     }
                 }
-                GestureTriggerMode.ON_RELEASE, GestureTriggerMode.DEFAULT, GestureTriggerMode.CONTINUOUS -> Unit
+                GestureTriggerMode.CONTINUOUS -> {
+                    trackContinuousGesture(
+                        classification = classification,
+                        rawX = lastRawX,
+                        rawY = lastRawY,
+                        localX = lastLocalX,
+                        localY = lastLocalY,
+                    )
+                }
+                GestureTriggerMode.ON_RELEASE, GestureTriggerMode.DEFAULT -> Unit
             }
         }
     }

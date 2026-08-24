@@ -516,7 +516,14 @@ fun GestureAction.requiresContinuousTriggerOnly(): Boolean =
 
 fun GestureAction.supportsContinuousTracking(trigger: GestureTriggerType): Boolean {
     if (this !in GestureAction.continuousTrackingActions) return false
-    return !trigger.isPressOrTap
+    return when (this) {
+        GestureAction.AppSwitcher,
+        GestureAction.HoneycombLauncher,
+        is GestureAction.QuickLauncher,
+        GestureAction.ShellCommandPanel,
+        -> trigger.isLongPress || !trigger.isPressOrTap
+        else -> !trigger.isPressOrTap
+    }
 }
 
 fun GestureAction.preferredTriggerMode(trigger: GestureTriggerType): GestureTriggerMode? =
@@ -526,7 +533,11 @@ fun GestureAction.preferredTriggerMode(trigger: GestureTriggerType): GestureTrig
         is GestureAction.QuickLauncher, GestureAction.ShellCommandPanel, GestureAction.HoneycombLauncher,
         GestureAction.AppSwitcher,
         ->
-            if (trigger.supportsIndex) GestureTriggerMode.CONTINUOUS else null
+            when {
+                trigger.isLongPress -> GestureTriggerMode.CONTINUOUS
+                trigger.supportsIndex -> GestureTriggerMode.CONTINUOUS
+                else -> null
+            }
         GestureAction.AdjustVolume, GestureAction.AdjustBrightness ->
             if (!trigger.isPressOrTap) GestureTriggerMode.ON_RELEASE else null
         GestureAction.RegionalScreenshotPick, GestureAction.FloatingPointer ->

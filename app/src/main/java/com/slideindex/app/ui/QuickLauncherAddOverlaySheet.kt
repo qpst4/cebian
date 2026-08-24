@@ -65,6 +65,7 @@ import com.slideindex.app.util.AppShortcutLoader
 import com.slideindex.app.util.AppShortcutLoader.CreatedShortcut
 import com.slideindex.app.util.AppShortcutLoader.toQuickLauncherItem
 import kotlinx.coroutines.delay
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 data class PendingQuickLauncherFolderShortcut(
     val folderName: String,
@@ -209,7 +210,7 @@ fun QuickLauncherAddOverlaySheet(
                         onClick = {},
                     ),
                 shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-                color = MaterialTheme.colorScheme.surface,
+                color = MiuixTheme.colorScheme.surface,
                 tonalElevation = 8.dp,
                 shadowElevation = 16.dp,
             ) {

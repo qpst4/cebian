@@ -144,7 +144,11 @@ data class AppSettings(
     val quickLauncherDisplay get() = launcher.quickLauncherDisplay
     val honeycombLauncher get() = launcher.honeycombLauncher
     val honeycombDisplay get() = launcher.honeycombDisplay
-    val fvAppSwitcher get() = launcher.fvAppSwitcher
+    val fvAppSwitcher get() = launcher.fvAppSwitcherVertical
+    val fvAppSwitcherVertical get() = launcher.fvAppSwitcherVertical
+    val fvAppSwitcherHorizontal get() = launcher.fvAppSwitcherHorizontal
+    val fvAppSwitcherLinkAppearanceAxes get() = launcher.fvAppSwitcherLinkAppearanceAxes
+    val fvAppSwitcherLinkSlotAxes get() = launcher.fvAppSwitcherLinkSlotAxes
     val shellCommands get() = launcher.shellCommands
     val activityShortcuts get() = launcher.activityShortcuts
 

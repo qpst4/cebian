@@ -3,6 +3,7 @@ package com.slideindex.app.ui.viewmodel
 import android.content.Context
 import androidx.core.net.toUri
 import com.slideindex.app.gesture.GestureAction
+import com.slideindex.app.gesture.GestureTriggerMode
 import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.launcher.QuickLauncherItemCodec
 import com.slideindex.app.launcher.QuickLauncherItemType

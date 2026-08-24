@@ -30,6 +30,7 @@ import com.slideindex.app.service.AccessibilityTextExtractor
 import com.slideindex.app.service.SlideIndexAccessibilityService
 import com.slideindex.app.gesture.ActionExecutor
 import com.slideindex.app.gesture.GestureAction
+import com.slideindex.app.gesture.GestureTriggerMode
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.floatball.FloatBallGestureType
 import com.slideindex.app.settings.FloatBallPositionMode
@@ -1050,32 +1051,16 @@ object FloatBallOverlay {
                 onPickPreviewStart = dragCallbacks::onPreviewStart,
                 onPickPreviewProgress = dragCallbacks::onPreviewProgress,
                 onPickPreviewCancel = dragCallbacks::onPreviewCancel,
-                onLauncherCaptureMove = { x, y -> AppSwitcherOverlayWindow.updatePointer(x, y) },
+                onLauncherCaptureMove = { x, y ->
+                    handleFloatBallLauncherCaptureMove(x, y)
+                },
                 onLauncherCaptureUp = { x, y ->
-                    val hostContext = OverlayDependencyAccess.overlayHostContext()
-                        ?: displayView?.context?.applicationContext
-                    val deps = hostContext?.let { OverlayDependencyAccess.overlayDependencies(it) }
-                    val currentSettings = state.settingsState.value
-                    if (hostContext != null && deps != null) {
-                        AppSwitcherOverlayWindow.confirmSelection(
-                            rawX = x,
-                            rawY = y,
-                            actionExecutor = ActionExecutor(
-                                context = hostContext,
-                                appRepository = deps.appRepository,
-                                onShellCommandsPersist = { commands ->
-                                    overlayScope.launch {
-                                        deps.settingsRepository.setShellCommands(commands)
-                                    }
-                                },
-                            ),
-                            settings = currentSettings,
-                        )
-                    } else {
-                        AppSwitcherOverlayWindow.dismiss()
-                    }
-                    touchHost?.cancelLauncherCaptureMode()
-                    releaseAllTouchCaptures()
+                    handleFloatBallLauncherCaptureUp(
+                        rawX = x,
+                        rawY = y,
+                        fromLineStrip = false,
+                        settings = state.settingsState.value,
+                    )
                 },
             )
         }
@@ -1123,32 +1108,16 @@ object FloatBallOverlay {
                 onPickPreviewStart = dragCallbacks::onPreviewStart,
                 onPickPreviewProgress = dragCallbacks::onPreviewProgress,
                 onPickPreviewCancel = dragCallbacks::onPreviewCancel,
-                onLauncherCaptureMove = { x, y -> AppSwitcherOverlayWindow.updatePointer(x, y) },
+                onLauncherCaptureMove = { x, y ->
+                    handleFloatBallLauncherCaptureMove(x, y)
+                },
                 onLauncherCaptureUp = { x, y ->
-                    val hostContext = OverlayDependencyAccess.overlayHostContext()
-                        ?: displayView?.context?.applicationContext
-                    val deps = hostContext?.let { OverlayDependencyAccess.overlayDependencies(it) }
-                    val currentSettings = state.settingsState.value
-                    if (hostContext != null && deps != null) {
-                        AppSwitcherOverlayWindow.confirmSelection(
-                            rawX = x,
-                            rawY = y,
-                            actionExecutor = ActionExecutor(
-                                context = hostContext,
-                                appRepository = deps.appRepository,
-                                onShellCommandsPersist = { commands ->
-                                    overlayScope.launch {
-                                        deps.settingsRepository.setShellCommands(commands)
-                                    }
-                                },
-                            ),
-                            settings = currentSettings,
-                        )
-                    } else {
-                        AppSwitcherOverlayWindow.dismiss()
-                    }
-                    lineTouchHost?.cancelLauncherCaptureMode()
-                    releaseAllTouchCaptures()
+                    handleFloatBallLauncherCaptureUp(
+                        rawX = x,
+                        rawY = y,
+                        fromLineStrip = true,
+                        settings = state.settingsState.value,
+                    )
                 },
             )
         }
@@ -1582,6 +1551,133 @@ object FloatBallOverlay {
         )
     }
 
+    private fun isOverlayLauncherAction(action: GestureAction): Boolean =
+        action == GestureAction.AppSwitcher || action == GestureAction.HoneycombLauncher
+
+    private fun createFloatBallActionExecutor(
+        hostContext: Context,
+        deps: com.slideindex.app.di.OverlayDependencies,
+    ): ActionExecutor = ActionExecutor(
+        context = hostContext,
+        appRepository = deps.appRepository,
+        onShellCommandsPersist = { commands ->
+            overlayScope.launch {
+                deps.settingsRepository.setShellCommands(commands)
+            }
+        },
+    )
+
+    private fun handleFloatBallLauncherCaptureMove(rawX: Float, rawY: Float) {
+        AppSwitcherOverlayWindow.updatePointer(rawX, rawY)
+        HoneycombAppPickerOverlayWindow.updatePointer(rawX, rawY)
+    }
+
+    private fun handleFloatBallLauncherCaptureUp(
+        rawX: Float,
+        rawY: Float,
+        fromLineStrip: Boolean,
+        settings: AppSettings,
+    ) {
+        val hostContext = OverlayDependencyAccess.overlayHostContext()
+            ?: displayView?.context?.applicationContext
+        val deps = hostContext?.let { OverlayDependencyAccess.overlayDependencies(it) }
+        if (hostContext == null || deps == null) {
+            AppSwitcherOverlayWindow.dismiss()
+            HoneycombAppPickerOverlayWindow.dismiss()
+            releaseFloatBallLauncherCapture(fromLineStrip)
+            return
+        }
+        val actionExecutor = createFloatBallActionExecutor(hostContext, deps)
+        when {
+            AppSwitcherOverlayWindow.isShowing -> {
+                AppSwitcherOverlayWindow.confirmSelection(
+                    rawX = rawX,
+                    rawY = rawY,
+                    actionExecutor = actionExecutor,
+                    settings = settings,
+                )
+            }
+            HoneycombAppPickerOverlayWindow.isShowing -> {
+                HoneycombAppPickerOverlayWindow.confirmSelection(
+                    rawX = rawX,
+                    rawY = rawY,
+                    actionExecutor = actionExecutor,
+                    settings = settings,
+                )
+            }
+        }
+        releaseFloatBallLauncherCapture(fromLineStrip)
+        if (!AppSwitcherOverlayWindow.isShowing && !HoneycombAppPickerOverlayWindow.isShowing) {
+            displayView?.visibility = View.VISIBLE
+        }
+    }
+
+    private fun releaseFloatBallLauncherCapture(fromLineStrip: Boolean) {
+        if (fromLineStrip) {
+            lineTouchHost?.cancelLauncherCaptureMode()
+        } else {
+            touchHost?.cancelLauncherCaptureMode()
+        }
+        releaseAllTouchCaptures()
+    }
+
+    private fun showFloatBallLauncherOverlay(
+        settings: AppSettings,
+        action: GestureAction,
+        anchorX: Float,
+        anchorY: Float,
+        externalTracking: Boolean,
+        fromLineStrip: Boolean,
+        actionExecutor: ActionExecutor,
+        hostContext: Context,
+    ) {
+        cancelCursorPickPreview()
+        deactivateDragBallVisual()
+        clearSplitIdleChrome()
+        hideGestureHintWindow()
+        if (externalTracking) {
+            displayView?.visibility = View.GONE
+            if (fromLineStrip) {
+                expandLineTouchCapture()
+                lineTouchHost?.beginLauncherCaptureMode()
+            } else {
+                expandBallTouchCapture()
+                touchHost?.beginLauncherCaptureMode()
+            }
+        }
+        val onLaunch: (com.slideindex.app.launcher.QuickLauncherItem, Boolean) -> Unit = { item, longPressArmed ->
+            releaseFloatBallLauncherCapture(fromLineStrip)
+            displayView?.visibility = View.VISIBLE
+            actionExecutor.launchQuickItem(item, settings, longPressArmed = longPressArmed)
+        }
+        val shown = when (action) {
+            GestureAction.AppSwitcher -> AppSwitcherOverlayWindow.show(
+                context = hostContext,
+                settings = settings,
+                anchorRawX = anchorX,
+                anchorRawY = anchorY,
+                externalTracking = externalTracking,
+                onLaunch = onLaunch,
+            )
+            GestureAction.HoneycombLauncher -> HoneycombAppPickerOverlayWindow.show(
+                context = hostContext,
+                settings = settings,
+                anchorRawX = anchorX,
+                anchorRawY = anchorY,
+                externalTracking = externalTracking,
+                onLaunch = onLaunch,
+            )
+            else -> false
+        }
+        if (!shown) {
+            releaseFloatBallLauncherCapture(fromLineStrip)
+            displayView?.visibility = View.VISIBLE
+        } else if (!externalTracking) {
+            releaseFloatBallLauncherCapture(fromLineStrip)
+            displayView?.visibility = View.VISIBLE
+        }
+    }
+
     private fun performFloatBallGesture(
         settings: AppSettings,
         gestureType: FloatBallGestureType,
@@ -1622,44 +1718,22 @@ object FloatBallOverlay {
                 }
             },
         )
-        if (gestureType == FloatBallGestureType.LONG_PRESS && action == GestureAction.AppSwitcher) {
-            cancelCursorPickPreview()
-            deactivateDragBallVisual()
-            clearSplitIdleChrome()
-            hideGestureHintWindow()
-            displayView?.visibility = View.GONE
-            if (fromLineStrip) {
-                expandLineTouchCapture()
-                lineTouchHost?.beginLauncherCaptureMode()
+        if (gestureType == FloatBallGestureType.LONG_PRESS && isOverlayLauncherAction(action)) {
+            val (anchorX, anchorY) = if (fromLineStrip) {
+                rawX to rawY
             } else {
-                expandBallTouchCapture()
-                touchHost?.beginLauncherCaptureMode()
+                ballCenterForAppSwitcher(settings) ?: (rawX to rawY)
             }
-            val (anchorX, anchorY) = if (fromLineStrip) (rawX to rawY) else (ballCenterForAppSwitcher(settings) ?: (rawX to rawY))
-            val shown = AppSwitcherOverlayWindow.show(
-                context = hostContext,
+            showFloatBallLauncherOverlay(
                 settings = settings,
-                anchorRawX = anchorX,
-                anchorRawY = anchorY,
+                action = action,
+                anchorX = anchorX,
+                anchorY = anchorY,
                 externalTracking = true,
-                onLaunch = { item, longPressArmed ->
-                    if (fromLineStrip) {
-                        lineTouchHost?.cancelLauncherCaptureMode()
-                    } else {
-                        touchHost?.cancelLauncherCaptureMode()
-                    }
-                    releaseAllTouchCaptures()
-                    actionExecutor.launchQuickItem(item, settings, longPressArmed = longPressArmed)
-                },
+                fromLineStrip = fromLineStrip,
+                actionExecutor = actionExecutor,
+                hostContext = hostContext,
             )
-            if (!shown) {
-                if (fromLineStrip) {
-                    lineTouchHost?.cancelLauncherCaptureMode()
-                } else {
-                    touchHost?.cancelLauncherCaptureMode()
-                }
-                releaseAllTouchCaptures()
-            }
             return
         }
         actionExecutor.execute(

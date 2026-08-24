@@ -20,15 +20,20 @@ import com.slideindex.app.overlay.OverlayComposeDialogHost
 import com.slideindex.app.overlay.OverlayDisplayMetrics
 import com.slideindex.app.overlay.HoneycombIconLoader
 import com.slideindex.app.overlay.HoneycombTargetResolver
+import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.overlay.layout.FvAppSwitcherSide
 import com.slideindex.app.overlay.layout.FvCircleLayoutEngine
 import com.slideindex.app.settings.AppSettings
-import com.slideindex.app.util.RecentTasksLoader
 import com.slideindex.app.settings.FloatBallSide
+import com.slideindex.app.settings.FvAppSwitcherAxis
+import com.slideindex.app.settings.FvAppSwitcherAxisMergeDirection
 import com.slideindex.app.settings.FvAppSwitcherSettings
+import com.slideindex.app.settings.fvAppSwitcherFor
+import com.slideindex.app.settings.toAxis
 import com.slideindex.app.service.CreateShortcutTrampoline
 import com.slideindex.app.ui.appswitcher.AppSwitcherSlotConfigSheet
 import com.slideindex.app.util.PermissionHelper
+import com.slideindex.app.util.RecentTasksLoader
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -50,8 +55,11 @@ object AppSwitcherOverlayWindow {
     private var screenOffReceiver: BroadcastReceiver? = null
     private var externalTracking = false
     private var persistAfterPin = false
+    private var activeSide: FvAppSwitcherSide? = null
 
     val isShowing: Boolean get() = controller?.isVisible() == true
+
+    fun currentAxis(): FvAppSwitcherAxis = activeSide?.toAxis() ?: FvAppSwitcherAxis.VERTICAL
 
     fun openSlotPicker(slotIndex: Int) {
         if (Looper.myLooper() != Looper.getMainLooper()) {
@@ -61,7 +69,8 @@ object AppSwitcherOverlayWindow {
         val hostContext = OverlayDependencyAccess.overlayHostContext() ?: return
         val deps = OverlayDependencyAccess.overlayDependencies(hostContext) ?: return
         val settings = lastSettings
-        val fvSettings = settings.fvAppSwitcher
+        val axis = currentAxis()
+        val fvSettings = settings.fvAppSwitcherFor(axis)
         val currentItem = fvSettings.itemAt(slotIndex)
         val appDeps = deps as? com.slideindex.app.di.AppDependencies
             ?: dagger.hilt.android.EntryPointAccessors.fromApplication(
@@ -94,7 +103,7 @@ object AppSwitcherOverlayWindow {
                     onSelectItem = { selectedItem ->
                         settingsScope.launch {
                             val itemToSet = selectedItem ?: QuickLauncherItem(QuickLauncherItemType.APP, "", "")
-                            deps.settingsRepository.setFvAppSwitcherSlot(slotIndex, itemToSet)
+                            deps.settingsRepository.setFvAppSwitcherSlot(axis, slotIndex, itemToSet)
                             refreshFromSettings()
                         }
                     },
@@ -118,13 +127,22 @@ object AppSwitcherOverlayWindow {
         anchorRawY: Float,
         externalTracking: Boolean,
         onLaunch: (QuickLauncherItem, Boolean) -> Unit,
+        edgePanelSide: PanelSide? = null,
     ): Boolean {
         lastSettings = settings
         if (Looper.myLooper() != Looper.getMainLooper()) {
             var result = false
             val latch = java.util.concurrent.CountDownLatch(1)
             mainHandler.post {
-                result = show(context, settings, anchorRawX, anchorRawY, externalTracking, onLaunch)
+                result = show(
+                    context,
+                    settings,
+                    anchorRawX,
+                    anchorRawY,
+                    externalTracking,
+                    onLaunch,
+                    edgePanelSide,
+                )
                 latch.countDown()
             }
             runCatching { latch.await(500, java.util.concurrent.TimeUnit.MILLISECONDS) }
@@ -146,8 +164,6 @@ object AppSwitcherOverlayWindow {
         val appRepository = deps?.appRepository
         val apps = appRepository?.getCachedApps().orEmpty()
         val appsByPackage = apps.associateBy { it.packageName }
-        val fvSettings = settings.fvAppSwitcher
-        val targets = resolveTargets(hostContext, fvSettings, appsByPackage, appRepository, settings)
 
         val wm = hostContext.getSystemService(android.view.WindowManager::class.java)
         val (density, screenWidth) = FloatBallOverlay.overlayLayoutMetrics(settings)
@@ -155,22 +171,32 @@ object AppSwitcherOverlayWindow {
                 val layoutMetrics = OverlayDisplayMetrics.resolve(hostContext, wm, null)
                 layoutMetrics.density to OverlayDisplayMetrics.screenWidthPx(hostContext, wm, layoutMetrics)
             }
-        val side = if (anchorRawX > screenWidth / 2f) {
-            FvAppSwitcherSide.RIGHT
-        } else {
-            FvAppSwitcherSide.LEFT
+        val screenHeight = run {
+            val layoutMetrics = OverlayDisplayMetrics.resolve(hostContext, wm, density)
+            layoutMetrics.heightPixels.toFloat().coerceAtLeast(1f)
         }
+        val side = resolveFvSide(anchorRawX, anchorRawY, screenWidth, screenHeight, edgePanelSide)
+        activeSide = side
+        val fvSettings = settings.fvAppSwitcherFor(side)
+        val targets = resolveTargets(hostContext, fvSettings, appsByPackage, appRepository, settings)
+
         val edgeInsetPx = FV_EDGE_INSET_DP * density
         val anchorX = when (side) {
             FvAppSwitcherSide.LEFT -> edgeInsetPx
             FvAppSwitcherSide.RIGHT -> screenWidth - edgeInsetPx
+            FvAppSwitcherSide.BOTTOM, FvAppSwitcherSide.TOP -> screenWidth / 2f
+        }
+        val anchorY = when (side) {
+            FvAppSwitcherSide.LEFT, FvAppSwitcherSide.RIGHT -> anchorRawY
+            FvAppSwitcherSide.BOTTOM -> screenHeight - edgeInsetPx
+            FvAppSwitcherSide.TOP -> edgeInsetPx
         }
 
         val overlayController = controller ?: AppSwitcherOverlayController(overlayContext, mainHandler).also {
             controller = it
         }
         this.externalTracking = externalTracking
-        persistAfterPin = false
+        persistAfterPin = !externalTracking
 
         val launchCallback = onLaunch
         val resolvedItems = targets.filterNotNull().map { it.item }
@@ -191,11 +217,13 @@ object AppSwitcherOverlayWindow {
         val shown = overlayController.show(
             settings = settings,
             fvSettings = fvSettings,
+            fvLinkAppearanceAxes = settings.fvAppSwitcherLinkAppearanceAxes,
+            fvLinkSlotAxes = settings.fvAppSwitcherLinkSlotAxes,
             targets = targets,
             appsByPackage = appsByPackage,
             side = side,
             anchorX = anchorX,
-            anchorY = anchorRawY,
+            anchorY = anchorY,
             externalTracking = externalTracking,
             layoutDensity = density,
             screenWidth = screenWidth,
@@ -214,10 +242,11 @@ object AppSwitcherOverlayWindow {
 
                 override fun onCircleCountChange(circleCount: Int) {
                     val repository = deps?.settingsRepository ?: return
+                    val axis = side.toAxis()
                     settingsScope.launch {
-                        repository.setFvAppSwitcherCircleCount(circleCount)
+                        repository.setFvAppSwitcherCircleCount(axis, circleCount)
                         val refreshedSettings = repository.settings.first()
-                        val refreshedFv = refreshedSettings.fvAppSwitcher
+                        val refreshedFv = refreshedSettings.fvAppSwitcherFor(side)
                         val refreshedTargets = resolveTargets(
                             hostContext,
                             refreshedFv,
@@ -235,10 +264,11 @@ object AppSwitcherOverlayWindow {
 
                 override fun onSettingsChange(settings: FvAppSwitcherSettings) {
                     val repository = deps?.settingsRepository ?: return
+                    val axis = side.toAxis()
                     settingsScope.launch {
-                        repository.setFvAppSwitcherSettings(settings)
+                        repository.setFvAppSwitcherSettings(axis, settings)
                         val refreshedSettings = repository.settings.first()
-                        val refreshedFv = refreshedSettings.fvAppSwitcher
+                        val refreshedFv = refreshedSettings.fvAppSwitcherFor(side)
                         val refreshedTargets = resolveTargets(
                             hostContext,
                             refreshedFv,
@@ -249,6 +279,70 @@ object AppSwitcherOverlayWindow {
                         mainHandler.post {
                             if (controller === overlayController && overlayController.isVisible()) {
                                 overlayController.refreshTargets(refreshedFv, refreshedTargets, appsByPackage)
+                            }
+                        }
+                    }
+                }
+
+                override fun onLinkAppearanceAxesChange(
+                    enabled: Boolean,
+                    mergeDirection: FvAppSwitcherAxisMergeDirection?,
+                ) {
+                    val repository = deps?.settingsRepository ?: return
+                    val axis = side.toAxis()
+                    settingsScope.launch {
+                        repository.setFvAppSwitcherLinkAppearanceAxes(enabled, axis, mergeDirection)
+                        val refreshedSettings = repository.settings.first()
+                        lastSettings = refreshedSettings
+                        val refreshedFv = refreshedSettings.fvAppSwitcherFor(side)
+                        val refreshedTargets = resolveTargets(
+                            hostContext,
+                            refreshedFv,
+                            appsByPackage,
+                            appRepository,
+                            refreshedSettings,
+                        )
+                        mainHandler.post {
+                            if (controller === overlayController && overlayController.isVisible()) {
+                                overlayController.refreshSession(
+                                    fvSettings = refreshedFv,
+                                    fvLinkAppearanceAxes = refreshedSettings.fvAppSwitcherLinkAppearanceAxes,
+                                    fvLinkSlotAxes = refreshedSettings.fvAppSwitcherLinkSlotAxes,
+                                    targets = refreshedTargets,
+                                    appsByPackage = appsByPackage,
+                                )
+                            }
+                        }
+                    }
+                }
+
+                override fun onLinkSlotAxesChange(
+                    enabled: Boolean,
+                    mergeDirection: FvAppSwitcherAxisMergeDirection?,
+                ) {
+                    val repository = deps?.settingsRepository ?: return
+                    val axis = side.toAxis()
+                    settingsScope.launch {
+                        repository.setFvAppSwitcherLinkSlotAxes(enabled, axis, mergeDirection)
+                        val refreshedSettings = repository.settings.first()
+                        lastSettings = refreshedSettings
+                        val refreshedFv = refreshedSettings.fvAppSwitcherFor(side)
+                        val refreshedTargets = resolveTargets(
+                            hostContext,
+                            refreshedFv,
+                            appsByPackage,
+                            appRepository,
+                            refreshedSettings,
+                        )
+                        mainHandler.post {
+                            if (controller === overlayController && overlayController.isVisible()) {
+                                overlayController.refreshSession(
+                                    fvSettings = refreshedFv,
+                                    fvLinkAppearanceAxes = refreshedSettings.fvAppSwitcherLinkAppearanceAxes,
+                                    fvLinkSlotAxes = refreshedSettings.fvAppSwitcherLinkSlotAxes,
+                                    targets = refreshedTargets,
+                                    appsByPackage = appsByPackage,
+                                )
                             }
                         }
                     }
@@ -264,6 +358,8 @@ object AppSwitcherOverlayWindow {
         registerScreenOffReceiver(overlayContext)
         if (externalTracking) {
             overlayController.externalMove(anchorRawX, anchorRawY)
+        } else {
+            overlayController.pinForLeaveOpen()
         }
         if (appRepository != null && targets.any { it?.icon == null }) {
             HoneycombIconLoader.loadMissingIconsAsync(
@@ -310,11 +406,11 @@ object AppSwitcherOverlayWindow {
         }
         updatePointer(rawX, rawY)
         val wasExternalTracking = externalTracking
-        controller?.externalUp(rawX, rawY, cancelled = false)
         if (wasExternalTracking) {
-            externalTracking = false
             persistAfterPin = true
+            externalTracking = false
         }
+        controller?.externalUp(rawX, rawY, cancelled = false)
     }
 
     fun refreshFromSettings() {
@@ -331,7 +427,9 @@ object AppSwitcherOverlayWindow {
         val appsByPackage = apps.associateBy { it.packageName }
         settingsScope.launch {
             val settings = deps.settingsRepository.settings.first()
-            val fvSettings = settings.fvAppSwitcher
+            lastSettings = settings
+            val side = activeSide ?: return@launch
+            val fvSettings = settings.fvAppSwitcherFor(side)
             val targets = resolveTargets(
                 hostContext,
                 fvSettings,
@@ -461,6 +559,7 @@ object AppSwitcherOverlayWindow {
         appContext = null
         externalTracking = false
         persistAfterPin = false
+        activeSide = null
     }
 
     private fun registerScreenOffReceiver(context: Context) {
@@ -479,5 +578,34 @@ object AppSwitcherOverlayWindow {
             appContext?.let { ctx -> runCatching { ctx.unregisterReceiver(receiver) } }
         }
         screenOffReceiver = null
+    }
+
+    private fun resolveFvSide(
+        anchorRawX: Float,
+        anchorRawY: Float,
+        screenWidth: Float,
+        screenHeight: Float,
+        edgePanelSide: PanelSide? = null,
+    ): FvAppSwitcherSide {
+        when (edgePanelSide) {
+            PanelSide.BOTTOM -> return FvAppSwitcherSide.BOTTOM
+            PanelSide.TOP -> return FvAppSwitcherSide.TOP
+            PanelSide.LEFT -> return FvAppSwitcherSide.LEFT
+            PanelSide.RIGHT -> return FvAppSwitcherSide.RIGHT
+            null -> Unit
+        }
+        val bottomThreshold = screenHeight * 0.15f
+        if (anchorRawY >= screenHeight - bottomThreshold) {
+            return FvAppSwitcherSide.BOTTOM
+        }
+        val topThreshold = screenHeight * 0.15f
+        if (anchorRawY <= topThreshold) {
+            return FvAppSwitcherSide.TOP
+        }
+        return if (anchorRawX > screenWidth / 2f) {
+            FvAppSwitcherSide.RIGHT
+        } else {
+            FvAppSwitcherSide.LEFT
+        }
     }
 }

@@ -4,7 +4,6 @@ import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
 import android.annotation.SuppressLint
-import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.graphics.Canvas
@@ -13,6 +12,7 @@ import android.graphics.Paint
 import android.view.MotionEvent
 import android.view.View
 import android.view.animation.DecelerateInterpolator
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -35,6 +35,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Switch
+import com.slideindex.app.settings.FvAppSwitcherAxis
+import com.slideindex.app.settings.FvAppSwitcherAxisMergeDirection
+import com.slideindex.app.settings.toAxis
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -46,6 +50,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color as ComposeColor
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -61,6 +66,7 @@ import com.slideindex.app.overlay.layout.FvPanelLayout
 import com.slideindex.app.overlay.layout.FvToolbarButton
 import com.slideindex.app.service.AppSwitcherSlotPickTrampolineActivity
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.settings.FvAppSwitcherLinkFlags
 import com.slideindex.app.settings.FvAppSwitcherSettings
 import com.slideindex.app.settings.effectiveLongPressDurationMs
 import com.slideindex.app.settings.launchPolicyLongPressEligible
@@ -75,6 +81,8 @@ internal class AppSwitcherOverlayView(
     private val onClosed: () -> Unit,
     private val onCircleCountChange: (Int) -> Unit,
     var onSettingsChange: (FvAppSwitcherSettings) -> Unit = {},
+    var onLinkAppearanceAxesChange: (Boolean, FvAppSwitcherAxisMergeDirection?) -> Unit = { _, _ -> },
+    var onLinkSlotAxesChange: (Boolean, FvAppSwitcherAxisMergeDirection?) -> Unit = { _, _ -> },
     private val onMenuVisualActiveChange: (Boolean) -> Unit = {},
     private val onPrepareDirectTouch: () -> Unit = {},
 ) : View(context) {
@@ -88,6 +96,8 @@ internal class AppSwitcherOverlayView(
 
     private var settings = AppSettings()
     private var fvSettings = FvAppSwitcherSettings()
+    private var fvLinkAppearanceAxes = FvAppSwitcherLinkFlags.DEFAULT_LINK_APPEARANCE_AXES
+    private var fvLinkSlotAxes = FvAppSwitcherLinkFlags.DEFAULT_LINK_SLOT_AXES
     private var density = 1f
     private var layoutScreenWidth = 0f
     private var targets: List<HoneycombRuntimeTarget?> = emptyList()
@@ -124,6 +134,8 @@ internal class AppSwitcherOverlayView(
     fun configure(
         settings: AppSettings,
         fvSettings: FvAppSwitcherSettings,
+        fvLinkAppearanceAxes: Boolean,
+        fvLinkSlotAxes: Boolean,
         targets: List<HoneycombRuntimeTarget?>,
         appsByPackage: Map<String, AppInfo>,
         side: FvAppSwitcherSide,
@@ -135,6 +147,8 @@ internal class AppSwitcherOverlayView(
     ) {
         this.settings = settings
         this.fvSettings = fvSettings
+        this.fvLinkAppearanceAxes = fvLinkAppearanceAxes
+        this.fvLinkSlotAxes = fvLinkSlotAxes
         this.targets = targets
         this.appsByPackage = appsByPackage
         this.activeSide = side
@@ -152,6 +166,22 @@ internal class AppSwitcherOverlayView(
         appsByPackage: Map<String, AppInfo>,
     ) {
         this.fvSettings = fvSettings
+        this.targets = targets
+        this.appsByPackage = appsByPackage
+        rebuildLayout()
+        invalidate()
+    }
+
+    fun refreshSession(
+        fvSettings: FvAppSwitcherSettings,
+        fvLinkAppearanceAxes: Boolean,
+        fvLinkSlotAxes: Boolean,
+        targets: List<HoneycombRuntimeTarget?>,
+        appsByPackage: Map<String, AppInfo>,
+    ) {
+        this.fvSettings = fvSettings
+        this.fvLinkAppearanceAxes = fvLinkAppearanceAxes
+        this.fvLinkSlotAxes = fvLinkSlotAxes
         this.targets = targets
         this.appsByPackage = appsByPackage
         rebuildLayout()
@@ -204,6 +234,11 @@ internal class AppSwitcherOverlayView(
 
     fun enableDirectTouch() {
         externalTracking = false
+    }
+
+    fun pinForLeaveOpen() {
+        if (!sessionActive || panelPinned) return
+        pinPanel()
     }
 
     fun dismissNow() {
@@ -341,8 +376,9 @@ internal class AppSwitcherOverlayView(
                 } else if (slot >= 0) {
                     // slot已在上面 !fromPinned && slot >= 0 分支处理，此处不会到达
                     pinPanel()
+                } else if (externalTracking) {
+                    pinPanel()
                 } else {
-                    // 手指落在空白处松开，自动消失
                     dismissPanel()
                 }
                 return true
@@ -408,11 +444,24 @@ internal class AppSwitcherOverlayView(
         composeDialogHost.show {
             AppSwitcherAppearanceDialogContent(
                 currentSettings = fvSettings,
+                activeAxis = activeSide?.toAxis() ?: FvAppSwitcherAxis.VERTICAL,
+                linkAppearanceAxes = fvLinkAppearanceAxes,
+                linkSlotAxes = fvLinkSlotAxes,
                 onSettingsChange = { next ->
                     fvSettings = next
                     rebuildLayout()
                     invalidate()
                     this@AppSwitcherOverlayView.onSettingsChange(next)
+                },
+                onLinkAppearanceAxesChange = { enabled, mergeDirection ->
+                    if (enabled) fvLinkAppearanceAxes = true
+                    else fvLinkAppearanceAxes = false
+                    this@AppSwitcherOverlayView.onLinkAppearanceAxesChange(enabled, mergeDirection)
+                },
+                onLinkSlotAxesChange = { enabled, mergeDirection ->
+                    if (enabled) fvLinkSlotAxes = true
+                    else fvLinkSlotAxes = false
+                    this@AppSwitcherOverlayView.onLinkSlotAxesChange(enabled, mergeDirection)
                 },
                 onDismiss = {
                     composeDialogHost.dismiss()
@@ -547,7 +596,7 @@ internal class AppSwitcherOverlayView(
 
     private fun drawBackgroundMask(canvas: Canvas, progress: Float) {
         if (progress <= 0.01f) return
-        val alpha = (255f * 0.48f * progress).toInt().coerceIn(0, 255)
+        val alpha = (255f * 0.62f * progress).toInt().coerceIn(0, 255)
         dimPaint.alpha = alpha
         canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), dimPaint)
     }
@@ -561,10 +610,18 @@ internal class AppSwitcherOverlayView(
 @Composable
 private fun AppSwitcherAppearanceDialogContent(
     currentSettings: FvAppSwitcherSettings,
+    activeAxis: FvAppSwitcherAxis,
+    linkAppearanceAxes: Boolean,
+    linkSlotAxes: Boolean,
     onSettingsChange: (FvAppSwitcherSettings) -> Unit,
+    onLinkAppearanceAxesChange: (Boolean, FvAppSwitcherAxisMergeDirection?) -> Unit,
+    onLinkSlotAxesChange: (Boolean, FvAppSwitcherAxisMergeDirection?) -> Unit,
     onDismiss: () -> Unit,
 ) {
     var settingsState by remember(currentSettings) { mutableStateOf(currentSettings) }
+    var linkAppearanceState by remember(linkAppearanceAxes) { mutableStateOf(linkAppearanceAxes) }
+    var linkSlotState by remember(linkSlotAxes) { mutableStateOf(linkSlotAxes) }
+    var pendingMergeTarget by remember { mutableStateOf<FvAppSwitcherLinkMergeTarget?>(null) }
     val scrollState = rememberScrollState()
 
     fun update(transform: (FvAppSwitcherSettings) -> FvAppSwitcherSettings) {
@@ -615,6 +672,34 @@ private fun AppSwitcherAppearanceDialogContent(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                Spacer(modifier = Modifier.height(16.dp))
+
+                FvAppSwitcherLinkSwitchRow(
+                    title = stringResource(R.string.fv_app_switcher_link_appearance_axes_title),
+                    description = stringResource(R.string.fv_app_switcher_link_appearance_axes_desc),
+                    checked = linkAppearanceState,
+                    onCheckedChange = { checked ->
+                        if (checked) return@FvAppSwitcherLinkSwitchRow
+                        linkAppearanceState = false
+                        onLinkAppearanceAxesChange(false, null)
+                    },
+                    onRequestEnable = { pendingMergeTarget = FvAppSwitcherLinkMergeTarget.APPEARANCE },
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                FvAppSwitcherLinkSwitchRow(
+                    title = stringResource(R.string.fv_app_switcher_link_slot_axes_title),
+                    description = stringResource(R.string.fv_app_switcher_link_slot_axes_desc),
+                    checked = linkSlotState,
+                    onCheckedChange = { checked ->
+                        if (checked) return@FvAppSwitcherLinkSwitchRow
+                        linkSlotState = false
+                        onLinkSlotAxesChange(false, null)
+                    },
+                    onRequestEnable = { pendingMergeTarget = FvAppSwitcherLinkMergeTarget.SLOTS },
+                )
+
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Column(
@@ -774,6 +859,171 @@ private fun AppSwitcherAppearanceDialogContent(
                             style = MaterialTheme.typography.labelLarge,
                         )
                     }
+                }
+            }
+        }
+
+        pendingMergeTarget?.let { target ->
+            val mergeKindLabel = stringResource(
+                when (target) {
+                    FvAppSwitcherLinkMergeTarget.APPEARANCE ->
+                        R.string.fv_app_switcher_link_merge_appearance_kind
+                    FvAppSwitcherLinkMergeTarget.SLOTS ->
+                        R.string.fv_app_switcher_link_merge_slot_kind
+                },
+            )
+            FvAppSwitcherLinkMergeOverlay(
+                mergeKindLabel = mergeKindLabel,
+                activeAxis = activeAxis,
+                onDismiss = { pendingMergeTarget = null },
+                onConfirm = { mergeDirection ->
+                    when (target) {
+                        FvAppSwitcherLinkMergeTarget.APPEARANCE -> {
+                            linkAppearanceState = true
+                            onLinkAppearanceAxesChange(true, mergeDirection)
+                        }
+                        FvAppSwitcherLinkMergeTarget.SLOTS -> {
+                            linkSlotState = true
+                            onLinkSlotAxesChange(true, mergeDirection)
+                        }
+                    }
+                    pendingMergeTarget = null
+                },
+            )
+        }
+    }
+}
+
+private enum class FvAppSwitcherLinkMergeTarget {
+    APPEARANCE,
+    SLOTS,
+}
+
+@Composable
+private fun FvAppSwitcherLinkSwitchRow(
+    title: String,
+    description: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    onRequestEnable: () -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        Switch(
+            checked = checked,
+            onCheckedChange = { enabled ->
+                if (enabled) {
+                    onRequestEnable()
+                } else {
+                    onCheckedChange(false)
+                }
+            },
+        )
+    }
+}
+
+@Composable
+private fun FvAppSwitcherLinkMergeOverlay(
+    mergeKindLabel: String,
+    activeAxis: FvAppSwitcherAxis,
+    onDismiss: () -> Unit,
+    onConfirm: (FvAppSwitcherAxisMergeDirection) -> Unit,
+) {
+    val currentAxisLabel = stringResource(
+        if (activeAxis == FvAppSwitcherAxis.VERTICAL) {
+            R.string.fv_app_switcher_axis_vertical
+        } else {
+            R.string.fv_app_switcher_axis_horizontal
+        },
+    )
+    val otherAxisLabel = stringResource(
+        if (activeAxis == FvAppSwitcherAxis.VERTICAL) {
+            R.string.fv_app_switcher_axis_horizontal
+        } else {
+            R.string.fv_app_switcher_axis_vertical
+        },
+    )
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(ComposeColor.Black.copy(alpha = 0.45f))
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = onDismiss,
+            ),
+        contentAlignment = Alignment.Center,
+    ) {
+        Surface(
+            modifier = Modifier
+                .widthIn(max = 340.dp)
+                .fillMaxWidth(0.88f)
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = {},
+                ),
+            shape = RoundedCornerShape(24.dp),
+            color = MaterialTheme.colorScheme.surfaceColorAtElevation(8.dp),
+            tonalElevation = 8.dp,
+            shadowElevation = 12.dp,
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 20.dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.fv_app_switcher_link_merge_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = stringResource(
+                        R.string.fv_app_switcher_link_merge_message,
+                        mergeKindLabel,
+                        currentAxisLabel,
+                        otherAxisLabel,
+                    ),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                TextButton(
+                    onClick = { onConfirm(FvAppSwitcherAxisMergeDirection.USE_OTHER_AXIS) },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(stringResource(R.string.fv_app_switcher_link_merge_use_other))
+                }
+                TextButton(
+                    onClick = { onConfirm(FvAppSwitcherAxisMergeDirection.USE_CURRENT_AXIS) },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(stringResource(R.string.fv_app_switcher_link_merge_use_current))
+                }
+                TextButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(stringResource(R.string.cancel))
                 }
             }
         }

@@ -7,7 +7,7 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
 
-enum class FvAppSwitcherSide { LEFT, RIGHT }
+enum class FvAppSwitcherSide { LEFT, RIGHT, BOTTOM, TOP }
 
 data class FvSlotLayout(
     val index: Int,
@@ -57,6 +57,7 @@ object FvCircleLayoutEngine {
     )
 
     private val allSlotGeo: List<SlotGeo> = buildAllSlotGeometry()
+    private val allBottomSlotGeo: List<SlotGeo> = buildBottomAllSlotGeometry()
 
     fun layout(
         circleCount: Int,
@@ -85,15 +86,31 @@ object FvCircleLayoutEngine {
         val itemSizePx = safeIconSizeDp * density
         val toolbarButtonRadiusPx = TOOLBAR_BUTTON_RADIUS_DP * density
         val slotCount = slotCountForCircleCount(circleCount)
-        val slotGeometries = if (
-            safeIconSizeDp == ICON_SIZE_DP &&
-            safeBaseRadiusDp == DEFAULT_BASE_RADIUS_DP &&
-            safeLayerGapDp == DEFAULT_LAYER_GAP_DP &&
-            safeEndMarginDeg == DEFAULT_END_MARGIN_DEG
-        ) {
-            allSlotGeo
-        } else {
-            buildAllSlotGeometry(safeIconSizeDp, layerRadiiDp, safeEndMarginDeg)
+        val slotGeometries = when (side) {
+            FvAppSwitcherSide.BOTTOM, FvAppSwitcherSide.TOP -> {
+                if (
+                    safeIconSizeDp == ICON_SIZE_DP &&
+                    safeBaseRadiusDp == DEFAULT_BASE_RADIUS_DP &&
+                    safeLayerGapDp == DEFAULT_LAYER_GAP_DP &&
+                    safeEndMarginDeg == DEFAULT_END_MARGIN_DEG
+                ) {
+                    allBottomSlotGeo
+                } else {
+                    buildBottomAllSlotGeometry(safeIconSizeDp, layerRadiiDp, safeEndMarginDeg)
+                }
+            }
+            FvAppSwitcherSide.LEFT, FvAppSwitcherSide.RIGHT -> {
+                if (
+                    safeIconSizeDp == ICON_SIZE_DP &&
+                    safeBaseRadiusDp == DEFAULT_BASE_RADIUS_DP &&
+                    safeLayerGapDp == DEFAULT_LAYER_GAP_DP &&
+                    safeEndMarginDeg == DEFAULT_END_MARGIN_DEG
+                ) {
+                    allSlotGeo
+                } else {
+                    buildAllSlotGeometry(safeIconSizeDp, layerRadiiDp, safeEndMarginDeg)
+                }
+            }
         }
 
         val slots = slotGeometries.take(slotCount).mapIndexed { index, geo ->
@@ -109,14 +126,16 @@ object FvCircleLayoutEngine {
                 maxDistSq = maxDistSq,
             )
         }
+        val outerRadius = outerRadiusPx(slotCount, itemSizePx, density, layerRadiiDp)
         val toolbar = buildToolbar(
             side = side,
+            anchorX = anchorX,
             anchorY = anchorY,
             screenWidth = screenWidth,
             density = density,
             toolbarRadiusPx = toolbarButtonRadiusPx,
+            outerRadiusPx = outerRadius,
         )
-        val outerRadius = outerRadiusPx(slotCount, itemSizePx, density, layerRadiiDp)
         return FvPanelLayout(
             anchorX = anchorX,
             anchorY = anchorY,
@@ -135,8 +154,26 @@ object FvCircleLayoutEngine {
         val density = if (layout.itemSizePx > 0f) layout.itemSizePx / ICON_SIZE_DP else 1f
         val hitRadius = maxOf(layout.itemSizePx * 0.55f, 18f * density)
         val hitRadiusSq = hitRadius * hitRadius
-        val relX = relativeX(layout, rawX)
-        val relY = rawY - layout.anchorY
+        val relX: Float
+        val relY: Float
+        when (layout.side) {
+            FvAppSwitcherSide.LEFT -> {
+                relX = rawX - layout.anchorX
+                relY = rawY - layout.anchorY
+            }
+            FvAppSwitcherSide.RIGHT -> {
+                relX = layout.anchorX - rawX
+                relY = rawY - layout.anchorY
+            }
+            FvAppSwitcherSide.BOTTOM -> {
+                relX = rawX - layout.anchorX
+                relY = layout.anchorY - rawY
+            }
+            FvAppSwitcherSide.TOP -> {
+                relX = rawX - layout.anchorX
+                relY = rawY - layout.anchorY
+            }
+        }
         val distSq = (relX * relX + relY * relY).toInt()
         val angleDeg = toAngleDeg(atan2(-relY.toDouble(), relX.toDouble()))
 
@@ -204,9 +241,27 @@ object FvCircleLayoutEngine {
     fun isOutsidePanel(layout: FvPanelLayout, rawX: Float, rawY: Float, extraMarginPx: Float): Boolean {
         if (toolbarButtonAt(layout, rawX, rawY) != null) return false
         val outerRadius = (if (layout.outerRadiusPx > 0f) layout.outerRadiusPx else outerRadiusPx(layout.slots.size, layout.itemSizePx)) + extraMarginPx
-        val dx = rawX - layout.anchorX
-        val dy = rawY - layout.anchorY
-        return dx * dx + dy * dy > outerRadius * outerRadius
+        when (layout.side) {
+            FvAppSwitcherSide.BOTTOM -> {
+                if (rawY > layout.anchorY + extraMarginPx) return true
+                val relX = rawX - layout.anchorX
+                val relY = layout.anchorY - rawY
+                if (relY < -extraMarginPx) return true
+                return relX * relX + relY * relY > outerRadius * outerRadius
+            }
+            FvAppSwitcherSide.TOP -> {
+                if (rawY < layout.anchorY - extraMarginPx) return true
+                val relX = rawX - layout.anchorX
+                val relY = rawY - layout.anchorY
+                if (relY < -extraMarginPx) return true
+                return relX * relX + relY * relY > outerRadius * outerRadius
+            }
+            else -> {
+                val dx = rawX - layout.anchorX
+                val dy = rawY - layout.anchorY
+                return dx * dx + dy * dy > outerRadius * outerRadius
+            }
+        }
     }
 
     fun slotCountForCircleCount(circleCount: Int): Int = when (circleCount.coerceIn(1, 4)) {
@@ -254,6 +309,55 @@ object FvCircleLayoutEngine {
         }
         return result
     }
+
+    /** 底边触钮：180° 半圆，弦与屏幕底边平行，锚点在底边中点。 */
+    fun buildBottomAllSlotGeometry(
+        iconSizeDp: Float = ICON_SIZE_DP,
+        layerRadiiDp: FloatArray = DEFAULT_LAYER_RADII_DP,
+        endMarginDeg: Float = DEFAULT_END_MARGIN_DEG,
+    ): List<SlotGeo> {
+        val endMarginRad = PI / 180.0 * endMarginDeg
+        val result = ArrayList<SlotGeo>(38)
+
+        fun addLayer(layerIndex: Int, radiusDp: Float, slotCount: Int, slotWidthRad: Double, gapRad: Double) {
+            var thetaMax = PI - endMarginRad
+            var boundary = (thetaMax - slotWidthRad) - (gapRad / 2.0)
+            var centerTheta = thetaMax - (slotWidthRad / 2.0)
+            repeat(slotCount) { slotInLayer ->
+                val offsetX = (radiusDp * cos(centerTheta)).toFloat()
+                val offsetY = (radiusDp * sin(centerTheta)).toFloat()
+                val angleMaxDeg = bottomThetaToHitDeg(thetaMax)
+                val angleMinDeg = if (slotInLayer == slotCount - 1) {
+                    bottomThetaToHitDeg(boundary + (gapRad / 2.0))
+                } else {
+                    bottomThetaToHitDeg(boundary)
+                }
+                result += SlotGeo(offsetX, offsetY, angleMaxDeg, angleMinDeg, layerIndex)
+                val nextBoundary = (boundary - slotWidthRad) - gapRad
+                centerTheta = (boundary - (slotWidthRad / 2.0)) - (gapRad / 2.0)
+                thetaMax = boundary
+                boundary = nextBoundary
+            }
+        }
+
+        layerRadiiDp.forEachIndexed { layerIndex, radiusDp ->
+            val slotCount = LAYER_SLOT_COUNTS[layerIndex]
+            val slotWidthRad = asin((iconSizeDp * 0.5f) / radiusDp) * 2.0
+            val gapRad = ((PI - (endMarginRad * 2.0)) - (slotWidthRad * slotCount)) / (slotCount - 1)
+            addLayer(layerIndex, radiusDp, slotCount, slotWidthRad, gapRad)
+        }
+        return result
+    }
+
+    /** 顶边触钮：180° 半圆，弦与屏幕顶边平行，锚点在顶边中点（与底边几何镜像）。 */
+    fun buildTopAllSlotGeometry(
+        iconSizeDp: Float = ICON_SIZE_DP,
+        layerRadiiDp: FloatArray = DEFAULT_LAYER_RADII_DP,
+        endMarginDeg: Float = DEFAULT_END_MARGIN_DEG,
+    ): List<SlotGeo> = buildBottomAllSlotGeometry(iconSizeDp, layerRadiiDp, endMarginDeg)
+
+    private fun bottomThetaToHitDeg(thetaRad: Double): Int =
+        toAngleDeg(atan2(-sin(thetaRad), cos(thetaRad)))
 
     fun radialBandSq(
         layerIndex: Int,
@@ -312,10 +416,12 @@ object FvCircleLayoutEngine {
 
     private fun buildToolbar(
         side: FvAppSwitcherSide,
+        anchorX: Float,
         anchorY: Float,
         screenWidth: Float,
         density: Float,
         toolbarRadiusPx: Float,
+        outerRadiusPx: Float,
     ): Pair<Float, List<Pair<Float, Float>>> {
         val gapPx = TOOLBAR_GAP_DP * density
         val edgeGapPx = TOOLBAR_EDGE_GAP_DP * density
@@ -324,14 +430,40 @@ object FvCircleLayoutEngine {
         val toolbarX = when (side) {
             FvAppSwitcherSide.LEFT -> screenWidth - edgeGapPx - toolbarRadiusPx
             FvAppSwitcherSide.RIGHT -> edgeGapPx + toolbarRadiusPx
+            FvAppSwitcherSide.BOTTOM -> anchorX
+            FvAppSwitcherSide.TOP -> anchorX
         }
-        val totalHeight = (TOOLBAR_BUTTON_COUNT * buttonDiameterPx) + ((TOOLBAR_BUTTON_COUNT - 1) * gapPx)
-        val topY = anchorY - totalHeight / 2f + toolbarRadiusPx
-        val centers = List(TOOLBAR_BUTTON_COUNT) { index ->
-            val y = topY + index * (buttonDiameterPx + gapPx)
-            toolbarX to y
+        val toolbarRowCenterY = when (side) {
+            FvAppSwitcherSide.BOTTOM -> anchorY - outerRadiusPx - edgeGapPx - toolbarRadiusPx
+            FvAppSwitcherSide.TOP -> anchorY + outerRadiusPx + edgeGapPx + toolbarRadiusPx
+            else -> 0f
         }
-        return toolbarX to centers
+        val centers = when (side) {
+            FvAppSwitcherSide.BOTTOM, FvAppSwitcherSide.TOP -> {
+                val totalWidth = (TOOLBAR_BUTTON_COUNT * buttonDiameterPx) + ((TOOLBAR_BUTTON_COUNT - 1) * gapPx)
+                val leftX = anchorX - totalWidth / 2f + toolbarRadiusPx
+                List(TOOLBAR_BUTTON_COUNT) { index ->
+                    val x = leftX + index * (buttonDiameterPx + gapPx)
+                    x to toolbarRowCenterY
+                }
+            }
+            else -> {
+                val totalHeight = (TOOLBAR_BUTTON_COUNT * buttonDiameterPx) + ((TOOLBAR_BUTTON_COUNT - 1) * gapPx)
+                val topY = anchorY - totalHeight / 2f + toolbarRadiusPx
+                List(TOOLBAR_BUTTON_COUNT) { index ->
+                    val y = topY + index * (buttonDiameterPx + gapPx)
+                    toolbarX to y
+                }
+            }
+        }
+        val toolbarCenter = when (side) {
+            FvAppSwitcherSide.BOTTOM, FvAppSwitcherSide.TOP -> {
+                val avgX = centers.map { it.first }.average().toFloat()
+                avgX to toolbarRowCenterY
+            }
+            else -> toolbarX to anchorY
+        }
+        return toolbarCenter.first to centers
     }
 
     private fun toScreenOffset(
@@ -344,15 +476,19 @@ object FvCircleLayoutEngine {
     ): Pair<Float, Float> {
         val scaledX = offsetX * density
         val scaledY = offsetY * density
-        val mirroredX = if (side == FvAppSwitcherSide.LEFT) scaledX else -scaledX
-        return anchorX + mirroredX to anchorY + scaledY
+        return when (side) {
+            FvAppSwitcherSide.LEFT -> anchorX + scaledX to anchorY + scaledY
+            FvAppSwitcherSide.RIGHT -> anchorX - scaledX to anchorY + scaledY
+            FvAppSwitcherSide.BOTTOM -> anchorX + scaledX to anchorY - scaledY
+            FvAppSwitcherSide.TOP -> anchorX + scaledX to anchorY + scaledY
+        }
     }
 
     private fun relativeX(layout: FvPanelLayout, rawX: Float): Float =
-        if (layout.side == FvAppSwitcherSide.LEFT) {
-            rawX - layout.anchorX
-        } else {
-            layout.anchorX - rawX
+        when (layout.side) {
+            FvAppSwitcherSide.LEFT -> rawX - layout.anchorX
+            FvAppSwitcherSide.RIGHT -> layout.anchorX - rawX
+            FvAppSwitcherSide.BOTTOM, FvAppSwitcherSide.TOP -> rawX - layout.anchorX
         }
 
     private fun toAngleDeg(radians: Double): Int = (radians * 180.0 / PI).toInt()

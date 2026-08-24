@@ -223,6 +223,7 @@ internal class EdgeGestureSessionCoordinator(
             onLaunch = { item, longPressArmed ->
                 actionExecutor.launchQuickItem(item, settings, longPressArmed = longPressArmed)
             },
+            edgePanelSide = gestureSession.sessionSide,
         )
     }
 

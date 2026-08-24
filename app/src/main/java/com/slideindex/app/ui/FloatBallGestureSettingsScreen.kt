@@ -216,11 +216,11 @@ fun FloatBallGestureSettingsScreen(
 
                 FloatBallGestureType.settingsDisplayOrder().forEach { type ->
 
+                    val action = settings.floatBallGestureActions[type] ?: GestureAction.None
+
                     add(
 
                         settingsCardScopeItem("action-${type.name}") {
-
-                            val action = settings.floatBallGestureActions[type] ?: GestureAction.None
 
                             FloatBallGestureActionRow(
 

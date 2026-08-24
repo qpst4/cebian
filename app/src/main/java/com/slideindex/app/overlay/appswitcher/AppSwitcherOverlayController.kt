@@ -13,6 +13,7 @@ import com.slideindex.app.overlay.HoneycombRuntimeTarget
 import com.slideindex.app.overlay.OverlayWindowTypes
 import com.slideindex.app.overlay.layout.FvAppSwitcherSide
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.settings.FvAppSwitcherAxisMergeDirection
 import com.slideindex.app.settings.FvAppSwitcherSettings
 
 internal class AppSwitcherOverlayController(
@@ -24,6 +25,14 @@ internal class AppSwitcherOverlayController(
         fun onClosed()
         fun onCircleCountChange(circleCount: Int)
         fun onSettingsChange(settings: FvAppSwitcherSettings)
+        fun onLinkAppearanceAxesChange(
+            enabled: Boolean,
+            mergeDirection: FvAppSwitcherAxisMergeDirection?,
+        )
+        fun onLinkSlotAxesChange(
+            enabled: Boolean,
+            mergeDirection: FvAppSwitcherAxisMergeDirection?,
+        )
     }
 
     private val windowManager = context.getSystemService(WindowManager::class.java)
@@ -37,6 +46,8 @@ internal class AppSwitcherOverlayController(
     fun show(
         settings: AppSettings,
         fvSettings: FvAppSwitcherSettings,
+        fvLinkAppearanceAxes: Boolean,
+        fvLinkSlotAxes: Boolean,
         targets: List<HoneycombRuntimeTarget?>,
         appsByPackage: Map<String, AppInfo>,
         side: FvAppSwitcherSide,
@@ -63,11 +74,15 @@ internal class AppSwitcherOverlayController(
             },
             onCircleCountChange = listener::onCircleCountChange,
             onSettingsChange = listener::onSettingsChange,
+            onLinkAppearanceAxesChange = listener::onLinkAppearanceAxesChange,
+            onLinkSlotAxesChange = listener::onLinkSlotAxesChange,
             onPrepareDirectTouch = { activateDirectTouch(next) },
         )
         next.configure(
             settings = settings,
             fvSettings = fvSettings,
+            fvLinkAppearanceAxes = fvLinkAppearanceAxes,
+            fvLinkSlotAxes = fvLinkSlotAxes,
             targets = targets,
             appsByPackage = appsByPackage,
             side = side,
@@ -152,6 +167,12 @@ internal class AppSwitcherOverlayController(
         runOnViewThread(current) { activateDirectTouch(current) }
     }
 
+    fun pinForLeaveOpen() {
+        val current = view ?: return
+        if (!attached) return
+        runOnViewThread(current) { current.pinForLeaveOpen() }
+    }
+
     private fun activateDirectTouch(current: AppSwitcherOverlayView) {
         val params = layoutParams ?: return
         params.flags = params.flags and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE.inv()
@@ -171,6 +192,25 @@ internal class AppSwitcherOverlayController(
     ) {
         val current = view ?: return
         runOnViewThread(current) { current.refreshTargets(fvSettings, targets, appsByPackage) }
+    }
+
+    fun refreshSession(
+        fvSettings: FvAppSwitcherSettings,
+        fvLinkAppearanceAxes: Boolean,
+        fvLinkSlotAxes: Boolean,
+        targets: List<HoneycombRuntimeTarget?>,
+        appsByPackage: Map<String, AppInfo>,
+    ) {
+        val current = view ?: return
+        runOnViewThread(current) {
+            current.refreshSession(
+                fvSettings = fvSettings,
+                fvLinkAppearanceAxes = fvLinkAppearanceAxes,
+                fvLinkSlotAxes = fvLinkSlotAxes,
+                targets = targets,
+                appsByPackage = appsByPackage,
+            )
+        }
     }
 
     fun dismiss() {

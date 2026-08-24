@@ -74,11 +74,11 @@ internal class QuickLauncherRenderer(
     }
 
     fun warmCaches() {
-        GestureActionIconBitmap.clear()
-        ctrl.invalidateQuickLauncherDerivedCaches()
-        warmQuickLauncherIconCache()
-        warmQuickLauncherShortcutCache()
-        warmQuickLauncherActionIconCache()
+        Thread {
+            warmQuickLauncherIconCache()
+            warmQuickLauncherShortcutCache()
+            warmQuickLauncherActionIconCache()
+        }.start()
     }
 
     fun draw(canvas: Canvas, drawToolbar: Boolean = true) {

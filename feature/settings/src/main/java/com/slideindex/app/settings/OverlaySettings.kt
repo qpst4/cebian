@@ -3,6 +3,7 @@ package com.slideindex.app.settings
 import com.slideindex.app.floatball.FloatBallGestureCodec
 import com.slideindex.app.floatball.FloatBallGestureType
 import com.slideindex.app.gesture.GestureAction
+import com.slideindex.app.gesture.GestureTriggerMode
 
 /** 浮层、悬浮球、主题与 App 内外观相关设置子集（窄 Flow 订阅用）。 */
 data class OverlaySettings(

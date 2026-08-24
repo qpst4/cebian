@@ -202,6 +202,120 @@ class FvCircleLayoutEngineTest {
   }
 
   @Test
+  fun layout_bottomSide_opensUpwardSemicircleFromCenterAnchor() {
+    val anchorX = screenWidth / 2f
+    val anchorY = 2400f
+    val layout = FvCircleLayoutEngine.layout(
+      circleCount = 2,
+      side = FvAppSwitcherSide.BOTTOM,
+      anchorX = anchorX,
+      anchorY = anchorY,
+      screenWidth = screenWidth,
+      density = density,
+    )
+    assertEquals(13, layout.slots.size)
+    assertTrue(layout.slots.all { it.centerY <= layout.anchorY + 1f })
+    assertTrue(layout.slots.any { it.centerX < layout.anchorX - 40f * density })
+    assertTrue(layout.slots.any { it.centerX > layout.anchorX + 40f * density })
+    assertTrue(layout.slots.any { it.centerY < layout.anchorY - 60f * density })
+    val left = layout.slots.minBy { it.centerX }
+    val right = layout.slots.maxBy { it.centerX }
+    assertEquals(left.centerY, right.centerY, 4f * density)
+  }
+
+  @Test
+  fun slotIndexAt_bottomSide_hitsConfiguredSlotCenter() {
+    val layout = FvCircleLayoutEngine.layout(
+      circleCount = 2,
+      side = FvAppSwitcherSide.BOTTOM,
+      anchorX = screenWidth / 2f,
+      anchorY = 2400f,
+      screenWidth = screenWidth,
+      density = density,
+    )
+    val target = layout.slots[6]
+    val hit = FvCircleLayoutEngine.slotIndexAt(layout, target.centerX, target.centerY)
+    assertEquals(6, hit)
+  }
+
+  @Test
+  fun layout_bottomSide_toolbarAboveSemicircle() {
+    val anchorX = screenWidth / 2f
+    val anchorY = 2400f
+    val layout = FvCircleLayoutEngine.layout(
+      circleCount = 2,
+      side = FvAppSwitcherSide.BOTTOM,
+      anchorX = anchorX,
+      anchorY = anchorY,
+      screenWidth = screenWidth,
+      density = density,
+    )
+    val toolbarBottom = layout.toolbarButtonCenters.maxOf { it.second } + layout.toolbarButtonRadiusPx
+    val slotTop = layout.slots.minOf { it.centerY - layout.itemSizePx * 0.5f }
+    assertTrue(
+      "Toolbar should sit above semicircle icons",
+      toolbarBottom <= slotTop - 8f * density,
+    )
+  }
+
+  @Test
+  fun layout_topSide_opensDownwardSemicircleFromCenterAnchor() {
+    val anchorX = screenWidth / 2f
+    val anchorY = 60f * density
+    val layout = FvCircleLayoutEngine.layout(
+      circleCount = 2,
+      side = FvAppSwitcherSide.TOP,
+      anchorX = anchorX,
+      anchorY = anchorY,
+      screenWidth = screenWidth,
+      density = density,
+    )
+    assertEquals(13, layout.slots.size)
+    assertTrue(layout.slots.all { it.centerY >= layout.anchorY - 1f })
+    assertTrue(layout.slots.any { it.centerX < layout.anchorX - 40f * density })
+    assertTrue(layout.slots.any { it.centerX > layout.anchorX + 40f * density })
+    assertTrue(layout.slots.any { it.centerY > layout.anchorY + 60f * density })
+    val left = layout.slots.minBy { it.centerX }
+    val right = layout.slots.maxBy { it.centerX }
+    assertEquals(left.centerY, right.centerY, 4f * density)
+  }
+
+  @Test
+  fun layout_topSide_toolbarBelowSemicircle() {
+    val anchorX = screenWidth / 2f
+    val anchorY = 60f * density
+    val layout = FvCircleLayoutEngine.layout(
+      circleCount = 2,
+      side = FvAppSwitcherSide.TOP,
+      anchorX = anchorX,
+      anchorY = anchorY,
+      screenWidth = screenWidth,
+      density = density,
+    )
+    val toolbarTop = layout.toolbarButtonCenters.minOf { it.second } - layout.toolbarButtonRadiusPx
+    val slotBottom = layout.slots.maxOf { it.centerY + layout.itemSizePx * 0.5f }
+    assertTrue(
+      "Toolbar should sit below semicircle icons",
+      toolbarTop >= slotBottom + 8f * density,
+    )
+  }
+
+  @Test
+  fun slotIndexAt_topSide_hitsConfiguredSlotCenter() {
+    val layout = FvCircleLayoutEngine.layout(
+      circleCount = 2,
+      side = FvAppSwitcherSide.TOP,
+      anchorX = screenWidth / 2f,
+      anchorY = 60f * density,
+      screenWidth = screenWidth,
+      density = density,
+    )
+    val target = layout.slots[6]
+    val hit = FvCircleLayoutEngine.slotIndexAt(layout, target.centerX, target.centerY)
+    assertEquals(6, hit)
+  }
+
+  @Test
   fun layout_customParameters_adjustsItemSizeAndRadiiCorrectly() {
     val customLayout = FvCircleLayoutEngine.layout(
       circleCount = 2,

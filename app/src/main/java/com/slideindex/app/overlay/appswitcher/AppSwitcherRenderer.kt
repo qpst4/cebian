@@ -25,6 +25,7 @@ import com.slideindex.app.shell.ShellCommand
 import kotlin.math.min
 
 internal object AppSwitcherRenderer {
+    private const val ICON_PLATE = 0xFF303034.toInt()
     private const val ICON_SHADOW = 0x55000000
     private const val HIGHLIGHT_RING = 0xCCFFFFFF.toInt()
     private const val EMPTY_FILL = 0xAAFFFFFF.toInt()
@@ -192,8 +193,9 @@ internal object AppSwitcherRenderer {
                     activityShortcuts = activityShortcuts,
                     shellCommands = shellCommands,
                 )
-                val previewBadgeInfo = drawTopPreview(
+                val previewBadgeInfo = drawSelectionPreview(
                     canvas = canvas,
+                    side = layout.side,
                     label = target.label,
                     bitmap = bigBitmap,
                     density = density,
@@ -220,6 +222,7 @@ internal object AppSwitcherRenderer {
         isFilterBitmap = true
     }
     private val iconShaderMatrix = Matrix()
+    private val iconPlatePaint = Paint(Paint.ANTI_ALIAS_FLAG)
 
     private fun drawAppIcon(
         canvas: Canvas,
@@ -242,6 +245,14 @@ internal object AppSwitcherRenderer {
         val bottom = top + diameter
         iconDstRect.set(left, top, right, bottom)
         val cornerRadius = diameter * cornerRadiusRatio
+
+        iconPlatePaint.color = ICON_PLATE
+        iconPlatePaint.alpha = (255f * progress).toInt().coerceIn(0, 255)
+        if (cornerRadiusRatio >= 0.49f) {
+            canvas.drawCircle(centerX, centerY, radius, iconPlatePaint)
+        } else {
+            canvas.drawRoundRect(iconDstRect, cornerRadius, cornerRadius, iconPlatePaint)
+        }
 
         if (highlighted) {
             val shadowOffset = 3f * density * progress
@@ -386,8 +397,9 @@ internal object AppSwitcherRenderer {
         canvas.drawText(glyph, centerX, textY, glyphPaint)
     }
 
-    private fun drawTopPreview(
+    private fun drawSelectionPreview(
         canvas: Canvas,
+        side: FvAppSwitcherSide,
         label: String,
         bitmap: android.graphics.Bitmap,
         density: Float,
@@ -397,7 +409,14 @@ internal object AppSwitcherRenderer {
         val centerX = canvas.width * 0.5f
         val iconSizePx = 54f * density
         val iconRadius = iconSizePx * 0.5f
-        val iconCenterY = 92f * density
+        val previewInsetPx = 92f * density
+        val iconCenterY = when (side) {
+            FvAppSwitcherSide.TOP -> canvas.height - previewInsetPx
+            FvAppSwitcherSide.BOTTOM,
+            FvAppSwitcherSide.LEFT,
+            FvAppSwitcherSide.RIGHT,
+            -> previewInsetPx
+        }
         val alpha = (255f * progress).toInt().coerceIn(0, 255)
 
         val iconRect = RectF(
@@ -454,7 +473,15 @@ internal object AppSwitcherRenderer {
             }
             val maxWidth = canvas.width * 0.7f
             val fitted = TextUtils.ellipsize(label, textPaint, maxWidth, TextUtils.TruncateAt.END)
-            val textY = iconCenterY + iconRadius + 16f * density - textPaint.ascent() * 0.4f
+            val textY = when (side) {
+                FvAppSwitcherSide.TOP ->
+                    iconCenterY - iconRadius - 16f * density - textPaint.descent() * 0.4f
+                FvAppSwitcherSide.BOTTOM,
+                FvAppSwitcherSide.LEFT,
+                FvAppSwitcherSide.RIGHT,
+                ->
+                    iconCenterY + iconRadius + 16f * density - textPaint.ascent() * 0.4f
+            }
             canvas.drawText(fitted, 0, fitted.length, centerX, textY, textPaint)
         }
 

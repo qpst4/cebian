@@ -1,8 +1,10 @@
 package com.slideindex.app.settings
 
+import androidx.datastore.preferences.core.Preferences
 import com.slideindex.app.floatball.FloatBallGestureCodec
 import com.slideindex.app.floatball.FloatBallGestureType
 import com.slideindex.app.gesture.GestureAction
+import com.slideindex.app.gesture.GestureTriggerMode
 import com.slideindex.app.gesture.SelectedHintMetrics
 import com.slideindex.app.launcher.QuickLauncherItemCodec
 import com.slideindex.app.shell.ShellCommand
@@ -460,35 +462,107 @@ class OverlaySettingsMutator @Inject constructor(
         prefs[SettingsPreferenceKeys.HONEYCOMB_LAUNCHER] = QuickLauncherItemCodec.encodeAll(items)
     }
 
-    suspend fun setFvAppSwitcherSettings(settings: FvAppSwitcherSettings) = editor.edit { prefs ->
-        prefs[SettingsPreferenceKeys.FV_APP_SWITCHER_CIRCLE_COUNT] =
-            settings.circleCount.coerceIn(FvAppSwitcherSettings.MIN_CIRCLE_COUNT, FvAppSwitcherSettings.MAX_CIRCLE_COUNT)
-        prefs[SettingsPreferenceKeys.FV_APP_SWITCHER_ICON_SIZE_DP] =
-            settings.iconSizeDp.coerceIn(FvAppSwitcherSettings.MIN_ICON_SIZE_DP, FvAppSwitcherSettings.MAX_ICON_SIZE_DP)
-        prefs[SettingsPreferenceKeys.FV_APP_SWITCHER_ICON_SHAPE] =
-            settings.iconShape.name
-        prefs[SettingsPreferenceKeys.FV_APP_SWITCHER_BASE_RADIUS_DP] =
-            settings.baseRadiusDp.coerceIn(FvAppSwitcherSettings.MIN_BASE_RADIUS_DP, FvAppSwitcherSettings.MAX_BASE_RADIUS_DP)
-        prefs[SettingsPreferenceKeys.FV_APP_SWITCHER_LAYER_GAP_DP] =
-            settings.layerGapDp.coerceIn(FvAppSwitcherSettings.MIN_LAYER_GAP_DP, FvAppSwitcherSettings.MAX_LAYER_GAP_DP)
-        prefs[SettingsPreferenceKeys.FV_APP_SWITCHER_END_MARGIN_DEG] =
-            settings.endMarginDeg.coerceIn(FvAppSwitcherSettings.MIN_END_MARGIN_DEG, FvAppSwitcherSettings.MAX_END_MARGIN_DEG)
-        prefs[SettingsPreferenceKeys.FV_APP_SWITCHER_SLOTS] = FvAppSwitcherSlotCodec.encodeAll(settings.slots)
-    }
-
-    suspend fun setFvAppSwitcherSlot(index: Int, item: com.slideindex.app.launcher.QuickLauncherItem) = editor.edit { prefs ->
-        val current = FvAppSwitcherSettings.fromPreferences(prefs).slots.toMutableMap()
-        if (item.payload.isBlank()) {
-            current.remove(index)
+    suspend fun setFvAppSwitcherSettings(
+        axis: FvAppSwitcherAxis,
+        settings: FvAppSwitcherSettings,
+    ) = editor.edit { prefs ->
+        val linkAppearance = prefs[SettingsPreferenceKeys.FV_APP_SWITCHER_LINK_APPEARANCE_AXES]
+            ?: FvAppSwitcherSettings.linkFlagsFromPreferences(prefs).linkAppearanceAxes
+        if (linkAppearance) {
+            FvAppSwitcherSettings.writeAppearanceAxis(prefs, FvAppSwitcherAxis.VERTICAL, settings)
+            FvAppSwitcherSettings.writeAppearanceAxis(prefs, FvAppSwitcherAxis.HORIZONTAL, settings)
         } else {
-            current[index] = item
+            FvAppSwitcherSettings.writeAppearanceAxis(prefs, axis, settings)
         }
-        prefs[SettingsPreferenceKeys.FV_APP_SWITCHER_SLOTS] = FvAppSwitcherSlotCodec.encodeAll(current)
     }
 
-    suspend fun setFvAppSwitcherCircleCount(circleCount: Int) = editor.edit { prefs ->
-        prefs[SettingsPreferenceKeys.FV_APP_SWITCHER_CIRCLE_COUNT] =
-            circleCount.coerceIn(FvAppSwitcherSettings.MIN_CIRCLE_COUNT, FvAppSwitcherSettings.MAX_CIRCLE_COUNT)
+    suspend fun setFvAppSwitcherSlot(
+        axis: FvAppSwitcherAxis,
+        index: Int,
+        item: com.slideindex.app.launcher.QuickLauncherItem,
+    ) = editor.edit { prefs ->
+        val linkSlots = prefs[SettingsPreferenceKeys.FV_APP_SWITCHER_LINK_SLOT_AXES]
+            ?: FvAppSwitcherSettings.linkFlagsFromPreferences(prefs).linkSlotAxes
+        val targetAxes = if (linkSlots) {
+            listOf(FvAppSwitcherAxis.VERTICAL, FvAppSwitcherAxis.HORIZONTAL)
+        } else {
+            listOf(axis)
+        }
+        targetAxes.forEach { targetAxis ->
+            val current = FvAppSwitcherSettings.fromPreferences(prefs, targetAxis).slots.toMutableMap()
+            if (item.payload.isBlank()) {
+                current.remove(index)
+            } else {
+                current[index] = item
+            }
+            FvAppSwitcherSettings.writeSlotsAxis(
+                prefs,
+                targetAxis,
+                FvAppSwitcherSettings.fromPreferences(prefs, targetAxis).copy(slots = current),
+            )
+        }
+    }
+
+    suspend fun setFvAppSwitcherCircleCount(
+        axis: FvAppSwitcherAxis,
+        circleCount: Int,
+    ) = editor.edit { prefs ->
+        val safeCount = circleCount.coerceIn(
+            FvAppSwitcherSettings.MIN_CIRCLE_COUNT,
+            FvAppSwitcherSettings.MAX_CIRCLE_COUNT,
+        )
+        val linkAppearance = prefs[SettingsPreferenceKeys.FV_APP_SWITCHER_LINK_APPEARANCE_AXES]
+            ?: FvAppSwitcherSettings.linkFlagsFromPreferences(prefs).linkAppearanceAxes
+        val targetAxes = if (linkAppearance) {
+            listOf(FvAppSwitcherAxis.VERTICAL, FvAppSwitcherAxis.HORIZONTAL)
+        } else {
+            listOf(axis)
+        }
+        targetAxes.forEach { targetAxis ->
+            val current = FvAppSwitcherSettings.fromPreferences(prefs, targetAxis)
+            FvAppSwitcherSettings.writeAppearanceAxis(
+                prefs,
+                targetAxis,
+                current.copy(circleCount = safeCount),
+            )
+        }
+    }
+
+    suspend fun setFvAppSwitcherLinkAppearanceAxes(
+        enabled: Boolean,
+        activeAxis: FvAppSwitcherAxis,
+        mergeDirection: FvAppSwitcherAxisMergeDirection?,
+    ) = editor.edit { prefs ->
+        prefs[SettingsPreferenceKeys.FV_APP_SWITCHER_LINK_APPEARANCE_AXES] = enabled
+        if (!enabled || mergeDirection == null) return@edit
+        val source = mergeSource(prefs, activeAxis, mergeDirection)
+        FvAppSwitcherSettings.writeAppearanceAxis(prefs, FvAppSwitcherAxis.VERTICAL, source)
+        FvAppSwitcherSettings.writeAppearanceAxis(prefs, FvAppSwitcherAxis.HORIZONTAL, source)
+    }
+
+    suspend fun setFvAppSwitcherLinkSlotAxes(
+        enabled: Boolean,
+        activeAxis: FvAppSwitcherAxis,
+        mergeDirection: FvAppSwitcherAxisMergeDirection?,
+    ) = editor.edit { prefs ->
+        prefs[SettingsPreferenceKeys.FV_APP_SWITCHER_LINK_SLOT_AXES] = enabled
+        if (!enabled || mergeDirection == null) return@edit
+        val source = mergeSource(prefs, activeAxis, mergeDirection)
+        FvAppSwitcherSettings.writeSlotsAxis(prefs, FvAppSwitcherAxis.VERTICAL, source)
+        FvAppSwitcherSettings.writeSlotsAxis(prefs, FvAppSwitcherAxis.HORIZONTAL, source)
+    }
+
+    private fun mergeSource(
+        prefs: Preferences,
+        activeAxis: FvAppSwitcherAxis,
+        mergeDirection: FvAppSwitcherAxisMergeDirection,
+    ): FvAppSwitcherSettings {
+        val current = FvAppSwitcherSettings.fromPreferences(prefs, activeAxis)
+        val other = FvAppSwitcherSettings.fromPreferences(prefs, activeAxis.other())
+        return when (mergeDirection) {
+            FvAppSwitcherAxisMergeDirection.USE_OTHER_AXIS -> other
+            FvAppSwitcherAxisMergeDirection.USE_CURRENT_AXIS -> current
+        }
     }
 
     suspend fun setQuickLauncherDisplaySettings(

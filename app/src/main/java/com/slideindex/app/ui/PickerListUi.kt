@@ -54,6 +54,7 @@ import top.yukonga.miuix.kmp.basic.BasicComponent
 import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.SmallTitle
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.preference.CheckboxLocation
 import top.yukonga.miuix.kmp.preference.CheckboxPreference
@@ -84,7 +85,7 @@ internal fun settingsSegmentedColors() = ListItemDefaults.segmentedColors(
 
 @Composable
 internal fun pickerSegmentedColors() = ListItemDefaults.segmentedColors(
-    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+    containerColor = MaterialTheme.colorScheme.surfaceContainer,
     selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
 )
 
@@ -147,7 +148,10 @@ fun Md3PickerListRow(
     onTrailingClick: (() -> Unit)? = null,
     enabled: Boolean = true,
 ) {
-    val cardModifier = modifier.miuixGroupedCardItem(segmentIndex, segmentCount)
+    val cardModifier = modifier.miuixGroupedCardItem(
+        index = segmentIndex,
+        count = segmentCount,
+    )
     val summaryText = subtitle?.takeIf { supportingContent == null }
     val bottomAction: (@Composable () -> Unit)? = supportingContent?.let { extra ->
         { extra() }

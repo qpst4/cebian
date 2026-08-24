@@ -80,7 +80,12 @@ data class LauncherSettings(
     val quickLauncherDisplay: QuickLauncherDisplaySettings = QuickLauncherDisplaySettings(),
     val honeycombLauncher: List<com.slideindex.app.launcher.QuickLauncherItem> = emptyList(),
     val honeycombDisplay: HoneycombDisplaySettings = HoneycombDisplaySettings(),
-    val fvAppSwitcher: FvAppSwitcherSettings = FvAppSwitcherSettings(),
+    val fvAppSwitcherVertical: FvAppSwitcherSettings = FvAppSwitcherSettings(),
+    val fvAppSwitcherHorizontal: FvAppSwitcherSettings = FvAppSwitcherSettings(),
+    /** 为 true 时顶/底与左/右共用同一套外观（圈数、尺寸、半径等）。 */
+    val fvAppSwitcherLinkAppearanceAxes: Boolean = FvAppSwitcherLinkFlags.DEFAULT_LINK_APPEARANCE_AXES,
+    /** 为 true 时顶/底与左/右共用同一套槽位。 */
+    val fvAppSwitcherLinkSlotAxes: Boolean = FvAppSwitcherLinkFlags.DEFAULT_LINK_SLOT_AXES,
     val shellCommands: List<com.slideindex.app.shell.ShellCommand> = emptyList(),
     val activityShortcuts: List<com.slideindex.app.activity.ActivityShortcut> = emptyList(),
 )

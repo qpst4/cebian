@@ -307,6 +307,7 @@ fun Modifier.miuixGroupedCardItem(
     outerHorizontalPadding: Dp = 12.dp,
     outerTopPadding: Dp = 0.dp,
     outerBottomPadding: Dp = 0.dp,
+    color: androidx.compose.ui.graphics.Color = MiuixTheme.colorScheme.surfaceContainer,
 ): Modifier {
     val r = CardDefaults.CornerRadius
     val z = 0.dp
@@ -320,7 +321,7 @@ fun Modifier.miuixGroupedCardItem(
             bottom = if (bottom) outerBottomPadding else 0.dp,
         )
         .squircleSurface(
-            color = MiuixTheme.colorScheme.surfaceContainer,
+            color = color,
             topStart = if (top) r else z,
             topEnd = if (top) r else z,
             bottomEnd = if (bottom) r else z,

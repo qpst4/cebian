@@ -347,14 +347,33 @@ class SettingsRepository @Inject constructor(
     suspend fun setHoneycombLauncherItems(items: List<com.slideindex.app.launcher.QuickLauncherItem>) =
         overlay.setHoneycombLauncherItems(items)
 
-    suspend fun setFvAppSwitcherSettings(settings: FvAppSwitcherSettings) =
-        overlay.setFvAppSwitcherSettings(settings)
+    suspend fun setFvAppSwitcherSettings(
+        axis: FvAppSwitcherAxis,
+        settings: FvAppSwitcherSettings,
+    ) = overlay.setFvAppSwitcherSettings(axis, settings)
 
-    suspend fun setFvAppSwitcherSlot(index: Int, item: com.slideindex.app.launcher.QuickLauncherItem) =
-        overlay.setFvAppSwitcherSlot(index, item)
+    suspend fun setFvAppSwitcherSlot(
+        axis: FvAppSwitcherAxis,
+        index: Int,
+        item: com.slideindex.app.launcher.QuickLauncherItem,
+    ) = overlay.setFvAppSwitcherSlot(axis, index, item)
 
-    suspend fun setFvAppSwitcherCircleCount(circleCount: Int) =
-        overlay.setFvAppSwitcherCircleCount(circleCount)
+    suspend fun setFvAppSwitcherCircleCount(
+        axis: FvAppSwitcherAxis,
+        circleCount: Int,
+    ) = overlay.setFvAppSwitcherCircleCount(axis, circleCount)
+
+    suspend fun setFvAppSwitcherLinkAppearanceAxes(
+        enabled: Boolean,
+        activeAxis: FvAppSwitcherAxis,
+        mergeDirection: FvAppSwitcherAxisMergeDirection?,
+    ) = overlay.setFvAppSwitcherLinkAppearanceAxes(enabled, activeAxis, mergeDirection)
+
+    suspend fun setFvAppSwitcherLinkSlotAxes(
+        enabled: Boolean,
+        activeAxis: FvAppSwitcherAxis,
+        mergeDirection: FvAppSwitcherAxisMergeDirection?,
+    ) = overlay.setFvAppSwitcherLinkSlotAxes(enabled, activeAxis, mergeDirection)
 
     suspend fun setQuickLauncherDisplaySettings(settings: QuickLauncherDisplaySettings) =
         overlay.setQuickLauncherDisplaySettings(settings)

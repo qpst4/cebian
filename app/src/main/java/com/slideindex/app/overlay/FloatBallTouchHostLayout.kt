@@ -164,10 +164,10 @@ internal class FloatBallTouchHostLayout(
             onGestureHint = onGestureHint,
             onPickPreviewStart = onPickPreviewStart,
             onPickPreviewProgress = onPickPreviewProgress,
-        onPickPreviewCancel = onPickPreviewCancel,
-        onLauncherCaptureMove = onLauncherCaptureMove,
-        onLauncherCaptureUp = onLauncherCaptureUp,
-    )
+            onPickPreviewCancel = onPickPreviewCancel,
+            onLauncherCaptureMove = onLauncherCaptureMove,
+            onLauncherCaptureUp = onLauncherCaptureUp,
+        )
     }
 
     fun beginLauncherCaptureMode() {

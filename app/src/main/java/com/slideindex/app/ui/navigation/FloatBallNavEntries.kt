@@ -15,6 +15,7 @@ import com.slideindex.app.search.SearchEngineIconStorage
 import com.slideindex.app.settings.toMinimalAppSettings
 import com.slideindex.app.ui.FloatBallAppearanceSettingsScreen
 import com.slideindex.app.ui.FloatBallGestureSettingsScreen
+import com.slideindex.app.ui.floatBallGestureLabel
 import com.slideindex.app.ui.FloatBallPickSettingsScreen
 import com.slideindex.app.ui.FloatBallSettingsScreen
 import com.slideindex.app.ui.FloatBallStyleSettingsScreen

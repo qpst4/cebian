@@ -90,7 +90,11 @@ class AppSwitcherSlotPickTrampolineActivity : ComponentActivity() {
                                 onResult = { created ->
                                     created?.let { shortcut ->
                                         scope.launch {
-                                            deps.settingsRepository.setFvAppSwitcherSlot(slotIndex, shortcut.toQuickLauncherItem())
+                                            deps.settingsRepository.setFvAppSwitcherSlot(
+                                                AppSwitcherOverlayWindow.currentAxis(),
+                                                slotIndex,
+                                                shortcut.toQuickLauncherItem(),
+                                            )
                                             AppSwitcherOverlayWindow.refreshFromSettings()
                                         }
                                     }
@@ -100,7 +104,11 @@ class AppSwitcherSlotPickTrampolineActivity : ComponentActivity() {
                         },
                         onAdd = { item ->
                             scope.launch {
-                                deps.settingsRepository.setFvAppSwitcherSlot(slotIndex, item)
+                                deps.settingsRepository.setFvAppSwitcherSlot(
+                                    AppSwitcherOverlayWindow.currentAxis(),
+                                    slotIndex,
+                                    item,
+                                )
                                 AppSwitcherOverlayWindow.refreshFromSettings()
                                 finishPicker()
                             }

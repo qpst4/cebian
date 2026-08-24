@@ -4,7 +4,6 @@ import android.os.Handler
 import android.os.Looper
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -156,11 +155,7 @@ internal fun QuickLauncherAddOverlaySheetBody(
         contentKey = { it.contentKey() },
         label = "quickLauncherAddSubNav",
     ) { screen ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color(0xFFF7F7F7)),
-        ) {
+        Box(modifier = Modifier.fillMaxSize()) {
         when (screen) {
             is QuickLauncherAddSubScreen.ShellCommandConfig -> {
                 GestureExecuteShellCommandScreen(
