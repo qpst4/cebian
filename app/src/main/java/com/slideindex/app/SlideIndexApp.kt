@@ -14,6 +14,7 @@ import com.slideindex.app.segmentation.SegmentationEngineProvisioner
 import com.slideindex.app.service.ClipboardFloatLifecycle
 import com.slideindex.app.service.GestureToggleTileWarmup
 import com.slideindex.app.service.HistoryFloatLifecycle
+import com.slideindex.app.util.HiddenApiBootstrap
 import com.slideindex.app.util.PredictiveBackHelper
 import com.slideindex.app.util.ServiceEnabledStore
 import com.slideindex.app.widget.WidgetPanelPage
@@ -22,7 +23,6 @@ import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import org.lsposed.hiddenapibypass.HiddenApiBypass
 
 @HiltAndroidApp
 class SlideIndexApp : Application() {
@@ -35,7 +35,7 @@ class SlideIndexApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        HiddenApiBypass.setHiddenApiExemptions("L")
+        HiddenApiBootstrap.install()
         NativeEngineRuntime.coordinator = nativeEnginePackCoordinator
         NativeEngineRuntime.onRequestSegmentationPack = { segmentationEngineProvisioner.requestIfNeeded() }
         shizukuInitializer.start()

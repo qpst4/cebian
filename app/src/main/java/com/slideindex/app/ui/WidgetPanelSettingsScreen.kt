@@ -175,6 +175,7 @@ fun WidgetPanelSettingsScreen(
             page = page,
             pageIndex = pageIndex,
             allPages = pages,
+            widgetPanelBlurEnabled = settings.widgetPanelBlurEnabled,
             gridScrollEnabled = !gridInteractionActive,
             onPagesChange = { updatedPages ->
               pages = updatedPages
@@ -204,6 +205,7 @@ private fun WidgetPanelGridEditor(
   page: WidgetPanelPage,
   pageIndex: Int,
   allPages: List<WidgetPanelPage>,
+  widgetPanelBlurEnabled: Boolean,
   gridScrollEnabled: Boolean,
   onPagesChange: (List<WidgetPanelPage>) -> Unit,
   onGridInteractionActiveChange: (Boolean) -> Unit,
@@ -285,7 +287,9 @@ private fun WidgetPanelGridEditor(
       label = "${(page.overlayAlpha * 100).toInt()}%",
       formatLabel = { "${(it * 100).toInt()}%" },
       keyPoints = SETTINGS_SLIDER_PERCENT_KEY_POINTS_01,
-      onValueChange = { updatePage(page.copy(overlayAlpha = it)) },
+      onValueChange = { alpha ->
+        updatePage(latestPages[pageIndex].copy(overlayAlpha = alpha))
+      },
     )
     SettingsSliderRow(
       title = stringResource(R.string.widget_panel_columns_title, page.columnCount),
@@ -294,7 +298,13 @@ private fun WidgetPanelGridEditor(
       steps = 17,
       enabled = true,
       label = page.columnCount.toString(),
-      onValueChange = { updatePage(WidgetPanelGridLogic.fitPageToGrid(page.copy(columnCount = it.toInt()))) },
+      onValueChange = { count ->
+        updatePage(
+          WidgetPanelGridLogic.fitPageToGrid(
+            latestPages[pageIndex].copy(columnCount = count.toInt()),
+          ),
+        )
+      },
     )
     SettingsSliderRow(
       title = stringResource(R.string.widget_panel_rows_title, page.rowCount),
@@ -303,7 +313,13 @@ private fun WidgetPanelGridEditor(
       steps = 36,
       enabled = true,
       label = page.rowCount.toString(),
-      onValueChange = { updatePage(WidgetPanelGridLogic.fitPageToGrid(page.copy(rowCount = it.toInt()))) },
+      onValueChange = { count ->
+        updatePage(
+          WidgetPanelGridLogic.fitPageToGrid(
+            latestPages[pageIndex].copy(rowCount = count.toInt()),
+          ),
+        )
+      },
     )
     SettingsSliderRow(
       title = stringResource(R.string.widget_panel_visible_rows_title, page.visibleRowCount),
@@ -312,7 +328,9 @@ private fun WidgetPanelGridEditor(
       steps = 38,
       enabled = true,
       label = page.visibleRowCount.toString(),
-      onValueChange = { updatePage(page.copy(visibleRowCount = it.toInt())) },
+      onValueChange = { count ->
+        updatePage(latestPages[pageIndex].copy(visibleRowCount = count.toInt()))
+      },
     )
     SettingsSliderRow(
       title = stringResource(R.string.widget_panel_cell_width_title, page.cellWidthDp),
@@ -321,7 +339,9 @@ private fun WidgetPanelGridEditor(
       steps = 90,
       enabled = true,
       label = "${page.cellWidthDp}dp",
-      onValueChange = { updatePage(page.copy(cellWidthDp = it.toInt())) },
+      onValueChange = { width ->
+        updatePage(latestPages[pageIndex].copy(cellWidthDp = width.toInt()))
+      },
     )
     SettingsSliderRow(
       title = stringResource(R.string.widget_panel_margin_top_title, page.marginTopDp),
@@ -330,7 +350,9 @@ private fun WidgetPanelGridEditor(
       steps = 99,
       enabled = true,
       label = "${page.marginTopDp}dp",
-      onValueChange = { updatePage(page.copy(marginTopDp = it.toInt())) },
+      onValueChange = { margin ->
+        updatePage(latestPages[pageIndex].copy(marginTopDp = margin.toInt()))
+      },
     )
   }
 
@@ -370,6 +392,7 @@ private fun WidgetPanelGridEditor(
             WidgetPanelUi.panelSurfaceColor(
               overlayAlpha = page.overlayAlpha,
               editMode = true,
+              blurEnabled = widgetPanelBlurEnabled,
             ),
           ),
       ) {

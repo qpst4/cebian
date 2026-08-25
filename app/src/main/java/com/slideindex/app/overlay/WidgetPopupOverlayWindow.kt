@@ -24,6 +24,7 @@ import com.slideindex.app.service.WidgetBindTrampolineActivity
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.util.PermissionHelper
 import com.slideindex.app.widget.WidgetPanelDefaults
+import com.slideindex.app.widget.WidgetPanelGridLogic
 import com.slideindex.app.widget.WidgetPanelLayoutMetrics
 import com.slideindex.app.widget.WidgetPanelPage
 import com.slideindex.app.widget.WidgetPopupCardLayout
@@ -444,7 +445,12 @@ object WidgetPopupOverlayWindow {
     settingsCollectJob = overlayScope.launch {
       deps.settingsRepository.settings.collectLatest { latest ->
         currentSettings = latest
-        cardLayout?.updateSettings(latest)
+        cardLayout?.let { card ->
+          val pages = WidgetPanelDefaults.effectivePages(latest.widgetPanelPages)
+            .map { WidgetPanelGridLogic.fitPageToGrid(it) }
+          card.updatePages(pages)
+          card.updateSettings(latest)
+        }
         OverlayPerformanceMonitorBinding.syncUserPreference(latest, appContext)
       }
     }

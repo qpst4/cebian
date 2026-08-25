@@ -6,7 +6,6 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -14,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -41,8 +39,11 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.yukonga.miuix.kmp.nav.core.NavBackStack
 import top.yukonga.miuix.kmp.nav.core.NavDisplay
+import top.yukonga.miuix.kmp.nav.core.NavDisplayEffects
 import top.yukonga.miuix.kmp.nav.core.NavEntryBuilder
 import top.yukonga.miuix.kmp.nav.core.rememberNavBackStack
+import top.yukonga.miuix.kmp.nav.core.rememberNavSystemCornerRadius
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.nav.transition.NavSwipeDirection
 import com.slideindex.app.MainActivity
 import com.slideindex.app.di.AppDependencies
@@ -78,7 +79,7 @@ import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.android.awaitFrame
 
-/** 与子页 [NavDisplay] push/pop 转场一致，供底栏显隐动画对齐。 */
+/** 底栏显隐动画时长（与 NavDisplay 默认转场大致对齐）。 */
 internal const val MainNavTransitionDurationMs = 400
 /** 悬浮底栏（宽度 Compact，典型竖屏手机）Tab 切换 */
 private const val MAIN_TAB_SWITCH_DURATION_BOTTOM_BAR_MS = 170
@@ -269,14 +270,8 @@ fun MainNavHost(
                     }
                 }
             }
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surface),
-            ) {
-                val navContentModifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surface)
+            Box(modifier = Modifier.fillMaxSize()) {
+                val navContentModifier = Modifier.fillMaxSize()
                 var lastPagerStyle by remember { mutableStateOf(BottomNavStyle.LIQUID_GLASS) }
                 val activePagerStyle = if (useFloatingNavBottomNav) {
                     BottomNavStyle.FLOATING_NAV
@@ -360,7 +355,7 @@ fun MainNavHost(
                                     }
                                 }
                                 ClassicFloatingSideNavRailOverlay(
-                                    cutoutFillColor = MaterialTheme.colorScheme.surface,
+                                    cutoutFillColor = MiuixTheme.colorScheme.background,
                                     hazeState = hazeState,
                                     glassEnabled = bottomNavUsesHaze,
                                     selected = bottomNavSelectedTab,
@@ -604,9 +599,6 @@ internal fun MainTabNavStackSingle(
         else -> NavSwipeDirection.LeftToRight
     }
     val swipeDismiss = if (swipeDismissEnabled) swipeBackDirection else null
-    val navTransition = remember(swipeDismiss) {
-        mainAppNavTransition(swipeDismiss ?: NavSwipeDirection.None)
-    }
     val registerEntries = remember(destination, tabNavContext, swipeDismiss) {
         mainTabNavEntryProvider(swipeDismiss, destination, tabNavContext)
     }
@@ -624,7 +616,9 @@ internal fun MainTabNavStackSingle(
         NavDisplay(
             backStack = backStack,
             onBack = { backStack.removeLastOrNull() },
-            transition = navTransition,
+            effects = NavDisplayEffects(
+                cornerClipRadius = rememberNavSystemCornerRadius(),
+            ),
             content = registerEntries,
         )
     }

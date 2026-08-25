@@ -343,6 +343,7 @@ class WidgetPopupCardLayout(
         adapter.notifyDataSetChanged()
         updateDots()
         updateHeader()
+        applyCardBackground()
     }
 
     private fun persist(updated: List<WidgetPanelPage>) {
