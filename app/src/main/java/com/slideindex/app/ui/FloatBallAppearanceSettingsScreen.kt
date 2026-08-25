@@ -15,7 +15,6 @@ import com.slideindex.app.settings.FloatBallPositionMode
 import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.SETTINGS_SLIDER_PERCENT_KEY_POINTS_01
 import com.slideindex.app.ui.settings.components.SettingDropdownRow
-import com.slideindex.app.ui.settings.components.SettingsHintText
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 import com.slideindex.app.ui.settings.components.settingsLazyHint
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
@@ -46,7 +45,6 @@ fun FloatBallAppearanceSettingsScreen(
     accessibilityGranted: Boolean,
     onBack: () -> Unit,
     onSizeChange: (Float) -> Unit,
-    onPickCrossArmChange: (Float) -> Unit,
     onOpacityChange: (Float) -> Unit,
     onPositionModeChange: (FloatBallPositionMode) -> Unit,
     onVisibleFractionChange: (Float) -> Unit,
@@ -84,7 +82,6 @@ fun FloatBallAppearanceSettingsScreen(
     val appearanceSectionTitle = stringResource(R.string.float_ball_section_appearance)
     val positionSectionTitle = stringResource(R.string.float_ball_position)
     val positionXyHint = stringResource(R.string.float_ball_position_xy_hint)
-    val styleSectionTitle = stringResource(R.string.float_ball_section_style)
     val lineSectionTitle = stringResource(R.string.float_ball_section_line)
     val lineWidthPreviewHint = stringResource(R.string.float_ball_line_width_preview_hint)
 
@@ -106,6 +103,23 @@ fun FloatBallAppearanceSettingsScreen(
             keyPrefix = "fb-appearance",
             items = buildList {
                 add(
+                    settingsCardScopeItem("style-picker") {
+                        SettingNavigationRow(
+                            icon = { label ->
+                                Icon(
+                                    Icons.Outlined.Palette,
+                                    contentDescription = label,
+                                    tint = top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                                )
+                            },
+                            title = stringResource(R.string.float_ball_style_picker_title),
+                            subtitle = floatBallStyleLabel(settings.floatBallStyleType),
+                            enabled = controlsEnabled,
+                            onClick = onOpenStyleSettings,
+                        )
+                    },
+                )
+                add(
                     settingsCardScopeItem("size") {
                         SettingsSliderRow(
                             title = stringResource(R.string.float_ball_size),
@@ -125,22 +139,6 @@ fun FloatBallAppearanceSettingsScreen(
                                 onAppearancePreviewCommit()
                                 onSizeChange(value)
                             },
-                        )
-                    },
-                )
-                add(
-                    settingsCardScopeItem("pick-cross-arm") {
-                        SettingsSliderRow(
-                            title = stringResource(R.string.float_ball_pick_cross_arm),
-                            value = settings.floatBallPickCrossArmDp,
-                            valueRange = 4f..16f,
-                            steps = 23,
-                            enabled = controlsEnabled,
-                            label = stringResource(
-                                R.string.float_ball_pick_cross_arm_value,
-                                settings.floatBallPickCrossArmDp,
-                            ),
-                            onValueChange = onPickCrossArmChange,
                         )
                     },
                 )
@@ -173,8 +171,9 @@ fun FloatBallAppearanceSettingsScreen(
             title = positionSectionTitle,
             sectionTop = true,
         )
+        settingsLazyHint(key = "position_xy_hint", text = positionXyHint)
         groupedCardItems(
-            keyPrefix = "fb-position-mode",
+            keyPrefix = "fb-position",
             items = buildList {
                 add(
                     settingsCardScopeItem("position-mode") {
@@ -188,12 +187,6 @@ fun FloatBallAppearanceSettingsScreen(
                         )
                     },
                 )
-            },
-        )
-        settingsLazyHint(key = "position_xy_hint", text = positionXyHint)
-        groupedCardItems(
-            keyPrefix = "fb-position",
-            items = buildList {
                 add(
                     settingsCardScopeItem("visible-fraction") {
                         SettingsSliderRow(
@@ -216,11 +209,6 @@ fun FloatBallAppearanceSettingsScreen(
                     },
                 )
                 add(
-                    settingsCardScopeItem("position-y-hint") {
-                        SettingsHintText(stringResource(R.string.float_ball_position_y_preview_hint))
-                    },
-                )
-                add(
                     settingsCardScopeItem("position-y") {
                         SettingsSliderRow(
                             title = stringResource(R.string.float_ball_position_y),
@@ -238,34 +226,6 @@ fun FloatBallAppearanceSettingsScreen(
                                 onPositionYPreviewStop(false)
                                 onPositionYChange(fraction)
                             },
-                        )
-                    },
-                )
-            },
-        )
-
-        settingsLazySmallTitle(
-            key = "style_section",
-            title = styleSectionTitle,
-            sectionTop = true,
-        )
-        groupedCardItems(
-            keyPrefix = "fb-style",
-            items = buildList {
-                add(
-                    settingsCardScopeItem("style-picker") {
-                        SettingNavigationRow(
-                            icon = { label ->
-                                Icon(
-                                    Icons.Outlined.Palette,
-                                    contentDescription = label,
-                                    tint = top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.onSurfaceVariantSummary,
-                                )
-                            },
-                            title = stringResource(R.string.float_ball_style_picker_title),
-                            subtitle = floatBallStyleLabel(settings.floatBallStyleType),
-                            enabled = controlsEnabled,
-                            onClick = onOpenStyleSettings,
                         )
                     },
                 )

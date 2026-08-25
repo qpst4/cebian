@@ -461,8 +461,7 @@
     <string name="float_ball_position_both_edges">Both edges</string>
     <string name="float_ball_position_y">Vertical position</string>
     <string name="float_ball_visible_fraction">Visible amount</string>
-    <string name="float_ball_position_xy_hint" formatted="false">Visible amount is how much of the ball stays on screen when docked: 100% fully visible, 50% half off-screen. Applies to left, right, and both-edge modes. Vertical position is a screen percentage.</string>
-    <string name="float_ball_position_y_preview_hint">While dragging vertical position, the float ball moves in real time</string>
+    <string name="float_ball_position_xy_hint">The percentage shows how much of the ball stays on screen when docked</string>
     <string name="float_ball_line_height">Line height</string>
     <string name="float_ball_line_width">Trigger width</string>
     <string name="float_ball_line_width_preview_hint">Drag the trigger width slider to preview the active swipe zone along the screen edge.</string>
@@ -650,6 +649,10 @@
     <string name="float_ball_style_image_selected">Custom image selected</string>
     <string name="float_ball_style_gif_hint">Pick a GIF for the float ball</string>
     <string name="float_ball_pick_settings_title">Text pick</string>
+    <string name="float_ball_pick_section_recognition_image">Recognition &amp; image picking</string>
+    <string name="float_ball_pick_section_panel">Pick panel</string>
+    <string name="float_ball_pick_section_operation">Pick operations</string>
+    <string name="float_ball_pick_section_advanced">Advanced pick parameters</string>
     <string name="float_ball_appearance_settings_summary">%1$.0f dp · Opacity %2$d%%</string>
     <string name="float_ball_pick_settings_summary">Spacing %1$.0f dp · OCR %2$s</string>
     <string name="float_ball_ocr_fallback_on">On</string>

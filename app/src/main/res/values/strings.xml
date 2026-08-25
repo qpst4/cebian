@@ -1015,8 +1015,7 @@
     <string name="float_ball_position_both_edges">左右两边同时显示</string>
     <string name="float_ball_position_y">垂直位置</string>
     <string name="float_ball_visible_fraction">显示百分比</string>
-    <string name="float_ball_position_xy_hint" formatted="false">显示百分比表示贴边时球体留在屏幕内的比例：100% 为整球可见，50% 为一半在屏外。左右贴边与双侧模式共用此设置；垂直位置按屏幕百分比调节。</string>
-    <string name="float_ball_position_y_preview_hint">拖动「垂直位置」时，悬浮球会实时跟随预览</string>
+    <string name="float_ball_position_xy_hint">显示百分比表示贴边时球体留在屏幕内的比例</string>
     <string name="float_ball_line_height">线高度</string>
     <string name="float_ball_line_width">触发区宽度</string>
     <string name="float_ball_line_width_preview_hint">拖动「触发区宽度」滑块时，会在屏幕边缘预览有效滑动范围</string>
@@ -1234,6 +1233,10 @@
     <string name="float_ball_style_image_selected">已选择自定义图片</string>
     <string name="float_ball_style_gif_hint">选择 GIF 动图作为悬浮球外观</string>
     <string name="float_ball_pick_settings_title">取词</string>
+    <string name="float_ball_pick_section_recognition_image">识别与图片取词</string>
+    <string name="float_ball_pick_section_panel">取词面板</string>
+    <string name="float_ball_pick_section_operation">拾取操作</string>
+    <string name="float_ball_pick_section_advanced">高级拾取参数</string>
     <string name="float_ball_appearance_settings_summary">%1$.0f dp · 不透明度 %2$d%%</string>
     <string name="float_ball_pick_settings_summary">间距 %1$.0f dp · OCR %2$s</string>
     <string name="float_ball_ocr_fallback_on">已开启</string>
