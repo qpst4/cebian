@@ -31,6 +31,7 @@ import com.slideindex.app.ui.SearchPanelAppSearchSettingsScreen
 import com.slideindex.app.ui.SearchPanelContactSearchSettingsScreen
 import com.slideindex.app.ui.SearchPanelFileSearchSettingsScreen
 import com.slideindex.app.ui.SearchPanelSettingsScreen
+import com.slideindex.app.ui.SearchPanelPresentationLayoutSettingsScreen
 import com.slideindex.app.ui.SearchPanelSystemSettingsSearchSettingsScreen
 import com.slideindex.app.ui.FloatBallSettingsScreen
 import com.slideindex.app.ui.QuickLauncherEditorScreen
@@ -977,9 +978,25 @@ fun NavEntryBuilder.extensionNavEntries(ctx: MainNavContext) {
             onSetSearchPanelBackgroundStyle = viewModel::setSearchPanelBackgroundStyle,
             onSetSearchPanelBlurRadiusDp = viewModel::setSearchPanelBlurRadiusDp,
             onSetSearchPanelDimPercent = viewModel::setSearchPanelDimPercent,
-            onOpenPreviewSort = { ctx.navigate(AppNavKey.FloatBallSearchEnginePreviewSort) },
+            onOpenPresentationLayoutSettings = { ctx.navigate(AppNavKey.SearchPanelPresentationLayout) },
             onOpenTextSearchEngines = { ctx.navigate(AppNavKey.FloatBallSearchEngine) },
             onOpenImageSearchEngines = { ctx.navigate(AppNavKey.FloatBallImageSearchEngine) },
+        )
+    }
+
+    hiltEntry<AppNavKey.SearchPanelPresentationLayout> {
+        val viewModel: SearchEngineSettingsViewModel = hiltViewModel()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        SearchPanelPresentationLayoutSettingsScreen(
+            settings = overlaySettings.toMinimalAppSettings(),
+            onBack = { ctx.navigateBackTo(AppNavKey.SearchPanel) },
+            onSetSearchPanelPresentationMode = viewModel::setSearchPanelPresentationMode,
+            onSetSearchPanelBarPosition = viewModel::setSearchPanelBarPosition,
+            onSetSearchPanelListOrder = viewModel::setSearchPanelListOrder,
+            onSetSearchPanelAppDisplayStyle = viewModel::setSearchPanelAppDisplayStyle,
+            onSetSearchPanelBackgroundStyle = viewModel::setSearchPanelBackgroundStyle,
+            onSetSearchPanelBlurRadiusDp = viewModel::setSearchPanelBlurRadiusDp,
+            onSetSearchPanelDimPercent = viewModel::setSearchPanelDimPercent,
         )
     }
 

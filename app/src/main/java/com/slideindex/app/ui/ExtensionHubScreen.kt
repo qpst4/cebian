@@ -121,6 +121,14 @@ fun ExtensionHubScreen(
                         )
                     },
                 )
+                add(
+                    settingsCardScopeItem("search-panel") {
+                        SearchPanelEntryCard(
+                            outlinedLeadingIcons = true,
+                            onClick = onOpenSearchPanel,
+                        )
+                    },
+                )
             },
         )
 
@@ -178,14 +186,6 @@ fun ExtensionHubScreen(
                             stashEntryCount = stashEntryCount,
                             outlinedLeadingIcons = true,
                             onClick = onOpenStashClipboard,
-                        )
-                    },
-                )
-                add(
-                    settingsCardScopeItem("search-panel") {
-                        SearchPanelEntryCard(
-                            outlinedLeadingIcons = true,
-                            onClick = onOpenSearchPanel,
                         )
                     },
                 )

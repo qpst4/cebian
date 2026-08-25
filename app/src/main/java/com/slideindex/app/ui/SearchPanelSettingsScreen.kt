@@ -11,13 +11,11 @@ import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.Contacts
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Image
-import androidx.compose.material.icons.outlined.Reorder
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -25,13 +23,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.slideindex.app.R
+import com.slideindex.app.overlay.searchpanel.FilePermissionTrampolineActivity
 import com.slideindex.app.overlay.SystemWallpaperBlurHelper
 import com.slideindex.app.overlay.WallpaperPermissionTrampolineActivity
-import com.slideindex.app.overlay.searchpanel.FilePermissionTrampolineActivity
 import com.slideindex.app.search.contacts.ContactSearchIndex
 import com.slideindex.app.search.files.FileSearchIndex
 import com.slideindex.app.settings.AppSettings
@@ -87,25 +82,14 @@ fun SearchPanelSettingsScreen(
     onSetSearchPanelBackgroundStyle: (Int) -> Unit,
     onSetSearchPanelBlurRadiusDp: (Int) -> Unit,
     onSetSearchPanelDimPercent: (Int) -> Unit,
-    onOpenPreviewSort: () -> Unit,
+    onOpenPresentationLayoutSettings: () -> Unit,
     onOpenTextSearchEngines: () -> Unit,
     onOpenImageSearchEngines: () -> Unit,
 ) {
     val context = LocalContext.current
-    val lifecycleOwner = LocalLifecycleOwner.current
     var showClearHistoryDialog by remember { mutableStateOf(false) }
     var wallpaperPermissionGranted by remember {
         mutableStateOf(SystemWallpaperBlurHelper.hasWallpaperAccessPermission(context))
-    }
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                wallpaperPermissionGranted =
-                    SystemWallpaperBlurHelper.hasWallpaperAccessPermission(context)
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
     fun ensureWallpaperPermission() {
         WallpaperPermissionTrampolineActivity.ensurePermission(context) { granted ->
@@ -163,12 +147,30 @@ fun SearchPanelSettingsScreen(
     val filesTitle = stringResource(R.string.search_panel_section_files)
     val settingsSearchTitle = stringResource(R.string.search_panel_settings_search_title)
     val historyHint = stringResource(R.string.search_panel_history_hint)
+    val presentationLayoutTitle = stringResource(R.string.search_panel_settings_section_layout)
+    val presentationLayoutSubtitle = stringResource(R.string.search_panel_settings_subtitle)
 
     SettingsScreenScaffold(
         title = stringResource(R.string.search_panel_settings_title),
         subtitle = stringResource(R.string.search_panel_settings_subtitle),
         onBack = onBack,
     ) {
+        groupedCardItems(
+            keyPrefix = "search_panel_presentation_layout",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("presentation-layout") {
+                        SettingNavigationRow(
+                            icon = { label -> Icon(Icons.Outlined.Settings, contentDescription = label) },
+                            title = presentationLayoutTitle,
+                            subtitle = presentationLayoutSubtitle,
+                            onClick = onOpenPresentationLayoutSettings,
+                        )
+                    },
+                )
+            },
+        )
+        if (false) {
         settingsLazySmallTitle(key = "layout_section", title = layoutSectionTitle, sectionTop = true)
         groupedCardItems(
             keyPrefix = "search_panel_layout",
@@ -212,6 +214,34 @@ fun SearchPanelSettingsScreen(
                             selectedIndex = appDisplayStyles.indexOf(settings.searchPanelAppDisplayStyle)
                                 .coerceAtLeast(0),
                             onSelectedIndexChange = { onSetSearchPanelAppDisplayStyle(appDisplayStyles[it]) },
+                        )
+                    },
+                )
+            },
+        )
+
+        }
+        settingsLazySmallTitle(key = "engines_section", title = enginesSectionTitle, sectionTop = true)
+        groupedCardItems(
+            keyPrefix = "search_panel_engines",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("text-engines") {
+                        SettingNavigationRow(
+                            icon = { label -> Icon(Icons.Outlined.Search, contentDescription = label) },
+                            title = stringResource(R.string.search_engine_settings_title),
+                            subtitle = stringResource(R.string.search_panel_text_engines_entry_desc),
+                            onClick = onOpenTextSearchEngines,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("image-engines") {
+                        SettingNavigationRow(
+                            icon = { label -> Icon(Icons.Outlined.Image, contentDescription = label) },
+                            title = stringResource(R.string.image_search_engine_settings_title),
+                            subtitle = stringResource(R.string.search_panel_image_engines_entry_desc),
+                            onClick = onOpenImageSearchEngines,
                         )
                     },
                 )
@@ -319,6 +349,7 @@ fun SearchPanelSettingsScreen(
             },
         )
 
+        if (false) {
         settingsLazySmallTitle(key = "appearance_section", title = appearanceSectionTitle, sectionTop = true)
         groupedCardItems(
             keyPrefix = "search_panel_appearance",
@@ -387,6 +418,7 @@ fun SearchPanelSettingsScreen(
             },
         )
 
+        }
         settingsLazySmallTitle(key = "candidates_section", title = candidatesSectionTitle, sectionTop = true)
         groupedCardItems(
             keyPrefix = "search_panel_candidates",
@@ -510,43 +542,6 @@ fun SearchPanelSettingsScreen(
             },
         )
 
-        settingsLazySmallTitle(key = "engines_section", title = enginesSectionTitle, sectionTop = true)
-        groupedCardItems(
-            keyPrefix = "search_panel_engines",
-            items = buildList {
-                add(
-                    settingsCardScopeItem("preview-sort") {
-                        SettingNavigationRow(
-                            icon = { label -> Icon(Icons.Outlined.Reorder, contentDescription = label) },
-                            title = stringResource(R.string.search_engine_settings_preview_mode),
-                            subtitle = stringResource(R.string.search_engine_settings_preview_mode_summary),
-                            enabled = engines.isNotEmpty(),
-                            onClick = onOpenPreviewSort,
-                        )
-                    },
-                )
-                add(
-                    settingsCardScopeItem("text-engines") {
-                        SettingNavigationRow(
-                            icon = { label -> Icon(Icons.Outlined.Search, contentDescription = label) },
-                            title = stringResource(R.string.search_engine_settings_title),
-                            subtitle = stringResource(R.string.search_panel_text_engines_entry_desc),
-                            onClick = onOpenTextSearchEngines,
-                        )
-                    },
-                )
-                add(
-                    settingsCardScopeItem("image-engines") {
-                        SettingNavigationRow(
-                            icon = { label -> Icon(Icons.Outlined.Image, contentDescription = label) },
-                            title = stringResource(R.string.image_search_engine_settings_title),
-                            subtitle = stringResource(R.string.search_panel_image_engines_entry_desc),
-                            onClick = onOpenImageSearchEngines,
-                        )
-                    },
-                )
-            },
-        )
     }
 
     MiuixConfirmDialog(
@@ -574,7 +569,7 @@ fun SettingsCardScope.SearchPanelEntryCard(
 }
 
 @Composable
-private fun searchPanelPresentationLabel(mode: SearchPanelPresentationMode): String = when (mode) {
+internal fun searchPanelPresentationLabel(mode: SearchPanelPresentationMode): String = when (mode) {
     SearchPanelPresentationMode.BOTTOM_SHEET ->
         stringResource(R.string.search_panel_presentation_bottom_sheet)
     SearchPanelPresentationMode.FULLSCREEN ->
@@ -582,26 +577,26 @@ private fun searchPanelPresentationLabel(mode: SearchPanelPresentationMode): Str
 }
 
 @Composable
-private fun searchPanelInputBehaviorLabel(behavior: SearchPanelInputBehavior): String = when (behavior) {
+internal fun searchPanelInputBehaviorLabel(behavior: SearchPanelInputBehavior): String = when (behavior) {
     SearchPanelInputBehavior.SELECT_ALL -> stringResource(R.string.search_panel_input_behavior_select_all)
     SearchPanelInputBehavior.CLEAR -> stringResource(R.string.search_panel_input_behavior_clear)
     SearchPanelInputBehavior.KEEP -> stringResource(R.string.search_panel_input_behavior_keep)
 }
 
 @Composable
-private fun searchPanelListOrderLabel(order: SearchPanelListOrder): String = when (order) {
+internal fun searchPanelListOrderLabel(order: SearchPanelListOrder): String = when (order) {
     SearchPanelListOrder.TOP_DOWN -> stringResource(R.string.search_panel_list_order_top_down)
     SearchPanelListOrder.BOTTOM_UP -> stringResource(R.string.search_panel_list_order_bottom_up)
 }
 
 @Composable
-private fun searchPanelBarPositionLabel(position: SearchPanelBarPosition): String = when (position) {
+internal fun searchPanelBarPositionLabel(position: SearchPanelBarPosition): String = when (position) {
     SearchPanelBarPosition.TOP -> stringResource(R.string.search_panel_bar_position_top)
     SearchPanelBarPosition.BOTTOM -> stringResource(R.string.search_panel_bar_position_bottom)
 }
 
 @Composable
-private fun searchPanelAppDisplayStyleLabel(style: SearchPanelAppDisplayStyle): String = when (style) {
+internal fun searchPanelAppDisplayStyleLabel(style: SearchPanelAppDisplayStyle): String = when (style) {
     SearchPanelAppDisplayStyle.ICONS -> stringResource(R.string.search_panel_app_display_style_icons)
     SearchPanelAppDisplayStyle.LIST -> stringResource(R.string.search_panel_app_display_style_list)
 }

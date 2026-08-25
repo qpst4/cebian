@@ -1,5 +1,8 @@
 package com.slideindex.app.search.calculator
 
+import java.math.BigDecimal
+import java.math.MathContext
+import java.math.RoundingMode
 import java.util.Locale
 
 /**
@@ -9,6 +12,8 @@ import java.util.Locale
  * Lightweight math expression evaluator.
  */
 object CalculatorUtils {
+    private val mathContext = MathContext.DECIMAL128
+    private val hundred = BigDecimal("100")
     private val percentPhraseRegex =
         Regex(
             pattern = """^\s*([+-]?\d+(?:\.\d+)?)\s*%\s*(off|of)\s*([+-]?\d+(?:\.\d+)?)\s*$""",
@@ -59,14 +64,14 @@ object CalculatorUtils {
 
     private fun isPercentPhrase(query: String): Boolean = percentPhraseRegex.matches(query)
 
-    private fun evaluatePercentPhrase(expression: String): Double? {
+    private fun evaluatePercentPhrase(expression: String): BigDecimal? {
         val match = percentPhraseRegex.matchEntire(expression) ?: return null
-        val percent = match.groupValues[1].toDoubleOrNull() ?: return null
+        val percent = match.groupValues[1].toBigDecimalOrNull() ?: return null
         val operation = match.groupValues[2].lowercase(Locale.US)
-        val baseValue = match.groupValues[3].toDoubleOrNull() ?: return null
-        val percentValue = baseValue * (percent / 100.0)
+        val baseValue = match.groupValues[3].toBigDecimalOrNull() ?: return null
+        val percentValue = baseValue.multiply(percent).divide(hundred, mathContext)
         return when (operation) {
-            "off" -> baseValue - percentValue
+            "off" -> baseValue.subtract(percentValue)
             "of" -> percentValue
             else -> null
         }
@@ -80,10 +85,10 @@ object CalculatorUtils {
             .replace(" ", "")
             .trim()
 
-    private fun evaluate(expression: String): Double {
+    private fun evaluate(expression: String): BigDecimal {
         var index = 0
 
-        fun parseNumber(): Double {
+        fun parseNumber(): BigDecimal {
             var numStr = ""
             while (index < expression.length &&
                 (expression[index].isDigit() || expression[index] == '.')
@@ -91,12 +96,12 @@ object CalculatorUtils {
                 numStr += expression[index]
                 index++
             }
-            return numStr.toDoubleOrNull() ?: throw IllegalArgumentException("Invalid number")
+            return numStr.toBigDecimalOrNull() ?: throw IllegalArgumentException("Invalid number")
         }
 
-        lateinit var parseExpression: () -> Double
+        lateinit var parseExpression: () -> BigDecimal
 
-        fun parseFactor(): Double {
+        fun parseFactor(): BigDecimal {
             if (index >= expression.length) {
                 throw IllegalArgumentException("Unexpected end of expression")
             }
@@ -112,7 +117,7 @@ object CalculatorUtils {
                 }
                 '-' -> {
                     index++
-                    -parseFactor()
+                    parseFactor().negate()
                 }
                 '+' -> {
                     index++
@@ -122,19 +127,19 @@ object CalculatorUtils {
             }
         }
 
-        fun parseTerm(): Double {
+        fun parseTerm(): BigDecimal {
             var result = parseFactor()
             while (index < expression.length) {
                 when (expression[index]) {
                     '*' -> {
                         index++
-                        result *= parseFactor()
+                        result = result.multiply(parseFactor(), mathContext)
                     }
                     '/' -> {
                         index++
                         val divisor = parseFactor()
-                        if (divisor == 0.0) throw ArithmeticException("Division by zero")
-                        result /= divisor
+                        if (divisor.signum() == 0) throw ArithmeticException("Division by zero")
+                        result = result.divide(divisor, mathContext)
                     }
                     else -> break
                 }
@@ -148,11 +153,11 @@ object CalculatorUtils {
                 when (expression[index]) {
                     '+' -> {
                         index++
-                        result += parseTerm()
+                        result = result.add(parseTerm(), mathContext)
                     }
                     '-' -> {
                         index++
-                        result -= parseTerm()
+                        result = result.subtract(parseTerm(), mathContext)
                     }
                     else -> break
                 }
@@ -167,8 +172,11 @@ object CalculatorUtils {
         return result
     }
 
-    private fun formatResult(result: Double): String {
-        val rounded = String.format(Locale.US, "%.2f", result)
-        return rounded.trimEnd('0').trimEnd('.')
+    private fun formatResult(result: BigDecimal): String {
+        val displayScale = 12
+        val rounded = result.setScale(displayScale, RoundingMode.HALF_UP)
+        val hasMoreDigits = rounded.compareTo(result) != 0
+        val text = rounded.stripTrailingZeros().toPlainString()
+        return if (hasMoreDigits) "$text…" else text
     }
 }

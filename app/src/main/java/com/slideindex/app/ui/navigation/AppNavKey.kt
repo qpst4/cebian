@@ -273,6 +273,7 @@ sealed interface AppNavKey : NavKey {
     @Serializable data object ClipboardFloatBlacklist : AppNavKey
     @Serializable data object ClipboardFloatBlacklistPick : AppNavKey
     @Serializable data object SearchPanel : AppNavKey
+    @Serializable data object SearchPanelPresentationLayout : AppNavKey
     @Serializable data object SearchPanelFileSearch : AppNavKey
     @Serializable data object SearchPanelAppSearch : AppNavKey
     @Serializable data object SearchPanelContactSearch : AppNavKey
