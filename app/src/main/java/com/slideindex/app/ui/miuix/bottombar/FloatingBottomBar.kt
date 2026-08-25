@@ -148,7 +148,7 @@ fun RowScope.FloatingBottomBarItem(
 @Composable
 fun FloatingBottomBar(
     modifier: Modifier = Modifier,
-    selectedIndex: () -> Int,
+    selectedIndex: Int,
     onSelected: (index: Int) -> Unit,
     backdrop: Backdrop,
     tabsCount: Int,
@@ -209,7 +209,7 @@ fun FloatingBottomBar(
         }
     }
 
-    var currentIndex by remember(selectedIndex) { mutableIntStateOf(selectedIndex()) }
+    var currentIndex by remember { mutableIntStateOf(selectedIndex) }
 
     // Kept fresh so the pill's onTap (captured once in the remembered animation) always
     // calls the latest callback.
@@ -226,7 +226,7 @@ fun FloatingBottomBar(
     val dampedDragAnimation = remember(animationScope, tabsCount, density, isLtr) {
         DampedDragAnimation(
             animationScope = animationScope,
-            initialValue = selectedIndex().toFloat(),
+            initialValue = selectedIndex.toFloat(),
             valueRange = 0f..(tabsCount - 1).toFloat(),
             visibilityThreshold = 0.001f,
             initialScale = 1f,
@@ -286,15 +286,13 @@ fun FloatingBottomBar(
     }
 
     LaunchedEffect(selectedIndex) {
-        snapshotFlow { selectedIndex() }.collectLatest { index ->
-            currentIndex = index
-            // Spring the indicator across (press + glass bulge) whenever the selection
-            // settles on a new tab and we're NOT mid finger-swipe. While tracking, the
-            // progress effect below owns the position, so we only keep currentIndex (icon
-            // fill / semantics) in sync here and let the final snap land it exactly.
-            if (isTracking?.invoke() != true) {
-                dampedDragAnimation.animateToValue(index.toFloat())
-            }
+        currentIndex = selectedIndex
+        // Spring the indicator across (press + glass bulge) whenever the selection
+        // settles on a new tab and we're NOT mid finger-swipe. While tracking, the
+        // progress effect below owns the position, so we only keep currentIndex (icon
+        // fill / semantics) in sync here and let the final snap land it exactly.
+        if (isTracking?.invoke() != true) {
+            dampedDragAnimation.animateToValue(selectedIndex.toFloat())
         }
     }
 

@@ -39,6 +39,8 @@ import dev.chrisbanes.haze.HazeState
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.launch
 
 private val navBarFadeSpec = tween<Float>(durationMillis = MainNavTransitionDurationMs)
 private val navBarSlideSpec = tween<IntOffset>(durationMillis = MainNavTransitionDurationMs)
@@ -85,6 +87,13 @@ internal fun MainTabPagerHost(
     }
 
     LaunchedEffect(pagerState) {
+        launch {
+            snapshotFlow { pagerState.currentPage }
+                .distinctUntilChanged()
+                .collect {
+                    mainTabPagerState.syncPage()
+                }
+        }
         snapshotFlow { pagerState.settledPage }.collect { page ->
             val tab = MainBottomNavDestination.entries[page]
             visitedTabs.add(tab)
@@ -130,7 +139,7 @@ internal fun MainTabPagerHost(
                     when (bottomNavStyle) {
                         BottomNavStyle.LIQUID_GLASS -> MiuixFloatingBottomNavBar(
                             backdrop = liquidGlassBackdrop,
-                            targetTabIndex = pagerState.targetPage,
+                            targetTabIndex = mainTabPagerState.selectedPage,
                             progress = { pagerState.currentPage + pagerState.currentPageOffsetFraction },
                             isTracking = { isDragged },
                             blurRadiusDp = bottomNavBlurRadiusDp,
@@ -143,7 +152,7 @@ internal fun MainTabPagerHost(
                             onTabReselected = onTabReselected,
                         )
                         BottomNavStyle.FLOATING_NAV -> MiuixOfficialFloatingBottomNavBar(
-                            selectedIndex = pagerState.targetPage,
+                            selectedIndex = mainTabPagerState.selectedPage,
                             onTabSelected = { tab ->
                                 visitedTabs.add(tab)
                                 mainTabPagerState.animateToPage(tab.ordinal)

@@ -37,7 +37,12 @@ internal class MainTabPagerState(
     private var navJob: Job? = null
 
     fun animateToPage(targetIndex: Int) {
-        if (targetIndex == selectedPage) return
+        if (targetIndex == selectedPage &&
+            pagerState.currentPage == targetIndex &&
+            !isNavigating
+        ) {
+            return
+        }
 
         navJob?.cancel()
         selectedPage = targetIndex
@@ -76,6 +81,12 @@ internal class MainTabPagerState(
                     }
                 }
             }
+        }
+    }
+
+    fun syncPage() {
+        if (!isNavigating && selectedPage != pagerState.currentPage) {
+            selectedPage = pagerState.currentPage
         }
     }
 }

@@ -81,7 +81,7 @@ fun MiuixFloatingBottomNavBar(
 
     FloatingBottomBar(
         modifier = modifier,
-        selectedIndex = { targetTabIndex },
+        selectedIndex = targetTabIndex,
         progress = progress,
         isTracking = isTracking,
         onSelected = { index ->

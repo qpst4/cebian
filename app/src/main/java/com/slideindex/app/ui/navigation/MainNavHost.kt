@@ -6,6 +6,7 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -481,7 +482,18 @@ private fun MainTabNavStacks(
         }
         tween<Float>(durationMillis = durationMs, easing = FastOutSlowInEasing)
     }
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MiuixTheme.colorScheme.background)
+            .then(
+                if (bottomNavUsesHaze) {
+                    Modifier.hazeSource(state = hazeState)
+                } else {
+                    Modifier
+                },
+            ),
+    ) {
         MainBottomNavDestination.entries.forEach { destination ->
             if (destination !in visitedTabs) return@forEach
             val stack = backStacks[destination]!!
@@ -548,7 +560,7 @@ private fun MainTabNavStacks(
                     floatingPointerAreaPreviewEnabledState = floatingPointerAreaPreviewEnabledState,
                     rootBottomContentPadding = rootBottomContentPadding,
                     bottomNavReselectCount = bottomNavReselectCounts[destination] ?: 0,
-                    hazeState = hazeState,
+                    hazeState = null,
                     bottomNavUsesHaze = bottomNavUsesHaze,
                     isActiveForHaze = isActive,
                     onBottomNavBlurPreviewChange = onBottomNavBlurPreviewChange,
