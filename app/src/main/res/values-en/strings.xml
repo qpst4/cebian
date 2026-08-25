@@ -832,9 +832,9 @@
     <string name="floating_pointer_area_preview_title">Travel bounds preview</string>
     <string name="floating_pointer_area_preview_desc">Show joystick travel bounds on the real screen</string>
     <string name="floating_pointer_preview_pointer_range">Pointer start</string>
-    <string name="floating_pointer_pointer_settings_title">Pointer design</string>
+    <string name="floating_pointer_pointer_settings_title">Pointer appearance</string>
     <string name="floating_pointer_pointer_settings_summary">Ring %1$d px 路 Dot %2$d px</string>
-    <string name="floating_pointer_joystick_settings_title">Joystick design</string>
+    <string name="floating_pointer_joystick_settings_title">Joystick appearance &amp; behavior</string>
     <string name="floating_pointer_joystick_settings_summary">%1$d px diameter</string>
     <string name="floating_pointer_preview_section">Preview</string>
     <string name="floating_pointer_ring_color">Ring color</string>
@@ -919,7 +919,7 @@
     <string name="floating_pointer_edge_preview_high">High</string>
     <string name="floating_pointer_edge_reset_defaults">Reset edge defaults</string>
     <string name="floating_pointer_edge_reset_defaults_desc">Restore default edge actions and preview settings</string>
-    <string name="floating_pointer_radial_settings_title">Joystick functions</string>
+    <string name="floating_pointer_radial_settings_title">Joystick function ring</string>
     <string name="floating_pointer_radial_tab_settings">Settings</string>
     <string name="floating_pointer_radial_tab_functions">Functions</string>
     <string name="floating_pointer_radial_tab_design">Design</string>

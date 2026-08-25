@@ -1401,7 +1401,7 @@
     <string name="floating_pointer_size_px_dp_value">%1$d px（%2$.1f dp）</string>
     <string name="floating_pointer_entry_desc">配置摇杆、指针外观与移动行为</string>
     <string name="floating_pointer_entry_summary">摇杆 %1$dpx · 指针 %2$dpx · 速度 %3$d%%</string>
-    <string name="floating_pointer_pointer_settings_title">指针设计</string>
+    <string name="floating_pointer_pointer_settings_title">指针外观</string>
     <string name="floating_pointer_design_section">指针设计</string>
     <string name="floating_pointer_design_ring">圆环（默认）</string>
     <string name="floating_pointer_design_arrow_1">箭头 1</string>
@@ -1438,7 +1438,7 @@
     <string name="floating_pointer_design_crosshair_7">准星 7</string>
     <string name="floating_pointer_design_crosshair_8">准星 8</string>
     <string name="floating_pointer_pointer_settings_summary">圆环 %1$d px · 内部小点 %2$d px</string>
-    <string name="floating_pointer_joystick_settings_title">摇杆设计</string>
+    <string name="floating_pointer_joystick_settings_title">摇杆外观与行为</string>
     <string name="floating_pointer_joystick_settings_summary">直径 %1$d px</string>
     <string name="floating_pointer_preview_section">预览</string>
     <string name="floating_pointer_ring_color">圆环颜色</string>
@@ -1519,7 +1519,7 @@
     <string name="floating_pointer_edge_preview_high">高</string>
     <string name="floating_pointer_edge_reset_defaults">重置边缘功能默认值</string>
     <string name="floating_pointer_edge_reset_defaults_desc">恢复默认的边缘动作与预览参数</string>
-    <string name="floating_pointer_radial_settings_title">摇杆功能</string>
+    <string name="floating_pointer_radial_settings_title">摇杆功能环</string>
     <string name="floating_pointer_radial_tab_settings">设置</string>
     <string name="floating_pointer_radial_tab_functions">功能</string>
     <string name="floating_pointer_radial_tab_design">设计</string>

@@ -18,7 +18,6 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.slideindex.app.BuildConfig
 import com.slideindex.app.R
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.ExtensionHubSettings
@@ -47,7 +46,6 @@ fun LayoutSettingsScreen(
     onLayoutPreviewStart: () -> Unit,
     onLayoutPreviewStop: () -> Unit,
     onIndexHeightPreviewChange: (Float) -> Unit = {},
-    onDebugPerformanceMonitorChange: (Boolean) -> Unit = {},
 ) {
     DisposableEffect(Unit) {
         onDispose {
@@ -56,7 +54,6 @@ fun LayoutSettingsScreen(
     }
 
     val panelSliderCount = 3
-    val debugSwitchCount = if (BuildConfig.DEBUG) 1 else 0
 
     MiuixListScaffold(
         title = stringResource(R.string.layout_settings_title),
@@ -72,6 +69,13 @@ fun LayoutSettingsScreen(
 
         item(key = "panel_sliders_card") {
             top.yukonga.miuix.kmp.basic.Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)) {
+                MiuixSwitchRow(
+                    title = stringResource(R.string.hide_empty_index_letters),
+                    summary = stringResource(R.string.hide_empty_index_letters_desc),
+                    checked = settings.hideEmptyIndexLetters,
+                    enabled = serviceEnabled,
+                    onCheckedChange = onHideEmptyIndexLettersChange,
+                )
                 MiuixSliderRow(
                     title = stringResource(R.string.index_height),
                     value = settings.indexHeightFraction,
@@ -107,13 +111,6 @@ fun LayoutSettingsScreen(
                     formatLabel = { "${(it * 100).roundToInt()}%" },
                     onValueChange = onPanelOpacityChange,
                 )
-                MiuixSwitchRow(
-                    title = stringResource(R.string.hide_empty_index_letters),
-                    summary = stringResource(R.string.hide_empty_index_letters_desc),
-                    checked = settings.hideEmptyIndexLetters,
-                    enabled = serviceEnabled,
-                    onCheckedChange = onHideEmptyIndexLettersChange,
-                )
             }
         }
 
@@ -134,22 +131,6 @@ fun LayoutSettingsScreen(
                     summary = hiddenSubtitle,
                     onClick = onOpenHiddenAppsSettings,
                 )
-            }
-        }
-
-        if (BuildConfig.DEBUG) {
-            item(key = "debug_section") {
-                MiuixSmallTitle(stringResource(R.string.debug_section_title), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
-            }
-            item(key = "debug_perf") {
-                top.yukonga.miuix.kmp.basic.Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)) {
-                    MiuixSwitchRow(
-                        title = stringResource(R.string.debug_performance_monitor),
-                        summary = stringResource(R.string.debug_performance_monitor_desc),
-                        checked = settings.debugPerformanceMonitorEnabled,
-                        onCheckedChange = onDebugPerformanceMonitorChange,
-                    )
-                }
             }
         }
 

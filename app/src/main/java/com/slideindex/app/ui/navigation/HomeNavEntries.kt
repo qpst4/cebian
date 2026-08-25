@@ -1137,7 +1137,6 @@ fun NavEntryBuilder.layoutSettingsNavEntries(ctx: MainNavContext) {
             onIndexHeightPreviewChange = { fraction ->
                 ctx.previewIndexHeightFraction(fraction)
             },
-            onDebugPerformanceMonitorChange = viewModel::setDebugPerformanceMonitorEnabled,
         )
     }
 

@@ -384,7 +384,10 @@ fun ShellCommandPanelScreen(
                                     .fillMaxWidth()
                                     .weight(1f, fill = true),
 
-                            contentPadding = PaddingValues(bottom = 16.dp),
+                            contentPadding = PaddingValues(
+                                horizontal = 16.dp,
+                                vertical = 16.dp,
+                            ),
 
                             horizontalArrangement = Arrangement.spacedBy(10.dp),
 
