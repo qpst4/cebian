@@ -42,6 +42,7 @@ fun LayoutSettingsScreen(
     onIndexHeightChange: (Float) -> Unit,
     onAppsPerRowChange: (Int) -> Unit,
     onPanelOpacityChange: (Float) -> Unit,
+    onHideEmptyIndexLettersChange: (Boolean) -> Unit,
     onOpenHiddenAppsSettings: () -> Unit,
     onLayoutPreviewStart: () -> Unit,
     onLayoutPreviewStop: () -> Unit,
@@ -105,6 +106,13 @@ fun LayoutSettingsScreen(
                     label = "",
                     formatLabel = { "${(it * 100).roundToInt()}%" },
                     onValueChange = onPanelOpacityChange,
+                )
+                MiuixSwitchRow(
+                    title = stringResource(R.string.hide_empty_index_letters),
+                    summary = stringResource(R.string.hide_empty_index_letters_desc),
+                    checked = settings.hideEmptyIndexLetters,
+                    enabled = serviceEnabled,
+                    onCheckedChange = onHideEmptyIndexLettersChange,
                 )
             }
         }

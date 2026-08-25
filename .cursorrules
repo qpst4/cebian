@@ -2,7 +2,11 @@
 
 ## 核心指令 (Core Directives)
 - **强制中文**：无论是普通对话、内部推理（Thinking）、还是调用工具前后的步骤规划，必须强制使用简体中文。
-- **编译自检 (Build Verification)**：在完成逻辑重构或 UI 改动后，必须主动请求或建议执行轻量编译测试（推荐使用当前项目的 `./gradlew compileDebugKotlin` 或对应环境编译命令）。利用编译器反馈实现**自我纠错**，重点确保无语法阻塞，无需进行完整的打包。
+- **编译自检 (Build Verification)**：在完成逻辑重构或 UI 改动后，必须主动请求或建议执行轻量编译测试（推荐使用当前项目的 `.\gradlew.bat compileDebugKotlin` 或对应环境编译命令）。利用编译器反馈实现**自我纠错**，重点确保无语法阻塞，无需进行完整的打包。
+- **Gradle 构建约束**：
+  - **禁止**单独安装或下载 Gradle；本地已有 Wrapper 与缓存（`%USERPROFILE%\.gradle`，当前为 Gradle 9.7.0）。
+  - **必须**使用项目根目录的 `.\gradlew.bat`，**禁止**直接调用 `gradle` 命令。
+  - 执行任何 `gradlew` 命令时，Shell 工具须请求 `required_permissions: ["all"]`，以绕过 Cursor 沙箱对 `GRADLE_USER_HOME` 的重定向（否则会重复下载 distribution）。
 - **设置 Git 锚点**：仅在用户明确指令升级版本号后，才修改版本号并执行 commit，备注格式保持为：“版本号：修改内容”。
 
 ## 1. 编码前先思考 (Think Before Coding)

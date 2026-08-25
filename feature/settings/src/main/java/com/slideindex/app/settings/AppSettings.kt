@@ -18,6 +18,8 @@ data class AppSettings(
     val serviceEnabled: Boolean = false,
     val edgeTrigger: EdgeTriggerSettings = EdgeTriggerSettings(),
     val indexHeightFraction: Float = 0.42f,
+    /** 为 true 时字母索引栏仅显示有应用的分组字母。 */
+    val hideEmptyIndexLetters: Boolean = true,
     val appsPerRow: Int = 3,
     /** Fixed grid columns per quick-launcher page. */
     val quickLauncherColumnsPerPage: Int = 3,

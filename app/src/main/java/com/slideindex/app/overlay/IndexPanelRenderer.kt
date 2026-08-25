@@ -39,8 +39,6 @@ internal class IndexPanelRenderer(
         fun onInitiatingEdgeGestureReleased()
     }
 
-    private val railLetters: List<Char> = ('A'..'Z').toList() + '#'
-
     private val railBgPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val panelBgPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val bubblePaint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -163,6 +161,9 @@ internal class IndexPanelRenderer(
         val alphaScale = settings.panelOpacity.coerceIn(0.6f, 1f)
         railBgPaint.color = Color.argb((200 * alphaScale).toInt(), 38, 38, 42)
         canvas.drawRoundRect(rail, railCorner, railCorner, railBgPaint)
+
+        val railLetters = host.indexSession().currentRailLetters()
+        if (railLetters.isEmpty()) return
 
         val slotHeight = rail.height() / railLetters.size
         val letterSize = slotHeight.coerceAtMost(host.dp(11.5f))

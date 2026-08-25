@@ -239,18 +239,16 @@ internal class CornerGestureOverlayView(
                 dismissWheel()
                 return true
             }
-            mode == SessionMode.NORMAL && slot >= 0 -> {
-                if (shortcutSubMenuVisible && highlightedShortcutIndex >= 0) {
-                    val shortcut = cornerSettings.slotSubMenuFor(anchor, slot).items
-                        .getOrNull(highlightedShortcutIndex)
-                    if (shortcut != null) {
-                        executeAction(shortcut, anchor, rawX, rawY, longPressArmed = false)
-                        cancelSlotLongPress()
-                        hideShortcutSubMenu()
-                        dismissWheel()
-                        return activated || fromPinned
-                    }
+            mode == SessionMode.NORMAL && isFingerOnShortcutSubMenu(rawX, rawY) -> {
+                resolveShortcutSubMenuRelease(anchor, rawX, rawY)?.let { shortcut ->
+                    executeAction(shortcut, anchor, rawX, rawY, longPressArmed = false)
                 }
+                cancelSlotLongPress()
+                hideShortcutSubMenu()
+                dismissWheel()
+                return activated || fromPinned
+            }
+            mode == SessionMode.NORMAL && slot >= 0 -> {
                 val action = cornerSettings.slotsFor(anchor).getOrElse(slot) { GestureAction.None }
                 if (action.isEffective()) {
                     val longPress = slotLongPressTriggered(event, slot, action)
@@ -347,6 +345,22 @@ internal class CornerGestureOverlayView(
     }
 
     private fun fingerSubMenuSlopPx(): Float = 10f * density
+
+    private fun isFingerOnShortcutSubMenu(rawX: Float, rawY: Float): Boolean =
+        shortcutSubMenuVisible &&
+            shortcutSubMenuLayout?.containsFinger(rawX, rawY, fingerSubMenuSlopPx()) == true
+
+    private fun resolveShortcutSubMenuRelease(
+        anchor: CornerAnchor,
+        rawX: Float,
+        rawY: Float,
+    ): GestureAction.LaunchShortcut? {
+        if (!shortcutSubMenuVisible || shortcutSubMenuSlot < 0) return null
+        val layout = shortcutSubMenuLayout ?: return null
+        val index = layout.indexAt(rawX, rawY, fingerSubMenuSlopPx())
+        if (index < 0) return null
+        return cornerSettings.slotSubMenuFor(anchor, shortcutSubMenuSlot).items.getOrNull(index)
+    }
 
     private fun resolveSlotAtFinger(
         anchor: CornerAnchor,

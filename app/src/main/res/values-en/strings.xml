@@ -1236,6 +1236,8 @@
     <string name="limit_intercept_length_desc">Current system API limit is 200 dp</string>
     <string name="side_gestures_handle_section">Handle layout</string>
     <string name="index_height">Letter index height</string>
+    <string name="hide_empty_index_letters">Hide empty letters</string>
+    <string name="hide_empty_index_letters_desc">Do not show index letters that have no apps</string>
     <string name="apps_per_row">Apps per index row</string>
     <string name="quick_launcher_grid_columns">Quick launcher columns</string>
     <string name="quick_launcher_grid_rows">Quick launcher rows</string>

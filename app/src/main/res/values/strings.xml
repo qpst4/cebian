@@ -427,6 +427,8 @@
     <string name="limit_intercept_length_desc">当前系统接口限制为 200dp</string>
     <string name="side_gestures_handle_section">触钮布局</string>
     <string name="index_height">字母索引长度</string>
+    <string name="hide_empty_index_letters">隐藏空字母</string>
+    <string name="hide_empty_index_letters_desc">侧边栏字母索引中不显示没有应用的分组</string>
     <string name="apps_per_row">索引每行应用数</string>
     <string name="quick_launcher_grid_columns">快速启动器列数</string>
     <string name="quick_launcher_grid_rows">快速启动器行数</string>

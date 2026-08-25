@@ -185,7 +185,8 @@ internal object EdgeGestureOverlayAccessibilityCollector {
     ): List<OverlayVirtualNode> {
         val rail = zoneLayout.indexRailRect()
         if (rail.isEmpty) return emptyList()
-        val letters = ('A'..'Z').toList() + '#'
+        val letters = indexSession.currentRailLetters()
+        if (letters.isEmpty()) return emptyList()
         val slotHeight = rail.height() / letters.size.coerceAtLeast(1)
         val letterNodes = letters.mapIndexed { index, letter ->
             val top = rail.top + slotHeight * index

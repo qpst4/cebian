@@ -6,6 +6,7 @@ import android.content.Intent
 import android.os.Handler
 import android.util.Log
 import com.slideindex.app.activity.ActivityShortcutLauncher
+import com.slideindex.app.activity.ActivityShortcutShellSupport
 import com.slideindex.app.data.AppRepository
 import com.slideindex.app.gesture.ActionExecutor
 import com.slideindex.app.gesture.GestureAction
@@ -17,7 +18,9 @@ import com.slideindex.app.overlay.TaskSwitcherMenuItem
 import com.slideindex.app.service.OverlayService
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.shouldLaunchFullscreen
+import com.slideindex.app.shell.ShellCommand
 import com.slideindex.app.util.AppShortcutLoader
+import com.slideindex.app.util.ShellCommandRunner
 import com.slideindex.app.util.FreeWindowLauncher
 import com.slideindex.app.util.RecentTasksLoader
 import com.slideindex.app.util.TaskExclusions
@@ -71,10 +74,10 @@ internal class ActionExecutorLaunch(
                 launchActivityComponent(decoded.componentFlat, settings, longPressArmed)
             }
             is GestureShortcutPayload.Decoded.IntentShortcut -> {
-                launchIntentShortcut(decoded.intentUri, settings, longPressArmed)
+                launchIntentShortcut(decoded.intentUri, settings, longPressArmed, decoded.label)
             }
             is GestureShortcutPayload.Decoded.IntentsShortcut -> {
-                launchIntentShortcuts(decoded.intentUris, settings, longPressArmed)
+                launchIntentShortcuts(decoded.intentUris, settings, longPressArmed, decoded.label)
             }
             null -> Unit
         }
@@ -242,11 +245,11 @@ internal class ActionExecutorLaunch(
         longPressArmed: Boolean,
     ): Boolean {
         QuickLauncherItemCodec.parseIntentPayload(item.payload)?.let { intentUri ->
-            launchIntentShortcut(intentUri, settings, longPressArmed)
+            launchIntentShortcut(intentUri, settings, longPressArmed, item.label)
             return false
         }
         QuickLauncherItemCodec.parseIntentListPayload(item.payload)?.let { intentUris ->
-            launchIntentShortcuts(intentUris, settings, longPressArmed)
+            launchIntentShortcuts(intentUris, settings, longPressArmed, item.label)
             return false
         }
         val dynamic = QuickLauncherItemCodec.parseShortcutPayload(item.payload)
@@ -326,19 +329,37 @@ internal class ActionExecutorLaunch(
         intentUri: String,
         settings: AppSettings,
         longPressArmed: Boolean,
+        label: String = "",
     ) {
-        launchIntentShortcuts(listOf(intentUri), settings, longPressArmed)
+        launchIntentShortcuts(listOf(intentUri), settings, longPressArmed, label)
     }
 
     private fun launchIntentShortcuts(
         intentUris: List<String>,
         settings: AppSettings,
         longPressArmed: Boolean,
+        label: String = "",
     ) {
-        val intents = intentUris.mapNotNull { uri ->
+        val intents = mutableListOf<Intent>()
+        for (uri in intentUris) {
+            if (ActivityShortcutShellSupport.isShellUri(uri)) {
+                val command = ActivityShortcutShellSupport.decodeCommand(uri)
+                if (command.isNotBlank()) {
+                    Thread {
+                        ShellCommandRunner.execute(
+                            context = context,
+                            command = ShellCommand(
+                                label = label.ifBlank { "Shortcut" },
+                                command = command,
+                            ),
+                        )
+                    }.start()
+                }
+                return
+            }
             runCatching {
                 Intent.parseUri(uri, Intent.URI_INTENT_SCHEME)
-            }.getOrNull()?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }.getOrNull()?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)?.let { intents.add(it) }
         }
         if (intents.isEmpty()) return
         val fullscreen = settings.shouldLaunchFullscreen(longPressArmed)

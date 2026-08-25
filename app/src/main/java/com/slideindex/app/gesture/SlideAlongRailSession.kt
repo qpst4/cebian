@@ -1,6 +1,7 @@
 package com.slideindex.app.gesture
 
 import com.slideindex.app.data.AppInfo
+import com.slideindex.app.data.IndexRailLetters
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.effectiveLongPressDurationMs
 import com.slideindex.app.settings.resolvedLaunchPolicy
@@ -22,7 +23,7 @@ class SlideAlongRailSession(
     private var settings = AppSettings()
     private var apps: List<AppInfo> = emptyList()
     private var appsByLetter: Map<Char, List<AppInfo>> = emptyMap()
-    private val railLetters: List<Char> = ('A'..'Z').toList() + '#'
+    private var railLetters: List<Char> = IndexRailLetters.full
 
     var selectedLetter: Char? = null
         private set
@@ -38,13 +39,22 @@ class SlideAlongRailSession(
     private var longPressTrackingApp: AppInfo? = null
     private var longPressRunnable: Runnable? = null
 
+    fun currentRailLetters(): List<Char> = railLetters
+
     fun applySettings(newSettings: AppSettings) {
+        val lettersChanged = settings.hideEmptyIndexLetters != newSettings.hideEmptyIndexLetters
         settings = newSettings
+        if (lettersChanged) {
+            recomputeRailLetters()
+            reconcileSelectedLetter()
+        }
     }
 
     fun setApps(newApps: List<AppInfo>) {
         apps = newApps
         appsByLetter = newApps.groupBy { it.letter }
+        recomputeRailLetters()
+        reconcileSelectedLetter()
     }
 
     fun resetSelection() {
@@ -118,6 +128,7 @@ class SlideAlongRailSession(
     }
 
     private fun letterAtY(localY: Float): Char? {
+        if (railLetters.isEmpty()) return null
         val rail = zoneLayout.indexRailRect()
         val y = (localY - rail.top).coerceIn(0f, rail.height())
         val index = ((y / rail.height()) * railLetters.size)
@@ -131,5 +142,18 @@ class SlideAlongRailSession(
             if (rect.contains(localX, localY)) return app
         }
         return null
+    }
+
+    private fun recomputeRailLetters() {
+        railLetters = IndexRailLetters.resolve(
+            presentLetters = appsByLetter.filterValues { it.isNotEmpty() }.keys,
+            hideEmpty = settings.hideEmptyIndexLetters,
+        )
+    }
+
+    private fun reconcileSelectedLetter() {
+        val letter = selectedLetter ?: return
+        if (letter in railLetters) return
+        resetSelection()
     }
 }

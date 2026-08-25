@@ -194,6 +194,7 @@ class SettingsRepository @Inject constructor(
     suspend fun updateBubbleStyle(style: BubbleStyle) = edge.updateBubbleStyle(style)
     suspend fun setGestureAngles(angles: GestureAngles) = edge.setGestureAngles(angles)
     suspend fun setIndexHeightFraction(value: Float) = edge.setIndexHeightFraction(value)
+    suspend fun setHideEmptyIndexLetters(enabled: Boolean) = edge.setHideEmptyIndexLetters(enabled)
     suspend fun setAppsPerRow(value: Int) = edge.setAppsPerRow(value)
     suspend fun setQuickLauncherColumnsPerPage(value: Int) = edge.setQuickLauncherColumnsPerPage(value)
     suspend fun setQuickLauncherRowsPerPage(value: Int) = edge.setQuickLauncherRowsPerPage(value)

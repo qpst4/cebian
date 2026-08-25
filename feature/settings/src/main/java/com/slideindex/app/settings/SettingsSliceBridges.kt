@@ -43,6 +43,7 @@ fun GestureSettings.toMinimalAppSettings(): AppSettings = AppSettings(
         gestureAngles = gestureAngles,
     ),
     indexHeightFraction = indexHeightFraction,
+    hideEmptyIndexLetters = hideEmptyIndexLetters,
     appsPerRow = appsPerRow,
     quickLauncherColumnsPerPage = quickLauncherColumnsPerPage,
     quickLauncherRowsPerPage = quickLauncherRowsPerPage,

@@ -152,6 +152,7 @@ internal object SettingsSnapshotReader {
             gestureAngles = GestureAnglesCodec.read(prefs, legacyAngleConfig),
             ),
             indexHeightFraction = prefs[SettingsPreferenceKeys.INDEX_HEIGHT] ?: 0.42f,
+            hideEmptyIndexLetters = prefs[SettingsPreferenceKeys.HIDE_EMPTY_INDEX_LETTERS] ?: true,
             appsPerRow = prefs[SettingsPreferenceKeys.APPS_PER_ROW] ?: 3,
             quickLauncherColumnsPerPage = prefs[SettingsPreferenceKeys.QUICK_LAUNCHER_COLUMNS_PER_PAGE]
                 ?: prefs[SettingsPreferenceKeys.APPS_PER_ROW]

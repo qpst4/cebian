@@ -70,6 +70,7 @@ internal object SettingsPreferenceKeys {
     val TRIGGER_TOP = floatPreferencesKey("trigger_top_fraction")
     val TRIGGER_HEIGHT = floatPreferencesKey("trigger_height_fraction")
     val INDEX_HEIGHT = floatPreferencesKey("index_height_fraction")
+    val HIDE_EMPTY_INDEX_LETTERS = booleanPreferencesKey("hide_empty_index_letters")
     val APPS_PER_ROW = intPreferencesKey("apps_per_row")
     val QUICK_LAUNCHER_COLUMNS_PER_PAGE = intPreferencesKey("quick_launcher_columns_per_page")
     val QUICK_LAUNCHER_ROWS_PER_PAGE = intPreferencesKey("quick_launcher_rows_per_page")

@@ -85,6 +85,10 @@ class HomeDetailSettingsViewModel @Inject constructor(
         settingsRepository.setPanelOpacity(value)
     }
 
+    fun setHideEmptyIndexLetters(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setHideEmptyIndexLetters(enabled)
+    }
+
     fun setDebugPerformanceMonitorEnabled(enabled: Boolean) = launchSettingsWrite {
         settingsRepository.setDebugPerformanceMonitorEnabled(enabled)
     }
