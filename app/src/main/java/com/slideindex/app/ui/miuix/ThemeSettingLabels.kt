@@ -8,6 +8,7 @@ import com.slideindex.app.settings.AppColorSpec
 import com.slideindex.app.settings.AppThemeMode
 import com.slideindex.app.settings.BottomNavMode
 import com.slideindex.app.settings.BottomNavStyle
+import com.slideindex.app.settings.DarkBackgroundStyle
 import com.slideindex.app.settings.ThemePaletteStyle
 import com.slideindex.app.settings.TopAppBarBlurStyle
 
@@ -20,6 +21,13 @@ fun AppThemeMode.labelRes(): Int = when (this) {
 
 @Composable
 fun AppThemeMode.displayName(): String = stringResource(labelRes())
+
+@StringRes
+fun DarkBackgroundStyle.labelRes(): Int = when (this) {
+    DarkBackgroundStyle.QUIET_BLUE -> R.string.theme_dark_background_quiet_blue
+    DarkBackgroundStyle.DEEP_BLACK -> R.string.theme_dark_background_deep_black
+    DarkBackgroundStyle.AMOLED_BLACK -> R.string.theme_dark_background_amoled_black
+}
 
 @StringRes
 fun AppColorSpec.labelRes(): Int = when (this) {

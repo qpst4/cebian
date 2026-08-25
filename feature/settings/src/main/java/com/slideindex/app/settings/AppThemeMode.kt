@@ -17,6 +17,17 @@ enum class AppThemeMode(val id: Int) {
         fun fromId(id: Int): AppThemeMode = entries.firstOrNull { it.id == id } ?: SYSTEM
     }
 }
+
+enum class DarkBackgroundStyle(val id: Int) {
+    QUIET_BLUE(0),
+    DEEP_BLACK(1),
+    AMOLED_BLACK(2),
+    ;
+
+    companion object {
+        fun fromId(id: Int): DarkBackgroundStyle = entries.firstOrNull { it.id == id } ?: QUIET_BLUE
+    }
+}
 /** Material 颜色规格版本（对齐 WeKit）。 */
 enum class AppColorSpec(val id: Int) {
     SPEC_2021(0),

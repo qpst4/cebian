@@ -448,6 +448,7 @@
     <string name="interaction_appearance_settings_entry_desc">震动、返回手势、主题与导航栏样式</string>
     <string name="settings_section_navigation_back">导航与返回</string>
     <string name="settings_section_theme_appearance">主题与外观</string>
+    <string name="settings_section_interaction_feedback">交互反馈</string>
     <string name="haptic_strength">震动强度</string>
     <string name="selected_hint_icon_size_value">%1$d dp</string>
     <string name="corner_gesture_selected_hint_icon_size">命中提示图标大小</string>
@@ -471,6 +472,10 @@
     <string name="theme_mode_system">跟随系统</string>
     <string name="theme_mode_light">浅色</string>
     <string name="theme_mode_dark">深色</string>
+    <string name="theme_dark_background">深色背景</string>
+    <string name="theme_dark_background_quiet_blue">静谧蓝</string>
+    <string name="theme_dark_background_deep_black">深黑</string>
+    <string name="theme_dark_background_amoled_black">AMOLED 黑</string>
     <string name="theme_custom_color">自定义颜色</string>
     <string name="theme_custom_color_desc">使用调色板样式生成配色，而非 Miuix 默认蓝</string>
     <string name="theme_seed_color">种子颜色</string>

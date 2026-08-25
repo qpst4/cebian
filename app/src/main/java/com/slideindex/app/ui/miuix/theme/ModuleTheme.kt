@@ -15,6 +15,7 @@ import com.materialkolor.dynamiccolor.ColorSpec
 import com.slideindex.app.settings.AppColorSpec
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.AppThemeMode
+import com.slideindex.app.settings.DarkBackgroundStyle
 import com.slideindex.app.settings.OverlaySettings
 import com.slideindex.app.settings.ThemePaletteStyle
 import com.slideindex.app.settings.TopAppBarBlurStyle
@@ -47,6 +48,7 @@ fun ModuleTheme(
     val controller = if (!settings.customColorEnabled) {
         ThemeController(
             colorSchemeMode = if (darkTheme) ColorSchemeMode.Dark else ColorSchemeMode.Light,
+            darkColors = darkColorsFor(DarkBackgroundStyle.fromId(settings.darkBackgroundStyleId)),
             isDark = darkTheme,
         )
     } else {
@@ -66,7 +68,7 @@ fun ModuleTheme(
             darkTheme,
         )
     } else {
-        defaultMiuixMaterialScheme(darkTheme)
+        defaultMiuixMaterialScheme(darkTheme, DarkBackgroundStyle.fromId(settings.darkBackgroundStyleId))
     }
 
     MiuixTheme(controller = controller) {
@@ -117,12 +119,16 @@ fun OverlaySettings.toModuleThemeSettings(): AppSettings = AppSettings(
     themePaletteStyleId = themePaletteStyleId,
     themeModeId = themeModeId,
     customColorEnabled = customColorEnabled,
+    darkBackgroundStyleId = darkBackgroundStyleId,
     themeColorSpecId = themeColorSpecId,
     topAppBarBlurStyleId = topAppBarBlurStyleId,
 )
 
-private fun defaultMiuixMaterialScheme(darkTheme: Boolean): ColorScheme {
-    val miuixColors = if (darkTheme) miuixDarkColorScheme() else miuixLightColorScheme()
+private fun defaultMiuixMaterialScheme(
+    darkTheme: Boolean,
+    darkBackgroundStyle: DarkBackgroundStyle,
+): ColorScheme {
+    val miuixColors = if (darkTheme) darkColorsFor(darkBackgroundStyle) else miuixLightColorScheme()
     val dialogSurface = miuixColors.surfaceContainer
 
     return dynamicColorScheme(
@@ -157,3 +163,31 @@ private fun defaultMiuixMaterialScheme(darkTheme: Boolean): ColorScheme {
         surfaceDim = miuixColors.surface,
     )
 }
+
+private fun darkColorsFor(style: DarkBackgroundStyle) = miuixDarkColorScheme().copy(
+    background = when (style) {
+        DarkBackgroundStyle.QUIET_BLUE -> Color(0xFF101820)
+        DarkBackgroundStyle.DEEP_BLACK -> Color(0xFF090D12)
+        DarkBackgroundStyle.AMOLED_BLACK -> Color.Black
+    },
+    surface = when (style) {
+        DarkBackgroundStyle.QUIET_BLUE -> Color(0xFF17232D)
+        DarkBackgroundStyle.DEEP_BLACK -> Color(0xFF11161C)
+        DarkBackgroundStyle.AMOLED_BLACK -> Color(0xFF080808)
+    },
+    surfaceContainer = when (style) {
+        DarkBackgroundStyle.QUIET_BLUE -> Color(0xFF1C2B36)
+        DarkBackgroundStyle.DEEP_BLACK -> Color(0xFF171D24)
+        DarkBackgroundStyle.AMOLED_BLACK -> Color(0xFF101010)
+    },
+    surfaceContainerHigh = when (style) {
+        DarkBackgroundStyle.QUIET_BLUE -> Color(0xFF243744)
+        DarkBackgroundStyle.DEEP_BLACK -> Color(0xFF202832)
+        DarkBackgroundStyle.AMOLED_BLACK -> Color(0xFF181818)
+    },
+    surfaceContainerHighest = when (style) {
+        DarkBackgroundStyle.QUIET_BLUE -> Color(0xFF2C4352)
+        DarkBackgroundStyle.DEEP_BLACK -> Color(0xFF29333E)
+        DarkBackgroundStyle.AMOLED_BLACK -> Color(0xFF202020)
+    },
+)

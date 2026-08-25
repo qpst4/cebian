@@ -249,6 +249,7 @@ class SettingsRepository @Inject constructor(
     suspend fun setThemePaletteStyle(style: ThemePaletteStyle) = overlay.setThemePaletteStyle(style)
     suspend fun setThemeMode(mode: AppThemeMode) = overlay.setThemeMode(mode)
     suspend fun setCustomColorEnabled(enabled: Boolean) = overlay.setCustomColorEnabled(enabled)
+    suspend fun setDarkBackgroundStyle(style: DarkBackgroundStyle) = overlay.setDarkBackgroundStyle(style)
     suspend fun setThemeColorSpec(spec: AppColorSpec) = overlay.setThemeColorSpec(spec)
     suspend fun setBottomNavStyle(style: BottomNavStyle) = overlay.setBottomNavStyle(style)
     suspend fun setBottomNavMode(mode: BottomNavMode) = overlay.setBottomNavMode(mode)

@@ -22,6 +22,7 @@ import com.slideindex.app.settings.AppThemeMode
 import com.slideindex.app.settings.BottomNavBlurDefaults
 import com.slideindex.app.settings.BottomNavMode
 import com.slideindex.app.settings.BottomNavStyle
+import com.slideindex.app.settings.DarkBackgroundStyle
 import com.slideindex.app.settings.ThemePaletteStyle
 import com.slideindex.app.settings.TopAppBarBlurStyle
 import com.slideindex.app.ui.HomeLeadingIcons
@@ -38,6 +39,7 @@ fun themeAppearanceSettingsCardItems(
     outlinedPreferenceIcons: Boolean = false,
     themeModeId: Int,
     customColorEnabled: Boolean,
+    darkBackgroundStyleId: Int,
     dynamicColorEnabled: Boolean,
     themeColorArgb: Int,
     paletteStyleId: Int,
@@ -49,6 +51,7 @@ fun themeAppearanceSettingsCardItems(
     topAppBarBlurStyleId: Int,
     onThemeModeChange: (AppThemeMode) -> Unit,
     onCustomColorChange: (Boolean) -> Unit,
+    onDarkBackgroundStyleChange: (DarkBackgroundStyle) -> Unit,
     onDynamicColorChange: (Boolean) -> Unit,
     onThemeColorChange: (Int) -> Unit,
     onPaletteStyleChange: (ThemePaletteStyle) -> Unit,
@@ -62,6 +65,7 @@ fun themeAppearanceSettingsCardItems(
     onBottomNavBlurPreviewStop: () -> Unit = {},
 ): List<CardItem> {
     val themeMode = AppThemeMode.fromId(themeModeId)
+    val darkBackgroundStyle = DarkBackgroundStyle.fromId(darkBackgroundStyleId)
     val paletteStyle = ThemePaletteStyle.fromId(paletteStyleId)
     val colorSpec = AppColorSpec.fromId(themeColorSpecId)
     val bottomNavStyle = BottomNavStyle.fromId(bottomNavStyleId)
@@ -151,6 +155,21 @@ fun themeAppearanceSettingsCardItems(
                         onSelectedIndexChange = { index -> onThemeColorSpecChange(specEntries[index]) },
                     )
                 }
+            },
+        )
+        val darkBackgroundEntries = DarkBackgroundStyle.entries
+        add(
+            settingsCardItem("theme-dark-background") {
+                WindowDropdownPreference(
+                    title = stringResource(R.string.theme_dark_background),
+                    summary = stringResource(darkBackgroundStyle.labelRes()),
+                    items = darkBackgroundEntries.map { stringResource(it.labelRes()) },
+                    selectedIndex = darkBackgroundEntries.indexOf(darkBackgroundStyle).coerceAtLeast(0),
+                    enabled = !customColorEnabled,
+                    onSelectedIndexChange = { index ->
+                        onDarkBackgroundStyleChange(darkBackgroundEntries[index])
+                    },
+                )
             },
         )
         if (isRuntimeShaderSupported()) {

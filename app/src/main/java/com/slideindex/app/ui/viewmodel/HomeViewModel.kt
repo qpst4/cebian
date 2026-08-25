@@ -11,6 +11,7 @@ import com.slideindex.app.settings.AppThemeMode
 import com.slideindex.app.settings.BottomNavBlurDefaults
 import com.slideindex.app.settings.BottomNavMode
 import com.slideindex.app.settings.BottomNavStyle
+import com.slideindex.app.settings.DarkBackgroundStyle
 import com.slideindex.app.settings.SettingsRepository
 import com.slideindex.app.settings.ThemePaletteStyle
 import com.slideindex.app.settings.TopAppBarBlurStyle
@@ -89,6 +90,10 @@ class HomeViewModel @AssistedInject constructor(
 
     fun setCustomColorEnabled(enabled: Boolean) = launchSettingsWrite {
         settingsRepository.setCustomColorEnabled(enabled)
+    }
+
+    fun setDarkBackgroundStyle(style: DarkBackgroundStyle) = launchSettingsWrite {
+        settingsRepository.setDarkBackgroundStyle(style)
     }
 
     fun setThemeColorSpec(spec: AppColorSpec) = launchSettingsWrite {

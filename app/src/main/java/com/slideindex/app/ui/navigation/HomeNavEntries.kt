@@ -145,6 +145,7 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
             onThemePaletteStyleChange = viewModel::setThemePaletteStyle,
             onThemeModeChange = viewModel::setThemeMode,
             onCustomColorChange = viewModel::setCustomColorEnabled,
+            onDarkBackgroundStyleChange = viewModel::setDarkBackgroundStyle,
             onThemeColorSpecChange = viewModel::setThemeColorSpec,
             onBottomNavStyleChange = viewModel::setBottomNavStyle,
             onBottomNavModeChange = viewModel::setBottomNavMode,

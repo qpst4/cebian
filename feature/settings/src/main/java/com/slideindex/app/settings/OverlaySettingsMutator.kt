@@ -35,6 +35,10 @@ class OverlaySettingsMutator @Inject constructor(
         it[SettingsPreferenceKeys.CUSTOM_COLOR_ENABLED] = enabled
     }
 
+    suspend fun setDarkBackgroundStyle(style: DarkBackgroundStyle) = editor.edit {
+        it[SettingsPreferenceKeys.DARK_BACKGROUND_STYLE] = style.id
+    }
+
     suspend fun setThemeColorSpec(spec: AppColorSpec) = editor.edit {
         it[SettingsPreferenceKeys.THEME_COLOR_SPEC] = spec.id
     }

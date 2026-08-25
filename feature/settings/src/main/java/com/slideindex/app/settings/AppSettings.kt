@@ -50,6 +50,7 @@ data class AppSettings(
     val themeModeId: Int = AppThemeMode.SYSTEM.id,
     /** 开启后使用种子色/壁纸 Monet 配色；关闭则使用 Miuix 默认蓝。 */
     val customColorEnabled: Boolean = false,
+    val darkBackgroundStyleId: Int = DarkBackgroundStyle.QUIET_BLUE.id,
     val themeColorSpecId: Int = AppColorSpec.SPEC_2025.id,
     /** 底栏内容模式（图标+文字 / 仅图标）。 */
     val bottomNavStyleId: Int = BottomNavStyle.FLOATING_NAV.id,

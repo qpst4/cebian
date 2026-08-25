@@ -205,6 +205,8 @@ internal object SettingsSnapshotReader {
                 ?: ThemePaletteStyle.TONAL_SPOT.id,
             themeModeId = prefs[SettingsPreferenceKeys.THEME_MODE] ?: AppThemeMode.SYSTEM.id,
             customColorEnabled = prefs[SettingsPreferenceKeys.CUSTOM_COLOR_ENABLED] ?: false,
+            darkBackgroundStyleId = prefs[SettingsPreferenceKeys.DARK_BACKGROUND_STYLE]
+                ?: DarkBackgroundStyle.QUIET_BLUE.id,
             themeColorSpecId = prefs[SettingsPreferenceKeys.THEME_COLOR_SPEC] ?: AppColorSpec.SPEC_2025.id,
             bottomNavStyleId = prefs[SettingsPreferenceKeys.BOTTOM_NAV_STYLE]
                 ?: BottomNavStyle.FLOATING_NAV.id,

@@ -155,6 +155,7 @@ internal object SettingsPreferenceKeys {
     val THEME_PALETTE_STYLE = intPreferencesKey("theme_palette_style_id")
     val THEME_MODE = intPreferencesKey("theme_mode_id")
     val CUSTOM_COLOR_ENABLED = booleanPreferencesKey("custom_color_enabled")
+    val DARK_BACKGROUND_STYLE = intPreferencesKey("dark_background_style_id")
     val THEME_COLOR_SPEC = intPreferencesKey("theme_color_spec_id")
     val BOTTOM_NAV_STYLE = intPreferencesKey("bottom_nav_style_id")
     val BOTTOM_NAV_MODE = intPreferencesKey("bottom_nav_mode_id")

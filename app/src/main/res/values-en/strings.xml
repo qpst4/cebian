@@ -1260,6 +1260,7 @@
     <string name="interaction_appearance_settings_entry_desc">Haptics, back gestures, theme, and navigation bar</string>
     <string name="settings_section_navigation_back">Navigation &amp; back</string>
     <string name="settings_section_theme_appearance">Theme &amp; appearance</string>
+    <string name="settings_section_interaction_feedback">Interaction feedback</string>
     <string name="haptic_strength">Vibration strength</string>
     <string name="selected_hint_icon_size_value">%1$d dp</string>
     <string name="corner_gesture_selected_hint_icon_size">Hit hint icon size</string>
@@ -1283,6 +1284,10 @@
     <string name="theme_mode_system">System</string>
     <string name="theme_mode_light">Light</string>
     <string name="theme_mode_dark">Dark</string>
+    <string name="theme_dark_background">Dark background</string>
+    <string name="theme_dark_background_quiet_blue">Quiet blue</string>
+    <string name="theme_dark_background_deep_black">Deep black</string>
+    <string name="theme_dark_background_amoled_black">AMOLED black</string>
     <string name="theme_custom_color">Custom colors</string>
     <string name="theme_custom_color_desc">Generate colors from a palette style instead of the default Miuix blue</string>
     <string name="theme_seed_color">Seed color</string>

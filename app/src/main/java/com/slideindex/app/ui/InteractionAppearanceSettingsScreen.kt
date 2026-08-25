@@ -41,6 +41,7 @@ fun InteractionAppearanceSettingsScreen(
     onThemePaletteStyleChange: (com.slideindex.app.settings.ThemePaletteStyle) -> Unit,
     onThemeModeChange: (com.slideindex.app.settings.AppThemeMode) -> Unit,
     onCustomColorChange: (Boolean) -> Unit,
+    onDarkBackgroundStyleChange: (com.slideindex.app.settings.DarkBackgroundStyle) -> Unit,
     onThemeColorSpecChange: (com.slideindex.app.settings.AppColorSpec) -> Unit,
     onBottomNavStyleChange: (com.slideindex.app.settings.BottomNavStyle) -> Unit,
     onBottomNavModeChange: (com.slideindex.app.settings.BottomNavMode) -> Unit,
@@ -67,6 +68,7 @@ fun InteractionAppearanceSettingsScreen(
         outlinedPreferenceIcons = true,
         themeModeId = settings.themeModeId,
         customColorEnabled = settings.customColorEnabled,
+        darkBackgroundStyleId = settings.darkBackgroundStyleId,
         dynamicColorEnabled = settings.dynamicColorEnabled,
         themeColorArgb = settings.themeColorArgb,
         paletteStyleId = settings.themePaletteStyleId,
@@ -78,6 +80,7 @@ fun InteractionAppearanceSettingsScreen(
         topAppBarBlurStyleId = settings.topAppBarBlurStyleId,
         onThemeModeChange = onThemeModeChange,
         onCustomColorChange = onCustomColorChange,
+        onDarkBackgroundStyleChange = onDarkBackgroundStyleChange,
         onDynamicColorChange = onDynamicColorChange,
         onThemeColorChange = onThemeColorChange,
         onPaletteStyleChange = onThemePaletteStyleChange,
@@ -95,6 +98,27 @@ fun InteractionAppearanceSettingsScreen(
         title = stringResource(R.string.interaction_appearance_settings_title),
         navigationIcon = { MiuixBackNavigationIcon(onBack) },
     ) {
+        item(key = "theme_section") {
+            MiuixSmallTitle(
+                text = stringResource(R.string.settings_section_theme_appearance),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = MiuixSmallTitleSectionTop),
+            )
+        }
+        groupedCardItems(
+            keyPrefix = "interaction_appearance_theme",
+            items = themeAppearanceItems,
+        )
+
+        item(key = "interaction_feedback_section") {
+            MiuixSmallTitle(
+                text = stringResource(R.string.settings_section_interaction_feedback),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = MiuixSmallTitleSectionTop),
+            )
+        }
         item(key = "haptic_card") {
             top.yukonga.miuix.kmp.basic.Card(
                 modifier = Modifier
@@ -170,19 +194,6 @@ fun InteractionAppearanceSettingsScreen(
             }
         }
 
-        item(key = "theme_section") {
-            MiuixSmallTitle(
-                text = stringResource(R.string.settings_section_theme_appearance),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = MiuixSmallTitleSectionTop),
-            )
-        }
-
-        groupedCardItems(
-            keyPrefix = "interaction_appearance_theme",
-            items = themeAppearanceItems,
-        )
     }
 }
 
