@@ -56,7 +56,7 @@ data class AppSettings(
     val bottomNavModeId: Int = BottomNavMode.ICON_AND_TEXT.id,
     /** 是否启用底部导航液态玻璃（backdrop 采样）；关闭时底栏为纯色。 */
     val bottomNavGlassEnabled: Boolean = true,
-    val topAppBarBlurStyleId: Int = TopAppBarBlurStyle.GAUSSIAN.id,
+    val topAppBarBlurStyleId: Int = TopAppBarBlurStyle.PROGRESSIVE.id,
     val bottomNavClassicBlurRadiusDp: Float = BottomNavBlurDefaults.DEFAULT_RADIUS_DP,
     /** 液态玻璃底栏模糊强度（dp，用于是否启用 haze 阈值）。 */
     val bottomNavLiquidGlassBlurRadiusDp: Float = BottomNavBlurDefaults.LIQUID_GLASS_DEFAULT_RADIUS_DP,

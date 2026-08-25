@@ -58,13 +58,13 @@ enum class BottomNavMode(val id: Int) {
 
 /** 顶栏毛玻璃算法（miuix-blur）。 */
 enum class TopAppBarBlurStyle(val id: Int) {
-    /** 均匀高斯模糊（默认）。 */
+    /** 均匀高斯模糊。 */
     GAUSSIAN(0),
-    /** 自上而下渐弱，内容区保持清晰。 */
+    /** 自上而下渐弱，内容区保持清晰（默认）。 */
     PROGRESSIVE(1),
     ;
 
     companion object {
-        fun fromId(id: Int): TopAppBarBlurStyle = entries.firstOrNull { it.id == id } ?: GAUSSIAN
+        fun fromId(id: Int): TopAppBarBlurStyle = entries.firstOrNull { it.id == id } ?: PROGRESSIVE
     }
 }

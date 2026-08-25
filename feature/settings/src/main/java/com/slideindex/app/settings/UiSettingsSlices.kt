@@ -31,7 +31,7 @@ data class HomeMainSettings(
     val bottomNavStyleId: Int = BottomNavStyle.FLOATING_NAV.id,
     val bottomNavModeId: Int = BottomNavMode.ICON_AND_TEXT.id,
     val bottomNavGlassEnabled: Boolean = true,
-    val topAppBarBlurStyleId: Int = TopAppBarBlurStyle.GAUSSIAN.id,
+    val topAppBarBlurStyleId: Int = TopAppBarBlurStyle.PROGRESSIVE.id,
     val bottomNavClassicBlurRadiusDp: Float = BottomNavBlurDefaults.DEFAULT_RADIUS_DP,
     val bottomNavLiquidGlassBlurRadiusDp: Float = BottomNavBlurDefaults.LIQUID_GLASS_DEFAULT_RADIUS_DP,
     val bottomNavFloatingNavBlurRadiusDp: Float = BottomNavBlurDefaults.FLOATING_NAV_DEFAULT_RADIUS_DP,

@@ -23,7 +23,7 @@ import top.yukonga.miuix.kmp.blur.textureBlur
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /** 顶栏毛玻璃算法，由 [ModuleTheme] 从用户设置注入。 */
-val LocalTopAppBarBlurStyle = staticCompositionLocalOf { TopAppBarBlurStyle.GAUSSIAN }
+val LocalTopAppBarBlurStyle = staticCompositionLocalOf { TopAppBarBlurStyle.PROGRESSIVE }
 
 /** 与当前设置页顶栏 [rememberMiuixBlurBackdrop] 共用，供 `scrollContent = false` 时嵌套列表参与毛玻璃采样。 */
 val LocalMiuixScreenBackdrop = staticCompositionLocalOf<LayerBackdrop?> { null }

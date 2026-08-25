@@ -212,7 +212,7 @@ internal object SettingsSnapshotReader {
                 ?: BottomNavMode.ICON_AND_TEXT.id,
             bottomNavGlassEnabled = prefs[SettingsPreferenceKeys.BOTTOM_NAV_GLASS_ENABLED] ?: true,
             topAppBarBlurStyleId = prefs[SettingsPreferenceKeys.TOP_APP_BAR_BLUR_STYLE]
-                ?: TopAppBarBlurStyle.GAUSSIAN.id,
+                ?: TopAppBarBlurStyle.PROGRESSIVE.id,
             bottomNavClassicBlurRadiusDp =
                 prefs[SettingsPreferenceKeys.BOTTOM_NAV_CLASSIC_BLUR_RADIUS_DP]
                     ?: prefs[SettingsPreferenceKeys.BOTTOM_NAV_BLUR_RADIUS_DP]
