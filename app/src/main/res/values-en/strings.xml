@@ -8,6 +8,10 @@
     <string name="main_nav_notification">Messages</string>
     <string name="main_nav_extension">Extensions</string>
     <string name="extension_hub_subtitle">Quick launcher, command panel, and more</string>
+    <string name="extension_section_launch_panel">Launchers &amp; panels</string>
+    <string name="extension_section_shortcuts">Shortcuts &amp; actions</string>
+    <string name="extension_section_tools">Tools</string>
+    <string name="extension_section_other">Other</string>
     <string name="shake_gestures_title">Shake Gestures</string>
     <string name="shake_gestures_subtitle">Trigger actions by shaking your phone</string>
     <string name="shake_gestures_section_basic">Basic shake actions</string>

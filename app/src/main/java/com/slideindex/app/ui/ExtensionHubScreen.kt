@@ -51,7 +51,10 @@ fun ExtensionHubScreen(
         listState = listState,
     )
 
-    val featuresTitle = stringResource(R.string.settings_section_features)
+    val launchPanelTitle = stringResource(R.string.extension_section_launch_panel)
+    val shortcutsTitle = stringResource(R.string.extension_section_shortcuts)
+    val toolsTitle = stringResource(R.string.extension_section_tools)
+    val otherTitle = stringResource(R.string.extension_section_other)
     val aboutTitle = stringResource(R.string.about_section_title)
 
     MiuixHubScaffold(
@@ -61,9 +64,12 @@ fun ExtensionHubScreen(
         listState = listState,
         bottomContentPadding = bottomContentPadding,
     ) {
-        settingsLazySmallTitle(key = "features_section", title = featuresTitle)
+        settingsLazySmallTitle(
+            key = "launch_panel_section",
+            title = launchPanelTitle,
+        )
         groupedCardItems(
-            keyPrefix = "extension_features",
+            keyPrefix = "extension_launch_panel",
             items = buildList {
                 add(
                     settingsCardScopeItem("layout-settings") {
@@ -106,14 +112,26 @@ fun ExtensionHubScreen(
                     },
                 )
                 add(
-                    settingsCardScopeItem("activity-shortcut") {
-                        ActivityShortcutEntryCard(
-                            shortcutCount = settings.activityShortcutCount,
+                    settingsCardScopeItem("widget-panel") {
+                        WidgetPanelEntryCard(
+                            settings = settings,
+                            enabled = gestureActive,
                             outlinedLeadingIcons = true,
-                            onClick = onOpenActivityShortcuts,
+                            onClick = onOpenWidgetPanel,
                         )
                     },
                 )
+            },
+        )
+
+        settingsLazySmallTitle(
+            key = "shortcuts_section",
+            title = shortcutsTitle,
+            sectionTop = true,
+        )
+        groupedCardItems(
+            keyPrefix = "extension_shortcuts",
+            items = buildList {
                 add(
                     settingsCardScopeItem("shell-command") {
                         ShellCommandEntryCard(
@@ -124,15 +142,25 @@ fun ExtensionHubScreen(
                     },
                 )
                 add(
-                    settingsCardScopeItem("widget-panel") {
-                        WidgetPanelEntryCard(
-                            settings = settings,
-                            enabled = gestureActive,
+                    settingsCardScopeItem("activity-shortcut") {
+                        ActivityShortcutEntryCard(
+                            shortcutCount = settings.activityShortcutCount,
                             outlinedLeadingIcons = true,
-                            onClick = onOpenWidgetPanel,
+                            onClick = onOpenActivityShortcuts,
                         )
                     },
                 )
+            },
+        )
+
+        settingsLazySmallTitle(
+            key = "tools_section",
+            title = toolsTitle,
+            sectionTop = true,
+        )
+        groupedCardItems(
+            keyPrefix = "extension_tools",
+            items = buildList {
                 add(
                     settingsCardScopeItem("floating-pointer") {
                         FloatingPointerEntryCard(
@@ -161,6 +189,17 @@ fun ExtensionHubScreen(
                         )
                     },
                 )
+            },
+        )
+
+        settingsLazySmallTitle(
+            key = "other_section",
+            title = otherTitle,
+            sectionTop = true,
+        )
+        groupedCardItems(
+            keyPrefix = "extension_other",
+            items = buildList {
                 add(
                     settingsCardScopeItem("settings-backup") {
                         SettingsBackupEntryCard(

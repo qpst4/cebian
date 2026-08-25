@@ -7,6 +7,10 @@
     <string name="main_nav_notification">消息</string>
     <string name="main_nav_extension">扩展</string>
     <string name="extension_hub_subtitle">快捷启动、命令面板等扩展功能</string>
+    <string name="extension_section_launch_panel">启动与面板</string>
+    <string name="extension_section_shortcuts">快捷操作</string>
+    <string name="extension_section_tools">工具</string>
+    <string name="extension_section_other">其他</string>
     <string name="shake_gestures_title">晃动手势</string>
     <string name="shake_gestures_subtitle">通过晃动手机，触发对应功能</string>
     <string name="shake_gestures_section_basic">基础晃动动作</string>
