@@ -2,8 +2,12 @@ package com.slideindex.app.ui
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -21,6 +25,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.settings.BottomNavBlurDefaults
@@ -36,7 +41,23 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /** WeKit 式液态玻璃底栏高度（含内边距）。 */
 val MainMiuixBottomNavBarHeight = 64.dp
-val MainMiuixBottomNavOuterPadding = 12.dp
+
+/** 胶囊与系统导航栏之间的留白，对齐 Mishka IosLiquidGlass（8dp）。 */
+val MainMiuixBottomNavOuterPadding = 8.dp
+
+/** Mishka [IosLiquidGlassNavigationBar] 同款底部间距：outer + navigationBars，无 inset 时 36dp。 */
+@Composable
+fun mainMiuixLiquidGlassBottomNavPadding(): Dp {
+    val navBarBottomPadding = WindowInsets.navigationBars
+        .only(WindowInsetsSides.Bottom)
+        .asPaddingValues()
+        .calculateBottomPadding()
+    return if (navBarBottomPadding != 0.dp) {
+        MainMiuixBottomNavOuterPadding + navBarBottomPadding
+    } else {
+        36.dp
+    }
+}
 
 @Composable
 fun MiuixFloatingBottomNavBar(
