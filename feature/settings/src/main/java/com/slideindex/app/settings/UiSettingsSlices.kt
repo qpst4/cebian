@@ -36,6 +36,7 @@ data class HomeMainSettings(
     val bottomNavLiquidGlassBlurRadiusDp: Float = BottomNavBlurDefaults.LIQUID_GLASS_DEFAULT_RADIUS_DP,
     val bottomNavFloatingNavBlurRadiusDp: Float = BottomNavBlurDefaults.FLOATING_NAV_DEFAULT_RADIUS_DP,
     val predictiveBackEnabled: Boolean = false,
+    val swipeDismissEnabled: Boolean = true,
 ) {
     val bottomNavBlurRadiusDp: Float
         get() = when (BottomNavStyle.fromId(bottomNavStyleId)) {
@@ -75,6 +76,7 @@ data class HomeMainSettings(
             bottomNavLiquidGlassBlurRadiusDp = settings.bottomNavLiquidGlassBlurRadiusDp,
             bottomNavFloatingNavBlurRadiusDp = settings.bottomNavFloatingNavBlurRadiusDp,
             predictiveBackEnabled = settings.predictiveBackEnabled,
+            swipeDismissEnabled = settings.swipeDismissEnabled,
         )
     }
 }

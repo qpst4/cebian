@@ -117,6 +117,10 @@ class HomeViewModel @AssistedInject constructor(
         settingsRepository.setPredictiveBackEnabled(enabled)
     }
 
+    fun setSwipeDismissEnabled(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setSwipeDismissEnabled(enabled)
+    }
+
     fun setBottomNavBlurRadiusDp(value: Float) = launchOptimisticSettingsWrite(
         optimisticUpdate = { settings ->
             val coerced = value.coerceIn(

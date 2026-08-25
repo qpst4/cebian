@@ -163,6 +163,7 @@ internal object SettingsSnapshotReader {
             hapticStrengthLevel = prefs[SettingsPreferenceKeys.HAPTIC_STRENGTH] ?: HapticStrength.MEDIUM.level,
             hideFromRecents = prefs[SettingsPreferenceKeys.HIDE_FROM_RECENTS] ?: false,
             predictiveBackEnabled = prefs[SettingsPreferenceKeys.PREDICTIVE_BACK_ENABLED] ?: false,
+            swipeDismissEnabled = prefs[SettingsPreferenceKeys.SWIPE_DISMISS_ENABLED] ?: true,
             accessibilityKeepAliveEnabled = prefs[SettingsPreferenceKeys.ACCESSIBILITY_KEEP_ALIVE] ?: false,
             hideTriggerInLandscape = prefs[SettingsPreferenceKeys.HIDE_TRIGGER_LANDSCAPE] ?: false,
             hideTriggerOnLockScreen = prefs[SettingsPreferenceKeys.HIDE_TRIGGER_LOCK_SCREEN] ?: false,

@@ -1245,6 +1245,14 @@
     <string name="quick_launcher_grid_rows_label">Rows: %1$d</string>
     <string name="panel_opacity">Panel opacity</string>
     <string name="haptic_enabled">Vibration</string>
+    <string name="settings_predictive_back">Predictive back gesture</string>
+    <string name="settings_predictive_back_summary">Enable predictive back animation</string>
+    <string name="settings_swipe_dismiss">Swipe back gesture</string>
+    <string name="settings_swipe_dismiss_summary">Swipe sideways anywhere on the page to go back</string>
+    <string name="interaction_appearance_settings_title">Interaction &amp; appearance</string>
+    <string name="interaction_appearance_settings_entry_desc">Haptics, back gestures, theme, and navigation bar</string>
+    <string name="settings_section_navigation_back">Navigation &amp; back</string>
+    <string name="settings_section_theme_appearance">Theme &amp; appearance</string>
     <string name="haptic_strength">Vibration strength</string>
     <string name="selected_hint_icon_size_value">%1$d dp</string>
     <string name="corner_gesture_selected_hint_icon_size">Hit hint icon size</string>

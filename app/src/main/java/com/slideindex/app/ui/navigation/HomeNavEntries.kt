@@ -1,5 +1,6 @@
 package com.slideindex.app.ui.navigation
 
+import android.os.Build
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -37,6 +38,7 @@ import com.slideindex.app.settings.resolvedFreeWindowMode
 import com.slideindex.app.settings.resolvedLaunchPolicy
 import com.slideindex.app.settings.titleRes
 import com.slideindex.app.settings.toMinimalAppSettings
+import com.slideindex.app.ui.InteractionAppearanceSettingsScreen
 import com.slideindex.app.ui.AppKeepAliveSettingsScreen
 import com.slideindex.app.ui.CornerGestureInteractionScreen
 import com.slideindex.app.ui.CornerGestureSettingsScreen
@@ -102,11 +104,10 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
             onGestureEnabledChange = { enabled -> viewModel.setServiceEnabled(enabled) },
             onOpenAppKeepAliveSettings = { ctx.navigate(AppNavKey.HomeAppKeepAlive) },
             onOpenFloatBallSettings = { ctx.navigate(AppNavKey.FloatBall) },
-            onHapticEnabledChange = { enabled -> viewModel.setHapticEnabled(enabled) },
-            onHapticStrengthChange = { level -> viewModel.setHapticStrength(level) },
             onOpenFreeWindowSettings = { ctx.navigate(AppNavKey.HomeFreeWindow) },
             onOpenExcludedAppsSettings = { ctx.navigate(AppNavKey.HomeExcludedApps) },
             onOpenPreviousAppBlacklist = { ctx.navigate(AppNavKey.HomePreviousAppBlacklist) },
+            onOpenInteractionAppearanceSettings = { ctx.navigate(AppNavKey.HomeInteractionAppearance) },
             onOpenTriggerCollection = { ctx.navigate(AppNavKey.HomeTriggerCollection) },
             onOpenCornerWheel = { ctx.navigate(AppNavKey.HomeCornerGesture) },
             onOpenGestureAngle = { ctx.navigate(AppNavKey.HomeGestureAngle) },
@@ -117,17 +118,39 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
             onHideTriggerOnLauncherChange = { enabled -> viewModel.setHideTriggerOnLauncher(enabled) },
             bottomContentPadding = ctx.rootBottomContentPadding,
             bottomNavReselectCount = ctx.bottomNavReselectCount,
-            onDynamicColorChange = { enabled -> viewModel.setDynamicColorEnabled(enabled) },
-            onThemeColorChange = { color -> viewModel.setThemeColor(color) },
-            onThemePaletteStyleChange = { style -> viewModel.setThemePaletteStyle(style) },
-            onThemeModeChange = { mode -> viewModel.setThemeMode(mode) },
-            onCustomColorChange = { enabled -> viewModel.setCustomColorEnabled(enabled) },
-            onThemeColorSpecChange = { spec -> viewModel.setThemeColorSpec(spec) },
-            onBottomNavStyleChange = { style -> viewModel.setBottomNavStyle(style) },
-            onBottomNavModeChange = { mode -> viewModel.setBottomNavMode(mode) },
-            onBottomNavGlassEnabledChange = { enabled -> viewModel.setBottomNavGlassEnabled(enabled) },
-            onTopAppBarBlurStyleChange = { style -> viewModel.setTopAppBarBlurStyle(style) },
-            onBottomNavBlurRadiusChange = { value -> viewModel.setBottomNavBlurRadiusDp(value) },
+        )
+    }
+
+    hiltEntry<AppNavKey.HomeInteractionAppearance> {
+        val homeEffects = remember(ctx) { MainNavHomeEffects(ctx) }
+        val viewModel: HomeViewModel = hiltViewModel<HomeViewModel, HomeViewModel.Factory> { factory ->
+            factory.create(homeEffects)
+        }
+        val settings by viewModel.homeMainSettings.collectAsStateWithLifecycle()
+        InteractionAppearanceSettingsScreen(
+            settings = settings,
+            onBack = { ctx.navigateBackTo(AppNavKey.HomeMain) },
+            onHapticEnabledChange = viewModel::setHapticEnabled,
+            onHapticStrengthChange = viewModel::setHapticStrength,
+            onSwipeDismissEnabledChange = viewModel::setSwipeDismissEnabled,
+            onPredictiveBackEnabledChange = { enabled ->
+                viewModel.setPredictiveBackEnabled(enabled)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                    ctx.activity.applyPredictiveBackEnabled(enabled)
+                    ctx.activity.recreateWithoutTransition()
+                }
+            },
+            onDynamicColorChange = viewModel::setDynamicColorEnabled,
+            onThemeColorChange = viewModel::setThemeColor,
+            onThemePaletteStyleChange = viewModel::setThemePaletteStyle,
+            onThemeModeChange = viewModel::setThemeMode,
+            onCustomColorChange = viewModel::setCustomColorEnabled,
+            onThemeColorSpecChange = viewModel::setThemeColorSpec,
+            onBottomNavStyleChange = viewModel::setBottomNavStyle,
+            onBottomNavModeChange = viewModel::setBottomNavMode,
+            onBottomNavGlassEnabledChange = viewModel::setBottomNavGlassEnabled,
+            onTopAppBarBlurStyleChange = viewModel::setTopAppBarBlurStyle,
+            onBottomNavBlurRadiusChange = viewModel::setBottomNavBlurRadiusDp,
             onBottomNavBlurPreviewChange = ctx.onBottomNavBlurPreviewChange,
             onBottomNavBlurPreviewStop = ctx.onBottomNavBlurPreviewStop,
         )

@@ -48,6 +48,7 @@ import com.slideindex.app.MainActivity
 import com.slideindex.app.di.AppDependencies
 import com.slideindex.app.overlay.FloatingPointerAreaPreviewOverlay
 import com.slideindex.app.settings.AppRootSettings
+import com.slideindex.app.settings.HomeMainSettings
 import com.slideindex.app.settings.BottomNavMode
 import com.slideindex.app.settings.BottomNavStyle
 import com.slideindex.app.settings.OverlaySettings
@@ -100,6 +101,9 @@ fun MainNavHost(
     )
     val overlayUiSettings by deps.settingsRepository.overlaySettings.collectAsStateWithLifecycle(
         initialValue = OverlaySettings.from(settingsSnapshot),
+    )
+    val homeMainSettings by deps.settingsRepository.homeMainSettings.collectAsStateWithLifecycle(
+        initialValue = HomeMainSettings.from(settingsSnapshot),
     )
     var savedBottomNavTab by rememberSaveable {
         val initialTab = if (initialIntentAction == MainActivity.ACTION_OPEN_NOTIFICATION_HISTORY) {
@@ -180,6 +184,16 @@ fun MainNavHost(
 
     LaunchedEffect(rootSettings.hideFromRecents) {
         activity.applyHideFromRecents(rootSettings.hideFromRecents)
+    }
+
+    val skipPredictiveBackRecreate = remember { mutableStateOf(true) }
+    LaunchedEffect(rootSettings.predictiveBackEnabled) {
+        activity.applyPredictiveBackEnabled(rootSettings.predictiveBackEnabled)
+        if (skipPredictiveBackRecreate.value) {
+            skipPredictiveBackRecreate.value = false
+        } else {
+            activity.recreateWithoutTransition()
+        }
     }
 
     val permissions = permissionStates.collect()
@@ -290,6 +304,7 @@ fun MainNavHost(
                                     activity = activity,
                                     deps = deps,
                                     permissionStates = permissionStates,
+                                    swipeDismissEnabled = homeMainSettings.swipeDismissEnabled,
                                     floatingPointerAreaPreviewEnabledState = floatingPointerAreaPreviewEnabledState,
                                     rootBottomContentPadding = rootBottomContentPadding,
                                     bottomNavReselectCounts = bottomNavReselectCounts,
@@ -319,6 +334,7 @@ fun MainNavHost(
                                     activity = activity,
                                     deps = deps,
                                     permissionStates = permissionStates,
+                                    swipeDismissEnabled = homeMainSettings.swipeDismissEnabled,
                                     floatingPointerAreaPreviewEnabledState = floatingPointerAreaPreviewEnabledState,
                                     rootBottomContentPadding = rootBottomContentPadding,
                                     bottomNavReselectCounts = bottomNavReselectCounts,
@@ -450,6 +466,7 @@ private fun MainTabNavStacks(
     activity: MainActivity,
     deps: AppDependencies,
     permissionStates: NavPermissionStates,
+    swipeDismissEnabled: Boolean,
     floatingPointerAreaPreviewEnabledState: MutableState<Boolean>,
     rootBottomContentPadding: Dp,
     bottomNavReselectCounts: Map<MainBottomNavDestination, Int>,
@@ -532,6 +549,7 @@ private fun MainTabNavStacks(
                     activity = activity,
                     deps = deps,
                     permissionStates = permissionStates,
+                    swipeDismissEnabled = swipeDismissEnabled,
                     floatingPointerAreaPreviewEnabledState = floatingPointerAreaPreviewEnabledState,
                     rootBottomContentPadding = rootBottomContentPadding,
                     bottomNavReselectCount = bottomNavReselectCounts[destination] ?: 0,
@@ -553,6 +571,7 @@ internal fun MainTabNavStackSingle(
     activity: MainActivity,
     deps: AppDependencies,
     permissionStates: NavPermissionStates,
+    swipeDismissEnabled: Boolean,
     floatingPointerAreaPreviewEnabledState: MutableState<Boolean>,
     rootBottomContentPadding: Dp,
     bottomNavReselectCount: Int,
@@ -584,8 +603,12 @@ internal fun MainTabNavStackSingle(
         LayoutDirection.Rtl -> NavSwipeDirection.RightToLeft
         else -> NavSwipeDirection.LeftToRight
     }
-    val navTransition = remember(swipeBackDirection) {
-        mainAppNavTransition(swipeBackDirection)
+    val swipeDismiss = if (swipeDismissEnabled) swipeBackDirection else null
+    val navTransition = remember(swipeDismiss) {
+        mainAppNavTransition(swipeDismiss ?: NavSwipeDirection.None)
+    }
+    val registerEntries = remember(destination, tabNavContext, swipeDismiss) {
+        mainTabNavEntryProvider(swipeDismiss, destination, tabNavContext)
     }
     Box(
         modifier = Modifier
@@ -602,10 +625,18 @@ internal fun MainTabNavStackSingle(
             backStack = backStack,
             onBack = { backStack.removeLastOrNull() },
             transition = navTransition,
-        ) {
-            registerMainTabNavEntries(destination, tabNavContext)
-        }
+            content = registerEntries,
+        )
     }
+}
+
+private fun mainTabNavEntryProvider(
+    swipeDismiss: NavSwipeDirection?,
+    destination: MainBottomNavDestination,
+    tabNavContext: MainNavContext,
+): NavEntryBuilder.() -> Unit = {
+    NavEntrySwipeDismissScope.current = swipeDismiss
+    registerMainTabNavEntries(destination, tabNavContext)
 }
 
 private fun NavEntryBuilder.registerMainTabNavEntries(

@@ -6,30 +6,22 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
-import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.CornerGestureSettings
 import com.slideindex.app.settings.HomeMainSettings
-import com.slideindex.app.settings.TopAppBarBlurStyle
 import com.slideindex.app.ui.animationstyle.GestureAnimationSettingsRows
 import com.slideindex.app.ui.miuix.MiuixHubScaffold
 import com.slideindex.app.ui.miuix.groupedCardItems
-import com.slideindex.app.ui.miuix.themeAppearanceSettingsCardItems
 import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
-import com.slideindex.app.ui.settings.components.SettingExpandableSwitchRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 import com.slideindex.app.ui.settings.components.SettingsCardScopeContent
 import com.slideindex.app.ui.settings.components.settingsCardItem
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
-import com.slideindex.app.util.HapticHelper
-import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -47,11 +39,10 @@ fun MainScreen(
     onGestureEnabledChange: (Boolean) -> Unit,
     onOpenAppKeepAliveSettings: () -> Unit,
     onOpenFloatBallSettings: () -> Unit,
-    onHapticEnabledChange: (Boolean) -> Unit,
-    onHapticStrengthChange: (Int) -> Unit,
     onOpenFreeWindowSettings: () -> Unit,
     onOpenExcludedAppsSettings: () -> Unit,
     onOpenPreviousAppBlacklist: () -> Unit,
+    onOpenInteractionAppearanceSettings: () -> Unit,
     onOpenTriggerCollection: () -> Unit,
     onOpenCornerWheel: () -> Unit,
     onOpenGestureAngle: () -> Unit,
@@ -62,19 +53,6 @@ fun MainScreen(
     onHideTriggerOnLauncherChange: (Boolean) -> Unit,
     bottomContentPadding: Dp = 0.dp,
     bottomNavReselectCount: Int = 0,
-    onDynamicColorChange: (Boolean) -> Unit,
-    onThemeColorChange: (Int) -> Unit,
-    onThemePaletteStyleChange: (com.slideindex.app.settings.ThemePaletteStyle) -> Unit,
-    onThemeModeChange: (com.slideindex.app.settings.AppThemeMode) -> Unit,
-    onCustomColorChange: (Boolean) -> Unit,
-    onThemeColorSpecChange: (com.slideindex.app.settings.AppColorSpec) -> Unit,
-    onBottomNavStyleChange: (com.slideindex.app.settings.BottomNavStyle) -> Unit,
-    onBottomNavModeChange: (com.slideindex.app.settings.BottomNavMode) -> Unit,
-    onBottomNavGlassEnabledChange: (Boolean) -> Unit,
-    onBottomNavBlurRadiusChange: (Float) -> Unit,
-    onTopAppBarBlurStyleChange: (TopAppBarBlurStyle) -> Unit,
-    onBottomNavBlurPreviewChange: (Float) -> Unit = {},
-    onBottomNavBlurPreviewStop: () -> Unit = {},
 ) {
     val gestureActive = settings.serviceEnabled && accessibilityGranted && notificationGranted
     val gestureSwitchChecked = gestureActive
@@ -141,33 +119,6 @@ fun MainScreen(
         onHideInLandscapeChange = onHideTriggerInLandscapeChange,
         onHideOnLockScreenChange = onHideTriggerOnLockScreenChange,
         onHideOnLauncherChange = onHideTriggerOnLauncherChange,
-    )
-    val themeAppearanceItems = themeAppearanceSettingsCardItems(
-        outlinedPreferenceIcons = true,
-        themeModeId = settings.themeModeId,
-        customColorEnabled = settings.customColorEnabled,
-        dynamicColorEnabled = settings.dynamicColorEnabled,
-        themeColorArgb = settings.themeColorArgb,
-        paletteStyleId = settings.themePaletteStyleId,
-        themeColorSpecId = settings.themeColorSpecId,
-        bottomNavStyleId = settings.bottomNavStyleId,
-        bottomNavModeId = settings.bottomNavModeId,
-        bottomNavGlassEnabled = settings.bottomNavGlassEnabled,
-        bottomNavBlurRadiusDp = settings.bottomNavBlurRadiusDp,
-        topAppBarBlurStyleId = settings.topAppBarBlurStyleId,
-        onThemeModeChange = onThemeModeChange,
-        onCustomColorChange = onCustomColorChange,
-        onDynamicColorChange = onDynamicColorChange,
-        onThemeColorChange = onThemeColorChange,
-        onPaletteStyleChange = onThemePaletteStyleChange,
-        onThemeColorSpecChange = onThemeColorSpecChange,
-        onBottomNavStyleChange = onBottomNavStyleChange,
-        onBottomNavModeChange = onBottomNavModeChange,
-        onBottomNavGlassEnabledChange = onBottomNavGlassEnabledChange,
-        onBottomNavBlurRadiusChange = onBottomNavBlurRadiusChange,
-        onTopAppBarBlurStyleChange = onTopAppBarBlurStyleChange,
-        onBottomNavBlurPreviewChange = onBottomNavBlurPreviewChange,
-        onBottomNavBlurPreviewStop = onBottomNavBlurPreviewStop,
     )
 
     MiuixHubScaffold(
@@ -357,60 +308,11 @@ fun MainScreen(
         settingsLazySmallTitle(key = "feedback_section", title = feedbackSectionTitle, sectionTop = true)
         groupedCardItems(
             keyPrefix = "main_feedback",
-            items = buildList {
-                add(
-                    settingsCardItem("haptic-enabled") {
-                        val view = LocalView.current
-                        val hapticLightLabel = stringResource(R.string.haptic_strength_light)
-                        val hapticMediumLabel = stringResource(R.string.haptic_strength_medium)
-                        val hapticStrongLabel = stringResource(R.string.haptic_strength_strong)
-                        val hapticFormatLabel = remember(
-                            hapticLightLabel,
-                            hapticMediumLabel,
-                            hapticStrongLabel,
-                        ) {
-                            { level: Float ->
-                                when (level.roundToInt()) {
-                                    0 -> hapticLightLabel
-                                    2 -> hapticStrongLabel
-                                    else -> hapticMediumLabel
-                                }
-                            }
-                        }
-                        SettingsCardScopeContent {
-                            SettingExpandableSwitchRow(
-                                title = stringResource(R.string.haptic_enabled),
-                                checked = settings.hapticEnabled,
-                                enabled = true,
-                                onCheckedChange = onHapticEnabledChange,
-                            ) {
-                                SettingsSliderRow(
-                                    title = stringResource(R.string.haptic_strength),
-                                    value = settings.hapticStrengthLevel.toFloat(),
-                                    valueRange = 0f..2f,
-                                    steps = 1,
-                                    enabled = true,
-                                    label = hapticFormatLabel(settings.hapticStrengthLevel.toFloat()),
-                                    formatLabel = hapticFormatLabel,
-                                    commitOnFinish = true,
-                                    triggersLayoutPreview = true,
-                                    onLayoutPreviewValueChange = { level ->
-                                        HapticHelper.preview(
-                                            view,
-                                            AppSettings(
-                                                hapticEnabled = true,
-                                                hapticStrengthLevel = level.roundToInt(),
-                                            ),
-                                        )
-                                    },
-                                    onValueChange = { onHapticStrengthChange(it.roundToInt()) },
-                                )
-                            }
-                        }
-                    },
-                )
-                addAll(themeAppearanceItems)
-            },
+            items = listOf(
+                settingsCardItem("interaction-appearance") {
+                    InteractionAppearanceEntryCard(onClick = onOpenInteractionAppearanceSettings)
+                },
+            ),
         )
     }
 }

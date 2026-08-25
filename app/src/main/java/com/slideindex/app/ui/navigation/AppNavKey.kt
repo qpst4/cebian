@@ -8,6 +8,7 @@ import kotlinx.serialization.Serializable
 sealed interface AppNavKey : NavKey {
     // Home tab
     @Serializable data object HomeMain : AppNavKey
+    @Serializable data object HomeInteractionAppearance : AppNavKey
     @Serializable data object HomeAppKeepAlive : AppNavKey
     @Serializable data object HomeLayout : AppNavKey
     @Serializable data object HomeHiddenApps : AppNavKey

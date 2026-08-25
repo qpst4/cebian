@@ -407,6 +407,9 @@ class EdgeSettingsMutator @Inject constructor(
     suspend fun setPredictiveBackEnabled(enabled: Boolean) =
         editor.edit { it[SettingsPreferenceKeys.PREDICTIVE_BACK_ENABLED] = enabled }
 
+    suspend fun setSwipeDismissEnabled(enabled: Boolean) =
+        editor.edit { it[SettingsPreferenceKeys.SWIPE_DISMISS_ENABLED] = enabled }
+
     suspend fun setAccessibilityKeepAliveEnabled(enabled: Boolean) =
         editor.edit { it[SettingsPreferenceKeys.ACCESSIBILITY_KEEP_ALIVE] = enabled }
 

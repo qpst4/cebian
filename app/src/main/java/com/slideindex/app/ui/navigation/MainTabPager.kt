@@ -1,6 +1,8 @@
 package com.slideindex.app.ui.navigation
 
-import androidx.activity.compose.BackHandler
+import androidx.navigationevent.NavigationEventInfo
+import androidx.navigationevent.compose.NavigationBackHandler
+import androidx.navigationevent.compose.rememberNavigationEventState
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -57,6 +59,7 @@ internal fun MainTabPagerHost(
     activity: MainActivity,
     deps: AppDependencies,
     permissionStates: NavPermissionStates,
+    swipeDismissEnabled: Boolean,
     floatingPointerAreaPreviewEnabledState: MutableState<Boolean>,
     rootBottomContentPadding: Dp,
     bottomNavReselectCounts: Map<MainBottomNavDestination, Int>,
@@ -99,9 +102,10 @@ internal fun MainTabPagerHost(
         }
     }
 
-    BackHandler(enabled = isRootDestination && pagerState.currentPage != 0) {
-        scope.launch { pagerState.animateScrollToPage(0) }
-    }
+    MainTabPagerBackHandler(
+        enabled = isRootDestination && pagerState.currentPage != 0,
+        onBackToFirstTab = { scope.launch { pagerState.animateScrollToPage(0) } },
+    )
 
     Box(
         modifier = Modifier
@@ -128,6 +132,7 @@ internal fun MainTabPagerHost(
                     activity = activity,
                     deps = deps,
                     permissionStates = permissionStates,
+                    swipeDismissEnabled = swipeDismissEnabled,
                     floatingPointerAreaPreviewEnabledState = floatingPointerAreaPreviewEnabledState,
                     rootBottomContentPadding = rootBottomContentPadding,
                     bottomNavReselectCount = bottomNavReselectCounts[destination] ?: 0,
@@ -189,4 +194,17 @@ internal fun MainTabPagerHost(
             }
         }
     }
+}
+
+@Composable
+private fun MainTabPagerBackHandler(
+    enabled: Boolean,
+    onBackToFirstTab: () -> Unit,
+) {
+    val navEventState = rememberNavigationEventState(NavigationEventInfo.None)
+    NavigationBackHandler(
+        state = navEventState,
+        isBackEnabled = enabled,
+        onBackCompleted = onBackToFirstTab,
+    )
 }

@@ -2,7 +2,6 @@
 
 package com.slideindex.app.ui.settings.components
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -69,9 +68,6 @@ fun SettingsScreenScaffold(
     if (embedded) {
         error("embedded SettingsScreenScaffold is not supported with LazyListScope content")
     }
-    if (onBack != null && enableBackHandler) {
-        BackHandler(onBack = onBack)
-    }
     MiuixSettingsScreenScaffold(
         title = title,
         modifier = modifier,
@@ -100,9 +96,6 @@ fun SettingsLazyScreenScaffold(
     userScrollEnabled: Boolean = true,
     content: LazyListScope.() -> Unit,
 ) {
-    if (onBack != null && enableBackHandler) {
-        BackHandler(onBack = onBack)
-    }
     MiuixListScaffold(
         title = title,
         modifier = modifier,

@@ -31,6 +31,8 @@ data class AppSettings(
     val hideFromRecents: Boolean = false,
     /** Android 14+ 侧滑返回跟手动画（需系统预测性返回可用）。 */
     val predictiveBackEnabled: Boolean = false,
+    /** 页内横移返回上一页（miuix-nav swipeDismiss）。 */
+    val swipeDismissEnabled: Boolean = true,
     val accessibilityKeepAliveEnabled: Boolean = false,
     val hideTriggerInLandscape: Boolean = false,
     val hideTriggerOnLockScreen: Boolean = false,

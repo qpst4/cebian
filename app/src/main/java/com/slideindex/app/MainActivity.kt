@@ -120,8 +120,10 @@ class MainActivity : ComponentActivity() {
         )
         Shizuku.addRequestPermissionResultListener(shizukuPermissionListener)
         enableEdgeToEdge()
-        applyPredictiveBackEnabled(false)
         refreshPermissionState()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            applyPredictiveBackEnabled(deps.settingsRepository.readSnapshot().predictiveBackEnabled)
+        }
 
         setContent {
             val initialIntentAction by currentIntentAction
@@ -240,8 +242,6 @@ class MainActivity : ComponentActivity() {
             deps.clipboardHistoryRepository.syncClipboardMonitoringFromSettings()
         }
         com.slideindex.app.widget.WidgetPopupHost.startListening(this)
-        // 预测性返回需 NavigationEvent + NavDisplay 完整接入；在接入前强制关闭，避免系统手势等待回调导致 ANR。
-        applyPredictiveBackEnabled(false)
         lifecycleScope.launch {
             applyHideFromRecents(deps.settingsRepository.settings.first().hideFromRecents)
         }
@@ -346,6 +346,13 @@ class MainActivity : ComponentActivity() {
 
     internal fun applyPredictiveBackEnabled(enabled: Boolean) {
         PredictiveBackHelper.applyEnabled(applicationInfo, enabled)
+    }
+
+    @Suppress("DEPRECATION")
+    internal fun recreateWithoutTransition() {
+        overridePendingTransition(0, 0)
+        recreate()
+        overridePendingTransition(0, 0)
     }
 
     internal fun refreshServiceState() {

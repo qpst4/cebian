@@ -5,7 +5,6 @@ package com.slideindex.app.ui.miuix
  * Licensed under GPL-3.0. Modified for com.slideindex.app.
  */
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -153,7 +152,7 @@ fun MiuixSettingsScreenScaffold(
     modifier: Modifier = Modifier,
     subtitle: String? = null,
     onBack: (() -> Unit)? = null,
-    enableBackHandler: Boolean = true,
+    @Suppress("UNUSED_PARAMETER") enableBackHandler: Boolean = true,
     overlayMode: Boolean = false,
     scrollContent: Boolean = true,
     actions: @Composable RowScope.() -> Unit = {},
@@ -162,9 +161,6 @@ fun MiuixSettingsScreenScaffold(
     bottomContentPadding: Dp = 0.dp,
     content: LazyListScope.() -> Unit,
 ) {
-    if (onBack != null && enableBackHandler) {
-        BackHandler(onBack = onBack)
-    }
     val scrollBehavior = MiuixScrollBehavior()
     val barBackdrop = rememberMiuixBlurBackdrop(enabled = !overlayMode)
     val contentStartInset = LocalMainNavContentStartInset.current

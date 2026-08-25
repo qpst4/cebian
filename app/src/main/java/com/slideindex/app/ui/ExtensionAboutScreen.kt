@@ -3,7 +3,6 @@
 package com.slideindex.app.ui
 
 import android.content.Intent
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -108,8 +107,6 @@ fun ExtensionAboutScreen(
     autoCheckUpdate: Boolean,
     onAutoCheckUpdateChange: (Boolean) -> Unit,
 ) {
-    BackHandler(onBack = onBack)
-
     val scrollBehavior = MiuixScrollBehavior()
     val lazyListState = rememberLazyListState()
 

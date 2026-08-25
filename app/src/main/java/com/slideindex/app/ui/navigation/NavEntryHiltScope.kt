@@ -26,6 +26,11 @@ import top.yukonga.miuix.kmp.nav.core.NavKey
 import top.yukonga.miuix.kmp.nav.transition.NavSwipeDirection
 import top.yukonga.miuix.kmp.nav.transition.NavTransition
 
+/** 页内横移返回方向；[MainTabNavStackSingle] 注册 entry 前写入。 */
+object NavEntrySwipeDismissScope {
+    var current: NavSwipeDirection? = null
+}
+
 /**
  * 与 miuix-nav 注入的 entry [ViewModelStore] 绑定的 [SavedStateRegistryOwner]，
  * 并通过 [HasDefaultViewModelProviderFactory] 向 [androidx.lifecycle.viewmodel.compose.viewModel]
@@ -86,11 +91,12 @@ fun NavEntryHiltScope(content: @Composable () -> Unit) {
 
 /**
  * 与 [NavEntryBuilder.entry] 相同，但在 entry 内容外包 [NavEntryHiltScope] 以支持 [hiltViewModel]。
+ * 默认使用 [NavEntrySwipeDismissScope.current] 作为页内横移返回方向。
  */
 inline fun <reified T : NavKey> NavEntryBuilder.hiltEntry(
     noinline contentKey: ((T) -> Any)? = null,
     transition: NavTransition? = null,
-    swipeDismiss: NavSwipeDirection? = null,
+    swipeDismiss: NavSwipeDirection? = NavEntrySwipeDismissScope.current,
     noinline content: @Composable (T) -> Unit,
 ) {
     entry<T>(

@@ -1,6 +1,7 @@
 package com.slideindex.app
 
 import android.app.Application
+import android.os.Build
 import com.slideindex.app.clipboard.monitor.ClipboardMonitorStartup
 import com.slideindex.app.di.AppDependencies
 import com.slideindex.app.di.OtpAutoFillStatsInstaller
@@ -13,6 +14,7 @@ import com.slideindex.app.segmentation.SegmentationEngineProvisioner
 import com.slideindex.app.service.ClipboardFloatLifecycle
 import com.slideindex.app.service.GestureToggleTileWarmup
 import com.slideindex.app.service.HistoryFloatLifecycle
+import com.slideindex.app.util.PredictiveBackHelper
 import com.slideindex.app.util.ServiceEnabledStore
 import com.slideindex.app.widget.WidgetPanelPage
 import dagger.hilt.android.HiltAndroidApp
@@ -60,6 +62,10 @@ class SlideIndexApp : Application() {
             ClipboardFloatLifecycle.syncFromSettings(this@SlideIndexApp, deps.settingsRepository)
         }
         GestureToggleTileWarmup.requestListening(this, "appOnCreate")
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            val enabled = deps.settingsRepository.readSnapshot().predictiveBackEnabled
+            PredictiveBackHelper.applyEnabled(applicationInfo, enabled)
+        }
     }
 
     fun schedulePersistWidgetPanelPages(pages: List<WidgetPanelPage>) {
