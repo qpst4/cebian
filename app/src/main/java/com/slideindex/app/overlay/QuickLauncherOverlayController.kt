@@ -432,7 +432,7 @@ internal class QuickLauncherOverlayController(
         quickLauncherOverlayDialogHost.dismiss()
         activePanelId = null
         host.setPanelPresentationFocus(false)
-        invalidateQuickLauncherLayoutCaches()
+        invalidateQuickLauncherDerivedCaches()
     }
 
     fun onPanelEnterAnimationEnded() {
@@ -543,16 +543,12 @@ internal class QuickLauncherOverlayController(
         quickLauncherAppsByPackage = apps.associateBy { it.packageName }
     }
 
-    internal fun invalidateQuickLauncherLayoutCaches() {
-        quickLauncherCachedPages = null
-        quickLauncherCachedPagesKey = 0
-        quickLauncherLayoutPanelWidth = 0f
-    }
-
     internal fun invalidateQuickLauncherDerivedCaches() {
         quickLauncherIconCache.clear()
         quickLauncherLabelCache.clear()
-        invalidateQuickLauncherLayoutCaches()
+        quickLauncherCachedPages = null
+        quickLauncherCachedPagesKey = 0
+        quickLauncherLayoutPanelWidth = 0f
     }
 
     internal fun quickLauncherPages(): List<List<QuickLauncherItem>> {
