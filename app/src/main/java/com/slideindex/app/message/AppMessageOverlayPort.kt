@@ -23,6 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
@@ -183,7 +184,7 @@ class AppMessageOverlayPort @Inject constructor() : MessageOverlayPort {
         host.show(
             onDismiss = onDismiss,
         ) {
-            var alwaysAllow by mutableStateOf(false)
+            var alwaysAllow by remember { mutableStateOf(false) }
             val badgeBackground = MaterialTheme.colorScheme.surfaceContainer
             val notificationTitle = data.title
                 .takeIf { it.isNotBlank() && !it.equals(appLabel, ignoreCase = true) }
