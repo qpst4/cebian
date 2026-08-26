@@ -135,7 +135,7 @@ fun ExpandPanelSlotPicker(
             Text(
                 text = editingSubtitle,
                 style = MiuixTheme.textStyles.footnote2,
-                color = MiuixTheme.colorScheme.onBackgroundVariant,
+                color = expandPanelSecondaryTextColor(),
                 maxLines = 2,
                 overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                 textAlign = TextAlign.Center,
@@ -186,7 +186,7 @@ fun ExpandPanelSlotPicker(
                             Text(
                                 text = stringResource(R.string.search_no_actions),
                                 style = MiuixTheme.textStyles.body2,
-                                color = MiuixTheme.colorScheme.onBackgroundVariant,
+                                color = expandPanelSecondaryTextColor(),
                                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 24.dp),
                             )
                         }
@@ -211,7 +211,7 @@ fun ExpandPanelSlotPicker(
                             Text(
                                 text = stringResource(R.string.search_no_actions),
                                 style = MiuixTheme.textStyles.body2,
-                                color = MiuixTheme.colorScheme.onBackgroundVariant,
+                                color = expandPanelSecondaryTextColor(),
                                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 24.dp),
                             )
                         }

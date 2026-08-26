@@ -2,6 +2,7 @@ package com.slideindex.app.overlay.volumepanel
 
 import android.content.Context
 import android.media.AudioManager
+import android.os.Build
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -11,8 +12,11 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.shape.CircleShape
@@ -50,6 +54,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -57,6 +62,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -68,7 +74,9 @@ import com.slideindex.app.data.AppInfo
 import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.gesture.ActionExecutor
 import com.slideindex.app.gesture.GestureAction
+import com.slideindex.app.overlay.LocalFrostedGlassBackdrop
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.settings.launchPolicyLongPressEligible
 import com.slideindex.app.ui.Md3PickerIconLeading
 import com.slideindex.app.ui.Md3PickerLaunchShortcutLeading
 import com.slideindex.app.ui.Md3PickerPackageLeading
@@ -77,12 +85,13 @@ import com.slideindex.app.ui.gesturepicker.gestureActionLabelText
 import com.slideindex.app.ui.gesturepicker.launchShortcutDisplayLabel
 import com.slideindex.app.util.BrightnessControlHelper
 import com.slideindex.app.util.VolumeControlHelper
+import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
-import top.yukonga.miuix.kmp.basic.Card
-import top.yukonga.miuix.kmp.basic.CardDefaults
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.theme.MiuixTheme
+
+private val ExpandPanelCornerRadius = 20.dp
 
 @Composable
 fun VolumePanelContent(onDismiss: () -> Unit) {
@@ -124,12 +133,13 @@ fun VolumePanelContent(onDismiss: () -> Unit) {
         allApps = deps?.appRepository?.loadApps().orEmpty()
     }
 
-    fun runSlotAction(action: GestureAction) {
+    fun runSlotAction(action: GestureAction, longPressArmed: Boolean = false) {
         onDismiss()
         val metrics = overlayContext.resources.displayMetrics
         actionExecutor?.execute(
             action = action,
             settings = appSettings,
+            longPressArmed = longPressArmed,
             anchorRawX = metrics.widthPixels / 2f,
             anchorRawY = metrics.heightPixels / 2f,
         )
@@ -141,14 +151,9 @@ fun VolumePanelContent(onDismiss: () -> Unit) {
         }
     }
 
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 12.dp),
-        colors = CardDefaults.defaultColors(
-            color = MiuixTheme.colorScheme.surfaceContainer,
-        ),
-    ) {
+    val longPressLaunchEnabled = appSettings.launchPolicyLongPressEligible()
+
+    ExpandPanelFrostedSurface {
         AnimatedContent(
             targetState = isPickerMode,
             transitionSpec = {
@@ -210,7 +215,11 @@ fun VolumePanelContent(onDismiss: () -> Unit) {
                 )
             } else {
                 Column(
-                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 16.dp),
+                    modifier = Modifier
+                        .padding(horizontal = 14.dp, vertical = 16.dp)
+                        .pointerInput(Unit) {
+                            detectTapGestures(onLongPress = { isShortcutsEditMode = !isShortcutsEditMode })
+                        },
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Text(
@@ -223,7 +232,7 @@ fun VolumePanelContent(onDismiss: () -> Unit) {
                         slotActions = slotActions,
                         activityShortcuts = activityShortcuts,
                         isEditMode = isShortcutsEditMode,
-                        onToggleEditMode = { isShortcutsEditMode = !isShortcutsEditMode },
+                        longPressLaunchEnabled = longPressLaunchEnabled,
                         onRun = ::runSlotAction,
                         onAssign = { index ->
                             pickerSlot = index
@@ -234,6 +243,53 @@ fun VolumePanelContent(onDismiss: () -> Unit) {
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun ExpandPanelFrostedSurface(
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit,
+) {
+    val shape = RoundedCornerShape(ExpandPanelCornerRadius)
+    val isBlurSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+    val density = LocalDensity.current
+    val cornerPx = with(density) { ExpandPanelCornerRadius.toPx() }
+    val blurRadiusPx = with(density) { 48.dp.toPx() }.roundToInt()
+    val frostedStyle = expandPanelFrostedStyle()
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 12.dp)
+            .shadow(16.dp, shape, clip = false)
+            .clip(shape)
+            .then(
+                if (!isBlurSupported) {
+                    Modifier.background(frostedStyle.fallbackBackground)
+                } else {
+                    Modifier
+                },
+            )
+            .border(1.dp, frostedStyle.borderColor, shape),
+    ) {
+        if (isBlurSupported) {
+            LocalFrostedGlassBackdrop(
+                modifier = Modifier.matchParentSize(),
+                cornerRadiusPx = cornerPx,
+                blurRadiusPx = blurRadiusPx,
+                tintColor = frostedStyle.tintColor,
+                enabled = true,
+            )
+            if (frostedStyle.innerScrimAlpha > 0f) {
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .background(Color.Black.copy(alpha = frostedStyle.innerScrimAlpha)),
+                )
+            }
+        }
+        content()
     }
 }
 
@@ -330,7 +386,7 @@ private fun ExpandPanelSliderItem(
 ) {
     var currentValue by remember { mutableFloatStateOf(value) }
     val cornerRadius = 14.dp
-    val trackColor = MiuixTheme.colorScheme.outline.copy(alpha = 0.34f)
+    val trackColor = expandPanelSliderTrackColor()
     val fillColor = MiuixTheme.colorScheme.primary
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -389,7 +445,7 @@ private fun ExpandPanelSliderItem(
             style = MiuixTheme.textStyles.footnote2,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            color = MiuixTheme.colorScheme.onBackgroundVariant,
+            color = expandPanelSecondaryTextColor(),
         )
     }
 }
@@ -399,8 +455,8 @@ private fun ExpandPanelShortcutsSection(
     slotActions: List<GestureAction?>,
     activityShortcuts: List<ActivityShortcut>,
     isEditMode: Boolean,
-    onToggleEditMode: () -> Unit,
-    onRun: (GestureAction) -> Unit,
+    longPressLaunchEnabled: Boolean,
+    onRun: (GestureAction, Boolean) -> Unit,
     onAssign: (Int) -> Unit,
     onClear: (Int) -> Unit,
 ) {
@@ -411,13 +467,10 @@ private fun ExpandPanelShortcutsSection(
         Text(
             text = stringResource(R.string.expand_panel_shortcuts_title),
             style = MiuixTheme.textStyles.subtitle,
-            color = MiuixTheme.colorScheme.onBackgroundVariant,
+            color = expandPanelSecondaryTextColor(),
             textAlign = TextAlign.Center,
             modifier = Modifier
                 .fillMaxWidth()
-                .pointerInput(Unit) {
-                    detectTapGestures(onLongPress = { onToggleEditMode() })
-                }
                 .padding(vertical = 6.dp),
         )
         Spacer(modifier = Modifier.height(2.dp))
@@ -425,6 +478,7 @@ private fun ExpandPanelShortcutsSection(
             slotActions = slotActions,
             activityShortcuts = activityShortcuts,
             isEditMode = isEditMode,
+            longPressLaunchEnabled = longPressLaunchEnabled,
             onRun = onRun,
             onAssign = onAssign,
             onClear = onClear,
@@ -432,17 +486,14 @@ private fun ExpandPanelShortcutsSection(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(if (isEditMode) 36.dp else 20.dp)
-                .pointerInput(Unit) {
-                    detectTapGestures(onLongPress = { onToggleEditMode() })
-                },
+                .height(if (isEditMode) 36.dp else 20.dp),
             contentAlignment = Alignment.Center,
         ) {
             if (isEditMode) {
                 Text(
                     text = stringResource(R.string.expand_panel_edit_hint),
                     style = MiuixTheme.textStyles.footnote2,
-                    color = MiuixTheme.colorScheme.onBackgroundVariant,
+                    color = expandPanelSecondaryTextColor(),
                     textAlign = TextAlign.Center,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
@@ -460,7 +511,8 @@ private fun ExpandPanelShortcutsGrid(
     slotActions: List<GestureAction?>,
     activityShortcuts: List<ActivityShortcut>,
     isEditMode: Boolean,
-    onRun: (GestureAction) -> Unit,
+    longPressLaunchEnabled: Boolean,
+    onRun: (GestureAction, Boolean) -> Unit,
     onAssign: (Int) -> Unit,
     onClear: (Int) -> Unit,
 ) {
@@ -478,11 +530,17 @@ private fun ExpandPanelShortcutsGrid(
                         action = action,
                         activityShortcuts = activityShortcuts,
                         isEditMode = isEditMode,
+                        longPressLaunchEnabled = longPressLaunchEnabled,
                         onClick = {
                             if (isEditMode || action == null) {
                                 onAssign(index)
                             } else {
-                                onRun(action)
+                                onRun(action, false)
+                            }
+                        },
+                        onLongClick = {
+                            if (!isEditMode && action != null) {
+                                onRun(action, true)
                             }
                         },
                         onRemove = { onClear(index) },
@@ -493,12 +551,15 @@ private fun ExpandPanelShortcutsGrid(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ExpandPanelShortcutCell(
     action: GestureAction?,
     activityShortcuts: List<ActivityShortcut>,
     isEditMode: Boolean,
+    longPressLaunchEnabled: Boolean,
     onClick: () -> Unit,
+    onLongClick: () -> Unit,
     onRemove: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -514,6 +575,10 @@ private fun ExpandPanelShortcutCell(
         isEditMode -> addLabel
         else -> ""
     }
+    val supportsLongPressLaunch = longPressLaunchEnabled &&
+        !isEditMode &&
+        action != null &&
+        (action is GestureAction.LaunchApp || action is GestureAction.LaunchShortcut)
     Column(
         modifier = modifier.padding(horizontal = 2.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -525,10 +590,21 @@ private fun ExpandPanelShortcutCell(
             Box(
                 modifier = Modifier
                     .matchParentSize()
-                    .clickable(
-                        interactionSource = cellInteraction,
-                        indication = null,
-                        onClick = onClick,
+                    .then(
+                        if (supportsLongPressLaunch) {
+                            Modifier.combinedClickable(
+                                interactionSource = cellInteraction,
+                                indication = null,
+                                onClick = onClick,
+                                onLongClick = onLongClick,
+                            )
+                        } else {
+                            Modifier.clickable(
+                                interactionSource = cellInteraction,
+                                indication = null,
+                                onClick = onClick,
+                            )
+                        },
                     ),
                 contentAlignment = Alignment.Center,
             ) {
@@ -581,7 +657,7 @@ private fun ExpandPanelShortcutCell(
                 Text(
                     text = displayLabel,
                     style = MiuixTheme.textStyles.footnote2,
-                    color = MiuixTheme.colorScheme.onBackgroundVariant,
+                    color = expandPanelSecondaryTextColor(),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     textAlign = TextAlign.Center,
