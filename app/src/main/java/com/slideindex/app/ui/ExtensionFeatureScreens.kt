@@ -1,8 +1,10 @@
 package com.slideindex.app.ui
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
@@ -22,6 +24,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -52,6 +55,7 @@ import com.slideindex.app.xposed.config.XposedConfigWriter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
 
 private enum class FreezerTab { ALL, FROZEN, ACTIVE }
 
@@ -67,6 +71,7 @@ fun FreezerAppsScreen(
     )
     val appRepository = rememberAppRepository()
     var allApps by remember { mutableStateOf<List<AppInfo>>(emptyList()) }
+    var isLoadingApps by remember { mutableStateOf(true) }
     var searchQuery by remember { mutableStateOf("") }
     var selectedTab by remember { mutableIntStateOf(FreezerTab.ALL.ordinal) }
     var showSystemApps by remember { mutableStateOf(false) }
@@ -75,6 +80,7 @@ fun FreezerAppsScreen(
     val shizukuGranted = remember { TaskManagerUtil.hasPermission() }
 
     LaunchedEffect(Unit) {
+        isLoadingApps = true
         allApps = appRepository.loadFreezerApps(force = true)
         val bootstrap = FreezerBootstrap.scanDisabledLauncherPackages(context)
         if (bootstrap.isNotEmpty()) {
@@ -85,6 +91,7 @@ fun FreezerAppsScreen(
             }
         }
         rootAvailable = withContext(Dispatchers.IO) { TaskManagerUtil.probeRootAvailable() }
+        isLoadingApps = false
     }
 
     fun isFrozenApp(app: AppInfo): Boolean =
@@ -136,6 +143,19 @@ fun FreezerAppsScreen(
                 },
             )
         }
+        groupedCardItems(
+            keyPrefix = "freezer-options",
+            items = listOf(
+                settingsCardScopeItem("show-system") {
+                    SettingSwitchRow(
+                        title = stringResource(R.string.freezer_show_system_apps),
+                        checked = showSystemApps,
+                        enabled = true,
+                        onCheckedChange = { showSystemApps = it },
+                    )
+                },
+            ),
+        )
         item(key = "freezer-tabs") {
             MiuixTabRowWithContour(
                 tabs = listOf(
@@ -151,25 +171,23 @@ fun FreezerAppsScreen(
                     .padding(horizontal = 12.dp, vertical = 4.dp),
             )
         }
-        groupedCardItems(
-            keyPrefix = "freezer-options",
-            items = listOf(
-                settingsCardScopeItem("show-system") {
-                    SettingSwitchRow(
-                        title = stringResource(R.string.freezer_show_system_apps),
-                        checked = showSystemApps,
-                        enabled = true,
-                        onCheckedChange = { showSystemApps = it },
-                    )
-                },
-            ),
-        )
         item(key = "freezer-apps-title") {
             MiuixSmallTitle(
                 stringResource(R.string.freezer_apps_section_title, filteredApps.size),
             )
         }
-        if (filteredApps.isEmpty()) {
+        if (isLoadingApps) {
+            item(key = "freezer-loading") {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 48.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    CircularProgressIndicator(modifier = Modifier.padding(4.dp))
+                }
+            }
+        } else if (filteredApps.isEmpty()) {
             item(key = "freezer-empty") {
                 Text(
                     text = stringResource(R.string.no_apps),

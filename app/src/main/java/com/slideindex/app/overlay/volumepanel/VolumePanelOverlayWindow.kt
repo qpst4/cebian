@@ -11,9 +11,10 @@ import android.util.Log
 import android.view.Gravity
 import android.view.WindowManager
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -34,7 +35,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import com.slideindex.app.di.AppGraphEntryPoint
 import com.slideindex.app.di.OverlayDependencyAccess
+import com.slideindex.app.ui.compose.LocalAppDependencies
+import dagger.hilt.android.EntryPointAccessors
 import com.slideindex.app.overlay.FloatBallOverlay
 import com.slideindex.app.overlay.OverlayCompose
 import com.slideindex.app.overlay.OverlayComposeOwner
@@ -44,7 +48,10 @@ import com.slideindex.app.overlay.compositor.OverlaySceneController
 import com.slideindex.app.ui.theme.OverlayAwareModuleTheme
 import com.slideindex.app.util.PermissionHelper
 
-private const val VOLUME_PANEL_ANIM_MS = 320
+private const val VOLUME_PANEL_SCRIM_ANIM_MS = 220
+/** Spring 退场略长于 scrim，避免窗口过早移除。 */
+private const val VOLUME_PANEL_DISMISS_MS = 380L
+private val panelSlideSpringSpec = spring<IntOffset>(dampingRatio = 0.8f, stiffness = 300f)
 
 object VolumePanelOverlayWindow {
     private const val TAG = "VolumePanelOverlay"
@@ -112,7 +119,7 @@ object VolumePanelOverlayWindow {
             if (token != dismissToken) return@postDelayed
             if (panelVisibilityState?.targetState == true) return@postDelayed
             cleanup()
-        }, VOLUME_PANEL_ANIM_MS.toLong())
+        }, VOLUME_PANEL_DISMISS_MS)
     }
 
     fun handleBack(): Boolean {
@@ -146,13 +153,25 @@ object VolumePanelOverlayWindow {
         val overlayContext = OverlayCompose.themedContext(context)
         val composeOwner = OverlayComposeOwner()
         owner = composeOwner
+        val appDeps = runCatching {
+            EntryPointAccessors.fromApplication(
+                context.applicationContext,
+                AppGraphEntryPoint::class.java,
+            ).dependencies()
+        }.getOrNull()
         val view = OverlayCompose.createComposeView(overlayContext, composeOwner).apply {
             setContent {
-                OverlayAwareModuleTheme {
-                    VolumePanelOverlayRoot(
-                        visibilityState = visibilityState,
-                        onDismiss = { dismiss() },
-                    )
+                CompositionLocalProvider(
+                    *(listOfNotNull(
+                        appDeps?.let { LocalAppDependencies provides it },
+                    ).toTypedArray()),
+                ) {
+                    OverlayAwareModuleTheme {
+                        VolumePanelOverlayRoot(
+                            visibilityState = visibilityState,
+                            onDismiss = { dismiss() },
+                        )
+                    }
                 }
             }
         }
@@ -211,8 +230,7 @@ private fun VolumePanelOverlayRoot(
     visibilityState: MutableTransitionState<Boolean>,
     onDismiss: () -> Unit,
 ) {
-    val panelAnimSpec = tween<Float>(VOLUME_PANEL_ANIM_MS, easing = FastOutSlowInEasing)
-    val panelSlideSpec = tween<IntOffset>(VOLUME_PANEL_ANIM_MS, easing = FastOutSlowInEasing)
+    val scrimAnimSpec = tween<Float>(VOLUME_PANEL_SCRIM_ANIM_MS)
     val dismissInteraction = remember { MutableInteractionSource() }
     val panelInteraction = remember { MutableInteractionSource() }
 
@@ -222,8 +240,8 @@ private fun VolumePanelOverlayRoot(
     ) {
         AnimatedVisibility(
             visibleState = visibilityState,
-            enter = fadeIn(panelAnimSpec),
-            exit = fadeOut(panelAnimSpec),
+            enter = fadeIn(scrimAnimSpec),
+            exit = fadeOut(scrimAnimSpec),
             modifier = Modifier.fillMaxSize(),
         ) {
             Box(
@@ -239,8 +257,8 @@ private fun VolumePanelOverlayRoot(
         }
         AnimatedVisibility(
             visibleState = visibilityState,
-            enter = fadeIn(panelAnimSpec) + slideInVertically(panelSlideSpec) { it },
-            exit = fadeOut(panelAnimSpec) + slideOutVertically(panelSlideSpec) { it },
+            enter = fadeIn(scrimAnimSpec) + slideInVertically(panelSlideSpringSpec) { it },
+            exit = fadeOut(scrimAnimSpec) + slideOutVertically(panelSlideSpringSpec) { it },
             modifier = Modifier.fillMaxWidth(),
         ) {
             Box(

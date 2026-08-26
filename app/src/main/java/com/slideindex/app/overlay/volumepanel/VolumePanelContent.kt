@@ -10,7 +10,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
@@ -49,22 +48,22 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.core.graphics.drawable.toBitmap
 import com.slideindex.app.R
 import com.slideindex.app.activity.ActivityShortcut
 import com.slideindex.app.data.AppInfo
 import com.slideindex.app.di.OverlayDependencyAccess
+import com.slideindex.app.gesture.ActionExecutor
 import com.slideindex.app.gesture.GestureAction
-import com.slideindex.app.service.SlideIndexAccessibilityService
+import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.ui.Md3PickerIconLeading
+import com.slideindex.app.ui.Md3PickerLaunchShortcutLeading
+import com.slideindex.app.ui.Md3PickerPackageLeading
 import com.slideindex.app.ui.gestureActionIcon
 import com.slideindex.app.ui.gesturepicker.gestureActionLabelText
 import com.slideindex.app.util.BrightnessControlHelper
@@ -83,13 +82,30 @@ fun VolumePanelContent(onDismiss: () -> Unit) {
     val scope = rememberCoroutineScope()
     var slotActions by remember { mutableStateOf(List<GestureAction?>(8) { null }) }
     var activityShortcuts by remember { mutableStateOf<List<ActivityShortcut>>(emptyList()) }
+    var appSettings by remember { mutableStateOf(AppSettings()) }
     var isPickerMode by remember { mutableStateOf(false) }
     var pickerSlot by remember { mutableIntStateOf(-1) }
     var allApps by remember { mutableStateOf<List<AppInfo>>(emptyList()) }
+    val overlayContext = remember(context) {
+        OverlayDependencyAccess.overlayHostContext() ?: context
+    }
+    val actionExecutor = remember(deps, overlayContext) {
+        val repository = deps?.appRepository ?: return@remember null
+        ActionExecutor(
+            context = overlayContext,
+            appRepository = repository,
+            onShellCommandsPersist = { commands ->
+                scope.launch {
+                    deps.settingsRepository.setShellCommands(commands)
+                }
+            },
+        )
+    }
 
     LaunchedEffect(deps) {
         val repository = deps?.settingsRepository ?: return@LaunchedEffect
         repository.settings.collect { settings ->
+            appSettings = settings
             slotActions = settings.expandPanelSlotActions
             activityShortcuts = settings.activityShortcuts
         }
@@ -99,8 +115,14 @@ fun VolumePanelContent(onDismiss: () -> Unit) {
     }
 
     fun runSlotAction(action: GestureAction) {
-        SlideIndexAccessibilityService.perform(action)
         onDismiss()
+        val metrics = overlayContext.resources.displayMetrics
+        actionExecutor?.execute(
+            action = action,
+            settings = appSettings,
+            anchorRawX = metrics.widthPixels / 2f,
+            anchorRawY = metrics.heightPixels / 2f,
+        )
     }
 
     fun saveSlotAction(index: Int, action: GestureAction?) {
@@ -114,7 +136,7 @@ fun VolumePanelContent(onDismiss: () -> Unit) {
             .fillMaxWidth()
             .padding(horizontal = 12.dp, vertical = 12.dp),
         colors = CardDefaults.defaultColors(
-            color = MiuixTheme.colorScheme.surfaceContainerHigh,
+            color = MiuixTheme.colorScheme.surfaceContainer,
         ),
     ) {
         AnimatedContent(
@@ -174,7 +196,7 @@ fun VolumePanelContent(onDismiss: () -> Unit) {
                     Spacer(modifier = Modifier.height(8.dp))
                     ExpandPanelShortcutsGrid(
                         slotActions = slotActions,
-                        apps = allApps,
+                        activityShortcuts = activityShortcuts,
                         onRun = ::runSlotAction,
                         onAssign = { index ->
                             pickerSlot = index
@@ -337,7 +359,7 @@ private fun ExpandPanelSliderItem(
         Spacer(modifier = Modifier.height(6.dp))
         Text(
             text = label,
-            fontSize = 10.sp,
+            style = MiuixTheme.textStyles.footnote2,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             color = MiuixTheme.colorScheme.onBackgroundVariant,
@@ -348,12 +370,11 @@ private fun ExpandPanelSliderItem(
 @Composable
 private fun ExpandPanelShortcutsGrid(
     slotActions: List<GestureAction?>,
-    apps: List<AppInfo>,
+    activityShortcuts: List<ActivityShortcut>,
     onRun: (GestureAction) -> Unit,
     onAssign: (Int) -> Unit,
     onClear: (Int) -> Unit,
 ) {
-    val appMap = remember(apps) { apps.associateBy { it.packageName } }
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         repeat(2) { row ->
             Row(
@@ -365,7 +386,7 @@ private fun ExpandPanelShortcutsGrid(
                     val action = slotActions.getOrNull(index)
                     ExpandPanelShortcutCell(
                         action = action,
-                        appInfo = (action as? GestureAction.LaunchApp)?.packageName?.let { appMap[it] },
+                        activityShortcuts = activityShortcuts,
                         onClick = {
                             if (action != null) onRun(action) else onAssign(index)
                         },
@@ -382,11 +403,10 @@ private fun ExpandPanelShortcutsGrid(
 @Composable
 private fun ExpandPanelShortcutCell(
     action: GestureAction?,
-    appInfo: AppInfo?,
+    activityShortcuts: List<ActivityShortcut>,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
 ) {
-    val context = LocalContext.current
     val shape = RoundedCornerShape(16.dp)
     Box(
         modifier = Modifier
@@ -401,41 +421,55 @@ private fun ExpandPanelShortcutCell(
         contentAlignment = Alignment.Center,
     ) {
         if (action != null) {
-            when (action) {
-                is GestureAction.LaunchApp -> {
-                    val packageName = action.packageName
-                    val drawable = remember(packageName) {
-                        runCatching { context.packageManager.getApplicationIcon(packageName) }.getOrNull()
-                    }
-                    if (drawable != null) {
-                        Image(
-                            painter = BitmapPainter(drawable.toBitmap().asImageBitmap()),
-                            contentDescription = appInfo?.label ?: packageName,
-                            modifier = Modifier
-                                .size(48.dp)
-                                .clip(RoundedCornerShape(12.dp)),
-                        )
-                    } else {
-                        Text(
-                            text = (appInfo?.label ?: packageName).take(1),
-                            style = MiuixTheme.textStyles.title4,
-                        )
-                    }
-                }
-                else -> {
-                    Icon(
-                        imageVector = gestureActionIcon(action),
-                        contentDescription = gestureActionLabelText(context, action),
-                        modifier = Modifier.size(28.dp),
-                        tint = MiuixTheme.colorScheme.primary,
-                    )
-                }
-            }
+            ExpandPanelSlotIcon(
+                action = action,
+                activityShortcuts = activityShortcuts,
+            )
         } else {
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = stringResource(R.string.expand_panel_shortcut_add),
-                tint = MiuixTheme.colorScheme.primary,
+            Box(
+                modifier = Modifier.size(ExpandPanelSlotIconSize),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = stringResource(R.string.expand_panel_shortcut_add),
+                    modifier = Modifier.size(ExpandPanelSlotIconInner),
+                    tint = MiuixTheme.colorScheme.primary,
+                )
+            }
+        }
+    }
+}
+
+private val ExpandPanelSlotIconSize = 40.dp
+private val ExpandPanelSlotIconInner = 24.dp
+
+@Composable
+private fun ExpandPanelSlotIcon(
+    action: GestureAction,
+    activityShortcuts: List<ActivityShortcut>,
+) {
+    val context = LocalContext.current
+    when (action) {
+        is GestureAction.LaunchApp -> {
+            Md3PickerPackageLeading(
+                packageName = action.packageName,
+                contentDescription = action.packageName,
+                selected = false,
+            )
+        }
+        is GestureAction.LaunchShortcut -> {
+            Md3PickerLaunchShortcutLeading(
+                action = action,
+                activityShortcuts = activityShortcuts,
+                selected = false,
+            )
+        }
+        else -> {
+            Md3PickerIconLeading(
+                icon = gestureActionIcon(action, outlined = true),
+                selected = false,
+                contentDescription = gestureActionLabelText(context, action),
             )
         }
     }

@@ -20,16 +20,19 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.activity.ActivityShortcut
+import com.slideindex.app.activity.subtitleDetail
 import com.slideindex.app.activity.toLaunchShortcut
 import com.slideindex.app.data.AppInfo
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.GestureTriggerType
 import com.slideindex.app.overlay.TaskSwitcherMenuItem
-import com.slideindex.app.ui.Md3PickerAppLeading
+import com.slideindex.app.ui.Md3PickerAppShortcutLeading
 import com.slideindex.app.ui.Md3PickerListRow
+import com.slideindex.app.ui.Md3PickerManagedShortcutLeading
+import com.slideindex.app.ui.Md3PickerSectionHeader
 import com.slideindex.app.ui.PickerTrailingMode
-import com.slideindex.app.ui.gesturepicker.ActionPickerActionRow
 import com.slideindex.app.ui.gesturepicker.ActionPickerAppRow
+import com.slideindex.app.ui.gesturepicker.actionPickerActionItems
 import com.slideindex.app.ui.gesturepicker.rememberActionPickerFilteredActions
 import com.slideindex.app.ui.gesturepicker.rememberActionPickerFilteredApps
 import com.slideindex.app.ui.miuix.MiuixSearchField
@@ -38,12 +41,8 @@ import com.slideindex.app.ui.miuix.MiuixTabRowWithContour
 import com.slideindex.app.ui.picker.filterShortcutCatalog
 import com.slideindex.app.ui.picker.rememberLoadedShortcutCatalog
 import com.slideindex.app.ui.taskSwitcherItemToLaunchShortcut
-import com.slideindex.app.util.AppShortcutLoader
-import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
-import top.yukonga.miuix.kmp.icon.MiuixIcons
-import top.yukonga.miuix.kmp.icon.basic.Close
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 private enum class ExpandPanelPickerTab {
@@ -56,6 +55,9 @@ private sealed class ExpandPanelShortcutRow {
     data class Managed(val shortcut: ActivityShortcut) : ExpandPanelShortcutRow()
     data class System(val app: AppInfo, val shortcut: TaskSwitcherMenuItem) : ExpandPanelShortcutRow()
 }
+
+/** 与列表行 [com.slideindex.app.ui.Md3PickerIconLeading] 一致的槽位选择器可视高度。 */
+internal val ExpandPanelPickerListHeight = 440.dp
 
 @Composable
 fun ExpandPanelSlotPicker(
@@ -77,13 +79,16 @@ fun ExpandPanelSlotPicker(
         pinNoneAtTop = false,
     )
     val filteredApps = rememberActionPickerFilteredApps(allApps, searchQuery)
-    val loadedCatalog = rememberLoadedShortcutCatalog(apps = allApps, enabled = selectedTab == ExpandPanelPickerTab.SHORTCUTS.ordinal)
+    val loadedCatalog = rememberLoadedShortcutCatalog(
+        apps = allApps,
+        enabled = selectedTab == ExpandPanelPickerTab.SHORTCUTS.ordinal,
+    )
     val filteredShortcuts = remember(loadedCatalog.catalog, searchQuery) {
         filterShortcutCatalog(loadedCatalog.catalog, searchQuery)
     }
-    val shortcutRows = remember(activityShortcuts, searchQuery, filteredShortcuts) {
+    val managedShortcuts = remember(activityShortcuts, searchQuery) {
         val query = searchQuery.trim().lowercase()
-        val managed = if (query.isEmpty()) {
+        if (query.isEmpty()) {
             activityShortcuts
         } else {
             activityShortcuts.filter { shortcut ->
@@ -91,13 +96,20 @@ fun ExpandPanelSlotPicker(
                     shortcut.packageName.lowercase().contains(query)
             }
         }
+    }
+    val systemShortcutRows = remember(filteredShortcuts) {
         buildList {
-            managed.forEach { add(ExpandPanelShortcutRow.Managed(it)) }
             filteredShortcuts.groups.forEach { group ->
                 group.shortcuts.forEach { shortcut ->
                     add(ExpandPanelShortcutRow.System(group.app, shortcut))
                 }
             }
+        }
+    }
+    val flatShortcutRows = remember(managedShortcuts, systemShortcutRows) {
+        buildList {
+            managedShortcuts.forEach { add(ExpandPanelShortcutRow.Managed(it)) }
+            addAll(systemShortcutRows)
         }
     }
 
@@ -140,13 +152,21 @@ fun ExpandPanelSlotPicker(
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(320.dp)
+                .height(ExpandPanelPickerListHeight)
                 .padding(top = 4.dp),
         ) {
             when (ExpandPanelPickerTab.entries[selectedTab]) {
                 ExpandPanelPickerTab.ACTIONS -> {
-                    if (filteredActions.isEmpty()) {
-                        item(key = "actions-empty") {
+                    actionPickerActionItems(
+                        filtered = filteredActions,
+                        current = currentAction,
+                        onSelect = onSelect,
+                        onOpenExecuteShellCommand = { onSelect(GestureAction.ExecuteShellCommand()) },
+                    )
+                }
+                ExpandPanelPickerTab.APPS -> {
+                    if (filteredApps.isEmpty()) {
+                        item(key = "apps-empty") {
                             Text(
                                 text = stringResource(R.string.search_no_actions),
                                 style = MiuixTheme.textStyles.body2,
@@ -155,37 +175,22 @@ fun ExpandPanelSlotPicker(
                             )
                         }
                     } else {
-                        items(filteredActions.size, key = { index ->
-                            "action-${filteredActions[index].type.id}-${filteredActions[index].payload}"
-                        }) { index ->
-                            val action = filteredActions[index]
-                            ActionPickerActionRow(
-                                action = action,
+                        items(filteredApps.size, key = { filteredApps[it].packageName }) { index ->
+                            val app = filteredApps[index]
+                            ActionPickerAppRow(
+                                app = app,
                                 segmentIndex = index,
-                                segmentCount = filteredActions.size,
-                                selected = currentAction.type == action.type &&
-                                    currentAction.type != com.slideindex.app.gesture.GestureActionType.LAUNCH_APP &&
-                                    currentAction.type != com.slideindex.app.gesture.GestureActionType.LAUNCH_SHORTCUT,
-                                onClick = { onSelect(action) },
+                                segmentCount = filteredApps.size,
+                                selected = currentAction is GestureAction.LaunchApp &&
+                                    currentAction.packageName == app.packageName,
+                                onSelect = { onSelect(GestureAction.LaunchApp(it.packageName)) },
                             )
                         }
                     }
                 }
-                ExpandPanelPickerTab.APPS -> {
-                    items(filteredApps.size, key = { filteredApps[it].packageName }) { index ->
-                        val app = filteredApps[index]
-                        ActionPickerAppRow(
-                            app = app,
-                            segmentIndex = index,
-                            segmentCount = filteredApps.size,
-                            selected = currentAction is GestureAction.LaunchApp &&
-                                currentAction.packageName == app.packageName,
-                            onSelect = { onSelect(GestureAction.LaunchApp(it.packageName)) },
-                        )
-                    }
-                }
                 ExpandPanelPickerTab.SHORTCUTS -> {
-                    if (shortcutRows.isEmpty()) {
+                    val showSections = searchQuery.isBlank()
+                    if (flatShortcutRows.isEmpty()) {
                         item(key = "shortcuts-empty") {
                             Text(
                                 text = stringResource(R.string.search_no_actions),
@@ -194,47 +199,112 @@ fun ExpandPanelSlotPicker(
                                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 24.dp),
                             )
                         }
+                    } else if (showSections) {
+                        if (managedShortcuts.isNotEmpty()) {
+                            item(key = "shortcuts-managed-header") {
+                                Md3PickerSectionHeader(stringResource(R.string.activity_shortcut_picker_section))
+                            }
+                            items(managedShortcuts.size, key = { managedShortcuts[it].id }) { index ->
+                                val shortcut = managedShortcuts[index]
+                                val action = shortcut.toLaunchShortcut()
+                                val selected = currentAction is GestureAction.LaunchShortcut &&
+                                    currentAction.payloadKey == action.payloadKey
+                                Md3PickerListRow(
+                                    segmentIndex = index,
+                                    segmentCount = managedShortcuts.size,
+                                    title = shortcut.label,
+                                    subtitle = shortcut.subtitleDetail(),
+                                    selected = selected,
+                                    onClick = { onSelect(action) },
+                                    leadingContent = {
+                                        Md3PickerManagedShortcutLeading(
+                                            shortcut = shortcut,
+                                            selected = selected,
+                                        )
+                                    },
+                                    trailingMode = PickerTrailingMode.Radio,
+                                )
+                            }
+                        }
+                        if (systemShortcutRows.isNotEmpty()) {
+                            item(key = "shortcuts-system-header") {
+                                Md3PickerSectionHeader(stringResource(R.string.launch_shortcut))
+                            }
+                            items(systemShortcutRows.size, key = { index ->
+                                val row = systemShortcutRows[index]
+                                "system-${row.app.packageName}-${row.shortcut.label}-${row.shortcut.targetComponent}"
+                            }) { index ->
+                                val row = systemShortcutRows[index]
+                                val action = taskSwitcherItemToLaunchShortcut(row.shortcut, row.app.packageName)
+                                val selected = currentAction is GestureAction.LaunchShortcut &&
+                                    currentAction.payloadKey == action.payloadKey
+                                Md3PickerListRow(
+                                    segmentIndex = index,
+                                    segmentCount = systemShortcutRows.size,
+                                    title = row.shortcut.label,
+                                    subtitle = row.app.label,
+                                    selected = selected,
+                                    onClick = { onSelect(action) },
+                                    leadingContent = {
+                                        Md3PickerAppShortcutLeading(
+                                            packageName = row.app.packageName,
+                                            contentDescription = row.shortcut.label,
+                                            selected = selected,
+                                        )
+                                    },
+                                    trailingMode = PickerTrailingMode.Radio,
+                                )
+                            }
+                        }
                     } else {
-                        items(shortcutRows.size, key = { index ->
-                            when (val row = shortcutRows[index]) {
+                        items(flatShortcutRows.size, key = { index ->
+                            when (val row = flatShortcutRows[index]) {
                                 is ExpandPanelShortcutRow.Managed -> "managed-${row.shortcut.id}"
-                                is ExpandPanelShortcutRow.System -> "system-${row.app.packageName}-${row.shortcut.label}-${row.shortcut.targetComponent}"
+                                is ExpandPanelShortcutRow.System ->
+                                    "system-${row.app.packageName}-${row.shortcut.label}-${row.shortcut.targetComponent}"
                             }
                         }) { index ->
-                            when (val row = shortcutRows[index]) {
+                            when (val row = flatShortcutRows[index]) {
                                 is ExpandPanelShortcutRow.Managed -> {
-                                    val app = allApps.firstOrNull { it.packageName == row.shortcut.packageName }
+                                    val shortcut = row.shortcut
+                                    val action = shortcut.toLaunchShortcut()
+                                    val selected = currentAction is GestureAction.LaunchShortcut &&
+                                        currentAction.payloadKey == action.payloadKey
                                     Md3PickerListRow(
                                         segmentIndex = index,
-                                        segmentCount = shortcutRows.size,
-                                        title = row.shortcut.label,
-                                        subtitle = row.shortcut.packageName,
-                                        selected = false,
-                                        onClick = { onSelect(row.shortcut.toLaunchShortcut()) },
+                                        segmentCount = flatShortcutRows.size,
+                                        title = shortcut.label,
+                                        subtitle = shortcut.subtitleDetail(),
+                                        selected = selected,
+                                        onClick = { onSelect(action) },
                                         leadingContent = {
-                                            if (app != null) {
-                                                Md3PickerAppLeading(app)
-                                            } else {
-                                                com.slideindex.app.ui.Md3PickerIconLeading(
-                                                    icon = com.slideindex.app.ui.gestureActionIcon(
-                                                        row.shortcut.toLaunchShortcut(),
-                                                    ),
-                                                    selected = false,
-                                                )
-                                            }
+                                            Md3PickerManagedShortcutLeading(
+                                                shortcut = shortcut,
+                                                selected = selected,
+                                            )
                                         },
+                                        trailingMode = PickerTrailingMode.Radio,
                                     )
                                 }
                                 is ExpandPanelShortcutRow.System -> {
                                     val action = taskSwitcherItemToLaunchShortcut(row.shortcut, row.app.packageName)
+                                    val selected = currentAction is GestureAction.LaunchShortcut &&
+                                        currentAction.payloadKey == action.payloadKey
                                     Md3PickerListRow(
                                         segmentIndex = index,
-                                        segmentCount = shortcutRows.size,
+                                        segmentCount = flatShortcutRows.size,
                                         title = row.shortcut.label,
                                         subtitle = row.app.label,
-                                        selected = false,
+                                        selected = selected,
                                         onClick = { onSelect(action) },
-                                        leadingContent = { Md3PickerAppLeading(row.app) },
+                                        leadingContent = {
+                                            Md3PickerAppShortcutLeading(
+                                                packageName = row.app.packageName,
+                                                contentDescription = row.shortcut.label,
+                                                selected = selected,
+                                            )
+                                        },
+                                        trailingMode = PickerTrailingMode.Radio,
                                     )
                                 }
                             }
