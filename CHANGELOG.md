@@ -4,7 +4,7 @@ All notable changes to Cebian are documented in this file.
 
 ## [Unreleased]
 
-## [1.9.3] - 2026-08-27
+## [1.9.9] - 2026-08-27
 
 ### Added
 - **消息提醒**：解锁后打开锁屏消息前增加确认弹窗，支持按应用「始终允许」与解锁规则设置页
