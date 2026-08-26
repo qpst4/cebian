@@ -11,6 +11,12 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -52,10 +58,12 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.activity.ActivityShortcut
+import com.slideindex.app.activity.findForLaunchShortcut
 import com.slideindex.app.data.AppInfo
 import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.gesture.ActionExecutor
@@ -66,6 +74,7 @@ import com.slideindex.app.ui.Md3PickerLaunchShortcutLeading
 import com.slideindex.app.ui.Md3PickerPackageLeading
 import com.slideindex.app.ui.gestureActionIcon
 import com.slideindex.app.ui.gesturepicker.gestureActionLabelText
+import com.slideindex.app.ui.gesturepicker.launchShortcutDisplayLabel
 import com.slideindex.app.util.BrightnessControlHelper
 import com.slideindex.app.util.VolumeControlHelper
 import kotlinx.coroutines.launch
@@ -84,6 +93,7 @@ fun VolumePanelContent(onDismiss: () -> Unit) {
     var activityShortcuts by remember { mutableStateOf<List<ActivityShortcut>>(emptyList()) }
     var appSettings by remember { mutableStateOf(AppSettings()) }
     var isPickerMode by remember { mutableStateOf(false) }
+    var isShortcutsEditMode by remember { mutableStateOf(false) }
     var pickerSlot by remember { mutableIntStateOf(-1) }
     var allApps by remember { mutableStateOf<List<AppInfo>>(emptyList()) }
     val overlayContext = remember(context) {
@@ -161,10 +171,20 @@ fun VolumePanelContent(onDismiss: () -> Unit) {
             label = "expandPanelPicker",
         ) { pickerMode ->
             if (pickerMode) {
+                val editingAction = slotActions.getOrNull(pickerSlot)
+                val editingSubtitle = if (pickerSlot >= 0) {
+                    val slotLabel = editingAction?.let {
+                        expandPanelSlotLabel(context, it, activityShortcuts)
+                    } ?: context.getString(R.string.expand_panel_slot_add_label)
+                    context.getString(R.string.expand_panel_editing_slot, pickerSlot + 1, slotLabel)
+                } else {
+                    null
+                }
                 ExpandPanelSlotPicker(
                     allApps = allApps,
                     activityShortcuts = activityShortcuts,
-                    current = slotActions.getOrNull(pickerSlot),
+                    current = editingAction,
+                    editingSubtitle = editingSubtitle,
                     onSelect = { action ->
                         if (pickerSlot in slotActions.indices) {
                             saveSlotAction(pickerSlot, action)
@@ -175,6 +195,17 @@ fun VolumePanelContent(onDismiss: () -> Unit) {
                     onCancel = {
                         isPickerMode = false
                         pickerSlot = -1
+                    },
+                    onClearSlot = if (editingAction != null) {
+                        {
+                            if (pickerSlot in slotActions.indices) {
+                                saveSlotAction(pickerSlot, null)
+                            }
+                            isPickerMode = false
+                            pickerSlot = -1
+                        }
+                    } else {
+                        null
                     },
                 )
             } else {
@@ -188,15 +219,11 @@ fun VolumePanelContent(onDismiss: () -> Unit) {
                     )
                     ExpandPanelSlidersSection()
                     Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        text = stringResource(R.string.expand_panel_shortcuts_title),
-                        style = MiuixTheme.textStyles.subtitle,
-                        color = MiuixTheme.colorScheme.onBackgroundVariant,
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    ExpandPanelShortcutsGrid(
+                    ExpandPanelShortcutsSection(
                         slotActions = slotActions,
                         activityShortcuts = activityShortcuts,
+                        isEditMode = isShortcutsEditMode,
+                        onToggleEditMode = { isShortcutsEditMode = !isShortcutsEditMode },
                         onRun = ::runSlotAction,
                         onAssign = { index ->
                             pickerSlot = index
@@ -368,31 +395,97 @@ private fun ExpandPanelSliderItem(
 }
 
 @Composable
-private fun ExpandPanelShortcutsGrid(
+private fun ExpandPanelShortcutsSection(
     slotActions: List<GestureAction?>,
     activityShortcuts: List<ActivityShortcut>,
+    isEditMode: Boolean,
+    onToggleEditMode: () -> Unit,
     onRun: (GestureAction) -> Unit,
     onAssign: (Int) -> Unit,
     onClear: (Int) -> Unit,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = stringResource(R.string.expand_panel_shortcuts_title),
+            style = MiuixTheme.textStyles.subtitle,
+            color = MiuixTheme.colorScheme.onBackgroundVariant,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .pointerInput(Unit) {
+                    detectTapGestures(onLongPress = { onToggleEditMode() })
+                }
+                .padding(vertical = 6.dp),
+        )
+        Spacer(modifier = Modifier.height(2.dp))
+        ExpandPanelShortcutsGrid(
+            slotActions = slotActions,
+            activityShortcuts = activityShortcuts,
+            isEditMode = isEditMode,
+            onRun = onRun,
+            onAssign = onAssign,
+            onClear = onClear,
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(if (isEditMode) 36.dp else 20.dp)
+                .pointerInput(Unit) {
+                    detectTapGestures(onLongPress = { onToggleEditMode() })
+                },
+            contentAlignment = Alignment.Center,
+        ) {
+            if (isEditMode) {
+                Text(
+                    text = stringResource(R.string.expand_panel_edit_hint),
+                    style = MiuixTheme.textStyles.footnote2,
+                    color = MiuixTheme.colorScheme.onBackgroundVariant,
+                    textAlign = TextAlign.Center,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ExpandPanelShortcutsGrid(
+    slotActions: List<GestureAction?>,
+    activityShortcuts: List<ActivityShortcut>,
+    isEditMode: Boolean,
+    onRun: (GestureAction) -> Unit,
+    onAssign: (Int) -> Unit,
+    onClear: (Int) -> Unit,
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
         repeat(2) { row ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-            ) {
+            Row(modifier = Modifier.fillMaxWidth()) {
                 repeat(4) { col ->
                     val index = row * 4 + col
                     val action = slotActions.getOrNull(index)
                     ExpandPanelShortcutCell(
+                        modifier = Modifier.weight(1f),
                         action = action,
                         activityShortcuts = activityShortcuts,
+                        isEditMode = isEditMode,
                         onClick = {
-                            if (action != null) onRun(action) else onAssign(index)
+                            if (isEditMode || action == null) {
+                                onAssign(index)
+                            } else {
+                                onRun(action)
+                            }
                         },
-                        onLongClick = {
-                            if (action != null) onClear(index) else onAssign(index)
-                        },
+                        onRemove = { onClear(index) },
                     )
                 }
             }
@@ -404,45 +497,125 @@ private fun ExpandPanelShortcutsGrid(
 private fun ExpandPanelShortcutCell(
     action: GestureAction?,
     activityShortcuts: List<ActivityShortcut>,
+    isEditMode: Boolean,
     onClick: () -> Unit,
-    onLongClick: () -> Unit,
+    onRemove: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    val shape = RoundedCornerShape(16.dp)
-    Box(
-        modifier = Modifier
-            .size(62.dp)
-            .clip(shape)
-            .pointerInput(action) {
-                detectTapGestures(
-                    onTap = { onClick() },
-                    onLongPress = { onLongClick() },
-                )
-            },
-        contentAlignment = Alignment.Center,
+    val context = LocalContext.current
+    val actionLabel = remember(action, activityShortcuts) {
+        action?.let { expandPanelSlotLabel(context, it, activityShortcuts) }
+    }
+    val addLabel = stringResource(R.string.expand_panel_slot_add_label)
+    val cellInteraction = remember { MutableInteractionSource() }
+    val removeInteraction = remember { MutableInteractionSource() }
+    val displayLabel = when {
+        action != null -> actionLabel.orEmpty()
+        isEditMode -> addLabel
+        else -> ""
+    }
+    Column(
+        modifier = modifier.padding(horizontal = 2.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        if (action != null) {
-            ExpandPanelSlotIcon(
-                action = action,
-                activityShortcuts = activityShortcuts,
-            )
-        } else {
+        Box(
+            modifier = Modifier.size(ExpandPanelSlotIconSize),
+            contentAlignment = Alignment.Center,
+        ) {
             Box(
-                modifier = Modifier.size(ExpandPanelSlotIconSize),
+                modifier = Modifier
+                    .matchParentSize()
+                    .clickable(
+                        interactionSource = cellInteraction,
+                        indication = null,
+                        onClick = onClick,
+                    ),
                 contentAlignment = Alignment.Center,
             ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = stringResource(R.string.expand_panel_shortcut_add),
-                    modifier = Modifier.size(ExpandPanelSlotIconInner),
-                    tint = MiuixTheme.colorScheme.primary,
+                if (action != null) {
+                    ExpandPanelSlotIcon(
+                        action = action,
+                        activityShortcuts = activityShortcuts,
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = stringResource(R.string.expand_panel_shortcut_add),
+                        modifier = Modifier.size(ExpandPanelSlotIconInner),
+                        tint = MiuixTheme.colorScheme.primary,
+                    )
+                }
+            }
+            if (isEditMode && action != null) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .offset(x = (-4).dp, y = (-4).dp)
+                        .size(18.dp)
+                        .clip(CircleShape)
+                        .background(MiuixTheme.colorScheme.error)
+                        .clickable(
+                            interactionSource = removeInteraction,
+                            indication = null,
+                            onClick = onRemove,
+                        ),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Remove,
+                        contentDescription = stringResource(R.string.expand_panel_clear_slot),
+                        modifier = Modifier.size(14.dp),
+                        tint = Color.White,
+                    )
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(4.dp))
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(ExpandPanelSlotLabelHeight),
+            contentAlignment = Alignment.TopCenter,
+        ) {
+            if (displayLabel.isNotEmpty()) {
+                Text(
+                    text = displayLabel,
+                    style = MiuixTheme.textStyles.footnote2,
+                    color = MiuixTheme.colorScheme.onBackgroundVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
         }
     }
 }
 
+private fun expandPanelSlotLabel(
+    context: Context,
+    action: GestureAction,
+    activityShortcuts: List<ActivityShortcut>,
+): String = when (action) {
+    is GestureAction.LaunchApp -> {
+        runCatching {
+            val pm = context.packageManager
+            val info = pm.getApplicationInfo(action.packageName, 0)
+            pm.getApplicationLabel(info).toString()
+        }.getOrElse { action.packageName }
+    }
+    is GestureAction.LaunchShortcut -> {
+        activityShortcuts.findForLaunchShortcut(action.payloadKey)?.label
+            ?.takeIf { it.isNotBlank() }
+            ?: launchShortcutDisplayLabel(action).takeIf { it.isNotBlank() }
+            ?: context.getString(R.string.gesture_action_launch_shortcut)
+    }
+    else -> gestureActionLabelText(context, action)
+}
+
 private val ExpandPanelSlotIconSize = 40.dp
 private val ExpandPanelSlotIconInner = 24.dp
+private val ExpandPanelSlotLabelHeight = 18.dp
 
 @Composable
 private fun ExpandPanelSlotIcon(

@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
@@ -66,6 +67,8 @@ fun ExpandPanelSlotPicker(
     current: GestureAction?,
     onSelect: (GestureAction) -> Unit,
     onCancel: () -> Unit,
+    editingSubtitle: String? = null,
+    onClearSlot: (() -> Unit)? = null,
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
     var searchQuery by remember { mutableStateOf("") }
@@ -126,6 +129,19 @@ fun ExpandPanelSlotPicker(
             TextButton(
                 text = stringResource(R.string.cancel),
                 onClick = onCancel,
+            )
+        }
+        if (!editingSubtitle.isNullOrBlank()) {
+            Text(
+                text = editingSubtitle,
+                style = MiuixTheme.textStyles.footnote2,
+                color = MiuixTheme.colorScheme.onBackgroundVariant,
+                maxLines = 2,
+                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp),
             )
         }
         MiuixSearchField(
@@ -312,6 +328,15 @@ fun ExpandPanelSlotPicker(
                     }
                 }
             }
+        }
+        if (onClearSlot != null) {
+            TextButton(
+                text = stringResource(R.string.expand_panel_clear_slot),
+                onClick = onClearSlot,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+            )
         }
     }
 }

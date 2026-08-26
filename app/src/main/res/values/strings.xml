@@ -775,6 +775,12 @@
     <string name="expand_panel_shortcuts_title">快捷应用</string>
     <string name="expand_panel_shortcut_add">添加快捷方式</string>
     <string name="expand_panel_shortcut_pick">选择应用</string>
+    <string name="expand_panel_edit">编辑</string>
+    <string name="expand_panel_done">完成</string>
+    <string name="expand_panel_edit_hint">编辑中：点击槽位更换，点 − 移除；长按空白处退出</string>
+    <string name="expand_panel_clear_slot">清除此槽位</string>
+    <string name="expand_panel_editing_slot">正在编辑：第 %1$d 个槽位 · %2$s</string>
+    <string name="expand_panel_slot_add_label">添加</string>
     <string name="freezer_shizuku_granted">Shizuku 已授权</string>
     <string name="freezer_shizuku_denied">Shizuku 未授权</string>
     <string name="freezer_root_available">Root 可用</string>

@@ -1251,6 +1251,12 @@
     <string name="expand_panel_shortcuts_title">Shortcuts</string>
     <string name="expand_panel_shortcut_add">Add shortcut</string>
     <string name="expand_panel_shortcut_pick">Pick app</string>
+    <string name="expand_panel_edit">Edit</string>
+    <string name="expand_panel_done">Done</string>
+    <string name="expand_panel_edit_hint">Editing: tap a slot to change, tap − to remove; long-press blank area to exit</string>
+    <string name="expand_panel_clear_slot">Clear this slot</string>
+    <string name="expand_panel_editing_slot">Editing slot %1$d · %2$s</string>
+    <string name="expand_panel_slot_add_label">Add</string>
     <string name="freezer_shizuku_granted">Shizuku granted</string>
     <string name="freezer_shizuku_denied">Shizuku not granted</string>
     <string name="freezer_root_available">Root available</string>
