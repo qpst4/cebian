@@ -11,6 +11,7 @@ object VolumeControlHelper {
         MEDIA,
         RING,
         NOTIFICATION,
+        ALARM,
     }
 
     fun hasAccess(context: Context): Boolean =
@@ -79,7 +80,7 @@ object VolumeControlHelper {
     }
 
     fun setFraction(context: Context, stream: Stream, fraction: Float) {
-        if (!hasAccess(context)) return
+        if (stream.requiresPolicyAccess() && !hasAccess(context)) return
         val manager = audioManager(context) ?: return
         val audioStream = toAudioStream(stream)
         val max = manager.getStreamMaxVolume(audioStream)
@@ -93,7 +94,11 @@ object VolumeControlHelper {
         Stream.MEDIA -> AudioManager.STREAM_MUSIC
         Stream.RING -> AudioManager.STREAM_RING
         Stream.NOTIFICATION -> AudioManager.STREAM_NOTIFICATION
+        Stream.ALARM -> AudioManager.STREAM_ALARM
     }
+
+    private fun Stream.requiresPolicyAccess(): Boolean =
+        this == Stream.RING || this == Stream.NOTIFICATION
 
     private fun audioManager(context: Context): AudioManager? =
         context.applicationContext.getSystemService(AudioManager::class.java)

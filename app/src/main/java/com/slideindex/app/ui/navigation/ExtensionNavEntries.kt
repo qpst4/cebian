@@ -15,6 +15,8 @@ import com.slideindex.app.ui.FloatingPointerPointerSettingsScreen
 import com.slideindex.app.ui.FloatingPointerRadialMenuSettingsScreen
 import com.slideindex.app.ui.FloatingPointerSettingsScreen
 import com.slideindex.app.ui.ExtensionAboutScreen
+import com.slideindex.app.ui.FreezerAppsScreen
+import com.slideindex.app.ui.HideRecentAppsScreen
 import com.slideindex.app.ui.ThirdPartyNoticesScreen
 import com.slideindex.app.ui.LicenseTextScreen
 import com.slideindex.app.ui.FloatBallAppearanceSettingsScreen
@@ -138,8 +140,24 @@ fun NavEntryBuilder.extensionNavEntries(ctx: MainNavContext) {
             onOpenFloatingPointer = { ctx.navigate(AppNavKey.FloatingPointer) },
             onOpenStashClipboard = { ctx.navigate(AppNavKey.StashClipboard) },
             onOpenSearchPanel = { ctx.navigate(AppNavKey.SearchPanel) },
+            onOpenFreezer = { ctx.navigate(AppNavKey.ExtensionFreezer) },
+            onOpenHideRecent = { ctx.navigate(AppNavKey.ExtensionHideRecent) },
             onOpenSettingsBackup = { ctx.navigate(AppNavKey.ExtensionBackup) },
             onOpenAbout = { ctx.navigate(AppNavKey.ExtensionAbout) },
+        )
+    }
+
+    hiltEntry<AppNavKey.ExtensionFreezer> {
+        FreezerAppsScreen(
+            settingsRepository = ctx.deps.settingsRepository,
+            onBack = { ctx.navigateBackTo(AppNavKey.ExtensionHub) },
+        )
+    }
+
+    hiltEntry<AppNavKey.ExtensionHideRecent> {
+        HideRecentAppsScreen(
+            settingsRepository = ctx.deps.settingsRepository,
+            onBack = { ctx.navigateBackTo(AppNavKey.ExtensionHub) },
         )
     }
 

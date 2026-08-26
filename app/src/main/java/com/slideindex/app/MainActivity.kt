@@ -69,6 +69,7 @@ class MainActivity : ComponentActivity() {
     )
 
     private val currentIntentAction = mutableStateOf<String?>(null)
+    private val pendingNavRoute = mutableStateOf<String?>(null)
     private lateinit var overlayServiceController: OverlayServiceController
     private val permissionRefreshHandler = Handler(Looper.getMainLooper())
     private var accessibilitySettingsObserver: ContentObserver? = null
@@ -127,11 +128,13 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val initialIntentAction by currentIntentAction
+            val initialNavRoute by pendingNavRoute
             MainNavHost(
                 activity = this@MainActivity,
                 deps = deps,
                 permissionStates = permissionStates,
                 initialIntentAction = initialIntentAction,
+                initialNavRoute = initialNavRoute,
             )
         }
     }
@@ -145,6 +148,7 @@ class MainActivity : ComponentActivity() {
     private fun applyLaunchIntent(intent: Intent?) {
         val resolvedAction = resolveLaunchAction(intent)
         currentIntentAction.value = resolvedAction
+        pendingNavRoute.value = intent?.getStringExtra(EXTRA_NAV_ROUTE)
         reportShortcutUsageIfNeeded(resolvedAction)
     }
 
@@ -361,6 +365,7 @@ class MainActivity : ComponentActivity() {
 
     companion object {
         const val ACTION_OPEN_NOTIFICATION_HISTORY = "com.slideindex.app.action.OPEN_NOTIFICATION_HISTORY"
+        const val EXTRA_NAV_ROUTE = "extra_nav_route"
 
         private const val DEEP_LINK_SCHEME = "cebian"
         private const val DEEP_LINK_HOST = "open"

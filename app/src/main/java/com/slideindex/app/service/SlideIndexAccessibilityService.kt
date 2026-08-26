@@ -14,6 +14,9 @@ import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import com.slideindex.app.di.AppDependencies
 import com.slideindex.app.clipboard.ClipboardAccess
+import com.slideindex.app.copy.UniversalCopyOverlay
+import com.slideindex.app.backtap.BackTapGestureHost
+import com.slideindex.app.translate.overlay.ScreenTranslationController
 import com.slideindex.app.clipboard.ClipboardPermissionHelper
 import com.slideindex.app.clipboard.monitor.ClipboardMonitorStartup
 import com.slideindex.app.clipboardfloat.ClipboardFloatImeCoordinator
@@ -40,6 +43,7 @@ class SlideIndexAccessibilityService : AccessibilityService() {
 
     @javax.inject.Inject lateinit var deps: AppDependencies
     @javax.inject.Inject lateinit var messageReminderOrchestrator: MessageReminderOrchestrator
+    @javax.inject.Inject lateinit var backTapGestureHost: BackTapGestureHost
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var edgeOverlayHost: EdgeOverlayHost? = null
@@ -53,7 +57,9 @@ class SlideIndexAccessibilityService : AccessibilityService() {
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         event ?: return
         when (event.eventType) {
-            AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED -> foregroundTracker.handleWindowStateChanged(event)
+            AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED -> {
+                foregroundTracker.handleWindowStateChanged(event)
+            }
             AccessibilityEvent.TYPE_WINDOWS_CHANGED -> {
                 foregroundTracker.handleWindowsChanged()
                 ClipboardFloatImeCoordinator.onWindowsChanged(this)
@@ -105,6 +111,22 @@ class SlideIndexAccessibilityService : AccessibilityService() {
 
         fun perform(action: GestureAction): Boolean =
             SlideIndexAccessibilityGestureInjector.perform(action) { instance }
+
+        fun performUniversalCopy(): Boolean {
+            val service = instance ?: return false
+            if (UniversalCopyOverlay.isShowing) {
+                UniversalCopyOverlay.dismiss()
+                return true
+            }
+            UniversalCopyOverlay.collectAndShow(service)
+            return true
+        }
+
+        fun performScreenTranslate(): Boolean {
+            val service = instance ?: return false
+            ScreenTranslationController.toggle(service)
+            return true
+        }
 
         fun dispatchPointerTap(
             rawX: Float,
@@ -468,6 +490,7 @@ class SlideIndexAccessibilityService : AccessibilityService() {
         otpCoordinator.registerReceiver()
         lastOrientation = resources.configuration.orientation
         syncMonitoring()
+        backTapGestureHost.start(serviceScope)
         GestureToggleTileWarmup.requestListening(this, "a11yConnected")
         Log.i(TAG, "onServiceConnected: edge overlays attached")
     }
@@ -500,6 +523,7 @@ class SlideIndexAccessibilityService : AccessibilityService() {
         watchdog.unregisterScreenLockReceiver()
         edgeOverlayHost?.stop()
         edgeOverlayHost = null
+        backTapGestureHost.stop()
         serviceScope.cancel()
         watchdog.releaseWakeLock()
         instance = null

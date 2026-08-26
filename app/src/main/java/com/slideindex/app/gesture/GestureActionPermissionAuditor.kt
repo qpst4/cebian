@@ -55,6 +55,10 @@ object GestureActionPermissionAuditor {
             add(settings.faceDownGestureSettings.action)
         }
 
+        if (settings.backTapSettings.enabled) {
+            add(settings.backTapSettings.action)
+        }
+
         add(settings.floatingPointerJoystickLongPressAction)
         settings.floatingPointerRadialSlotActions.forEach(::add)
         val edgeConfig = settings.floatingPointerEdgeActionsConfig

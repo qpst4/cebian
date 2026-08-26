@@ -64,6 +64,12 @@ internal fun gestureActionTypeOutlinedIcon(type: GestureActionType): ImageVector
     GestureActionType.FULLSCREEN_SCREENSHOT_PICK -> ThinActionIcons.TextFields
     GestureActionType.REGIONAL_SCREENSHOT_PICK -> ThinActionIcons.ScreenshotRegion
     GestureActionType.SEARCH_PANEL -> ThinActionIcons.Search
+    GestureActionType.VOLUME_PANEL -> ThinActionIcons.VolumeUp
+    GestureActionType.SCREEN_TRANSLATE -> ThinActionIcons.TextFields
+    GestureActionType.REMIND_1M, GestureActionType.REMIND_3M, GestureActionType.REMIND_5M,
+    GestureActionType.REMIND_10M, GestureActionType.REMIND_15M -> ThinActionIcons.Power
+    GestureActionType.UNIVERSAL_COPY -> ThinActionIcons.ContentPaste
+    GestureActionType.FREEZER_PANEL, GestureActionType.REFREEZE -> ThinActionIcons.Close
     GestureActionType.POWER_MENU -> ThinActionIcons.Power
     GestureActionType.KEEP_SCREEN_ON -> ThinActionIcons.KeepScreenOn
     GestureActionType.SCROLL_TO_TOP -> ThinActionIcons.ScrollToTop
@@ -126,6 +132,12 @@ internal fun gestureActionTypeThinIcon(type: GestureActionType): ImageVector = w
     GestureActionType.FULLSCREEN_SCREENSHOT_PICK -> ThinActionIcons.TextFields
     GestureActionType.REGIONAL_SCREENSHOT_PICK -> ThinActionIcons.ScreenshotRegion
     GestureActionType.SEARCH_PANEL -> ThinActionIcons.Search
+    GestureActionType.VOLUME_PANEL -> ThinActionIcons.VolumeUp
+    GestureActionType.SCREEN_TRANSLATE -> ThinActionIcons.TextFields
+    GestureActionType.REMIND_1M, GestureActionType.REMIND_3M, GestureActionType.REMIND_5M,
+    GestureActionType.REMIND_10M, GestureActionType.REMIND_15M -> ThinActionIcons.Power
+    GestureActionType.UNIVERSAL_COPY -> ThinActionIcons.ContentPaste
+    GestureActionType.FREEZER_PANEL, GestureActionType.REFREEZE -> ThinActionIcons.Close
     GestureActionType.POWER_MENU -> ThinActionIcons.Power
     GestureActionType.KEEP_SCREEN_ON -> ThinActionIcons.KeepScreenOn
     GestureActionType.SCROLL_TO_TOP -> ThinActionIcons.ScrollToTop

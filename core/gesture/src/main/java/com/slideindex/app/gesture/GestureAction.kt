@@ -59,6 +59,16 @@ enum class GestureActionType(val id: Int) {
     APP_SWITCHER(56),
     OPEN_CLIPBOARD_FLOAT(57),
     HOLOGRAPHIC_LAUNCHER(58),
+    VOLUME_PANEL(59),
+    SCREEN_TRANSLATE(60),
+    REMIND_1M(61),
+    REMIND_3M(62),
+    REMIND_5M(63),
+    REMIND_10M(64),
+    REMIND_15M(65),
+    UNIVERSAL_COPY(66),
+    FREEZER_PANEL(67),
+    REFREEZE(68),
     ;
 
     companion object {
@@ -433,6 +443,61 @@ sealed class GestureAction {
         override val payload = ""
     }
 
+    /** 弹出音量面板，同时调节闹钟/铃声/媒体音量与亮度。 */
+    data object VolumePanel : GestureAction() {
+        override val type = GestureActionType.VOLUME_PANEL
+        override val payload = ""
+    }
+
+    /** 屏幕翻译：在原位覆盖译文（开关式）。 */
+    data object ScreenTranslate : GestureAction() {
+        override val type = GestureActionType.SCREEN_TRANSLATE
+        override val payload = ""
+    }
+
+    data object Remind1m : GestureAction() {
+        override val type = GestureActionType.REMIND_1M
+        override val payload = ""
+    }
+
+    data object Remind3m : GestureAction() {
+        override val type = GestureActionType.REMIND_3M
+        override val payload = ""
+    }
+
+    data object Remind5m : GestureAction() {
+        override val type = GestureActionType.REMIND_5M
+        override val payload = ""
+    }
+
+    data object Remind10m : GestureAction() {
+        override val type = GestureActionType.REMIND_10M
+        override val payload = ""
+    }
+
+    data object Remind15m : GestureAction() {
+        override val type = GestureActionType.REMIND_15M
+        override val payload = ""
+    }
+
+    /** Google Lens 风格全局复制：高亮框选屏幕文本后复制。 */
+    data object UniversalCopy : GestureAction() {
+        override val type = GestureActionType.UNIVERSAL_COPY
+        override val payload = ""
+    }
+
+    /** 打开冰箱应用管理页。 */
+    data object FreezerPanel : GestureAction() {
+        override val type = GestureActionType.FREEZER_PANEL
+        override val payload = ""
+    }
+
+    /** 一键重冻冰箱列表中已启用的应用。 */
+    data object Refreeze : GestureAction() {
+        override val type = GestureActionType.REFREEZE
+        override val payload = ""
+    }
+
     companion object {
         /** Actions that support [GestureTriggerMode.CONTINUOUS] on compatible triggers. */
         val continuousTrackingActions: List<GestureAction> = listOf(
@@ -507,8 +572,27 @@ sealed class GestureAction {
                 GestureActionType.HONEYCOMB_LAUNCHER -> HoneycombLauncher
                 GestureActionType.APP_SWITCHER -> AppSwitcher
                 GestureActionType.HOLOGRAPHIC_LAUNCHER -> HolographicLauncher
+                GestureActionType.VOLUME_PANEL -> VolumePanel
+                GestureActionType.SCREEN_TRANSLATE -> ScreenTranslate
+                GestureActionType.REMIND_1M -> Remind1m
+                GestureActionType.REMIND_3M -> Remind3m
+                GestureActionType.REMIND_5M -> Remind5m
+                GestureActionType.REMIND_10M -> Remind10m
+                GestureActionType.REMIND_15M -> Remind15m
+                GestureActionType.UNIVERSAL_COPY -> UniversalCopy
+                GestureActionType.FREEZER_PANEL -> FreezerPanel
+                GestureActionType.REFREEZE -> Refreeze
                 GestureActionType.NONE -> None
             }
+        }
+
+        fun remindMinutes(type: GestureActionType): Int? = when (type) {
+            GestureActionType.REMIND_1M -> 1
+            GestureActionType.REMIND_3M -> 3
+            GestureActionType.REMIND_5M -> 5
+            GestureActionType.REMIND_10M -> 10
+            GestureActionType.REMIND_15M -> 15
+            else -> null
         }
     }
 }

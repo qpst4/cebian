@@ -206,6 +206,11 @@ class SettingsRepository @Inject constructor(
     suspend fun setAccessibilityKeepAliveEnabled(enabled: Boolean) = edge.setAccessibilityKeepAliveEnabled(enabled)
     suspend fun setHapticStrengthLevel(level: Int) = edge.setHapticStrengthLevel(level)
     suspend fun addHiddenApp(packageName: String) = edge.addHiddenApp(packageName)
+    suspend fun setFreezerAppPackages(packages: Set<String>) = edge.setFreezerAppPackages(packages)
+    suspend fun setExpandPanelSlotAction(index: Int, action: com.slideindex.app.gesture.GestureAction?) =
+        edge.setExpandPanelSlotAction(index, action)
+    suspend fun setHideRecentTaskPackages(packages: Set<String>) = edge.setHideRecentTaskPackages(packages)
+    suspend fun setHideRecentPreviewPackages(packages: Set<String>) = edge.setHideRecentPreviewPackages(packages)
     suspend fun removeHiddenApp(packageName: String) = edge.removeHiddenApp(packageName)
     suspend fun addPreviousAppExcludedPackage(packageName: String) =
         edge.addPreviousAppExcludedPackage(packageName)
@@ -725,6 +730,13 @@ class SettingsRepository @Inject constructor(
     suspend fun setShakeAnimationFeedbackEnabled(enabled: Boolean) = shake.setShakeAnimationFeedbackEnabled(enabled)
     suspend fun setShakeAnimationColor(argb: Int) = shake.setShakeAnimationColor(argb)
     suspend fun setShakeDisableInLandscape(enabled: Boolean) = shake.setShakeDisableInLandscape(enabled)
+    suspend fun setBackTapEnabled(enabled: Boolean) = shake.setBackTapEnabled(enabled)
+    suspend fun setBackTapSensitivity(value: Int) = shake.setBackTapSensitivity(value)
+    suspend fun setBackTapRange(value: Int) = shake.setBackTapRange(value)
+    suspend fun setBackTapMode(mode: com.slideindex.app.backtap.BackTapMode) = shake.setBackTapMode(mode)
+    suspend fun setBackTapPauseWhileCharging(enabled: Boolean) = shake.setBackTapPauseWhileCharging(enabled)
+    suspend fun setBackTapVibrationFeedbackEnabled(enabled: Boolean) = shake.setBackTapVibrationFeedbackEnabled(enabled)
+    suspend fun setBackTapAction(action: GestureAction) = shake.setBackTapAction(action)
     suspend fun addShakeBlacklistedApp(packageName: String) = shake.addShakeBlacklistedApp(packageName)
     suspend fun removeShakeBlacklistedApp(packageName: String) = shake.removeShakeBlacklistedApp(packageName)
 

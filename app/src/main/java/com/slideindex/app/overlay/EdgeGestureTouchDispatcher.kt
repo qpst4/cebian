@@ -1,6 +1,7 @@
 package com.slideindex.app.overlay
 
 import android.view.MotionEvent
+import com.slideindex.app.copy.UniversalCopyOverlay
 import com.slideindex.app.gesture.GestureSession
 
 internal class EdgeGestureTouchDispatcher(
@@ -27,6 +28,7 @@ internal class EdgeGestureTouchDispatcher(
     private val composeOverlayDialogShowing: () -> Boolean,
 ) {
     fun handleTouch(event: MotionEvent): Boolean {
+        if (UniversalCopyOverlay.isShowing) return false
         if (composeOverlayDialogShowing()) return false
         val (localX, localY) = rawToLocal(event.rawX, event.rawY)
         if (adjustPanelController.hasAdjustPanel() && !gestureSession.isActive()) {

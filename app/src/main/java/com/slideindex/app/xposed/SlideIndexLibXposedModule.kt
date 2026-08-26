@@ -2,6 +2,7 @@ package com.slideindex.app.xposed
 
 import android.util.Log
 import com.slideindex.app.xposed.hook.PermissionGranterHook
+import com.slideindex.app.xposed.hook.RecentTasksHideHook
 import com.slideindex.app.xposed.hook.SmsHandlerHook
 import com.slideindex.app.xposed.hook.SmsProviderHook
 import com.slideindex.app.xposed.hook.SystemInputInjectorHook
@@ -70,6 +71,7 @@ class SlideIndexLibXposedModule : XposedModule() {
   private fun installSystemServerHooks(classLoader: ClassLoader) {
     systemInputInjectorHook.install(this, classLoader)
     permissionGranterHook.install(this, classLoader)
+    recentTasksHideHook.install(this, classLoader)
   }
 
   private fun installPhoneHooks(classLoader: ClassLoader) {
@@ -88,5 +90,6 @@ class SlideIndexLibXposedModule : XposedModule() {
     private val smsProviderHook = SmsProviderHook()
     private val systemInputInjectorHook = SystemInputInjectorHook()
     private val permissionGranterHook = PermissionGranterHook()
+    private val recentTasksHideHook = RecentTasksHideHook()
   }
 }

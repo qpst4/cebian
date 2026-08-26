@@ -96,6 +96,7 @@ fun MainNavHost(
     deps: AppDependencies,
     permissionStates: NavPermissionStates,
     initialIntentAction: String? = null,
+    initialNavRoute: String? = null,
 ) {
     val settingsSnapshot = remember(deps) { deps.settingsRepository.readSnapshot() }
     val rootSettings by deps.settingsRepository.appRootSettings.collectAsStateWithLifecycle(
@@ -173,13 +174,21 @@ fun MainNavHost(
         bottomNavStyle = effectiveBottomNavStyle,
     )
 
-    LaunchedEffect(initialIntentAction) {
+    LaunchedEffect(initialIntentAction, initialNavRoute) {
         if (initialIntentAction == MainActivity.ACTION_OPEN_NOTIFICATION_HISTORY) {
             savedBottomNavTab = MainBottomNavDestination.Notification.name
             if (notificationBackStack.lastOrNull() != AppNavKey.NotificationHistory) {
                 notificationBackStack.clear()
                 notificationBackStack.add(AppNavKey.NotificationHub)
                 notificationBackStack.add(AppNavKey.NotificationHistory)
+            }
+        }
+        when (initialNavRoute) {
+            "extension_freezer" -> {
+                savedBottomNavTab = MainBottomNavDestination.Extension.name
+                extensionBackStack.clear()
+                extensionBackStack.add(AppNavKey.ExtensionHub)
+                extensionBackStack.add(AppNavKey.ExtensionFreezer)
             }
         }
     }

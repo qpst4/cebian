@@ -1,0 +1,261 @@
+package com.slideindex.app.overlay.volumepanel
+
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.graphics.PixelFormat
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
+import android.view.Gravity
+import android.view.WindowManager
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
+import com.slideindex.app.di.OverlayDependencyAccess
+import com.slideindex.app.overlay.FloatBallOverlay
+import com.slideindex.app.overlay.OverlayCompose
+import com.slideindex.app.overlay.OverlayComposeOwner
+import com.slideindex.app.overlay.OverlayViewBackHandler
+import com.slideindex.app.overlay.OverlayWindowTypes
+import com.slideindex.app.overlay.compositor.OverlaySceneController
+import com.slideindex.app.ui.theme.OverlayAwareModuleTheme
+import com.slideindex.app.util.PermissionHelper
+
+private const val VOLUME_PANEL_ANIM_MS = 320
+
+object VolumePanelOverlayWindow {
+    private const val TAG = "VolumePanelOverlay"
+    private val mainHandler = Handler(Looper.getMainLooper())
+
+    private var windowManager: WindowManager? = null
+    private var composeView: ComposeView? = null
+    private var owner: OverlayComposeOwner? = null
+    private var panelVisibilityState: MutableTransitionState<Boolean>? = null
+    private var screenOffReceiver: BroadcastReceiver? = null
+    private var appContext: Context? = null
+    private var backHandler: OverlayViewBackHandler? = null
+    private var bringAboveToken = 0
+    private var dismissToken = 0
+
+    val isShowing: Boolean
+        get() = composeView != null && (panelVisibilityState?.targetState == true)
+
+    fun show(context: Context): Boolean {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            var result = false
+            val latch = java.util.concurrent.CountDownLatch(1)
+            mainHandler.post {
+                result = show(context)
+                latch.countDown()
+            }
+            runCatching { latch.await(500, java.util.concurrent.TimeUnit.MILLISECONDS) }
+            return result
+        }
+        if (isShowing) {
+            dismiss()
+            return true
+        }
+        if (!PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) {
+            Log.w(TAG, "show: accessibility service not enabled")
+            return false
+        }
+        val hostContext = OverlayDependencyAccess.overlayHostContext()
+            ?: run {
+                Log.w(TAG, "show: accessibility service not connected")
+                return false
+            }
+        ensureWindow(hostContext)
+        ++dismissToken
+        panelVisibilityState?.targetState = true
+        registerScreenOffReceiver(hostContext)
+        OverlaySceneController.onContentPanelShown()
+        scheduleBringFloatBallAbovePanels()
+        composeView?.requestFocus()
+        return true
+    }
+
+    fun dismiss() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { dismiss() }
+            return
+        }
+        if (composeView == null) return
+        val token = ++dismissToken
+        panelVisibilityState?.targetState = false
+        unregisterScreenOffReceiver()
+        OverlaySceneController.onContentPanelHidden()
+        ++bringAboveToken
+        mainHandler.postDelayed({
+            if (token != dismissToken) return@postDelayed
+            if (panelVisibilityState?.targetState == true) return@postDelayed
+            cleanup()
+        }, VOLUME_PANEL_ANIM_MS.toLong())
+    }
+
+    fun handleBack(): Boolean {
+        if (!isShowing) return false
+        dismiss()
+        return true
+    }
+
+    private fun scheduleBringFloatBallAbovePanels() {
+        val token = ++bringAboveToken
+        fun attempt() {
+            if (token != bringAboveToken) return
+            FloatBallOverlay.scheduleChromeAbovePanels()
+        }
+        attempt()
+        composeView?.post {
+            attempt()
+            composeView?.postOnAnimation { attempt() }
+        }
+        mainHandler.postDelayed({ attempt() }, 200)
+        mainHandler.postDelayed({ attempt() }, 800)
+    }
+
+    private fun ensureWindow(context: Context) {
+        if (composeView != null) return
+        appContext = context.applicationContext
+        val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+        windowManager = wm
+        val visibilityState = MutableTransitionState(false)
+        panelVisibilityState = visibilityState
+        val overlayContext = OverlayCompose.themedContext(context)
+        val composeOwner = OverlayComposeOwner()
+        owner = composeOwner
+        val view = OverlayCompose.createComposeView(overlayContext, composeOwner).apply {
+            setContent {
+                OverlayAwareModuleTheme {
+                    VolumePanelOverlayRoot(
+                        visibilityState = visibilityState,
+                        onDismiss = { dismiss() },
+                    )
+                }
+            }
+        }
+        composeView = view
+        val params = WindowManager.LayoutParams(
+            WindowManager.LayoutParams.MATCH_PARENT,
+            WindowManager.LayoutParams.MATCH_PARENT,
+            OverlayWindowTypes.contentPanelWindowType(context),
+            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+            PixelFormat.TRANSLUCENT,
+        ).apply {
+            gravity = Gravity.TOP or Gravity.START
+            title = TAG
+        }
+        backHandler = OverlayViewBackHandler(view) { handleBack() }.also { it.attach() }
+        wm.addView(view, params)
+    }
+
+    private fun cleanup() {
+        if (panelVisibilityState?.targetState == true) return
+        val view = composeView
+        val wm = windowManager
+        backHandler?.detach()
+        backHandler = null
+        if (view != null && wm != null) {
+            runCatching { wm.removeView(view) }
+        }
+        owner?.destroy()
+        owner = null
+        composeView = null
+        windowManager = null
+        panelVisibilityState = null
+    }
+
+    private fun registerScreenOffReceiver(context: Context) {
+        if (screenOffReceiver != null) return
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(ctx: Context?, intent: Intent?) {
+                if (intent?.action == Intent.ACTION_SCREEN_OFF) dismiss()
+            }
+        }
+        context.registerReceiver(receiver, IntentFilter(Intent.ACTION_SCREEN_OFF), Context.RECEIVER_NOT_EXPORTED)
+        screenOffReceiver = receiver
+    }
+
+    private fun unregisterScreenOffReceiver() {
+        val receiver = screenOffReceiver ?: return
+        runCatching { appContext?.unregisterReceiver(receiver) }
+        screenOffReceiver = null
+    }
+}
+
+@Composable
+private fun VolumePanelOverlayRoot(
+    visibilityState: MutableTransitionState<Boolean>,
+    onDismiss: () -> Unit,
+) {
+    val panelAnimSpec = tween<Float>(VOLUME_PANEL_ANIM_MS, easing = FastOutSlowInEasing)
+    val panelSlideSpec = tween<IntOffset>(VOLUME_PANEL_ANIM_MS, easing = FastOutSlowInEasing)
+    val dismissInteraction = remember { MutableInteractionSource() }
+    val panelInteraction = remember { MutableInteractionSource() }
+
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.BottomCenter,
+    ) {
+        AnimatedVisibility(
+            visibleState = visibilityState,
+            enter = fadeIn(panelAnimSpec),
+            exit = fadeOut(panelAnimSpec),
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.35f))
+                    .clickable(
+                        interactionSource = dismissInteraction,
+                        indication = null,
+                        onClick = onDismiss,
+                    ),
+            )
+        }
+        AnimatedVisibility(
+            visibleState = visibilityState,
+            enter = fadeIn(panelAnimSpec) + slideInVertically(panelSlideSpec) { it },
+            exit = fadeOut(panelAnimSpec) + slideOutVertically(panelSlideSpec) { it },
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(bottom = 8.dp)
+                    .clickable(
+                        interactionSource = panelInteraction,
+                        indication = null,
+                        onClick = {},
+                    ),
+            ) {
+                VolumePanelContent(onDismiss = onDismiss)
+            }
+        }
+    }
+}

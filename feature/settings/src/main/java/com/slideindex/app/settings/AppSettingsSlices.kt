@@ -71,6 +71,10 @@ data class LauncherSettings(
     val appLaunchPolicyId: Int = AppLaunchPolicy.ALWAYS_FULLSCREEN.id,
     val longPressLaunchDurationMs: Int = 450,
     val hiddenAppPackages: Set<String> = emptySet(),
+    val freezerAppPackages: Set<String> = emptySet(),
+    val hideRecentTaskPackages: Set<String> = emptySet(),
+    val hideRecentPreviewPackages: Set<String> = emptySet(),
+    val expandPanelSlotActions: List<com.slideindex.app.gesture.GestureAction?> = List(8) { null },
     /** “切换上一应用”动作忽略的包名黑名单。 */
     val previousAppExcludedPackages: Set<String> = emptySet(),
     val excludedAppScopes: Map<String, ExcludedAppScopes> = emptyMap(),

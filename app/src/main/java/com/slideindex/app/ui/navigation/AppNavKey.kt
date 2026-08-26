@@ -213,6 +213,15 @@ sealed interface AppNavKey : NavKey {
     // Extension tab
     @Serializable data object ExtensionHub : AppNavKey
     @Serializable data object ExtensionAbout : AppNavKey
+    @Serializable data object ExtensionFreezer : AppNavKey
+    @Serializable data object ExtensionHideRecent : AppNavKey
+    @Serializable data object ExtensionBackTap : AppNavKey
+    @Serializable data object ExtensionBackTapActionPick : AppNavKey
+    @Serializable data object ExtensionBackTapActionMyShortcuts : AppNavKey
+    @Serializable data object ExtensionBackTapActionPresetShortcuts : AppNavKey
+    @Serializable data object ExtensionBackTapActionPickApp : AppNavKey
+    @Serializable data class ExtensionBackTapActionPickActivity(val appPackageName: String) : AppNavKey
+    @Serializable data class ExtensionBackTapActionShellCommand(val initialCommand: String = "") : AppNavKey
     @Serializable data object ExtensionBackup : AppNavKey
     @Serializable data object ExtensionMissingPermissions : AppNavKey
     @Serializable data object ExtensionPrivacy : AppNavKey

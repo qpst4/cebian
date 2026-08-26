@@ -432,6 +432,33 @@ class EdgeSettingsMutator @Inject constructor(
         it[SettingsPreferenceKeys.HIDDEN_APP_PACKAGES] = current
     }
 
+    suspend fun setFreezerAppPackages(packages: Set<String>) = editor.edit {
+        it[SettingsPreferenceKeys.FREEZER_APP_PACKAGES] = packages
+    }
+
+    suspend fun setExpandPanelSlotAction(index: Int, action: com.slideindex.app.gesture.GestureAction?) = editor.edit {
+        val current = readExpandPanelSlotActions(it).toMutableList()
+        if (index !in current.indices) return@edit
+        current[index] = action?.takeUnless { it is com.slideindex.app.gesture.GestureAction.None }
+        it[SettingsPreferenceKeys.EXPAND_PANEL_SHORTCUTS] =
+            com.slideindex.app.launcher.ExpandPanelSlotCodec.encode(current)
+    }
+
+    private fun readExpandPanelSlotActions(
+        prefs: androidx.datastore.preferences.core.MutablePreferences,
+    ): List<com.slideindex.app.gesture.GestureAction?> =
+        com.slideindex.app.launcher.ExpandPanelSlotCodec.decode(
+            prefs[SettingsPreferenceKeys.EXPAND_PANEL_SHORTCUTS],
+        )
+
+    suspend fun setHideRecentTaskPackages(packages: Set<String>) = editor.edit {
+        it[SettingsPreferenceKeys.HIDE_RECENT_TASK_PACKAGES] = packages
+    }
+
+    suspend fun setHideRecentPreviewPackages(packages: Set<String>) = editor.edit {
+        it[SettingsPreferenceKeys.HIDE_RECENT_PREVIEW_PACKAGES] = packages
+    }
+
     suspend fun addPreviousAppExcludedPackage(packageName: String) = editor.edit {
         val current = it[SettingsPreferenceKeys.PREVIOUS_APP_EXCLUDED_PACKAGES]?.toMutableSet() ?: mutableSetOf()
         current.add(packageName)

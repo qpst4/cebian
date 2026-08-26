@@ -21,7 +21,12 @@ import com.slideindex.app.overlay.OhoQuickToolsOverlayWindow
 import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.overlay.WidgetPopupOverlayWindow
 import com.slideindex.app.service.ClipboardFloatLifecycle
+import com.slideindex.app.copy.UniversalCopyOverlay
+import com.slideindex.app.freezer.FreezerOperations
+import com.slideindex.app.overlay.volumepanel.VolumePanelOverlayWindow
+import com.slideindex.app.remind.RemindAlarmScheduler
 import com.slideindex.app.service.SlideIndexAccessibilityService
+import com.slideindex.app.translate.overlay.ScreenTranslationController
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.shell.ShellCommand
 import com.slideindex.app.util.ShellCommandRunner
@@ -283,6 +288,34 @@ class ActionExecutor(
             }
             GestureAction.SearchPanel ->
                 overlayPanels.showSearchPanel(context, settings, resolvedSide)
+            GestureAction.VolumePanel -> VolumePanelOverlayWindow.show(context)
+            GestureAction.ScreenTranslate -> {
+                SlideIndexAccessibilityService.performScreenTranslate()
+                true
+            }
+            GestureAction.Remind1m, GestureAction.Remind3m, GestureAction.Remind5m,
+            GestureAction.Remind10m, GestureAction.Remind15m,
+            -> RemindAlarmScheduler.toggle(context, action)
+            GestureAction.UniversalCopy -> {
+                SlideIndexAccessibilityService.performUniversalCopy()
+                true
+            }
+            GestureAction.FreezerPanel -> {
+                val intent = android.content.Intent(context, com.slideindex.app.MainActivity::class.java).apply {
+                    addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                    putExtra(com.slideindex.app.MainActivity.EXTRA_NAV_ROUTE, "extension_freezer")
+                }
+                context.startActivity(intent)
+                true
+            }
+            GestureAction.Refreeze -> {
+                Thread {
+                    kotlinx.coroutines.runBlocking {
+                        FreezerOperations.refreezeAll(context, settings.freezerAppPackages)
+                    }
+                }.start()
+                true
+            }
             GestureAction.SnoozeOverlays -> {
                 OverlaySnoozeController.snooze(context)
                 true

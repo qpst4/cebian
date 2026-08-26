@@ -4,7 +4,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.launch
+import com.slideindex.app.ui.BackTapSettingsScreen
 import top.yukonga.miuix.kmp.nav.core.NavEntryBuilder
 import com.slideindex.app.R
 import com.slideindex.app.gesture.GestureAction
@@ -75,6 +78,7 @@ fun NavEntryBuilder.shakeNavEntries(ctx: MainNavContext) {
                     ),
                 )
             },
+            onOpenBackTapSettings = { ctx.navigate(AppNavKey.ExtensionBackTap) },
         )
     }
 
@@ -387,6 +391,130 @@ fun NavEntryBuilder.shakeNavEntries(ctx: MainNavContext) {
                         packageName = packageName,
                     ),
                 )
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.ExtensionBackTap> {
+        BackTapSettingsScreen(
+            settingsRepository = ctx.deps.settingsRepository,
+            onBack = { ctx.navigateBackTo(AppNavKey.ShakeGestures) },
+            onOpenActionPick = { ctx.navigate(AppNavKey.ExtensionBackTapActionPick) },
+        )
+    }
+
+    hiltEntry<AppNavKey.ExtensionBackTapActionPick> {
+        val settings by ctx.deps.settingsRepository.settings.collectAsStateWithLifecycle(
+            initialValue = ctx.deps.settingsRepository.readSnapshot(),
+        )
+        val scope = rememberCoroutineScope()
+        val returnKey = AppNavKey.ExtensionBackTap
+        val current = settings.backTapSettings.action
+        GestureActionPickerScreen(
+            trigger = GestureTriggerType.SHORT_SINGLE_TAP,
+            current = current,
+            onDismiss = { ctx.navigateBackTo(returnKey) },
+            onSelect = { action ->
+                scope.launch {
+                    ctx.deps.settingsRepository.setBackTapAction(action)
+                    ctx.navigateBackTo(returnKey)
+                }
+            },
+            onOpenMyShortcuts = { ctx.navigate(AppNavKey.ExtensionBackTapActionMyShortcuts) },
+            onOpenPresetShortcuts = { ctx.navigate(AppNavKey.ExtensionBackTapActionPresetShortcuts) },
+            onOpenPickApp = { ctx.navigate(AppNavKey.ExtensionBackTapActionPickApp) },
+            onOpenExecuteShellCommand = { cmd ->
+                ctx.navigate(AppNavKey.ExtensionBackTapActionShellCommand(cmd))
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.ExtensionBackTapActionMyShortcuts> {
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val appSettings by viewModel.settings.collectAsStateWithLifecycle()
+        val settings by ctx.deps.settingsRepository.settings.collectAsStateWithLifecycle(
+            initialValue = ctx.deps.settingsRepository.readSnapshot(),
+        )
+        val scope = rememberCoroutineScope()
+        val returnKey = AppNavKey.ExtensionBackTapActionPick
+        val current = settings.backTapSettings.action
+        MyShortcutsFolderScreen(
+            activityShortcuts = appSettings.activityShortcuts,
+            onBack = { ctx.navigateBackTo(returnKey) },
+            onBrowseNewShortcut = { ctx.navigate(AppNavKey.ExtensionBackTapActionPickApp) },
+            currentAction = current,
+            onSelectRadio = { action ->
+                scope.launch {
+                    ctx.deps.settingsRepository.setBackTapAction(action)
+                    ctx.navigateBackTo(AppNavKey.ExtensionBackTap)
+                }
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.ExtensionBackTapActionPresetShortcuts> {
+        val settings by ctx.deps.settingsRepository.settings.collectAsStateWithLifecycle(
+            initialValue = ctx.deps.settingsRepository.readSnapshot(),
+        )
+        val scope = rememberCoroutineScope()
+        val returnKey = AppNavKey.ExtensionBackTapActionPick
+        val current = settings.backTapSettings.action
+        PresetShortcutsFolderScreen(
+            onBack = { ctx.navigateBackTo(returnKey) },
+            currentAction = current,
+            onSelectRadio = { action ->
+                scope.launch {
+                    ctx.deps.settingsRepository.setBackTapAction(action)
+                    ctx.navigateBackTo(AppNavKey.ExtensionBackTap)
+                }
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.ExtensionBackTapActionPickApp> {
+        val returnKey = AppNavKey.ExtensionBackTapActionPick
+        ActivityShortcutPickAppScreen(
+            onBack = { ctx.navigateBackTo(returnKey) },
+            onSelectApp = { app ->
+                ctx.navigate(AppNavKey.ExtensionBackTapActionPickActivity(app.packageName))
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.ExtensionBackTapActionPickActivity> { key ->
+        val scope = rememberCoroutineScope()
+        ActivityShortcutPickActivityScreen(
+            packageName = key.appPackageName,
+            onBack = { ctx.backStack.removeLastOrNull() },
+            onSelectActivity = { activity ->
+                val action = GestureAction.LaunchShortcut.component(
+                    "${activity.packageName}/${activity.className}",
+                    activity.label,
+                )
+                scope.launch {
+                    ctx.deps.settingsRepository.setBackTapAction(action)
+                    ctx.navigateBackTo(AppNavKey.ExtensionBackTap)
+                }
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.ExtensionBackTapActionShellCommand> { key ->
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val appSettings by viewModel.settings.collectAsStateWithLifecycle()
+        val scope = rememberCoroutineScope()
+        val returnKey = AppNavKey.ExtensionBackTap
+        GestureExecuteShellCommandScreen(
+            initialCommand = key.initialCommand,
+            shellCommands = appSettings.shellCommands,
+            onBack = { ctx.backStack.removeLastOrNull() },
+            onConfirm = { command ->
+                scope.launch {
+                    ctx.deps.settingsRepository.setBackTapAction(
+                        GestureAction.ExecuteShellCommand(command),
+                    )
+                    ctx.navigateBackTo(returnKey)
+                }
             },
         )
     }

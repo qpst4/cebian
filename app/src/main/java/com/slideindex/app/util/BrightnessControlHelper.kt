@@ -129,6 +129,29 @@ object BrightnessControlHelper {
         return if (id != 0) res.getInteger(id) else 0
     }
 
+    fun applyBrightnessFraction(context: Context, fraction: Float): Boolean {
+        if (!hasAccess(context)) return false
+        val appContext = context.applicationContext
+        if (readAutoBrightnessEnabled(appContext)) {
+            toggleAutoBrightness(appContext)
+        }
+        val clamped = fraction.coerceIn(0f, 1f)
+        val max = brightnessMax(appContext)
+        val min = brightnessMin(appContext)
+        val level = if (max <= min) {
+            min
+        } else {
+            (min + clamped * (max - min)).toInt().coerceIn(min, max)
+        }
+        return runCatching {
+            Settings.System.putInt(
+                appContext.contentResolver,
+                Settings.System.SCREEN_BRIGHTNESS,
+                level,
+            )
+        }.getOrDefault(false)
+    }
+
 
 
     fun toggleAutoBrightness(context: Context): Boolean? {

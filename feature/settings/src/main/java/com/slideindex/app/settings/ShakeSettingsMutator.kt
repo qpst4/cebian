@@ -126,4 +126,32 @@ class ShakeSettingsMutator @Inject constructor(
         it[SettingsPreferenceKeys.FACE_DOWN_AUDIO_FEEDBACK_VOLUME] =
             FaceDownGestureSettings.clampAudioFeedbackVolume(value)
     }
+
+    suspend fun setBackTapEnabled(enabled: Boolean) =
+        editor.edit { it[SettingsPreferenceKeys.BACK_TAP_ENABLED] = enabled }
+
+    suspend fun setBackTapSensitivity(value: Int) = editor.edit {
+        it[SettingsPreferenceKeys.BACK_TAP_SENSITIVITY] = value.coerceIn(1, 10)
+    }
+
+    suspend fun setBackTapRange(value: Int) = editor.edit {
+        it[SettingsPreferenceKeys.BACK_TAP_RANGE] = value.coerceIn(1, 10)
+    }
+
+    suspend fun setBackTapMode(mode: com.slideindex.app.backtap.BackTapMode) = editor.edit {
+        it[SettingsPreferenceKeys.BACK_TAP_MODE] = mode.storageId
+    }
+
+    suspend fun setBackTapPauseWhileCharging(enabled: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.BACK_TAP_PAUSE_CHARGING] = enabled
+    }
+
+    suspend fun setBackTapVibrationFeedbackEnabled(enabled: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.BACK_TAP_VIBRATION_FEEDBACK_ENABLED] = enabled
+    }
+
+    suspend fun setBackTapAction(action: GestureAction) = editor.edit {
+        it[SettingsPreferenceKeys.BACK_TAP_ACTION_TYPE] = action.type.id
+        it[SettingsPreferenceKeys.BACK_TAP_ACTION_PAYLOAD] = action.payload
+    }
 }

@@ -8,6 +8,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Article
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.Gavel
+import androidx.compose.material.icons.outlined.AcUnit
+import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.Memory
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -42,6 +44,8 @@ fun ExtensionHubScreen(
     onOpenFloatingPointer: () -> Unit,
     onOpenStashClipboard: () -> Unit,
     onOpenSearchPanel: () -> Unit,
+    onOpenFreezer: () -> Unit = {},
+    onOpenHideRecent: () -> Unit = {},
     onOpenSettingsBackup: () -> Unit,
     onOpenAbout: () -> Unit,
 ) {
@@ -186,6 +190,26 @@ fun ExtensionHubScreen(
                             stashEntryCount = stashEntryCount,
                             outlinedLeadingIcons = true,
                             onClick = onOpenStashClipboard,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("freezer") {
+                        SettingNavigationRow(
+                            icon = { label -> Icon(Icons.Outlined.AcUnit, contentDescription = label) },
+                            title = stringResource(R.string.extension_freezer_title),
+                            subtitle = stringResource(R.string.extension_freezer_subtitle),
+                            onClick = onOpenFreezer,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("hide-recent") {
+                        SettingNavigationRow(
+                            icon = { label -> Icon(Icons.Outlined.History, contentDescription = label) },
+                            title = stringResource(R.string.extension_hide_recent_title),
+                            subtitle = stringResource(R.string.extension_hide_recent_subtitle),
+                            onClick = onOpenHideRecent,
                         )
                     },
                 )

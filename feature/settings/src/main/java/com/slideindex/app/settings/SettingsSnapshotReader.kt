@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import com.slideindex.app.floatball.FloatBallGestureCodec
 import com.slideindex.app.floatball.FloatBallGestureType
 import com.slideindex.app.gesture.GestureAction
+import com.slideindex.app.gesture.GestureActionType
 import com.slideindex.app.gesture.GestureAngleConfig
 import com.slideindex.app.gesture.GestureRuleCodec
 import com.slideindex.app.gesture.SelectedHintMetrics
@@ -27,6 +28,8 @@ import com.slideindex.app.shake.FaceDownGestureCodec
 import com.slideindex.app.shake.FaceDownGestureSettings
 import com.slideindex.app.shake.ShakeGestureCodec
 import com.slideindex.app.shake.ShakeGestureSettings
+import com.slideindex.app.backtap.BackTapMode
+import com.slideindex.app.backtap.BackTapSettings
 import com.slideindex.app.shell.ShellCommandCodec
 import com.slideindex.app.activity.ActivityShortcutCodec
 import com.slideindex.app.widget.WidgetPanelCodec
@@ -179,6 +182,10 @@ internal object SettingsSnapshotReader {
             appLaunchPolicyId = prefs[SettingsPreferenceKeys.APP_LAUNCH_POLICY] ?: legacyLaunchPolicy(prefs),
             longPressLaunchDurationMs = prefs[SettingsPreferenceKeys.LONG_PRESS_LAUNCH_DURATION] ?: 450,
             hiddenAppPackages = prefs[SettingsPreferenceKeys.HIDDEN_APP_PACKAGES] ?: emptySet(),
+            freezerAppPackages = prefs[SettingsPreferenceKeys.FREEZER_APP_PACKAGES] ?: emptySet(),
+            hideRecentTaskPackages = prefs[SettingsPreferenceKeys.HIDE_RECENT_TASK_PACKAGES] ?: emptySet(),
+            hideRecentPreviewPackages = prefs[SettingsPreferenceKeys.HIDE_RECENT_PREVIEW_PACKAGES] ?: emptySet(),
+            expandPanelSlotActions = readExpandPanelSlotActions(prefs),
             previousAppExcludedPackages =
                 prefs[SettingsPreferenceKeys.PREVIOUS_APP_EXCLUDED_PACKAGES] ?: emptySet(),
             excludedAppScopes = readExcludedAppScopes(prefs),
@@ -307,6 +314,7 @@ internal object SettingsSnapshotReader {
             otpLsposedSmsCaptureEnabled = prefs[SettingsPreferenceKeys.OTP_LSPOSED_SMS_CAPTURE_ENABLED] ?: false,
             otpLsposedSystemInjectEnabled = prefs[SettingsPreferenceKeys.OTP_LSPOSED_SYSTEM_INJECT_ENABLED] ?: true,
             shakeGestureSettings = readShakeGestureSettings(prefs),
+            backTapSettings = readBackTapSettings(prefs),
             faceDownGestureSettings = readFaceDownGestureSettings(prefs),
             cornerGestureSettings = readCornerGestureSettings(prefs),
             messageReminderSettings = readMessageReminderSettings(prefs),
@@ -588,6 +596,20 @@ internal object SettingsSnapshotReader {
             disableInLandscape = prefs[SettingsPreferenceKeys.SHAKE_DISABLE_IN_LANDSCAPE] ?: false,
             blacklistedPackages = prefs[SettingsPreferenceKeys.SHAKE_BLACKLIST_PACKAGES] ?: emptySet(),
         )
+
+    fun readBackTapSettings(prefs: Preferences): BackTapSettings {
+        val actionType = intPreference(prefs, SettingsPreferenceKeys.BACK_TAP_ACTION_TYPE, GestureActionType.NONE.id)
+        val actionPayload = prefs[SettingsPreferenceKeys.BACK_TAP_ACTION_PAYLOAD].orEmpty()
+        return BackTapSettings(
+            enabled = prefs[SettingsPreferenceKeys.BACK_TAP_ENABLED] ?: false,
+            sensitivity = intPreference(prefs, SettingsPreferenceKeys.BACK_TAP_SENSITIVITY, 5).coerceIn(1, 10),
+            range = intPreference(prefs, SettingsPreferenceKeys.BACK_TAP_RANGE, 5).coerceIn(1, 10),
+            mode = BackTapMode.fromId(intPreference(prefs, SettingsPreferenceKeys.BACK_TAP_MODE, 0)),
+            pauseWhileCharging = prefs[SettingsPreferenceKeys.BACK_TAP_PAUSE_CHARGING] ?: false,
+            vibrationFeedbackEnabled = prefs[SettingsPreferenceKeys.BACK_TAP_VIBRATION_FEEDBACK_ENABLED] ?: true,
+            action = GestureAction.from(GestureActionType.fromId(actionType), actionPayload),
+        )
+    }
 
     fun readFaceDownGestureSettings(prefs: Preferences): FaceDownGestureSettings =
         FaceDownGestureSettings(
@@ -914,4 +936,21 @@ internal object SettingsSnapshotReader {
             !prefs[SettingsPreferenceKeys.BOTTOM_TRIGGER_HANDLES_LANDSCAPE].isNullOrEmpty() ||
             !prefs[SettingsPreferenceKeys.TOP_TRIGGER_HANDLES_LANDSCAPE].isNullOrEmpty() ||
             !prefs[SettingsPreferenceKeys.GESTURE_RULES_LANDSCAPE].isNullOrEmpty()
+
+    private fun readExpandPanelSlotActions(prefs: Preferences): List<com.slideindex.app.gesture.GestureAction?> =
+        com.slideindex.app.launcher.ExpandPanelSlotCodec.decode(
+            prefs[SettingsPreferenceKeys.EXPAND_PANEL_SHORTCUTS],
+        )
+
+    private fun intPreference(prefs: Preferences, key: Preferences.Key<Int>, default: Int): Int {
+        runCatching { prefs[key] }.getOrNull()?.let { return it }
+        val raw = prefs.asMap().entries.firstOrNull { it.key.name == key.name }?.value ?: return default
+        return when (raw) {
+            is Int -> raw
+            is Long -> raw.toInt()
+            is Float -> raw.toInt()
+            is Double -> raw.toInt()
+            else -> default
+        }
+    }
 }

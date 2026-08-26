@@ -21,7 +21,7 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.ScreenRotation
 import androidx.compose.material.icons.filled.SwipeLeft
-import androidx.compose.material.icons.filled.SwipeRight
+import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -54,6 +54,7 @@ import com.slideindex.app.ui.settings.components.SettingsCardScope
 import com.slideindex.app.ui.settings.components.SettingsCardScopeContent
 import com.slideindex.app.ui.settings.components.settingsCardItem
 import com.slideindex.app.ui.settings.components.SettingExpandableSwitchRow
+import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 import com.slideindex.app.ui.settings.components.settingsLazyHint
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
@@ -87,6 +88,7 @@ fun ShakeGesturesScreen(
     onOpenAppBlacklist: () -> Unit = {},
     onOpenBasicActionPick: (ShakeGestureType) -> Unit = {},
     onOpenFaceDownActionPick: () -> Unit = {},
+    onOpenBackTapSettings: () -> Unit = {},
 ) {
     val listState = rememberLazyListState()
     BottomNavReselectScrollEffect(
@@ -116,6 +118,7 @@ fun ShakeGesturesScreen(
     val basicSectionTitle = stringResource(R.string.shake_gestures_section_basic)
     val faceDownSectionTitle = stringResource(R.string.face_down_gestures_title)
     val faceDownBlacklistHint = stringResource(R.string.face_down_gestures_blacklist_hint)
+    val backTapSectionTitle = stringResource(R.string.extension_back_tap_title)
     val advancedSectionTitle = stringResource(R.string.shake_gestures_section_advanced)
     val sensitivitySectionTitle = stringResource(R.string.shake_gestures_section_sensitivity)
     val sensitivityHint = stringResource(R.string.shake_gestures_sensitivity_hint)
@@ -274,6 +277,26 @@ fun ShakeGesturesScreen(
             },
         )
         settingsLazyHint(key = "shake-face-down-hint", text = faceDownBlacklistHint)
+        settingsLazySmallTitle(key = "shake-back-tap", title = backTapSectionTitle, sectionTop = true)
+        groupedCardItems(
+            keyPrefix = "shake-back-tap",
+            items = listOf(
+                settingsCardScopeItem("back-tap-settings") {
+                    SettingNavigationRow(
+                        icon = { label ->
+                            ColoredSettingIcon(
+                                icon = Icons.Default.TouchApp,
+                                background = Color(0xFF26A69A),
+                                contentDescription = label,
+                            )
+                        },
+                        title = stringResource(R.string.extension_back_tap_title),
+                        subtitle = stringResource(R.string.extension_back_tap_subtitle),
+                        onClick = onOpenBackTapSettings,
+                    )
+                },
+            ),
+        )
         settingsLazySmallTitle(key = "shake-advanced", title = advancedSectionTitle, sectionTop = true)
         groupedCardItems(
             keyPrefix = "shake-advanced",

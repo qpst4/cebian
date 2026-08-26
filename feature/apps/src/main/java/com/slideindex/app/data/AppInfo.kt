@@ -5,6 +5,7 @@ data class AppInfo(
     val label: String,
     val letter: Char,
     val pinyinKey: String,
+    val isSystem: Boolean = false,
 )
 
 data class AppGroup(

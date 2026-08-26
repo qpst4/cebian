@@ -23,12 +23,22 @@ class AppRepository @Inject constructor(
     private var cachedApps: List<AppInfo> = emptyList()
 
     @Volatile
+    private var cachedFreezerApps: List<AppInfo> = emptyList()
+
+    @Volatile
     private var appsByPackage: Map<String, AppInfo> = emptyMap()
 
     suspend fun loadApps(force: Boolean = false): List<AppInfo> {
         if (!force && cachedApps.isNotEmpty()) return cachedApps
         val apps = withContext(Dispatchers.IO) { queryLaunchableApps() }
         cacheApps(apps)
+        return apps
+    }
+
+    suspend fun loadFreezerApps(force: Boolean = false): List<AppInfo> {
+        if (!force && cachedFreezerApps.isNotEmpty()) return cachedFreezerApps
+        val apps = withContext(Dispatchers.IO) { queryInstalledFreezerApps() }
+        cachedFreezerApps = apps
         return apps
     }
 
@@ -114,6 +124,7 @@ class AppRepository @Inject constructor(
 
     fun invalidate() {
         cachedApps = emptyList()
+        cachedFreezerApps = emptyList()
         appsByPackage = emptyMap()
         launchIconCache.clear()
     }
@@ -196,9 +207,36 @@ class AppRepository @Inject constructor(
             }
             val label = pm.getApplicationLabel(appInfo).toString()
             launchIconCache.loadDrawable(appInfo)
-            apps += buildAppInfo(pkg, label)
+            val isSystem = (appInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0
+            apps += buildAppInfo(pkg, label, isSystem)
         }
         return apps
+    }
+
+    private fun queryInstalledFreezerApps(): List<AppInfo> {
+        val pm = context.packageManager
+        val selfPackage = context.packageName
+        val appInfos = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            pm.getInstalledApplications(
+                PackageManager.ApplicationInfoFlags.of(PackageManager.MATCH_DISABLED_COMPONENTS.toLong()),
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            pm.getInstalledApplications(PackageManager.MATCH_DISABLED_COMPONENTS)
+        }
+        return appInfos
+            .asSequence()
+            .filter { it.packageName != selfPackage }
+            .map { appInfo ->
+                val label = runCatching { pm.getApplicationLabel(appInfo).toString() }
+                    .getOrDefault(appInfo.packageName)
+                launchIconCache.loadDrawable(appInfo)
+                val isSystem = (appInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0 ||
+                    (appInfo.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0
+                buildAppInfo(appInfo.packageName, label, isSystem)
+            }
+            .sortedWith(compareBy<AppInfo> { !it.isSystem }.thenBy { it.pinyinKey })
+            .toList()
     }
 
     private fun queryAppInfo(packageName: String): AppInfo? {
@@ -207,17 +245,19 @@ class AppRepository @Inject constructor(
             val appInfo = pm.getApplicationInfo(packageName, 0)
             val label = pm.getApplicationLabel(appInfo).toString()
             launchIconCache.loadDrawable(appInfo)
-            buildAppInfo(packageName, label)
+            val isSystem = (appInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0
+            buildAppInfo(packageName, label, isSystem)
         } catch (_: PackageManager.NameNotFoundException) {
             null
         }
     }
 
-    private fun buildAppInfo(packageName: String, label: String): AppInfo =
+    private fun buildAppInfo(packageName: String, label: String, isSystem: Boolean = false): AppInfo =
         AppInfo(
             packageName = packageName,
             label = label,
             letter = PinyinHelper.firstLetter(label),
             pinyinKey = PinyinHelper.sortKey(label),
+            isSystem = isSystem,
         )
 }

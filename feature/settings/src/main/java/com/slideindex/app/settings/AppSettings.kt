@@ -4,6 +4,7 @@ import com.slideindex.app.message.MessageSettings
 import com.slideindex.app.otp.OtpKeywords
 import com.slideindex.app.shake.FaceDownGestureSettings
 import com.slideindex.app.shake.ShakeGestureSettings
+import com.slideindex.app.backtap.BackTapSettings
 
 /**
  * 全量设置快照。
@@ -81,6 +82,7 @@ data class AppSettings(
     val otpLsposedSystemInjectEnabled: Boolean = true,
     val cornerGestureSettings: CornerGestureSettings = CornerGestureSettings(),
     val shakeGestureSettings: ShakeGestureSettings = ShakeGestureSettings(),
+    val backTapSettings: BackTapSettings = BackTapSettings(),
     val faceDownGestureSettings: FaceDownGestureSettings = FaceDownGestureSettings(),
     val messageReminderSettings: MessageSettings = MessageSettings(),
     val debugPerformanceMonitorEnabled: Boolean = false,
@@ -141,6 +143,10 @@ data class AppSettings(
     val appLaunchPolicyId get() = launcher.appLaunchPolicyId
     val longPressLaunchDurationMs get() = launcher.longPressLaunchDurationMs
     val hiddenAppPackages get() = launcher.hiddenAppPackages
+    val freezerAppPackages get() = launcher.freezerAppPackages
+    val hideRecentTaskPackages get() = launcher.hideRecentTaskPackages
+    val hideRecentPreviewPackages get() = launcher.hideRecentPreviewPackages
+    val expandPanelSlotActions get() = launcher.expandPanelSlotActions
     val previousAppExcludedPackages get() = launcher.previousAppExcludedPackages
     val excludedAppScopes get() = launcher.excludedAppScopes
     val excludedAppDefaultScopes get() = launcher.excludedAppDefaultScopes
