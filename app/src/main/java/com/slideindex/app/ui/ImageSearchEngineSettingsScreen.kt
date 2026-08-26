@@ -4,8 +4,7 @@ package com.slideindex.app.ui
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.foundation.layout.size
 import com.slideindex.app.ui.miuix.MiuixConfirmDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -33,6 +32,8 @@ import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import com.slideindex.app.ui.settings.components.SettingsVerticalReorderList
 import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Add
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 import com.slideindex.app.ui.settings.components.settingsLazyHint
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
@@ -112,9 +113,15 @@ fun ImageSearchEngineSettingsScreen(
             items = listOf(
                 settingsCardScopeItem("add-share-target") {
                     SettingNavigationRow(
-                        icon = { label -> Icon(Icons.Default.Add, contentDescription = label) },
+                        icon = {
+                            label -> Icon(
+                                MiuixIcons.Add,
+                                contentDescription = label,
+                                modifier = Modifier.size(24.dp),
+                            )
+                        },
                         title = stringResource(R.string.image_search_engine_add_share_target),
-                        subtitle = "",
+                        subtitle = stringResource(R.string.image_search_engine_add_share_target_subtitle),
                         onClick = { onOpenEditor(null) },
                     )
                 },

@@ -15,15 +15,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.InsertDriveFile
-import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Android
 import androidx.compose.material.icons.outlined.AudioFile
-import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.Folder
-import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material.icons.outlined.VideoLibrary
-import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -59,6 +53,13 @@ import com.slideindex.app.ui.settings.components.settingsLazyHint
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Add
+import top.yukonga.miuix.kmp.icon.extended.Close
+import top.yukonga.miuix.kmp.icon.extended.Folder
+import top.yukonga.miuix.kmp.icon.extended.Image
+import top.yukonga.miuix.kmp.icon.extended.Show
+import top.yukonga.miuix.kmp.icon.extended.File
 
 private enum class FolderFilterTarget { Whitelist, Blacklist }
 
@@ -104,7 +105,7 @@ fun SearchPanelFileSearchSettingsScreen(
                 add(
                     settingsCardScopeItem("show-folders") {
                         SettingSwitchRow(
-                            icon = { label -> Icon(Icons.Outlined.Folder, contentDescription = label) },
+                            icon = { label -> Icon(MiuixIcons.Folder, contentDescription = label) },
                             title = stringResource(R.string.search_panel_file_show_folders),
                             checked = settings.searchPanelFileShowFolders,
                             enabled = true,
@@ -137,7 +138,7 @@ fun SearchPanelFileSearchSettingsScreen(
                 add(
                     settingsCardScopeItem("show-system-files") {
                         SettingSwitchRow(
-                            icon = { label -> Icon(Icons.Outlined.Visibility, contentDescription = label) },
+                            icon = { label -> Icon(MiuixIcons.Show, contentDescription = label) },
                             title = stringResource(R.string.search_panel_file_show_system),
                             checked = settings.searchPanelFileShowSystemFiles,
                             enabled = true,
@@ -154,7 +155,7 @@ fun SearchPanelFileSearchSettingsScreen(
                 add(
                     settingsCardScopeItem("file-previews-enabled") {
                         SettingSwitchRow(
-                            icon = { label -> Icon(Icons.Outlined.Image, contentDescription = label) },
+                            icon = { label -> Icon(MiuixIcons.Image, contentDescription = label) },
                             title = stringResource(R.string.search_panel_file_previews_title),
                             subtitle = stringResource(R.string.search_panel_file_previews_desc),
                             checked = settings.searchPanelFilePreviewsEnabled,
@@ -238,7 +239,7 @@ private fun LazyListScope.folderFilterGroupedItems(
             add(
                 settingsCardScopeItem("$keyPrefix-nav") {
                     SettingNavigationRow(
-                        icon = { label -> Icon(Icons.Outlined.Folder, contentDescription = label) },
+                        icon = { label -> Icon(MiuixIcons.Folder, contentDescription = label) },
                         title = title,
                         subtitle = if (patterns.isEmpty()) {
                             stringResource(R.string.search_panel_file_folder_empty)
@@ -253,7 +254,7 @@ private fun LazyListScope.folderFilterGroupedItems(
                         trailingContent = {
                             IconButton(onClick = onAdd) {
                                 Icon(
-                                    imageVector = Icons.Outlined.Add,
+                                    imageVector = MiuixIcons.Add,
                                     contentDescription = stringResource(R.string.search_panel_file_folder_add),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
@@ -266,14 +267,14 @@ private fun LazyListScope.folderFilterGroupedItems(
                 add(
                     settingsCardScopeItem("$keyPrefix-$pattern") {
                         SettingNavigationRow(
-                            icon = { label -> Icon(Icons.Outlined.Folder, contentDescription = label) },
+                            icon = { label -> Icon(MiuixIcons.Folder, contentDescription = label) },
                             title = "/" + FolderPathPatternMatcher.patternDisplayPath(pattern),
                             subtitle = "",
                             onClick = { onRemove(pattern) },
                             trailingContent = {
                                 IconButton(onClick = { onRemove(pattern) }) {
                                     Icon(
-                                        imageVector = Icons.Outlined.Close,
+                                        imageVector = MiuixIcons.Close,
                                         contentDescription = stringResource(
                                             R.string.search_panel_file_folder_remove_hint,
                                         ),
@@ -394,10 +395,10 @@ private fun fileTypeLabel(type: FileType): String = when (type) {
 }
 
 private fun fileTypeIcon(type: FileType): ImageVector = when (type) {
-    FileType.DOCUMENTS -> Icons.AutoMirrored.Outlined.InsertDriveFile
-    FileType.PICTURES -> Icons.Outlined.Image
+    FileType.DOCUMENTS -> MiuixIcons.File
+    FileType.PICTURES -> MiuixIcons.Image
     FileType.VIDEOS -> Icons.Outlined.VideoLibrary
     FileType.AUDIO -> Icons.Outlined.AudioFile
     FileType.APKS -> Icons.Outlined.Android
-    FileType.OTHER -> Icons.AutoMirrored.Outlined.InsertDriveFile
+    FileType.OTHER -> MiuixIcons.File
 }

@@ -1,9 +1,7 @@
 package com.slideindex.app.ui
 
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -18,6 +16,8 @@ import top.yukonga.miuix.kmp.basic.BasicComponent
 import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.preference.ArrowPreference
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Delete
 
 @Composable
 fun ImageShareEngineReorderRow(
@@ -39,7 +39,7 @@ fun ImageShareEngineReorderRow(
         endActions = {
             IconButton(onClick = onDelete) {
                 MiuixIcon(
-                    imageVector = Icons.Default.Delete,
+                    imageVector = MiuixIcons.Delete,
                     contentDescription = stringResource(R.string.search_engine_delete_confirm),
                 )
             }

@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.CreateNewFolder
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -26,6 +24,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.AddFolder
 import androidx.compose.ui.unit.dp
 import top.yukonga.miuix.kmp.basic.TextButton
 import com.slideindex.app.R
@@ -148,7 +148,7 @@ fun QuickLauncherAddPickerScreen(
         actions = {
             IconButton(onClick = onOpenCreateFolder) {
                 Icon(
-                    Icons.Outlined.CreateNewFolder,
+                    MiuixIcons.AddFolder,
                     contentDescription = stringResource(R.string.quick_launcher_new_folder),
                     tint = MaterialTheme.colorScheme.onSurface,
                 )

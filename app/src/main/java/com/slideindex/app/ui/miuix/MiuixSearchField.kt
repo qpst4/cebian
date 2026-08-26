@@ -5,9 +5,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.foundation.text.input.rememberTextFieldState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -22,6 +19,9 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.TextField
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Close
+import top.yukonga.miuix.kmp.icon.extended.Search
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import com.slideindex.app.R
 
@@ -77,7 +77,7 @@ fun MiuixSearchField(
         lineLimits = TextFieldLineLimits.SingleLine,
         leadingIcon = {
             Icon(
-                imageVector = Icons.Default.Search,
+                imageVector = MiuixIcons.Search,
                 contentDescription = hint,
                 modifier = Modifier.padding(horizontal = 12.dp),
                 tint = MiuixTheme.colorScheme.onSurfaceVariantSummary,
@@ -87,7 +87,7 @@ fun MiuixSearchField(
             if (state.text.isNotEmpty()) {
                 IconButton(onClick = { state.clearText() }) {
                     Icon(
-                        imageVector = Icons.Default.Close,
+                        imageVector = MiuixIcons.Close,
                         contentDescription = stringResource(R.string.search_clear),
                         tint = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                     )

@@ -16,13 +16,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DragHandle
-import androidx.compose.material.icons.filled.FileUpload
 import com.slideindex.app.ui.miuix.MiuixConfirmDialog
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Add
+import top.yukonga.miuix.kmp.icon.extended.Delete
+import top.yukonga.miuix.kmp.icon.extended.UploadCloud
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -178,7 +179,7 @@ fun SearchEngineSettingsScreen(
             items = listOf(
                 settingsCardScopeItem("import_backup") {
                     SettingNavigationRow(
-                        icon = { label -> Icon(Icons.Default.FileUpload, contentDescription = label) },
+                        icon = { label -> Icon(MiuixIcons.UploadCloud, contentDescription = label) },
                         title = importButtonLabel,
                         subtitle = stringResource(R.string.search_engine_settings_import_subtitle),
                         onClick = {
@@ -202,9 +203,15 @@ fun SearchEngineSettingsScreen(
             items = listOf(
                 settingsCardScopeItem("add_engine") {
                     SettingNavigationRow(
-                        icon = { label -> Icon(Icons.Default.Add, contentDescription = label) },
+                        icon = {
+                            label -> Icon(
+                                MiuixIcons.Add,
+                                contentDescription = label,
+                                modifier = Modifier.size(24.dp),
+                            )
+                        },
                         title = addButtonLabel,
-                        subtitle = "",
+                        subtitle = stringResource(R.string.search_engine_add_subtitle),
                         onClick = { onOpenEditor(null) },
                     )
                 },
@@ -309,7 +316,7 @@ private fun SearchEngineListRow(
         }
         IconButton(onClick = onDelete) {
             Icon(
-                Icons.Default.Delete,
+                MiuixIcons.Delete,
                 contentDescription = stringResource(R.string.search_engine_delete_confirm),
                 tint = MaterialTheme.colorScheme.error,
             )

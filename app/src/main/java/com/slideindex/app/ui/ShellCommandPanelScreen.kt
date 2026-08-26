@@ -33,8 +33,6 @@ import androidx.compose.foundation.lazy.grid.items
 
 import androidx.compose.material.icons.Icons
 
-import androidx.compose.material.icons.filled.Add
-
 import androidx.compose.material.icons.filled.Code
 
 import androidx.compose.material.icons.filled.History
@@ -44,6 +42,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 
 import com.slideindex.app.ui.miuix.MiuixSettingsFab
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Add
 
 import androidx.compose.material3.Icon
 
@@ -243,7 +243,7 @@ fun ShellCommandPanelScreen(
         floatingActionButton = {
             MiuixSettingsFab(
                 onClick = { onOpenEditor(null) },
-                icon = Icons.Default.Add,
+                icon = MiuixIcons.Add,
                 contentDescription = stringResource(R.string.shell_panel_add),
             )
         },

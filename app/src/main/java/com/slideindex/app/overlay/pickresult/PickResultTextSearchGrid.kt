@@ -32,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
@@ -250,6 +251,8 @@ fun SearchEngineIcon(
     engine: SearchEngineConfig,
     modifier: Modifier = Modifier,
     alpha: Float = 1f,
+    backgroundColor: Color = MaterialTheme.colorScheme.surfaceVariant,
+    fallbackContentColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
 ) {
     val context = LocalContext.current
     var bitmap by remember(engine.id) {
@@ -271,7 +274,7 @@ fun SearchEngineIcon(
             modifier = Modifier
                 .fillMaxSize()
                 .clip(shape)
-                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = alpha * 0.6f)),
+                .background(backgroundColor.copy(alpha = alpha * 0.6f)),
             contentAlignment = Alignment.Center,
         ) {
             val image = bitmap
@@ -289,7 +292,7 @@ fun SearchEngineIcon(
                 Text(
                     text = engine.textIcon?.take(1) ?: engine.name.take(1),
                     style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = alpha),
+                    color = fallbackContentColor.copy(alpha = alpha),
                 )
             }
         }

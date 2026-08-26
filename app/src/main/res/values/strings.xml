@@ -1295,7 +1295,10 @@
     <string name="search_engine_accessibility_required">使用此功能需要开启边栏无障碍服务</string>
     <string name="search_engine_shizuku_required">跳转未导出的 Activity 需要授权 Shizuku</string>
     <string name="search_engine_add_title">添加搜索引擎</string>
+    <string name="search_engine_add_subtitle">配置自定义文字搜索引擎</string>
     <string name="search_engine_edit_title">编辑搜索引擎</string>
+    <string name="search_engine_edit_identity_title">编辑搜索引擎信息</string>
+    <string name="search_engine_edit_identity_hint">点击编辑名称和别名</string>
     <string name="search_engine_save">保存</string>
     <string name="search_engine_saved">搜索引擎已保存</string>
     <string name="search_engine_deleted">搜索引擎已删除</string>
@@ -1383,6 +1386,7 @@
     <string name="image_search_engine_share_section">分享到 App（%1$d）</string>
     <string name="image_search_engine_share_hint">配置后显示在截图底栏，点击直达目标 App。长按可拖动排序</string>
     <string name="image_search_engine_add_share_target">添加分享目标</string>
+    <string name="image_search_engine_add_share_target_subtitle">配置截图分享目标</string>
     <string name="image_search_engine_share_empty">暂无分享目标，可添加淘宝、闲鱼等 App</string>
     <string name="floating_pointer_settings_title">悬浮指针</string>
     <string name="floating_pointer_settings_section_appearance">外观</string>

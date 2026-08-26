@@ -10,6 +10,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,16 +21,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Apps
-import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.TextFields
-import androidx.compose.material3.Card
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -60,6 +51,7 @@ import com.slideindex.app.ui.miuix.MiuixHintText
 import com.slideindex.app.ui.miuix.MiuixLabeledTextField
 import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import com.slideindex.app.ui.miuix.MiuixSwitchRow
+import com.slideindex.app.ui.miuix.MiuixTabRowContourHost
 import com.slideindex.app.ui.miuix.MiuixTabRowWithContour
 import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
@@ -68,8 +60,19 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import top.yukonga.miuix.kmp.basic.Button as MiuixButton
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.CardDefaults
 import top.yukonga.miuix.kmp.basic.CircularProgressIndicator as MiuixCircularProgressIndicator
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton as MiuixTextButton
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Download
+import top.yukonga.miuix.kmp.icon.extended.File
+import top.yukonga.miuix.kmp.icon.extended.GridView
+import top.yukonga.miuix.kmp.icon.extended.Image
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 enum class SearchEngineEditorCategory {
     TEXT,
@@ -82,7 +85,6 @@ data class SearchEngineEditorResult(
     val savedIconPath: String? = null,
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchEngineEditorScreen(
     initialEngine: SearchEngineConfig?,
@@ -110,6 +112,7 @@ fun SearchEngineEditorScreen(
     val pendingTextIcon = draft.pendingTextIcon
 
     var showTextIconDialog by remember(initialEngine?.id) { mutableStateOf(false) }
+    var showIdentityDialog by remember(initialEngine?.id) { mutableStateOf(false) }
     var isFetchingFavicon by remember(initialEngine?.id) { mutableStateOf(false) }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -206,6 +209,7 @@ fun SearchEngineEditorScreen(
             MiuixTextButton(
                 text = stringResource(R.string.search_engine_save),
                 onClick = saveAction,
+                colors = ButtonDefaults.textButtonColorsPrimary(),
             )
         },
     ) {
@@ -218,9 +222,13 @@ fun SearchEngineEditorScreen(
         ) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.defaultColors(
+                    color = MiuixTheme.colorScheme.surfaceContainer,
+                    contentColor = MiuixTheme.colorScheme.onSurfaceContainer,
+                ),
+                insideMargin = PaddingValues(16.dp),
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     MiuixSmallTitle(stringResource(R.string.search_engine_pick_icon))
@@ -232,18 +240,26 @@ fun SearchEngineEditorScreen(
                         SearchEngineIcon(
                             engine = previewEngine,
                             modifier = Modifier.size(56.dp),
+                            backgroundColor = MiuixTheme.colorScheme.surfaceVariant,
+                            fallbackContentColor = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                         )
                         Spacer(modifier = Modifier.width(16.dp))
-                        Column(modifier = Modifier.weight(1f)) {
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable { showIdentityDialog = true }
+                                .padding(vertical = 6.dp),
+                        ) {
                             Text(
                                 text = name.ifBlank { stringResource(R.string.search_engine_name_hint) },
-                                style = MaterialTheme.typography.titleMedium,
+                                style = MiuixTheme.textStyles.title4,
                                 fontWeight = FontWeight.SemiBold,
                             )
                             Text(
-                                text = engineTypeLabel(previewEngine.engineType),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                text = stringResource(R.string.search_engine_edit_identity_hint),
+                                style = MiuixTheme.textStyles.body2,
+                                color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                             )
                         }
                     }
@@ -258,7 +274,7 @@ fun SearchEngineEditorScreen(
                                     onClick = { iconPicker.launch("image/*") },
                                     enabled = true,
                                     isLoading = false,
-                                    icon = Icons.Default.Image,
+                                    icon = MiuixIcons.Image,
                                     label = stringResource(R.string.search_engine_pick_icon),
                                     modifier = Modifier.weight(1f),
                                 )
@@ -272,7 +288,7 @@ fun SearchEngineEditorScreen(
                                     },
                                     enabled = true,
                                     isLoading = false,
-                                    icon = Icons.Default.Apps,
+                                    icon = MiuixIcons.GridView,
                                     label = stringResource(R.string.search_engine_pick_app_icon),
                                     modifier = Modifier.weight(1f),
                                 )
@@ -315,7 +331,7 @@ fun SearchEngineEditorScreen(
                                     },
                                     enabled = canFetchFavicon,
                                     isLoading = isFetchingFavicon,
-                                    icon = Icons.Default.Download,
+                                    icon = MiuixIcons.Download,
                                     label = stringResource(
                                         if (isFetchingFavicon) {
                                             R.string.search_engine_fetch_favicon_loading
@@ -329,7 +345,7 @@ fun SearchEngineEditorScreen(
                                     onClick = { showTextIconDialog = true },
                                     enabled = true,
                                     isLoading = false,
-                                    icon = Icons.Default.TextFields,
+                                    icon = MiuixIcons.File,
                                     label = stringResource(R.string.search_engine_text_icon),
                                     modifier = Modifier.weight(1f),
                                 )
@@ -341,24 +357,15 @@ fun SearchEngineEditorScreen(
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.defaultColors(
+                    color = MiuixTheme.colorScheme.surfaceContainer,
+                    contentColor = MiuixTheme.colorScheme.onSurfaceContainer,
+                ),
+                insideMargin = PaddingValues(16.dp),
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    MiuixLabeledTextField(
-                        value = name,
-                        onValueChange = { onUpdateDraft { d -> d.copy(name = it) } },
-                        label = stringResource(R.string.search_engine_name_hint),
-                    )
-
-                    MiuixLabeledTextField(
-                        value = aliasCode,
-                        onValueChange = { onUpdateDraft { d -> d.copy(aliasCode = it) } },
-                        label = stringResource(R.string.search_engine_alias_hint),
-                    )
-                    MiuixHintText(stringResource(R.string.search_engine_alias_support))
-
                     if (isShareTextType) {
                         MiuixHintText(stringResource(R.string.search_engine_share_type_readonly))
                     } else if (isShareImageType) {
@@ -421,12 +428,6 @@ fun SearchEngineEditorScreen(
                 }
             }
 
-            MiuixButton(
-                onClick = saveAction,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(stringResource(R.string.search_engine_save))
-            }
         }
         }
     }
@@ -447,6 +448,35 @@ fun SearchEngineEditorScreen(
                 showTextIconDialog = false
             },
         )
+    }
+
+    if (showIdentityDialog) {
+        MiuixFormDialog(
+            show = true,
+            title = stringResource(R.string.search_engine_edit_identity_title),
+            onDismissRequest = { showIdentityDialog = false },
+            confirmText = stringResource(R.string.search_engine_save),
+            onConfirm = { showIdentityDialog = false },
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                MiuixLabeledTextField(
+                    value = name,
+                    onValueChange = { onUpdateDraft { d -> d.copy(name = it) } },
+                    label = stringResource(R.string.search_engine_name_hint),
+                )
+                MiuixLabeledTextField(
+                    value = aliasCode,
+                    onValueChange = { onUpdateDraft { d -> d.copy(aliasCode = it) } },
+                    label = stringResource(R.string.search_engine_alias_hint),
+                )
+                MiuixHintText(stringResource(R.string.search_engine_alias_support))
+            }
+        }
     }
 }
 
@@ -473,7 +503,6 @@ private fun EditorTypeFields(
     val engineTypes = listOf(
         SearchEngineType.DIRECT_LINK to stringResource(R.string.search_engine_type_direct_link),
         SearchEngineType.JUMP_TO_ACTIVITY to stringResource(R.string.search_engine_type_jump_activity),
-        SearchEngineType.EXTERN_JUMP_LINK to stringResource(R.string.search_engine_type_extern_jump),
     )
 
     MiuixTabRowWithContour(
@@ -485,6 +514,7 @@ private fun EditorTypeFields(
             }
         },
         modifier = Modifier.fillMaxWidth(),
+        contourHost = MiuixTabRowContourHost.SurfaceContainer,
     )
 
     when (engineType) {
@@ -709,7 +739,7 @@ private fun IconSourceButton(
         Text(
             text = label,
             modifier = Modifier.padding(start = 4.dp),
-            style = MaterialTheme.typography.labelSmall,
+            style = MiuixTheme.textStyles.footnote1,
             maxLines = 1,
         )
     }
@@ -736,8 +766,8 @@ private fun TextIconDialog(
         )
         Text(
             text = stringResource(R.string.search_engine_text_icon_support),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MiuixTheme.textStyles.body2,
+            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
         )
     }
 }

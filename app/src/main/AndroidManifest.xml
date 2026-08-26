@@ -70,6 +70,12 @@
             <action android:name="android.intent.action.VOICE_ASSIST" />
         </intent>
         <intent>
+            <action android:name="android.intent.action.SEND" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.SEND_MULTIPLE" />
+        </intent>
+        <intent>
             <action android:name="android.intent.action.CREATE_SHORTCUT" />
         </intent>
         <intent>

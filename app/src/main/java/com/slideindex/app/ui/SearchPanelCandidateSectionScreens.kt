@@ -1,8 +1,5 @@
 package com.slideindex.app.ui
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Contacts
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
@@ -26,6 +23,9 @@ import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 import com.slideindex.app.ui.settings.components.settingsLazyHint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Contacts
+import top.yukonga.miuix.kmp.icon.extended.Settings
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -69,7 +69,7 @@ fun SearchPanelContactSearchSettingsScreen(
                 add(
                     settingsCardScopeItem("permission") {
                         SettingNavigationRow(
-                            icon = { label -> Icon(Icons.Outlined.Contacts, contentDescription = label) },
+                            icon = { label -> Icon(MiuixIcons.Contacts, contentDescription = label) },
                             title = if (hasPermission) {
                                 stringResource(R.string.search_panel_contact_permission_granted)
                             } else {
@@ -126,7 +126,7 @@ fun SearchPanelSystemSettingsSearchSettingsScreen(
                 add(
                     settingsCardScopeItem("index-refresh") {
                         SettingNavigationRow(
-                            icon = { label -> Icon(Icons.Outlined.Settings, contentDescription = label) },
+                            icon = { label -> Icon(MiuixIcons.Settings, contentDescription = label) },
                             title = stringResource(R.string.search_panel_settings_index_refresh),
                             subtitle = indexCount?.let {
                                 pluralStringResource(R.plurals.search_panel_settings_index_count, it, it)

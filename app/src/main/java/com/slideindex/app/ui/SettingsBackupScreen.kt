@@ -8,12 +8,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.FileDownload
-import androidx.compose.material.icons.filled.FileUpload
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Download
+import top.yukonga.miuix.kmp.icon.extended.UploadCloud
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -120,7 +120,7 @@ fun SettingsBackupScreen(
                     colors = ButtonDefaults.buttonColorsPrimary(),
                 ) {
                     Icon(
-                        Icons.Default.FileDownload,
+                        MiuixIcons.Download,
                         contentDescription = stringResource(R.string.cd_export_settings),
                         tint = MiuixTheme.colorScheme.onPrimary,
                     )
@@ -141,7 +141,7 @@ fun SettingsBackupScreen(
                     colors = ButtonDefaults.buttonColors(),
                 ) {
                     Icon(
-                        Icons.Default.FileUpload,
+                        MiuixIcons.UploadCloud,
                         contentDescription = stringResource(R.string.cd_import_settings),
                         tint = MiuixTheme.colorScheme.onSecondaryVariant,
                     )

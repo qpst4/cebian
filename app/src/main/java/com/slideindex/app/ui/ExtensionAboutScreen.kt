@@ -34,11 +34,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.outlined.Code
-import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.Memory
 import androidx.compose.material.icons.outlined.NewReleases
 import androidx.compose.material.icons.outlined.Palette
-import androidx.compose.material.icons.outlined.SystemUpdate
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -62,6 +60,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Community
+import top.yukonga.miuix.kmp.icon.extended.Update
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -373,7 +374,7 @@ private fun AboutContent(
                     add(
                         settingsCardScopeItem("check-update") {
                             SettingNavigationRow(
-                                icon = { label -> Icon(Icons.Outlined.SystemUpdate, contentDescription = label) },
+                                icon = { label -> Icon(MiuixIcons.Update, contentDescription = label) },
                                 title = stringResource(R.string.about_check_update_title),
                                 subtitle = stringResource(R.string.about_check_update_subtitle),
                                 onClick = onCheckUpdate,
@@ -416,7 +417,7 @@ private fun AboutContent(
                     add(
                         settingsCardScopeItem("qq-group") {
                             SettingNavigationRow(
-                                icon = { label -> Icon(Icons.Outlined.Groups, contentDescription = label) },
+                                icon = { label -> Icon(MiuixIcons.Community, contentDescription = label) },
                                 title = stringResource(R.string.about_qq_group_title),
                                 subtitle = stringResource(R.string.about_qq_group_desc),
                                 onClick = {
@@ -463,7 +464,7 @@ private fun AboutContent(
                     add(
                         settingsCardScopeItem("auto-check-update") {
                             SettingToggleRow(
-                                icon = { label -> Icon(Icons.Outlined.SystemUpdate, contentDescription = label) },
+                                icon = { label -> Icon(MiuixIcons.Update, contentDescription = label) },
                                 title = stringResource(R.string.auto_check_update_title),
                                 subtitle = stringResource(R.string.auto_check_update_hint),
                                 checked = autoCheckUpdate,

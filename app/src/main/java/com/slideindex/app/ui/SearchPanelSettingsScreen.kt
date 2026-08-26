@@ -6,13 +6,14 @@ import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.InsertDriveFile
 import androidx.compose.material.icons.outlined.Apps
-import androidx.compose.material.icons.outlined.Contacts
 import androidx.compose.material.icons.outlined.History
-import androidx.compose.material.icons.outlined.Image
-import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material.icons.outlined.Settings
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Contacts
+import top.yukonga.miuix.kmp.icon.extended.File
+import top.yukonga.miuix.kmp.icon.extended.Image
+import top.yukonga.miuix.kmp.icon.extended.Search
+import top.yukonga.miuix.kmp.icon.extended.Settings
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
@@ -161,7 +162,7 @@ fun SearchPanelSettingsScreen(
                 add(
                     settingsCardScopeItem("presentation-layout") {
                         SettingNavigationRow(
-                            icon = { label -> Icon(Icons.Outlined.Settings, contentDescription = label) },
+                            icon = { label -> Icon(MiuixIcons.Settings, contentDescription = label) },
                             title = presentationLayoutTitle,
                             subtitle = presentationLayoutSubtitle,
                             onClick = onOpenPresentationLayoutSettings,
@@ -228,7 +229,7 @@ fun SearchPanelSettingsScreen(
                 add(
                     settingsCardScopeItem("text-engines") {
                         SettingNavigationRow(
-                            icon = { label -> Icon(Icons.Outlined.Search, contentDescription = label) },
+                            icon = { label -> Icon(MiuixIcons.Search, contentDescription = label) },
                             title = stringResource(R.string.search_engine_settings_title),
                             subtitle = stringResource(R.string.search_panel_text_engines_entry_desc),
                             onClick = onOpenTextSearchEngines,
@@ -238,7 +239,7 @@ fun SearchPanelSettingsScreen(
                 add(
                     settingsCardScopeItem("image-engines") {
                         SettingNavigationRow(
-                            icon = { label -> Icon(Icons.Outlined.Image, contentDescription = label) },
+                            icon = { label -> Icon(MiuixIcons.Image, contentDescription = label) },
                             title = stringResource(R.string.image_search_engine_settings_title),
                             subtitle = stringResource(R.string.search_panel_image_engines_entry_desc),
                             onClick = onOpenImageSearchEngines,
@@ -454,7 +455,7 @@ fun SearchPanelSettingsScreen(
                         SettingSwitchNavigationRow(
                             title = contactsTitle,
                             subtitle = stringResource(R.string.search_panel_contact_search_desc),
-                            icon = { label -> Icon(Icons.Outlined.Contacts, contentDescription = label) },
+                            icon = { label -> Icon(MiuixIcons.Contacts, contentDescription = label) },
                             checked = settings.searchPanelContactSearchEnabled,
                             enabled = true,
                             onCheckedChange = { enabled ->
@@ -486,7 +487,7 @@ fun SearchPanelSettingsScreen(
                             title = filesTitle,
                             subtitle = stringResource(R.string.search_panel_file_search_desc),
                             icon = { label ->
-                                Icon(Icons.AutoMirrored.Outlined.InsertDriveFile, contentDescription = label)
+                                Icon(MiuixIcons.File, contentDescription = label)
                             },
                             checked = settings.searchPanelFileSearchEnabled,
                             enabled = true,
@@ -518,7 +519,7 @@ fun SearchPanelSettingsScreen(
                         SettingSwitchNavigationRow(
                             title = settingsSearchTitle,
                             subtitle = stringResource(R.string.search_panel_settings_search_desc),
-                            icon = { label -> Icon(Icons.Outlined.Settings, contentDescription = label) },
+                            icon = { label -> Icon(MiuixIcons.Settings, contentDescription = label) },
                             checked = settings.searchPanelSettingsSearchEnabled,
                             enabled = true,
                             onCheckedChange = onSetSearchPanelSettingsSearchEnabled,

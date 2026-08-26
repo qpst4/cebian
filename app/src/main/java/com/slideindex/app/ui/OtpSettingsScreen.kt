@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Rule
-import androidx.compose.material.icons.outlined.ContentCopy
-import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.TouchApp
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -42,6 +40,9 @@ import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 import com.slideindex.app.ui.settings.components.settingsLazyHint
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import com.slideindex.app.ui.viewmodel.OtpSettingsViewModel
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Copy
+import top.yukonga.miuix.kmp.icon.extended.Recent
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -52,7 +53,7 @@ fun rememberOtpCopyToClipboardCard(
     SettingSwitchRow(
         title = stringResource(R.string.otp_copy_to_clipboard_title),
         subtitle = stringResource(R.string.otp_copy_to_clipboard_desc),
-        icon = { label -> Icon(Icons.Outlined.ContentCopy, contentDescription = label) },
+        icon = { label -> Icon(MiuixIcons.Copy, contentDescription = label) },
         checked = copyToClipboard,
         enabled = true,
         onCheckedChange = onCopyToClipboardChange,
@@ -254,7 +255,7 @@ fun OtpSettingsScreen(
                     add(
                         settingsCardScopeItem("records") {
                             SettingNavigationRow(
-                                icon = { label -> Icon(Icons.Outlined.History, contentDescription = label) },
+                                icon = { label -> Icon(MiuixIcons.Recent, contentDescription = label) },
                                 title = stringResource(R.string.otp_records_entry_title),
                                 subtitle = stringResource(R.string.otp_records_entry_desc),
                                 onClick = openRecords,

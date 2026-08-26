@@ -70,18 +70,28 @@ class SearchEngineSettingsViewModel @Inject constructor(
         if (currentDraft != null && currentDraft.engineId == initialEngine?.id.orEmpty()) {
             return
         }
+        val isLegacyExternalLink = initialEngine?.engineType == SearchEngineType.EXTERN_JUMP_LINK
+        val normalizedEngineType = when {
+            category == com.slideindex.app.ui.SearchEngineEditorCategory.IMAGE_SHARE ->
+                SearchEngineType.SHARE_IMAGE_TO_APP
+            isLegacyExternalLink -> SearchEngineType.DIRECT_LINK
+            else -> initialEngine?.engineType ?: SearchEngineType.DIRECT_LINK
+        }
+        val normalizedSearchLink = initialEngine?.searchLink.orEmpty().ifBlank {
+            if (isLegacyExternalLink) initialEngine.externJumpLink.orEmpty() else ""
+        }
+        val normalizedTargetPackage = initialEngine?.targetPackage.orEmpty().ifBlank {
+            if (isLegacyExternalLink) initialEngine.externJumpPackage.orEmpty() else ""
+        }
         _editorDraft.value = SearchEngineDraft(
             engineId = initialEngine?.id.orEmpty(),
             name = initialEngine?.name.orEmpty(),
             aliasCode = initialEngine?.aliasCode.orEmpty(),
-            engineType = when {
-                category == com.slideindex.app.ui.SearchEngineEditorCategory.IMAGE_SHARE -> SearchEngineType.SHARE_IMAGE_TO_APP
-                else -> initialEngine?.engineType ?: SearchEngineType.DIRECT_LINK
-            },
-            searchLink = initialEngine?.searchLink.orEmpty(),
+            engineType = normalizedEngineType,
+            searchLink = normalizedSearchLink,
             externJumpLink = initialEngine?.externJumpLink.orEmpty(),
             externJumpPackage = initialEngine?.externJumpPackage.orEmpty(),
-            targetPackage = initialEngine?.targetPackage.orEmpty(),
+            targetPackage = normalizedTargetPackage,
             targetActivity = initialEngine?.targetActivity.orEmpty(),
             autoInputEnter = initialEngine?.autoInputEnter ?: true,
             pendingIconPath = initialEngine?.iconPath?.takeIf { initialEngine.iconType == SearchIconType.URI },

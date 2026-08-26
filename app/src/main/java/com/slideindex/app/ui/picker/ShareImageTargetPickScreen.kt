@@ -1,14 +1,9 @@
 package com.slideindex.app.ui.picker
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
@@ -30,11 +25,8 @@ import com.slideindex.app.search.ShareImageTargetResolver
 import com.slideindex.app.ui.Md3PickerDrawableLeading
 import com.slideindex.app.ui.Md3PickerListRow
 import com.slideindex.app.ui.PickerListHorizontalPadding
-import com.slideindex.app.ui.PickerSearchListHeader
 import com.slideindex.app.ui.PickerTrailingMode
-import com.slideindex.app.ui.pickerListSegmentedGap
-import com.slideindex.app.ui.settings.components.LazySettingsItem
-import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
+import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffoldWithExpandableSearch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -50,8 +42,6 @@ fun ShareImageTargetPickScreen(
     var targets by remember { mutableStateOf<List<ShareImageTarget>>(emptyList()) }
     var loading by remember { mutableStateOf(true) }
     var query by remember { mutableStateOf("") }
-    val listScrollState = rememberScrollState()
-
     LaunchedEffect(Unit) {
         loading = true
         targets = withContext(Dispatchers.IO) {
@@ -64,30 +54,28 @@ fun ShareImageTargetPickScreen(
         ShareImageTargetResolver.searchTargets(targets, query)
     }
 
-    SettingsScreenScaffold(
+    SettingsLazyScreenScaffoldWithExpandableSearch(
         title = stringResource(R.string.search_engine_pick_share_image_target_title),
+        searchQuery = query,
+        onSearchQueryChange = { query = it },
         onBack = onBack,
-        scrollContent = false,
+        hintResId = R.string.search_engine_share_image_target_search_hint,
     ) {
-        item(key = "share-image-target-body") {
-        Column(Modifier.fillMaxSize()) {
-            PickerSearchListHeader(
-                query = query,
-                onQueryChange = { query = it },
-                hintResId = R.string.search_engine_share_image_target_search_hint,
-            )
-            when {
-                loading -> {
+        when {
+            loading -> {
+                item(key = "share-image-target-loading") {
                     Box(
                         modifier = Modifier
-                            .weight(1f)
-                            .fillMaxWidth(),
+                            .fillMaxWidth()
+                            .padding(32.dp),
                         contentAlignment = Alignment.Center,
                     ) {
                         CircularProgressIndicator()
                     }
                 }
-                filtered.isEmpty() -> {
+            }
+            filtered.isEmpty() -> {
+                item(key = "share-image-target-empty") {
                     Text(
                         text = stringResource(R.string.search_engine_share_image_target_empty),
                         style = MaterialTheme.typography.bodyMedium,
@@ -95,50 +83,49 @@ fun ShareImageTargetPickScreen(
                         modifier = Modifier.padding(24.dp),
                     )
                 }
-                else -> {
-                    Column(
+            }
+            else -> {
+                items(
+                    items = filtered,
+                    key = { "${it.packageName}/${it.activityClassName}" },
+                ) { target ->
+                    val index = filtered.indexOf(target)
+                    val selected = target.packageName == selectedPackageName &&
+                        target.activityClassName == selectedActivityClassName
+                    Box(
                         modifier = Modifier
-                            .weight(1f)
                             .fillMaxWidth()
-                            .verticalScroll(listScrollState)
-                            .selectableGroup()
                             .padding(
                                 start = PickerListHorizontalPadding,
                                 end = PickerListHorizontalPadding,
-                                bottom = 8.dp,
+                                bottom = if (index == filtered.lastIndex) 8.dp else 0.dp,
                             ),
-                        verticalArrangement = Arrangement.spacedBy(pickerListSegmentedGap()),
                     ) {
-                        filtered.forEachIndexed { index, target ->
-                            val selected = target.packageName == selectedPackageName &&
-                                target.activityClassName == selectedActivityClassName
-                            Md3PickerListRow(
-                                segmentIndex = index,
-                                segmentCount = filtered.size,
-                                title = target.label,
-                                subtitle = ShareImageTargetResolver.displaySubtitle(target),
-                                selected = selected,
-                                onClick = { onSelectTarget(target) },
-                                leadingContent = {
-                                    val pm = context.packageManager
-                                    val drawable = target.icon ?: runCatching {
-                                        pm.getApplicationIcon(target.packageName)
-                                    }.getOrNull()
-                                    if (drawable != null) {
-                                        Md3PickerDrawableLeading(
-                                            drawable = drawable,
-                                            contentDescription = target.label,
-                                            cacheKey = target.activityClassName,
-                                        )
-                                    }
-                                },
-                                trailingMode = PickerTrailingMode.Radio,
-                            )
-                        }
+                        Md3PickerListRow(
+                            segmentIndex = index,
+                            segmentCount = filtered.size,
+                            title = target.label,
+                            subtitle = ShareImageTargetResolver.displaySubtitle(target),
+                            selected = selected,
+                            onClick = { onSelectTarget(target) },
+                            leadingContent = {
+                                val pm = context.packageManager
+                                val drawable = target.icon ?: runCatching {
+                                    pm.getApplicationIcon(target.packageName)
+                                }.getOrNull()
+                                if (drawable != null) {
+                                    Md3PickerDrawableLeading(
+                                        drawable = drawable,
+                                        contentDescription = target.label,
+                                        cacheKey = target.activityClassName,
+                                    )
+                                }
+                            },
+                            trailingMode = PickerTrailingMode.Radio,
+                        )
                     }
                 }
             }
-        }
         }
     }
 }

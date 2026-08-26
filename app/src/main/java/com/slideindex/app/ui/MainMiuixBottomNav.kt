@@ -109,7 +109,8 @@ fun MiuixFloatingBottomNavBar(
                     haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
                     onTabSelected(destination)
                 },
-                modifier = Modifier.defaultMinSize(minWidth = if (showLabel) 76.dp else 52.dp),
+                // Keep the capsule width stable when labels are hidden.
+                modifier = Modifier.defaultMinSize(minWidth = 76.dp),
             ) {
                 Crossfade(
                     targetState = index == targetTabIndex,

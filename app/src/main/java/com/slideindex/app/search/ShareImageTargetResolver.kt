@@ -18,12 +18,28 @@ data class ShareImageTarget(
 )
 
 object ShareImageTargetResolver {
+    private val imageMimeTypes = listOf(
+        "image/*",
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+        "image/gif",
+        "image/bmp",
+        "image/heic",
+        "image/heif",
+    )
+
     fun listTargets(context: Context): List<ShareImageTarget> {
-        val intent = Intent(Intent.ACTION_SEND).apply {
-            type = "image/*"
-        }
         val pm = context.packageManager
-        return pm.queryIntentActivitiesCompat(intent, PackageManager.MATCH_DEFAULT_ONLY)
+        return listOf(Intent.ACTION_SEND, Intent.ACTION_SEND_MULTIPLE)
+            .flatMap { action ->
+                imageMimeTypes.flatMap { mimeType ->
+                    val intent = Intent(action).apply {
+                        type = mimeType
+                    }
+                    pm.queryIntentActivitiesCompat(intent, PackageManager.MATCH_ALL)
+                }
+            }
             .mapNotNull { resolveInfo -> toTarget(pm, resolveInfo) }
             .distinctBy { "${it.packageName}/${it.activityClassName}" }
             .sortedWith(

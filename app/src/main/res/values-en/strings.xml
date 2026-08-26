@@ -524,7 +524,10 @@
     <string name="search_engine_accessibility_required">Enable the Cebian accessibility service to use this feature</string>
     <string name="search_engine_shizuku_required">Shizuku permission is required to launch non-exported activities</string>
     <string name="search_engine_add_title">Add search engine</string>
+    <string name="search_engine_add_subtitle">Configure a custom text search engine</string>
     <string name="search_engine_edit_title">Edit search engine</string>
+    <string name="search_engine_edit_identity_title">Edit search engine information</string>
+    <string name="search_engine_edit_identity_hint">Tap to edit name and alias</string>
     <string name="search_engine_save">Save</string>
     <string name="search_engine_saved">Search engine saved</string>
     <string name="search_engine_deleted">Search engine deleted</string>
@@ -612,6 +615,7 @@
     <string name="image_search_engine_share_section">Share to app (%1$d)</string>
     <string name="image_search_engine_share_hint">Shown on the screenshot bar. Tap to open the app directly. Long-press to reorder.</string>
     <string name="image_search_engine_add_share_target">Add share target</string>
+    <string name="image_search_engine_add_share_target_subtitle">Configure a screenshot sharing target</string>
     <string name="image_search_engine_share_empty">No share targets yet. Add apps such as Taobao or Xianyu.</string>
     <string name="float_ball_image_search_pick_panel_transparency">Pick card dimming during image search</string>
     <string name="float_ball_appearance_settings_title">Appearance</string>
