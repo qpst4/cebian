@@ -152,6 +152,18 @@ class MessageSettingsMutator @Inject constructor(
     suspend fun setMessageOpenLastOnUnlock(enabled: Boolean) =
         editor.edit { it[SettingsPreferenceKeys.MESSAGE_OPEN_LAST_ON_UNLOCK] = enabled }
 
+    suspend fun setMessageUnlockConfirmationAutoDismissSeconds(seconds: Int) =
+        editor.edit {
+            it[SettingsPreferenceKeys.MESSAGE_UNLOCK_CONFIRMATION_AUTO_DISMISS_SECONDS] =
+                seconds.coerceIn(0, 30)
+        }
+
+    suspend fun setMessageOpenLastAlways(packageName: String, enabled: Boolean) = editor.edit { prefs ->
+        val packages = (prefs[SettingsPreferenceKeys.MESSAGE_OPEN_LAST_ALWAYS_PACKAGES] ?: emptySet()).toMutableSet()
+        if (enabled) packages.add(packageName) else packages.remove(packageName)
+        prefs[SettingsPreferenceKeys.MESSAGE_OPEN_LAST_ALWAYS_PACKAGES] = packages
+    }
+
     suspend fun upsertMessageAppFilterRule(rule: MessageAppFilterRule) = editor.edit { prefs ->
         val current = MessageAppFilterCodec.decodeAll(prefs[SettingsPreferenceKeys.MESSAGE_APP_FILTER_RULES] ?: emptySet())
             .toMutableMap()

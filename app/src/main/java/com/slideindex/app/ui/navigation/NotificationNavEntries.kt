@@ -13,6 +13,7 @@ import com.slideindex.app.message.MessageSettingsCodec
 import com.slideindex.app.ui.MessageAppFilterEditorScreen
 import com.slideindex.app.ui.MessageGestureActionPickerScreen
 import com.slideindex.app.ui.MessageReminderAllowedAppsScreen
+import com.slideindex.app.ui.MessageReminderUnlockRulesScreen
 import com.slideindex.app.ui.MessageReminderDndAppsScreen
 import com.slideindex.app.ui.MessageReminderSettingsScreen
 import com.slideindex.app.ui.MessageStyleDetailSettingsScreen
@@ -134,6 +135,11 @@ fun NavEntryBuilder.notificationNavEntries(ctx: MainNavContext) {
             onEnabledChange = viewModel::setMessageReminderEnabled,
             onInterceptNotificationsChange = viewModel::setMessageInterceptNotifications,
             onOpenLastMessageOnUnlockChange = viewModel::setMessageOpenLastOnUnlock,
+            onUnlockConfirmationAutoDismissSecondsChange =
+                viewModel::setMessageUnlockConfirmationAutoDismissSeconds,
+            onOpenLastMessageOnUnlockRules = {
+                ctx.navigate(AppNavKey.MessageReminderUnlockRules)
+            },
             onFloatIconEnabledChange = viewModel::setMessageFloatIconEnabled,
             onFloatIconSizeDpChange = viewModel::setMessageFloatIconSizeDp,
             onFloatIconOpacityChange = viewModel::setMessageFloatIconOpacity,
@@ -221,6 +227,16 @@ fun NavEntryBuilder.notificationNavEntries(ctx: MainNavContext) {
             onOpenFilterEditor = { packageName ->
                 ctx.navigate(AppNavKey.MessageReminderAppFilterEdit(packageName))
             },
+        )
+    }
+
+    hiltEntry<AppNavKey.MessageReminderUnlockRules> {
+        val viewModel: MessageSettingsViewModel = hiltViewModel()
+        val messageSettings by viewModel.messageReminderSettings.collectAsStateWithLifecycle()
+        MessageReminderUnlockRulesScreen(
+            settings = messageSettings,
+            onBack = { ctx.navigateBackTo(AppNavKey.MessageReminder) },
+            onAlwaysAllowChange = viewModel::setMessageOpenLastAlways,
         )
     }
 

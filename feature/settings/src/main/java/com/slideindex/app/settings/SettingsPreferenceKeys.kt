@@ -309,6 +309,10 @@ internal object SettingsPreferenceKeys {
     val MESSAGE_APP_FILTER_RULES = stringSetPreferencesKey("message_app_filter_rules")
     /** 解锁屏幕后自动打开锁屏期间到达的最后一条消息。 */
     val MESSAGE_OPEN_LAST_ON_UNLOCK = booleanPreferencesKey("message_open_last_on_unlock")
+    val MESSAGE_OPEN_LAST_ALWAYS_PACKAGES =
+        stringSetPreferencesKey("message_open_last_always_packages")
+    val MESSAGE_UNLOCK_CONFIRMATION_AUTO_DISMISS_SECONDS =
+        intPreferencesKey("message_unlock_confirmation_auto_dismiss_seconds")
     val DEBUG_PERFORMANCE_MONITOR = booleanPreferencesKey("debug_performance_monitor")
     val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
     val FLOAT_BALL_ENABLED = booleanPreferencesKey("float_ball_enabled")

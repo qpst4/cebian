@@ -822,6 +822,10 @@ class SettingsRepository @Inject constructor(
     suspend fun removeMessageDndPackage(packageName: String) = message.removeMessageDndPackage(packageName)
     suspend fun setMessageSuppressWhenSystemDnd(enabled: Boolean) = message.setMessageSuppressWhenSystemDnd(enabled)
     suspend fun setMessageOpenLastOnUnlock(enabled: Boolean) = message.setMessageOpenLastOnUnlock(enabled)
+    suspend fun setMessageUnlockConfirmationAutoDismissSeconds(seconds: Int) =
+        message.setMessageUnlockConfirmationAutoDismissSeconds(seconds)
+    suspend fun setMessageOpenLastAlways(packageName: String, enabled: Boolean) =
+        message.setMessageOpenLastAlways(packageName, enabled)
     suspend fun upsertMessageAppFilterRule(rule: MessageAppFilterRule) = message.upsertMessageAppFilterRule(rule)
     suspend fun removeMessageAppFilterRule(packageName: String) = message.removeMessageAppFilterRule(packageName)
 }

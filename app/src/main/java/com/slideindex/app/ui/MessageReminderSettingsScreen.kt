@@ -70,6 +70,8 @@ fun MessageReminderSettingsScreen(
     onEnabledChange: (Boolean) -> Unit,
     onInterceptNotificationsChange: (Boolean) -> Unit,
     onOpenLastMessageOnUnlockChange: (Boolean) -> Unit,
+    onUnlockConfirmationAutoDismissSecondsChange: (Int) -> Unit,
+    onOpenLastMessageOnUnlockRules: () -> Unit,
     onFloatIconEnabledChange: (Boolean) -> Unit,
     onFloatIconSizeDpChange: (Float) -> Unit,
     onFloatIconOpacityChange: (Float) -> Unit,
@@ -196,14 +198,39 @@ fun MessageReminderSettingsScreen(
                 )
                 add(
                     settingsCardScopeItem("open-last-on-unlock") {
-                        SettingSwitchRow(
-                            title = stringResource(R.string.message_reminder_open_last_on_unlock),
-                            subtitle = stringResource(R.string.message_reminder_open_last_on_unlock_desc),
-                            icon = { label -> Icon(Icons.Outlined.LockOpen, contentDescription = label) },
-                            checked = settings.openLastMessageOnUnlock,
-                            enabled = controlsEnabled,
-                            onCheckedChange = onOpenLastMessageOnUnlockChange,
-                        )
+                        Column {
+                            SettingSwitchNavigationRow(
+                                title = stringResource(R.string.message_reminder_open_last_on_unlock),
+                                subtitle = stringResource(R.string.message_reminder_open_last_on_unlock_desc),
+                                icon = { label -> Icon(Icons.Outlined.LockOpen, contentDescription = label) },
+                                checked = settings.openLastMessageOnUnlock,
+                                enabled = controlsEnabled,
+                                onCheckedChange = onOpenLastMessageOnUnlockChange,
+                                onNavigate = onOpenLastMessageOnUnlockRules,
+                            )
+                            AnimatedVisibility(
+                                visible = settings.openLastMessageOnUnlock && controlsEnabled,
+                                enter = expandVertically(expandFrom = Alignment.Top) + fadeIn(),
+                                exit = shrinkVertically(shrinkTowards = Alignment.Top) + fadeOut(),
+                            ) {
+                                SettingsSliderRow(
+                                    title = stringResource(R.string.message_reminder_unlock_auto_dismiss),
+                                    value = settings.unlockConfirmationAutoDismissSeconds.toFloat(),
+                                    valueRange = 0f..30f,
+                                    steps = 29,
+                                    enabled = controlsEnabled,
+                                    label = if (settings.unlockConfirmationAutoDismissSeconds == 0) {
+                                        stringResource(R.string.message_reminder_unlock_auto_dismiss_never)
+                                    } else {
+                                        "${settings.unlockConfirmationAutoDismissSeconds}s"
+                                    },
+                                    formatLabel = { seconds ->
+                                        if (seconds == 0f) "永不" else "${seconds.toInt()}s"
+                                    },
+                                    onValueChange = { onUnlockConfirmationAutoDismissSecondsChange(it.toInt()) },
+                                )
+                            }
+                        }
                     },
                 )
             },

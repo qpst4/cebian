@@ -43,6 +43,10 @@ data class MessageSettings(
     val appFilterRules: Map<String, MessageAppFilterRule> = emptyMap(),
     /** 解锁屏幕后自动打开锁屏期间到达的最后一条消息。 */
     val openLastMessageOnUnlock: Boolean = false,
+    /** 解锁后无需询问即可打开消息的应用。 */
+    val openLastMessageAlwaysPackages: Set<String> = emptySet(),
+    /** 解锁确认卡片自动消失时间，0 表示不自动消失。 */
+    val unlockConfirmationAutoDismissSeconds: Int = 3,
 ) {
     @Suppress("DEPRECATION")
     val style: MessageStyle get() = MessageStyle.fromId(styleId)

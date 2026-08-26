@@ -34,5 +34,13 @@ interface MessageOverlayPort {
         onDismiss: () -> Unit,
     )
 
+    fun showUnlockConfirmation(
+        context: Context,
+        data: NotificationData,
+        autoDismissSeconds: Int,
+        onConfirm: (alwaysAllow: Boolean) -> Unit,
+        onDismiss: () -> Unit,
+    )
+
     fun detachDanmaku()
 }

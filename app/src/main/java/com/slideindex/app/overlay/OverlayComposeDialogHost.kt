@@ -37,6 +37,8 @@ class OverlayComposeDialogHost(
 
     private val themeSettings: () -> AppSettings = { AppSettings() },
 
+    private val fullScreen: Boolean = true,
+
 ) {
 
     private val themedContext = OverlayCompose.themedContext(context)
@@ -312,9 +314,9 @@ class OverlayComposeDialogHost(
 
         return WindowManager.LayoutParams(
 
-            WindowManager.LayoutParams.MATCH_PARENT,
+            if (fullScreen) WindowManager.LayoutParams.MATCH_PARENT else WindowManager.LayoutParams.WRAP_CONTENT,
 
-            WindowManager.LayoutParams.MATCH_PARENT,
+            if (fullScreen) WindowManager.LayoutParams.MATCH_PARENT else WindowManager.LayoutParams.WRAP_CONTENT,
 
             OverlayWindowTypes.overlayWindowType(host),
 
@@ -326,7 +328,7 @@ class OverlayComposeDialogHost(
 
         ).apply {
 
-            gravity = Gravity.TOP or Gravity.START
+            gravity = if (fullScreen) Gravity.TOP or Gravity.START else Gravity.CENTER
 
             @Suppress("DEPRECATION")
             softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE

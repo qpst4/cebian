@@ -31,6 +31,7 @@ fun AppNavKey.isNotificationBranch(): Boolean = when (this) {
     is AppNavKey.NotificationFilterRuleEditor,
     AppNavKey.NotificationFilterSettings,
     AppNavKey.MessageReminder,
+    AppNavKey.MessageReminderUnlockRules,
     AppNavKey.MessageReminderAllowedApps,
     is AppNavKey.MessageReminderAppFilterEdit,
     is AppNavKey.MessageReminderGestureActionPick,

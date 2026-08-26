@@ -821,6 +821,11 @@ internal object SettingsSnapshotReader {
             ),
             openLastMessageOnUnlock =
                 prefs[SettingsPreferenceKeys.MESSAGE_OPEN_LAST_ON_UNLOCK] ?: false,
+            openLastMessageAlwaysPackages =
+                prefs[SettingsPreferenceKeys.MESSAGE_OPEN_LAST_ALWAYS_PACKAGES] ?: emptySet(),
+            unlockConfirmationAutoDismissSeconds =
+                (prefs[SettingsPreferenceKeys.MESSAGE_UNLOCK_CONFIRMATION_AUTO_DISMISS_SECONDS] ?: 3)
+                    .coerceIn(0, 30),
         )
     }
 

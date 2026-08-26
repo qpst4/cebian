@@ -191,6 +191,7 @@ sealed interface AppNavKey : NavKey {
     @Serializable data class NotificationFilterRuleEditor(val ruleId: String = "") : AppNavKey
     @Serializable data object NotificationFilterSettings : AppNavKey
     @Serializable data object MessageReminder : AppNavKey
+    @Serializable data object MessageReminderUnlockRules : AppNavKey
     @Serializable data object MessageReminderAllowedApps : AppNavKey
     @Serializable data class MessageReminderAppFilterEdit(val packageName: String) : AppNavKey
     @Serializable data class MessageReminderGestureActionPick(val slot: String) : AppNavKey

@@ -7,6 +7,10 @@ import android.os.Looper
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import com.slideindex.app.notification.NotificationIntentLaunchPort
 import com.slideindex.app.notification.NotificationSbnCache
 import com.slideindex.app.notification.NotificationShadeActions
@@ -26,6 +30,7 @@ class MessageReminderOrchestrator @Inject constructor(
     private val shadeActions: NotificationShadeActions,
 ) {
     private val mainHandler = Handler(Looper.getMainLooper())
+    private val settingsWriteScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     /** 锁屏期间到达、待解锁后自动打开的最后一条消息。 */
     @Volatile
@@ -98,11 +103,32 @@ class MessageReminderOrchestrator @Inject constructor(
         if (!shouldAutoOpenLastMessageOnUnlock(settings, pending)) return
         pendingUnlockMessage = null
         mainHandler.postDelayed({
-            val opened = launchPort.open(context, pending)
-            if (!opened) {
-                Log.w(TAG, "Failed to open last message after unlock for ${pending.packageName}")
+            if (pending.packageName in settings.openLastMessageAlwaysPackages) {
+                openPendingMessage(context, pending)
+            } else {
+                overlayPort.showUnlockConfirmation(
+                    context = context,
+                    data = pending,
+                    autoDismissSeconds = settings.unlockConfirmationAutoDismissSeconds,
+                    onConfirm = { alwaysAllow ->
+                        if (alwaysAllow) {
+                            settingsWriteScope.launch {
+                                settingsRepository.setMessageOpenLastAlways(pending.packageName, true)
+                            }
+                        }
+                        openPendingMessage(context, pending)
+                    },
+                    onDismiss = {},
+                )
             }
         }, UNLOCK_OPEN_DELAY_MS)
+    }
+
+    private fun openPendingMessage(context: Context, data: NotificationData) {
+        val opened = launchPort.open(context, data)
+        if (!opened) {
+            Log.w(TAG, "Failed to open last message after unlock for ${data.packageName}")
+        }
     }
 
     fun onAction(context: Context, plan: MessageDisplayPlan, action: MessageAction) {
@@ -214,6 +240,6 @@ class MessageReminderOrchestrator @Inject constructor(
     private companion object {
         const val TAG = "MessageReminder"
         /** 解锁后稍作延迟再打开，避免与桌面/解锁动画竞争。 */
-        const val UNLOCK_OPEN_DELAY_MS = 350L
+        const val UNLOCK_OPEN_DELAY_MS = 900L
     }
 }
