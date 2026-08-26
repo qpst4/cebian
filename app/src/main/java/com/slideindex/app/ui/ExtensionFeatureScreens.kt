@@ -51,7 +51,6 @@ import com.slideindex.app.ui.settings.components.SettingsSliderRow
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 import com.slideindex.app.util.PinyinHelper
 import com.slideindex.app.util.TaskManagerUtil
-import com.slideindex.app.xposed.config.XposedConfigWriter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -228,84 +227,6 @@ fun FreezerAppsScreen(
                         )
                     },
                     trailingMode = PickerTrailingMode.Toggle,
-                )
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-fun HideRecentAppsScreen(
-    settingsRepository: SettingsRepository,
-    onBack: () -> Unit,
-) {
-    val context = LocalContext.current
-    val settings by settingsRepository.settings.collectAsStateWithLifecycle(
-        initialValue = settingsRepository.readSnapshot(),
-    )
-    val appRepository = rememberAppRepository()
-    var allApps by remember { mutableStateOf<List<AppInfo>>(emptyList()) }
-    var searchQuery by remember { mutableStateOf("") }
-    val scope = rememberCoroutineScope()
-    LaunchedEffect(Unit) { allApps = appRepository.loadApps(force = true) }
-    val filteredApps = remember(allApps, searchQuery) {
-        if (searchQuery.isBlank()) allApps else {
-            allApps.filter { it.label.contains(searchQuery, ignoreCase = true) }
-        }
-    }
-    SettingsLazyScreenScaffoldWithExpandableSearch(
-        title = stringResource(R.string.extension_hide_recent_title),
-        searchQuery = searchQuery,
-        onSearchQueryChange = { searchQuery = it },
-        onBack = onBack,
-    ) {
-        item {
-            Text(
-                text = stringResource(R.string.hide_recent_restart_hint),
-                modifier = Modifier.padding(16.dp),
-            )
-        }
-        items(filteredApps, key = { it.packageName }) { app ->
-            val hideTask = settings.hideRecentTaskPackages.contains(app.packageName)
-            val hidePreview = settings.hideRecentPreviewPackages.contains(app.packageName)
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-            ) {
-                Text(text = app.label, modifier = Modifier.weight(1f))
-                Switch(
-                    checked = hideTask,
-                    onCheckedChange = { checked ->
-                        scope.launch {
-                            val updated = settings.hideRecentTaskPackages.toMutableSet()
-                            if (checked) updated += app.packageName else updated -= app.packageName
-                            settingsRepository.setHideRecentTaskPackages(updated)
-                            XposedConfigWriter.writeHideRecent(context, updated, settings.hideRecentPreviewPackages)
-                        }
-                    },
-                )
-            }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp),
-            ) {
-                Text(
-                    text = stringResource(R.string.hide_recent_preview_mode),
-                    modifier = Modifier.weight(1f),
-                )
-                Switch(
-                    checked = hidePreview,
-                    onCheckedChange = { checked ->
-                        scope.launch {
-                            val updated = settings.hideRecentPreviewPackages.toMutableSet()
-                            if (checked) updated += app.packageName else updated -= app.packageName
-                            settingsRepository.setHideRecentPreviewPackages(updated)
-                            XposedConfigWriter.writeHideRecent(context, settings.hideRecentTaskPackages, updated)
-                        }
-                    },
                 )
             }
         }

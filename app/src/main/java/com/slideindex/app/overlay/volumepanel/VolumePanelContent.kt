@@ -180,8 +180,8 @@ fun VolumePanelContent(onDismiss: () -> Unit) {
                 val editingSubtitle = if (pickerSlot >= 0) {
                     val slotLabel = editingAction?.let {
                         expandPanelSlotLabel(context, it, activityShortcuts)
-                    } ?: context.getString(R.string.expand_panel_slot_add_label)
-                    context.getString(R.string.expand_panel_editing_slot, pickerSlot + 1, slotLabel)
+                    } ?: stringResource(R.string.expand_panel_slot_add_label)
+                    stringResource(R.string.expand_panel_editing_slot, pickerSlot + 1, slotLabel)
                 } else {
                     null
                 }

@@ -758,8 +758,6 @@
     <string name="gesture_action_refreeze_desc">冻结冰箱列表中已启用的应用</string>
     <string name="extension_freezer_title">冰箱</string>
     <string name="extension_freezer_subtitle">冻结/解冻应用，需 Shizuku 或 Root</string>
-    <string name="extension_hide_recent_title">隐藏最近任务</string>
-    <string name="extension_hide_recent_subtitle">隐藏任务卡片或预览截图，需 LSPosed</string>
     <string name="extension_back_tap_title">背部双击（实验性可能不灵敏）</string>
     <string name="extension_back_tap_subtitle">通过加速度计检测背部双击</string>
     <string name="freezer_permission_required">需要 Shizuku 或 Root 权限</string>
@@ -795,9 +793,6 @@
     <string name="back_tap_pause_charging">充电时暂停</string>
     <string name="back_tap_vibration_feedback">触发时震动</string>
     <string name="back_tap_enabled">启用背部双击</string>
-    <string name="hide_recent_task_mode">完全隐藏任务卡片</string>
-    <string name="hide_recent_preview_mode">隐藏预览截图</string>
-    <string name="hide_recent_restart_hint">修改后需重启设备生效</string>
     <string name="gesture_action_power_menu">电源键菜单</string>
     <string name="gesture_action_keep_screen_on">屏幕常亮</string>
     <string name="gesture_action_snooze_overlays">暂停悬浮层</string>
@@ -1942,7 +1937,7 @@
     <string name="otp_lsposed_probe_timeout">超时：LSPosed 未在 system_server 注册注入接收器</string>
     <string name="otp_lsposed_probe_failed">系统注入检测失败：%1$s</string>
     <string name="otp_lsposed_probe_response">收到响应：%1$s / %2$s</string>
-    <string name="xposed_module_description">Cebian：OTP 自动填充、隐藏最近任务（需勾选 android 作用域）</string>
+    <string name="xposed_module_description">Cebian：OTP 自动填充（需勾选 android 作用域）</string>
     <string name="otp_records_title">验证码记录</string>
     <string name="otp_records_entry_title">验证码记录</string>
     <string name="otp_records_entry_desc">查看已提取的验证码历史</string>

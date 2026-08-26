@@ -262,8 +262,6 @@ internal object SettingsPreferenceKeys {
     val SHAKE_BLACKLIST_PACKAGES = stringSetPreferencesKey("shake_blacklist_packages")
     val FREEZER_APP_PACKAGES = stringSetPreferencesKey("freezer_app_packages")
     val EXPAND_PANEL_SHORTCUTS = stringPreferencesKey("expand_panel_shortcuts")
-    val HIDE_RECENT_TASK_PACKAGES = stringSetPreferencesKey("hide_recent_task_packages")
-    val HIDE_RECENT_PREVIEW_PACKAGES = stringSetPreferencesKey("hide_recent_preview_packages")
     val BACK_TAP_ENABLED = booleanPreferencesKey("back_tap_enabled")
     val BACK_TAP_SENSITIVITY = intPreferencesKey("back_tap_sensitivity")
     val BACK_TAP_RANGE = intPreferencesKey("back_tap_range")

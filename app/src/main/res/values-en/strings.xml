@@ -1221,13 +1221,8 @@
     <string name="gesture_remind_notify_body">%1$d minutes elapsed</string>
     <string name="extension_freezer_title">App freezer</string>
     <string name="extension_freezer_subtitle">Freeze/unfreeze apps; requires Shizuku or Root</string>
-    <string name="extension_hide_recent_title">Hide recent tasks</string>
-    <string name="extension_hide_recent_subtitle">Hide task cards or preview thumbnails; requires LSPosed</string>
     <string name="extension_back_tap_title">Back double-tap (experimental, may be unreliable)</string>
     <string name="extension_back_tap_subtitle">Detect back-of-phone double taps via accelerometer</string>
-    <string name="hide_recent_task_mode">Hide task card completely</string>
-    <string name="hide_recent_preview_mode">Hide preview thumbnail</string>
-    <string name="hide_recent_restart_hint">Reboot device after changes</string>
     <string name="back_tap_enabled">Enable back double-tap</string>
     <string name="back_tap_action">Trigger action</string>
     <string name="back_tap_sensitivity">Sensitivity</string>
@@ -1261,7 +1256,7 @@
     <string name="freezer_shizuku_denied">Shizuku not granted</string>
     <string name="freezer_root_available">Root available</string>
     <string name="freezer_root_unavailable">Root unavailable (some devices need Root to freeze apps)</string>
-    <string name="xposed_module_description">Cebian: OTP autofill, hide recent tasks (enable android scope)</string>
+    <string name="xposed_module_description">Cebian: OTP autofill (enable android scope)</string>
     <string name="otp_records_title">Verification code records</string>
     <string name="otp_records_entry_title">Verification code records</string>
     <string name="otp_records_entry_desc">View extracted verification code history</string>

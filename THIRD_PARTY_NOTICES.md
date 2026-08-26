@@ -128,16 +128,6 @@ Cebian（`com.slideindex.app`）在 [GNU Affero General Public License v3.0](LIC
 
 ---
 
-## hideRecent (Young-Lord / Lyniko)
-
-- **Copyright:** Young-Lord (Lyniko) and contributors
-- **License:** [GNU General Public License v3.0](app/src/main/assets/licenses/GPL-3.0.txt)
-- **Source:** https://github.com/Young-Lord/hideRecent
-- **Used in:** 隐藏最近任务 Hook（`RecentTasksHideHook`）：`RecentTasks.isVisibleRecentTask`、`TaskSnapshotController.getSnapshotMode` 等
-- **Modifications:** 集成至 SlideIndex LSPosed 模块；配置改为 App 侧 `hide_recent.properties` 文件同步；增加双模式（隐藏卡片 / 隐藏预览）管理 UI
-
----
-
 ## 许可证全文
 
 - Apache License 2.0：`app/src/main/assets/licenses/Apache-2.0.txt`

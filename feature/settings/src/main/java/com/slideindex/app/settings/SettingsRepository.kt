@@ -209,8 +209,6 @@ class SettingsRepository @Inject constructor(
     suspend fun setFreezerAppPackages(packages: Set<String>) = edge.setFreezerAppPackages(packages)
     suspend fun setExpandPanelSlotAction(index: Int, action: com.slideindex.app.gesture.GestureAction?) =
         edge.setExpandPanelSlotAction(index, action)
-    suspend fun setHideRecentTaskPackages(packages: Set<String>) = edge.setHideRecentTaskPackages(packages)
-    suspend fun setHideRecentPreviewPackages(packages: Set<String>) = edge.setHideRecentPreviewPackages(packages)
     suspend fun removeHiddenApp(packageName: String) = edge.removeHiddenApp(packageName)
     suspend fun addPreviousAppExcludedPackage(packageName: String) =
         edge.addPreviousAppExcludedPackage(packageName)

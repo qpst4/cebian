@@ -451,14 +451,6 @@ class EdgeSettingsMutator @Inject constructor(
             prefs[SettingsPreferenceKeys.EXPAND_PANEL_SHORTCUTS],
         )
 
-    suspend fun setHideRecentTaskPackages(packages: Set<String>) = editor.edit {
-        it[SettingsPreferenceKeys.HIDE_RECENT_TASK_PACKAGES] = packages
-    }
-
-    suspend fun setHideRecentPreviewPackages(packages: Set<String>) = editor.edit {
-        it[SettingsPreferenceKeys.HIDE_RECENT_PREVIEW_PACKAGES] = packages
-    }
-
     suspend fun addPreviousAppExcludedPackage(packageName: String) = editor.edit {
         val current = it[SettingsPreferenceKeys.PREVIOUS_APP_EXCLUDED_PACKAGES]?.toMutableSet() ?: mutableSetOf()
         current.add(packageName)
