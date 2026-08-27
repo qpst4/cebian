@@ -834,6 +834,9 @@ object FloatBallOverlay {
         hideGestureHintWindow()
         cancelCursorPickPreview()
         displayView?.visibility = View.GONE
+        if (!isLauncherCaptureActive()) {
+            suppressTouchHostsForLauncherOverlay()
+        }
     }
 
     fun restoreChromeAfterAppSwitcher() {
@@ -842,8 +845,19 @@ object FloatBallOverlay {
             return
         }
         displayView?.visibility = View.VISIBLE
+        touchHost?.visibility = View.VISIBLE
+        lineTouchHost?.visibility = View.VISIBLE
         restoreChromeAfterRegionalPick()
         settingsState?.value?.let { recoverIdleTouchCaptureLayouts(it) }
+    }
+
+    /** 圆环/蜂窝展示期间强制收起悬浮球触摸层（供启动器在抬手后二次确认）。 */
+    fun suppressTouchHostsForActiveLauncherOverlay() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { suppressTouchHostsForActiveLauncherOverlay() }
+            return
+        }
+        suppressTouchHostsForLauncherOverlay()
     }
 
     fun ballCenterForAppSwitcher(settings: AppSettings): Pair<Float, Float>? {
@@ -1424,7 +1438,7 @@ object FloatBallOverlay {
 
     /** 空闲态：球体触摸窗仅覆盖球区（WM 小块，避免挡屏）。 */
     private fun syncBallTouchWindowLayout(settings: AppSettings) {
-        if (isDragging) return
+        if (isDragging && !captureSuppressed) return
         val view = touchHost ?: return
         val wm = windowManager ?: return
         val params = touchLayoutParams ?: return
@@ -1634,7 +1648,60 @@ object FloatBallOverlay {
         } else {
             touchHost?.cancelLauncherCaptureMode()
         }
-        releaseAllTouchCaptures()
+        if (AppSwitcherOverlayWindow.isShowing || HoneycombAppPickerOverlayWindow.isShowing) {
+            suppressTouchHostsForLauncherOverlay()
+        } else {
+            clearLauncherAssociatedDragState()
+            releaseAllTouchCaptures()
+        }
+    }
+
+    private fun isLauncherCaptureActive(): Boolean =
+        touchHost?.isLauncherCaptureMode() == true || lineTouchHost?.isLauncherCaptureMode() == true
+
+    /**
+     * 圆环/蜂窝展示期间：隐藏并穿透悬浮球触摸窗。
+     * 避免 updateViewLayout 把全屏触摸窗抬到启动器之上（部分 OEM 上会挡住圆环）。
+     */
+    private fun suppressTouchHostsForLauncherOverlay() {
+        if (!AppSwitcherOverlayWindow.isShowing && !HoneycombAppPickerOverlayWindow.isShowing) return
+        clearLauncherAssociatedDragState()
+        touchHost?.forceEndGestureCapture()
+        lineTouchHost?.cancelGesture()
+        touchHost?.visibility = View.GONE
+        lineTouchHost?.visibility = View.GONE
+        setBallTouchHostPassthrough(true)
+        setLineTouchHostPassthrough(true)
+        applyTouchHostOverlayPassthroughFlags()
+    }
+
+    private fun applyTouchHostOverlayPassthroughFlags() {
+        val wm = windowManager ?: return
+        touchHost?.let { view ->
+            val params = touchLayoutParams ?: return@let
+            params.flags = params.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+            if (view.isAttachedToWindow) {
+                runCatching { wm.updateViewLayout(view, params) }
+            }
+        }
+        lineTouchHost?.let { view ->
+            val params = lineTouchLayoutParams ?: return@let
+            params.flags = params.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+            if (view.isAttachedToWindow) {
+                runCatching { wm.updateViewLayout(view, params) }
+            }
+        }
+    }
+
+    private fun clearLauncherAssociatedDragState() {
+        if (!isDragging && !slopPhaseBallFollowActive) return
+        clearCursorUi(restoreLayout = false)
+        slopPhaseBallFollowActive = false
+        dragActiveSideOverride = null
+        activeSideAtDragStart = null
+        dragOriginatedFromLine = false
+        lineDragEndedWithGesture = false
+        setDragging(false)
     }
 
     private fun showFloatBallLauncherOverlay(

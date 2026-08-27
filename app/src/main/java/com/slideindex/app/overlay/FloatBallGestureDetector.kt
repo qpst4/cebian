@@ -259,7 +259,9 @@ internal class FloatBallGestureDetector(
                 onGestureHint?.invoke(null)
                 cancelDeferredCallbacks()
                 cancelPendingSingleTap()
-                if (pickActive) {
+                if (launcherCaptureMode) {
+                    onLauncherCaptureUp?.invoke(lastX, lastY)
+                } else if (pickActive) {
                     pickActive = false
                     if (pickDragStarted) {
                         onPickCancel?.invoke()

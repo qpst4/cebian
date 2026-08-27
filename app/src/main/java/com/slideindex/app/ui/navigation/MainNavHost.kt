@@ -109,10 +109,14 @@ fun MainNavHost(
         initialValue = HomeMainSettings.from(settingsSnapshot),
     )
     var savedBottomNavTab by rememberSaveable {
-        val initialTab = if (initialIntentAction == MainActivity.ACTION_OPEN_NOTIFICATION_HISTORY) {
-            MainBottomNavDestination.Notification.name
-        } else {
-            MainBottomNavDestination.Home.name
+        val initialTab = when {
+            initialIntentAction == MainActivity.ACTION_OPEN_NOTIFICATION_HISTORY -> {
+                MainBottomNavDestination.Notification.name
+            }
+            initialNavRoute == "extension_freezer" -> {
+                MainBottomNavDestination.Extension.name
+            }
+            else -> MainBottomNavDestination.Home.name
         }
         mutableStateOf(initialTab)
     }
@@ -128,7 +132,12 @@ fun MainNavHost(
     }
     val notificationBackStack = rememberNavBackStack<AppNavKey>(*notificationInitial)
 
-    val extensionBackStack = rememberNavBackStack<AppNavKey>(AppNavKey.ExtensionHub)
+    val extensionInitial = if (initialNavRoute == "extension_freezer") {
+        arrayOf(AppNavKey.ExtensionHub, AppNavKey.ExtensionFreezer)
+    } else {
+        arrayOf(AppNavKey.ExtensionHub)
+    }
+    val extensionBackStack = rememberNavBackStack<AppNavKey>(*extensionInitial)
 
     val backStacks = mapOf(
         MainBottomNavDestination.Home to homeBackStack,

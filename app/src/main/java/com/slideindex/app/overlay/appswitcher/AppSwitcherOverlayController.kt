@@ -33,6 +33,7 @@ internal class AppSwitcherOverlayController(
             enabled: Boolean,
             mergeDirection: FvAppSwitcherAxisMergeDirection?,
         )
+        fun onEditModeChanged(editMode: Boolean)
     }
 
     private val windowManager = context.getSystemService(WindowManager::class.java)
@@ -42,6 +43,8 @@ internal class AppSwitcherOverlayController(
     private var windowTop = 0
 
     fun isVisible(): Boolean = attached && view != null
+
+    fun isPinned(): Boolean = view?.isPinned() == true
 
     fun show(
         settings: AppSettings,
@@ -76,6 +79,7 @@ internal class AppSwitcherOverlayController(
             onSettingsChange = listener::onSettingsChange,
             onLinkAppearanceAxesChange = listener::onLinkAppearanceAxesChange,
             onLinkSlotAxesChange = listener::onLinkSlotAxesChange,
+            onEditModeChanged = listener::onEditModeChanged,
             onPrepareDirectTouch = { activateDirectTouch(next) },
         )
         next.configure(
@@ -151,9 +155,20 @@ internal class AppSwitcherOverlayController(
         if (!attached) return
         runOnViewThread(current) {
             if (!cancelled) current.onExternalMove(rawX, rawY)
+            if (cancelled) {
+                current.onExternalCancel()
+            } else {
+                current.onExternalUp(rawX, rawY, cancelled)
+            }
             activateDirectTouch(current)
-            current.onExternalUp(rawX, rawY, cancelled)
+            bringToFrontLocked(current)
         }
+    }
+
+    fun bringToFront() {
+        val current = view ?: return
+        if (!attached) return
+        runOnViewThread(current) { bringToFrontLocked(current) }
     }
 
     fun externalCancel() {
@@ -181,6 +196,17 @@ internal class AppSwitcherOverlayController(
         runCatching {
             windowManager?.updateViewLayout(current, params)
             current.enableDirectTouch()
+            current.requestFocus()
+        }
+    }
+
+    private fun bringToFrontLocked(current: AppSwitcherOverlayView) {
+        val params = layoutParams ?: return
+        val wm = windowManager ?: return
+        if (!attached || view !== current) return
+        runCatching {
+            wm.removeViewImmediate(current)
+            wm.addView(current, params)
             current.requestFocus()
         }
     }

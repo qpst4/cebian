@@ -56,6 +56,7 @@ object AppSwitcherOverlayWindow {
     private var externalTracking = false
     private var persistAfterPin = false
     private var activeSide: FvAppSwitcherSide? = null
+    private var editModeActive = false
 
     val isShowing: Boolean get() = controller?.isVisible() == true
 
@@ -178,7 +179,16 @@ object AppSwitcherOverlayWindow {
         val side = resolveFvSide(anchorRawX, anchorRawY, screenWidth, screenHeight, edgePanelSide)
         activeSide = side
         val fvSettings = settings.fvAppSwitcherFor(side)
-        val targets = resolveTargets(hostContext, fvSettings, appsByPackage, appRepository, settings)
+        val startingInEdit = fvSettings.configuredCount() == 0
+        editModeActive = startingInEdit
+        val targets = resolveTargets(
+            hostContext,
+            fvSettings,
+            appsByPackage,
+            appRepository,
+            settings,
+            autoFill = !startingInEdit,
+        )
 
         val edgeInsetPx = FV_EDGE_INSET_DP * density
         val anchorX = when (side) {
@@ -247,7 +257,7 @@ object AppSwitcherOverlayWindow {
                         repository.setFvAppSwitcherCircleCount(axis, circleCount)
                         val refreshedSettings = repository.settings.first()
                         val refreshedFv = refreshedSettings.fvAppSwitcherFor(side)
-                        val refreshedTargets = resolveTargets(
+                        val refreshedTargets = resolveSessionTargets(
                             hostContext,
                             refreshedFv,
                             appsByPackage,
@@ -269,7 +279,7 @@ object AppSwitcherOverlayWindow {
                         repository.setFvAppSwitcherSettings(axis, settings)
                         val refreshedSettings = repository.settings.first()
                         val refreshedFv = refreshedSettings.fvAppSwitcherFor(side)
-                        val refreshedTargets = resolveTargets(
+                        val refreshedTargets = resolveSessionTargets(
                             hostContext,
                             refreshedFv,
                             appsByPackage,
@@ -295,7 +305,7 @@ object AppSwitcherOverlayWindow {
                         val refreshedSettings = repository.settings.first()
                         lastSettings = refreshedSettings
                         val refreshedFv = refreshedSettings.fvAppSwitcherFor(side)
-                        val refreshedTargets = resolveTargets(
+                        val refreshedTargets = resolveSessionTargets(
                             hostContext,
                             refreshedFv,
                             appsByPackage,
@@ -327,7 +337,7 @@ object AppSwitcherOverlayWindow {
                         val refreshedSettings = repository.settings.first()
                         lastSettings = refreshedSettings
                         val refreshedFv = refreshedSettings.fvAppSwitcherFor(side)
-                        val refreshedTargets = resolveTargets(
+                        val refreshedTargets = resolveSessionTargets(
                             hostContext,
                             refreshedFv,
                             appsByPackage,
@@ -347,6 +357,11 @@ object AppSwitcherOverlayWindow {
                         }
                     }
                 }
+
+                override fun onEditModeChanged(editMode: Boolean) {
+                    editModeActive = editMode
+                    refreshTargetsForEditMode()
+                }
             },
         )
         if (!shown) {
@@ -360,6 +375,7 @@ object AppSwitcherOverlayWindow {
             overlayController.externalMove(anchorRawX, anchorRawY)
         } else {
             overlayController.pinForLeaveOpen()
+            FloatBallOverlay.suppressTouchHostsForActiveLauncherOverlay()
         }
         if (appRepository != null && targets.any { it?.icon == null }) {
             HoneycombIconLoader.loadMissingIconsAsync(
@@ -371,7 +387,7 @@ object AppSwitcherOverlayWindow {
                 shellCommands = settings.shellCommands,
                 onIconsReady = {
                     if (controller === overlayController && overlayController.isVisible()) {
-                        val refreshedTargets = resolveTargets(
+                        val refreshedTargets = resolveSessionTargets(
                             hostContext,
                             fvSettings,
                             appsByPackage,
@@ -405,12 +421,20 @@ object AppSwitcherOverlayWindow {
             return
         }
         updatePointer(rawX, rawY)
-        val wasExternalTracking = externalTracking
-        if (wasExternalTracking) {
-            persistAfterPin = true
+        if (externalTracking) {
             externalTracking = false
         }
         controller?.externalUp(rawX, rawY, cancelled = false)
+        mainHandler.post {
+            val overlayController = controller ?: return@post
+            if (!overlayController.isVisible()) return@post
+            if (overlayController.isPinned()) {
+                persistAfterPin = true
+            }
+            overlayController.enableDirectTouch()
+            overlayController.bringToFront()
+            FloatBallOverlay.suppressTouchHostsForActiveLauncherOverlay()
+        }
     }
 
     fun refreshFromSettings() {
@@ -430,7 +454,7 @@ object AppSwitcherOverlayWindow {
             lastSettings = settings
             val side = activeSide ?: return@launch
             val fvSettings = settings.fvAppSwitcherFor(side)
-            val targets = resolveTargets(
+            val targets = resolveSessionTargets(
                 hostContext,
                 fvSettings,
                 appsByPackage,
@@ -466,12 +490,60 @@ object AppSwitcherOverlayWindow {
         releaseOverlayState()
     }
 
+    private fun resolveSessionTargets(
+        context: Context,
+        fvSettings: FvAppSwitcherSettings,
+        appsByPackage: Map<String, AppInfo>,
+        appRepository: com.slideindex.app.data.AppRepository?,
+        settings: AppSettings,
+    ): List<com.slideindex.app.overlay.HoneycombRuntimeTarget?> =
+        resolveTargets(
+            context = context,
+            fvSettings = fvSettings,
+            appsByPackage = appsByPackage,
+            appRepository = appRepository,
+            settings = settings,
+            autoFill = !editModeActive,
+        )
+
+    private fun refreshTargetsForEditMode() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { refreshTargetsForEditMode() }
+            return
+        }
+        val overlayController = controller ?: return
+        if (!overlayController.isVisible()) return
+        val hostContext = OverlayDependencyAccess.overlayHostContext() ?: return
+        val deps = OverlayDependencyAccess.overlayDependencies(hostContext) ?: return
+        val appRepository = deps.appRepository
+        val appsByPackage = appRepository.getCachedApps().associateBy { it.packageName }
+        settingsScope.launch {
+            val settings = deps.settingsRepository.settings.first()
+            lastSettings = settings
+            val side = activeSide ?: return@launch
+            val fvSettings = settings.fvAppSwitcherFor(side)
+            val refreshedTargets = resolveSessionTargets(
+                hostContext,
+                fvSettings,
+                appsByPackage,
+                appRepository,
+                settings,
+            )
+            mainHandler.post {
+                if (controller === overlayController && overlayController.isVisible()) {
+                    overlayController.refreshTargets(fvSettings, refreshedTargets, appsByPackage)
+                }
+            }
+        }
+    }
+
     private fun resolveTargets(
         context: Context,
         fvSettings: FvAppSwitcherSettings,
         appsByPackage: Map<String, AppInfo>,
         appRepository: com.slideindex.app.data.AppRepository?,
         settings: AppSettings,
+        autoFill: Boolean = true,
     ): List<com.slideindex.app.overlay.HoneycombRuntimeTarget?> {
         val slotCount = fvSettings.slotCount()
         val explicitSlots = mutableMapOf<Int, com.slideindex.app.overlay.HoneycombRuntimeTarget>()
@@ -525,6 +597,7 @@ object AppSwitcherOverlayWindow {
 
         return List(slotCount) { index ->
             explicitSlots[index] ?: run {
+                if (!autoFill) return@run null
                 val autoApp = autoFillQueue.removeFirstOrNull() ?: return@run null
                 val item = QuickLauncherItem(
                     type = QuickLauncherItemType.APP,
@@ -560,6 +633,7 @@ object AppSwitcherOverlayWindow {
         externalTracking = false
         persistAfterPin = false
         activeSide = null
+        editModeActive = false
     }
 
     private fun registerScreenOffReceiver(context: Context) {

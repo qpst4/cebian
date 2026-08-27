@@ -942,22 +942,25 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
         // 避免只把图片文件名当作正文。
         if (entry.hasImageContent()) {
             PickResultFromHistoryCoordinator.openFromClipboard(this, entry)
-            return
+        } else {
+            val rawText = entry.text.trim().ifBlank { entry.uri.orEmpty() }
+            if (rawText.isNotBlank()) {
+                FloatBallPickResultPanel.showResult(
+                    context = this,
+                    result = FloatBallPickResult(
+                        a11yText = rawText,
+                        ocrText = null,
+                        screenshot = null,
+                        screenRect = null,
+                        activeSource = PickResultTextSource.A11Y,
+                        contentOrigin = PickResultContentOrigin.STASH_CLIPBOARD,
+                    ),
+                    initialTextMode = PickResultTextMode.WORD_TAP,
+                )
+            }
         }
-        val rawText = entry.text.trim().ifBlank { entry.uri.orEmpty() }
-        if (rawText.isNotBlank()) {
-            FloatBallPickResultPanel.showResult(
-                context = this,
-                result = FloatBallPickResult(
-                    a11yText = rawText,
-                    ocrText = null,
-                    screenshot = null,
-                    screenRect = null,
-                    activeSource = PickResultTextSource.A11Y,
-                    contentOrigin = PickResultContentOrigin.STASH_CLIPBOARD,
-                ),
-                initialTextMode = PickResultTextMode.WORD_TAP,
-            )
+        if (!panelPinned) {
+            collapseAfterEntryAction()
         }
     }
 

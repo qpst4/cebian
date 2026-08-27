@@ -83,6 +83,7 @@ internal class AppSwitcherOverlayView(
     var onSettingsChange: (FvAppSwitcherSettings) -> Unit = {},
     var onLinkAppearanceAxesChange: (Boolean, FvAppSwitcherAxisMergeDirection?) -> Unit = { _, _ -> },
     var onLinkSlotAxesChange: (Boolean, FvAppSwitcherAxisMergeDirection?) -> Unit = { _, _ -> },
+    private val onEditModeChanged: (Boolean) -> Unit = {},
     private val onMenuVisualActiveChange: (Boolean) -> Unit = {},
     private val onPrepareDirectTouch: () -> Unit = {},
 ) : View(context) {
@@ -196,7 +197,7 @@ internal class AppSwitcherOverlayView(
         rebuildLayout()
         sessionActive = true
         panelPinned = false
-        val hasConfiguredSlots = targets.any { it != null }
+        val hasConfiguredSlots = fvSettings.configuredCount() > 0
         sessionMode = if (!hasConfiguredSlots) SessionMode.EDIT else SessionMode.NORMAL
         highlightedSlot = -1
         lastHapticHighlightedSlot = -1
@@ -373,11 +374,6 @@ internal class AppSwitcherOverlayView(
                     prepareForToolbarAction()
                     pinPanel()
                     if (wasEdit) enterEditMode()
-                } else if (slot >= 0) {
-                    // slot已在上面 !fromPinned && slot >= 0 分支处理，此处不会到达
-                    pinPanel()
-                } else if (externalTracking) {
-                    pinPanel()
                 } else {
                     dismissPanel()
                 }
@@ -417,6 +413,7 @@ internal class AppSwitcherOverlayView(
     }
 
     private fun pinPanel() {
+        val wasEdit = sessionMode == SessionMode.EDIT
         revealAnimator?.cancel()
         panelPinned = true
         sessionActive = true
@@ -428,6 +425,9 @@ internal class AppSwitcherOverlayView(
         highlightedToolbarButton = null
         cancelSlotLongPress()
         prepareForToolbarAction()
+        if (wasEdit) {
+            onEditModeChanged(false)
+        }
         invalidate()
     }
 
@@ -437,6 +437,7 @@ internal class AppSwitcherOverlayView(
         highlightedSlot = -1
         lastHapticHighlightedSlot = -1
         cancelSlotLongPress()
+        onEditModeChanged(true)
         invalidate()
     }
 
@@ -575,8 +576,8 @@ internal class AppSwitcherOverlayView(
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         val layout = panelLayout ?: return
-        drawBackgroundMask(canvas, menuRevealProgress)
-        val slotRevealProgress = if (panelPinned || externalTracking) 1f else menuRevealProgress
+        val revealProgress = if (panelPinned || externalTracking) 1f else menuRevealProgress
+        drawBackgroundMask(canvas, revealProgress)
         AppSwitcherRenderer.draw(
             context = context,
             canvas = canvas,
@@ -587,7 +588,7 @@ internal class AppSwitcherOverlayView(
             highlightedToolbarButton = highlightedToolbarButton,
             showToolbar = panelPinned || externalTracking,
             density = density,
-            revealProgress = slotRevealProgress,
+            revealProgress = revealProgress,
             appsByPackage = appsByPackage,
             activityShortcuts = settings.activityShortcuts,
             shellCommands = settings.shellCommands,

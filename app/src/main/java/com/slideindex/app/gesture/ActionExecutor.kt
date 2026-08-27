@@ -302,7 +302,12 @@ class ActionExecutor(
             }
             GestureAction.FreezerPanel -> {
                 val intent = android.content.Intent(context, com.slideindex.app.MainActivity::class.java).apply {
-                    addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                    addFlags(
+                        android.content.Intent.FLAG_ACTIVITY_NEW_TASK or
+                            android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                            android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP or
+                            android.content.Intent.FLAG_ACTIVITY_REORDER_TO_FRONT,
+                    )
                     putExtra(com.slideindex.app.MainActivity.EXTRA_NAV_ROUTE, "extension_freezer")
                 }
                 context.startActivity(intent)

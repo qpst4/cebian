@@ -106,6 +106,7 @@
             android:exported="true"
             android:icon="@drawable/ic_launcher_violet"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
+            android:launchMode="singleTop"
             tools:targetApi="33"
             android:theme="@style/Theme.SlideIndex"
             android:windowSoftInputMode="adjustResize">
