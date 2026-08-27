@@ -1,7 +1,7 @@
 {
-  "version": "1.9.9",
-  "versionCode": 34,
-  "apkUrl": "https://github.com/qpst4/cebian/releases/download/v1.9.9/cebian-1.9.9-lite.apk",
-  "apkSize": 22305257,
-  "notes": "## 新增\n- 消息提醒：解锁后打开锁屏消息前增加确认弹窗，支持按应用「始终允许」与解锁规则设置页\n- 扩展功能：冰箱、背部双击（实验性）、隐藏最近任务入口已移除前的 LSPosed 集成；新增音量扩展面板、屏幕翻译、全局复制、延时提醒等手势动作\n- 扩展面板：快捷槽位长按编辑、槽位标签与清除；毛玻璃浮层、小窗启动策略与深色模式适配\n## 变更\n- 扩展 Tab：按功能分组入口\n- 搜索引擎：统一 Miuix 编辑体验；修复图片分享目标发现与列表布局\n- 设置页：应用索引、命令面板、指针命名、主题深色背景、悬浮球取词与外观分组\n- 搜索面板：设置布局与计算器精度\n## 修复\n- 主界面：Tab 切换与底栏指示器同步\n- 隐藏最近任务：移除 LSPosed Hook 与相关设置入口"
+  "version": "1.9.9.1",
+  "versionCode": 35,
+  "apkUrl": "https://github.com/qpst4/cebian/releases/download/v1.9.9.1/cebian-1.9.9.1-lite.apk",
+  "apkSize": 22305253,
+  "notes": "## 修复\n- 搜索引擎：修复图片分享目标选择后编辑器未回写（编辑器与选择页共享 Activity 级 draft）\n- 搜索引擎：修复图标预览不更新、保存后列表仍显示旧图（图标缓存 key、相册 Uri 即时预览）\n- 搜索引擎：修复图片分享应用无法保存（SHARE_IMAGE_TO_APP 未写入 targetPackage/Activity）\n- 搜索引擎：修复应用图标选择后未等待落盘即返回导致图标未生效"
 }
