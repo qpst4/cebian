@@ -4,6 +4,14 @@ All notable changes to Cebian are documented in this file.
 
 ## [Unreleased]
 
+## [1.9.9.1] - 2026-08-27
+
+### Fixed
+- **搜索引擎**：修复图片分享目标选择后编辑器未回写（编辑器与选择页共享 Activity 级 draft）
+- **搜索引擎**：修复图标预览不更新、保存后列表仍显示旧图（图标缓存 key、相册 Uri 即时预览）
+- **搜索引擎**：修复图片分享应用无法保存（`SHARE_IMAGE_TO_APP` 未写入 targetPackage/Activity）
+- **搜索引擎**：修复应用图标选择后未等待落盘即返回导致图标未生效
+
 ## [1.9.9] - 2026-08-27
 
 ### Added
