@@ -9,6 +9,7 @@ import android.content.Intent
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.content.res.Configuration
 import android.view.MotionEvent
 import android.view.View
 import android.view.animation.DecelerateInterpolator
@@ -20,9 +21,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
@@ -51,6 +54,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color as ComposeColor
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -631,6 +635,11 @@ private fun AppSwitcherAppearanceDialogContent(
         onSettingsChange(next)
     }
 
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val dialogMaxHeight = (configuration.screenHeightDp * 0.9f).dp
+    val surfaceVerticalPadding = if (isLandscape) 12.dp else 24.dp
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -645,7 +654,9 @@ private fun AppSwitcherAppearanceDialogContent(
             modifier = Modifier
                 .widthIn(max = 380.dp)
                 .fillMaxWidth(0.92f)
-                .padding(vertical = 24.dp)
+                .fillMaxHeight(0.9f)
+                .heightIn(max = dialogMaxHeight)
+                .padding(vertical = surfaceVerticalPadding)
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
@@ -658,58 +669,89 @@ private fun AppSwitcherAppearanceDialogContent(
         ) {
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .fillMaxSize()
                     .padding(horizontal = 24.dp, vertical = 20.dp),
             ) {
-                Text(
-                    text = stringResource(R.string.fv_app_switcher_appearance_title),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = stringResource(R.string.fv_app_switcher_circle_count_desc),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-
-                FvAppSwitcherLinkSwitchRow(
-                    title = stringResource(R.string.fv_app_switcher_link_appearance_axes_title),
-                    description = stringResource(R.string.fv_app_switcher_link_appearance_axes_desc),
-                    checked = linkAppearanceState,
-                    onCheckedChange = { checked ->
-                        if (checked) return@FvAppSwitcherLinkSwitchRow
-                        linkAppearanceState = false
-                        onLinkAppearanceAxesChange(false, null)
-                    },
-                    onRequestEnable = { pendingMergeTarget = FvAppSwitcherLinkMergeTarget.APPEARANCE },
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                FvAppSwitcherLinkSwitchRow(
-                    title = stringResource(R.string.fv_app_switcher_link_slot_axes_title),
-                    description = stringResource(R.string.fv_app_switcher_link_slot_axes_desc),
-                    checked = linkSlotState,
-                    onCheckedChange = { checked ->
-                        if (checked) return@FvAppSwitcherLinkSwitchRow
-                        linkSlotState = false
-                        onLinkSlotAxesChange(false, null)
-                    },
-                    onRequestEnable = { pendingMergeTarget = FvAppSwitcherLinkMergeTarget.SLOTS },
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
                 Column(
                     modifier = Modifier
+                        .weight(1f)
                         .fillMaxWidth()
-                        .weight(1f, fill = false)
                         .verticalScroll(scrollState),
                 ) {
-                    // 1. 圈数选择
+                    Text(
+                        text = stringResource(R.string.fv_app_switcher_appearance_title),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = stringResource(R.string.fv_app_switcher_circle_count_desc),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    if (isLandscape) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            FvAppSwitcherLinkSwitchRow(
+                                title = stringResource(R.string.fv_app_switcher_link_appearance_axes_title),
+                                description = stringResource(R.string.fv_app_switcher_link_appearance_axes_desc),
+                                checked = linkAppearanceState,
+                                compact = true,
+                                modifier = Modifier.weight(1f),
+                                onCheckedChange = { checked ->
+                                    if (checked) return@FvAppSwitcherLinkSwitchRow
+                                    linkAppearanceState = false
+                                    onLinkAppearanceAxesChange(false, null)
+                                },
+                                onRequestEnable = { pendingMergeTarget = FvAppSwitcherLinkMergeTarget.APPEARANCE },
+                            )
+                            FvAppSwitcherLinkSwitchRow(
+                                title = stringResource(R.string.fv_app_switcher_link_slot_axes_title),
+                                description = stringResource(R.string.fv_app_switcher_link_slot_axes_desc),
+                                checked = linkSlotState,
+                                compact = true,
+                                modifier = Modifier.weight(1f),
+                                onCheckedChange = { checked ->
+                                    if (checked) return@FvAppSwitcherLinkSwitchRow
+                                    linkSlotState = false
+                                    onLinkSlotAxesChange(false, null)
+                                },
+                                onRequestEnable = { pendingMergeTarget = FvAppSwitcherLinkMergeTarget.SLOTS },
+                            )
+                        }
+                    } else {
+                        FvAppSwitcherLinkSwitchRow(
+                            title = stringResource(R.string.fv_app_switcher_link_appearance_axes_title),
+                            description = stringResource(R.string.fv_app_switcher_link_appearance_axes_desc),
+                            checked = linkAppearanceState,
+                            onCheckedChange = { checked ->
+                                if (checked) return@FvAppSwitcherLinkSwitchRow
+                                linkAppearanceState = false
+                                onLinkAppearanceAxesChange(false, null)
+                            },
+                            onRequestEnable = { pendingMergeTarget = FvAppSwitcherLinkMergeTarget.APPEARANCE },
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        FvAppSwitcherLinkSwitchRow(
+                            title = stringResource(R.string.fv_app_switcher_link_slot_axes_title),
+                            description = stringResource(R.string.fv_app_switcher_link_slot_axes_desc),
+                            checked = linkSlotState,
+                            onCheckedChange = { checked ->
+                                if (checked) return@FvAppSwitcherLinkSwitchRow
+                                linkSlotState = false
+                                onLinkSlotAxesChange(false, null)
+                            },
+                            onRequestEnable = { pendingMergeTarget = FvAppSwitcherLinkMergeTarget.SLOTS },
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
                     Text(
                         text = stringResource(R.string.fv_app_switcher_circle_count_title),
                         style = MaterialTheme.typography.titleSmall,
@@ -717,35 +759,15 @@ private fun AppSwitcherAppearanceDialogContent(
                         color = MaterialTheme.colorScheme.primary,
                     )
                     Spacer(modifier = Modifier.height(8.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    ) {
-                        listOf(
-                            1 to "1 圈(5)",
-                            2 to "2 圈(13)",
-                            3 to "3 圈(24)",
-                            4 to "4 圈(38)",
-                        ).forEach { (count, label) ->
-                            val selected = settingsState.circleCount == count
-                            FilterChip(
-                                selected = selected,
-                                onClick = { update { it.copy(circleCount = count) } },
-                                label = {
-                                    Text(
-                                        text = label,
-                                        style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-                                    )
-                                },
-                                modifier = Modifier.weight(1f),
-                            )
-                        }
-                    }
+                    FvAppSwitcherAppearanceChipGrid(
+                        isLandscape = isLandscape,
+                        labels = listOf("1 圈(5)", "2 圈(13)", "3 圈(24)", "4 圈(38)"),
+                        selectedIndex = settingsState.circleCount - 1,
+                        onSelected = { index -> update { it.copy(circleCount = index + 1) } },
+                    )
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // 2. 图标形状
                     Text(
                         text = stringResource(R.string.fv_app_switcher_icon_shape_title),
                         style = MaterialTheme.typography.titleSmall,
@@ -753,35 +775,33 @@ private fun AppSwitcherAppearanceDialogContent(
                         color = MaterialTheme.colorScheme.primary,
                     )
                     Spacer(modifier = Modifier.height(8.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    ) {
-                        listOf(
-                            FvIconShape.ROUNDED_RECT to stringResource(R.string.fv_icon_shape_rounded_rect),
-                            FvIconShape.CIRCLE to stringResource(R.string.fv_icon_shape_circle),
-                            FvIconShape.SQUIRCLE to stringResource(R.string.fv_icon_shape_squircle),
-                            FvIconShape.SQUARE to stringResource(R.string.fv_icon_shape_square),
-                        ).forEach { (shape, label) ->
-                            val selected = settingsState.iconShape == shape
-                            FilterChip(
-                                selected = selected,
-                                onClick = { update { it.copy(iconShape = shape) } },
-                                label = {
-                                    Text(
-                                        text = label,
-                                        style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-                                    )
-                                },
-                                modifier = Modifier.weight(1f),
-                            )
-                        }
-                    }
+                    FvAppSwitcherAppearanceChipGrid(
+                        isLandscape = isLandscape,
+                        labels = listOf(
+                            stringResource(R.string.fv_icon_shape_rounded_rect),
+                            stringResource(R.string.fv_icon_shape_circle),
+                            stringResource(R.string.fv_icon_shape_squircle),
+                            stringResource(R.string.fv_icon_shape_square),
+                        ),
+                        selectedIndex = listOf(
+                            FvIconShape.ROUNDED_RECT,
+                            FvIconShape.CIRCLE,
+                            FvIconShape.SQUIRCLE,
+                            FvIconShape.SQUARE,
+                        ).indexOf(settingsState.iconShape).coerceAtLeast(0),
+                        onSelected = { index ->
+                            val shape = listOf(
+                                FvIconShape.ROUNDED_RECT,
+                                FvIconShape.CIRCLE,
+                                FvIconShape.SQUIRCLE,
+                                FvIconShape.SQUARE,
+                            )[index]
+                            update { it.copy(iconShape = shape) }
+                        },
+                    )
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // 3. 图标大小
                     AppearanceSliderRow(
                         title = stringResource(R.string.fv_app_switcher_icon_size_title),
                         valueText = "${settingsState.iconSizeDp.toInt()} dp",
@@ -793,7 +813,6 @@ private fun AppSwitcherAppearanceDialogContent(
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    // 4. 内圈半径
                     AppearanceSliderRow(
                         title = stringResource(R.string.fv_app_switcher_base_radius_title),
                         valueText = "${settingsState.baseRadiusDp.toInt()} dp",
@@ -805,7 +824,6 @@ private fun AppSwitcherAppearanceDialogContent(
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    // 5. 环间距
                     AppearanceSliderRow(
                         title = stringResource(R.string.fv_app_switcher_layer_gap_title),
                         valueText = "${settingsState.layerGapDp.toInt()} dp",
@@ -817,7 +835,6 @@ private fun AppSwitcherAppearanceDialogContent(
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    // 6. 扇区边距
                     AppearanceSliderRow(
                         title = stringResource(R.string.fv_app_switcher_end_margin_title),
                         valueText = "${settingsState.endMarginDeg.toInt()}°",
@@ -901,29 +918,100 @@ private enum class FvAppSwitcherLinkMergeTarget {
 }
 
 @Composable
+private fun FvAppSwitcherAppearanceChipGrid(
+    isLandscape: Boolean,
+    labels: List<String>,
+    selectedIndex: Int,
+    onSelected: (Int) -> Unit,
+) {
+    if (isLandscape) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            for (row in 0..1) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    for (col in 0..1) {
+                        val index = row * 2 + col
+                        val selected = selectedIndex == index
+                        FilterChip(
+                            selected = selected,
+                            onClick = { onSelected(index) },
+                            label = {
+                                Text(
+                                    text = labels[index],
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+                                )
+                            },
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                }
+            }
+        }
+    } else {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            labels.forEachIndexed { index, label ->
+                val selected = selectedIndex == index
+                FilterChip(
+                    selected = selected,
+                    onClick = { onSelected(index) },
+                    label = {
+                        Text(
+                            text = label,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+                        )
+                    },
+                    modifier = Modifier.weight(1f),
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun FvAppSwitcherLinkSwitchRow(
     title: String,
     description: String,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
     onRequestEnable: () -> Unit,
+    modifier: Modifier = Modifier,
+    compact: Boolean = false,
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(modifier = Modifier.weight(1f)) {
+        if (compact) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f),
             )
-            Text(
-                text = description,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+        } else {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
         Switch(
             checked = checked,
