@@ -606,8 +606,17 @@ fun GestureAction.isCornerInnerZoneOnly(): Boolean =
 fun GestureAction.requiresContinuousTriggerOnly(): Boolean =
     this is GestureAction.RegionalScreenshotPick
 
+/** [GestureAction.continuousTrackingActions] membership by action kind (not payload). */
+fun GestureAction.isContinuousTrackingKind(): Boolean =
+    GestureAction.continuousTrackingActions.any { ref ->
+        when (ref) {
+            is GestureAction.QuickLauncher -> this is GestureAction.QuickLauncher
+            else -> this == ref
+        }
+    }
+
 fun GestureAction.supportsContinuousTracking(trigger: GestureTriggerType): Boolean {
-    if (this !in GestureAction.continuousTrackingActions) return false
+    if (!isContinuousTrackingKind()) return false
     return when (this) {
         GestureAction.AppSwitcher,
         GestureAction.HoneycombLauncher,
