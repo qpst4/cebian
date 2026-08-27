@@ -1,7 +1,7 @@
 {
-  "version": "1.9.8.9",
-  "versionCode": 33,
-  "apkUrl": "https://github.com/qpst4/cebian/releases/download/v1.9.8.9/cebian-1.9.8.9-lite.apk",
-  "apkSize": 22046561,
-  "notes": "## 新增\n- 交互与外观子页：震动、横移返回、预测性返回与主题/底栏设置集中入口\n- 全息启动器：新增 3D 球 overlay 动作与独立设置页（隐藏应用、旋转手感等）\n- 边角轮盘：槽位二级快捷菜单与统一编辑导航\n- 应用切换器：FV 轴向/布局与悬浮球触发体验优化\n## 变更\n- 主导航对齐 Mishka：NavDisplay 默认转场与系统圆角；Tab Pager 外层 Scaffold 铺底修复 overscroll 露色\n- Tab 体验：切页动画 ~300ms EaseInOut；液态玻璃底栏居中，底部间距对齐 Mishka\n- 顶栏毛玻璃：新安装默认改为渐进模糊\n## 修复\n- 悬浮窗毛玻璃：合并 Hidden API 豁免，避免预测性返回开关覆盖反射调用\n- 小组件面板：pages/滑条与预览模糊状态同步\n- 手势与启动器：直达 Shell 触发、边角轮盘松手误触、快速启动器图标缓存与会话内保留\n- 剪贴板浮窗：chip 与面板位置可靠持久化"
+  "version": "1.9.9",
+  "versionCode": 34,
+  "apkUrl": "https://github.com/qpst4/cebian/releases/download/v1.9.9/cebian-1.9.9-lite.apk",
+  "apkSize": 22305257,
+  "notes": "## 新增\n- 消息提醒：解锁后打开锁屏消息前增加确认弹窗，支持按应用「始终允许」与解锁规则设置页\n- 扩展功能：冰箱、背部双击（实验性）、隐藏最近任务入口已移除前的 LSPosed 集成；新增音量扩展面板、屏幕翻译、全局复制、延时提醒等手势动作\n- 扩展面板：快捷槽位长按编辑、槽位标签与清除；毛玻璃浮层、小窗启动策略与深色模式适配\n## 变更\n- 扩展 Tab：按功能分组入口\n- 搜索引擎：统一 Miuix 编辑体验；修复图片分享目标发现与列表布局\n- 设置页：应用索引、命令面板、指针命名、主题深色背景、悬浮球取词与外观分组\n- 搜索面板：设置布局与计算器精度\n## 修复\n- 主界面：Tab 切换与底栏指示器同步\n- 隐藏最近任务：移除 LSPosed Hook 与相关设置入口"
 }
