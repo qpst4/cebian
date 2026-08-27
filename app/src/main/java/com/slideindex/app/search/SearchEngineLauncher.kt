@@ -37,6 +37,17 @@ object SearchEngineLauncher {
         )
     }
 
+    fun launchTextShare(context: Context, engine: SearchEngineConfig, text: String): Boolean {
+        if (engine.engineType != SearchEngineType.SHARE_TO_APP) return false
+        val pkg = engine.targetPackage?.takeIf { it.isNotBlank() } ?: return false
+        val activity = engine.targetActivity?.takeIf { it.isNotBlank() } ?: return false
+        return FloatBallTextPick.shareTextTo(
+            context,
+            text,
+            ComponentName(pkg, activity),
+        )
+    }
+
     fun launch(
         context: Context,
         engine: SearchEngineConfig,
@@ -55,7 +66,7 @@ object SearchEngineLauncher {
             SearchEngineType.JUMP_TO_ACTIVITY -> launchJumpActivity(context, engine, text, settings, longPressTriggered)
             SearchEngineType.SHARE_TO_APP,
             SearchEngineType.SHARE_IMAGE_TO_APP,
-            -> false
+            -> false // use launchTextShare / launchImageShare instead
         }
     }
 

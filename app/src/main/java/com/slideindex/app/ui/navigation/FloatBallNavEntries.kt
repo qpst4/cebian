@@ -39,6 +39,7 @@ import com.slideindex.app.ui.picker.ActivityShortcutPickAppScreen
 import com.slideindex.app.ui.picker.MyShortcutsFolderScreen
 import com.slideindex.app.ui.picker.PresetShortcutsFolderScreen
 import com.slideindex.app.ui.picker.ShareImageTargetPickScreen
+import com.slideindex.app.ui.picker.ShareTargetPickScreen
 import com.slideindex.app.ui.resolveImageSearchEngine
 import com.slideindex.app.ui.viewmodel.ExtensionSettingsViewModel
 import com.slideindex.app.ui.viewmodel.FloatBallPickSettingsViewModel
@@ -241,7 +242,8 @@ fun NavEntryBuilder.floatBallNavEntries(ctx: MainNavContext) {
         } else {
             AppNavKey.FloatBallSearchEngineEditor(editorDraft?.engineId.orEmpty())
         }
-        ShareImageTargetPickScreen(
+        ShareTargetPickScreen(
+            forImage = key.isImageSearch,
             selectedPackageName = key.selectedPackageName,
             selectedActivityClassName = key.selectedActivityClassName,
             onBack = { ctx.navigateBackTo(returnKey) },

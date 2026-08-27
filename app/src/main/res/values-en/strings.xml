@@ -520,6 +520,9 @@
     <string name="search_engine_settings_empty">No search engines available</string>
     <string name="search_engine_type_direct_link">URL / Scheme Link</string>
     <string name="search_engine_type_jump_activity">Jump to activity</string>
+    <string name="search_engine_editor_tab_link">Link</string>
+    <string name="search_engine_editor_tab_activity">Activity</string>
+    <string name="search_engine_editor_tab_share">Share</string>
     <string name="search_engine_type_extern_jump">App Scheme</string>
     <string name="search_engine_url_link_hint">URL / Scheme Address</string>
     <string name="search_engine_url_link_support" formatted="false">Supports https://, coolmarket://, intent:// etc. Use %s or %q as placeholder</string>
@@ -611,6 +614,12 @@
     <string name="search_engine_pick_share_image_target_title">Choose image share handler</string>
     <string name="search_engine_share_image_target_search_hint">Search apps or activities</string>
     <string name="search_engine_share_image_target_empty">No apps can receive shared images</string>
+    <string name="search_engine_share_text_target_section">Text share target</string>
+    <string name="search_engine_share_text_target_not_set">No text share target selected</string>
+    <string name="search_engine_pick_share_text_target">Choose text share target</string>
+    <string name="search_engine_pick_share_text_target_title">Choose text share handler</string>
+    <string name="search_engine_share_text_target_search_hint">Search apps or activities</string>
+    <string name="search_engine_share_text_target_empty">No apps can receive shared text</string>
     <string name="image_search_engine_settings_title">Image search engines</string>
     <string name="image_search_engine_settings_subtitle">Image search and screenshot sharing</string>
     <string name="image_search_engine_aggregated_hint">Long-press to reorder tabs. Tap an engine for show and preload settings.</string>

@@ -1363,6 +1363,9 @@
     <string name="search_engine_settings_empty">暂无可用搜索引擎</string>
     <string name="search_engine_type_direct_link">URL / Scheme 链接</string>
     <string name="search_engine_type_jump_activity">跳转 Activity</string>
+    <string name="search_engine_editor_tab_link">链接</string>
+    <string name="search_engine_editor_tab_activity">Activity</string>
+    <string name="search_engine_editor_tab_share">分享</string>
     <string name="search_engine_type_extern_jump">应用深链 (Scheme)</string>
     <string name="search_engine_url_link_hint">URL / Scheme 链接地址</string>
     <string name="search_engine_url_link_support" formatted="false">支持 https://、coolmarket://、intent:// 等；可用 %s 或 %q 作为关键词占位符</string>
@@ -1454,6 +1457,12 @@
     <string name="search_engine_pick_share_image_target_title">选择图片分享接口</string>
     <string name="search_engine_share_image_target_search_hint">搜索应用或 Activity</string>
     <string name="search_engine_share_image_target_empty">没有可接收图片分享的应用</string>
+    <string name="search_engine_share_text_target_section">文字分享目标</string>
+    <string name="search_engine_share_text_target_not_set">未选择接收文字分享的应用</string>
+    <string name="search_engine_pick_share_text_target">选择接收文字分享的应用</string>
+    <string name="search_engine_pick_share_text_target_title">选择文字分享接口</string>
+    <string name="search_engine_share_text_target_search_hint">搜索应用或 Activity</string>
+    <string name="search_engine_share_text_target_empty">没有可接收文字分享的应用</string>
     <string name="image_search_engine_settings_title">图片搜索引擎</string>
     <string name="image_search_engine_settings_subtitle">图片搜索与截图分享</string>
     <string name="image_search_engine_aggregated_hint">长按可拖动调整 Tab 顺序。点击进入详情设置显示与并行搜索</string>

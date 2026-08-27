@@ -126,6 +126,7 @@ import com.slideindex.app.search.SearchEngineLauncher
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.PickPanelSlideAnimationDefaults
 import com.slideindex.app.settings.SearchEngineStore
+import com.slideindex.app.settings.SearchEngineType
 import com.slideindex.app.settings.launchPolicyLongPressEligible
 import com.slideindex.app.overlay.pickresult.PickResultImageSearchBar
 import androidx.compose.material.icons.Icons
@@ -2202,15 +2203,21 @@ object FloatBallPickResultPanel {
                     },
                     onSearchEngineClick = { engine, longPressTriggered ->
                         val query = activeTextHolder.value
-                        val launched = SearchEngineLauncher.launch(
-                            context,
-                            engine,
-                            query,
-                            settings,
-                            longPressTriggered,
-                        )
+                        val launched = when (engine.engineType) {
+                            SearchEngineType.SHARE_TO_APP ->
+                                SearchEngineLauncher.launchTextShare(context, engine, query)
+                            else -> SearchEngineLauncher.launch(
+                                context,
+                                engine,
+                                query,
+                                settings,
+                                longPressTriggered,
+                            )
+                        }
                         if (launched) {
-                            SearchPanelQueryBridge.rememberQuery(context, query)
+                            if (engine.engineType != SearchEngineType.SHARE_TO_APP) {
+                                SearchPanelQueryBridge.rememberQuery(context, query)
+                            }
                             dismiss()
                         }
                     },

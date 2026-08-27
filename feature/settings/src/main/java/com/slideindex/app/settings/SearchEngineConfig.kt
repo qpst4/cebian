@@ -43,9 +43,8 @@ data class SearchEngineConfig(
         SearchEngineType.DIRECT_LINK,
         SearchEngineType.JUMP_TO_ACTIVITY,
         SearchEngineType.EXTERN_JUMP_LINK,
-        -> showInPickPanel
         SearchEngineType.SHARE_TO_APP,
-        SearchEngineType.SHARE_IMAGE_TO_APP,
-        -> false
+        -> showInPickPanel
+        SearchEngineType.SHARE_IMAGE_TO_APP -> false
     }
 }

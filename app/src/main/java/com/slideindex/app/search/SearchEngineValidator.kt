@@ -12,7 +12,8 @@ object SearchEngineValidator {
                 !engine.searchLink.isNullOrBlank() || !engine.externJumpLink.isNullOrBlank()
             SearchEngineType.JUMP_TO_ACTIVITY ->
                 !engine.targetPackage.isNullOrBlank()
-            SearchEngineType.SHARE_TO_APP -> true
+            SearchEngineType.SHARE_TO_APP ->
+                !engine.targetPackage.isNullOrBlank() && !engine.targetActivity.isNullOrBlank()
             SearchEngineType.SHARE_IMAGE_TO_APP ->
                 !engine.targetPackage.isNullOrBlank() && !engine.targetActivity.isNullOrBlank()
         }

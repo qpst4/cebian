@@ -121,10 +121,9 @@ fun SearchEngineEditorScreen(
     val fetchFaviconFailedMessage = stringResource(R.string.search_engine_fetch_favicon_failed)
     val pickActivityRequiresPackageMessage =
         stringResource(R.string.search_engine_pick_activity_requires_package)
-    val isShareTextType = initialEngine?.engineType == SearchEngineType.SHARE_TO_APP
     val isShareImageType = editorCategory == SearchEngineEditorCategory.IMAGE_SHARE ||
         engineType == SearchEngineType.SHARE_IMAGE_TO_APP
-    val canFetchFavicon = !isShareTextType && !isShareImageType &&
+    val canFetchFavicon = !isShareImageType &&
         engineType == SearchEngineType.DIRECT_LINK &&
         searchLink.isNotBlank()
     val previewEngine = remember(
@@ -159,29 +158,21 @@ fun SearchEngineEditorScreen(
     }
 
     val saveAction: () -> Unit = {
-        val engine = if (isShareTextType) {
-            checkNotNull(initialEngine).copy(
-                name = name.trim(),
-                aliasCode = SearchPanelAliasResolver.normalizeAliasCode(aliasCode)
-                    .takeIf { it.isNotEmpty() },
-            )
-        } else {
-            buildEngine(
-                initialEngine = initialEngine,
-                name = name.trim(),
-                aliasCode = aliasCode,
-                engineType = engineType,
-                searchLink = searchLink.trim(),
-                externJumpLink = externJumpLink.trim(),
-                externJumpPackage = externJumpPackage.trim(),
-                targetPackage = targetPackage.trim(),
-                targetActivity = targetActivity.trim(),
-                autoInputEnter = autoInputEnter,
-                hasPendingIcon = pendingIconUri != null || pendingIconPath != null,
-                pendingIconPath = pendingIconPath,
-                pendingTextIcon = pendingTextIcon,
-            )
-        }
+        val engine = buildEngine(
+            initialEngine = initialEngine,
+            name = name.trim(),
+            aliasCode = aliasCode,
+            engineType = engineType,
+            searchLink = searchLink.trim(),
+            externJumpLink = externJumpLink.trim(),
+            externJumpPackage = externJumpPackage.trim(),
+            targetPackage = targetPackage.trim(),
+            targetActivity = targetActivity.trim(),
+            autoInputEnter = autoInputEnter,
+            hasPendingIcon = pendingIconUri != null || pendingIconPath != null,
+            pendingIconPath = pendingIconPath,
+            pendingTextIcon = pendingTextIcon,
+        )
         val normalizedAlias = SearchPanelAliasResolver.normalizeAliasCode(engine.aliasCode.orEmpty())
         if (!SearchPanelAliasResolver.isValidAliasCode(normalizedAlias)) {
             Toast.makeText(
@@ -267,7 +258,7 @@ fun SearchEngineEditorScreen(
                         }
                     }
 
-                    if (!isShareTextType) {
+                    if (!isShareImageType) {
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -369,9 +360,7 @@ fun SearchEngineEditorScreen(
                 Column(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    if (isShareTextType) {
-                        MiuixHintText(stringResource(R.string.search_engine_share_type_readonly))
-                    } else if (isShareImageType) {
+                    if (isShareImageType) {
                         MiuixSmallTitle(stringResource(R.string.search_engine_share_image_target_section))
                         val targetSummary = when {
                             targetPackage.isBlank() -> stringResource(R.string.search_engine_share_image_target_not_set)
@@ -426,6 +415,7 @@ fun SearchEngineEditorScreen(
                                     onPickActivity(targetPackage, targetActivity)
                                 }
                             },
+                            onPickShareTarget = { onPickShareTarget(targetPackage, targetActivity) },
                         )
                     }
                 }
@@ -502,10 +492,12 @@ private fun EditorTypeFields(
     onPickTargetApp: () -> Unit,
     onPickExternApp: () -> Unit,
     onPickActivity: () -> Unit,
+    onPickShareTarget: () -> Unit,
 ) {
     val engineTypes = listOf(
-        SearchEngineType.DIRECT_LINK to stringResource(R.string.search_engine_type_direct_link),
-        SearchEngineType.JUMP_TO_ACTIVITY to stringResource(R.string.search_engine_type_jump_activity),
+        SearchEngineType.DIRECT_LINK to stringResource(R.string.search_engine_editor_tab_link),
+        SearchEngineType.JUMP_TO_ACTIVITY to stringResource(R.string.search_engine_editor_tab_activity),
+        SearchEngineType.SHARE_TO_APP to stringResource(R.string.search_engine_editor_tab_share),
     )
 
     MiuixTabRowWithContour(
@@ -629,9 +621,23 @@ private fun EditorTypeFields(
             MiuixHintText(stringResource(R.string.search_engine_url_link_flow_desc))
         }
 
-        SearchEngineType.SHARE_TO_APP,
-        SearchEngineType.SHARE_IMAGE_TO_APP,
-        -> Unit
+        SearchEngineType.SHARE_TO_APP -> {
+            MiuixSmallTitle(stringResource(R.string.search_engine_share_text_target_section))
+            val targetSummary = when {
+                targetPackage.isBlank() -> stringResource(R.string.search_engine_share_text_target_not_set)
+                targetActivity.isBlank() -> targetPackage
+                else -> "$targetPackage / ${targetActivity.substringAfterLast('.')}"
+            }
+            MiuixHintText(targetSummary)
+            MiuixButton(
+                onClick = onPickShareTarget,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(stringResource(R.string.search_engine_pick_share_text_target))
+            }
+        }
+
+        SearchEngineType.SHARE_IMAGE_TO_APP -> Unit
     }
 }
 
@@ -697,12 +703,14 @@ private fun buildEngine(
         targetPackage = when (engineType) {
             SearchEngineType.JUMP_TO_ACTIVITY,
             SearchEngineType.DIRECT_LINK,
+            SearchEngineType.SHARE_TO_APP,
             SearchEngineType.SHARE_IMAGE_TO_APP,
             -> targetPackage.takeIf { it.isNotEmpty() }
             else -> null
         },
         targetActivity = when (engineType) {
             SearchEngineType.JUMP_TO_ACTIVITY,
+            SearchEngineType.SHARE_TO_APP,
             SearchEngineType.SHARE_IMAGE_TO_APP,
             -> targetActivity.takeIf { it.isNotEmpty() }
             else -> null

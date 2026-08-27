@@ -113,6 +113,22 @@ object FloatBallTextPick {
             }
     }
 
+    fun shareTextTo(context: Context, text: String, target: ComponentName): Boolean {
+        return runCatching {
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(Intent.EXTRA_TEXT, text)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                component = target
+            }
+            context.startActivity(intent)
+            true
+        }.getOrElse {
+            Toast.makeText(context, R.string.float_ball_action_failed, Toast.LENGTH_SHORT).show()
+            false
+        }
+    }
+
     fun saveScreenshot(context: Context, bitmap: Bitmap): Boolean {
         val fileName = screenshotFileName()
         val values = android.content.ContentValues().apply {
