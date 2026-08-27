@@ -1,5 +1,6 @@
 package com.slideindex.app.ui
 
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -22,6 +23,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -237,8 +239,9 @@ fun SearchEngineEditorScreen(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        SearchEngineIcon(
-                            engine = previewEngine,
+                        SearchEngineEditorIconPreview(
+                            previewEngine = previewEngine,
+                            pendingIconUri = pendingIconUri,
                             modifier = Modifier.size(56.dp),
                             backgroundColor = MiuixTheme.colorScheme.surfaceVariant,
                             fallbackContentColor = MiuixTheme.colorScheme.onSurfaceVariantSummary,
@@ -653,8 +656,12 @@ private fun buildPreviewEngine(
         name = name,
         engineType = engineType,
         iconType = iconType,
-        iconPath = pendingIconPath ?: initialEngine?.iconPath,
-        textIcon = pendingTextIcon ?: initialEngine?.textIcon,
+        iconPath = if (iconType == SearchIconType.URI) pendingIconPath ?: initialEngine?.iconPath else null,
+        textIcon = if (iconType == SearchIconType.TEXT) {
+            pendingTextIcon ?: initialEngine?.textIcon
+        } else {
+            null
+        },
     )
 }
 
@@ -687,12 +694,31 @@ private fun buildEngine(
         searchLink = if (engineType == SearchEngineType.DIRECT_LINK || engineType == SearchEngineType.EXTERN_JUMP_LINK) searchLink else null,
         externJumpLink = if (engineType == SearchEngineType.EXTERN_JUMP_LINK) externJumpLink.takeIf { it.isNotEmpty() } else null,
         externJumpPackage = if (engineType == SearchEngineType.EXTERN_JUMP_LINK) externJumpPackage.takeIf { it.isNotEmpty() } else null,
-        targetPackage = if (engineType == SearchEngineType.JUMP_TO_ACTIVITY || engineType == SearchEngineType.DIRECT_LINK) targetPackage else null,
-        targetActivity = if (engineType == SearchEngineType.JUMP_TO_ACTIVITY) targetActivity.takeIf { it.isNotEmpty() } else null,
+        targetPackage = when (engineType) {
+            SearchEngineType.JUMP_TO_ACTIVITY,
+            SearchEngineType.DIRECT_LINK,
+            SearchEngineType.SHARE_IMAGE_TO_APP,
+            -> targetPackage.takeIf { it.isNotEmpty() }
+            else -> null
+        },
+        targetActivity = when (engineType) {
+            SearchEngineType.JUMP_TO_ACTIVITY,
+            SearchEngineType.SHARE_IMAGE_TO_APP,
+            -> targetActivity.takeIf { it.isNotEmpty() }
+            else -> null
+        },
         autoInputEnter = autoInputEnter,
         iconType = iconType,
-        iconPath = pendingIconPath ?: initialEngine?.iconPath,
-        textIcon = pendingTextIcon ?: initialEngine?.textIcon,
+        iconPath = if (iconType == SearchIconType.URI) {
+            pendingIconPath ?: initialEngine?.iconPath?.takeIf { initialEngine.iconType == SearchIconType.URI }
+        } else {
+            null
+        },
+        textIcon = if (iconType == SearchIconType.TEXT) {
+            (pendingTextIcon ?: initialEngine?.textIcon)?.takeIf { it.isNotBlank() }
+        } else {
+            null
+        },
     )
 }
 
@@ -703,6 +729,49 @@ private fun discardPendingIconPath(
 ) {
     if (pendingIconPath != null && pendingIconPath != savedIconPath) {
         SearchEngineIconStorage.deleteIconIfOwned(context, pendingIconPath)
+    }
+}
+
+@Composable
+private fun SearchEngineEditorIconPreview(
+    previewEngine: SearchEngineConfig,
+    pendingIconUri: Uri?,
+    modifier: Modifier = Modifier,
+    backgroundColor: androidx.compose.ui.graphics.Color,
+    fallbackContentColor: androidx.compose.ui.graphics.Color,
+) {
+    val context = LocalContext.current
+    var pendingBitmap by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
+    LaunchedEffect(pendingIconUri) {
+        pendingBitmap = pendingIconUri?.let { uri ->
+            withContext(Dispatchers.IO) {
+                runCatching {
+                    context.contentResolver.openInputStream(uri)?.use { stream ->
+                        BitmapFactory.decodeStream(stream)
+                    }
+                }.getOrNull()
+            }
+        }
+    }
+    Box(modifier = modifier) {
+        val pending = pendingBitmap
+        if (pending != null) {
+            Image(
+                bitmap = pending.asImageBitmap(),
+                contentDescription = previewEngine.name,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(12.dp)),
+                contentScale = ContentScale.Crop,
+            )
+        } else {
+            SearchEngineIcon(
+                engine = previewEngine,
+                modifier = Modifier.fillMaxSize(),
+                backgroundColor = backgroundColor,
+                fallbackContentColor = fallbackContentColor,
+            )
+        }
     }
 }
 

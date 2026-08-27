@@ -52,6 +52,16 @@ import android.content.Context
 
 private val searchEngineBitmapCache = LruCache<String, android.graphics.Bitmap>(48)
 
+internal fun searchEngineIconCacheKey(engine: SearchEngineConfig): String =
+    "${engine.id}|${engine.iconType}|${engine.iconPath.orEmpty()}|${engine.textIcon.orEmpty()}"
+
+internal fun invalidateSearchEngineIconCache(engineId: String) {
+    val prefix = "$engineId|"
+    searchEngineBitmapCache.snapshot().keys.filter { it.startsWith(prefix) }.forEach { key ->
+        searchEngineBitmapCache.remove(key)
+    }
+}
+
 internal fun preloadPickResultSearchEngineIcons(
     context: Context,
     engines: List<SearchEngineConfig>,
@@ -59,15 +69,16 @@ internal fun preloadPickResultSearchEngineIcons(
     val filesDir = context.filesDir
     val packageManager = context.packageManager
     engines.forEach { engine ->
-        if (searchEngineBitmapCache.get(engine.id) != null) return@forEach
+        val cacheKey = searchEngineIconCacheKey(engine)
+        if (searchEngineBitmapCache.get(cacheKey) != null) return@forEach
         resolveSearchEngineBitmap(filesDir, engine, packageManager)?.let { bitmap ->
-            searchEngineBitmapCache.put(engine.id, bitmap)
+            searchEngineBitmapCache.put(cacheKey, bitmap)
         }
     }
 }
 
-private fun cachedSearchEngineBitmap(engineId: String): android.graphics.Bitmap? =
-    searchEngineBitmapCache.get(engineId)
+private fun cachedSearchEngineBitmap(cacheKey: String): android.graphics.Bitmap? =
+    searchEngineBitmapCache.get(cacheKey)
 
 private val SearchIconSizeDefault = 40.dp
 
@@ -255,16 +266,16 @@ fun SearchEngineIcon(
     fallbackContentColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
 ) {
     val context = LocalContext.current
-    var bitmap by remember(engine.id) {
-        mutableStateOf(cachedSearchEngineBitmap(engine.id))
+    val cacheKey = searchEngineIconCacheKey(engine)
+    var bitmap by remember(cacheKey) {
+        mutableStateOf(cachedSearchEngineBitmap(cacheKey))
     }
 
-    LaunchedEffect(engine) {
-        if (bitmap != null) return@LaunchedEffect
+    LaunchedEffect(cacheKey) {
         bitmap = withContext(Dispatchers.IO) {
             resolveSearchEngineBitmap(context.filesDir, engine, context.packageManager)
         }?.also { loaded ->
-            searchEngineBitmapCache.put(engine.id, loaded)
+            searchEngineBitmapCache.put(cacheKey, loaded)
         }
     }
 
@@ -277,23 +288,31 @@ fun SearchEngineIcon(
                 .background(backgroundColor.copy(alpha = alpha * 0.6f)),
             contentAlignment = Alignment.Center,
         ) {
-            val image = bitmap
-            if (image != null) {
-                Image(
-                    bitmap = image.asImageBitmap(),
-                    contentDescription = engine.name,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clip(shape),
-                    contentScale = ContentScale.Crop,
-                    alpha = alpha,
-                )
-            } else {
+            if (engine.iconType == SearchIconType.TEXT) {
                 Text(
-                    text = engine.textIcon?.take(1) ?: engine.name.take(1),
+                    text = engine.textIcon?.take(2).orEmpty().ifBlank { engine.name.take(1) },
                     style = MaterialTheme.typography.titleMedium,
                     color = fallbackContentColor.copy(alpha = alpha),
                 )
+            } else {
+                val image = bitmap
+                if (image != null) {
+                    Image(
+                        bitmap = image.asImageBitmap(),
+                        contentDescription = engine.name,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(shape),
+                        contentScale = ContentScale.Crop,
+                        alpha = alpha,
+                    )
+                } else {
+                    Text(
+                        text = engine.name.take(1),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = fallbackContentColor.copy(alpha = alpha),
+                    )
+                }
             }
         }
     }
@@ -304,12 +323,14 @@ private fun resolveSearchEngineBitmap(
     engine: SearchEngineConfig,
     packageManager: android.content.pm.PackageManager,
 ): android.graphics.Bitmap? {
+    if (engine.iconType == SearchIconType.TEXT) return null
     if (engine.iconType == SearchIconType.URI) {
         val iconPath = engine.iconPath?.takeIf { it.isNotBlank() } ?: return null
         val file = File(filesDir, iconPath)
         if (file.exists()) {
             return runCatching { BitmapFactory.decodeFile(file.absolutePath) }.getOrNull()
         }
+        return null
     }
     val pkg = engine.targetPackage?.takeIf { it.isNotBlank() }
         ?: engine.externJumpPackage?.takeIf { it.isNotBlank() }

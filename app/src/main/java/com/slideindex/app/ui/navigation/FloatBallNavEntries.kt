@@ -5,9 +5,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.yukonga.miuix.kmp.nav.core.NavEntryBuilder
+import com.slideindex.app.R
 import com.slideindex.app.floatball.FloatBallGestureType
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.GestureTriggerType
@@ -95,7 +97,7 @@ fun NavEntryBuilder.floatBallNavEntries(ctx: MainNavContext) {
     }
 
     hiltEntry<AppNavKey.FloatBallSearchEngineEditor> { key ->
-        val viewModel: SearchEngineSettingsViewModel = hiltViewModel()
+        val viewModel: SearchEngineSettingsViewModel = hiltViewModel(ctx.activity)
         val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
         val settings = overlaySettings.toMinimalAppSettings()
         val initialEngine = key.engineId.takeIf { it.isNotEmpty() }
@@ -152,9 +154,10 @@ fun NavEntryBuilder.floatBallNavEntries(ctx: MainNavContext) {
     }
 
     hiltEntry<AppNavKey.SearchEnginePickApp> { key ->
-        val viewModel: SearchEngineSettingsViewModel = hiltViewModel()
+        val viewModel: SearchEngineSettingsViewModel = hiltViewModel(ctx.activity)
         val context = LocalContext.current
         val scope = rememberCoroutineScope()
+        val pickAppIconFailedMessage = stringResource(R.string.search_engine_pick_app_icon_failed)
         val editorDraft by viewModel.editorDraft.collectAsStateWithLifecycle()
         val returnKey = if (key.isImageSearch) {
             AppNavKey.FloatBallImageSearchEngineEditor(editorDraft?.engineId.orEmpty())
@@ -175,9 +178,11 @@ fun NavEntryBuilder.floatBallNavEntries(ctx: MainNavContext) {
                                 targetActivity = if (previousPackage != app.packageName) "" else draft.targetActivity,
                             )
                         }
+                        ctx.navigateBackTo(returnKey)
                     }
                     "EXTERN" -> {
                         viewModel.updateDraft { it.copy(externJumpPackage = app.packageName) }
+                        ctx.navigateBackTo(returnKey)
                     }
                     "APP_ICON" -> {
                         scope.launch {
@@ -192,17 +197,23 @@ fun NavEntryBuilder.floatBallNavEntries(ctx: MainNavContext) {
                                         pendingTextIcon = null,
                                     )
                                 }
+                                ctx.navigateBackTo(returnKey)
+                            } else {
+                                android.widget.Toast.makeText(
+                                    context,
+                                    pickAppIconFailedMessage,
+                                    android.widget.Toast.LENGTH_SHORT,
+                                ).show()
                             }
                         }
                     }
                 }
-                ctx.navigateBackTo(returnKey)
             },
         )
     }
 
     hiltEntry<AppNavKey.SearchEnginePickActivity> { key ->
-        val viewModel: SearchEngineSettingsViewModel = hiltViewModel()
+        val viewModel: SearchEngineSettingsViewModel = hiltViewModel(ctx.activity)
         val editorDraft by viewModel.editorDraft.collectAsStateWithLifecycle()
         val returnKey = if (key.isImageSearch) {
             AppNavKey.FloatBallImageSearchEngineEditor(editorDraft?.engineId.orEmpty())
@@ -221,7 +232,7 @@ fun NavEntryBuilder.floatBallNavEntries(ctx: MainNavContext) {
     }
 
     hiltEntry<AppNavKey.SearchEnginePickShareTarget> { key ->
-        val viewModel: SearchEngineSettingsViewModel = hiltViewModel()
+        val viewModel: SearchEngineSettingsViewModel = hiltViewModel(ctx.activity)
         val context = LocalContext.current
         val scope = rememberCoroutineScope()
         val editorDraft by viewModel.editorDraft.collectAsStateWithLifecycle()
@@ -256,8 +267,8 @@ fun NavEntryBuilder.floatBallNavEntries(ctx: MainNavContext) {
                             )
                         }
                     }
+                    ctx.navigateBackTo(returnKey)
                 }
-                ctx.navigateBackTo(returnKey)
             },
         )
     }
@@ -473,7 +484,7 @@ fun NavEntryBuilder.floatBallNavEntries(ctx: MainNavContext) {
     }
 
     hiltEntry<AppNavKey.FloatBallImageSearchEngineEditor> { key ->
-        val viewModel: SearchEngineSettingsViewModel = hiltViewModel()
+        val viewModel: SearchEngineSettingsViewModel = hiltViewModel(ctx.activity)
         val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
         val settings = overlaySettings.toMinimalAppSettings()
         val initialEngine = key.engineId.takeIf { it.isNotEmpty() }

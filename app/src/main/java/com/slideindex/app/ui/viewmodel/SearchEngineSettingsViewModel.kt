@@ -3,6 +3,7 @@ package com.slideindex.app.ui.viewmodel
 import android.content.Context
 import android.net.Uri
 import com.slideindex.app.R
+import com.slideindex.app.overlay.pickresult.invalidateSearchEngineIconCache
 import com.slideindex.app.search.SearchEngineIconStorage
 import com.slideindex.app.search.SearchEngineImportResult
 import com.slideindex.app.search.SearchEngineImporter
@@ -199,18 +200,6 @@ class SearchEngineSettingsViewModel @Inject constructor(
             val previous = existing.find { it.id == result.engine.id }
             var engine = result.engine
             when {
-                result.savedIconPath != null -> {
-                    previous?.iconPath?.let { oldPath ->
-                        if (oldPath != result.savedIconPath) {
-                            SearchEngineIconStorage.deleteIconIfOwned(appContext, oldPath)
-                        }
-                    }
-                    engine = engine.copy(
-                        iconType = SearchIconType.URI,
-                        iconPath = result.savedIconPath,
-                        textIcon = null,
-                    )
-                }
                 result.iconUri != null -> {
                     val iconPath = SearchEngineIconStorage.saveIconFromUri(appContext, result.iconUri)
                     if (iconPath != null) {
@@ -225,6 +214,18 @@ class SearchEngineSettingsViewModel @Inject constructor(
                             textIcon = null,
                         )
                     }
+                }
+                result.savedIconPath != null -> {
+                    previous?.iconPath?.let { oldPath ->
+                        if (oldPath != result.savedIconPath) {
+                            SearchEngineIconStorage.deleteIconIfOwned(appContext, oldPath)
+                        }
+                    }
+                    engine = engine.copy(
+                        iconType = SearchIconType.URI,
+                        iconPath = result.savedIconPath,
+                        textIcon = null,
+                    )
                 }
                 result.engine.iconType == SearchIconType.TEXT -> {
                     previous?.iconPath?.let { oldPath ->
@@ -246,6 +247,7 @@ class SearchEngineSettingsViewModel @Inject constructor(
                 engines += engine.copy(sortOrder = order)
             }
             persistEngines(engines.sortedBy { it.sortOrder }) {
+                invalidateSearchEngineIconCache(engine.id)
                 userMessageBus.showSuccess(appContext.getString(R.string.search_engine_saved))
             }
         }
@@ -260,6 +262,7 @@ class SearchEngineSettingsViewModel @Inject constructor(
                 .sortedBy { it.sortOrder }
                 .mapIndexed { index, engine -> engine.copy(sortOrder = index) }
             persistEngines(remaining) {
+                invalidateSearchEngineIconCache(removed.id)
                 SearchEngineIconStorage.deleteIconIfOwned(appContext, removed.iconPath)
                 userMessageBus.showSuccess(appContext.getString(R.string.search_engine_deleted))
             }
