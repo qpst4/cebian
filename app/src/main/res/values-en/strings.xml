@@ -1520,6 +1520,8 @@
     <string name="holographic_launcher_entry_summary_hidden">%1$d apps hidden</string>
     <string name="holographic_launcher_settings_title">Holographic launcher settings</string>
     <string name="holographic_settings_section_interaction">Interaction</string>
+    <string name="holographic_settings_section_background">Background</string>
+    <string name="holographic_settings_background_style">Background style</string>
     <string name="holographic_settings_section_apps">Apps</string>
     <string name="holographic_settings_timeout">Auto-close when idle</string>
     <string name="holographic_settings_timeout_value">%1$d s</string>

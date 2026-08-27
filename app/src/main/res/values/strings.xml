@@ -669,6 +669,8 @@
     <string name="holographic_launcher_entry_summary_hidden">已隐藏 %1$d 个应用</string>
     <string name="holographic_launcher_settings_title">全息启动器设置</string>
     <string name="holographic_settings_section_interaction">交互</string>
+    <string name="holographic_settings_section_background">背景</string>
+    <string name="holographic_settings_background_style">背景样式</string>
     <string name="holographic_settings_section_apps">应用列表</string>
     <string name="holographic_settings_timeout">无操作自动关闭</string>
     <string name="holographic_settings_timeout_value">%1$d 秒</string>

@@ -1348,6 +1348,27 @@ class OverlaySettingsMutator @Inject constructor(
         it[SettingsPreferenceKeys.HOLOGRAPHIC_HAPTIC_LEVEL] = value.coerceIn(0, 3)
     }
 
+    suspend fun setHolographicBackgroundStyle(value: Int) = editor.edit {
+        it[SettingsPreferenceKeys.HOLOGRAPHIC_BACKGROUND_STYLE] = value.coerceIn(
+            HolographicLauncherSettings.BACKGROUND_BLUR,
+            HolographicLauncherSettings.BACKGROUND_WALLPAPER_BLUR,
+        )
+    }
+
+    suspend fun setHolographicBlurDp(value: Int) = editor.edit {
+        it[SettingsPreferenceKeys.HOLOGRAPHIC_BLUR_DP] = value.coerceIn(
+            HolographicLauncherSettings.MIN_BLUR_DP,
+            HolographicLauncherSettings.MAX_BLUR_DP,
+        )
+    }
+
+    suspend fun setHolographicDimPercent(value: Int) = editor.edit {
+        it[SettingsPreferenceKeys.HOLOGRAPHIC_DIM_PERCENT] = value.coerceIn(
+            HolographicLauncherSettings.MIN_DIM_PERCENT,
+            HolographicLauncherSettings.MAX_DIM_PERCENT,
+        )
+    }
+
     suspend fun addHolographicHiddenApp(packageName: String) = editor.edit {
         val current = it[SettingsPreferenceKeys.HOLOGRAPHIC_HIDDEN_APP_PACKAGES]?.toMutableSet() ?: mutableSetOf()
         current.add(packageName)

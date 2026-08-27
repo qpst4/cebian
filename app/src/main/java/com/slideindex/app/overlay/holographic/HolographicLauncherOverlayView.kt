@@ -21,6 +21,7 @@ class HolographicLauncherOverlayView(
     }
 
     private val ballView = Ball3DView(context)
+    private val backgroundView = HolographicLauncherBackgroundView(context)
     private val closeButton = ImageView(context)
     private var listener: Listener? = null
     private var autoCloseRunnable: Runnable? = null
@@ -31,6 +32,11 @@ class HolographicLauncherOverlayView(
             FrameLayout.LayoutParams.MATCH_PARENT,
             FrameLayout.LayoutParams.MATCH_PARENT,
         )
+        backgroundView.layoutParams = FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT,
+            FrameLayout.LayoutParams.MATCH_PARENT,
+        )
+        addView(backgroundView)
         ballView.layoutParams = FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.MATCH_PARENT,
             FrameLayout.LayoutParams.MATCH_PARENT,
@@ -67,13 +73,19 @@ class HolographicLauncherOverlayView(
     fun bind(
         apps: List<HolographicLauncherApp>,
         settings: HolographicLauncherSettings,
+        usesNativeWindowBlur: Boolean,
         listener: Listener,
     ) {
         this.listener = listener
         timeoutSeconds = settings.timeoutSeconds
+        backgroundView.applySettings(settings, usesNativeWindowBlur)
         ballView.applySettings(settings)
         ballView.setApps(apps)
         resetAutoClose()
+    }
+
+    fun refreshBackgroundBlur() {
+        backgroundView.refreshBlur()
     }
 
     fun resetAutoClose() {
@@ -101,6 +113,7 @@ class HolographicLauncherOverlayView(
     fun release() {
         cancelAutoClose()
         listener = null
+        backgroundView.release()
         ballView.onAppClick = null
         ballView.onTouchAction = null
         ballView.onBlankClick = null

@@ -574,6 +574,9 @@ fun NavEntryBuilder.extensionNavEntries(ctx: MainNavContext) {
             onTimeoutSecondsChange = viewModel::setHolographicLauncherTimeoutSeconds,
             onRotationSensitivityChange = viewModel::setHolographicRotationSensitivity,
             onHapticLevelChange = viewModel::setHolographicHapticLevel,
+            onBackgroundStyleChange = viewModel::setHolographicBackgroundStyle,
+            onBlurDpChange = viewModel::setHolographicBlurDp,
+            onDimPercentChange = viewModel::setHolographicDimPercent,
             onOpenHiddenApps = { ctx.navigate(AppNavKey.HolographicLauncherHiddenApps) },
         )
     }

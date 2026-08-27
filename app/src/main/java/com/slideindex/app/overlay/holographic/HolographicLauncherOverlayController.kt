@@ -25,8 +25,15 @@ class HolographicLauncherOverlayController(
     ): Boolean {
         removeNow()
         if (windowManager == null || apps.isEmpty()) return false
+
+        val usesNativeWindowBlur = resolveNativeWindowBlur(settings)
         val overlayView = HolographicLauncherOverlayView(context, mainHandler)
-        overlayView.bind(apps, settings, listener)
+        overlayView.bind(
+            apps = apps,
+            settings = settings,
+            usesNativeWindowBlur = usesNativeWindowBlur,
+            listener = listener,
+        )
         val params = WindowManager.LayoutParams(
             WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.MATCH_PARENT,
@@ -39,6 +46,12 @@ class HolographicLauncherOverlayController(
             PixelFormat.TRANSLUCENT,
         ).apply {
             OverlayWindowTypes.ensureNoBrightnessOverride(this)
+            if (usesNativeWindowBlur && settings.blurDp > 0) {
+                val rawBlurPx = (settings.blurDp * context.resources.displayMetrics.density).toInt()
+                val clampedBlurPx = rawBlurPx.coerceIn(1, 80)
+                flags = flags or WindowManager.LayoutParams.FLAG_BLUR_BEHIND
+                setBlurBehindRadius(clampedBlurPx)
+            }
             gravity = Gravity.TOP or Gravity.START
             setFitInsetsTypes(0)
             title = "SlideIndexHolographicLauncher"
@@ -48,6 +61,16 @@ class HolographicLauncherOverlayController(
             windowManager.addView(overlayView, params)
             view = overlayView
             layoutParams = params
+            if (usesNativeWindowBlur) {
+                overlayView.post {
+                    val attachedView = view ?: return@post
+                    val attachedParams = layoutParams ?: return@post
+                    runCatching { windowManager.updateViewLayout(attachedView, attachedParams) }
+                    attachedView.refreshBackgroundBlur()
+                }
+            } else {
+                overlayView.post { view?.refreshBackgroundBlur() }
+            }
             true
         } catch (_: Throwable) {
             overlayView.release()
@@ -68,5 +91,12 @@ class HolographicLauncherOverlayController(
         }
         view = null
         layoutParams = null
+    }
+
+    private fun resolveNativeWindowBlur(settings: HolographicLauncherSettings): Boolean {
+        if (settings.backgroundStyle != HolographicLauncherSettings.BACKGROUND_BLUR || settings.blurDp <= 0) {
+            return false
+        }
+        return runCatching { windowManager?.isCrossWindowBlurEnabled == true }.getOrDefault(false)
     }
 }

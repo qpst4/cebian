@@ -121,6 +121,18 @@ class ExtensionSettingsViewModel @Inject constructor(
         settingsRepository.setHolographicHapticLevel(value)
     }
 
+    fun setHolographicBackgroundStyle(value: Int) = launchSettingsWrite {
+        settingsRepository.setHolographicBackgroundStyle(value)
+    }
+
+    fun setHolographicBlurDp(value: Int) = launchSettingsWrite {
+        settingsRepository.setHolographicBlurDp(value)
+    }
+
+    fun setHolographicDimPercent(value: Int) = launchSettingsWrite {
+        settingsRepository.setHolographicDimPercent(value)
+    }
+
     fun addHolographicHiddenApp(packageName: String) = launchSettingsWrite {
         settingsRepository.addHolographicHiddenApp(packageName)
     }

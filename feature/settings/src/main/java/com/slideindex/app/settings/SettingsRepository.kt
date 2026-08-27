@@ -399,6 +399,15 @@ class SettingsRepository @Inject constructor(
     suspend fun setHolographicHapticLevel(value: Int) =
         overlay.setHolographicHapticLevel(value)
 
+    suspend fun setHolographicBackgroundStyle(value: Int) =
+        overlay.setHolographicBackgroundStyle(value)
+
+    suspend fun setHolographicBlurDp(value: Int) =
+        overlay.setHolographicBlurDp(value)
+
+    suspend fun setHolographicDimPercent(value: Int) =
+        overlay.setHolographicDimPercent(value)
+
     suspend fun addHolographicHiddenApp(packageName: String) =
         overlay.addHolographicHiddenApp(packageName)
 
