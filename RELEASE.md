@@ -55,13 +55,15 @@ git diff ${last_tag}..HEAD --name-only --diff-filter=A
 
 ```bash
 git add app/build.gradle.kts README.md CHANGELOG.md
-git commit -m "{版本号}：{简述}"
+git commit -m "{版本号}：{简述} [skip ci]"
 git tag -a v{版本号} -m "v{版本号}"
 git push origin main
 git push origin v{版本号}
 ```
 
-Commit 备注格式：`1.9.9：边角轮盘手势`（版本号 + 中文冒号 + 简述）。
+Commit 备注格式：`1.9.9：边角轮盘手势 [skip ci]`（版本号 + 中文冒号 + 简述 + **`[skip ci]`**）。
+
+发版 commit 会 push 到 `main` 并打 Tag；`[skip ci]` 用于跳过日常 **CI** 工作流中的重复 Release 构建（正式发版由 `release.yml` 在 Tag 推送时执行）。GitHub Actions **不会**自动识别该标记，已在 [`.github/workflows/ci.yml`](.github/workflows/ci.yml) 中配置判断。
 
 ---
 
