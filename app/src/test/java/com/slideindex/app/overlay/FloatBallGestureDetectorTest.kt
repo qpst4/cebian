@@ -201,7 +201,7 @@ class FloatBallGestureDetectorTest {
             it.bind(
                 settings = AppSettings(),
                 density = 3f,
-                onPickStart = { _, _ -> },
+                onPickStart = { _, _, _, _ -> },
                 onPickDrag = { _, _ -> },
                 onPickEnd = {},
                 onPickCancel = {},
@@ -281,7 +281,7 @@ class FloatBallGestureDetectorTest {
         var pickCancelled = false
         val detector = newDetector(
             onGesture = { _, _, _ -> },
-            onPickStart = { _, _ -> pickStarted = true },
+            onPickStart = { _, _, _, _ -> pickStarted = true },
             onPickEnd = { pickEnded = true },
             onPickCancel = { pickCancelled = true },
         )
@@ -305,7 +305,7 @@ class FloatBallGestureDetectorTest {
         var fired: FloatBallGestureType? = null
         val detector = newDetector(
             onGesture = { type, _, _ -> fired = type },
-            onPickStart = { _, _ -> pickStarted = true },
+            onPickStart = { _, _, _, _ -> pickStarted = true },
             onPickEnd = { pickEnded = true },
             onPickCancel = { pickCancelled = true },
         )
@@ -328,7 +328,7 @@ class FloatBallGestureDetectorTest {
         var pickEnded = false
         var pickCancelled = false
         val detector = newDetector(
-            onPickStart = { _, _ -> pickStarted = true },
+            onPickStart = { _, _, _, _ -> pickStarted = true },
             onPickEnd = { pickEnded = true },
             onPickCancel = { pickCancelled = true },
         )
@@ -405,7 +405,7 @@ class FloatBallGestureDetectorTest {
         var previewProgress = -1f
         var pickStarted = false
         val detector = newDetector(
-            onPickStart = { _, _ -> pickStarted = true },
+            onPickStart = { _, _, _, _ -> pickStarted = true },
             onPickPreviewStart = { _, _ -> previewStarted = true },
             onPickPreviewProgress = { progress -> previewProgress = progress },
             onPickPreviewCancel = { previewCancelled = true },
@@ -426,12 +426,35 @@ class FloatBallGestureDetectorTest {
         up.recycle()
     }
 
+    @Test
+    fun `slop phase move fires preview move before pick starts`() {
+        var previewMoveCount = 0
+        var pickStarted = false
+        val detector = newDetector(
+            onPickStart = { _, _, _, _ -> pickStarted = true },
+            onPickPreviewMove = { _, _, _, _ -> previewMoveCount++ },
+        )
+        val down = MotionEvent.obtain(0, 0, MotionEvent.ACTION_DOWN, 100f, 200f, 0)
+        val move = MotionEvent.obtain(0, 50, MotionEvent.ACTION_MOVE, 100f, 205f, 0)
+        val up = MotionEvent.obtain(0, 100, MotionEvent.ACTION_UP, 100f, 205f, 0)
+        detector.onTouchEvent(down)
+        detector.onTouchEvent(move)
+        assertEquals(1, previewMoveCount)
+        assertFalse(pickStarted)
+        detector.onTouchEvent(up)
+        assertFalse(pickStarted)
+        down.recycle()
+        move.recycle()
+        up.recycle()
+    }
+
     private fun newDetector(
-        onPickStart: (Float, Float) -> Unit = { _, _ -> },
+        onPickStart: (Float, Float, Float, Float) -> Unit = { _, _, _, _ -> },
         onPickEnd: () -> Unit = {},
         onPickCancel: () -> Unit = {},
         onPickPreviewStart: (Float, Float) -> Unit = { _, _ -> },
         onPickPreviewProgress: (Float) -> Unit = {},
+        onPickPreviewMove: (Float, Float, Float, Float) -> Unit = { _, _, _, _ -> },
         onPickPreviewCancel: () -> Unit = {},
         onGesture: (FloatBallGestureType, Float, Float) -> Unit = { _, _, _ -> },
     ): FloatBallGestureDetector {
@@ -446,6 +469,7 @@ class FloatBallGestureDetectorTest {
             onGesture = onGesture,
             onPickPreviewStart = onPickPreviewStart,
             onPickPreviewProgress = onPickPreviewProgress,
+            onPickPreviewMove = onPickPreviewMove,
             onPickPreviewCancel = onPickPreviewCancel,
         )
         return detector

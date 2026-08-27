@@ -15,7 +15,7 @@ import kotlin.math.hypot
  * 首次滑出方向后锁定轴向，斜拖/改向不再切换手势提示与抬手判定。
  * 沿锁定轴往回滑则取消手势；再次往原方向滑出可重新触发提示与抬手判定。
  * 抬手判定记录锁定轴正向峰值位移；末尾微回弹在 [GESTURE_CANCEL_RETAIN_FRACTION] 容差内仍触发手势。
- * 单击/双击/长按不进入取词；拖出 slop 后才跟手取词，[PICK_GESTURE_LOCK_MS] 从拖出时刻起算。
+ * 单击/双击/长按不进入取词；slop 内球体微跟手，拖出 slop 后进入取词，[PICK_GESTURE_LOCK_MS] 从拖出时刻起算。
  * 黄框暂停（[lockPickFromPause]）与超时锁定等价：抬手仅取词，不触发滑动手势。
  */
 internal class FloatBallGestureDetector(
@@ -77,8 +77,9 @@ internal class FloatBallGestureDetector(
 
     private var onPickPreviewStart: ((screenX: Float, screenY: Float) -> Unit)? = null
     private var onPickPreviewProgress: ((progress: Float) -> Unit)? = null
+    private var onPickPreviewMove: ((touchDownX: Float, touchDownY: Float, fingerX: Float, fingerY: Float) -> Unit)? = null
     private var onPickPreviewCancel: (() -> Unit)? = null
-    private var onPickStart: ((screenX: Float, screenY: Float) -> Unit)? = null
+    private var onPickStart: ((touchDownX: Float, touchDownY: Float, fingerX: Float, fingerY: Float) -> Unit)? = null
     private var onPickDrag: ((dx: Float, dy: Float) -> Unit)? = null
     private var onPickEnd: (() -> Unit)? = null
     private var onPickCancel: (() -> Unit)? = null
@@ -118,7 +119,7 @@ internal class FloatBallGestureDetector(
     fun bind(
         settings: AppSettings,
         density: Float,
-        onPickStart: (screenX: Float, screenY: Float) -> Unit,
+        onPickStart: (touchDownX: Float, touchDownY: Float, fingerX: Float, fingerY: Float) -> Unit,
         onPickDrag: (dx: Float, dy: Float) -> Unit,
         onPickEnd: () -> Unit,
         onPickCancel: () -> Unit,
@@ -126,6 +127,7 @@ internal class FloatBallGestureDetector(
         onGestureHint: (FloatBallGestureType?) -> Unit = {},
         onPickPreviewStart: (screenX: Float, screenY: Float) -> Unit = { _, _ -> },
         onPickPreviewProgress: (progress: Float) -> Unit = {},
+        onPickPreviewMove: (touchDownX: Float, touchDownY: Float, fingerX: Float, fingerY: Float) -> Unit = { _, _, _, _ -> },
         onPickPreviewCancel: () -> Unit = {},
         onLauncherCaptureMove: (rawX: Float, rawY: Float) -> Unit = { _, _ -> },
         onLauncherCaptureUp: (rawX: Float, rawY: Float) -> Unit = { _, _ -> },
@@ -143,6 +145,7 @@ internal class FloatBallGestureDetector(
         this.onGestureHint = onGestureHint
         this.onPickPreviewStart = onPickPreviewStart
         this.onPickPreviewProgress = onPickPreviewProgress
+        this.onPickPreviewMove = onPickPreviewMove
         this.onPickPreviewCancel = onPickPreviewCancel
         this.onLauncherCaptureMove = onLauncherCaptureMove
         this.onLauncherCaptureUp = onLauncherCaptureUp
@@ -197,6 +200,9 @@ internal class FloatBallGestureDetector(
                 if (!pickDragStarted) {
                     val progress = if (slopPx > 0f) (distFromStart / slopPx).coerceIn(0f, 1f) else 1f
                     onPickPreviewProgress?.invoke(progress)
+                    if (distFromStart > 0f) {
+                        onPickPreviewMove?.invoke(downX, downY, event.rawX, event.rawY)
+                    }
                 }
                 if (distFromStart > slopPx) {
                     movedBeyondSlop = true
@@ -308,10 +314,10 @@ internal class FloatBallGestureDetector(
                 SystemClock.uptimeMillis() - pickDragStartTime >= PICK_GESTURE_LOCK_MS)
     }
 
-    private fun startPickDrag(screenX: Float, screenY: Float) {
+    private fun startPickDrag(fingerX: Float, fingerY: Float) {
         pickDragStarted = true
         pickDragStartTime = SystemClock.uptimeMillis()
-        onPickStart?.invoke(screenX, screenY)
+        onPickStart?.invoke(downX, downY, fingerX, fingerY)
         handler.postDelayed(pickGestureLockRunnable, PICK_GESTURE_LOCK_MS)
     }
 

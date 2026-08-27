@@ -41,8 +41,10 @@ internal object FloatBallEdgePickReplay {
 
         session.armAtTouch(
             settings = settings,
-            screenX = ballCenterX,
-            screenY = ballCenterY,
+            touchDownX = ballCenterX,
+            touchDownY = ballCenterY,
+            fingerX = ballCenterX,
+            fingerY = ballCenterY,
             ballCenterX = ballCenterX,
             ballCenterY = ballCenterY,
             ballSizePx = ballSizePx,

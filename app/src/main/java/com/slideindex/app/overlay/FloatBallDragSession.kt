@@ -38,8 +38,10 @@ internal class FloatBallDragSession {
 
   fun armAtTouch(
     settings: AppSettings,
-    screenX: Float,
-    screenY: Float,
+    touchDownX: Float,
+    touchDownY: Float,
+    fingerX: Float,
+    fingerY: Float,
     ballCenterX: Float,
     ballCenterY: Float,
     ballSizePx: Float,
@@ -49,12 +51,12 @@ internal class FloatBallDragSession {
     pickDockSide: FloatBallSide,
   ) {
     this.pickDockSide = pickDockSide
-    dragFingerX = screenX
-    dragFingerY = screenY
-    dragFingerAnchorX = screenX
-    dragFingerAnchorY = screenY
-    dragJoystickOffsetX = ballCenterX - screenX
-    dragJoystickOffsetY = ballCenterY - screenY
+    dragFingerX = fingerX
+    dragFingerY = fingerY
+    dragFingerAnchorX = fingerX
+    dragFingerAnchorY = fingerY
+    dragJoystickOffsetX = ballCenterX - touchDownX
+    dragJoystickOffsetY = ballCenterY - touchDownY
     pointerModeActive = false
     establishPointerTravel(settings, screenWidth, screenHeight)
 

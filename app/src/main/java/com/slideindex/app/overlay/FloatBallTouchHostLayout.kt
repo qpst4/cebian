@@ -28,13 +28,14 @@ internal class FloatBallTouchHostLayout(
 
     private var gestureCaptureActive = false
 
-    private var onBallDragStart: ((screenX: Float, screenY: Float) -> Unit)? = null
+    private var onBallDragStart: ((touchDownX: Float, touchDownY: Float, fingerX: Float, fingerY: Float) -> Unit)? = null
     private var onBallDrag: ((dx: Float, dy: Float) -> Unit)? = null
     private var onBallDragEnd: (() -> Unit)? = null
     private var onBallDragCancel: (() -> Unit)? = null
     private var onBallGesture: ((FloatBallGestureType, rawX: Float, rawY: Float) -> Unit)? = null
     private var onBallGestureHint: ((FloatBallGestureType?) -> Unit)? = null
     private var onBallPickPreviewStart: ((screenX: Float, screenY: Float) -> Unit)? = null
+    private var onBallPickPreviewMove: ((touchDownX: Float, touchDownY: Float, fingerX: Float, fingerY: Float) -> Unit)? = null
     private var onBallPickPreviewProgress: ((progress: Float) -> Unit)? = null
     private var onBallPickPreviewCancel: (() -> Unit)? = null
     private var onLauncherCaptureMove: ((rawX: Float, rawY: Float) -> Unit)? = null
@@ -77,7 +78,9 @@ internal class FloatBallTouchHostLayout(
             detector = ballDetector,
             settings = settings,
             density = density,
-            onDragStart = { x, y -> onBallDragStart?.invoke(x, y) },
+            onDragStart = { downX, downY, fingerX, fingerY ->
+                onBallDragStart?.invoke(downX, downY, fingerX, fingerY)
+            },
             onDrag = { dx, dy -> onBallDrag?.invoke(dx, dy) },
             onDragEnd = { onBallDragEnd?.invoke() },
             onDragCancel = { onBallDragCancel?.invoke() },
@@ -85,6 +88,9 @@ internal class FloatBallTouchHostLayout(
             onGestureHint = { type -> onBallGestureHint?.invoke(type) },
             onPickPreviewStart = { x, y -> onBallPickPreviewStart?.invoke(x, y) },
             onPickPreviewProgress = { p -> onBallPickPreviewProgress?.invoke(p) },
+            onPickPreviewMove = { downX, downY, fingerX, fingerY ->
+                onBallPickPreviewMove?.invoke(downX, downY, fingerX, fingerY)
+            },
             onPickPreviewCancel = { onBallPickPreviewCancel?.invoke() },
             onLauncherCaptureMove = { x, y -> onLauncherCaptureMove?.invoke(x, y) },
             onLauncherCaptureUp = { x, y -> onLauncherCaptureUp?.invoke(x, y) },
@@ -92,7 +98,7 @@ internal class FloatBallTouchHostLayout(
     }
 
     fun bindBallCallbacks(
-        onDragStart: (screenX: Float, screenY: Float) -> Unit,
+        onDragStart: (touchDownX: Float, touchDownY: Float, fingerX: Float, fingerY: Float) -> Unit,
         onDrag: (dx: Float, dy: Float) -> Unit,
         onDragEnd: () -> Unit,
         onDragCancel: () -> Unit,
@@ -100,6 +106,7 @@ internal class FloatBallTouchHostLayout(
         onGestureHint: (FloatBallGestureType?) -> Unit = {},
         onPickPreviewStart: (screenX: Float, screenY: Float) -> Unit = { _, _ -> },
         onPickPreviewProgress: (progress: Float) -> Unit = {},
+        onPickPreviewMove: (touchDownX: Float, touchDownY: Float, fingerX: Float, fingerY: Float) -> Unit = { _, _, _, _ -> },
         onPickPreviewCancel: () -> Unit = {},
         onLauncherCaptureMove: (rawX: Float, rawY: Float) -> Unit = { _, _ -> },
         onLauncherCaptureUp: (rawX: Float, rawY: Float) -> Unit = { _, _ -> },
@@ -112,6 +119,7 @@ internal class FloatBallTouchHostLayout(
         onBallGestureHint = onGestureHint
         onBallPickPreviewStart = onPickPreviewStart
         onBallPickPreviewProgress = onPickPreviewProgress
+        onBallPickPreviewMove = onPickPreviewMove
         onBallPickPreviewCancel = onPickPreviewCancel
         this.onLauncherCaptureMove = onLauncherCaptureMove
         this.onLauncherCaptureUp = onLauncherCaptureUp
@@ -141,7 +149,7 @@ internal class FloatBallTouchHostLayout(
         detector: FloatBallGestureDetector,
         settings: AppSettings,
         density: Float,
-        onDragStart: (Float, Float) -> Unit,
+        onDragStart: (Float, Float, Float, Float) -> Unit,
         onDrag: (Float, Float) -> Unit,
         onDragEnd: () -> Unit,
         onDragCancel: () -> Unit,
@@ -149,6 +157,7 @@ internal class FloatBallTouchHostLayout(
         onGestureHint: (FloatBallGestureType?) -> Unit,
         onPickPreviewStart: (Float, Float) -> Unit,
         onPickPreviewProgress: (Float) -> Unit,
+        onPickPreviewMove: (Float, Float, Float, Float) -> Unit,
         onPickPreviewCancel: () -> Unit,
         onLauncherCaptureMove: (Float, Float) -> Unit = { _, _ -> },
         onLauncherCaptureUp: (Float, Float) -> Unit = { _, _ -> },
@@ -164,6 +173,7 @@ internal class FloatBallTouchHostLayout(
             onGestureHint = onGestureHint,
             onPickPreviewStart = onPickPreviewStart,
             onPickPreviewProgress = onPickPreviewProgress,
+            onPickPreviewMove = onPickPreviewMove,
             onPickPreviewCancel = onPickPreviewCancel,
             onLauncherCaptureMove = onLauncherCaptureMove,
             onLauncherCaptureUp = onLauncherCaptureUp,

@@ -371,7 +371,7 @@ internal object SettingsSnapshotReader {
                     prefs[SettingsPreferenceKeys.FLOAT_BALL_PICK_PANEL_EXIT_ANIMATION_MS]
                         ?: PickPanelSlideAnimationDefaults.DEFAULT_MS,
                 ),
-            floatBallPointerSlopDp = prefs[SettingsPreferenceKeys.FLOAT_BALL_POINTER_SLOP_DP] ?: 8f,
+            floatBallPointerSlopDp = prefs[SettingsPreferenceKeys.FLOAT_BALL_POINTER_SLOP_DP] ?: 4f,
             floatBallHoverPauseDelayMs =
                 prefs[SettingsPreferenceKeys.FLOAT_BALL_HOVER_PAUSE_DELAY_MS]?.coerceIn(200, 1000) ?: 400,
             floatBallRegionalCancelSlopDp =

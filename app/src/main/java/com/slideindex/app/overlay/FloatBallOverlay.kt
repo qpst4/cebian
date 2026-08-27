@@ -213,21 +213,22 @@ object FloatBallOverlay {
         deferredDragStartGeneration++
     }
 
-    /** Spread drag-start CPU: ball shell and cross on the next animation frame. */
-    private fun scheduleDeferredDragStart(deferBallWindowMutation: Boolean) {
+    /** 拖出当帧切换拖拽快照并刷新布局。 */
+    private fun applyImmediateDragStartVisual(
+        deferBallWindowMutation: Boolean,
+        showCursorLayers: Boolean = true,
+    ) {
         cancelDeferredDragStart()
-        val host = displayView ?: return
-        val generation = deferredDragStartGeneration
-        host.postOnAnimation {
-            if (generation != deferredDragStartGeneration || !isDragging) return@postOnAnimation
-            ballDraggingState?.value = true
-            activateDragBallVisual()
-            if (!deferBallWindowMutation || !dragOriginatedFromLine) {
-                flushDragChromeLayout(syncAnchorState = true)
-            }
-            setCursorLayersVisible(true)
-            settingsState?.value?.let { updateChromeVisibility(it) }
+        if (!isDragging) return
+        ballDraggingState?.value = true
+        activateDragBallVisual()
+        if (!deferBallWindowMutation || !dragOriginatedFromLine) {
+            flushDragChromeLayout(syncAnchorState = true)
         }
+        if (showCursorLayers) {
+            setCursorLayersVisible(true)
+        }
+        settingsState?.value?.let { updateChromeVisibility(it) }
     }
 
     private fun activateDragBallVisual() {
@@ -267,6 +268,9 @@ object FloatBallOverlay {
     private var regionalPickActive = false
     private val gestureHintWindow = FloatBallGestureHintWindow()
     private var currentGestureHintType: FloatBallGestureType? = null
+    /** slop 内球体已跟手，超 slop 后升级为完整取词拖。 */
+    private var slopPhaseBallFollowActive = false
+    private var slopPhaseFromLineStrip = false
 
     val isShowing: Boolean get() = displayView != null
 
@@ -976,20 +980,47 @@ object FloatBallOverlay {
             }
 
             fun onPreviewProgress(progress: Float) {
-                updateCursorPickPreviewAlpha(progress)
+                if (!slopPhaseBallFollowActive) {
+                    updateCursorPickPreviewAlpha(progress)
+                }
+            }
+
+            fun onPreviewMove(
+                touchDownX: Float,
+                touchDownY: Float,
+                fingerX: Float,
+                fingerY: Float,
+                fromLineStrip: Boolean,
+            ) {
+                updateSlopPhaseBallFollow(
+                    fromLineStrip = fromLineStrip,
+                    touchDownX = touchDownX,
+                    touchDownY = touchDownY,
+                    fingerX = fingerX,
+                    fingerY = fingerY,
+                )
             }
 
             fun onPreviewCancel() {
+                cancelSlopPhaseBallFollow()
                 cancelCursorPickPreview()
             }
 
-            fun onStart(screenX: Float, screenY: Float) {
-                activeSideAtDragStart = null
-                dragOriginatedFromLine = false
-                lineDragEndedWithGesture = false
-                dragActiveSideOverride = null
+            fun onStart(touchDownX: Float, touchDownY: Float, fingerX: Float, fingerY: Float) {
+                if (!slopPhaseBallFollowActive) {
+                    activeSideAtDragStart = null
+                    dragOriginatedFromLine = false
+                    lineDragEndedWithGesture = false
+                    dragActiveSideOverride = null
+                }
                 expandBallTouchCapture()
-                showCursorAtScreenTouch(screenX, screenY, deferBallWindowMutation = true)
+                showCursorAtScreenTouch(
+                    touchDownX = touchDownX,
+                    touchDownY = touchDownY,
+                    fingerX = fingerX,
+                    fingerY = fingerY,
+                    deferBallWindowMutation = true,
+                )
             }
 
             fun onDrag(dx: Float, dy: Float) {
@@ -1039,7 +1070,9 @@ object FloatBallOverlay {
         ).apply {
             updateSettings(settings)
             bindBallCallbacks(
-                onDragStart = { screenX, screenY -> dragCallbacks.onStart(screenX, screenY) },
+                onDragStart = { touchDownX, touchDownY, fingerX, fingerY ->
+                    dragCallbacks.onStart(touchDownX, touchDownY, fingerX, fingerY)
+                },
                 onDrag = { dx, dy -> dragCallbacks.onDrag(dx, dy) },
                 onDragEnd = { dragCallbacks.onEnd() },
                 onDragCancel = { dragCallbacks.onCancel() },
@@ -1050,6 +1083,9 @@ object FloatBallOverlay {
                 onGestureHint = dragCallbacks::onGestureHint,
                 onPickPreviewStart = dragCallbacks::onPreviewStart,
                 onPickPreviewProgress = dragCallbacks::onPreviewProgress,
+                onPickPreviewMove = { touchDownX, touchDownY, fingerX, fingerY ->
+                    dragCallbacks.onPreviewMove(touchDownX, touchDownY, fingerX, fingerY, fromLineStrip = false)
+                },
                 onPickPreviewCancel = dragCallbacks::onPreviewCancel,
                 onLauncherCaptureMove = { x, y ->
                     handleFloatBallLauncherCaptureMove(x, y)
@@ -1074,8 +1110,8 @@ object FloatBallOverlay {
         ).apply {
             updateSettings(settings)
             bindDragCallbacks(
-                onDragStart = { screenX, screenY ->
-                    prepareLineDrag(screenX, screenY)
+                onDragStart = { touchDownX, touchDownY, fingerX, fingerY ->
+                    prepareLineDrag(touchDownX, touchDownY, fingerX, fingerY)
                 },
                 onDrag = { dx, dy ->
                     onFingerDrag(dx, dy)
@@ -1107,6 +1143,9 @@ object FloatBallOverlay {
                 onGestureHint = dragCallbacks::onGestureHint,
                 onPickPreviewStart = dragCallbacks::onPreviewStart,
                 onPickPreviewProgress = dragCallbacks::onPreviewProgress,
+                onPickPreviewMove = { touchDownX, touchDownY, fingerX, fingerY ->
+                    dragCallbacks.onPreviewMove(touchDownX, touchDownY, fingerX, fingerY, fromLineStrip = true)
+                },
                 onPickPreviewCancel = dragCallbacks::onPreviewCancel,
                 onLauncherCaptureMove = { x, y ->
                     handleFloatBallLauncherCaptureMove(x, y)
@@ -1976,20 +2015,33 @@ object FloatBallOverlay {
     private fun effectiveActiveSide(settings: AppSettings): FloatBallSide =
         dragActiveSideOverride ?: FloatBallLayout.resolvedActiveSide(settings)
 
-    private fun prepareLineDrag(screenX: Float, screenY: Float) {
+    private fun prepareLineDrag(
+        touchDownX: Float,
+        touchDownY: Float,
+        fingerX: Float,
+        fingerY: Float,
+    ) {
         val settings = settingsState?.value ?: return
         val dockedSide = FloatBallLayout.resolvedActiveSide(settings)
         val bothEdges = settings.floatBallPositionMode == FloatBallPositionMode.BOTH_EDGES
         activeSideAtDragStart = if (bothEdges) dockedSide else null
-        dragOriginatedFromLine = bothEdges
         lineDragEndedWithGesture = false
-        dragActiveSideOverride = if (bothEdges) {
-            FloatBallSide.opposite(dockedSide)
-        } else {
-            null
+        if (!slopPhaseBallFollowActive) {
+            dragOriginatedFromLine = bothEdges
+            dragActiveSideOverride = if (bothEdges) {
+                FloatBallSide.opposite(dockedSide)
+            } else {
+                null
+            }
         }
         expandLineTouchCapture()
-        showCursorAtScreenTouch(screenX, screenY, deferBallWindowMutation = true)
+        showCursorAtScreenTouch(
+            touchDownX = touchDownX,
+            touchDownY = touchDownY,
+            fingerX = fingerX,
+            fingerY = fingerY,
+            deferBallWindowMutation = true,
+        )
         mainHandler.post {
             if (!isDragging || !dragOriginatedFromLine) return@post
             setBallTouchable(false)
@@ -2199,6 +2251,161 @@ object FloatBallOverlay {
         cursorPreviewView?.visibility = View.VISIBLE
     }
 
+    private fun prepareLineDragStateForSlop() {
+        val settings = settingsState?.value ?: return
+        val dockedSide = FloatBallLayout.resolvedActiveSide(settings)
+        val bothEdges = settings.floatBallPositionMode == FloatBallPositionMode.BOTH_EDGES
+        if (!bothEdges) return
+        dragOriginatedFromLine = true
+        slopPhaseFromLineStrip = true
+        dragActiveSideOverride = FloatBallSide.opposite(dockedSide)
+    }
+
+    private fun revertLineDragStateForSlop() {
+        if (!slopPhaseFromLineStrip) return
+        slopPhaseFromLineStrip = false
+        dragOriginatedFromLine = false
+        dragActiveSideOverride = null
+    }
+
+    private fun resolveDragBallCenter(
+        settings: AppSettings,
+        metrics: android.util.DisplayMetrics,
+        touchDownX: Float,
+        touchDownY: Float,
+        fingerX: Float,
+        fingerY: Float,
+        fromEdgeGesture: Boolean,
+        ballSizePx: Int,
+        marginPx: Int,
+        screenWidth: Float,
+        screenHeight: Float,
+        screenWidthPx: Int,
+        screenHeightPx: Int,
+    ): Pair<Float, Float> {
+        val activeSide = if (fromEdgeGesture) {
+            if (fingerX < screenWidth / 2f) FloatBallSide.LEFT else FloatBallSide.RIGHT
+        } else {
+            effectiveActiveSide(settings)
+        }
+        val halfBall = ballSizePx / 2f
+        val minCenterY = marginPx + halfBall
+        val maxCenterY = screenHeight - marginPx - halfBall
+        return when {
+            dragOriginatedFromLine -> {
+                touchDownX to touchDownY.coerceIn(minCenterY, maxCenterY)
+            }
+            fromEdgeGesture -> fingerX to fingerY
+            else -> FloatBallLayout.ballCenterPx(
+                settings,
+                metrics,
+                activeSide,
+                screenWidthPx,
+                screenHeightPx,
+            )
+        }
+    }
+
+    private fun armDragSessionAtFinger(
+        settings: AppSettings,
+        metrics: android.util.DisplayMetrics,
+        touchDownX: Float,
+        touchDownY: Float,
+        fingerX: Float,
+        fingerY: Float,
+        fromEdgeGesture: Boolean,
+    ) {
+        val density = metrics.density
+        val bounds = FloatBallScreenMetrics.bounds(displayView!!.context, windowManager)
+        val ballSizePx = (settings.floatBallSizeDp.coerceIn(36f, 72f) * density).roundToInt()
+        val marginPx = (EDGE_MARGIN_DP * density).roundToInt()
+        val screenWidth = bounds.width
+        val screenHeight = bounds.height
+        val (screenWidthPx, screenHeightPx) = FloatBallScreenMetrics.sizePx(displayView!!.context, windowManager)
+        val (ballCenterX, ballCenterY) = resolveDragBallCenter(
+            settings = settings,
+            metrics = metrics,
+            touchDownX = touchDownX,
+            touchDownY = touchDownY,
+            fingerX = fingerX,
+            fingerY = fingerY,
+            fromEdgeGesture = fromEdgeGesture,
+            ballSizePx = ballSizePx,
+            marginPx = marginPx,
+            screenWidth = screenWidth,
+            screenHeight = screenHeight,
+            screenWidthPx = screenWidthPx,
+            screenHeightPx = screenHeightPx,
+        )
+        val pickDockSide = when {
+            fromEdgeGesture -> if (fingerX < screenWidth / 2f) FloatBallSide.LEFT else FloatBallSide.RIGHT
+            else -> effectiveActiveSide(settings)
+        }
+        dragSession.armAtTouch(
+            settings = settings,
+            touchDownX = touchDownX,
+            touchDownY = touchDownY,
+            fingerX = fingerX,
+            fingerY = fingerY,
+            ballCenterX = ballCenterX,
+            ballCenterY = ballCenterY,
+            ballSizePx = ballSizePx.toFloat(),
+            screenWidth = screenWidth,
+            screenHeight = screenHeight,
+            density = density,
+            pickDockSide = pickDockSide,
+        )
+        dragScreenBounds = bounds
+    }
+
+    private fun updateSlopPhaseBallFollow(
+        fromLineStrip: Boolean,
+        touchDownX: Float,
+        touchDownY: Float,
+        fingerX: Float,
+        fingerY: Float,
+    ) {
+        val view = displayView ?: return
+        val settings = settingsState?.value ?: return
+        if (!slopPhaseBallFollowActive) {
+            if (fromLineStrip) {
+                prepareLineDragStateForSlop()
+            }
+            slopPhaseBallFollowActive = true
+            slopPhaseFromLineStrip = fromLineStrip
+            cancelCursorPickPreview()
+            setDragging(true)
+            applyImmediateDragStartVisual(
+                deferBallWindowMutation = true,
+                showCursorLayers = false,
+            )
+        }
+        armDragSessionAtFinger(
+            settings = settings,
+            metrics = view.resources.displayMetrics,
+            touchDownX = touchDownX,
+            touchDownY = touchDownY,
+            fingerX = fingerX,
+            fingerY = fingerY,
+            fromEdgeGesture = false,
+        )
+        updatePickAndBallFromFinger(moveBallWindow = true)
+        flushDragChromeLayout()
+    }
+
+    private fun cancelSlopPhaseBallFollow() {
+        if (!slopPhaseBallFollowActive) return
+        slopPhaseBallFollowActive = false
+        revertLineDragStateForSlop()
+        deactivateDragBallVisual()
+        dragSession.reset()
+        sceneState?.ballCenterPx?.value = null
+        if (isDragging) {
+            setDragging(false)
+            settingsState?.value?.let { restorePassiveOverlayLayout(it, fixZOrder = false, deferLineRestore = true) }
+        }
+    }
+
     private fun updateCursorPickPreviewAlpha(progress: Float) {
         if (!cursorPreviewActive || isDragging) return
         passivePickPreviewAlpha = pickPreviewAlpha(progress)
@@ -2249,8 +2456,10 @@ object FloatBallOverlay {
     }
 
     private fun showCursorAtScreenTouch(
-        screenX: Float,
-        screenY: Float,
+        touchDownX: Float,
+        touchDownY: Float,
+        fingerX: Float,
+        fingerY: Float,
         deferBallWindowMutation: Boolean = false,
         fromEdgeGesture: Boolean = false,
     ) {
@@ -2260,44 +2469,36 @@ object FloatBallOverlay {
         val density = metrics.density
         val bounds = FloatBallScreenMetrics.bounds(view.context, windowManager)
         val ballSizePx = (settings.floatBallSizeDp.coerceIn(36f, 72f) * density).roundToInt()
+        val marginPx = (EDGE_MARGIN_DP * density).roundToInt()
         val screenWidth = bounds.width
         val screenHeight = bounds.height
-
         val (screenWidthPx, screenHeightPx) = FloatBallScreenMetrics.sizePx(view.context, windowManager)
-        val activeSide = if (fromEdgeGesture) {
-            if (screenX < screenWidth / 2f) FloatBallSide.LEFT else FloatBallSide.RIGHT
+
+        val promotingFromSlop = slopPhaseBallFollowActive
+        if (!promotingFromSlop) {
+            armDragSessionAtFinger(
+                settings = settings,
+                metrics = metrics,
+                touchDownX = touchDownX,
+                touchDownY = touchDownY,
+                fingerX = fingerX,
+                fingerY = fingerY,
+                fromEdgeGesture = fromEdgeGesture,
+            )
+            setDragging(true)
         } else {
-            effectiveActiveSide(settings)
-        }
-        val (ballCenterX, ballCenterY) = if (fromEdgeGesture) {
-            screenX to screenY
-        } else {
-            FloatBallLayout.ballCenterPx(
-                settings,
-                metrics,
-                activeSide,
-                screenWidthPx,
-                screenHeightPx,
+            slopPhaseBallFollowActive = false
+            armDragSessionAtFinger(
+                settings = settings,
+                metrics = metrics,
+                touchDownX = touchDownX,
+                touchDownY = touchDownY,
+                fingerX = fingerX,
+                fingerY = fingerY,
+                fromEdgeGesture = fromEdgeGesture,
             )
         }
-        val pickDockSide = when {
-            fromEdgeGesture -> if (screenX < screenWidth / 2f) FloatBallSide.LEFT else FloatBallSide.RIGHT
-            else -> effectiveActiveSide(settings)
-        }
-        dragSession.armAtTouch(
-            settings = settings,
-            screenX = screenX,
-            screenY = screenY,
-            ballCenterX = ballCenterX,
-            ballCenterY = ballCenterY,
-            ballSizePx = ballSizePx.toFloat(),
-            screenWidth = screenWidth,
-            screenHeight = screenHeight,
-            density = density,
-            pickDockSide = pickDockSide,
-        )
 
-        setDragging(true)
         if (!fromEdgeGesture && dragOriginatedFromLine && !deferBallWindowMutation) {
             setBallTouchable(false)
         }
@@ -2319,15 +2520,18 @@ object FloatBallOverlay {
         cursorPausedState?.value = false
         cursorPreviewActive = false
         passivePickPreviewAlpha = 1f
-        // Do not move or resize the ball window here — that cancels the Compose drag gesture.
-        updatePickAndBallFromFinger(
-            moveBallWindow = fromEdgeGesture || (deferBallWindowMutation && dragOriginatedFromLine),
-        )
+        updatePickAndBallFromFinger(moveBallWindow = true)
+        flushDragChromeLayout(syncAnchorState = true)
         syncCursorPreviewAppearance()
+        if (!promotingFromSlop) {
+            applyImmediateDragStartVisual(deferBallWindowMutation || fromEdgeGesture)
+        } else {
+            setCursorLayersVisible(true)
+            settingsState?.value?.let { updateChromeVisibility(it) }
+        }
         if (cursorPreviewView?.visibility != View.VISIBLE) {
             setCursorLayersVisible(true)
         }
-        scheduleDeferredDragStart(deferBallWindowMutation || fromEdgeGesture)
         lastPauseScheduleX = Float.NaN
         lastPauseScheduleY = Float.NaN
         schedulePauseTimer()
@@ -2344,6 +2548,8 @@ object FloatBallOverlay {
     }
 
     private fun clearCursorUi(restoreLayout: Boolean = true) {
+        slopPhaseBallFollowActive = false
+        slopPhaseFromLineStrip = false
         dragOriginatedFromLine = false
         lineDragEndedWithGesture = false
         dragActiveSideOverride = null
@@ -2791,7 +2997,7 @@ object FloatBallOverlay {
         applyPickAnchor(pick)
 
         if (!moveBallWindow) return
-        scheduleDragChromeLayoutOnNextFrame()
+        flushDragChromeLayout()
     }
 
     private fun registerScreenOffReceiver(context: Context) {

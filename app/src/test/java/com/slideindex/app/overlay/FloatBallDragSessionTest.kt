@@ -36,8 +36,10 @@ class FloatBallDragSessionTest {
 
     session.armAtTouch(
       settings = settings,
-      screenX = 500f,
-      screenY = centerY,
+      touchDownX = 500f,
+      touchDownY = centerY,
+      fingerX = 500f,
+      fingerY = centerY,
       ballCenterX = 500f,
       ballCenterY = centerY,
       ballSizePx = ballSizePx,
@@ -71,8 +73,10 @@ class FloatBallDragSessionTest {
       )
       session.armAtTouch(
         settings = settings,
-        screenX = 500f,
-        screenY = centerY,
+        touchDownX = 500f,
+        touchDownY = centerY,
+        fingerX = 500f,
+        fingerY = centerY,
         ballCenterX = 500f,
         ballCenterY = centerY,
         ballSizePx = ballSizePx,
@@ -116,8 +120,10 @@ class FloatBallDragSessionTest {
 
     session.armAtTouch(
       settings = settings,
-      screenX = fingerX,
-      screenY = centerY,
+      touchDownX = fingerX,
+      touchDownY = centerY,
+      fingerX = fingerX,
+      fingerY = centerY,
       ballCenterX = ballCenterX,
       ballCenterY = centerY,
       ballSizePx = ballSizePx,
@@ -146,8 +152,10 @@ class FloatBallDragSessionTest {
 
     session.armAtTouch(
       settings = settings,
-      screenX = 36f,
-      screenY = centerY,
+      touchDownX = 36f,
+      touchDownY = centerY,
+      fingerX = 36f,
+      fingerY = centerY,
       ballCenterX = 80f,
       ballCenterY = centerY,
       ballSizePx = ballSizePx,
@@ -176,8 +184,10 @@ class FloatBallDragSessionTest {
 
     session.armAtTouch(
       settings = settings,
-      screenX = screenWidth - 36f,
-      screenY = centerY,
+      touchDownX = screenWidth - 36f,
+      touchDownY = centerY,
+      fingerX = screenWidth - 36f,
+      fingerY = centerY,
       ballCenterX = screenWidth - ballSizePx / 2f,
       ballCenterY = centerY,
       ballSizePx = ballSizePx,
@@ -197,5 +207,36 @@ class FloatBallDragSessionTest {
       marginPx = marginPx,
     )
     assertEquals(0f, pick.x, 0.5f)
+  }
+
+  @Test
+  fun joystick_offset_uses_touch_down_not_slop_finger_position() {
+    val session = FloatBallDragSession()
+    val settings = testSettings()
+    val ballCenterX = 500f
+    val ballCenterY = screenHeight * 0.55f
+    val touchDownX = ballCenterX
+    val touchDownY = ballCenterY
+    val slopFingerX = touchDownX + 24f
+    val slopFingerY = touchDownY + 24f
+
+    session.armAtTouch(
+      settings = settings,
+      touchDownX = touchDownX,
+      touchDownY = touchDownY,
+      fingerX = slopFingerX,
+      fingerY = slopFingerY,
+      ballCenterX = ballCenterX,
+      ballCenterY = ballCenterY,
+      ballSizePx = ballSizePx,
+      screenWidth = screenWidth,
+      screenHeight = screenHeight,
+      density = density,
+      pickDockSide = FloatBallSide.RIGHT,
+    )
+
+    val center = session.ballCenter()
+    assertEquals(slopFingerX, center.x, 0.5f)
+    assertEquals(slopFingerY, center.y, 0.5f)
   }
 }

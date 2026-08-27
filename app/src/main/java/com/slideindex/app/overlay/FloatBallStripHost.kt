@@ -50,7 +50,7 @@ internal class FloatBallStripHost(
         }
     }
 
-    private var onDragStart: ((screenX: Float, screenY: Float) -> Unit)? = null
+    private var onDragStart: ((touchDownX: Float, touchDownY: Float, fingerX: Float, fingerY: Float) -> Unit)? = null
     private var onDrag: ((dx: Float, dy: Float) -> Unit)? = null
     private var onDragEnd: (() -> Unit)? = null
     private var onDragCancel: (() -> Unit)? = null
@@ -58,6 +58,7 @@ internal class FloatBallStripHost(
     private var onGestureHint: ((FloatBallGestureType?) -> Unit)? = null
     private var onPickPreviewStart: ((screenX: Float, screenY: Float) -> Unit)? = null
     private var onPickPreviewProgress: ((progress: Float) -> Unit)? = null
+    private var onPickPreviewMove: ((touchDownX: Float, touchDownY: Float, fingerX: Float, fingerY: Float) -> Unit)? = null
     private var onPickPreviewCancel: (() -> Unit)? = null
     private var onLauncherCaptureMove: ((rawX: Float, rawY: Float) -> Unit)? = null
     private var onLauncherCaptureUp: ((rawX: Float, rawY: Float) -> Unit)? = null
@@ -67,7 +68,9 @@ internal class FloatBallStripHost(
         gestureDetector.bind(
             settings = settings,
             density = density,
-            onPickStart = { x, y -> onDragStart?.invoke(x, y) },
+            onPickStart = { downX, downY, fingerX, fingerY ->
+                onDragStart?.invoke(downX, downY, fingerX, fingerY)
+            },
             onPickDrag = { dx, dy -> onDrag?.invoke(dx, dy) },
             onPickEnd = { onDragEnd?.invoke() },
             onPickCancel = { onDragCancel?.invoke() },
@@ -75,6 +78,9 @@ internal class FloatBallStripHost(
             onGestureHint = { type -> onGestureHint?.invoke(type) },
             onPickPreviewStart = { x, y -> onPickPreviewStart?.invoke(x, y) },
             onPickPreviewProgress = { progress -> onPickPreviewProgress?.invoke(progress) },
+            onPickPreviewMove = { downX, downY, fingerX, fingerY ->
+                onPickPreviewMove?.invoke(downX, downY, fingerX, fingerY)
+            },
             onPickPreviewCancel = { onPickPreviewCancel?.invoke() },
             onLauncherCaptureMove = { x, y -> onLauncherCaptureMove?.invoke(x, y) },
             onLauncherCaptureUp = { x, y -> onLauncherCaptureUp?.invoke(x, y) },
@@ -82,7 +88,7 @@ internal class FloatBallStripHost(
     }
 
     fun bindDragCallbacks(
-        onDragStart: (screenX: Float, screenY: Float) -> Unit,
+        onDragStart: (touchDownX: Float, touchDownY: Float, fingerX: Float, fingerY: Float) -> Unit,
         onDrag: (dx: Float, dy: Float) -> Unit,
         onDragEnd: () -> Unit,
         onDragCancel: () -> Unit,
@@ -90,6 +96,7 @@ internal class FloatBallStripHost(
         onGestureHint: (FloatBallGestureType?) -> Unit = {},
         onPickPreviewStart: (screenX: Float, screenY: Float) -> Unit = { _, _ -> },
         onPickPreviewProgress: (progress: Float) -> Unit = {},
+        onPickPreviewMove: (touchDownX: Float, touchDownY: Float, fingerX: Float, fingerY: Float) -> Unit = { _, _, _, _ -> },
         onPickPreviewCancel: () -> Unit = {},
         onLauncherCaptureMove: (rawX: Float, rawY: Float) -> Unit = { _, _ -> },
         onLauncherCaptureUp: (rawX: Float, rawY: Float) -> Unit = { _, _ -> },
@@ -102,6 +109,7 @@ internal class FloatBallStripHost(
         this.onGestureHint = onGestureHint
         this.onPickPreviewStart = onPickPreviewStart
         this.onPickPreviewProgress = onPickPreviewProgress
+        this.onPickPreviewMove = onPickPreviewMove
         this.onPickPreviewCancel = onPickPreviewCancel
         this.onLauncherCaptureMove = onLauncherCaptureMove
         this.onLauncherCaptureUp = onLauncherCaptureUp
