@@ -245,7 +245,11 @@ object AppSwitcherOverlayWindow {
                 }
 
                 override fun onClosed() {
-                    if (persistAfterPin && overlayController.isVisible()) return
+                    if (overlayController.isVisible() &&
+                        (persistAfterPin || overlayController.isPinned())
+                    ) {
+                        return
+                    }
                     unregisterScreenOffReceiver()
                     releaseOverlayState()
                 }
@@ -425,14 +429,11 @@ object AppSwitcherOverlayWindow {
             externalTracking = false
         }
         controller?.externalUp(rawX, rawY, cancelled = false)
-        mainHandler.post {
-            val overlayController = controller ?: return@post
-            if (!overlayController.isVisible()) return@post
-            if (overlayController.isPinned()) {
-                persistAfterPin = true
-            }
-            overlayController.enableDirectTouch()
-            overlayController.bringToFront()
+        val overlayController = controller
+        if (overlayController != null && overlayController.isVisible() && overlayController.isPinned()) {
+            persistAfterPin = true
+        }
+        if (overlayController?.isVisible() == true) {
             FloatBallOverlay.suppressTouchHostsForActiveLauncherOverlay()
         }
     }
@@ -474,7 +475,11 @@ object AppSwitcherOverlayWindow {
             mainHandler.post { onGestureSessionEnd() }
             return
         }
-        if (persistAfterPin && controller?.isVisible() == true) return
+        if (controller?.isVisible() == true &&
+            (persistAfterPin || controller?.isPinned() == true)
+        ) {
+            return
+        }
         dismiss()
     }
 

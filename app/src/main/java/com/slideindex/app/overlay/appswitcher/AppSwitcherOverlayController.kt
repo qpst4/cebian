@@ -161,7 +161,9 @@ internal class AppSwitcherOverlayController(
                 current.onExternalUp(rawX, rawY, cancelled)
             }
             activateDirectTouch(current)
-            bringToFrontLocked(current)
+            if (!current.isPinned()) {
+                bringToFrontLocked(current)
+            }
         }
     }
 
