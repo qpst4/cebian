@@ -95,8 +95,7 @@ object FloatBallOverlay {
     private var lineIdleChromeOwner: OverlayComposeOwner? = null
     private var ballIdleChromeView: ComposeView? = null
     private var lineIdleChromeView: ComposeView? = null
-    private var ballComposeView: ComposeView? = null
-    private var ballDragVisualView: FloatBallDragVisualView? = null
+    private var ballIconView: FloatBallIconView? = null
     private var cursorPreviewView: FloatBallCursorPreviewView? = null
     private var screenOffReceiver: BroadcastReceiver? = null
     private var appContext: Context? = null
@@ -175,7 +174,7 @@ object FloatBallOverlay {
             }
             !dragging && wasDragging -> {
                 cancelDeferredDragStart()
-                deactivateDragBallVisual()
+                ballIconView?.setDragging(false)
                 scheduleDeferredGifResume()
             }
             else -> {
@@ -213,7 +212,7 @@ object FloatBallOverlay {
         deferredDragStartGeneration++
     }
 
-    /** 拖出当帧切换拖拽快照并刷新布局。 */
+    /** 拖出当帧刷新拖拽布局与光标层。 */
     private fun applyImmediateDragStartVisual(
         deferBallWindowMutation: Boolean,
         showCursorLayers: Boolean = true,
@@ -221,7 +220,7 @@ object FloatBallOverlay {
         cancelDeferredDragStart()
         if (!isDragging) return
         ballDraggingState?.value = true
-        activateDragBallVisual()
+        ballIconView?.setDragging(true)
         if (!deferBallWindowMutation || !dragOriginatedFromLine) {
             flushDragChromeLayout(syncAnchorState = true)
         }
@@ -229,19 +228,6 @@ object FloatBallOverlay {
             setCursorLayersVisible(true)
         }
         settingsState?.value?.let { updateChromeVisibility(it) }
-    }
-
-    private fun activateDragBallVisual() {
-        val dragVisual = ballDragVisualView ?: return
-        val settings = settingsState?.value ?: return
-        val snapshot = FloatBallDragVisualRenderer.captureFromComposeTree(ballComposeView)
-        dragVisual.show(settings, snapshot, effectiveActiveSide(settings))
-        sceneState?.ballComposeVisible?.value = false
-    }
-
-    private fun deactivateDragBallVisual() {
-        ballDragVisualView?.release()
-        sceneState?.ballComposeVisible?.value = true
     }
 
     private var dragOriginatedFromLine = false
@@ -583,7 +569,7 @@ object FloatBallOverlay {
     }
 
     private fun invalidateChrome() {
-        ballComposeView?.invalidate()
+        ballIconView?.invalidate()
         displayView?.invalidate()
     }
 
@@ -599,7 +585,7 @@ object FloatBallOverlay {
         styleVisualGenerationState?.let { state ->
             state.intValue = state.intValue + 1
         }
-        ballComposeView?.invalidate()
+        ballIconView?.invalidate()
         settingsState?.value?.let { applyAllLayouts(it) }
     }
 
@@ -692,7 +678,7 @@ object FloatBallOverlay {
         cancelDeferredGifResume()
         cancelDeferredDragStart()
         hideCursor(restorePassive = false)
-        deactivateDragBallVisual()
+        ballIconView?.release()
         cancelPauseTimer()
         cancelPendingChromeRaise()
         val wm = windowManager
@@ -714,8 +700,7 @@ object FloatBallOverlay {
         touchLayoutParams = null
         lineTouchHost = null
         lineTouchLayoutParams = null
-        ballComposeView = null
-        ballDragVisualView = null
+        ballIconView = null
         cursorPreviewView = null
         windowManager = null
         sceneState = null
@@ -790,7 +775,6 @@ object FloatBallOverlay {
         sceneState?.chromeVisible?.value = false
         sceneState?.ballVisible?.value = false
         sceneState?.lineVisible?.value = false
-        sceneState?.ballComposeVisible?.value = false
         clearSplitIdleChrome()
         hideGestureHintWindow()
         hideCursor()
@@ -810,7 +794,6 @@ object FloatBallOverlay {
         sceneState?.chromeVisible?.value = false
         sceneState?.ballVisible?.value = false
         sceneState?.lineVisible?.value = false
-        sceneState?.ballComposeVisible?.value = false
         dragActiveSideOverride = null
         clearSplitIdleChrome()
         hideGestureHintWindow()
@@ -846,12 +829,10 @@ object FloatBallOverlay {
         sceneState?.chromeVisible?.value = false
         sceneState?.ballVisible?.value = false
         sceneState?.lineVisible?.value = false
-        sceneState?.ballComposeVisible?.value = false
         dragActiveSideOverride = null
         clearSplitIdleChrome()
         hideGestureHintWindow()
         cancelCursorPickPreview()
-        deactivateDragBallVisual()
         displayView?.visibility = View.GONE
     }
 
@@ -967,7 +948,7 @@ object FloatBallOverlay {
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
             visibility = View.GONE
         }
-        val ballDragVisual = FloatBallDragVisualView(overlayContext)
+        val ballIcon = FloatBallIconView(overlayContext)
 
         val dragCallbacks = object {
             fun onGestureHint(gestureType: FloatBallGestureType?) {
@@ -1053,10 +1034,7 @@ object FloatBallOverlay {
                     sceneState = state,
                     dragActiveSideOverrideState = dragActiveSideOverrideState!!,
                     cursorPreviewView = cursorPreview,
-                    ballDragVisualView = ballDragVisual,
-                    onBallComposeViewReady = { composeView ->
-                        ballComposeView = composeView
-                    },
+                    ballIconView = ballIcon,
                 )
             }
         }
@@ -1200,7 +1178,7 @@ object FloatBallOverlay {
         touchLayoutParams = touchLp
         lineTouchHost = lineTouchLayout
         lineTouchLayoutParams = lineTouchLp
-        ballDragVisualView = ballDragVisual
+        ballIconView = ballIcon
         cursorPreviewView = cursorPreview
         appContext = hostContext
         registerScreenOffReceiver(hostContext)
@@ -1258,7 +1236,6 @@ object FloatBallOverlay {
                     FloatBallIdleBallChrome(
                         sceneState = state,
                         dragActiveSideOverrideState = dragActiveSideOverrideState!!,
-                        onBallComposeViewReady = { composeView -> ballComposeView = composeView },
                     )
                 }
             }
@@ -1671,7 +1648,6 @@ object FloatBallOverlay {
         hostContext: Context,
     ) {
         cancelCursorPickPreview()
-        deactivateDragBallVisual()
         clearSplitIdleChrome()
         hideGestureHintWindow()
         if (externalTracking) {
@@ -2370,15 +2346,16 @@ object FloatBallOverlay {
         if (!slopPhaseBallFollowActive) {
             if (fromLineStrip) {
                 prepareLineDragStateForSlop()
+            } else {
+                expandBallTouchCapture()
             }
             slopPhaseBallFollowActive = true
             slopPhaseFromLineStrip = fromLineStrip
             cancelCursorPickPreview()
             setDragging(true)
-            applyImmediateDragStartVisual(
-                deferBallWindowMutation = true,
-                showCursorLayers = false,
-            )
+            ballDraggingState?.value = true
+            ballIconView?.setDragging(true)
+            flushDragChromeLayout(syncAnchorState = true)
         }
         armDragSessionAtFinger(
             settings = settings,
@@ -2397,7 +2374,6 @@ object FloatBallOverlay {
         if (!slopPhaseBallFollowActive) return
         slopPhaseBallFollowActive = false
         revertLineDragStateForSlop()
-        deactivateDragBallVisual()
         dragSession.reset()
         sceneState?.ballCenterPx?.value = null
         if (isDragging) {

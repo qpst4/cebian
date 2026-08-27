@@ -181,6 +181,7 @@ internal class FloatBallGestureDetector(
                 pickActive = true
                 onGestureHint?.invoke(null)
                 onPickPreviewStart?.invoke(downX, downY)
+                onPickPreviewMove?.invoke(downX, downY, downX, downY)
                 handler.postDelayed(longPressRunnable, LONG_PRESS_MS)
                 return true
             }
