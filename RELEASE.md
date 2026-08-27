@@ -61,6 +61,20 @@ git push origin main
 git push origin v{版本号}
 ```
 
+**若推送 Tag 后 Release 未自动触发**（偶发或重复推送同一 commit 的 Tag 时 GitHub 不会重跑）：
+
+```bash
+# 方式 A：手动触发（需 main 已包含 workflow_dispatch）
+gh workflow run release.yml --ref v{版本号}
+gh run watch
+
+# 方式 B：空提交后移动 Tag 再推送
+git commit --allow-empty -m "chore: trigger release v{版本号} [skip ci]"
+git tag -fa v{版本号} -m "v{版本号}"
+git push origin main
+git push origin v{版本号} --force
+```
+
 Commit 备注格式：`1.9.9：边角轮盘手势 [skip ci]`（版本号 + 中文冒号 + 简述 + **`[skip ci]`**）。
 
 发版 commit 会 push 到 `main` 并打 Tag；`[skip ci]` 用于跳过日常 **CI** 工作流中的重复 Release 构建（正式发版由 `release.yml` 在 Tag 推送时执行）。GitHub Actions **不会**自动识别该标记，已在 [`.github/workflows/ci.yml`](.github/workflows/ci.yml) 中配置判断。
