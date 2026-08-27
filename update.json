@@ -1,7 +1,7 @@
 {
-  "version": "1.9.9.1",
-  "versionCode": 35,
-  "apkUrl": "https://github.com/qpst4/cebian/releases/download/v1.9.9.1/cebian-1.9.9.1-lite.apk",
-  "apkSize": 22305253,
-  "notes": "## 修复\n- 搜索引擎：修复图片分享目标选择后编辑器未回写（编辑器与选择页共享 Activity 级 draft）\n- 搜索引擎：修复图标预览不更新、保存后列表仍显示旧图（图标缓存 key、相册 Uri 即时预览）\n- 搜索引擎：修复图片分享应用无法保存（SHARE_IMAGE_TO_APP 未写入 targetPackage/Activity）\n- 搜索引擎：修复应用图标选择后未等待落盘即返回导致图标未生效"
+  "version": "1.9.9.2",
+  "versionCode": 36,
+  "apkUrl": "https://github.com/qpst4/cebian/releases/download/v1.9.9.2/cebian-1.9.9.2-lite.apk",
+  "apkSize": 22325725,
+  "notes": "## 新增\n- 搜索引擎：新增文字分享到指定 App 类型（编辑器 Tab「分享」配置目标，取词面板与搜索面板网格点击直达目标应用）\n## 变更\n- 搜索引擎编辑器：执行方式 Tab 使用短标签（链接 / Activity / 分享），便于三列完整显示"
 }
