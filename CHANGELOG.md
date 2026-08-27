@@ -4,6 +4,14 @@ All notable changes to Cebian are documented in this file.
 
 ## [Unreleased]
 
+## [1.9.9.2] - 2026-08-27
+
+### Added
+- **搜索引擎**：新增文字分享到指定 App 类型（编辑器 Tab「分享」配置目标，取词面板与搜索面板网格点击直达目标应用）
+
+### Changed
+- **搜索引擎编辑器**：执行方式 Tab 使用短标签（链接 / Activity / 分享），便于三列完整显示
+
 ## [1.9.9.1] - 2026-08-27
 
 ### Fixed
