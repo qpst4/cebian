@@ -1281,6 +1281,7 @@ object FloatBallPickResultPanel {
     private var captureSuppressed = false
     private var captureDetached = false
     private var pickPanelVisible = false
+    private var panelDismissing = false
     private var panelVisibilityState: androidx.compose.animation.core.MutableTransitionState<Boolean>? = null
     private var panelShowTokenState: androidx.compose.runtime.MutableIntState? = null
     private var settingsState: MutableState<AppSettings>? = null
@@ -1353,7 +1354,7 @@ object FloatBallPickResultPanel {
             mainHandler.post { releaseWarmUpShell() }
             return
         }
-        if (pickPanelVisible) return
+        if (pickPanelVisible || panelDismissing) return
         applyPanelShellPassive()
     }
 
@@ -1467,6 +1468,7 @@ object FloatBallPickResultPanel {
         ensureWindow(hostContext)
         captureSuppressed = false
         captureDetached = false
+        panelDismissing = false
         pickPanelVisible = true
         composeView?.visibility = View.VISIBLE
         val resolvedImages = result.resolvedImages()
@@ -1564,6 +1566,7 @@ object FloatBallPickResultPanel {
         ensureWindow(hostContext)
         captureSuppressed = false
         captureDetached = false
+        panelDismissing = false
         pickPanelVisible = true
         composeView?.visibility = View.GONE
         a11yTextState?.value = null
@@ -1841,10 +1844,12 @@ object FloatBallPickResultPanel {
             mainHandler.post { dismiss() }
             return
         }
+        if (panelDismissing) return
         if (!pickPanelVisible) {
             releaseWarmUpShell()
             return
         }
+        panelDismissing = true
         pickPanelVisible = false
         FloatBallOverlay.cancelPickPanelChromeRaiseDeferred()
         OverlaySceneController.onContentPanelHidden()
@@ -1859,10 +1864,16 @@ object FloatBallPickResultPanel {
                 ?: PickPanelSlideAnimationDefaults.DEFAULT_MS
             currentOwner.lifecycleScope.launch(kotlinx.coroutines.Dispatchers.Main) {
                 kotlinx.coroutines.delay(exitAnimationMs.toLong())
-                if (pickPanelVisible) return@launch // Abort if re-shown
+                if (pickPanelVisible) {
+                    panelDismissing = false
+                    return@launch // Abort if re-shown
+                }
 
                 panelVisibilityState?.targetState = false
-                if (pickPanelVisible) return@launch // Abort if re-shown
+                if (pickPanelVisible) {
+                    panelDismissing = false
+                    return@launch // Abort if re-shown
+                }
 
                 screenshotState?.value?.let { current ->
                     val owned = panelImagesState?.value.orEmpty()
@@ -1882,7 +1893,10 @@ object FloatBallPickResultPanel {
                 }
                 clearTranslateState()
                 applyPanelShellPassive()
+                panelDismissing = false
             }
+        } else {
+            panelDismissing = false
         }
     }
 
@@ -1939,6 +1953,7 @@ object FloatBallPickResultPanel {
             screenOffReceiver = null
             appContext = null
             pickPanelVisible = false
+            panelDismissing = false
             captureSuppressed = false
             captureDetached = false
         }
