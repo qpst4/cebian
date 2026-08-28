@@ -699,6 +699,8 @@
     <string name="gesture_action_adjust_brightness">滑动调节亮度</string>
     <string name="gesture_action_adjust_brightness_desc">滑动时显示亮度指示条并调节亮度</string>
     <string name="gesture_action_adjust_brightness_permission">需要写入权限</string>
+    <string name="gesture_action_toggle_auto_brightness">自动亮度</string>
+    <string name="gesture_action_toggle_auto_brightness_desc">打开或关闭系统自动亮度</string>
     <string name="gesture_action_launch_assistant">启动默认设备助手</string>
     <string name="gesture_action_toggle_mute">响铃静音开关</string>
     <string name="gesture_action_toggle_mute_desc">仅静音来电和通知，不影响媒体音量</string>

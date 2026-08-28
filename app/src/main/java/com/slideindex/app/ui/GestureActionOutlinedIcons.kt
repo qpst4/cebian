@@ -49,6 +49,7 @@ internal fun gestureActionTypeOutlinedIcon(type: GestureActionType): ImageVector
     GestureActionType.FLASHLIGHT -> ThinActionIcons.Flashlight
     GestureActionType.ADJUST_VOLUME -> ThinActionIcons.VolumeUp
     GestureActionType.ADJUST_BRIGHTNESS -> ThinActionIcons.Brightness
+    GestureActionType.TOGGLE_AUTO_BRIGHTNESS -> ThinActionIcons.BrightnessAuto
     GestureActionType.LAUNCH_ASSISTANT -> ThinActionIcons.Assistant
     GestureActionType.TOGGLE_MUTE -> ThinActionIcons.VolumeOff
     GestureActionType.MEDIA_PLAY_PAUSE -> ThinActionIcons.PlayPause
@@ -69,7 +70,8 @@ internal fun gestureActionTypeOutlinedIcon(type: GestureActionType): ImageVector
     GestureActionType.REMIND_1M, GestureActionType.REMIND_3M, GestureActionType.REMIND_5M,
     GestureActionType.REMIND_10M, GestureActionType.REMIND_15M -> ThinActionIcons.Power
     GestureActionType.UNIVERSAL_COPY -> ThinActionIcons.ContentPaste
-    GestureActionType.FREEZER_PANEL, GestureActionType.REFREEZE -> ThinActionIcons.Close
+    GestureActionType.FREEZER_PANEL -> ThinActionIcons.Fridge
+    GestureActionType.REFREEZE -> ThinActionIcons.Snowflake
     GestureActionType.POWER_MENU -> ThinActionIcons.Power
     GestureActionType.KEEP_SCREEN_ON -> ThinActionIcons.KeepScreenOn
     GestureActionType.SCROLL_TO_TOP -> ThinActionIcons.ScrollToTop
@@ -117,6 +119,7 @@ internal fun gestureActionTypeThinIcon(type: GestureActionType): ImageVector = w
     GestureActionType.FLASHLIGHT -> ThinActionIcons.Flashlight
     GestureActionType.ADJUST_VOLUME -> ThinActionIcons.VolumeUp
     GestureActionType.ADJUST_BRIGHTNESS -> ThinActionIcons.Brightness
+    GestureActionType.TOGGLE_AUTO_BRIGHTNESS -> ThinActionIcons.BrightnessAuto
     GestureActionType.LAUNCH_ASSISTANT -> ThinActionIcons.Assistant
     GestureActionType.TOGGLE_MUTE -> ThinActionIcons.VolumeOff
     GestureActionType.MEDIA_PLAY_PAUSE -> ThinActionIcons.PlayPause
@@ -137,7 +140,8 @@ internal fun gestureActionTypeThinIcon(type: GestureActionType): ImageVector = w
     GestureActionType.REMIND_1M, GestureActionType.REMIND_3M, GestureActionType.REMIND_5M,
     GestureActionType.REMIND_10M, GestureActionType.REMIND_15M -> ThinActionIcons.Power
     GestureActionType.UNIVERSAL_COPY -> ThinActionIcons.ContentPaste
-    GestureActionType.FREEZER_PANEL, GestureActionType.REFREEZE -> ThinActionIcons.Close
+    GestureActionType.FREEZER_PANEL -> ThinActionIcons.Fridge
+    GestureActionType.REFREEZE -> ThinActionIcons.Snowflake
     GestureActionType.POWER_MENU -> ThinActionIcons.Power
     GestureActionType.KEEP_SCREEN_ON -> ThinActionIcons.KeepScreenOn
     GestureActionType.SCROLL_TO_TOP -> ThinActionIcons.ScrollToTop

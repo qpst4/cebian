@@ -30,7 +30,7 @@ enum class GestureActionPlateShape {
 }
 
 object GestureActionIconBitmap {
-    private const val CACHE_VERSION = 35
+    private const val CACHE_VERSION = 37
 
     /** 保持与 Filled 面板内边距一致的比例（无底板时） */
     private const val CONTENT_SCALE_BARE = 0.75f

@@ -242,6 +242,8 @@ class ActionExecutor(
             }
             GestureAction.ToggleWifi -> QuickToolsHelper.toggleWifi(context) == true
             GestureAction.ToggleMobileData -> QuickToolsHelper.toggleMobileData(context) == true
+            GestureAction.ToggleAutoBrightness ->
+                com.slideindex.app.util.BrightnessControlHelper.toggleAutoBrightness(context) != null
             GestureAction.SwitchInputMethod -> InputMethodHelper.switchInputMethod(context)
             GestureAction.LaunchAssistant -> {
                 AssistantLauncher.launchDefault(context)

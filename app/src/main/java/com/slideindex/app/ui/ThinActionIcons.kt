@@ -1,5 +1,8 @@
 package com.slideindex.app.ui
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AcUnit
+import androidx.compose.material.icons.outlined.BrightnessAuto
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
@@ -1300,4 +1303,34 @@ internal object ThinActionIcons {
     }
 
     val ClickPassthrough: ImageVector by lazy { MaterialTouchIcons.SingleTap }
+
+    /** 雪花：重冻应用（Material AcUnit） */
+    val Snowflake: ImageVector get() = Icons.Outlined.AcUnit
+
+    /** 自动亮度 */
+    val BrightnessAuto: ImageVector get() = Icons.Outlined.BrightnessAuto
+
+    /** 冰箱：打开冰箱管理 */
+    val Fridge: ImageVector by lazy {
+        createThinIcon("ThinFridge") {
+            path(
+                stroke = strokeBrush,
+                strokeLineWidth = STROKE_WIDTH,
+                strokeLineCap = StrokeCap.Round,
+                strokeLineJoin = StrokeJoin.Round,
+            ) {
+                moveTo(7f, 4f)
+                lineTo(17f, 4f)
+                lineTo(17f, 20f)
+                lineTo(7f, 20f)
+                close()
+                moveTo(7f, 10f)
+                lineTo(17f, 10f)
+                moveTo(13f, 6f)
+                lineTo(13f, 8f)
+                moveTo(13f, 12f)
+                lineTo(13f, 17f)
+            }
+        }
+    }
 }

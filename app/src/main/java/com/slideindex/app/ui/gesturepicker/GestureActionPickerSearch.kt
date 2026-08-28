@@ -60,6 +60,7 @@ fun gestureActionDescriptionText(context: Context, action: GestureAction): Strin
     when (action.type) {
         GestureActionType.ADJUST_VOLUME -> context.getString(R.string.gesture_action_adjust_volume_desc)
         GestureActionType.ADJUST_BRIGHTNESS -> context.getString(R.string.gesture_action_adjust_brightness_desc)
+        GestureActionType.TOGGLE_AUTO_BRIGHTNESS -> context.getString(R.string.gesture_action_toggle_auto_brightness_desc)
         GestureActionType.SCROLL_TO_TOP -> context.getString(R.string.gesture_action_scroll_to_top_desc)
         GestureActionType.SCROLL_TO_BOTTOM -> context.getString(R.string.gesture_action_scroll_to_bottom_desc)
         GestureActionType.FULLSCREEN_SCREENSHOT_PICK -> context.getString(R.string.gesture_action_fullscreen_screenshot_pick_desc)
@@ -121,6 +122,7 @@ fun gestureActionLabelText(context: Context, action: GestureAction): String = wh
         GestureActionType.FLASHLIGHT -> context.getString(R.string.gesture_action_flashlight)
         GestureActionType.ADJUST_VOLUME -> context.getString(R.string.gesture_action_adjust_volume)
         GestureActionType.ADJUST_BRIGHTNESS -> context.getString(R.string.gesture_action_adjust_brightness)
+        GestureActionType.TOGGLE_AUTO_BRIGHTNESS -> context.getString(R.string.gesture_action_toggle_auto_brightness)
         GestureActionType.LAUNCH_ASSISTANT -> context.getString(R.string.gesture_action_launch_assistant)
         GestureActionType.TOGGLE_MUTE -> context.getString(R.string.gesture_action_toggle_mute)
         GestureActionType.MEDIA_PLAY_PAUSE -> context.getString(R.string.gesture_action_media_play_pause)
@@ -237,6 +239,7 @@ fun gestureActionLabel(action: GestureAction, settings: AppSettings? = null): St
         GestureActionType.FLASHLIGHT -> stringResource(R.string.gesture_action_flashlight)
         GestureActionType.ADJUST_VOLUME -> stringResource(R.string.gesture_action_adjust_volume)
         GestureActionType.ADJUST_BRIGHTNESS -> stringResource(R.string.gesture_action_adjust_brightness)
+        GestureActionType.TOGGLE_AUTO_BRIGHTNESS -> stringResource(R.string.gesture_action_toggle_auto_brightness)
         GestureActionType.LAUNCH_ASSISTANT -> stringResource(R.string.gesture_action_launch_assistant)
         GestureActionType.TOGGLE_MUTE -> stringResource(R.string.gesture_action_toggle_mute)
         GestureActionType.MEDIA_PLAY_PAUSE -> stringResource(R.string.gesture_action_media_play_pause)
@@ -314,6 +317,7 @@ fun gestureActionSettingSubtitle(action: GestureAction): String {
 fun gestureActionDescription(action: GestureAction): String? = when (action.type) {
     GestureActionType.ADJUST_VOLUME -> stringResource(R.string.gesture_action_adjust_volume_desc)
     GestureActionType.ADJUST_BRIGHTNESS -> stringResource(R.string.gesture_action_adjust_brightness_desc)
+    GestureActionType.TOGGLE_AUTO_BRIGHTNESS -> stringResource(R.string.gesture_action_toggle_auto_brightness_desc)
     GestureActionType.SCROLL_TO_TOP -> stringResource(R.string.gesture_action_scroll_to_top_desc)
     GestureActionType.SCROLL_TO_BOTTOM -> stringResource(R.string.gesture_action_scroll_to_bottom_desc)
     GestureActionType.FULLSCREEN_SCREENSHOT_PICK -> stringResource(R.string.gesture_action_fullscreen_screenshot_pick_desc)
@@ -365,6 +369,10 @@ fun gestureActionPermissionHintText(context: Context, action: GestureAction): St
             context.getString(R.string.gesture_action_adjust_volume_permission)
         }
         GestureActionType.ADJUST_BRIGHTNESS -> {
+            if (PermissionHelper.canWriteSettings(context)) return null
+            context.getString(R.string.gesture_action_adjust_brightness_permission)
+        }
+        GestureActionType.TOGGLE_AUTO_BRIGHTNESS -> {
             if (PermissionHelper.canWriteSettings(context)) return null
             context.getString(R.string.gesture_action_adjust_brightness_permission)
         }
@@ -467,7 +475,10 @@ fun requestPermissionForAdjustAction(context: Context, action: GestureAction) {
         GestureAction.LockScreenAndSilenceRing, GestureAction.LockScreenAndMuteAll,
         ->
             PermissionHelper.requestNotificationPolicyAccess(context)
-        GestureAction.AdjustBrightness -> PermissionHelper.requestWriteSettingsAccess(context)
+        GestureAction.AdjustBrightness,
+        GestureAction.ToggleAutoBrightness,
+        ->
+            PermissionHelper.requestWriteSettingsAccess(context)
         GestureAction.Flashlight -> {
             val intent = android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
                 data = android.net.Uri.fromParts("package", context.packageName, null)

@@ -69,6 +69,7 @@ enum class GestureActionType(val id: Int) {
     UNIVERSAL_COPY(66),
     FREEZER_PANEL(67),
     REFREEZE(68),
+    TOGGLE_AUTO_BRIGHTNESS(69),
     ;
 
     companion object {
@@ -498,6 +499,12 @@ sealed class GestureAction {
         override val payload = ""
     }
 
+    /** 打开或关闭系统自动亮度。 */
+    data object ToggleAutoBrightness : GestureAction() {
+        override val type = GestureActionType.TOGGLE_AUTO_BRIGHTNESS
+        override val payload = ""
+    }
+
     companion object {
         /** Actions that support [GestureTriggerMode.CONTINUOUS] on compatible triggers. */
         val continuousTrackingActions: List<GestureAction> = listOf(
@@ -582,6 +589,7 @@ sealed class GestureAction {
                 GestureActionType.UNIVERSAL_COPY -> UniversalCopy
                 GestureActionType.FREEZER_PANEL -> FreezerPanel
                 GestureActionType.REFREEZE -> Refreeze
+                GestureActionType.TOGGLE_AUTO_BRIGHTNESS -> ToggleAutoBrightness
                 GestureActionType.NONE -> None
             }
         }

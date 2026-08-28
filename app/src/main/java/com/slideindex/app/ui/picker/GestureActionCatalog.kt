@@ -151,6 +151,7 @@ object GestureActionCatalog {
 
         GestureActionType.ADJUST_VOLUME,
         GestureActionType.ADJUST_BRIGHTNESS,
+        GestureActionType.TOGGLE_AUTO_BRIGHTNESS,
         GestureActionType.LAUNCH_ASSISTANT,
         -> GestureActionCategory.Adjust
 
@@ -249,6 +250,7 @@ object GestureActionCatalog {
         GestureAction.ScrollToBottom,
         GestureAction.AdjustVolume,
         GestureAction.AdjustBrightness,
+        GestureAction.ToggleAutoBrightness,
         GestureAction.LaunchAssistant,
     )
 }

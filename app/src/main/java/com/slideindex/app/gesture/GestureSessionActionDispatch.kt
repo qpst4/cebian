@@ -267,6 +267,7 @@ internal fun GestureSession.handleClassifiedGesture(
         GestureAction.ScreenRecord,
         GestureAction.ToggleWifi,
         GestureAction.ToggleMobileData,
+        GestureAction.ToggleAutoBrightness,
         GestureAction.SwitchInputMethod,
         GestureAction.MediaPlayPause,
         GestureAction.MediaPrevious,
