@@ -2,7 +2,6 @@ package com.slideindex.app.overlay.layout
 
 import com.slideindex.app.overlay.PanelSide
 import kotlin.math.ceil
-import kotlin.math.min
 
 data class GridLayoutInfo(
     val appsPerRow: Int,
@@ -21,14 +20,8 @@ fun gridLayoutInfo(appCount: Int, appsPerRow: Int, cellWidth: Float, gridPadding
 
 fun visualColumn(index: Int, m: Int, appCount: Int, side: PanelSide): Int {
     val colInRow = index % m
-    val row = index / m
-    val appsInRow = min(m, appCount - row * m)
     return when (side) {
-        PanelSide.RIGHT -> when {
-            appCount < m -> appCount - 1 - colInRow
-            appsInRow == m -> m - 1 - colInRow
-            else -> m - appsInRow + colInRow
-        }
+        PanelSide.RIGHT -> m - 1 - colInRow
         PanelSide.LEFT, PanelSide.BOTTOM, PanelSide.TOP -> colInRow
     }
 }

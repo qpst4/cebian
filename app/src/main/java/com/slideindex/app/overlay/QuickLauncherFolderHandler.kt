@@ -126,18 +126,33 @@ internal class QuickLauncherFolderHandler(
         val folderWidth = folderLayout.folderWidth.coerceAtLeast(1f)
         val pagingActive = pagingActiveForHitTest()
 
-        val pageIdx: Int
-        val xInPage: Float
         if (pagingActive && pageCount > 1) {
-            val relativeX = touchX - folderLayout.rect.left - pageDragOffset
-            pageIdx = (relativeX / folderWidth).toInt().coerceIn(0, pageCount - 1)
-            xInPage = folderLayout.rect.left + relativeX - pageIdx * folderWidth
-        } else {
-            pageIdx = pageIndex.coerceIn(0, pageCount - 1)
-            xInPage = touchX
+            val contentBottom = folderLayout.rect.bottom - folderLayout.indicatorHeight
+            if (touchY < folderLayout.contentStartY || touchY >= contentBottom) return -1
+            val layers = buildList {
+                add(pageIndex to pageDragOffset)
+                addAll(
+                    QuickLauncherScrollHandler.adjacentPagesForDrag(
+                        dragOffset = pageDragOffset,
+                        currentPageIndex = pageIndex,
+                        pageCount = pageCount,
+                        pageWidth = folderWidth,
+                        side = host.side(),
+                    ).map { it.pageIndex to it.translateX },
+                )
+            }
+            for ((candidatePageIdx, translateX) in layers) {
+                val xInPage = touchX - translateX
+                if (xInPage < folderLayout.rect.left || xInPage >= folderLayout.rect.right) continue
+                val localSlot = localSlotAt(xInPage, touchY, folderLayout)
+                val globalIndex = candidatePageIdx * pageSize + localSlot
+                if (globalIndex in ctrl.folderSubPanelItems.indices) return globalIndex
+            }
+            return -1
         }
 
-        val localSlot = localSlotAt(xInPage, touchY, folderLayout)
+        val pageIdx = pageIndex.coerceIn(0, pageCount - 1)
+        val localSlot = localSlotAt(touchX, touchY, folderLayout)
         val globalIndex = pageIdx * pageSize + localSlot
         return if (globalIndex in ctrl.folderSubPanelItems.indices) globalIndex else -1
     }
@@ -528,12 +543,13 @@ internal class QuickLauncherFolderHandler(
     private fun updatePageDragOffset(deltaX: Float, folderLayout: FolderLayout) {
         pageSnapMotion.cancel()
         val folderWidth = folderLayout.folderWidth.coerceAtLeast(1f)
-        var offset = deltaX
-        if (pageIndex <= 0 && offset > 0f) {
-            offset *= PAGE_EDGE_RESISTANCE
-        } else if (pageIndex >= pageCount - 1 && offset < 0f) {
-            offset *= PAGE_EDGE_RESISTANCE
-        }
+        val offset = QuickLauncherScrollHandler.applyPageDragResistance(
+            offset = deltaX,
+            pageIndex = pageIndex,
+            pageCount = pageCount,
+            side = host.side(),
+            resistance = PAGE_EDGE_RESISTANCE,
+        )
         pageDragOffset = offset.coerceIn(-folderWidth, folderWidth)
     }
 
@@ -544,11 +560,16 @@ internal class QuickLauncherFolderHandler(
             panelWidth = folderWidth,
             pageIndex = pageIndex,
             pageCount = pageCount,
+            side = host.side(),
         )
         if (delta != 0) {
             pageIndex += delta
             pageChangedThisGesture = true
-            pageDragOffset += if (delta > 0) folderWidth else -folderWidth
+            pageDragOffset += QuickLauncherScrollHandler.pageCommitOffsetCompensation(
+                delta = delta,
+                pageWidth = folderWidth,
+                side = host.side(),
+            )
         }
         animatePageSnapTo(0f)
     }
@@ -616,7 +637,11 @@ internal class QuickLauncherFolderHandler(
         val folderWidth = folderLayout.folderWidth.coerceAtLeast(1f)
         pageIndex = (pageIndex + delta).coerceIn(0, pageCount - 1)
         pageChangedThisGesture = true
-        pageDragOffset += if (delta > 0) folderWidth else -folderWidth
+        pageDragOffset += QuickLauncherScrollHandler.pageCommitOffsetCompensation(
+            delta = delta,
+            pageWidth = folderWidth,
+            side = host.side(),
+        )
         ctrl.folderHighlightLocalIndex = -1
         ctrl.cancelFolderLongPress()
         host.hapticTick()

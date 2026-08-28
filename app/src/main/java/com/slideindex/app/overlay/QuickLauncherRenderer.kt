@@ -105,21 +105,18 @@ internal class QuickLauncherRenderer(
                 recordCells = recordCells,
             )
             if (pagingActive && kotlin.math.abs(dragOffset) > host.dp(0.5f)) {
-                if (dragOffset < 0f && ctrl.quickLauncherPageIndex < ctrl.quickLauncherPageCount - 1) {
+                QuickLauncherScrollHandler.adjacentPagesForDrag(
+                    dragOffset = dragOffset,
+                    currentPageIndex = ctrl.quickLauncherPageIndex,
+                    pageCount = ctrl.quickLauncherPageCount,
+                    pageWidth = panelWidth,
+                    side = host.side(),
+                ).forEach { layer ->
                     drawQuickLauncherPageCells(
                         canvas = this,
                         panelRect = panelRect,
-                        pageIndex = ctrl.quickLauncherPageIndex + 1,
-                        translateX = dragOffset + panelWidth,
-                        recordCells = false,
-                    )
-                }
-                if (dragOffset > 0f && ctrl.quickLauncherPageIndex > 0) {
-                    drawQuickLauncherPageCells(
-                        canvas = this,
-                        panelRect = panelRect,
-                        pageIndex = ctrl.quickLauncherPageIndex - 1,
-                        translateX = dragOffset - panelWidth,
+                        pageIndex = layer.pageIndex,
+                        translateX = layer.translateX,
                         recordCells = false,
                     )
                 }
@@ -429,21 +426,44 @@ internal class QuickLauncherRenderer(
     }
 
     private fun drawQuickLauncherPageIndicator(canvas: Canvas, grid: RectF) {
-        if (ctrl.quickLauncherPageCount <= 1 || grid.isEmpty) return
+        drawPageIndicator(
+            canvas = canvas,
+            rect = grid,
+            pageIndex = ctrl.quickLauncherPageIndex,
+            pageCount = ctrl.quickLauncherPageCount,
+            bottomInset = host.dp(10f),
+        )
+    }
+
+    private fun drawPageIndicator(
+        canvas: Canvas,
+        rect: RectF,
+        pageIndex: Int,
+        pageCount: Int,
+        bottomInset: Float,
+    ) {
+        if (pageCount <= 1 || rect.isEmpty) return
         val dotRadius = host.dp(2.5f)
         val dotGap = host.dp(6f)
-        val totalWidth = ctrl.quickLauncherPageCount * dotRadius * 2f +
-            (ctrl.quickLauncherPageCount - 1) * dotGap
-        var cx = grid.centerX() - totalWidth / 2f + dotRadius
-        val cy = grid.bottom - host.dp(10f)
-        for (page in 0 until ctrl.quickLauncherPageCount) {
-            pageIndicatorPaint.color = if (page == ctrl.quickLauncherPageIndex) {
+        val totalWidth = pageCount * dotRadius * 2f + (pageCount - 1) * dotGap
+        val cy = rect.bottom - bottomInset
+        var cx = when (host.side()) {
+            PanelSide.RIGHT -> rect.centerX() + totalWidth / 2f - dotRadius
+            else -> rect.centerX() - totalWidth / 2f + dotRadius
+        }
+        val step = if (host.side() == PanelSide.RIGHT) {
+            -(dotRadius * 2f + dotGap)
+        } else {
+            dotRadius * 2f + dotGap
+        }
+        for (page in 0 until pageCount) {
+            pageIndicatorPaint.color = if (page == pageIndex) {
                 Color.argb(230, 255, 255, 255)
             } else {
                 Color.argb(90, 255, 255, 255)
             }
             canvas.drawCircle(cx, cy, dotRadius, pageIndicatorPaint)
-            cx += dotRadius * 2f + dotGap
+            cx += step
         }
     }
 
@@ -639,21 +659,18 @@ internal class QuickLauncherRenderer(
             recordCells = recordCells,
         )
         if (pagingActive && kotlin.math.abs(dragOffset) > host.dp(0.5f)) {
-            if (dragOffset < 0f && folderHandler.pageIndex < folderHandler.pageCount - 1) {
+            QuickLauncherScrollHandler.adjacentPagesForDrag(
+                dragOffset = dragOffset,
+                currentPageIndex = folderHandler.pageIndex,
+                pageCount = folderHandler.pageCount,
+                pageWidth = folderWidth,
+                side = host.side(),
+            ).forEach { layer ->
                 drawFolderPageCells(
                     canvas = canvas,
                     folderLayout = folderLayout,
-                    pageIndex = folderHandler.pageIndex + 1,
-                    translateX = dragOffset + folderWidth,
-                    recordCells = false,
-                )
-            }
-            if (dragOffset > 0f && folderHandler.pageIndex > 0) {
-                drawFolderPageCells(
-                    canvas = canvas,
-                    folderLayout = folderLayout,
-                    pageIndex = folderHandler.pageIndex - 1,
-                    translateX = dragOffset - folderWidth,
+                    pageIndex = layer.pageIndex,
+                    translateX = layer.translateX,
                     recordCells = false,
                 )
             }
@@ -781,21 +798,13 @@ internal class QuickLauncherRenderer(
         pageIndex: Int,
         pageCount: Int,
     ) {
-        if (pageCount <= 1) return
-        val dotRadius = host.dp(2.5f)
-        val dotGap = host.dp(6f)
-        val totalWidth = pageCount * dotRadius * 2f + (pageCount - 1) * dotGap
-        var cx = folderLayout.rect.centerX() - totalWidth / 2f + dotRadius
-        val cy = folderLayout.rect.bottom - host.dp(8f)
-        for (page in 0 until pageCount) {
-            pageIndicatorPaint.color = if (page == pageIndex) {
-                Color.argb(230, 255, 255, 255)
-            } else {
-                Color.argb(90, 255, 255, 255)
-            }
-            canvas.drawCircle(cx, cy, dotRadius, pageIndicatorPaint)
-            cx += dotRadius * 2f + dotGap
-        }
+        drawPageIndicator(
+            canvas = canvas,
+            rect = folderLayout.rect,
+            pageIndex = pageIndex,
+            pageCount = pageCount,
+            bottomInset = host.dp(8f),
+        )
     }
 
     private fun drawFolderEditDragFloater(canvas: Canvas) {

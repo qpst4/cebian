@@ -82,11 +82,16 @@ internal class QuickLauncherScrollHandler(
             panelWidth = panelWidth,
             pageIndex = ctrl.quickLauncherPageIndex,
             pageCount = ctrl.quickLauncherPageCount,
+            side = host.side(),
         )
         if (delta != 0) {
             ctrl.quickLauncherPageIndex += delta
             ctrl.quickLauncherPageChangedThisGesture = true
-            ctrl.quickLauncherPageDragOffset += if (delta > 0) panelWidth else -panelWidth
+            ctrl.quickLauncherPageDragOffset += pageCommitOffsetCompensation(
+                delta = delta,
+                pageWidth = panelWidth,
+                side = host.side(),
+            )
             syncPageOffsetForDrag()
         }
         animatePageSnapTo(0f)
@@ -99,12 +104,13 @@ internal class QuickLauncherScrollHandler(
     private fun updatePageDragOffset(deltaX: Float) {
         cancelPageSnapAnimation()
         val panelWidth = ctrl.quickLauncherPanelWidthForPaging()
-        var offset = deltaX
-        if (ctrl.quickLauncherPageIndex <= 0 && offset > 0f) {
-            offset *= PAGE_EDGE_RESISTANCE
-        } else if (ctrl.quickLauncherPageIndex >= ctrl.quickLauncherPageCount - 1 && offset < 0f) {
-            offset *= PAGE_EDGE_RESISTANCE
-        }
+        val offset = applyPageDragResistance(
+            offset = deltaX,
+            pageIndex = ctrl.quickLauncherPageIndex,
+            pageCount = ctrl.quickLauncherPageCount,
+            side = host.side(),
+            resistance = PAGE_EDGE_RESISTANCE,
+        )
         ctrl.quickLauncherPageDragOffset = offset.coerceIn(-panelWidth, panelWidth)
         ctrl.invalidateQuickLauncherPanel()
     }
@@ -158,7 +164,11 @@ internal class QuickLauncherScrollHandler(
             .coerceIn(0, ctrl.quickLauncherPageCount - 1)
         syncPageOffsetForDrag()
         ctrl.quickLauncherPageChangedThisGesture = true
-        ctrl.quickLauncherPageDragOffset += if (delta > 0) panelWidth else -panelWidth
+        ctrl.quickLauncherPageDragOffset += pageCommitOffsetCompensation(
+            delta = delta,
+            pageWidth = panelWidth,
+            side = host.side(),
+        )
         pickResolver.clearHighlight()
         host.hapticTick()
         animatePageSnapTo(0f)
@@ -186,17 +196,93 @@ internal class QuickLauncherScrollHandler(
         private const val PAGE_EDGE_RESISTANCE = 0.35f
         private const val EDGE_AUTO_PAGE_THRESHOLD_DP = 14f
 
+        internal data class AdjacentPageLayer(
+            val pageIndex: Int,
+            val translateX: Float,
+        )
+
+        internal fun pageCommitOffsetCompensation(
+            delta: Int,
+            pageWidth: Float,
+            side: PanelSide = PanelSide.LEFT,
+        ): Float {
+            if (delta == 0) return 0f
+            return when (side) {
+                PanelSide.RIGHT -> if (delta > 0) -pageWidth else pageWidth
+                else -> if (delta > 0) pageWidth else -pageWidth
+            }
+        }
+
         internal fun computePageCommitDelta(
             offset: Float,
             panelWidth: Float,
             pageIndex: Int,
             pageCount: Int,
+            side: PanelSide = PanelSide.LEFT,
         ): Int {
             val threshold = panelWidth * PAGE_COMMIT_FRACTION
-            return when {
-                offset <= -threshold && pageIndex < pageCount - 1 -> 1
-                offset >= threshold && pageIndex > 0 -> -1
-                else -> 0
+            return when (side) {
+                PanelSide.RIGHT -> when {
+                    offset >= threshold && pageIndex < pageCount - 1 -> 1
+                    offset <= -threshold && pageIndex > 0 -> -1
+                    else -> 0
+                }
+                else -> when {
+                    offset <= -threshold && pageIndex < pageCount - 1 -> 1
+                    offset >= threshold && pageIndex > 0 -> -1
+                    else -> 0
+                }
+            }
+        }
+
+        internal fun applyPageDragResistance(
+            offset: Float,
+            pageIndex: Int,
+            pageCount: Int,
+            side: PanelSide,
+            resistance: Float,
+        ): Float {
+            var adjusted = offset
+            val atStart = pageIndex <= 0
+            val atEnd = pageIndex >= pageCount - 1
+            when (side) {
+                PanelSide.RIGHT -> {
+                    if (atStart && adjusted < 0f) adjusted *= resistance
+                    if (atEnd && adjusted > 0f) adjusted *= resistance
+                }
+                else -> {
+                    if (atStart && adjusted > 0f) adjusted *= resistance
+                    if (atEnd && adjusted < 0f) adjusted *= resistance
+                }
+            }
+            return adjusted
+        }
+
+        internal fun adjacentPagesForDrag(
+            dragOffset: Float,
+            currentPageIndex: Int,
+            pageCount: Int,
+            pageWidth: Float,
+            side: PanelSide,
+        ): List<AdjacentPageLayer> {
+            if (pageCount <= 1) return emptyList()
+            return when (side) {
+                PanelSide.RIGHT -> buildList {
+                    if (dragOffset > 0f && currentPageIndex < pageCount - 1) {
+                        add(AdjacentPageLayer(currentPageIndex + 1, dragOffset - pageWidth))
+                    }
+                    if (dragOffset < 0f && currentPageIndex > 0) {
+                        add(AdjacentPageLayer(currentPageIndex - 1, dragOffset + pageWidth))
+                    }
+                }
+                else -> buildList {
+                    if (dragOffset < 0f && currentPageIndex < pageCount - 1) {
+                        add(AdjacentPageLayer(currentPageIndex + 1, dragOffset + pageWidth))
+                    }
+                    if (dragOffset > 0f && currentPageIndex > 0) {
+                        add(AdjacentPageLayer(currentPageIndex - 1, dragOffset - pageWidth))
+                    }
+                }
             }
         }
 
@@ -208,10 +294,19 @@ internal class QuickLauncherScrollHandler(
         ): Int {
             val leftThreshold = panelRect.left + edgePx
             val rightThreshold = panelRect.right - edgePx
-            return when {
-                touchX <= leftThreshold -> -1
-                touchX >= rightThreshold -> 1
-                else -> 0
+            val atLeft = touchX <= leftThreshold
+            val atRight = touchX >= rightThreshold
+            return when (side) {
+                PanelSide.RIGHT -> when {
+                    atLeft -> 1
+                    atRight -> -1
+                    else -> 0
+                }
+                else -> when {
+                    atLeft -> -1
+                    atRight -> 1
+                    else -> 0
+                }
             }
         }
     }
