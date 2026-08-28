@@ -5,6 +5,7 @@ import android.graphics.Canvas
 import android.graphics.RectF
 import android.view.MotionEvent
 import com.slideindex.app.data.AppInfo
+import com.slideindex.app.launcher.QuickLauncherGridLogic.moveIndex
 import com.slideindex.app.launcher.QuickLauncherDefaults
 import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.launcher.QuickLauncherItemCodec
@@ -301,8 +302,22 @@ internal class QuickLauncherPanelController(
         current[folderGlobalIndex] = folder.withFolderItems(updatedChildren)
         localItems = current
         persistLocalItems()
+        host.onFolderItemsUpdated(folderGlobalIndex, updatedChildren)
         host.hapticTick()
         host.invalidate()
+    }
+
+    internal fun moveFolderChildItem(folderGlobalIndex: Int, from: Int, to: Int) {
+        val current = workingItems().toMutableList()
+        val folder = current.getOrNull(folderGlobalIndex) ?: return
+        if (folder.type != QuickLauncherItemType.FOLDER) return
+        val children = folder.folderItems()
+        if (from !in children.indices || to !in 0..children.size || from == to) return
+        val updatedChildren = children.moveIndex(from, to)
+        current[folderGlobalIndex] = folder.withFolderItems(updatedChildren)
+        localItems = current
+        persistLocalItems()
+        host.onFolderItemsUpdated(folderGlobalIndex, updatedChildren)
     }
 
     internal fun workingItems(): List<QuickLauncherItem> {

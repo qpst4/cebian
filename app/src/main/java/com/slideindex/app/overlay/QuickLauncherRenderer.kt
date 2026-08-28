@@ -542,31 +542,16 @@ internal class QuickLauncherRenderer(
         val folder = ctrl.folderItem ?: return
         val children = ctrl.folderSubPanelItems
         val childCount = children.size
+        val folderHandler = ctrl.folderHandler
+        val folderLayout = folderHandler.computeLayout(panelRect)
+        ctrl.folderRect.set(folderLayout.rect)
 
-        // Scrim over background
         cellHighlightPaint.color = Color.argb(130, 0, 0, 0)
         canvas.drawRoundRect(panelRect, panelCorner, panelCorner, cellHighlightPaint)
 
-        val columns = ctrl.quickLauncherColumnsPerPage().coerceIn(2, 4)
-        val rows = ((childCount + columns - 1) / columns).coerceIn(1, 4)
-        val headerHeight = host.dp(44f)
-        val padding = host.dp(10f)
-        val cellW = (panelRect.width() - padding * 2f) / columns.toFloat()
-        val cellH = ctrl.quickLauncherCellHeight
-        val folderH = headerHeight + rows * cellH + padding
-        val maxH = panelRect.height() - host.dp(24f)
-        val clampedH = folderH.coerceAtMost(maxH)
-
-        val folderLeft = panelRect.left + host.dp(6f)
-        val folderRight = panelRect.right - host.dp(6f)
-        val folderTop = (panelRect.centerY() - clampedH / 2f).coerceIn(
-            panelRect.top + host.dp(10f),
-            panelRect.bottom - clampedH - host.dp(10f),
-        )
-        val folderBottom = folderTop + clampedH
-        ctrl.folderRect.set(folderLeft, folderTop, folderRight, folderBottom)
-
-        // Draw card background
+        val folderLeft = folderLayout.rect.left
+        val folderRight = folderLayout.rect.right
+        val folderTop = folderLayout.rect.top
         val folderCorner = host.dp(20f)
         val blurRadiusDp = host.settings().quickLauncherDisplay.blurRadiusDp
         val blurDrawn = if (blurRadiusDp <= 0) {
@@ -590,7 +575,6 @@ internal class QuickLauncherRenderer(
         canvas.drawRoundRect(ctrl.folderRect, folderCorner, folderCorner, cellHighlightPaint)
         cellHighlightPaint.style = Paint.Style.FILL
 
-        // Header: Title & Close / Add buttons
         val title = folder.label.ifBlank { host.context.getString(R.string.quick_launcher_item_folder) }
         folderTitlePaint.textSize = host.sp(14f)
         folderTitlePaint.color = Color.WHITE
@@ -603,7 +587,6 @@ internal class QuickLauncherRenderer(
         folderSubtitlePaint.textSize = host.sp(11f)
         canvas.drawText(subtitle, titleX + titleW + host.dp(8f), titleY, folderSubtitlePaint)
 
-        // Close button (X)
         val closeBtnR = host.dp(12f)
         val closeCenterX = folderRight - host.dp(20f)
         val closeCenterY = folderTop + host.dp(22f)
@@ -619,7 +602,6 @@ internal class QuickLauncherRenderer(
         folderButtonPaint.isFakeBoldText = true
         canvas.drawText("✕", closeCenterX, closeCenterY - (folderButtonPaint.descent() + folderButtonPaint.ascent()) / 2f, folderButtonPaint)
 
-        // Edit Mode: "+ 添加" button
         if (ctrl.quickLauncherPanelController.editMode) {
             val addBtnW = host.dp(46f)
             val addBtnH = host.dp(24f)
@@ -637,55 +619,194 @@ internal class QuickLauncherRenderer(
             ctrl.folderAddButtonBounds.setEmpty()
         }
 
-        // Child Cells
-        ctrl.folderCellBounds.clear()
+        val dragOffset = folderHandler.pageDragOffset
+        val folderWidth = folderLayout.folderWidth.coerceAtLeast(1f)
+        val pagingActive = folderHandler.pagingActiveForHitTest()
+        val recordCells = !pagingActive
+        val contentClip = RectF(
+            folderLayout.rect.left,
+            folderLayout.contentStartY,
+            folderLayout.rect.right,
+            folderLayout.rect.bottom - folderLayout.indicatorHeight,
+        )
+        canvas.save()
+        canvas.clipRect(contentClip)
+        drawFolderPageCells(
+            canvas = canvas,
+            folderLayout = folderLayout,
+            pageIndex = folderHandler.pageIndex,
+            translateX = if (pagingActive) dragOffset else 0f,
+            recordCells = recordCells,
+        )
+        if (pagingActive && kotlin.math.abs(dragOffset) > host.dp(0.5f)) {
+            if (dragOffset < 0f && folderHandler.pageIndex < folderHandler.pageCount - 1) {
+                drawFolderPageCells(
+                    canvas = canvas,
+                    folderLayout = folderLayout,
+                    pageIndex = folderHandler.pageIndex + 1,
+                    translateX = dragOffset + folderWidth,
+                    recordCells = false,
+                )
+            }
+            if (dragOffset > 0f && folderHandler.pageIndex > 0) {
+                drawFolderPageCells(
+                    canvas = canvas,
+                    folderLayout = folderLayout,
+                    pageIndex = folderHandler.pageIndex - 1,
+                    translateX = dragOffset - folderWidth,
+                    recordCells = false,
+                )
+            }
+        }
+        canvas.restore()
+
+        if (folderHandler.pageCount > 1) {
+            drawFolderPageIndicator(canvas, folderLayout, folderHandler.pageIndex, folderHandler.pageCount)
+        }
+
+        if (folderHandler.isDragging()) {
+            drawFolderEditDragFloater(canvas)
+        }
+    }
+
+    private fun drawFolderPageCells(
+        canvas: Canvas,
+        folderLayout: QuickLauncherFolderHandler.FolderLayout,
+        pageIndex: Int,
+        translateX: Float,
+        recordCells: Boolean,
+    ) {
+        val children = ctrl.folderSubPanelItems
         if (children.isEmpty()) {
+            if (recordCells) ctrl.folderCellBounds.clear()
             val emptyText = host.context.getString(R.string.quick_launcher_folder_empty)
             folderEmptyPaint.textSize = host.sp(12f)
             canvas.drawText(
                 emptyText,
-                ctrl.folderRect.centerX(),
-                ctrl.folderRect.centerY() + host.dp(10f),
+                folderLayout.rect.centerX() + translateX,
+                folderLayout.rect.centerY() + host.dp(10f),
                 folderEmptyPaint,
             )
-        } else {
-            val startY = folderTop + headerHeight
-            for (i in children.indices) {
-                val child = children[i]
-                val col = i % columns
-                val row = i / columns
-                val visualCol = visualColumn(col, columns, columns, host.side())
-                val cLeft = folderLeft + padding + visualCol * cellW
-                val cTop = startY + row * cellH
-                val cRect = RectF(cLeft, cTop, cLeft + cellW, cTop + cellH)
-                ctrl.folderCellBounds.add(child to cRect)
+            return
+        }
+        if (recordCells) ctrl.folderCellBounds.clear()
+        val pageSize = folderLayout.pageSize.coerceAtLeast(1)
+        val pageStart = pageIndex.coerceIn(0, ctrl.folderHandler.pageCount - 1) * pageSize
+        val pageEnd = (pageStart + pageSize).coerceAtMost(children.size)
+        val columns = folderLayout.columns
+        val dragSourceGlobal = ctrl.folderHandler.dragSourceGlobal()
+        val layer = if (translateX != 0f) canvas.save() else -1
+        if (layer >= 0) canvas.translate(translateX, 0f)
 
-                drawGridCell(
-                    canvas = canvas,
-                    cell = cRect,
-                    index = if (i == ctrl.folderHighlightLocalIndex) host.panelGridSession().highlightedIndex else -2,
-                    label = quickLauncherItemLabel(child),
-                    iconProvider = { quickLauncherItemIcon(child) },
-                    showShortcutBadge = child.showsShortcutBadge(),
-                    showShellCommandBadge = child.showsShellCommandBadge(host.settings().shellCommands),
-                    longPressArmed = i == ctrl.folderHighlightLocalIndex && ctrl.folderLongPressArmed,
-                    labelMaxWidth = cellW - gridCellInset * 2,
-                )
+        for (globalIndex in pageStart until pageEnd) {
+            if (ctrl.folderHandler.isDragging() && globalIndex == dragSourceGlobal) continue
+            val child = children[globalIndex]
+            val localIndex = globalIndex - pageStart
+            val col = localIndex % columns
+            val row = localIndex / columns
+            val visualCol = visualColumn(col, columns, columns, host.side())
+            val cLeft = folderLayout.rect.left + folderLayout.padding + visualCol * folderLayout.cellW
+            val cTop = folderLayout.contentStartY + row * folderLayout.cellH
+            val cRect = RectF(cLeft, cTop, cLeft + folderLayout.cellW, cTop + folderLayout.cellH)
+            if (recordCells) ctrl.folderCellBounds.add(globalIndex to cRect)
 
-                // If in edit mode, draw delete badge for child
-                if (ctrl.quickLauncherPanelController.editMode) {
-                    val badgeSize = host.dp(16f)
-                    val badgeLeft = cRect.left + host.dp(6f)
-                    val badgeTop = cRect.top + host.dp(2f)
-                    val badgeRect = RectF(badgeLeft, badgeTop, badgeLeft + badgeSize, badgeTop + badgeSize)
-                    cellHighlightPaint.color = Color.argb(220, 229, 57, 53)
-                    canvas.drawCircle(badgeRect.centerX(), badgeRect.centerY(), badgeSize / 2f, cellHighlightPaint)
-                    folderButtonPaint.textSize = host.sp(10f)
-                    folderButtonPaint.isFakeBoldText = true
-                    canvas.drawText("−", badgeRect.centerX(), badgeRect.centerY() - (folderButtonPaint.descent() + folderButtonPaint.ascent()) / 2f, folderButtonPaint)
-                }
+            drawGridCell(
+                canvas = canvas,
+                cell = cRect,
+                index = if (globalIndex == ctrl.folderHighlightLocalIndex) {
+                    host.panelGridSession().highlightedIndex
+                } else {
+                    -2
+                },
+                label = quickLauncherItemLabel(child),
+                iconProvider = { quickLauncherItemIcon(child) },
+                showShortcutBadge = child.showsShortcutBadge(),
+                showShellCommandBadge = child.showsShellCommandBadge(host.settings().shellCommands),
+                longPressArmed = globalIndex == ctrl.folderHighlightLocalIndex && ctrl.folderLongPressArmed,
+                labelMaxWidth = folderLayout.cellW - gridCellInset * 2,
+            )
+
+            if (ctrl.quickLauncherPanelController.editMode) {
+                val badgeSize = host.dp(16f)
+                val badgeLeft = cRect.left + host.dp(6f)
+                val badgeTop = cRect.top + host.dp(2f)
+                val badgeRect = RectF(badgeLeft, badgeTop, badgeLeft + badgeSize, badgeTop + badgeSize)
+                cellHighlightPaint.color = Color.argb(220, 229, 57, 53)
+                canvas.drawCircle(badgeRect.centerX(), badgeRect.centerY(), badgeSize / 2f, cellHighlightPaint)
+                folderButtonPaint.textSize = host.sp(10f)
+                folderButtonPaint.isFakeBoldText = true
+                canvas.drawText("−", badgeRect.centerX(), badgeRect.centerY() - (folderButtonPaint.descent() + folderButtonPaint.ascent()) / 2f, folderButtonPaint)
             }
         }
+        if (layer >= 0) canvas.restoreToCount(layer)
+    }
+
+    private val folderHandler get() = ctrl.folderHandler
+
+    private fun drawFolderPageIndicator(
+        canvas: Canvas,
+        folderLayout: QuickLauncherFolderHandler.FolderLayout,
+        pageIndex: Int,
+        pageCount: Int,
+    ) {
+        if (pageCount <= 1) return
+        val dotRadius = host.dp(2.5f)
+        val dotGap = host.dp(6f)
+        val totalWidth = pageCount * dotRadius * 2f + (pageCount - 1) * dotGap
+        var cx = folderLayout.rect.centerX() - totalWidth / 2f + dotRadius
+        val cy = folderLayout.rect.bottom - host.dp(8f)
+        for (page in 0 until pageCount) {
+            pageIndicatorPaint.color = if (page == pageIndex) {
+                Color.argb(230, 255, 255, 255)
+            } else {
+                Color.argb(90, 255, 255, 255)
+            }
+            canvas.drawCircle(cx, cy, dotRadius, pageIndicatorPaint)
+            cx += dotRadius * 2f + dotGap
+        }
+    }
+
+    private fun drawFolderEditDragFloater(canvas: Canvas) {
+        val globalFrom = ctrl.folderHandler.dragSourceGlobal()
+        val item = ctrl.folderSubPanelItems.getOrNull(globalFrom) ?: return
+        val cx = ctrl.folderHandler.dragPointerX()
+        val cy = ctrl.folderHandler.dragPointerY()
+        val scale = 1.10f
+        val halfW = (ctrl.quickLauncherCellWidth * scale) / 2f
+        val halfH = (ctrl.quickLauncherCellHeight * scale) / 2f
+        val cell = RectF(cx - halfW, cy - halfH, cx + halfW, cy + halfH)
+
+        val shadowBlur = host.dp(6f)
+        val shadowLayers = 3
+        val shadowAlpha = 50
+        val shadowRect = RectF()
+        for (layer in shadowLayers downTo 1) {
+            val fraction = layer / shadowLayers.toFloat()
+            val spread = shadowBlur * fraction
+            val alpha = (shadowAlpha * fraction * fraction / shadowLayers).toInt().coerceIn(1, 255)
+            cellHighlightPaint.color = Color.argb(alpha, 0, 0, 0)
+            shadowRect.set(
+                cell.left - spread,
+                cell.top - spread + host.dp(3f),
+                cell.right + spread,
+                cell.bottom + spread + host.dp(3f),
+            )
+            canvas.drawRoundRect(shadowRect, host.dp(14f), host.dp(14f), cellHighlightPaint)
+        }
+
+        drawGridCell(
+            canvas = canvas,
+            cell = cell,
+            index = -1,
+            label = quickLauncherItemLabel(item),
+            iconProvider = { quickLauncherItemIcon(item) },
+            showShortcutBadge = item.showsShortcutBadge(),
+            showShellCommandBadge = item.showsShellCommandBadge(host.settings().shellCommands),
+            iconSize = quickLauncherGridIconSize * scale,
+            iconTopInset = quickLauncherGridIconTopInset * scale,
+            iconLabelGap = quickLauncherGridIconLabelGap * scale,
+            labelMaxWidth = (ctrl.quickLauncherCellWidth - gridCellInset * 2) * scale,
+        )
     }
 
     private fun ellipsize(text: String, maxWidth: Float): String {

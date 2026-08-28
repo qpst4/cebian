@@ -2,8 +2,6 @@ package com.slideindex.app.overlay
 
 import android.graphics.RectF
 import android.view.MotionEvent
-import com.slideindex.app.launcher.QuickLauncherItemCodec
-import com.slideindex.app.launcher.QuickLauncherItemType
 
 internal class QuickLauncherTouchHandler(
     internal val ctrl: QuickLauncherOverlayController,
@@ -38,6 +36,9 @@ internal class QuickLauncherTouchHandler(
         if (event.actionMasked == MotionEvent.ACTION_UP ||
             event.actionMasked == MotionEvent.ACTION_CANCEL
         ) {
+            if (ctrl.folderOpen && ctrl.folderHandler.consumePageRelease()) {
+                return true
+            }
             if (!continuousPick && scrollHandler.consumePageRelease()) {
                 return true
             }
@@ -62,7 +63,7 @@ internal class QuickLauncherTouchHandler(
             managementHandler.isTapGesture(touchX, localY)
         val toolbarCommitAllowed = managementHandler.toolbarCommitAllowed()
         if (ctrl.folderOpen || ctrl.folderGestureActive) {
-            if (handleFolderTouch(event, touchX, localX, localY)) {
+            if (ctrl.folderHandler.handleTouch(event, touchX, localX, localY)) {
                 return true
             }
         }
@@ -303,160 +304,6 @@ internal class QuickLauncherTouchHandler(
 
     fun applyEditDragAutoPage(touchX: Float, panelRect: RectF): Boolean =
         scrollHandler.applyEditDragAutoPage(touchX, panelRect)
-
-    private fun handleFolderTouch(
-        event: MotionEvent,
-        touchX: Float,
-        localX: Float,
-        localY: Float,
-    ): Boolean {
-        val continuousPick = host.gestureSession().quickLauncherContinuousPickActive()
-        val closeHit = ctrl.folderCloseButtonBounds.contains(touchX, localY)
-        val addHit = ctrl.quickLauncherPanelController.editMode && ctrl.folderAddButtonBounds.contains(touchX, localY)
-        val insideFolder = ctrl.folderRect.contains(touchX, localY)
-        val isToolbarHit = ctrl.quickLauncherPanelController.toolbarContains(touchX, localY)
-
-        when (event.actionMasked) {
-            MotionEvent.ACTION_DOWN -> {
-                ctrl.folderGestureActive = true
-                if (isToolbarHit) {
-                    return false
-                }
-                if (closeHit) {
-                    ctrl.closeFolder()
-                    return true
-                }
-                if (addHit) {
-                    ctrl.quickLauncherPanelController.openAddDialog(ctrl.folderGlobalIndex)
-                    return true
-                }
-                if (ctrl.quickLauncherPanelController.editMode) {
-                    // Check delete badges / cells on folder child cells
-                    val deleteHit = ctrl.folderCellBounds.indexOfFirst { (_, rect) ->
-                        rect.contains(touchX, localY) ||
-                            (touchX in (rect.left - host.dp(6f))..(rect.left + host.dp(24f)) &&
-                             localY in (rect.top - host.dp(6f))..(rect.top + host.dp(24f)))
-                    }
-                    if (deleteHit >= 0) {
-                        ctrl.quickLauncherPanelController.removeFolderChildItem(ctrl.folderGlobalIndex, deleteHit)
-                        ctrl.folderSubPanelItems = ctrl.quickLauncherRootItems().getOrNull(ctrl.folderGlobalIndex)?.folderItems().orEmpty()
-                        host.hapticTick()
-                        host.invalidate()
-                        return true
-                    }
-                }
-                if (insideFolder) {
-                    val hit = ctrl.folderCellBounds.indexOfFirst { it.second.contains(touchX, localY) }
-                    ctrl.folderHighlightLocalIndex = hit
-                    if (hit >= 0) {
-                        host.hapticTick()
-                        if (!ctrl.quickLauncherPanelController.editMode) {
-                            ctrl.scheduleFolderLongPress(hit, event.eventTime)
-                        }
-                    } else {
-                        ctrl.cancelFolderLongPress()
-                    }
-                    host.invalidate()
-                    return true
-                } else {
-                    ctrl.closeFolder()
-                    return true
-                }
-            }
-            MotionEvent.ACTION_MOVE -> {
-                if (isToolbarHit) {
-                    return false
-                }
-                if (!ctrl.folderOpen) {
-                    return true
-                }
-                if (closeHit) {
-                    if (continuousPick) {
-                        ctrl.closeFolder()
-                        host.hapticTick()
-                        return true
-                    }
-                }
-                if (insideFolder) {
-                    val hit = ctrl.folderCellBounds.indexOfFirst { it.second.contains(touchX, localY) }
-                    if (hit != ctrl.folderHighlightLocalIndex) {
-                        ctrl.folderHighlightLocalIndex = hit
-                        if (hit >= 0) {
-                            host.hapticTick()
-                            ctrl.scheduleFolderLongPress(hit, event.eventTime)
-                        } else {
-                            ctrl.cancelFolderLongPress()
-                        }
-                        host.invalidate()
-                    }
-                } else {
-                    if (ctrl.folderHighlightLocalIndex >= 0) {
-                        ctrl.folderHighlightLocalIndex = -1
-                        ctrl.cancelFolderLongPress()
-                        host.invalidate()
-                    }
-                }
-                return true
-            }
-            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                ctrl.folderGestureActive = false
-                if (isToolbarHit) {
-                    return false
-                }
-                if (!ctrl.folderOpen) {
-                    return true
-                }
-                if (closeHit) {
-                    ctrl.closeFolder()
-                    return true
-                }
-                if (addHit) {
-                    ctrl.quickLauncherPanelController.openAddDialog(ctrl.folderGlobalIndex)
-                    return true
-                }
-                val hit = ctrl.folderHighlightLocalIndex
-                if (hit in ctrl.folderSubPanelItems.indices && !ctrl.quickLauncherPanelController.editMode) {
-                    val childItem = ctrl.folderSubPanelItems[hit]
-                    val longPress = ctrl.isFolderLongPressTriggered(event)
-                    ctrl.cancelFolderLongPress()
-                    if (childItem.type == QuickLauncherItemType.ACTION) {
-                        val action = QuickLauncherItemCodec.parseActionPayload(childItem.payload)
-                        if (action != null) {
-                            host.gestureSession().performQuickLauncherAction(
-                                action,
-                                localX,
-                                localY,
-                                event.rawY,
-                                confirmHaptic = longPress,
-                            )
-                        }
-                    } else {
-                        if (longPress) host.hapticConfirmLaunch()
-                        ctrl.quickLauncherLaunchEndDeferMs = if (
-                            host.actionExecutor().launchQuickItem(
-                                childItem,
-                                host.settings(),
-                                longPressArmed = longPress,
-                                anchorRawY = event.rawY,
-                            )
-                        ) 280L else 0L
-                    }
-                    ctrl.closeFolder()
-                    endQuickLauncherAfterLaunch(ctrl.quickLauncherLaunchEndDeferMs)
-                    ctrl.quickLauncherLaunchEndDeferMs = 0L
-                    return true
-                } else if (!insideFolder && !closeHit && !addHit) {
-                    ctrl.closeFolder()
-                    return true
-                }
-                ctrl.folderHighlightLocalIndex = -1
-                ctrl.cancelFolderLongPress()
-                host.invalidate()
-                return true
-            }
-        }
-        return false
-    }
 
     private fun endQuickLauncherAfterLaunch(deferMs: Long) {
         if (deferMs > 0L) {

@@ -77,6 +77,7 @@ internal class QuickLauncherOverlayController(
 
     private val renderer = QuickLauncherRenderer(this)
     private val touchHandler = QuickLauncherTouchHandler(this)
+    internal val folderHandler = QuickLauncherFolderHandler(this)
 
     internal val quickLauncherOverlayDialogHost = OverlayComposeDialogHost(
         context = host.context,
@@ -232,7 +233,8 @@ internal class QuickLauncherOverlayController(
     internal var folderSubPanelItems: List<QuickLauncherItem> = emptyList()
     internal var folderHighlightLocalIndex: Int = -1
     internal val folderRect = RectF()
-    internal val folderCellBounds = mutableListOf<Pair<QuickLauncherItem, RectF>>()
+    /** Global child index in [folderSubPanelItems] to cell bounds on the current folder page. */
+    internal val folderCellBounds = mutableListOf<Pair<Int, RectF>>()
     internal val folderCloseButtonBounds = RectF()
     internal val folderAddButtonBounds = RectF()
     internal var folderHoverRunnable: Runnable? = null
@@ -250,6 +252,7 @@ internal class QuickLauncherOverlayController(
         folderSubPanelItems = item.folderItems()
         folderOpen = true
         folderHighlightLocalIndex = -1
+        folderHandler.reset()
         cancelFolderHover()
         cancelFolderLongPress()
         quickLauncherLongPressRunnable?.let { host.removeCallbacks(it) }
@@ -270,6 +273,7 @@ internal class QuickLauncherOverlayController(
         folderCellBounds.clear()
         folderCloseButtonBounds.setEmpty()
         folderAddButtonBounds.setEmpty()
+        folderHandler.reset()
         cancelFolderHover()
         cancelFolderLongPress()
         host.invalidate()
@@ -321,6 +325,9 @@ internal class QuickLauncherOverlayController(
         quickLauncherPanelController.updateFolderItems(globalIdx, newChildren)
         folderItem = quickLauncherRootItems().getOrNull(globalIdx)
         folderSubPanelItems = newChildren
+        folderHandler.layout?.let { layout ->
+            folderHandler.syncPagination(newChildren.size, layout.pageSize)
+        }
         invalidateQuickLauncherDerivedCaches()
         host.invalidate()
     }
