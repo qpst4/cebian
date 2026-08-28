@@ -91,7 +91,7 @@ internal class FloatBallIconView(context: Context) : FrameLayout(context) {
         alpha = opacity
 
         val key = buildBindKey(settings, activeSide, styleGeneration, sizePx)
-        if (key == boundKey && contentMode != ContentMode.GIF) {
+        if (key == boundKey) {
             applyChildGravity(settings, activeSide)
             applyCircularClip(sizePx)
             return

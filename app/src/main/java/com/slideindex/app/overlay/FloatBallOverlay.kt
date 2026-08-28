@@ -84,7 +84,7 @@ object FloatBallOverlay {
     private val dragSession = FloatBallDragSession()
 
     private var windowManager: WindowManager? = null
-    private var displayView: ComposeView? = null
+    private var displayView: FloatBallDisplayHost? = null
     private var displayLayoutParams: WindowManager.LayoutParams? = null
     private var displayOwner: OverlayComposeOwner? = null
     private var touchHost: FloatBallTouchHostLayout? = null
@@ -171,6 +171,7 @@ object FloatBallOverlay {
                 clearSplitIdleChrome()
                 displayView?.visibility = View.VISIBLE
                 sceneState?.ballDragging?.value = true
+                settingsState?.value?.let { syncDisplayBallLayout(it) }
             }
             !dragging && wasDragging -> {
                 cancelDeferredDragStart()
@@ -690,7 +691,7 @@ object FloatBallOverlay {
         screenOffReceiver?.let { receiver ->
             appContext?.let { ctx -> runCatching { ctx.unregisterReceiver(receiver) } }
         }
-        OverlayCompose.disposeComposeView(displayView)
+        displayView?.dispose()
         displayOwner?.destroy()
         FloatBallPickResultPanel.destroy()
         displayOwner = null
@@ -1039,16 +1040,19 @@ object FloatBallOverlay {
         }
 
         val displayDialogOwner = OverlayComposeOwner()
-        val displayCompose = OverlayCompose.createComposeView(overlayContext, displayDialogOwner).apply {
+        val displayHost = FloatBallDisplayHost(
+            context = overlayContext,
+            lineChromeOwner = displayDialogOwner,
+            ballIconView = ballIcon,
+            cursorPreviewView = cursorPreview,
+        ).apply {
             isClickable = false
             isFocusable = false
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-            setContent {
-                FloatBallChrome(
+            lineChromeComposeView.setContent {
+                FloatBallLineChrome(
                     sceneState = state,
                     dragActiveSideOverrideState = dragActiveSideOverrideState!!,
-                    cursorPreviewView = cursorPreview,
-                    ballIconView = ballIcon,
                 )
             }
         }
@@ -1157,7 +1161,7 @@ object FloatBallOverlay {
         val touchLp = buildTouchLayoutParams(hostContext)
         val lineTouchLp = buildTouchLayoutParams(hostContext)
 
-        val displayAdded = runCatching { wm.addView(displayCompose, displayLp) }
+        val displayAdded = runCatching { wm.addView(displayHost, displayLp) }
             .onFailure { Log.e(TAG, "failed to add display overlay", it) }
             .isSuccess
         if (!displayAdded) {
@@ -1169,7 +1173,7 @@ object FloatBallOverlay {
             .onFailure { Log.e(TAG, "failed to add ball touch overlay", it) }
             .isSuccess
         if (!touchAdded) {
-            runCatching { wm.removeView(displayCompose) }
+            runCatching { wm.removeView(displayHost) }
             displayDialogOwner.destroy()
             return
         }
@@ -1179,13 +1183,13 @@ object FloatBallOverlay {
             .isSuccess
         if (!lineTouchAdded) {
             runCatching { wm.removeView(touchLayout) }
-            runCatching { wm.removeView(displayCompose) }
+            runCatching { wm.removeView(displayHost) }
             displayDialogOwner.destroy()
             return
         }
 
         windowManager = wm
-        displayView = displayCompose
+        displayView = displayHost
         displayLayoutParams = displayLp
         displayOwner = displayDialogOwner
         touchHost = touchLayout
@@ -1200,7 +1204,7 @@ object FloatBallOverlay {
 
         applyAllLayouts(settings)
         scheduleChromeAbovePanels(delayMs = 0L)
-        displayCompose.post { scheduleChromeAbovePanels(delayMs = 0L) }
+        displayHost.post { scheduleChromeAbovePanels(delayMs = 0L) }
     }
 
     private fun releaseAllTouchCaptures() {
@@ -2021,6 +2025,34 @@ object FloatBallOverlay {
 
     private fun applyBallLayout(settings: AppSettings) {
         sceneState?.ballCenterPx?.value = null
+        syncDisplayBallLayout(settings)
+    }
+
+    private fun syncDisplayBallLayout(settings: AppSettings, layoutOnly: Boolean = false) {
+        val host = displayView ?: return
+        val state = sceneState ?: return
+        val metrics = host.resources.displayMetrics
+        val activeSide = effectiveActiveSide(settings)
+        val (screenWidthPx, screenHeightPx) = FloatBallScreenMetrics.sizePx(host.context, windowManager)
+        val center = state.ballCenterPx.value ?: state.dockBallCenter(
+            settings,
+            metrics,
+            activeSide,
+            screenWidthPx,
+            screenHeightPx,
+        )
+        val (left, top) = state.ballWindowTopLeft(settings, metrics, activeSide, center, screenHeightPx)
+        val sizePx = FloatBallLayout.ballSizePx(settings, metrics.density)
+        host.layoutBall(left, top, sizePx)
+        host.setBallVisible(state.ballVisible.value)
+        if (!layoutOnly) {
+            ballIconView?.bind(
+                settings = settings,
+                activeSide = activeSide,
+                styleGeneration = state.styleVisualGeneration.intValue,
+            )
+        }
+        ballIconView?.setDragging(state.ballDragging.value)
     }
 
     private fun applyLineLayout(settings: AppSettings) {
@@ -2036,6 +2068,7 @@ object FloatBallOverlay {
         if (captureSuppressed) {
             state.chromeVisible.value = false
             syncTouchWindowLayout(settings)
+            displayView?.setBallVisible(false)
             return
         }
         state.chromeVisible.value = true
@@ -2045,6 +2078,7 @@ object FloatBallOverlay {
             if (!dragOriginatedFromLine) {
                 setLineTouchHostEnabled(false)
             }
+            syncDisplayBallLayout(settings, layoutOnly = isDragging)
             return
         }
         state.ballVisible.value = true
@@ -2053,6 +2087,7 @@ object FloatBallOverlay {
         lineTouchHost?.stripTouchable = true
         syncTouchWindowLayout(settings)
         syncSplitIdleChrome(settings)
+        syncDisplayBallLayout(settings)
     }
 
     private fun effectiveActiveSide(settings: AppSettings): FloatBallSide =
@@ -2956,6 +2991,7 @@ object FloatBallOverlay {
     private fun commitDragChromeLayoutFrame(forceAnchorState: Boolean = false) {
         val pick = pendingCursorFrameAnchor ?: currentDragPickAnchor
         pendingCursorFrameAnchor = null
+        syncCursorPreviewAppearance()
         settingsState?.value?.let { applyDragBallLayout(it) }
         val needsPreviewAnchor = forceAnchorState ||
             cursorPausedState?.value == true ||
@@ -2963,7 +2999,6 @@ object FloatBallOverlay {
         if (needsPreviewAnchor) {
             cursorAnchorState?.value = pick
         }
-        syncCursorPreviewAppearance()
         if (isDragging && cursorVisibleState?.value == true) {
             applyPreviewBoundsFromCache()
         }
@@ -3015,6 +3050,7 @@ object FloatBallOverlay {
             screenHeight = screenBounds.height.roundToInt(),
         )
         sceneState?.ballCenterPx?.value = center
+        syncDisplayBallLayout(settings, layoutOnly = true)
     }
 
     private fun updatePickAndBallFromFinger(moveBallWindow: Boolean) {

@@ -47,59 +47,30 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 
-/**
- * ?? Display ???????????????????????? offset ??????
- */
+/** Display 层线条与条带预览（球体与准星由 [FloatBallDisplayHost] 原生定位）。 */
 @Composable
-internal fun FloatBallChrome(
+internal fun FloatBallLineChrome(
     sceneState: FloatBallSceneState,
     dragActiveSideOverrideState: MutableState<FloatBallSide?>,
-    cursorPreviewView: FloatBallCursorPreviewView,
-    ballIconView: FloatBallIconView,
 ) {
     val settings by sceneState.settingsState
     val stripPreviewActive by sceneState.stripZonePreview
     val screenLayoutGeneration by sceneState.screenLayoutGeneration
-    val styleVisualGeneration by sceneState.styleVisualGeneration
-    val ballDragging by sceneState.ballDragging
-    val ballVisible by sceneState.ballVisible
     val lineVisible by sceneState.lineVisible
     val chromeVisible by sceneState.chromeVisible
-    val ballCenterOverride by sceneState.ballCenterPx
     val dragActiveSideOverride by dragActiveSideOverrideState
 
     if (!chromeVisible) return
 
     val context = LocalContext.current
     val density = LocalDensity.current
-    val resources = androidx.compose.ui.platform.LocalResources.current
+    val resources = LocalResources.current
     val metrics = resources.displayMetrics
     val (screenWidthPx, screenHeightPx) = remember(screenLayoutGeneration) {
         FloatBallScreenMetrics.sizePx(context)
     }
     val activeSide = sceneState.resolvedActiveSide(settings, dragActiveSideOverride)
-    val ballCenter = ballCenterOverride ?: sceneState.dockBallCenter(
-        settings,
-        metrics,
-        activeSide,
-        screenWidthPx,
-        screenHeightPx,
-    )
-    val ballSizePx = FloatBallLayout.ballSizePx(settings, metrics.density)
-    val ballSizeDp = with(density) { ballSizePx.toDp() }
-    val (ballLeft, ballTop) = sceneState.ballWindowTopLeft(
-        settings,
-        metrics,
-        activeSide,
-        ballCenter,
-        screenHeightPx,
-    )
     val isCustom = settings.floatBallPositionMode == FloatBallPositionMode.CUSTOM
-    val dockAlignment = when {
-        isCustom -> Alignment.Center
-        activeSide == FloatBallSide.LEFT -> Alignment.CenterStart
-        else -> Alignment.CenterEnd
-    }
     val lineColor = Color(settings.themeColorArgb)
         .copy(alpha = settings.floatBallLineOpacity.coerceIn(0f, 1f))
 
@@ -135,40 +106,40 @@ internal fun FloatBallChrome(
             }
         }
 
-        if (ballVisible) {
+        if (stripPreviewActive && !isCustom) {
+            val ballCenter = sceneState.dockBallCenter(
+                settings,
+                metrics,
+                activeSide,
+                screenWidthPx,
+                screenHeightPx,
+            )
+            val ballSizePx = FloatBallLayout.ballSizePx(settings, metrics.density)
+            val ballSizeDp = with(density) { ballSizePx.toDp() }
+            val (ballLeft, ballTop) = sceneState.ballWindowTopLeft(
+                settings,
+                metrics,
+                activeSide,
+                ballCenter,
+                screenHeightPx,
+            )
             Box(
                 modifier = Modifier
                     .offset { IntOffset(ballLeft, ballTop) }
                     .size(ballSizeDp),
-                contentAlignment = dockAlignment,
+                contentAlignment = when (activeSide) {
+                    FloatBallSide.LEFT -> Alignment.CenterStart
+                    FloatBallSide.RIGHT -> Alignment.CenterEnd
+                },
             ) {
-                if (stripPreviewActive && !isCustom) {
-                    FloatBallStripZonePreviewLayer(
-                        settings = settings,
-                        side = activeSide,
-                        lineColor = lineColor,
-                        showEdgeLine = false,
-                    )
-                }
-                AndroidView(
-                    modifier = Modifier.fillMaxSize(),
-                    factory = { ballIconView },
-                    update = { view ->
-                        view.bind(
-                            settings = settings,
-                            activeSide = activeSide,
-                            styleGeneration = styleVisualGeneration,
-                        )
-                        view.setDragging(ballDragging)
-                    },
+                FloatBallStripZonePreviewLayer(
+                    settings = settings,
+                    side = activeSide,
+                    lineColor = lineColor,
+                    showEdgeLine = false,
                 )
             }
         }
-
-        AndroidView(
-            modifier = Modifier.fillMaxSize(),
-            factory = { cursorPreviewView },
-        )
     }
 }
 
