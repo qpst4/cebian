@@ -3,6 +3,7 @@ package com.slideindex.app.launcher
 import android.content.Intent
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.GestureActionType
+import com.slideindex.app.gesture.normalized
 
 enum class QuickLauncherItemType(val id: Int) {
     APP(0),
@@ -148,7 +149,7 @@ object QuickLauncherItemCodec {
         if (index < 0) return null
         val typeId = payload.substring(0, index).toIntOrNull() ?: return null
         val actionPayload = payload.substring(index + 1)
-        return GestureAction.from(GestureActionType.fromId(typeId), actionPayload)
+        return GestureAction.from(GestureActionType.fromId(typeId), actionPayload).normalized()
     }
 
     fun actionKey(action: GestureAction): String = encodeActionPayload(action)

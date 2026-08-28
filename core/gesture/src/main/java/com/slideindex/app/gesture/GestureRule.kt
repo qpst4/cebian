@@ -112,5 +112,7 @@ object GestureRuleCodec {
     fun encodeAll(rules: List<GestureRule>): Set<String> = rules.map { encode(it) }.toSet()
 
     fun decodeAll(raw: Set<String>): List<GestureRule> =
-        raw.mapNotNull { decode(it) }.sortedByDescending { it.priority }
+        raw.mapNotNull { decode(it) }
+            .map { rule -> rule.copy(action = rule.action.normalized()) }
+            .sortedByDescending { it.priority }
 }

@@ -303,6 +303,7 @@ internal fun GestureSession.handleClassifiedGesture(
         GestureAction.UniversalCopy,
         GestureAction.FreezerPanel,
         GestureAction.Refreeze,
+        GestureAction.Remind,
         GestureAction.Remind1m,
         GestureAction.Remind3m,
         GestureAction.Remind5m,

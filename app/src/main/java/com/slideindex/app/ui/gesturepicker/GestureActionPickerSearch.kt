@@ -68,6 +68,7 @@ fun gestureActionDescriptionText(context: Context, action: GestureAction): Strin
         GestureActionType.SEARCH_PANEL -> context.getString(R.string.gesture_action_search_panel_desc)
         GestureActionType.VOLUME_PANEL -> context.getString(R.string.gesture_action_volume_panel_desc)
         GestureActionType.SCREEN_TRANSLATE -> context.getString(R.string.gesture_action_screen_translate_desc)
+        GestureActionType.REMIND -> context.getString(R.string.gesture_action_remind_desc)
         GestureActionType.UNIVERSAL_COPY -> context.getString(R.string.gesture_action_universal_copy_desc)
         GestureActionType.FREEZER_PANEL -> context.getString(R.string.gesture_action_freezer_panel_desc)
         GestureActionType.REFREEZE -> context.getString(R.string.gesture_action_refreeze_desc)
@@ -140,11 +141,13 @@ fun gestureActionLabelText(context: Context, action: GestureAction): String = wh
         GestureActionType.SEARCH_PANEL -> context.getString(R.string.gesture_action_search_panel)
         GestureActionType.VOLUME_PANEL -> context.getString(R.string.gesture_action_volume_panel)
         GestureActionType.SCREEN_TRANSLATE -> context.getString(R.string.gesture_action_screen_translate)
-        GestureActionType.REMIND_1M -> context.getString(R.string.gesture_action_remind_1m)
-        GestureActionType.REMIND_3M -> context.getString(R.string.gesture_action_remind_3m)
-        GestureActionType.REMIND_5M -> context.getString(R.string.gesture_action_remind_5m)
-        GestureActionType.REMIND_10M -> context.getString(R.string.gesture_action_remind_10m)
-        GestureActionType.REMIND_15M -> context.getString(R.string.gesture_action_remind_15m)
+        GestureActionType.REMIND,
+        GestureActionType.REMIND_1M,
+        GestureActionType.REMIND_3M,
+        GestureActionType.REMIND_5M,
+        GestureActionType.REMIND_10M,
+        GestureActionType.REMIND_15M,
+        -> context.getString(R.string.gesture_action_remind)
         GestureActionType.UNIVERSAL_COPY -> context.getString(R.string.gesture_action_universal_copy)
         GestureActionType.FREEZER_PANEL -> context.getString(R.string.gesture_action_freezer_panel)
         GestureActionType.REFREEZE -> context.getString(R.string.gesture_action_refreeze)
@@ -257,11 +260,13 @@ fun gestureActionLabel(action: GestureAction, settings: AppSettings? = null): St
         GestureActionType.SEARCH_PANEL -> stringResource(R.string.gesture_action_search_panel)
         GestureActionType.VOLUME_PANEL -> stringResource(R.string.gesture_action_volume_panel)
         GestureActionType.SCREEN_TRANSLATE -> stringResource(R.string.gesture_action_screen_translate)
-        GestureActionType.REMIND_1M -> stringResource(R.string.gesture_action_remind_1m)
-        GestureActionType.REMIND_3M -> stringResource(R.string.gesture_action_remind_3m)
-        GestureActionType.REMIND_5M -> stringResource(R.string.gesture_action_remind_5m)
-        GestureActionType.REMIND_10M -> stringResource(R.string.gesture_action_remind_10m)
-        GestureActionType.REMIND_15M -> stringResource(R.string.gesture_action_remind_15m)
+        GestureActionType.REMIND,
+        GestureActionType.REMIND_1M,
+        GestureActionType.REMIND_3M,
+        GestureActionType.REMIND_5M,
+        GestureActionType.REMIND_10M,
+        GestureActionType.REMIND_15M,
+        -> stringResource(R.string.gesture_action_remind)
         GestureActionType.UNIVERSAL_COPY -> stringResource(R.string.gesture_action_universal_copy)
         GestureActionType.FREEZER_PANEL -> stringResource(R.string.gesture_action_freezer_panel)
         GestureActionType.REFREEZE -> stringResource(R.string.gesture_action_refreeze)
@@ -466,6 +471,16 @@ fun gestureActionPermissionHintText(context: Context, action: GestureAction): St
             if (PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) return null
             context.getString(R.string.gesture_action_open_floating_pointer_radial_menu_permission)
         }
+        GestureActionType.REMIND,
+        GestureActionType.REMIND_1M,
+        GestureActionType.REMIND_3M,
+        GestureActionType.REMIND_5M,
+        GestureActionType.REMIND_10M,
+        GestureActionType.REMIND_15M,
+        -> {
+            if (PermissionHelper.canDrawOverlays(context)) return null
+            context.getString(R.string.gesture_action_remind_permission)
+        }
         else -> null
     }
 
@@ -563,6 +578,11 @@ fun requestPermissionForAdjustAction(context: Context, action: GestureAction) {
         GestureAction.SearchPanel -> {
             if (!PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) {
                 context.startActivity(PermissionHelper.accessibilitySettingsIntent())
+            }
+        }
+        GestureAction.Remind -> {
+            if (!PermissionHelper.canDrawOverlays(context)) {
+                context.startActivity(PermissionHelper.overlaySettingsIntent(context))
             }
         }
         else -> Unit

@@ -67,8 +67,9 @@ internal fun gestureActionTypeOutlinedIcon(type: GestureActionType): ImageVector
     GestureActionType.SEARCH_PANEL -> ThinActionIcons.Search
     GestureActionType.VOLUME_PANEL -> ThinActionIcons.VolumeUp
     GestureActionType.SCREEN_TRANSLATE -> ThinActionIcons.TextFields
+    GestureActionType.REMIND,
     GestureActionType.REMIND_1M, GestureActionType.REMIND_3M, GestureActionType.REMIND_5M,
-    GestureActionType.REMIND_10M, GestureActionType.REMIND_15M -> ThinActionIcons.Power
+    GestureActionType.REMIND_10M, GestureActionType.REMIND_15M -> ThinActionIcons.Alarm
     GestureActionType.UNIVERSAL_COPY -> ThinActionIcons.ContentPaste
     GestureActionType.FREEZER_PANEL -> ThinActionIcons.Fridge
     GestureActionType.REFREEZE -> ThinActionIcons.Snowflake
@@ -137,8 +138,9 @@ internal fun gestureActionTypeThinIcon(type: GestureActionType): ImageVector = w
     GestureActionType.SEARCH_PANEL -> ThinActionIcons.Search
     GestureActionType.VOLUME_PANEL -> ThinActionIcons.VolumeUp
     GestureActionType.SCREEN_TRANSLATE -> ThinActionIcons.TextFields
+    GestureActionType.REMIND,
     GestureActionType.REMIND_1M, GestureActionType.REMIND_3M, GestureActionType.REMIND_5M,
-    GestureActionType.REMIND_10M, GestureActionType.REMIND_15M -> ThinActionIcons.Power
+    GestureActionType.REMIND_10M, GestureActionType.REMIND_15M -> ThinActionIcons.Alarm
     GestureActionType.UNIVERSAL_COPY -> ThinActionIcons.ContentPaste
     GestureActionType.FREEZER_PANEL -> ThinActionIcons.Fridge
     GestureActionType.REFREEZE -> ThinActionIcons.Snowflake

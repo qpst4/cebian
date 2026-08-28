@@ -70,6 +70,7 @@ enum class GestureActionType(val id: Int) {
     FREEZER_PANEL(67),
     REFREEZE(68),
     TOGGLE_AUTO_BRIGHTNESS(69),
+    REMIND(70),
     ;
 
     companion object {
@@ -456,6 +457,12 @@ sealed class GestureAction {
         override val payload = ""
     }
 
+    /** 触发后弹出时长选择，设置 N 分钟后闹钟。 */
+    data object Remind : GestureAction() {
+        override val type = GestureActionType.REMIND
+        override val payload = ""
+    }
+
     data object Remind1m : GestureAction() {
         override val type = GestureActionType.REMIND_1M
         override val payload = ""
@@ -520,8 +527,8 @@ sealed class GestureAction {
             RegionalScreenshotPick,
         )
 
-        fun from(type: GestureActionType, payload: String): GestureAction {
-            return when (type) {
+        fun from(type: GestureActionType, payload: String): GestureAction =
+            when (type) {
                 GestureActionType.OPEN_INDEX -> OpenIndex
                 GestureActionType.LAUNCH_APP -> LaunchApp(payload)
                 GestureActionType.LAUNCH_SHORTCUT -> LaunchShortcut.fromPayload(payload)
@@ -581,18 +588,19 @@ sealed class GestureAction {
                 GestureActionType.HOLOGRAPHIC_LAUNCHER -> HolographicLauncher
                 GestureActionType.VOLUME_PANEL -> VolumePanel
                 GestureActionType.SCREEN_TRANSLATE -> ScreenTranslate
-                GestureActionType.REMIND_1M -> Remind1m
-                GestureActionType.REMIND_3M -> Remind3m
-                GestureActionType.REMIND_5M -> Remind5m
-                GestureActionType.REMIND_10M -> Remind10m
-                GestureActionType.REMIND_15M -> Remind15m
+                GestureActionType.REMIND -> Remind
+                GestureActionType.REMIND_1M,
+                GestureActionType.REMIND_3M,
+                GestureActionType.REMIND_5M,
+                GestureActionType.REMIND_10M,
+                GestureActionType.REMIND_15M,
+                -> Remind
                 GestureActionType.UNIVERSAL_COPY -> UniversalCopy
                 GestureActionType.FREEZER_PANEL -> FreezerPanel
                 GestureActionType.REFREEZE -> Refreeze
                 GestureActionType.TOGGLE_AUTO_BRIGHTNESS -> ToggleAutoBrightness
                 GestureActionType.NONE -> None
-            }
-        }
+            }.normalized()
 
         fun remindMinutes(type: GestureActionType): Int? = when (type) {
             GestureActionType.REMIND_1M -> 1
@@ -602,10 +610,33 @@ sealed class GestureAction {
             GestureActionType.REMIND_15M -> 15
             else -> null
         }
+
+        val legacyRemindTypes: Set<GestureActionType> = setOf(
+            GestureActionType.REMIND_1M,
+            GestureActionType.REMIND_3M,
+            GestureActionType.REMIND_5M,
+            GestureActionType.REMIND_10M,
+            GestureActionType.REMIND_15M,
+        )
     }
 }
 
 fun GestureAction.isEffective(): Boolean = type != GestureActionType.NONE
+
+/** 将旧版固定档位延时提醒迁移为统一的 [GestureAction.Remind]。 */
+fun GestureAction.normalized(): GestureAction =
+    if (type in GestureAction.legacyRemindTypes) GestureAction.Remind else this
+
+fun GestureAction.isRemindAction(): Boolean = when (this) {
+    GestureAction.Remind,
+    GestureAction.Remind1m,
+    GestureAction.Remind3m,
+    GestureAction.Remind5m,
+    GestureAction.Remind10m,
+    GestureAction.Remind15m,
+    -> true
+    else -> false
+}
 
 fun GestureAction.isCornerInnerZoneOnly(): Boolean =
     this is GestureAction.CornerInnerCancel || this is GestureAction.CornerInnerPinWheel

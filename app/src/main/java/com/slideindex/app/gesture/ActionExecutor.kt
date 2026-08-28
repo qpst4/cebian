@@ -24,7 +24,7 @@ import com.slideindex.app.service.ClipboardFloatLifecycle
 import com.slideindex.app.copy.UniversalCopyOverlay
 import com.slideindex.app.freezer.FreezerOperations
 import com.slideindex.app.overlay.volumepanel.VolumePanelOverlayWindow
-import com.slideindex.app.remind.RemindAlarmScheduler
+import com.slideindex.app.remind.RemindDurationPickerOverlay
 import com.slideindex.app.service.SlideIndexAccessibilityService
 import com.slideindex.app.translate.overlay.ScreenTranslationController
 import com.slideindex.app.settings.AppSettings
@@ -295,9 +295,16 @@ class ActionExecutor(
                 SlideIndexAccessibilityService.performScreenTranslate()
                 true
             }
-            GestureAction.Remind1m, GestureAction.Remind3m, GestureAction.Remind5m,
-            GestureAction.Remind10m, GestureAction.Remind15m,
-            -> RemindAlarmScheduler.toggle(context, action)
+            GestureAction.Remind,
+            GestureAction.Remind1m,
+            GestureAction.Remind3m,
+            GestureAction.Remind5m,
+            GestureAction.Remind10m,
+            GestureAction.Remind15m,
+            -> {
+                RemindDurationPickerOverlay.show(context)
+                true
+            }
             GestureAction.UniversalCopy -> {
                 SlideIndexAccessibilityService.performUniversalCopy()
                 true

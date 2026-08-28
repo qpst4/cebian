@@ -7,28 +7,49 @@ import android.content.Intent
 import android.os.Build
 import android.widget.Toast
 import com.slideindex.app.R
-import com.slideindex.app.gesture.GestureAction
 
 object RemindAlarmScheduler {
+    const val MIN_MINUTES = 1
+    const val MAX_MINUTES = 120
+    val PRESET_MINUTES = listOf(1, 3, 5, 10, 15)
+
     private const val REQUEST_CODE_BASE = 4000
 
-    fun toggle(context: Context, action: GestureAction): Boolean {
-        val minutes = minutesFor(action) ?: return false
+    fun clampMinutes(minutes: Int): Int = minutes.coerceIn(MIN_MINUTES, MAX_MINUTES)
+
+    fun isPending(context: Context, minutes: Int): Boolean {
+        val safeMinutes = clampMinutes(minutes)
+        return pendingIntent(
+            context,
+            safeMinutes,
+            PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE,
+        ) != null
+    }
+
+    fun toggle(context: Context, minutes: Int): Boolean {
+        val safeMinutes = clampMinutes(minutes)
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val pendingIntent = pendingIntent(context, minutes, PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE)
+        val pendingIntent = pendingIntent(
+            context,
+            safeMinutes,
+            PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE,
+        )
         if (pendingIntent != null) {
             alarmManager.cancel(pendingIntent)
             pendingIntent.cancel()
             Toast.makeText(
                 context,
-                context.getString(R.string.gesture_remind_cancelled, minutes),
+                context.getString(R.string.gesture_remind_cancelled, safeMinutes),
                 Toast.LENGTH_SHORT,
             ).show()
             return true
         }
-        val scheduleIntent = pendingIntent(context, minutes, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-            ?: return false
-        val triggerAt = System.currentTimeMillis() + minutes * 60_000L
+        val scheduleIntent = pendingIntent(
+            context,
+            safeMinutes,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        ) ?: return false
+        val triggerAt = System.currentTimeMillis() + safeMinutes * 60_000L
         runCatching {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, scheduleIntent)
@@ -40,19 +61,10 @@ object RemindAlarmScheduler {
         }
         Toast.makeText(
             context,
-            context.getString(R.string.gesture_remind_scheduled, minutes),
+            context.getString(R.string.gesture_remind_scheduled, safeMinutes),
             Toast.LENGTH_SHORT,
         ).show()
         return true
-    }
-
-    private fun minutesFor(action: GestureAction): Int? = when (action) {
-        GestureAction.Remind1m -> 1
-        GestureAction.Remind3m -> 3
-        GestureAction.Remind5m -> 5
-        GestureAction.Remind10m -> 10
-        GestureAction.Remind15m -> 15
-        else -> null
     }
 
     private fun pendingIntent(context: Context, minutes: Int, flags: Int): PendingIntent? {

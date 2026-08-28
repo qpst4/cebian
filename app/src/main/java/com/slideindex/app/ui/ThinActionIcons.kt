@@ -776,6 +776,31 @@ internal object ThinActionIcons {
         }
     }
 
+    val Alarm: ImageVector by lazy {
+        createThinIcon("ThinAlarm") {
+            path(
+                stroke = strokeBrush,
+                strokeLineWidth = STROKE_WIDTH,
+                strokeLineCap = StrokeCap.Round,
+                strokeLineJoin = StrokeJoin.Round,
+            ) {
+                moveTo(12f, 6.5f)
+                curveTo(8.41f, 6.5f, 5.5f, 9.41f, 5.5f, 13f)
+                curveTo(5.5f, 16.59f, 8.41f, 19.5f, 12f, 19.5f)
+                curveTo(15.59f, 19.5f, 18.5f, 16.59f, 18.5f, 13f)
+                curveTo(18.5f, 9.41f, 15.59f, 6.5f, 12f, 6.5f)
+                close()
+                moveTo(12f, 9.5f)
+                lineTo(12f, 13f)
+                lineTo(14.75f, 15.25f)
+                moveTo(4.5f, 4.5f)
+                lineTo(6.75f, 6.75f)
+                moveTo(19.5f, 4.5f)
+                lineTo(17.25f, 6.75f)
+            }
+        }
+    }
+
     val Lock: ImageVector by lazy {
         createThinIcon("ThinLock") {
             path(
