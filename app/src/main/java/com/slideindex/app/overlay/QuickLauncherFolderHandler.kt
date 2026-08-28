@@ -247,19 +247,17 @@ internal class QuickLauncherFolderHandler(
                     host.invalidate()
                     return true
                 }
-                if (pendingDragGlobal >= 0) {
+                if (consumePageSwipeMove(touchX, localY, insideFolder)) {
+                    host.invalidate()
+                    return true
+                }
+                if (pendingDragGlobal >= 0 && !pageSwipeLocked && !pageSwipeTracking) {
                     val dx = touchX - pendingDragStartX
                     val dy = localY - pendingDragStartY
                     val slop = host.dp(10f)
                     if (dx * dx + dy * dy > slop * slop) {
                         cancelPendingDrag()
                     }
-                }
-                if (!ctrl.quickLauncherPanelController.editMode &&
-                    consumePageSwipeMove(touchX, localY, insideFolder)
-                ) {
-                    host.invalidate()
-                    return true
                 }
                 if (continuousPick && insideFolder) {
                     applyEdgeAutoPage(touchX, folderLayout)
@@ -352,6 +350,8 @@ internal class QuickLauncherFolderHandler(
     fun dragPointerY(): Float = dragCurrentY
 
     fun dragSourceGlobal(): Int = dragFromGlobal
+
+    fun dragDestinationGlobal(): Int = dragToGlobal
 
     private fun hitCellGlobalIndex(touchX: Float, localY: Float): Int =
         ctrl.folderCellBounds.firstOrNull { (_, rect) -> rect.contains(touchX, localY) }?.first ?: -1

@@ -692,28 +692,60 @@ internal class QuickLauncherRenderer(
         if (recordCells) ctrl.folderCellBounds.clear()
         val pageSize = folderLayout.pageSize.coerceAtLeast(1)
         val pageStart = pageIndex.coerceIn(0, ctrl.folderHandler.pageCount - 1) * pageSize
-        val pageEnd = (pageStart + pageSize).coerceAtMost(children.size)
         val columns = folderLayout.columns
-        val dragSourceGlobal = ctrl.folderHandler.dragSourceGlobal()
+        val fromGlobal = if (recordCells) ctrl.folderHandler.dragSourceGlobal() else -1
+        val toGlobal = if (recordCells) ctrl.folderHandler.dragDestinationGlobal() else -1
+        val editDragActive = recordCells &&
+            ctrl.quickLauncherPanelController.editMode &&
+            fromGlobal >= 0 &&
+            toGlobal >= 0 &&
+            ctrl.folderHandler.isDragging()
+        val dragMapping = if (editDragActive) {
+            QuickLauncherGridLogic.displayMappingForPage(
+                itemCount = children.size,
+                dragFrom = fromGlobal,
+                dragSlotGlobal = toGlobal,
+                pageStart = pageStart,
+                pageSize = pageSize,
+            )
+        } else {
+            null
+        }
+        val pageItemCount = (children.size - pageStart).coerceAtLeast(0).coerceAtMost(pageSize)
+        val slotCount = when {
+            dragMapping != null -> pageSize
+            recordCells && ctrl.quickLauncherPanelController.editMode -> pageSize
+            else -> pageItemCount
+        }
         val layer = if (translateX != 0f) canvas.save() else -1
         if (layer >= 0) canvas.translate(translateX, 0f)
 
-        for (globalIndex in pageStart until pageEnd) {
-            if (ctrl.folderHandler.isDragging() && globalIndex == dragSourceGlobal) continue
-            val child = children[globalIndex]
-            val localIndex = globalIndex - pageStart
+        for (localIndex in 0 until slotCount) {
+            val globalHere = pageStart + localIndex
+            val child: QuickLauncherItem
+            val childGlobalIndex: Int
+            if (dragMapping != null) {
+                val showOrig = dragMapping.getOrNull(localIndex) ?: continue
+                if (showOrig == fromGlobal) continue
+                child = children.getOrNull(showOrig) ?: continue
+                childGlobalIndex = showOrig
+            } else {
+                if (globalHere !in children.indices) continue
+                child = children[globalHere]
+                childGlobalIndex = globalHere
+            }
             val col = localIndex % columns
             val row = localIndex / columns
             val visualCol = visualColumn(col, columns, columns, host.side())
             val cLeft = folderLayout.rect.left + folderLayout.padding + visualCol * folderLayout.cellW
             val cTop = folderLayout.contentStartY + row * folderLayout.cellH
             val cRect = RectF(cLeft, cTop, cLeft + folderLayout.cellW, cTop + folderLayout.cellH)
-            if (recordCells) ctrl.folderCellBounds.add(globalIndex to cRect)
+            if (recordCells) ctrl.folderCellBounds.add(childGlobalIndex to cRect)
 
             drawGridCell(
                 canvas = canvas,
                 cell = cRect,
-                index = if (globalIndex == ctrl.folderHighlightLocalIndex) {
+                index = if (childGlobalIndex == ctrl.folderHighlightLocalIndex) {
                     host.panelGridSession().highlightedIndex
                 } else {
                     -2
@@ -722,7 +754,7 @@ internal class QuickLauncherRenderer(
                 iconProvider = { quickLauncherItemIcon(child) },
                 showShortcutBadge = child.showsShortcutBadge(),
                 showShellCommandBadge = child.showsShellCommandBadge(host.settings().shellCommands),
-                longPressArmed = globalIndex == ctrl.folderHighlightLocalIndex && ctrl.folderLongPressArmed,
+                longPressArmed = childGlobalIndex == ctrl.folderHighlightLocalIndex && ctrl.folderLongPressArmed,
                 labelMaxWidth = folderLayout.cellW - gridCellInset * 2,
             )
 
