@@ -36,8 +36,8 @@ android {
         applicationId = "com.slideindex.app"
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = 37
-        versionCode = 39
-        versionName = "1.9.9.6"
+        versionCode = 40
+        versionName = "1.9.9.7"
 
         ndk {
             abiFilters += "arm64-v8a"
