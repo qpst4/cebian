@@ -128,6 +128,26 @@ Cebian（`com.slideindex.app`）在 [GNU Affero General Public License v3.0](LIC
 
 ---
 
+## EdgeGesture
+
+- **Copyright:** evilgodxu and contributors
+- **License:** [GNU General Public License v3.0](app/src/main/assets/licenses/GPL-3.0.txt)
+- **Source:** https://github.com/evilgodxu/EdgeGesture
+- **Used in:** 扩展面板（`VolumePanelOverlayWindow`、`VolumePanelContent`、`ExpandPanelSlotPicker`）、N 分钟后闹钟提醒（`RemindAlarmScheduler`、`RemindDurationPickerOverlay`、`RemindAlarmService`）、全局屏幕复制（`UniversalCopyCollector`、`UniversalCopyOverlay`）、屏幕覆盖即时翻译（`ScreenTranslationOverlayManager`）、背面敲击手势（`BackTapDetector`、`BackTapGestureHost`）
+- **Modifications:** 以 Kotlin / Jetpack Compose 重构并集成至 Cebian WindowManager 与手势调度架构；接入 Hilt 依赖注入；去除独立 App 业务耦合
+
+---
+
+## EdgeX
+
+- **Copyright:** fan / oxohang and contributors
+- **License:** [GNU General Public License v3.0](app/src/main/assets/licenses/GPL-3.0.txt)
+- **Source:** https://github.com/oxohang/EdgeX
+- **Used in:** 应用冻结室（Freezer）核心逻辑与 Shizuku / Root 冻结解冻调度（`FreezerBootstrap`、`FreezerOperations`、`FreezerAppsScreen`）
+- **Modifications:** 以 Miuix / Compose 风格重写设置与列表界面；集成至 Cebian ExtensionHub 与手势系统
+
+---
+
 ## 许可证全文
 
 - Apache License 2.0：`app/src/main/assets/licenses/Apache-2.0.txt`

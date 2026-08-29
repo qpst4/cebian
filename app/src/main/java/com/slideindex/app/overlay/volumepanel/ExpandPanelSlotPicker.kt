@@ -1,5 +1,10 @@
 package com.slideindex.app.overlay.volumepanel
 
+/**
+ * Portions derived from EdgeGesture (https://github.com/evilgodxu/EdgeGesture)
+ * Licensed under GPL-3.0. Modified for com.slideindex.app.
+ */
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row

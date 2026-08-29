@@ -75,6 +75,14 @@
 | `app/.../ui/MainMiuixNavigationRail.kt` | 同上 | 架构参考 | GPL-3.0 |
 | `app/.../ui/MainMiuixFloatingNavBar.kt` | 同上 | 架构参考 | GPL-3.0 |
 | `app/.../ui/M3eSettingsUi.kt` | 同上 | 架构参考 | GPL-3.0 |
+| `app/.../overlay/volumepanel/*`（扩展面板） | [EdgeGesture](https://github.com/evilgodxu/EdgeGesture) | 移植+重构 | GPL-3.0 |
+| `app/.../remind/*`（N分钟后闹钟提醒） | 同上 | 移植+重构 | GPL-3.0 |
+| `app/.../copy/UniversalCopy*`（全局复制） | 同上 | 移植+重构 | GPL-3.0 |
+| `app/.../translate/overlay/ScreenTranslationOverlayManager.kt` | 同上 | 改编 | GPL-3.0 |
+| `app/.../backtap/BackTap*`（背面敲击手势） | 同上 | 移植+重构 | GPL-3.0 |
+| `app/.../freezer/*`（应用冻结室） | [EdgeX](https://github.com/oxohang/EdgeX) | 移植+重构 | GPL-3.0 |
+| `feature/apps/.../FreezerAppsScreen.kt` | 同上 | 界面重写 | GPL-3.0 |
 | `app/.../search/settings/SystemSettingsSearch*.kt` | — | 本项目自有（Android `indexables/raw`） | AGPL-3.0 |
 
 更新借鉴代码时请同步修改 `THIRD_PARTY_NOTICES.md` 与本表。
+

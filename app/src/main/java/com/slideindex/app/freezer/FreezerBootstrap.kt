@@ -1,5 +1,10 @@
 package com.slideindex.app.freezer
 
+/**
+ * Portions derived from EdgeX (https://github.com/oxohang/EdgeX)
+ * Licensed under GPL-3.0. Modified for com.slideindex.app.
+ */
+
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager

@@ -270,6 +270,8 @@ cd cebian
 在开发过程中参考或借鉴了以下优秀开源项目，特此鸣谢（详见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)）：
 
 - [SideGesture](https://github.com/aaronzzx/SideGesture) — 边缘手势与 overlay 架构参考
+- [EdgeGesture](https://github.com/evilgodxu/EdgeGesture) — 扩展面板、闹钟提醒、屏幕翻译、全局复制与背面手势参考
+- [EdgeX](https://github.com/oxohang/EdgeX) & [FanFreeform](https://github.com/oxohang/FanFreeform) — 蜂窝启动器与应用冻结室（Freezer）架构参考
 - [ClipboardListener](https://github.com/aa2013/ClipboardListener) & [ClipShare](https://github.com/aa2013/ClipShare) — Android 10+ 剪贴板后台监听架构
 - [Root Activity Launcher](https://github.com/zacharee/RootActivityLauncher) — 未导出 Activity 启动方案
 - [Circle To Search](https://github.com/AKS-Labs/CircleToSearch) — 以图搜图多引擎集成策略

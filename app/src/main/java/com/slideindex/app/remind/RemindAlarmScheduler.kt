@@ -1,5 +1,10 @@
 package com.slideindex.app.remind
 
+/**
+ * Portions derived from EdgeGesture (https://github.com/evilgodxu/EdgeGesture)
+ * Licensed under GPL-3.0. Modified for com.slideindex.app.
+ */
+
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context

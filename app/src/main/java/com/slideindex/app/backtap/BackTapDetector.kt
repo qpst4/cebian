@@ -1,5 +1,10 @@
 package com.slideindex.app.backtap
 
+/**
+ * Portions derived from EdgeGesture (https://github.com/evilgodxu/EdgeGesture)
+ * Licensed under GPL-3.0. Modified for com.slideindex.app.
+ */
+
 import android.content.Context
 import android.hardware.Sensor
 import android.hardware.SensorEvent

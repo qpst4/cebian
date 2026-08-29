@@ -1,5 +1,10 @@
 package com.slideindex.app.remind
 
+/**
+ * Portions derived from EdgeGesture (https://github.com/evilgodxu/EdgeGesture)
+ * Licensed under GPL-3.0. Modified for com.slideindex.app.
+ */
+
 import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
