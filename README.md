@@ -2,6 +2,8 @@
 
 <div align="center">
 
+<img src="art/logo.svg" width="96" alt="Cebian" />
+
 **Android 边缘手势与全能系统增强工具**  
 *侧滑面板 · 悬浮球取词搜图 · 晃动 / 扣桌手势 · 通知与 OTP 管理 · 悬浮指针 · 自由窗口*
 
@@ -27,6 +29,25 @@
 - **当前版本：** 1.9.9.6（versionCode 39）
 - **系统要求：** Android 12+（API 31+）
 - **开源协议：** [AGPL-3.0 License](LICENSE)
+
+---
+
+## 📥 下载安装
+
+<div align="center">
+
+[![Download Full APK](https://img.shields.io/badge/下载%20Full%20完整包-内置离线引擎-238636?style=for-the-badge&logo=android&logoColor=white)](https://github.com/qpst4/cebian/releases/latest)
+[![Download Lite APK](https://img.shields.io/badge/下载%20Lite%20轻量包-体积小巧-0969DA?style=for-the-badge&logo=android&logoColor=white)](https://github.com/qpst4/cebian/releases/latest)
+
+</div>
+
+| 产物版本 | 适用场景 | 说明 |
+| :--- | :--- | :--- |
+| **Full 完整包** (`cebian-*-full.apk`) | **新用户首选** | 开箱即用，已内置完整离线 OCR、Jieba 分词与离线翻译 Native 引擎 |
+| **Lite 轻量包** (`cebian-*-lite.apk`) | 追求小体积 / 在线热更新 | 仅保留核心手势与基础功能，体积更小，可按需在线下载扩展引擎 |
+
+> [!TIP]
+> 两个版本的 `applicationId` 均为 `com.slideindex.app`，支持直接相互覆盖安装，配置无缝保留。
 
 ---
 
@@ -215,6 +236,20 @@ cd cebian
 # 编译 Lite Release 包（轻量包）
 ./gradlew assembleLiteRelease
 ```
+
+---
+
+## 💬 社区与交流
+
+欢迎加入社区交流群或参与讨论，提出新功能建议与 Bug 反馈：
+
+<div align="center">
+
+[![GitHub Discussions](https://img.shields.io/badge/GitHub-Discussions-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/qpst4/cebian/discussions)
+[![GitHub Issues](https://img.shields.io/badge/GitHub-Issues%20反馈-EA4AAA?style=for-the-badge&logo=github&logoColor=white)](https://github.com/qpst4/cebian/issues)
+[![QQ Group](https://img.shields.io/badge/QQ%20交流群-点击加入-12B7F5?style=for-the-badge&logo=tencentqq&logoColor=white)](https://qm.qq.com/)
+
+</div>
 
 ---
 
