@@ -65,6 +65,7 @@ class SlideIndexAppWidgetHost(private val appContext: Context) : AppWidgetHost(a
                 Log.w(TAG, "API 31+ fallback to pendingIntent.send: ${e.message}")
                 return runCatching {
                   val options = ActivityOptions.makeBasic()
+                  @Suppress("DEPRECATION")
                   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
                     options.setPendingIntentBackgroundActivityStartMode(
                       ActivityOptions.MODE_BACKGROUND_ACTIVITY_START_ALLOWED

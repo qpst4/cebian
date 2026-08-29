@@ -90,7 +90,7 @@ class WidgetCardContainer(
                 tintArgb = Color.WHITE,
                 outlined = true,
                 withPlate = true,
-              )?.let { android.graphics.drawable.BitmapDrawable(resources, it) }
+              ).let { android.graphics.drawable.BitmapDrawable(resources, it) }
             } else null
           } else if (item.itemType == ITEM_TYPE_SHORTCUT && item.shortcutId.isNotEmpty()) {
             runCatching {

@@ -510,7 +510,7 @@ internal class CornerGestureOverlayView(
             if (onSubMenu || onSlot) {
                 highlightedSlot = shortcutSubMenuSlot
                 highlightedShortcutIndex = if (onSubMenu) {
-                    layout?.indexAt(rawX, rawY, slop) ?: -1
+                    layout.indexAt(rawX, rawY, slop)
                 } else {
                     -1
                 }

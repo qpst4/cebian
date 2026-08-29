@@ -57,6 +57,7 @@ object UniversalCopyOverlay {
         }
     }
 
+    @Suppress("DEPRECATION")
     fun collectAndShow(service: SlideIndexAccessibilityService) {
         val root = service.rootInActiveWindow
         val blocks = UniversalCopyCollector.collectAll(root)

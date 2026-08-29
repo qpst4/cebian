@@ -182,7 +182,7 @@ private fun TranslateLanguageRow(
         }
         when {
             downloading -> {
-                val fraction = downloadState?.progress
+                val fraction = downloadState.progress
                 if (fraction != null) {
                     Text(
                         text = "${(fraction * 100).roundToInt()}%",

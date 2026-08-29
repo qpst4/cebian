@@ -190,11 +190,11 @@ object WidgetCatalog {
           pm.getApplicationLabel(pm.getApplicationInfo(packageName, 0)).toString()
         }.getOrNull()?.takeIf { it.isNotBlank() }
           ?: runCatching {
-            info.loadLabel(pm)?.toString()
+            info.loadLabel(pm)
           }.getOrNull()?.takeIf { it.isNotBlank() }
           ?: packageName
 
-        val widgetLabel = runCatching { info.loadLabel(pm)?.toString() }.getOrNull().orEmpty().ifBlank { appLabel }
+        val widgetLabel = runCatching { info.loadLabel(pm) }.getOrNull().orEmpty().ifBlank { appLabel }
         val (spanX, spanY) = runCatching { WidgetSpanUtil.spanFromProviderInfo(info) }.getOrDefault(Pair(2, 2))
         val entry = WidgetProviderEntry(
           provider = info,
