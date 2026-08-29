@@ -581,8 +581,7 @@ public final class HoneycombOverlayView extends View {
             float distance = (float) Math.hypot(x - centerX, y - centerY);
             float scale = HoneycombGeometry.smoothScale(distance, effectRadius,
                     centerScale, edgeScale);
-            float alpha = HoneycombGeometry.edgeAlpha(distance, alphaStart, effectRadius)
-                    * localEntry * visible;
+            float alpha = localEntry * visible;
             float untrimmedRadius = iconSize * scale * 0.5f;
             float edgeVisibility = HoneycombGeometry.edgeVisibility(distance,
                     effectRadius, untrimmedRadius);
@@ -593,7 +592,9 @@ public final class HoneycombOverlayView extends View {
                 y -= (y - centerY) / distance * inset;
             }
             scale *= HoneycombGeometry.edgeScale(distance, effectRadius, untrimmedRadius);
-            alpha *= edgeVisibility;
+            if (edgeVisibility <= 0f) {
+                alpha = 0f;
+            }
             if (alpha > 0.08f && scale > 0.05f) {
                 stableHitX[index] = x;
                 stableHitY[index] = y;
@@ -1125,7 +1126,7 @@ public final class HoneycombOverlayView extends View {
     }
 
     private float resolvedMaskAlpha(float visible) {
-        int clampedDim = Math.max(0, Math.min(60, dimPercent));
+        int clampedDim = Math.max(88, Math.min(100, dimPercent));
         return 255f * clampedDim / 100f * visible;
     }
 

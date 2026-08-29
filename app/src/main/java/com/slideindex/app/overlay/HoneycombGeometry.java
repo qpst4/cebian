@@ -141,10 +141,7 @@ public final class HoneycombGeometry {
     }
 
     static float edgeAlpha(float distance, float start, float end) {
-        if (distance <= start) return 1f;
-        float t = clamp((distance - start) / Math.max(1f, end - start), 0f, 1f);
-        t = t * t * (3f - 2f * t);
-        return 1f + (0.58f - 1f) * t;
+        return 1f;
     }
 
     static int hit(List<Point> centers, float x, float y, float radius) {

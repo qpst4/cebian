@@ -35,9 +35,15 @@ object OverlayWindowTypes {
     }
 
     /**
-     * FV 风格圆环启动器：统一使用 [overlayWindowType]，与蜂窝启动器及悬浮球层级一致。
+     * FV 风格圆环启动器及全屏启动器面板：
+     * 优先使用 [TYPE_APPLICATION_OVERLAY]，彻底避免部分 OEM（如 Meizu Flyme）对 [TYPE_ACCESSIBILITY_OVERLAY] 窗口强制叠加 80% alpha（0.7998047）导致面板背景发灰、图标发虚半透明的底层系统限制。
      */
-    fun appSwitcherWindowType(context: Context): Int = overlayWindowType(context)
+    fun appSwitcherWindowType(context: Context): Int {
+        if (PermissionHelper.canDrawOverlays(context)) {
+            return WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+        }
+        return overlayWindowType(context)
+    }
 
     /**
      * 取词/搜图/搜索等内容面板：固定 [TYPE_APPLICATION_OVERLAY]，

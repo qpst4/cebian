@@ -601,7 +601,7 @@ internal class AppSwitcherOverlayView(
 
     private fun drawBackgroundMask(canvas: Canvas, progress: Float) {
         if (progress <= 0.01f) return
-        val alpha = (255f * 0.62f * progress).toInt().coerceIn(0, 255)
+        val alpha = (255f * 0.58f * progress).toInt().coerceIn(0, 255)
         dimPaint.alpha = alpha
         canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), dimPaint)
     }

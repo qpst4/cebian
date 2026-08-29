@@ -108,18 +108,16 @@ internal class AppSwitcherOverlayController(
             PixelFormat.TRANSLUCENT,
         )
         OverlayWindowTypes.ensureNoBrightnessOverride(params)
-        if (externalTracking) {
-            params.flags = params.flags or
-                WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-        } else {
-            params.flags = params.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
-        }
+        params.flags = params.flags or
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+            WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
         params.gravity = Gravity.TOP or Gravity.START
         params.y = windowTop
         params.setFitInsetsTypes(0)
         params.title = "SlideIndexAppSwitcher"
         params.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
+        params.alpha = 1.0f
+        next.alpha = 1.0f
 
         return try {
             windowManager.addView(next, params)

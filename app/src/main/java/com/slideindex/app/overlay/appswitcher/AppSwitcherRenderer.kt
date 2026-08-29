@@ -27,18 +27,18 @@ import kotlin.math.min
 internal object AppSwitcherRenderer {
     private const val ICON_PLATE = 0xFF303034.toInt()
     private const val ICON_SHADOW = 0x55000000
-    private const val HIGHLIGHT_RING = 0xCCFFFFFF.toInt()
-    private const val EMPTY_FILL = 0xAAFFFFFF.toInt()
-    private const val EMPTY_FILL_HIGHLIGHT = 0xD9FFFFFF.toInt()
-    private const val EMPTY_STROKE = 0x88FFFFFF.toInt()
+    private const val HIGHLIGHT_RING = 0xFFFFFFFF.toInt()
+    private const val EMPTY_FILL = 0xEEFFFFFF.toInt()
+    private const val EMPTY_FILL_HIGHLIGHT = 0xFFFFFFFF.toInt()
+    private const val EMPTY_STROKE = 0xCCFFFFFF.toInt()
     private const val EMPTY_STROKE_HIGHLIGHT = 0xFFFFFFFF.toInt()
-    private const val PLUS_COLOR = 0xCCFFFFFF.toInt()
+    private const val PLUS_COLOR = 0xEEFFFFFF.toInt()
     private const val PLUS_COLOR_HIGHLIGHT = 0xFFFFFFFF.toInt()
-    private const val TOOLBAR_FILL = 0xCC2B3137.toInt()
-    private const val TOOLBAR_FILL_HIGHLIGHT = 0xE63A4249.toInt()
+    private const val TOOLBAR_FILL = 0xF22B3137.toInt()
+    private const val TOOLBAR_FILL_HIGHLIGHT = 0xFF3A4249.toInt()
     private const val TOOLBAR_GLYPH = 0xFFFFFFFF.toInt()
     private const val NAME_TEXT = 0xFFFFFFFF.toInt()
-    private const val PREVIEW_BG = 0xCC1E2328.toInt()
+    private const val PREVIEW_BG = 0xF21E2328.toInt()
     private const val SELECTION_SCALE = 1.18f
 
     fun buildLayout(
@@ -218,11 +218,8 @@ internal object AppSwitcherRenderer {
     private val iconDstRect = RectF()
     private val iconHighlightRect = RectF()
     private val iconShadowRect = RectF()
-    private val iconShaderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        isFilterBitmap = true
-    }
-    private val iconShaderMatrix = Matrix()
     private val iconPlatePaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val iconClipPath = Path()
 
     private fun drawAppIcon(
         canvas: Canvas,
@@ -247,7 +244,7 @@ internal object AppSwitcherRenderer {
         val cornerRadius = diameter * cornerRadiusRatio
 
         iconPlatePaint.color = ICON_PLATE
-        iconPlatePaint.alpha = (255f * progress).toInt().coerceIn(0, 255)
+        iconPlatePaint.alpha = 255
         if (cornerRadiusRatio >= 0.49f) {
             canvas.drawCircle(centerX, centerY, radius, iconPlatePaint)
         } else {
@@ -265,26 +262,22 @@ internal object AppSwitcherRenderer {
             }
         }
 
-        val shader = BitmapShader(bitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
-        iconShaderMatrix.reset()
-        iconShaderMatrix.setScale(
-            iconDstRect.width() / bitmap.width.toFloat(),
-            iconDstRect.height() / bitmap.height.toFloat(),
-        )
-        iconShaderMatrix.postTranslate(iconDstRect.left, iconDstRect.top)
-        shader.setLocalMatrix(iconShaderMatrix)
-        iconShaderPaint.shader = shader
-        iconShaderPaint.alpha = iconPaint.alpha
-
+        iconClipPath.reset()
         if (cornerRadiusRatio >= 0.49f) {
-            canvas.drawCircle(centerX, centerY, radius, iconShaderPaint)
+            iconClipPath.addCircle(centerX, centerY, radius, Path.Direction.CW)
         } else {
-            canvas.drawRoundRect(iconDstRect, cornerRadius, cornerRadius, iconShaderPaint)
+            iconClipPath.addRoundRect(iconDstRect, cornerRadius, cornerRadius, Path.Direction.CW)
         }
+        val saveCount = canvas.save()
+        canvas.clipPath(iconClipPath)
+        iconPaint.isFilterBitmap = true
+        iconPaint.alpha = 255
+        canvas.drawBitmap(bitmap, null, iconDstRect, iconPaint)
+        canvas.restoreToCount(saveCount)
 
+        strokePaint.style = Paint.Style.STROKE
+        strokePaint.pathEffect = null
         if (highlighted) {
-            strokePaint.style = Paint.Style.STROKE
-            strokePaint.pathEffect = null
             strokePaint.color = HIGHLIGHT_RING
             strokePaint.strokeWidth = 2.5f * density
             val strokeOffset = 1.5f * density
@@ -299,6 +292,14 @@ internal object AppSwitcherRenderer {
                 canvas.drawCircle(centerX, centerY, radius + strokeOffset, strokePaint)
             } else {
                 canvas.drawRoundRect(iconHighlightRect, highlightCorner, highlightCorner, strokePaint)
+            }
+        } else {
+            strokePaint.color = 0x22FFFFFF.toInt()
+            strokePaint.strokeWidth = 1f * density
+            if (cornerRadiusRatio >= 0.49f) {
+                canvas.drawCircle(centerX, centerY, radius, strokePaint)
+            } else {
+                canvas.drawRoundRect(iconDstRect, cornerRadius, cornerRadius, strokePaint)
             }
         }
     }
@@ -445,22 +446,27 @@ internal object AppSwitcherRenderer {
             )
         }
 
-        val shader = BitmapShader(bitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
-        iconShaderMatrix.reset()
-        iconShaderMatrix.setScale(
-            iconRect.width() / bitmap.width.toFloat(),
-            iconRect.height() / bitmap.height.toFloat(),
-        )
-        iconShaderMatrix.postTranslate(iconRect.left, iconRect.top)
-        shader.setLocalMatrix(iconShaderMatrix)
-        iconShaderPaint.shader = shader
-        iconShaderPaint.alpha = alpha
-
+        iconPlatePaint.color = ICON_PLATE
+        iconPlatePaint.alpha = 255
         if (cornerRadiusRatio >= 0.49f) {
-            canvas.drawCircle(centerX, iconCenterY, iconRadius, iconShaderPaint)
+            canvas.drawCircle(centerX, iconCenterY, iconRadius, iconPlatePaint)
         } else {
-            canvas.drawRoundRect(iconRect, previewCornerRadius, previewCornerRadius, iconShaderPaint)
+            canvas.drawRoundRect(iconRect, previewCornerRadius, previewCornerRadius, iconPlatePaint)
         }
+
+        iconClipPath.reset()
+        if (cornerRadiusRatio >= 0.49f) {
+            iconClipPath.addCircle(centerX, iconCenterY, iconRadius, Path.Direction.CW)
+        } else {
+            iconClipPath.addRoundRect(iconRect, previewCornerRadius, previewCornerRadius, Path.Direction.CW)
+        }
+        val previewSaveCount = canvas.save()
+        canvas.clipPath(iconClipPath)
+        val previewIconPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply {
+            this.alpha = alpha
+        }
+        canvas.drawBitmap(bitmap, null, iconRect, previewIconPaint)
+        canvas.restoreToCount(previewSaveCount)
 
         if (label.isNotBlank()) {
             val textPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {

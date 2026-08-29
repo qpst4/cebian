@@ -92,7 +92,7 @@ public final class HoneycombOverlayController {
         WindowManager.LayoutParams params = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.MATCH_PARENT,
                 displayHeight(),
-        OverlayWindowTypes.INSTANCE.overlayWindowType(context),
+                OverlayWindowTypes.INSTANCE.appSwitcherWindowType(context),
                 WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
                         | WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
                         | WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM
@@ -105,12 +105,9 @@ public final class HoneycombOverlayController {
             params.flags |= WindowManager.LayoutParams.FLAG_BLUR_BEHIND;
             params.setBlurBehindRadius(clampedBlurPx);
         }
-        if (externalTracking) {
-            params.flags |= WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
-                    | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
-        } else {
-            params.flags |= WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL;
-        }
+        params.flags |= WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL;
+        params.alpha = 1.0f;
         params.gravity = Gravity.TOP | Gravity.START;
         params.y = windowTop;
         params.setFitInsetsTypes(0);

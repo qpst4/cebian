@@ -66,11 +66,11 @@ internal object CornerRadialMenuRenderer {
         activeLayerCount: Int,
         density: Float,
         revealProgress: Float,
-        hintIconSizeDp: Int = SelectedHintMetrics.DEFAULT_ICON_SIZE_DP,
         activityShortcuts: List<ActivityShortcut> = emptyList(),
         shellCommands: List<ShellCommand> = emptyList(),
-        shortcutSubMenuItems: List<GestureAction.LaunchShortcut> = emptyList(),
+        hintIconSizeDp: Int = SelectedHintMetrics.DEFAULT_ICON_SIZE_DP,
         shortcutSubMenuLayout: CornerShortcutSubMenuLayout? = null,
+        shortcutSubMenuItems: List<GestureAction.LaunchShortcut> = emptyList(),
         highlightedShortcutIndex: Int = -1,
         shortcutSubMenuRevealProgress: Float = 1f,
     ) {

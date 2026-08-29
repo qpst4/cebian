@@ -213,6 +213,9 @@ internal class EdgeGestureSessionCoordinator(
         rawX: Float,
         rawY: Float,
     ) {
+        if (continuousPick) {
+            gestureAnimationCoordinator.hide()
+        }
         val settings = settingsProvider()
         AppSwitcherOverlayWindow.show(
             context = view.context,

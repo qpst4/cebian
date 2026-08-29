@@ -24,18 +24,15 @@ internal object AppSwitcherSlotIconBitmap {
     ): Bitmap {
         val cacheKey = "${item.type}:${item.payload}:${item.label}:$sizePx"
         cache.get(cacheKey)?.let { return it }
-        val drawable = QuickLauncherIconResolver.iconDrawable(
+        val bitmap = QuickLauncherIconResolver.iconBitmap(
             item = item,
             appsByPackage = appsByPackage,
+            size = sizePx,
             context = context,
+            actionIconTintArgb = android.graphics.Color.WHITE,
             activityShortcuts = activityShortcuts,
             shellCommands = shellCommands,
-        )
-        val bitmap = if (drawable != null) {
-            drawableToBitmap(drawable, sizePx)
-        } else {
-            createPlaceholderBitmap(sizePx, item.label.ifBlank { item.payload })
-        }
+        ) ?: createPlaceholderBitmap(sizePx, item.label.ifBlank { item.payload })
         cache.put(cacheKey, bitmap)
         return bitmap
     }
@@ -47,10 +44,10 @@ internal object AppSwitcherSlotIconBitmap {
         val cornerRadius = sizePx * 0.22f
 
         val bgPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
-            color = android.graphics.Color.argb(130, 48, 48, 52)
+            color = android.graphics.Color.rgb(48, 48, 52)
         }
         val strokePaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
-            color = android.graphics.Color.argb(90, 255, 255, 255)
+            color = android.graphics.Color.argb(200, 255, 255, 255)
             style = android.graphics.Paint.Style.STROKE
             strokeWidth = (sizePx * 0.04f).coerceAtLeast(1f)
         }
@@ -59,7 +56,7 @@ internal object AppSwitcherSlotIconBitmap {
 
         val char = label.trim().firstOrNull()?.uppercaseChar()?.toString() ?: "•"
         val textPaint = android.text.TextPaint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
-            color = android.graphics.Color.argb(200, 255, 255, 255)
+            color = android.graphics.Color.WHITE
             textSize = sizePx * 0.44f
             textAlign = android.graphics.Paint.Align.CENTER
             isFakeBoldText = true
