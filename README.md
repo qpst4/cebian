@@ -19,6 +19,10 @@
 [![minSdk](https://img.shields.io/badge/minSdk-31-orange?style=flat-square)](https://developer.android.com)
 [![targetSdk](https://img.shields.io/badge/targetSdk-37-orange?style=flat-square)](https://developer.android.com)
 
+<br />
+
+<img src="art/screenshots/hero_showcase.webp" width="96%" alt="边栏 (Cebian) 全景预览" />
+
 </div>
 
 ---
@@ -129,6 +133,24 @@
 | **悬浮指针** | 扩展 → 悬浮指针 | 跟手虚拟摇杆控制环形指针，支持悬停框选、径向功能环与手势录制回放 |
 | **剪贴板历史** | 手势动作「剪贴板面板」 | 图文历史搜索、贴边浮窗与分页加载；支持 Shizuku 后台监听与 `cebian://` 外部协议 |
 | **设置备份** | 扩展 → 设置备份 | 将全量配置与资产导出为 ZIP 或一键导入；敏感数据独立加密保护 |
+
+#### 📸 核心界面与交互预览
+
+<div align="center">
+
+| 圆环启动器（FV 风格） | 蜂窝启动器（六边形） | 快速启动器（网格多面板） |
+| :---: | :---: | :---: |
+| <img src="art/screenshots/01_circle_launcher_framed.webp" width="100%" alt="圆环启动器" /> | <img src="art/screenshots/03_honeycomb_launcher_framed.webp" width="100%" alt="蜂窝启动器" /> | <img src="art/screenshots/06_quick_launcher_framed.webp" width="100%" alt="快速启动器" /> |
+
+| 悬浮指针（虚拟摇杆） | Shell 命令面板（Shizuku） | 剪贴板历史 / 暂存收纳 |
+| :---: | :---: | :---: |
+| <img src="art/screenshots/08_floating_pointer_framed.webp" width="100%" alt="悬浮指针" /> | <img src="art/screenshots/07_shell_panel_framed.webp" width="100%" alt="Shell 命令面板" /> | <img src="art/screenshots/10_clipboard_panel_framed.webp" width="100%" alt="剪贴板历史" /> |
+
+| 应用索引（拼音导轨） | Widget 悬浮小部件 | 钉图暂存浮窗 |
+| :---: | :---: | :---: |
+| <img src="art/screenshots/05_app_index_framed.webp" width="100%" alt="应用索引" /> | <img src="art/screenshots/09_widget_panel_framed.webp" width="100%" alt="Widget 悬浮面板" /> | <img src="art/screenshots/11_pin_image_framed.webp" width="100%" alt="钉图暂存" /> |
+
+</div>
 
 ---
 

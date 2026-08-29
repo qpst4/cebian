@@ -19,6 +19,10 @@
 [![minSdk](https://img.shields.io/badge/minSdk-31-orange?style=flat-square)](https://developer.android.com)
 [![targetSdk](https://img.shields.io/badge/targetSdk-37-orange?style=flat-square)](https://developer.android.com)
 
+<br />
+
+<img src="art/screenshots/hero_showcase.webp" width="96%" alt="Cebian Full Showcase" />
+
 </div>
 
 ---
@@ -129,6 +133,24 @@ The app features four main navigation tabs: 🏠 **Home** · 📳 **Motion** · 
 | **Floating Pointer** | Extensions → Floating Pointer | Virtual joystick-controlled ring pointer with hover selection, radial actions, and gesture macro replay |
 | **Clipboard History** | Gesture Action "Clipboard Panel" | Rich clipboard history with search, edge floating window, and Shizuku background listener |
 | **Settings Backup** | Extensions → Settings Backup | Export and import all configurations and assets as encrypted ZIP files |
+
+#### 📸 Key Interfaces & Interaction Preview
+
+<div align="center">
+
+| Circle Launcher (FV Style) | Honeycomb Launcher | Quick Launcher (Grid) |
+| :---: | :---: | :---: |
+| <img src="art/screenshots/01_circle_launcher_framed.webp" width="100%" alt="Circle Launcher" /> | <img src="art/screenshots/03_honeycomb_launcher_framed.webp" width="100%" alt="Honeycomb Launcher" /> | <img src="art/screenshots/06_quick_launcher_framed.webp" width="100%" alt="Quick Launcher" /> |
+
+| Floating Pointer (Joystick) | Shell Command Panel (Shizuku) | Clipboard History / Stash |
+| :---: | :---: | :---: |
+| <img src="art/screenshots/08_floating_pointer_framed.webp" width="100%" alt="Floating Pointer" /> | <img src="art/screenshots/07_shell_panel_framed.webp" width="100%" alt="Shell Command Panel" /> | <img src="art/screenshots/10_clipboard_panel_framed.webp" width="100%" alt="Clipboard History" /> |
+
+| App Index (Pinyin Rail) | Widget Floating Panel | Pin Screenshot Window |
+| :---: | :---: | :---: |
+| <img src="art/screenshots/05_app_index_framed.webp" width="100%" alt="App Index" /> | <img src="art/screenshots/09_widget_panel_framed.webp" width="100%" alt="Widget Floating Panel" /> | <img src="art/screenshots/11_pin_image_framed.webp" width="100%" alt="Pin Screenshot" /> |
+
+</div>
 
 ---
 
