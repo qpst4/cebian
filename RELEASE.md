@@ -55,29 +55,25 @@ git diff ${last_tag}..HEAD --name-only --diff-filter=A
 
 ```bash
 git add app/build.gradle.kts README.md CHANGELOG.md
-git commit -m "{版本号}：{简述} [skip ci]"
+git commit -m "chore(release): v{版本号} - {简述}"
 git tag -a v{版本号} -m "v{版本号}"
 git push origin main
 git push origin v{版本号}
 ```
 
-**若推送 Tag 后 Release 未自动触发**（偶发或重复推送同一 commit 的 Tag 时 GitHub 不会重跑）：
+> **重要（避免触发失效）：发版 Commit 严禁添加 `[skip ci]`！**  
+> GitHub 平台原生具有全局过滤规则：只要 Commit 信息包含 `[skip ci]`，GitHub 会直接在最外层静默跳过该 Commit 产生的所有 Webhook/事件（包括推送 Tag 触发的 `release.yml`）。
+> 日常 `ci.yml` 本身只监听分支 Push、不监听 Tag，因此发版 Commit 正常提交即可，推送 Tag 后云端会 100% 自动触发 Release 构建。
+
+Commit 备注推荐格式：`chore(release): v1.9.9.6 - 简述` 或 `{版本号}：{简述}`（**切勿添加 `[skip ci]`**）。
+
+**若因网络抖动等偶发原因需手动重新触发**：
 
 ```bash
-# 方式 A：手动触发（需 main 已包含 workflow_dispatch）
+# 手动触发指定 Tag 的 Release 构建
 gh workflow run release.yml --ref v{版本号}
 gh run watch
-
-# 方式 B：空提交后移动 Tag 再推送
-git commit --allow-empty -m "chore: trigger release v{版本号} [skip ci]"
-git tag -fa v{版本号} -m "v{版本号}"
-git push origin main
-git push origin v{版本号} --force
 ```
-
-Commit 备注格式：`1.9.9：边角轮盘手势 [skip ci]`（版本号 + 中文冒号 + 简述 + **`[skip ci]`**）。
-
-发版 commit 会 push 到 `main` 并打 Tag；`[skip ci]` 用于跳过日常 **CI** 工作流中的重复 Release 构建（正式发版由 `release.yml` 在 Tag 推送时执行）。GitHub Actions **不会**自动识别该标记，已在 [`.github/workflows/ci.yml`](.github/workflows/ci.yml) 中配置判断。
 
 ---
 
