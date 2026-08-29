@@ -1218,7 +1218,7 @@
     <string name="gesture_action_freezer_panel_desc">Open freezer management</string>
     <string name="gesture_action_refreeze">Re-freeze apps</string>
     <string name="gesture_action_refreeze_desc">Disable all apps in freezer list that are currently enabled</string>
-    <string name="gesture_action_remind">Alarm in N min</string>
+    <string name="gesture_action_remind">Alarm reminder in N min</string>
     <string name="gesture_action_remind_desc">Pick a duration after trigger; rings when time is up</string>
     <string name="gesture_remind_picker_title">Set alarm</string>
     <string name="gesture_remind_picker_preset_minutes">%1$d min</string>

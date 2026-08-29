@@ -737,7 +737,7 @@
     <string name="screen_translate_started">正在翻译…</string>
     <string name="screen_translate_failed">翻译失败</string>
     <string name="screen_translate_no_text">未找到可翻译文本</string>
-    <string name="gesture_action_remind">N 分钟后闹钟</string>
+    <string name="gesture_action_remind">N 分钟后闹钟提醒</string>
     <string name="gesture_action_remind_desc">触发后选择时长，到点响铃提醒</string>
     <string name="gesture_remind_picker_title">设置闹钟</string>
     <string name="gesture_remind_picker_preset_minutes">%1$d 分钟</string>
