@@ -138,9 +138,9 @@
 
 <div align="center">
 
-| 圆环启动器（FV 风格） | 蜂窝启动器（六边形） | 快速启动器（网格多面板） |
+| 边角轮盘（二级快捷菜单） | 圆环启动器（FV 风格） | 快速启动器（网格多面板） |
 | :---: | :---: | :---: |
-| <img src="art/screenshots/01_circle_launcher_framed.webp" width="100%" alt="圆环启动器" /> | <img src="art/screenshots/03_honeycomb_launcher_framed.webp" width="100%" alt="蜂窝启动器" /> | <img src="art/screenshots/06_quick_launcher_framed.webp" width="100%" alt="快速启动器" /> |
+| <img src="art/screenshots/01_circle_launcher_framed.webp" width="100%" alt="边角轮盘" /> | <img src="art/screenshots/03_honeycomb_launcher_framed.webp" width="100%" alt="圆环启动器" /> | <img src="art/screenshots/06_quick_launcher_framed.webp" width="100%" alt="快速启动器" /> |
 
 | 悬浮指针（虚拟摇杆） | Shell 命令面板（Shizuku） | 剪贴板历史 / 暂存收纳 |
 | :---: | :---: | :---: |

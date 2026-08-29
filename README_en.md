@@ -138,9 +138,9 @@ The app features four main navigation tabs: 🏠 **Home** · 📳 **Motion** · 
 
 <div align="center">
 
-| Circle Launcher (FV Style) | Honeycomb Launcher | Quick Launcher (Grid) |
+| Corner Radial Menu | Circle Launcher (FV Style) | Quick Launcher (Grid) |
 | :---: | :---: | :---: |
-| <img src="art/screenshots/01_circle_launcher_framed.webp" width="100%" alt="Circle Launcher" /> | <img src="art/screenshots/03_honeycomb_launcher_framed.webp" width="100%" alt="Honeycomb Launcher" /> | <img src="art/screenshots/06_quick_launcher_framed.webp" width="100%" alt="Quick Launcher" /> |
+| <img src="art/screenshots/01_circle_launcher_framed.webp" width="100%" alt="Corner Radial Menu" /> | <img src="art/screenshots/03_honeycomb_launcher_framed.webp" width="100%" alt="Circle Launcher" /> | <img src="art/screenshots/06_quick_launcher_framed.webp" width="100%" alt="Quick Launcher" /> |
 
 | Floating Pointer (Joystick) | Shell Command Panel (Shizuku) | Clipboard History / Stash |
 | :---: | :---: | :---: |
