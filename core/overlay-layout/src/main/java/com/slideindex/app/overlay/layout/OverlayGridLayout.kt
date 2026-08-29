@@ -12,16 +12,20 @@ data class GridLayoutInfo(
 
 fun gridLayoutInfo(appCount: Int, appsPerRow: Int, cellWidth: Float, gridPadding: Float): GridLayoutInfo {
     val m = appsPerRow
-    val panelColumns = if (appCount in 1 until m) appCount else m
-    val rows = if (appCount == 0) 1 else ceil(appCount / m.toFloat()).toInt()
+    if (appCount <= 0) {
+        return GridLayoutInfo(m, 0, 0, 0f)
+    }
+    val panelColumns = minOf(appCount, m)
+    val rows = ceil(appCount / m.toFloat()).toInt()
     val panelWidth = panelColumns * cellWidth + gridPadding * 2
     return GridLayoutInfo(m, panelColumns, rows, panelWidth)
 }
 
 fun visualColumn(index: Int, m: Int, appCount: Int, side: PanelSide): Int {
     val colInRow = index % m
+    val panelColumns = minOf(appCount, m)
     return when (side) {
-        PanelSide.RIGHT -> m - 1 - colInRow
+        PanelSide.RIGHT -> panelColumns - 1 - colInRow
         PanelSide.LEFT, PanelSide.BOTTOM, PanelSide.TOP -> colInRow
     }
 }

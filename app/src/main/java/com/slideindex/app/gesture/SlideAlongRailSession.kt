@@ -42,12 +42,9 @@ class SlideAlongRailSession(
     fun currentRailLetters(): List<Char> = railLetters
 
     fun applySettings(newSettings: AppSettings) {
-        val lettersChanged = settings.hideEmptyIndexLetters != newSettings.hideEmptyIndexLetters
         settings = newSettings
-        if (lettersChanged) {
-            recomputeRailLetters()
-            reconcileSelectedLetter()
-        }
+        recomputeRailLetters()
+        reconcileSelectedLetter()
     }
 
     fun setApps(newApps: List<AppInfo>) {

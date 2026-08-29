@@ -70,12 +70,13 @@ class SideOverlayController(
     }
 
     fun updateSettings(newSettings: AppSettings, screenWidth: Int) {
-        settings = effectiveSettings(newSettings)
+        val effective = effectiveSettings(newSettings)
+        val hiddenChanged = effective.hiddenAppPackages != settings.hiddenAppPackages
+        settings = effective
         if (settings.triggerHandles(side).isEmpty()) {
             hideEdge()
             return
         }
-        val hiddenChanged = newSettings.hiddenAppPackages != settings.hiddenAppPackages
         val (metricsWidthPx, metricsHeightPx) = OverlayScreenMetrics.sizePx(context)
         screenWidthPx = metricsWidthPx
         screenHeightPx = metricsHeightPx

@@ -12,15 +12,15 @@ import org.robolectric.annotation.Config
 class OverlayGridLayoutTest {
 
     @Test
-    fun visualColumn_rightPanel_singleItem_alignsToRightmostColumn() {
-        assertEquals(3, visualColumn(index = 0, m = 4, appCount = 1, side = PanelSide.RIGHT))
+    fun visualColumn_rightPanel_singleItem_alignsToOnlyColumn() {
+        assertEquals(0, visualColumn(index = 0, m = 4, appCount = 1, side = PanelSide.RIGHT))
     }
 
     @Test
     fun visualColumn_rightPanel_partialRow_packsFromRight() {
-        assertEquals(3, visualColumn(index = 0, m = 4, appCount = 3, side = PanelSide.RIGHT))
-        assertEquals(2, visualColumn(index = 1, m = 4, appCount = 3, side = PanelSide.RIGHT))
-        assertEquals(1, visualColumn(index = 2, m = 4, appCount = 3, side = PanelSide.RIGHT))
+        assertEquals(2, visualColumn(index = 0, m = 4, appCount = 3, side = PanelSide.RIGHT))
+        assertEquals(1, visualColumn(index = 1, m = 4, appCount = 3, side = PanelSide.RIGHT))
+        assertEquals(0, visualColumn(index = 2, m = 4, appCount = 3, side = PanelSide.RIGHT))
     }
 
     @Test

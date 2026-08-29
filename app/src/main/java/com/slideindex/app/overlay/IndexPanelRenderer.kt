@@ -144,8 +144,16 @@ internal class IndexPanelRenderer(
                 PanelSide.RIGHT -> RectF(rail.left - host.dp(240f), rail.top, rail.right, rail.bottom)
             }
         }
-        val grid = gridPopupRect()
         val bubble = bubbleCenter()
+        if (indexSession.filteredApps.isEmpty()) {
+            return RectF(
+                minOf(rail.left, bubble.x - bubbleRadius),
+                minOf(rail.top, bubble.y - bubbleRadius),
+                maxOf(rail.right, bubble.x + bubbleRadius),
+                maxOf(rail.bottom, bubble.y + bubbleRadius),
+            )
+        }
+        val grid = gridPopupRect()
         return RectF(
             minOf(rail.left, grid.left, bubble.x - bubbleRadius),
             minOf(rail.top, grid.top, bubble.y - bubbleRadius),
