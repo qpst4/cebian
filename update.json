@@ -1,7 +1,7 @@
 {
-  "version": "1.9.9.6",
-  "versionCode": 39,
-  "apkUrl": "https://github.com/qpst4/cebian/releases/download/v1.9.9.6/cebian-1.9.9.6-lite.apk",
-  "apkSize": 22362325,
-  "notes": "## 修复\n- 悬浮球：修复重负载与掉帧场景下拖出悬浮球时球与手指脱节、手指出现在球与准星中间的位移累加问题\n- 悬浮球：锁定会话级初始贴边侧，防止大距离拖拽时锚点突变反转到屏幕对侧\n- 悬浮球：优化 Slop 阶段平滑晋级到取词拖拽时的会话衔接；解耦拖拽过程中的 Compose 状态重组，提升 120Hz 跟手度与流畅度\n- 圆环启动器：修复持续触发手势时半透明快捷槽位与启动器面板显示问题\n- 晃动手势：倒扣手势引入武装状态机，防止来电/通知亮屏时误触发倒扣动作"
+  "version": "1.9.9.7",
+  "versionCode": 40,
+  "apkUrl": "https://github.com/qpst4/cebian/releases/download/v1.9.9.7/cebian-1.9.9.7-lite.apk",
+  "apkSize": 22362713,
+  "notes": "## 修复\n- 应用字母索引：修复无应用匹配时的空字母过滤与面板裁剪范围，解决极端场景下气泡越界与无响应问题\n- 应用字母索引：修复右侧面板单列或不满整行时的视觉列计算与布局偏移问题\n## 变更\n- 开源合规与文档：严格补齐 EdgeGesture 与 EdgeX 开源归属声明与文件头部版权注释\n- 官方文档与视觉：重构 README 与英文文档 README_en，新增真机带壳渲染 Hero 全景海报展区、完善手势动作与扩展功能说明"
 }
