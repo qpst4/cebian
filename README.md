@@ -1,118 +1,243 @@
 # 📱 Cebian（边栏）
 
-Android 边缘手势与系统增强工具：侧滑面板、悬浮球取词搜图、摇一摇/扣桌手势、通知与 OTP 管理、悬浮指针等。
+<div align="center">
 
-- **包名：** `com.slideindex.app`
-- **版本：** 1.9.9.6（versionCode 39）
-- **最低系统：** Android 12（API 31）
-- **目标 SDK：** API 37
-- **许可证：** [AGPLv3](LICENSE)
+**Android 边缘手势与全能系统增强工具**  
+*侧滑面板 · 悬浮球取词搜图 · 摇一摇 / 扣桌手势 · 通知与 OTP 管理 · 悬浮指针 · 自由窗口*
+
+[English](README_en.md) | **简体中文**
+
+[![Release](https://img.shields.io/github/v/release/qpst4/cebian?style=flat-square&color=6340e6)](https://github.com/qpst4/cebian/releases)
+[![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=flat-square)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-Android%2012%2B-brightgreen?style=flat-square)](https://developer.android.com)
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.4.0-purple?style=flat-square)](https://kotlinlang.org)
+[![AGP](https://img.shields.io/badge/AGP-9.3.2-blue?style=flat-square)](https://developer.android.com/build)
+[![Gradle](https://img.shields.io/badge/Gradle-9.7.1-blue?style=flat-square)](https://gradle.org)
+[![Compose BOM](https://img.shields.io/badge/Compose%20BOM-2026.07.01-blue?style=flat-square)](https://developer.android.com/jetpack/compose)
+[![minSdk](https://img.shields.io/badge/minSdk-31-orange?style=flat-square)](https://developer.android.com)
+[![targetSdk](https://img.shields.io/badge/targetSdk-37-orange?style=flat-square)](https://developer.android.com)
+
+</div>
 
 ---
 
-## 功能概览
+**Cebian（边栏）** 是一款基于 Android 无障碍服务、Shizuku 及可选 LSPosed 框架的系统级手势与生产力增强工具。通过屏幕边缘滑动、多功能悬浮球或摇晃手势，轻松触发 50+ 种系统动作；深度整合本地多引擎 OCR 与以图搜图聚合，并在任意应用之上提供高效率的悬浮面板、OTP 验证码提取、通知管理与悬浮指针控制。
 
-底部四个 Tab：🏠 **首页** · 📳 **晃动** · 🔔 **通知** · 🧩 **扩展**。详见 [RELEASE_NOTES.md](RELEASE_NOTES.md)。
+- **应用包名：** `com.slideindex.app`
+- **当前版本：** 1.9.9.6（versionCode 39）
+- **系统要求：** Android 12+（API 31+）
+- **开源协议：** [AGPL-3.0 License](LICENSE)
 
-### 🏠 首页 — 边缘手势与悬浮球
+---
 
-**边缘手势**
+## 🌟 核心特性
 
-- 左右边缘触发条，外观支持气泡 / 胶囊 / 波浪等动画样式
-- 50+ 种可配置手势动作：返回、Home、多任务、应用索引、快速启动器、任务切换器、启动应用/快捷方式/Activity 快捷方式、切换输入法、音量/亮度、截图、区域截图取词、全屏截图取词、录屏、锁屏（含静音变体）、媒体控制、Shell 命令、Widget 面板、悬浮指针、以图搜图、钉图暂存、剪贴板面板、暂停悬浮窗、快捷工具环、蜂窝启动器（实验性）等
-- 触发条位置/角度、横屏/锁屏/桌面隐藏策略、按应用禁用（触钮/边角轮盘/悬浮球，需使用情况访问权限）
-- **边角轮盘**：左下/右下角滑出扇形菜单，支持壁纸模糊与手势动作分组
-- 自由窗口模式、应用保活、QS 磁贴快捷开关
-- 需开启无障碍服务与悬浮窗权限；手势总开关在首页
+应用底部设有四个主要模块：🏠 **首页** · 📳 **晃动** · 🔔 **通知** · 🧩 **扩展**。
 
-**🔮 悬浮球**（首页 → 悬浮球，与「悬浮指针」相互独立）
+### 🏠 首页 — 边缘手势、悬浮球与个性化
 
-- 桌面常驻可拖动悬浮球；球体充当摇杆，加号在全屏充当取词指针
-- **取词**：优先无障碍取词，失败可降级本地 OCR（ML Kit / Tesseract / PPOCR）
-- **取词面板**：搜索、翻译、复制、点词/全选/去空格；支持区域截图、扫码、分享图片 OCR
-- **文字搜索**：自定义搜索引擎列表与面板网格排序；搜索历史、前缀别名与深链搜索；候选搜索分类型设置；支持从 GestureEVO / SearchEVO 等格式独立导入
-- **以图搜图**：区域截图后打开聚合搜图面板（Google、Yandex、TinEye、SauceNAO、IQDB、3D-IQDB、ASCII2D、trace.moe、AnimeTrace、Copyseeker）；可配置显示、并行搜索、面板内 WebView 或跳转浏览器
-- **翻译**：Google / ML Kit，即时翻译悬浮窗或跳转网页
-- 上滑/下滑/侧滑/点击等手势可绑定独立动作；外观支持预设 / 自定义图片 / GIF / 幻灯片
-- 加号指针可独立调节纵向速度；取词悬停暂停延迟与区域取消容差可调
-- **钉图暂存**：贴屏内容与图文块；钉住面板支持双指缩放与双击切换控制条
+#### 1. 边缘手势
+- **触发与外观**：左右边缘高灵敏度触发条，支持气泡、胶囊、波浪等多种动画样式与触钮反馈。
+- **自定义布局**：自由调节触发条位置、高度、粗细、角度与段数。
+- **智能防误触**：横屏隐藏、锁屏隐藏、桌面隐藏以及基于前台应用的使用情况访问权限精准按 App 禁用。
+- **边角轮盘**：从左下或右下角滑出扇形径向菜单，支持实时壁纸高斯模糊与手势动作分组。
+- **系统联动**：支持自由窗口模式、应用保活与 Quick Settings 快捷磁贴开关。
 
-**主题与界面**（首页 → 主题与配色 / 底部导航）
+#### 2. 50+ 可配置快捷手势动作
 
-- **动态取色**（Android 12+）：从壁纸生成主题色，可切换 9 种 Material 3 配色风格（柔和、鲜明、表现力、单色等）
-- **手动主题色**：未开动态取色或 Android 11 时，从种子色生成完整色板，同样支持配色风格
-- **底部导航毛玻璃**：可开关；关闭后底栏为纯色，列表滚动更流畅（不再采样屏幕内容）；开启时可调节模糊半径
+| 动作分类 | 支持操作 |
+| :--- | :--- |
+| **系统导航** | 返回、Home 键、多任务（最近任务）、上一个应用、锁屏（含静音变体）、电源菜单、分屏 |
+| **截屏与视效** | 全屏截图、区域截图、全屏截图取词、区域截图取词、屏幕录制、手电筒 |
+| **OCR 与搜图** | 悬浮球取词、以图搜图聚合、即时悬浮翻译、钉图暂存面板、二维码识别 |
+| **面板与启动** | 扩展面板、快速启动器、应用索引、任务切换器（FV 风格）、蜂窝启动器、Widget 浮窗面板 |
+| **媒体与控制** | 媒体上一曲 / 下一曲 / 播放暂停、音量调节、亮度调节、切换输入法 |
+| **工具与历史** | 悬浮指针、剪贴板历史面板、快捷工具环（OHO 风格）、暂停悬浮窗、暂停手势 |
+| **高级与扩展** | 执行 Shell 命令（Shizuku / Root）、启动指定 Activity / 快捷方式、直达特定应用 |
 
-以上偏好写入 DataStore，随 ZIP 设置备份一并导出/导入。
+#### 3. 🔮 悬浮球（取词、搜图与多功能手势）
+*与「悬浮指针」独立运行，集摇杆操作与屏幕取词指针于一体。*
+
+- **无障碍与本地 OCR**：优先通过无障碍节点读取文字，失败自动降级至本地 OCR 引擎（**ML Kit / Tesseract / PaddleOCR ONNX**）。
+- **取词面板**：一键搜索、翻译、点词、全选、去空格、复制，支持区域划词与图片分享 OCR。
+- **文字搜索聚合**：支持自定义搜索引擎列表、网格排序、搜索历史、前缀别名与深链跳转；支持从 GestureEVO / SearchEVO 独立导入。
+- **以图搜图聚合**：区域截图后呼出多引擎搜图面板（Google、Yandex、TinEye、SauceNAO、IQDB、3D-IQDB、ASCII2D、trace.moe、AnimeTrace、Copyseeker），支持并行搜索与内置 WebView 预览。
+- **钉图暂存**：将截屏内容或图文块钉在屏幕顶层，支持双指缩放、拖拽与控制条隐藏。
+- **外观与微调**：支持预设配色、自定义图片、GIF 动图与幻灯片；可自定义加号指针纵向灵敏度与取词容差。
+
+#### 4. 主题与界面
+- **动态取色（Material You）**：Android 12+ 自动提取壁纸色调，提供柔和、鲜明、表现力、单色等 9 种 Material 3 调色风格。
+- **手动主题色板**：支持从种子色生成全局 M3 配色。
+- **毛玻璃与性能优化**：底部导航栏与悬浮面板支持高斯模糊（Haze / Miuix Blur）；支持关闭毛玻璃以完全消除列表滚动时的屏幕采样开销。
+
+---
 
 ### 📳 晃动 — 摇一摇与扣桌
 
-- 六方向晃动识别（左/右翻转、前/后翻转、左/右甩）
-- **扣桌手势**：亮屏时屏幕朝下平放静止后触发（默认锁屏并静音响铃，可自定义动作；支持音频反馈音量）
-- 锁屏晃动、按应用独立配置、独立灵敏度、应用黑名单
-- 振动与动画反馈
-
-### 🔔 通知 — 消息提醒、历史与 OTP
-
-- **消息提醒**：拦截通知并以卡片 / 悬浮球 / 侧边气泡 / 弹幕等样式展示
-- **通知历史**：活跃/历史/已隐藏分类，高级过滤规则
-- **OTP 中心**：验证码提取、规则匹配、自动输入、成功率统计；可选 LSPosed 短信捕获与系统注入增强
-
-### 🧩 扩展 — 工具与备份
-
-| 功能 | 入口 | 说明 |
-|------|------|------|
-| 应用索引 | 扩展 → 应用索引 | 侧滑应用列表面板，可调列数/透明度 |
-| 快速启动器 | 扩展 → 快速启动器 | 侧滑网格启动器，多面板、文件夹（支持拖拽合并）、预设快捷方式库 |
-| 应用切换器 | 边缘手势「任务切换器」 | FV 圆环/蜂窝布局，外观与布局自定义、槽位拖拽重排 |
-| 蜂窝启动器 | 扩展 → 蜂窝启动器 | **实验性**：按住滑动选应用/快捷方式启动；交互与稳定性仍在完善，不建议作为主力启动方式 |
-| Shell 命令 | 扩展 → Shell 命令 | 命令面板与模板变量、自定义图标；执行依赖 Shizuku |
-| Widget 面板 | 扩展 → Widget 面板 | 悬浮绑定桌面小部件，可调模糊强度与快捷多选 |
-| 悬浮指针 | 扩展 → 悬浮指针 | 也可通过边缘手势动作呼出 |
-| 设置备份 | 扩展 → 设置备份 | ZIP 导出/导入偏好与资产；敏感数据需勾选后包含 |
-| 关于 | 扩展 → 关于 | 版本、Release Notes、隐私政策 |
-
-**🎯 悬浮指针**（扩展 → 悬浮指针）
-
-- 触摸屏幕呼出跟手虚拟摇杆，控制屏幕环形指针；轻点摇杆在指针处模拟单击
-- 持续手势悬停框选、松手点击关闭；摇杆功能环（径向菜单）、四边边缘触发、手势录制与回放
-- 指针外观（圆环/箭头/准星/手势等）、尾影、点击震动与波纹反馈
-
-无独立设置页、通过手势动作触发：屏幕录制、快捷工具环（OHO 风格）、钉图暂存面板、剪贴板历史面板。
-
-**剪贴板历史**（手势动作「剪贴板面板」或取词/暂存流程打开）
-
-- 图文块历史、搜索与预览；贴边浮窗与分页加载；后台监听依赖 Shizuku/Root（Android 10+ 后台剪贴板限制）
-- 支持 `cebian://` 外部快捷入口打开暂存夹或剪贴板
-- 敏感数据默认不进入系统自动备份；ZIP 导出需勾选「包含敏感记录与历史数据」
-
-### 首次启动引导
-
-首次打开会分步说明悬浮窗、无障碍、通知监听等权限用途，并可直接跳转授权。完成后不再显示；引导完成状态不会写入备份。
-
-### 无障碍
-
-设置界面与主要交互控件已补充 `contentDescription`，便于 TalkBack 等读屏软件使用。
+- **六方向晃动识别**：精准区分左/右翻转、前/后翻转、左/右快速甩动。
+- **扣桌静音手势**：亮屏时手机朝下平放至桌面静止，自动触发锁屏与响铃静音（支持自定义联动动作与音频反馈）。
+- **场景规则**：支持亮屏/锁屏激活策略、应用独立黑白名单、独立灵敏度阈值与震动动画反馈。
 
 ---
 
-## 许可证
+### 🔔 通知 — 消息提醒、历史与 OTP
+
+- **全屏消息提醒**：拦截系统通知并以灵动卡片、悬浮球、侧边气泡或屏幕弹幕等样式悬浮展示。
+- **通知历史归档**：按活跃、历史、已隐藏分类管理通知，支持高级过滤规则与关键词屏蔽。
+- **OTP 验证码中心**：智能识别短信与应用通知中的验证码，自动正则匹配提取、剪贴板写入与自动填充；提供成功率统计；可选 LSPosed 模块实现系统级短信注入增强。
+
+---
+
+### 🧩 扩展 — 增强工具与备份
+
+| 功能模块 | 路径入口 | 核心能力说明 |
+| :--- | :--- | :--- |
+| **应用索引** | 扩展 → 应用索引 | 侧滑呼出拼音索引应用列表，可自由调节列数与面板透明度 |
+| **快速启动器** | 扩展 → 快速启动器 | 侧滑网格启动器，支持多面板切换、文件夹拖拽合并与快捷方式库 |
+| **任务切换器** | 手势动作「任务切换器」 | FV 风格圆环/蜂窝布局，槽位拖拽排序与最近应用快速切换 |
+| **蜂窝启动器** | 扩展 → 蜂窝启动器 | *(实验性)* 按住滑动直达应用与快捷方式 |
+| **Shell 命令** | 扩展 → Shell 命令 | 命令面板、模板变量替换与自定义图标；依赖 Shizuku / Root 执行 |
+| **Widget 面板** | 扩展 → Widget 面板 | 将桌面小部件悬浮化绑定展示，支持可调模糊背景与快捷多选 |
+| **悬浮指针** | 扩展 → 悬浮指针 | 跟手虚拟摇杆控制环形指针，支持悬停框选、径向功能环与手势录制回放 |
+| **剪贴板历史** | 手势动作「剪贴板面板」 | 图文历史搜索、贴边浮窗与分页加载；支持 Shizuku 后台监听与 `cebian://` 外部协议 |
+| **设置备份** | 扩展 → 设置备份 | 将全量配置与资产导出为 ZIP 或一键导入；敏感数据独立加密保护 |
+
+---
+
+## 🛠️ 技术栈
+
+| 层次 | 核心技术 / 依赖组件 |
+| :--- | :--- |
+| **核心语言** | Kotlin 2.4.0 + C++17（NDK / CMake） |
+| **UI 体系** | Jetpack Compose（BOM 2026.07.01 + M3 1.5.0-alpha19）+ Material 3 Adaptive |
+| **界面与动效** | Miuix UI (KMP 0.9.4) + MaterialKolor 5.0.0 + Haze 1.7.2（高斯模糊） |
+| **架构与 DI** | MVVM + UDF（单向数据流） + Dagger Hilt 2.60.1 |
+| **异步与状态** | Kotlin Coroutines 1.11.0 + StateFlow / SharedFlow + DataStore Preferences 1.2.1 |
+| **OCR 与 AI** | ML Kit Text Recognition 16.0.1 + Tesseract4Android 4.9.0 + PaddleOCR (ONNX Runtime 1.28.0 + OpenCV 4.12.0) |
+| **NLP 与分词** | CppJieba（JNI Native 分词引擎） + ML Kit Translate / Language ID |
+| **系统特权扩展** | Shizuku API 13.1.5 + LibSuperuser 1.1.1 + HiddenApiBypass 6.1 + LibXposed API 102.0.0 |
+| **网络与解析** | OkHttp 5.4.0 + ZXing Core 3.5.4 + kotlinx.serialization 1.11.0 + Markdown Renderer M3 |
+
+---
+
+## 📐 架构设计
+
+应用采用 **多模块（Multi-Module）分层架构**，遵循 **MVVM + 单向数据流（UDF）** 规范：
+
+```
+                              ┌─────────────────────────────┐
+                              │          :app (顶层装配)     │
+                              └──────────────┬──────────────┘
+                                             │
+                      ┌──────────────────────┼──────────────────────┐
+                      ▼                      ▼                      ▼
+           ┌──────────────────────┐┌──────────────────────┐┌──────────────────────┐
+           │   :feature:settings  ││     :feature:otp     ││   :feature:shake     │
+           │   :feature:apps      ││ :feature:notification││   :feature:message   │
+           └──────────┬───────────┘└──────────┬───────────┘└──────────┬───────────┘
+                      │                       │                       │
+                      └──────────────────────┼───────────────────────┘
+                                             ▼
+           ┌──────────────────────────────────────────────────────────────────────┐
+           │ :core:gesture       :core:ocr          :core:translate  :core:autofill│
+           │ :core:overlay-layout:core:native-engine:core:monitoring :core:common │
+           └──────────────────────────────────┬───────────────────────────────────┘
+                                             ▼
+                                  ┌───────────────────────┐
+                                  │   :vendor:ppocr-sdk   │
+                                  └───────────────────────┘
+```
+
+1. **服务协调与 Overlay 渲染**：`SlideIndexAccessibilityService` 负责拦截全局手势与系统事件派发，悬浮层由 `OverlayLayout` 与各个独立的 WindowManager 统一管理。
+2. **多引擎动态加载机制**：OCR、翻译与分词引擎支持 Full 内置包与 Lite 轻量包模式，Native `.so` 与模型资源支持运行时按需提取解压。
+3. **系统级特权通道**：Shizuku IPC（无 Root 提权）、Root 降级执行器（LibSu）与 LSPosed 模块互补协同，实现无缝的后台剪贴板监听与进程级管控。
+
+---
+
+## 📂 项目结构
+
+```
+.
+├── app/                                 # 宿主应用：全局 DI 装配、JNI C++ 桥接与主页面
+│   └── src/main/
+│       ├── cpp/                         # C++17 JNI 源码（CppJieba 分词桥接）
+│       └── java/com/slideindex/app/
+│           ├── activity/                # 顶层 Activity 与透明交互层
+│           ├── backtap/                 # 背面手势
+│           ├── clipboard/               # 剪贴板历史与 Shizuku 后台监听服务
+│           ├── gesture/                 # 核心手势服务与悬浮触发条
+│           ├── overlay/                 # 系统级 Overlay 窗口管理器
+│           ├── search/                  # 文字与以图搜图聚合引擎
+│           ├── shell/                   # Shell 命令执行器
+│           ├── ui/                      # Compose 界面、主题与动态色彩
+│           └── xposed/                  # LSPosed 模块入口与 Hook 逻辑
+├── core/                                # 核心基础库与引擎
+│   ├── autofill/                        # OTP 自动填充框架
+│   ├── common/                          # 基础扩展、公共模型与通用工具
+│   ├── gesture/                         # 手势识别算法与事件总线
+│   ├── monitoring/                      # 性能追踪与内存监控
+│   ├── native-engine/                   # 离线 Native 引擎包分发与解压管理
+│   ├── notification/                    # 系统通知拦截与处理
+│   ├── ocr/                             # 多引擎 OCR 调度器（ML Kit / Tesseract / ONNX）
+│   ├── overlay-layout/                  # 悬浮窗布局渲染核心
+│   └── translate/                       # 多语种即时翻译与语言检测
+├── feature/                             # 业务功能模块
+│   ├── apps/                            # 应用扫描、图标缓存与启动器
+│   ├── message/                         # 悬浮通知提醒与弹幕渲染
+│   ├── notification/                    # 通知历史归档与过滤
+│   ├── otp/                             # 验证码正则提取与统计面板
+│   ├── settings/                        # 设置项、偏好备份与 DataStore
+│   └── shake/                           # 传感器摇晃与扣桌静音算法
+├── vendor/
+│   └── ppocr-sdk/                       # PaddleOCR SDK 封装与 ONNX 绑定
+├── gradle/libs.versions.toml             # 统一依赖与版本管理
+└── RELEASE_NOTES.md                     # 版本更新日志
+```
+
+---
+
+## 🚀 编译与构建
+
+### 环境要求
+- **JDK 21**
+- **Android Studio**（建议 Ladybug 或更新版本）
+- **Android SDK**（API 37 `compileSdk`）与 **NDK 28+**
+
+### 构建命令
+```bash
+# 克隆仓库
+git clone https://github.com/qpst4/cebian.git
+cd cebian
+
+# 编译 Full Debug 包（含内置离线引擎）
+./gradlew assembleFullDebug
+
+# 编译 Lite Release 包（轻量包）
+./gradlew assembleLiteRelease
+```
+
+---
+
+## 📜 许可证
 
 本项目采用 [GNU Affero General Public License v3.0](LICENSE)（AGPLv3）开源。
 
-## 致谢
+---
 
-开发中参考或借鉴了以下开源项目，详见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)：
+## 🤝 致谢
 
-- [SideGesture](https://github.com/aaronzzx/SideGesture) — 边缘手势与 overlay 架构（含顶部触钮）
-- [Clipboard Whitelist](https://github.com/Tehcneko/ClipboardWhitelist) — 早期剪贴板白名单方案参考（现版已改用 Shizuku/Root）
-- [ClipboardListener](https://github.com/aa2013/ClipboardListener) — Android 10+ 剪贴板后台监听（Shizuku/Root）
-- [ClipShare](https://github.com/aa2013/ClipShare) — 后台剪贴板读取与监听架构
-- [Root Activity Launcher](https://github.com/zacharee/RootActivityLauncher) — 应用内直达启动未导出 Activity
-- [Circle To Search](https://github.com/AKS-Labs/CircleToSearch) — 以图搜图多引擎集成
-- [Nova Text](https://github.com/CashewTeam/BigBang_NovaText) — 悬浮球取词交互思路
-- [XposedSmsCode](https://github.com/tianma8023/XposedSmsCode) — OTP 短信 Hook、验证码提取规则与 LSPosed 增强
+在开发过程中参考或借鉴了以下优秀开源项目，特此鸣谢（详见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)）：
 
-## Release Notes
+- [SideGesture](https://github.com/aaronzzx/SideGesture) — 边缘手势与 overlay 架构参考
+- [ClipboardListener](https://github.com/aa2013/ClipboardListener) & [ClipShare](https://github.com/aa2013/ClipShare) — Android 10+ 剪贴板后台监听架构
+- [Root Activity Launcher](https://github.com/zacharee/RootActivityLauncher) — 未导出 Activity 启动方案
+- [Circle To Search](https://github.com/AKS-Labs/CircleToSearch) — 以图搜图多引擎集成策略
+- [Nova Text](https://github.com/CashewTeam/BigBang_NovaText) — 悬浮球取词与点词交互思路
+- [XposedSmsCode](https://github.com/tianma8023/XposedSmsCode) — OTP 短信 Hook 与验证码提取规则
+- [Miuix](https://github.com/Free-Extend/miuix) — 优美的 Material & Miuix 风格 Compose 组件库
 
-见 [RELEASE_NOTES.md](RELEASE_NOTES.md)。
+---
+
+## 📝 更新日志
+
+完整历史版本日志请参见 [RELEASE_NOTES.md](RELEASE_NOTES.md) 与 [CHANGELOG.md](CHANGELOG.md)。
