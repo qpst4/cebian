@@ -11,7 +11,7 @@ data class GridLayoutInfo(
 )
 
 fun gridLayoutInfo(appCount: Int, appsPerRow: Int, cellWidth: Float, gridPadding: Float): GridLayoutInfo {
-    val m = appsPerRow
+    val m = appsPerRow.coerceAtLeast(1)
     if (appCount <= 0) {
         return GridLayoutInfo(m, 0, 0, 0f)
     }

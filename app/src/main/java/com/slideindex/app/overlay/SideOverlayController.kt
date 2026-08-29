@@ -137,6 +137,13 @@ class SideOverlayController(
         }
         val view = windowManager.presentationView
         if (view != null) {
+            if (enabled && content == LayoutPreviewContent.INDEX_ONLY) {
+                val cached = appRepository.getCachedApps()
+                    .filter { it.packageName !in settings.hiddenAppPackages }
+                if (cached.isNotEmpty()) {
+                    view.setApps(cached)
+                }
+            }
             view.setPreviewMode(enabled, content, focus)
             if (enabled) {
                 windowManager.ensurePresentationAttached()
@@ -147,6 +154,13 @@ class SideOverlayController(
         } else if (enabled) {
             windowManager.ensurePresentationAttached()
             windowManager.presentationView?.let { presentation ->
+                if (content == LayoutPreviewContent.INDEX_ONLY) {
+                    val cached = appRepository.getCachedApps()
+                        .filter { it.packageName !in settings.hiddenAppPackages }
+                    if (cached.isNotEmpty()) {
+                        presentation.setApps(cached)
+                    }
+                }
                 presentation.setPreviewMode(enabled, content, focus)
                 renderer.applyPreviewPresentationWindow()
             }

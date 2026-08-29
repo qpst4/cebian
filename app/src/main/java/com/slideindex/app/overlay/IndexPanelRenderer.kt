@@ -73,8 +73,21 @@ internal class IndexPanelRenderer(
     private val railCorner get() = host.dp(14f)
     private val panelCorner get() = host.dp(18f)
 
+    private var lastRenderedContentRect: RectF? = null
+
     private fun invalidateIndexPanelIfChanged(changed: Boolean) {
-        if (changed) host.invalidatePanel(indexPanelContentRect())
+        if (!changed) return
+        val currentRect = indexPanelContentRect()
+        val unionRect = lastRenderedContentRect?.let { prev ->
+            RectF(
+                minOf(currentRect.left, prev.left),
+                minOf(currentRect.top, prev.top),
+                maxOf(currentRect.right, prev.right),
+                maxOf(currentRect.bottom, prev.bottom),
+            )
+        } ?: currentRect
+        lastRenderedContentRect = RectF(currentRect)
+        host.invalidatePanel(unionRect)
     }
 
     fun syncSettings(settings: AppSettings) {
@@ -91,6 +104,7 @@ internal class IndexPanelRenderer(
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
                 if (!isInsideIndexInteractiveArea(touchX, localY)) {
+                    lastRenderedContentRect = null
                     host.gestureSession().endSession()
                     return false
                 }
@@ -106,13 +120,24 @@ internal class IndexPanelRenderer(
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 if (host.gestureSession().releaseImmediateGestureLock()) {
                     host.onInitiatingEdgeGestureReleased()
-                    host.invalidatePanel(indexPanelContentRect())
+                    val currentRect = indexPanelContentRect()
+                    val unionRect = lastRenderedContentRect?.let { prev ->
+                        RectF(
+                            minOf(currentRect.left, prev.left),
+                            minOf(currentRect.top, prev.top),
+                            maxOf(currentRect.right, prev.right),
+                            maxOf(currentRect.bottom, prev.bottom),
+                        )
+                    } ?: currentRect
+                    lastRenderedContentRect = null
+                    host.invalidatePanel(unionRect)
                     return true
                 }
                 if (host.zoneLayout().isInRailZone(touchX)) {
                     invalidateIndexPanelIfChanged(host.indexSession().updateSelection(touchX, localY))
                     return true
                 }
+                lastRenderedContentRect = null
                 host.gestureSession().onTouchUp(event.rawX, event.rawY, touchX, localY)
                 return true
             }
@@ -128,8 +153,10 @@ internal class IndexPanelRenderer(
             indexSession.gridCellBounds.forEach { (_, rect) ->
                 if (rect.contains(localX, localY)) return true
             }
-            val grid = gridPopupRect()
-            if (grid.contains(localX, localY)) return true
+            if (indexSession.filteredApps.isNotEmpty()) {
+                val grid = gridPopupRect()
+                if (grid.contains(localX, localY)) return true
+            }
         }
         return false
     }
