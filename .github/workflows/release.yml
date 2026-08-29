@@ -41,7 +41,7 @@ jobs:
           java-version: "21"
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+        uses: gradle/actions/setup-gradle@v6
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -74,7 +74,7 @@ jobs:
         run: bash scripts/verify-release-apk.sh ${{ matrix.variant }}
 
       - name: Upload release APK
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.artifact }}
           path: ${{ matrix.apk_path }}
@@ -97,13 +97,13 @@ jobs:
           python-version: "3.11"
 
       - name: Download Full Release APK
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           name: release-apk-full
           path: release-apk-full
 
       - name: Download Lite Release APK
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v7
         with:
           name: release-apk-lite
           path: release-apk-lite
