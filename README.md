@@ -7,7 +7,7 @@
 **Android 边缘手势与全能系统增强工具**  
 *侧滑面板 · 悬浮球取词搜图 · 晃动 / 扣桌 / 背面手势 · 通知与 OTP 管理 · 悬浮指针 · 应用冻结 · 自由小窗*
 
-[English](README_en.md) | **简体中文**
+**简体中文** | [English](README_en.md)
 
 [![Release](https://img.shields.io/github/v/release/qpst4/cebian?style=flat-square&color=6340e6)](https://github.com/qpst4/cebian/releases)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=flat-square)](LICENSE)
@@ -70,7 +70,7 @@
 | :--- | :--- |
 | **系统导航** | 返回、Home 键、多任务（系统多任务）、上一个应用、锁屏（含静音变体）、电源菜单、分屏 |
 | **截屏与视效** | 全屏截图、区域截图、全屏截图取词、区域截图取词、屏幕录制、手电筒 |
-| **OCR 与搜图** | 悬浮球取词、以图搜图聚合、即时悬浮翻译、钉图暂存面板、二维码识别 |
+| **OCR 与搜图** | 悬浮球取词、以图搜图聚合、即时悬浮翻译、全局屏幕复制、钉图暂存面板、二维码识别 |
 | **面板与启动** | 快速启动器、应用索引、圆环启动器（FV 风格）、蜂窝启动器、全息启动器、任务切换器（OHO 风格）、应用冻结室、扩展面板（音量/亮度快速调节）、Widget 浮窗面板 |
 | **媒体与控制** | 媒体上一曲 / 下一曲 / 播放暂停、音量调节、亮度调节、切换输入法 |
 | **工具与历史** | 悬浮指针、剪贴板历史面板、快速工具面板（OHO 风格）、暂停悬浮窗、暂停手势 |
@@ -87,8 +87,8 @@
 - **外观与微调**：支持预设配色、自定义图片、GIF 动图与幻灯片；可自定义加号指针纵向灵敏度与取词容差。
 
 #### 4. 主题与界面
-- **动态取色（Material You）**：Android 12+ 自动提取壁纸色调，提供柔和、鲜明、表现力、单色等 9 种 Material 3 调色风格。
-- **手动主题色板**：支持从种子色生成全局 M3 配色。
+- **Miuix 视觉与组件体系**：主应用全面采用 Miuix UI（HyperOS 风格）设计语言，支持自适应折叠 TopAppBar、虚拟化分组卡片、平滑回弹阻尼与触觉振动反馈。
+- **动态取色（Material You）**：Android 12+ 基于 MaterialKolor 自动提取壁纸色调，生成 9 种调色风格并无缝注入 Miuix 主题。
 - **毛玻璃与性能优化**：底部导航栏与悬浮面板支持高斯模糊（Gaussian Blur）与渐进式毛玻璃（Progressive Blur）；支持关闭毛玻璃以完全消除列表滚动时的屏幕采样开销。
 
 ---
@@ -120,6 +120,7 @@
 | **蜂窝启动器** | 扩展 → 蜂窝启动器 | 六边形蜂窝网格布局，按住向外圈滑动直达应用与快捷方式 |
 | **全息启动器** | 扩展 → 全息启动器 | 全屏 3D 空间球形启动器，拖拽旋转 3D 球体，点击图标启动应用 |
 | **任务切换器** | 手势动作「任务切换器」 | OHO 风格后台最近运行任务面板，支持滑动切换、单独关闭、一键清理全部后台任务与小窗启动 |
+| **快速工具面板** | 手势动作「快速工具面板」 | OHO 风格快捷工具面板，聚合常用系统开关、快捷操作与实用工具直达 |
 | **应用冻结室** | 扩展 → 冻结室 | 批量冻结后台顽固应用与一键解冻（依赖 Shizuku / Root），支持手势面板快捷重新冻结 |
 | **搜索面板** | 扩展 → 搜索面板 | 本地应用、联系人、文件、系统设置项与网络文字/以图搜图聚合搜索 |
 | **Activity 快捷方式** | 扩展 → Activity 快捷方式 | 系统隐藏设置、未导出 Activity 提取、App Shortcuts 快捷方式与 URI 深链 |
@@ -136,8 +137,8 @@
 | 层次 | 核心技术 / 依赖组件 |
 | :--- | :--- |
 | **核心语言** | Kotlin 2.4.0 + C++17（NDK / CMake） |
-| **UI 体系** | Jetpack Compose（BOM 2026.07.01 + M3 1.5.0-alpha19）+ Material 3 Adaptive |
-| **界面与动效** | Miuix UI (KMP 0.9.4) + MaterialKolor 5.0.0 + Haze 1.7.2（高斯模糊） |
+| **UI 体系与规范** | Miuix UI (KMP 0.9.4 / HyperOS 风格) + Jetpack Compose (BOM 2026.07.01) |
+| **色彩与动效** | MaterialKolor 5.0.0（壁纸动态取色） + Haze 1.7.2（高斯模糊） |
 | **架构与 DI** | MVVM + UDF（单向数据流） + Dagger Hilt 2.60.1 |
 | **异步与状态** | Kotlin Coroutines 1.11.0 + StateFlow / SharedFlow + DataStore Preferences 1.2.1 |
 | **OCR 与 AI** | ML Kit Text Recognition 16.0.1 + Tesseract4Android 4.9.0 + PaddleOCR (ONNX Runtime 1.28.0 + OpenCV 4.12.0) |
@@ -277,10 +278,11 @@ cd cebian
 - [Circle To Search](https://github.com/AKS-Labs/CircleToSearch) — 以图搜图多引擎集成策略
 - [Nova Text](https://github.com/CashewTeam/BigBang_NovaText) — 悬浮球取词与点词交互思路
 - [XposedSmsCode](https://github.com/tianma8023/XposedSmsCode) — OTP 短信 Hook 与验证码提取规则
-- [Miuix](https://github.com/Free-Extend/miuix) — 优美的 Material & Miuix 风格 Compose 组件库
+- [Miuix](https://github.com/compose-miuix-ui/miuix) — 优美的 Material & Miuix 风格 Compose 组件库
 
 ---
 
 ## 📝 更新日志
 
 完整历史版本日志请参见 [RELEASE_NOTES.md](RELEASE_NOTES.md) 与 [CHANGELOG.md](CHANGELOG.md)。
+
