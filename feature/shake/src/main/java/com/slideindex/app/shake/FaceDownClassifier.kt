@@ -20,6 +20,16 @@ internal object FaceDownClassifier {
         return magnitude in GRAVITY_MAG_MIN..GRAVITY_MAG_MAX
     }
 
+    /**
+     * 判断设备是否处于非倒扣状态（如屏幕朝上、立起或明显倾斜）。
+     * 用于武装（Arm）检测器：只有经历过非倒扣状态，后续再进入倒扣平放才算有效的翻转动作。
+     */
+    fun isNonFaceDown(ax: Float, ay: Float, az: Float): Boolean {
+        if (az > -5.0f) return true
+        val horizontalMag = sqrt(ax * ax + ay * ay)
+        return horizontalMag > 4.0f
+    }
+
     fun isProximityNear(distanceCm: Float, maxRange: Float): Boolean {
         if (maxRange <= 0f) return false
         val threshold = maxOf(maxRange * 0.2f, 1f)

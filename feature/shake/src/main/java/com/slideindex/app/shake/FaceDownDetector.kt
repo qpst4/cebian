@@ -27,6 +27,7 @@ class FaceDownDetector(
     private var holdDurationMs = FaceDownGestureSettings.clampHoldDurationMs(800L)
     private var requireProximity = false
 
+    private var isArmed = false
     private var holdStartMs = 0L
     private var lastAccel = floatArrayOf(0f, 0f, 0f)
     private var accelReady = false
@@ -55,6 +56,7 @@ class FaceDownDetector(
         gyroStill = !hasGyroscope
         accelReady = false
         holdStartMs = 0L
+        isArmed = false
 
         var registered = sensorManager.registerListener(
             this,
@@ -93,6 +95,7 @@ class FaceDownDetector(
         }
         holdStartMs = 0L
         accelReady = false
+        isArmed = false
     }
 
     override fun onSensorChanged(event: SensorEvent?) {
@@ -115,7 +118,22 @@ class FaceDownDetector(
             lastAccel[1] = ay
             lastAccel[2] = az
             accelReady = true
+            if (FaceDownClassifier.isNonFaceDown(ax, ay, az)) {
+                isArmed = true
+            }
             return
+        }
+
+        if (!isArmed) {
+            if (FaceDownClassifier.isNonFaceDown(ax, ay, az)) {
+                isArmed = true
+                Log.d(TAG, "detector armed (non-face-down state detected)")
+            } else {
+                lastAccel[0] = ax
+                lastAccel[1] = ay
+                lastAccel[2] = az
+                return
+            }
         }
 
         val now = System.currentTimeMillis()
@@ -160,6 +178,7 @@ class FaceDownDetector(
         }
         if (elapsedMs >= holdDurationMs) {
             Log.i(TAG, "face-down hold satisfied after ${elapsedMs}ms")
+            isArmed = false
             resetHold()
             onTriggered()
         }

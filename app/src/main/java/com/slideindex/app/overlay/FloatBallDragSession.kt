@@ -152,12 +152,11 @@ internal class FloatBallDragSession {
       dockSide = edgeDockSide,
     )
 
-    val slopPx = settings.floatBallPointerSlopDp.coerceIn(4f, 32f) * density
-    if (!pointerModeActive && fingerTravelPx() < slopPx) {
-      return edgePick
-    }
-
     if (!pointerModeActive) {
+      // 手势层已过 slop 才进入取词拖；此处不再重复 slop，手指一动即进入 pointer 模式。
+      if (fingerTravelPx() <= 0f) {
+        return edgePick
+      }
       dragPointerAnchorX = edgePick.x
       dragPointerAnchorY = edgePick.y
       dragFingerAnchorX = dragFingerX

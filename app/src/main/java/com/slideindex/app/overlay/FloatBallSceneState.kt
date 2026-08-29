@@ -32,8 +32,6 @@ internal class FloatBallSceneState(initialSettings: AppSettings) {
     val chromeVisible: MutableState<Boolean> = mutableStateOf(true)
     val lineVisible: MutableState<Boolean> = mutableStateOf(false)
     val ballVisible: MutableState<Boolean> = mutableStateOf(true)
-    /** 拖拽 GIF 快照期间隐藏 Compose 球体。 */
-    val ballComposeVisible: MutableState<Boolean> = mutableStateOf(true)
 
     fun resolvedActiveSide(
         settings: AppSettings = settingsState.value,

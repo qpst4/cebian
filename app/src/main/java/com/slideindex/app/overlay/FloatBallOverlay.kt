@@ -2120,10 +2120,8 @@ object FloatBallOverlay {
             fingerY = fingerY,
             deferBallWindowMutation = true,
         )
-        mainHandler.post {
-            if (!isDragging || !dragOriginatedFromLine) return@post
+        if (isDragging && dragOriginatedFromLine) {
             setBallTouchable(false)
-            settingsState?.value?.let { applyDragBallLayout(it) }
         }
     }
 
