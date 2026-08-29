@@ -276,8 +276,18 @@ cd cebian
 
 [![GitHub Discussions](https://img.shields.io/badge/GitHub-Discussions-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/qpst4/cebian/discussions)
 [![GitHub Issues](https://img.shields.io/badge/GitHub-Issues%20反馈-EA4AAA?style=for-the-badge&logo=github&logoColor=white)](https://github.com/qpst4/cebian/issues)
-[![QQ Group](https://img.shields.io/badge/QQ%20交流群-点击加入-12B7F5?style=for-the-badge&logo=tencentqq&logoColor=white)](https://qm.qq.com/)
+[![QQ Group](https://img.shields.io/badge/QQ%20交流群-点击加入-12B7F5?style=for-the-badge&logo=tencentqq&logoColor=white)](https://qm.qq.com/q/jHZTMmiZ9K)
 
+</div>
+
+---
+
+## 💖 赞赏与支持
+
+如果您觉得「边栏（Cebian）」对您的日常使用有所帮助，欢迎赞赏请作者喝杯咖啡 ☕，您的支持是项目持续迭代与积极适配的最大动力！
+
+<div align="center">
+  <img src="art/sponsor.png" width="220" alt="微信赞赏码" />
 </div>
 
 ---

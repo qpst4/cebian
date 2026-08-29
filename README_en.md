@@ -276,7 +276,18 @@ Welcome to join the community discussions and provide feedback or feature reques
 
 [![GitHub Discussions](https://img.shields.io/badge/GitHub-Discussions-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/qpst4/cebian/discussions)
 [![GitHub Issues](https://img.shields.io/badge/GitHub-Issues-EA4AAA?style=for-the-badge&logo=github&logoColor=white)](https://github.com/qpst4/cebian/issues)
+[![QQ Group](https://img.shields.io/badge/QQ%20Group-Join%20Now-12B7F5?style=for-the-badge&logo=tencentqq&logoColor=white)](https://qm.qq.com/q/jHZTMmiZ9K)
 
+</div>
+
+---
+
+## 💖 Sponsor & Support
+
+If you find **Cebian** helpful in your daily workflow, consider buying the developer a cup of coffee ☕! Your generous support is the greatest motivation for ongoing development and OEM adaptations.
+
+<div align="center">
+  <img src="art/sponsor.png" width="220" alt="WeChat Reward Code" />
 </div>
 
 ---
