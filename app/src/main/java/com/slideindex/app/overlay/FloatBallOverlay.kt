@@ -1019,8 +1019,8 @@ object FloatBallOverlay {
                 )
             }
 
-            fun onDrag(dx: Float, dy: Float) {
-                onFingerDrag(dx, dy)
+            fun onDrag(fingerX: Float, fingerY: Float) {
+                onFingerDrag(fingerX, fingerY)
                 onDragMoved()
             }
 
@@ -1069,7 +1069,7 @@ object FloatBallOverlay {
                 onDragStart = { touchDownX, touchDownY, fingerX, fingerY ->
                     dragCallbacks.onStart(touchDownX, touchDownY, fingerX, fingerY)
                 },
-                onDrag = { dx, dy -> dragCallbacks.onDrag(dx, dy) },
+                onDrag = { fingerX, fingerY -> dragCallbacks.onDrag(fingerX, fingerY) },
                 onDragEnd = { dragCallbacks.onEnd() },
                 onDragCancel = { dragCallbacks.onCancel() },
                 onGesture = { gestureType, rawX, rawY ->
@@ -1109,8 +1109,8 @@ object FloatBallOverlay {
                 onDragStart = { touchDownX, touchDownY, fingerX, fingerY ->
                     prepareLineDrag(touchDownX, touchDownY, fingerX, fingerY)
                 },
-                onDrag = { dx, dy ->
-                    onFingerDrag(dx, dy)
+                onDrag = { fingerX, fingerY ->
+                    onFingerDrag(fingerX, fingerY)
                     onDragMoved()
                 },
                 onDragEnd = {
@@ -2028,13 +2028,17 @@ object FloatBallOverlay {
         syncDisplayBallLayout(settings)
     }
 
-    private fun syncDisplayBallLayout(settings: AppSettings, layoutOnly: Boolean = false) {
+    private fun syncDisplayBallLayout(
+        settings: AppSettings,
+        layoutOnly: Boolean = false,
+        overrideCenter: Offset? = null,
+    ) {
         val host = displayView ?: return
         val state = sceneState ?: return
         val metrics = host.resources.displayMetrics
         val activeSide = effectiveActiveSide(settings)
         val (screenWidthPx, screenHeightPx) = FloatBallScreenMetrics.sizePx(host.context, windowManager)
-        val center = state.ballCenterPx.value ?: state.dockBallCenter(
+        val center = overrideCenter ?: state.ballCenterPx.value ?: state.dockBallCenter(
             settings,
             metrics,
             activeSide,
@@ -2189,9 +2193,9 @@ object FloatBallOverlay {
         applyAllLayouts(settings)
     }
 
-    private fun onFingerDrag(dx: Float, dy: Float) {
+    private fun onFingerDrag(fingerX: Float, fingerY: Float) {
         if (!isDragging) return
-        dragSession.onFingerMove(dx, dy)
+        dragSession.updateFingerPosition(fingerX, fingerY)
         updatePickAndBallFromFinger(moveBallWindow = true)
     }
 
@@ -2455,17 +2459,19 @@ object FloatBallOverlay {
             setDragging(true)
             ballDraggingState?.value = true
             ballIconView?.setDragging(true)
+            armDragSessionAtFinger(
+                settings = settings,
+                metrics = view.resources.displayMetrics,
+                touchDownX = touchDownX,
+                touchDownY = touchDownY,
+                fingerX = fingerX,
+                fingerY = fingerY,
+                fromEdgeGesture = false,
+            )
             flushDragChromeLayout(syncAnchorState = true)
+        } else {
+            dragSession.updateFingerPosition(fingerX, fingerY)
         }
-        armDragSessionAtFinger(
-            settings = settings,
-            metrics = view.resources.displayMetrics,
-            touchDownX = touchDownX,
-            touchDownY = touchDownY,
-            fingerX = fingerX,
-            fingerY = fingerY,
-            fromEdgeGesture = false,
-        )
         updatePickAndBallFromFinger(moveBallWindow = true)
         flushDragChromeLayout()
     }
@@ -2564,15 +2570,7 @@ object FloatBallOverlay {
             setDragging(true)
         } else {
             slopPhaseBallFollowActive = false
-            armDragSessionAtFinger(
-                settings = settings,
-                metrics = metrics,
-                touchDownX = touchDownX,
-                touchDownY = touchDownY,
-                fingerX = fingerX,
-                fingerY = fingerY,
-                fromEdgeGesture = fromEdgeGesture,
-            )
+            dragSession.updateFingerPosition(fingerX, fingerY)
         }
 
         if (!fromEdgeGesture && dragOriginatedFromLine && !deferBallWindowMutation) {
@@ -3047,8 +3045,7 @@ object FloatBallOverlay {
             screenWidth = screenBounds.width.roundToInt(),
             screenHeight = screenBounds.height.roundToInt(),
         )
-        sceneState?.ballCenterPx?.value = center
-        syncDisplayBallLayout(settings, layoutOnly = true)
+        syncDisplayBallLayout(settings, layoutOnly = true, overrideCenter = center)
     }
 
     private fun updatePickAndBallFromFinger(moveBallWindow: Boolean) {

@@ -51,7 +51,7 @@ internal class FloatBallStripHost(
     }
 
     private var onDragStart: ((touchDownX: Float, touchDownY: Float, fingerX: Float, fingerY: Float) -> Unit)? = null
-    private var onDrag: ((dx: Float, dy: Float) -> Unit)? = null
+    private var onDrag: ((fingerX: Float, fingerY: Float) -> Unit)? = null
     private var onDragEnd: (() -> Unit)? = null
     private var onDragCancel: (() -> Unit)? = null
     private var onGesture: ((FloatBallGestureType, rawX: Float, rawY: Float) -> Unit)? = null
@@ -71,7 +71,7 @@ internal class FloatBallStripHost(
             onPickStart = { downX, downY, fingerX, fingerY ->
                 onDragStart?.invoke(downX, downY, fingerX, fingerY)
             },
-            onPickDrag = { dx, dy -> onDrag?.invoke(dx, dy) },
+            onPickDrag = { fingerX, fingerY -> onDrag?.invoke(fingerX, fingerY) },
             onPickEnd = { onDragEnd?.invoke() },
             onPickCancel = { onDragCancel?.invoke() },
             onGesture = { type, rawX, rawY -> onGesture?.invoke(type, rawX, rawY) },
@@ -89,7 +89,7 @@ internal class FloatBallStripHost(
 
     fun bindDragCallbacks(
         onDragStart: (touchDownX: Float, touchDownY: Float, fingerX: Float, fingerY: Float) -> Unit,
-        onDrag: (dx: Float, dy: Float) -> Unit,
+        onDrag: (fingerX: Float, fingerY: Float) -> Unit,
         onDragEnd: () -> Unit,
         onDragCancel: () -> Unit,
         onGesture: (FloatBallGestureType, rawX: Float, rawY: Float) -> Unit,

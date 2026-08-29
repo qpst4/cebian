@@ -2,6 +2,7 @@ package com.slideindex.app.overlay
 
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.FloatBallSide
+import com.slideindex.app.settings.FreeWindowMode
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -12,10 +13,12 @@ class FloatBallPickAnchorTest {
   private val ballSizePx = 144f
   private val density = 3f
 
+  private fun testSettings() = AppSettings(freeWindowModeId = FreeWindowMode.STANDARD.id)
+
   @Test
   fun pick_is_above_ball_when_far_from_bottom() {
     val pick = FloatBallPickAnchor.pickPointForBallCenter(
-      settings = AppSettings(),
+      settings = testSettings(),
       ballCenterX = 1000f,
       ballCenterY = 600f,
       ballSizePx = ballSizePx,
@@ -31,7 +34,7 @@ class FloatBallPickAnchorTest {
   fun left_docked_pick_is_left_of_ball_center() {
     val centerX = 80f
     val pick = FloatBallPickAnchor.pickPointForBallCenter(
-      settings = AppSettings(),
+      settings = testSettings(),
       ballCenterX = centerX,
       ballCenterY = 600f,
       ballSizePx = ballSizePx,
@@ -47,7 +50,7 @@ class FloatBallPickAnchorTest {
   fun right_docked_pick_is_right_of_ball_center() {
     val centerX = 1000f
     val pick = FloatBallPickAnchor.pickPointForBallCenter(
-      settings = AppSettings(),
+      settings = testSettings(),
       ballCenterX = centerX,
       ballCenterY = 600f,
       ballSizePx = ballSizePx,
@@ -65,7 +68,7 @@ class FloatBallPickAnchorTest {
       fingerX = 12f,
       ballCenterY = 600f,
       ballSizePx = ballSizePx,
-      settings = AppSettings(),
+      settings = testSettings(),
       screenWidth = screenWidth,
       screenHeight = screenHeight,
       density = density,

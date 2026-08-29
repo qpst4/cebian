@@ -80,7 +80,7 @@ internal class FloatBallGestureDetector(
     private var onPickPreviewMove: ((touchDownX: Float, touchDownY: Float, fingerX: Float, fingerY: Float) -> Unit)? = null
     private var onPickPreviewCancel: (() -> Unit)? = null
     private var onPickStart: ((touchDownX: Float, touchDownY: Float, fingerX: Float, fingerY: Float) -> Unit)? = null
-    private var onPickDrag: ((dx: Float, dy: Float) -> Unit)? = null
+    private var onPickDrag: ((fingerX: Float, fingerY: Float) -> Unit)? = null
     private var onPickEnd: (() -> Unit)? = null
     private var onPickCancel: (() -> Unit)? = null
     private var onGesture: ((FloatBallGestureType, rawX: Float, rawY: Float) -> Unit)? = null
@@ -120,7 +120,7 @@ internal class FloatBallGestureDetector(
         settings: AppSettings,
         density: Float,
         onPickStart: (touchDownX: Float, touchDownY: Float, fingerX: Float, fingerY: Float) -> Unit,
-        onPickDrag: (dx: Float, dy: Float) -> Unit,
+        onPickDrag: (fingerX: Float, fingerY: Float) -> Unit,
         onPickEnd: () -> Unit,
         onPickCancel: () -> Unit,
         onGesture: (FloatBallGestureType, rawX: Float, rawY: Float) -> Unit,
@@ -205,16 +205,18 @@ internal class FloatBallGestureDetector(
                         onPickPreviewMove?.invoke(downX, downY, event.rawX, event.rawY)
                     }
                 }
+                var justStartedPickDrag = false
                 if (distFromStart > slopPx) {
                     movedBeyondSlop = true
                     handler.removeCallbacks(longPressRunnable)
                     pendingSingleTap = false
                     if (!pickDragStarted) {
                         startPickDrag(event.rawX, event.rawY)
+                        justStartedPickDrag = true
                     }
                 }
-                if (pickDragStarted) {
-                    onPickDrag?.invoke(dx, dy)
+                if (pickDragStarted && !justStartedPickDrag) {
+                    onPickDrag?.invoke(event.rawX, event.rawY)
                 }
                 val totalDx = event.rawX - downX
                 val totalDy = event.rawY - downY

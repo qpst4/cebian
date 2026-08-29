@@ -177,7 +177,7 @@ class FloatBallDragSessionTest {
   }
 
   @Test
-  fun slop_pick_follows_ball_center_side_not_fixed_dock_side() {
+  fun drag_maintains_dock_side_anchor_without_jumping_to_opposite_edge() {
     val session = FloatBallDragSession()
     val settings = testSettings(floatBallPointerSlopDp = 32f)
     val centerY = screenHeight * 0.55f
@@ -196,7 +196,7 @@ class FloatBallDragSessionTest {
       density = density,
       pickDockSide = FloatBallSide.RIGHT,
     )
-    session.onFingerMove(-screenWidth * 0.6f, 0f)
+    session.updateFingerPosition(screenWidth - 36f - 50f, centerY)
 
     val pick = session.computePick(
       settings = settings,
@@ -206,7 +206,43 @@ class FloatBallDragSessionTest {
       density = density,
       marginPx = marginPx,
     )
-    assertEquals(0f, pick.x, 0.5f)
+    // Pointer smoothly moves left from right edge (1080) towards left, without flipping dock anchor to 0
+    assertTrue(pick.x < screenWidth)
+    assertTrue(pick.x > 800f)
+  }
+
+  @Test
+  fun lag_jump_absolute_finger_position_aligns_ball_with_finger() {
+    val session = FloatBallDragSession()
+    val settings = testSettings()
+    val centerY = screenHeight * 0.55f
+    val touchDownX = screenWidth - 36f
+    val ballCenterX = screenWidth - ballSizePx / 2f
+
+    // 1. Arm at initial touch down
+    session.armAtTouch(
+      settings = settings,
+      touchDownX = touchDownX,
+      touchDownY = centerY,
+      fingerX = touchDownX,
+      fingerY = centerY,
+      ballCenterX = ballCenterX,
+      ballCenterY = centerY,
+      ballSizePx = ballSizePx,
+      screenWidth = screenWidth,
+      screenHeight = screenHeight,
+      density = density,
+      pickDockSide = FloatBallSide.RIGHT,
+    )
+
+    // 2. Under heavy load, first move jumps 200px to the left in one single event
+    val jumpedFingerX = touchDownX - 200f
+    session.updateFingerPosition(jumpedFingerX, centerY)
+
+    val center = session.ballCenter()
+    val expectedCenterX = jumpedFingerX + (ballCenterX - touchDownX)
+    assertEquals(expectedCenterX, center.x, 0.001f)
+    assertEquals(centerY, center.y, 0.001f)
   }
 
   @Test

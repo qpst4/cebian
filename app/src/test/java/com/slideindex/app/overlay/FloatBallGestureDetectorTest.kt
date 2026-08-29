@@ -3,6 +3,7 @@ package com.slideindex.app.overlay
 import com.slideindex.app.floatball.FloatBallGestureType
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.FloatBallSide
+import com.slideindex.app.settings.FreeWindowMode
 import android.view.MotionEvent
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -15,7 +16,7 @@ import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowLooper
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [30])
+@Config(manifest = Config.NONE, sdk = [34])
 class FloatBallGestureDetectorTest {
     @Test
     fun `predictSwipeGesture returns up short before threshold`() {
@@ -199,7 +200,7 @@ class FloatBallGestureDetectorTest {
             onGesture = { _, _, _ -> },
         ).also {
             it.bind(
-                settings = AppSettings(),
+                settings = AppSettings(freeWindowModeId = FreeWindowMode.STANDARD.id),
                 density = 3f,
                 onPickStart = { _, _, _, _ -> },
                 onPickDrag = { _, _ -> },
@@ -449,6 +450,56 @@ class FloatBallGestureDetectorTest {
         up.recycle()
     }
 
+    @Test
+    fun `lag jump starts pick without double calling drag on transition frame`() {
+        var startFingerX = -1f
+        var startFingerY = -1f
+        var dragFingerX = -1f
+        var dragFingerY = -1f
+        var dragCallCount = 0
+
+        val detector = FloatBallGestureDetector()
+        detector.bind(
+            settings = AppSettings(freeWindowModeId = FreeWindowMode.STANDARD.id),
+            density = 3f,
+            onPickStart = { _, _, fingerX, fingerY ->
+                startFingerX = fingerX
+                startFingerY = fingerY
+            },
+            onPickDrag = { fingerX, fingerY ->
+                dragFingerX = fingerX
+                dragFingerY = fingerY
+                dragCallCount++
+            },
+            onPickEnd = {},
+            onPickCancel = {},
+            onGesture = { _, _, _ -> },
+        )
+
+        val down = MotionEvent.obtain(0, 0, MotionEvent.ACTION_DOWN, 1050f, 500f, 0)
+        // Lag jump: first move is already 200px away
+        val moveJump = MotionEvent.obtain(0, 50, MotionEvent.ACTION_MOVE, 850f, 500f, 0)
+        val moveNext = MotionEvent.obtain(0, 100, MotionEvent.ACTION_MOVE, 800f, 500f, 0)
+
+        detector.onTouchEvent(down)
+        detector.onTouchEvent(moveJump)
+
+        // onPickStart receives 850f, onPickDrag NOT called on same frame
+        assertEquals(850f, startFingerX, 0.001f)
+        assertEquals(500f, startFingerY, 0.001f)
+        assertEquals(0, dragCallCount)
+
+        // on next move, onPickDrag receives 800f
+        detector.onTouchEvent(moveNext)
+        assertEquals(800f, dragFingerX, 0.001f)
+        assertEquals(500f, dragFingerY, 0.001f)
+        assertEquals(1, dragCallCount)
+
+        down.recycle()
+        moveJump.recycle()
+        moveNext.recycle()
+    }
+
     private fun newDetector(
         onPickStart: (Float, Float, Float, Float) -> Unit = { _, _, _, _ -> },
         onPickEnd: () -> Unit = {},
@@ -461,7 +512,7 @@ class FloatBallGestureDetectorTest {
     ): FloatBallGestureDetector {
         val detector = FloatBallGestureDetector()
         detector.bind(
-            settings = AppSettings(),
+            settings = AppSettings(freeWindowModeId = FreeWindowMode.STANDARD.id),
             density = 3f,
             onPickStart = onPickStart,
             onPickDrag = { _, _ -> },

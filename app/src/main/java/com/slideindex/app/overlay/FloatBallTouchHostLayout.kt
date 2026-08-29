@@ -29,7 +29,7 @@ internal class FloatBallTouchHostLayout(
     private var gestureCaptureActive = false
 
     private var onBallDragStart: ((touchDownX: Float, touchDownY: Float, fingerX: Float, fingerY: Float) -> Unit)? = null
-    private var onBallDrag: ((dx: Float, dy: Float) -> Unit)? = null
+    private var onBallDrag: ((fingerX: Float, fingerY: Float) -> Unit)? = null
     private var onBallDragEnd: (() -> Unit)? = null
     private var onBallDragCancel: (() -> Unit)? = null
     private var onBallGesture: ((FloatBallGestureType, rawX: Float, rawY: Float) -> Unit)? = null
@@ -81,7 +81,7 @@ internal class FloatBallTouchHostLayout(
             onDragStart = { downX, downY, fingerX, fingerY ->
                 onBallDragStart?.invoke(downX, downY, fingerX, fingerY)
             },
-            onDrag = { dx, dy -> onBallDrag?.invoke(dx, dy) },
+            onDrag = { fingerX, fingerY -> onBallDrag?.invoke(fingerX, fingerY) },
             onDragEnd = { onBallDragEnd?.invoke() },
             onDragCancel = { onBallDragCancel?.invoke() },
             onGesture = { type, x, y -> onBallGesture?.invoke(type, x, y) },
@@ -99,7 +99,7 @@ internal class FloatBallTouchHostLayout(
 
     fun bindBallCallbacks(
         onDragStart: (touchDownX: Float, touchDownY: Float, fingerX: Float, fingerY: Float) -> Unit,
-        onDrag: (dx: Float, dy: Float) -> Unit,
+        onDrag: (fingerX: Float, fingerY: Float) -> Unit,
         onDragEnd: () -> Unit,
         onDragCancel: () -> Unit,
         onGesture: (FloatBallGestureType, rawX: Float, rawY: Float) -> Unit,

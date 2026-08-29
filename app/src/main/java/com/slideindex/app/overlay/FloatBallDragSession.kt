@@ -60,11 +60,6 @@ internal class FloatBallDragSession {
     pointerModeActive = false
     establishPointerTravel(settings, screenWidth, screenHeight)
 
-    val edgeDockSide = FloatBallPickAnchor.dockSideForBallCenter(
-      ballCenterX = ballCenterX,
-      screenWidth = screenWidth,
-      fallbackDockSide = pickDockSide,
-    )
     val pick = edgeAnchoredPick(
       settings = settings,
       ballCenterY = ballCenterY,
@@ -72,10 +67,15 @@ internal class FloatBallDragSession {
       screenWidth = screenWidth,
       screenHeight = screenHeight,
       density = density,
-      dockSide = edgeDockSide,
+      dockSide = pickDockSide,
     )
     dragPointerAnchorX = pick.x
     dragPointerAnchorY = pick.y
+  }
+
+  fun updateFingerPosition(fingerX: Float, fingerY: Float) {
+    dragFingerX = fingerX
+    dragFingerY = fingerY
   }
 
   fun onFingerMove(dx: Float, dy: Float) {
@@ -137,11 +137,6 @@ internal class FloatBallDragSession {
       screenWidth = screenWidth.roundToInt(),
       screenHeight = screenHeight.roundToInt(),
     )
-    val edgeDockSide = FloatBallPickAnchor.dockSideForBallCenter(
-      ballCenterX = center.x,
-      screenWidth = screenWidth,
-      fallbackDockSide = pickDockSide,
-    )
     val edgePick = edgeAnchoredPick(
       settings = settings,
       ballCenterY = center.y,
@@ -149,20 +144,13 @@ internal class FloatBallDragSession {
       screenWidth = screenWidth,
       screenHeight = screenHeight,
       density = density,
-      dockSide = edgeDockSide,
+      dockSide = pickDockSide,
     )
 
-    if (!pointerModeActive) {
-      // 手势层已过 slop 才进入取词拖；此处不再重复 slop，手指一动即进入 pointer 模式。
-      if (fingerTravelPx() <= 0f) {
-        return edgePick
-      }
-      dragPointerAnchorX = edgePick.x
-      dragPointerAnchorY = edgePick.y
-      dragFingerAnchorX = dragFingerX
-      dragFingerAnchorY = dragFingerY
-      pointerModeActive = true
+    if (fingerTravelPx() <= 0f) {
+      return edgePick
     }
+    pointerModeActive = true
 
     val freePick = FloatingPointerBounds.pointerForFingerDeltaInArea(
       deltaX = dragFingerX - dragFingerAnchorX,
