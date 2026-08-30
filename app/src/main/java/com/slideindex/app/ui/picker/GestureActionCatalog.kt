@@ -14,12 +14,10 @@ enum class GestureActionCatalogScope {
 }
 
 enum class GestureActionCategory(@StringRes val titleRes: Int) {
-    Panel(R.string.action_category_panel),
     Navigation(R.string.action_category_navigation),
-    System(R.string.action_category_system),
-    Media(R.string.action_category_media),
-    Capture(R.string.action_category_capture),
-    Adjust(R.string.action_category_adjust),
+    Controls(R.string.action_category_controls),
+    Intelligence(R.string.action_category_intelligence),
+    Panel(R.string.action_category_panel),
     Pointer(R.string.action_category_pointer),
     Other(R.string.action_category_other),
 }
@@ -80,51 +78,81 @@ object GestureActionCatalog {
     }
 
     fun categoryOf(action: GestureAction): GestureActionCategory = when (action.type) {
-        GestureActionType.NONE,
-        GestureActionType.OPEN_INDEX,
-        GestureActionType.QUICK_LAUNCHER,
-        GestureActionType.HONEYCOMB_LAUNCHER,
-        GestureActionType.APP_SWITCHER,
-        GestureActionType.HOLOGRAPHIC_LAUNCHER,
-        GestureActionType.TASK_SWITCHER,
-        GestureActionType.SHELL_COMMAND_PANEL,
-        GestureActionType.EXECUTE_SHELL_COMMAND,
-        GestureActionType.QUICK_TOOLS_OVERLAY,
-        GestureActionType.WIDGET_POPUP_OVERLAY,
-        GestureActionType.OPEN_STASH_PANEL,
-        GestureActionType.OPEN_CLIPBOARD_PANEL,
-        GestureActionType.OPEN_CLIPBOARD_FLOAT,
-        GestureActionType.CLIPBOARD_PICK,
-        GestureActionType.FLOATING_POINTER,
-        GestureActionType.SEARCH_PANEL,
-        GestureActionType.VOLUME_PANEL,
-        GestureActionType.SCREEN_TRANSLATE,
-        GestureActionType.UNIVERSAL_COPY,
-        GestureActionType.FREEZER_PANEL,
-        GestureActionType.CORNER_INNER_PIN_WHEEL,
-        GestureActionType.CORNER_INNER_CANCEL,
-        -> GestureActionCategory.Panel
-
+        // 1. 导航与系统 (Navigation & System)
         GestureActionType.BACK,
         GestureActionType.HOME,
         GestureActionType.RECENTS,
+        GestureActionType.PREVIOUS_APP,
+        GestureActionType.OPEN_NOTIFICATIONS,
+        GestureActionType.OPEN_QUICK_SETTINGS,
         GestureActionType.CLOSE_CURRENT_APP,
         GestureActionType.FREE_WINDOW_CURRENT_APP,
-        GestureActionType.PREVIOUS_APP,
+        GestureActionType.LOCK_SCREEN,
+        GestureActionType.LOCK_SCREEN_AND_SILENCE_RING,
+        GestureActionType.LOCK_SCREEN_AND_MUTE_ALL,
+        GestureActionType.KEEP_SCREEN_ON,
+        GestureActionType.POWER_MENU,
         GestureActionType.SCROLL_TO_TOP,
         GestureActionType.SCROLL_TO_BOTTOM,
         -> GestureActionCategory.Navigation
 
-        GestureActionType.FLASHLIGHT,
-        GestureActionType.TOGGLE_DND,
-        GestureActionType.SCREEN_RECORD,
+        // 2. 开关与调节 (Controls & Media)
         GestureActionType.TOGGLE_WIFI,
         GestureActionType.TOGGLE_MOBILE_DATA,
+        GestureActionType.FLASHLIGHT,
+        GestureActionType.TOGGLE_DND,
         GestureActionType.TOGGLE_AUTO_ROTATE,
         GestureActionType.FORCE_PORTRAIT,
         GestureActionType.FORCE_LANDSCAPE,
-        GestureActionType.SWITCH_INPUT_METHOD,
+        GestureActionType.TOGGLE_AUTO_BRIGHTNESS,
+        GestureActionType.ADJUST_BRIGHTNESS,
+        GestureActionType.ADJUST_VOLUME,
         GestureActionType.TOGGLE_MUTE,
+        GestureActionType.MEDIA_PLAY_PAUSE,
+        GestureActionType.MEDIA_PREVIOUS,
+        GestureActionType.MEDIA_NEXT,
+        GestureActionType.SWITCH_INPUT_METHOD,
+        -> GestureActionCategory.Controls
+
+        // 3. 截屏与识别 (Capture, OCR & Assistant)
+        GestureActionType.SCREENSHOT,
+        GestureActionType.SCREEN_RECORD,
+        GestureActionType.REGIONAL_SCREENSHOT_PICK,
+        GestureActionType.FULLSCREEN_SCREENSHOT_PICK,
+        GestureActionType.UNIVERSAL_COPY,
+        GestureActionType.SCREEN_TRANSLATE,
+        GestureActionType.LAUNCH_ASSISTANT,
+        GestureActionType.VOICE_SEARCH,
+        GestureActionType.VOICE_ASSISTANT,
+        -> GestureActionCategory.Intelligence
+
+        // 4. 面板与启动 (Panels & Launchers)
+        GestureActionType.NONE,
+        GestureActionType.OPEN_INDEX,
+        GestureActionType.QUICK_LAUNCHER,
+        GestureActionType.APP_SWITCHER,
+        GestureActionType.TASK_SWITCHER,
+        GestureActionType.HONEYCOMB_LAUNCHER,
+        GestureActionType.HOLOGRAPHIC_LAUNCHER,
+        GestureActionType.SEARCH_PANEL,
+        GestureActionType.VOLUME_PANEL,
+        GestureActionType.OPEN_CLIPBOARD_PANEL,
+        GestureActionType.OPEN_CLIPBOARD_FLOAT,
+        GestureActionType.CLIPBOARD_PICK,
+        GestureActionType.OPEN_STASH_PANEL,
+        GestureActionType.WIDGET_POPUP_OVERLAY,
+        GestureActionType.QUICK_TOOLS_OVERLAY,
+        -> GestureActionCategory.Panel
+
+        // 5. 指针与高级 (Pointer & Advanced)
+        GestureActionType.FLOATING_POINTER,
+        GestureActionType.OPEN_FLOATING_POINTER_RADIAL_MENU,
+        GestureActionType.POINTER_GESTURE_RECORDER,
+        GestureActionType.POINTER_REALTIME_GESTURE,
+        GestureActionType.SIMULATE_POINTER_SWIPE,
+        GestureActionType.SHELL_COMMAND_PANEL,
+        GestureActionType.EXECUTE_SHELL_COMMAND,
+        GestureActionType.FREEZER_PANEL,
         GestureActionType.REFREEZE,
         GestureActionType.REMIND,
         GestureActionType.REMIND_1M,
@@ -132,39 +160,10 @@ object GestureActionCatalog {
         GestureActionType.REMIND_5M,
         GestureActionType.REMIND_10M,
         GestureActionType.REMIND_15M,
-        GestureActionType.OPEN_NOTIFICATIONS,
-        GestureActionType.OPEN_QUICK_SETTINGS,
-        GestureActionType.LOCK_SCREEN,
-        GestureActionType.LOCK_SCREEN_AND_SILENCE_RING,
-        GestureActionType.LOCK_SCREEN_AND_MUTE_ALL,
-        GestureActionType.POWER_MENU,
-        GestureActionType.KEEP_SCREEN_ON,
         GestureActionType.SNOOZE_OVERLAYS,
         GestureActionType.CLICK_PASSTHROUGH,
-        -> GestureActionCategory.System
-
-        GestureActionType.MEDIA_PLAY_PAUSE,
-        GestureActionType.MEDIA_PREVIOUS,
-        GestureActionType.MEDIA_NEXT,
-        -> GestureActionCategory.Media
-
-        GestureActionType.SCREENSHOT,
-        GestureActionType.FULLSCREEN_SCREENSHOT_PICK,
-        GestureActionType.REGIONAL_SCREENSHOT_PICK,
-        -> GestureActionCategory.Capture
-
-        GestureActionType.ADJUST_VOLUME,
-        GestureActionType.ADJUST_BRIGHTNESS,
-        GestureActionType.TOGGLE_AUTO_BRIGHTNESS,
-        GestureActionType.LAUNCH_ASSISTANT,
-        GestureActionType.VOICE_SEARCH,
-        GestureActionType.VOICE_ASSISTANT,
-        -> GestureActionCategory.Adjust
-
-        GestureActionType.SIMULATE_POINTER_SWIPE,
-        GestureActionType.POINTER_GESTURE_RECORDER,
-        GestureActionType.POINTER_REALTIME_GESTURE,
-        GestureActionType.OPEN_FLOATING_POINTER_RADIAL_MENU,
+        GestureActionType.CORNER_INNER_PIN_WHEEL,
+        GestureActionType.CORNER_INNER_CANCEL,
         -> GestureActionCategory.Pointer
 
         else -> GestureActionCategory.Other
@@ -182,82 +181,96 @@ object GestureActionCatalog {
         if (!includeCornerInnerZoneActions) {
             add(GestureAction.None)
         }
-        add(GestureAction.OpenIndex)
         add(GestureAction.QuickLauncher())
-        add(GestureAction.HoneycombLauncher)
+        add(GestureAction.OpenIndex)
         add(GestureAction.AppSwitcher)
+        add(GestureAction.TaskSwitcher)
+        add(GestureAction.HoneycombLauncher)
         add(GestureAction.HolographicLauncher)
         addAll(sharedCoreActions())
         if (includePointerGestureActions) {
-            add(GestureAction.SimulatePointerSwipe())
+            add(GestureAction.OpenFloatingPointerRadialMenu)
             add(GestureAction.PointerGestureRecorder)
             add(GestureAction.PointerRealtimeGesture)
-            add(GestureAction.OpenFloatingPointerRadialMenu)
+            add(GestureAction.SimulatePointerSwipe())
         }
         add(GestureAction.SnoozeOverlays)
         if (trigger == GestureTriggerType.SHORT_SINGLE_TAP) add(GestureAction.ClickPassthrough)
     }
 
     private fun buildQuickLauncherActions(): List<GestureAction> = buildList {
+        add(GestureAction.QuickLauncher())
         add(GestureAction.OpenIndex)
+        add(GestureAction.AppSwitcher)
+        add(GestureAction.TaskSwitcher)
+        add(GestureAction.HoneycombLauncher)
+        add(GestureAction.HolographicLauncher)
         addAll(sharedCoreActions())
         add(GestureAction.SnoozeOverlays)
     }
 
     private fun sharedCoreActions(): List<GestureAction> = listOf(
-        GestureAction.TaskSwitcher,
-        GestureAction.ShellCommandPanel,
-        GestureAction.ExecuteShellCommand(),
-        GestureAction.QuickToolsOverlay,
-        GestureAction.WidgetPopupOverlay,
-        GestureAction.StashPanel,
-        GestureAction.ClipboardPanel,
-        GestureAction.ClipboardFloat,
-        GestureAction.ClipboardPick,
-        GestureAction.FloatingPointer,
+        // 1. 导航与系统 (Navigation & System)
         GestureAction.Back,
         GestureAction.Home,
         GestureAction.Recents,
+        GestureAction.PreviousApp,
+        GestureAction.OpenNotifications,
+        GestureAction.OpenQuickSettings,
         GestureAction.CloseCurrentApp,
         GestureAction.FreeWindowCurrentApp,
-        GestureAction.Flashlight,
-        GestureAction.ToggleDnd,
-        GestureAction.ScreenRecord,
+        GestureAction.LockScreen,
+        GestureAction.LockScreenAndSilenceRing,
+        GestureAction.LockScreenAndMuteAll,
+        GestureAction.KeepScreenOn,
+        GestureAction.PowerMenu,
+        GestureAction.ScrollToTop,
+        GestureAction.ScrollToBottom,
+
+        // 2. 开关与调节 (Controls & Media)
         GestureAction.ToggleWifi,
         GestureAction.ToggleMobileData,
-        GestureAction.SwitchInputMethod,
+        GestureAction.Flashlight,
+        GestureAction.ToggleDnd,
+        GestureAction.ToggleAutoRotate,
+        GestureAction.ForcePortrait,
+        GestureAction.ForceLandscape,
+        GestureAction.ToggleAutoBrightness,
+        GestureAction.AdjustBrightness,
+        GestureAction.AdjustVolume,
         GestureAction.ToggleMute,
         GestureAction.MediaPlayPause,
         GestureAction.MediaPrevious,
         GestureAction.MediaNext,
-        GestureAction.PreviousApp,
-        GestureAction.OpenNotifications,
-        GestureAction.OpenQuickSettings,
-        GestureAction.LockScreen,
-        GestureAction.LockScreenAndSilenceRing,
-        GestureAction.LockScreenAndMuteAll,
+        GestureAction.SwitchInputMethod,
+
+        // 3. 截屏与识别 (Capture, OCR & Assistant)
         GestureAction.Screenshot,
-        GestureAction.FullscreenScreenshotPick,
+        GestureAction.ScreenRecord,
         GestureAction.RegionalScreenshotPick,
-        GestureAction.SearchPanel,
-        GestureAction.VolumePanel,
-        GestureAction.ScreenTranslate,
+        GestureAction.FullscreenScreenshotPick,
         GestureAction.UniversalCopy,
-        GestureAction.FreezerPanel,
-        GestureAction.Remind,
-        GestureAction.Refreeze,
-        GestureAction.PowerMenu,
-        GestureAction.KeepScreenOn,
-        GestureAction.ScrollToTop,
-        GestureAction.ScrollToBottom,
-        GestureAction.AdjustVolume,
-        GestureAction.AdjustBrightness,
-        GestureAction.ToggleAutoBrightness,
+        GestureAction.ScreenTranslate,
         GestureAction.LaunchAssistant,
         GestureAction.VoiceSearch,
         GestureAction.VoiceAssistant,
-        GestureAction.ToggleAutoRotate,
-        GestureAction.ForcePortrait,
-        GestureAction.ForceLandscape,
+
+        // 4. 面板与启动器 (Panels & Launchers)
+        GestureAction.SearchPanel,
+        GestureAction.VolumePanel,
+        GestureAction.ClipboardPanel,
+        GestureAction.ClipboardFloat,
+        GestureAction.ClipboardPick,
+        GestureAction.StashPanel,
+        GestureAction.WidgetPopupOverlay,
+        GestureAction.QuickToolsOverlay,
+
+        // 5. 指针与高级工具 (Pointer & Advanced)
+        GestureAction.FloatingPointer,
+        GestureAction.ShellCommandPanel,
+        GestureAction.ExecuteShellCommand(),
+        GestureAction.FreezerPanel,
+        GestureAction.Refreeze,
+        GestureAction.Remind,
     )
 }

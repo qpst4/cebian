@@ -45,10 +45,9 @@ fun filterGestureActions(
     actions: List<GestureAction>,
     query: String,
 ): List<GestureAction> {
-    val sorted = actions.sortedBy { gestureActionSortKey(context, it) }
     val q = query.trim().lowercase()
-    if (q.isEmpty()) return sorted
-    return sorted.filter { action ->
+    if (q.isEmpty()) return actions
+    return actions.filter { action ->
         val label = gestureActionLabelText(context, action)
         label.lowercase().contains(q) ||
             PinyinHelper.sortKey(label).contains(q) ||
