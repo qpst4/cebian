@@ -46,6 +46,8 @@ data class HoneycombDisplayConfig(
         const val BACKGROUND_WALLPAPER_BLUR = HoneycombDisplaySettings.BACKGROUND_WALLPAPER_BLUR
         const val MIN_DISC_SIZE_PERCENT = HoneycombDisplaySettings.MIN_DISC_SIZE_PERCENT
         const val MAX_DISC_SIZE_PERCENT = HoneycombDisplaySettings.MAX_DISC_SIZE_PERCENT
+        const val MIN_DIM_PERCENT = HoneycombDisplaySettings.MIN_DIM_PERCENT
+        const val MAX_DIM_PERCENT = HoneycombDisplaySettings.MAX_DIM_PERCENT
 
         fun from(settings: AppSettings): HoneycombDisplayConfig {
             val display = settings.honeycombDisplay

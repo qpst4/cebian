@@ -1126,7 +1126,8 @@ public final class HoneycombOverlayView extends View {
     }
 
     private float resolvedMaskAlpha(float visible) {
-        int clampedDim = Math.max(88, Math.min(100, dimPercent));
+        int clampedDim = Math.max(HoneycombDisplayConfig.MIN_DIM_PERCENT,
+                Math.min(HoneycombDisplayConfig.MAX_DIM_PERCENT, dimPercent));
         return 255f * clampedDim / 100f * visible;
     }
 
