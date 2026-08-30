@@ -564,6 +564,30 @@ fun triggerLabel(side: PanelSide, trigger: GestureTriggerType): String = stringR
 
         }
 
+        GestureTriggerType.SHORT_SWIPE_IN_UP, GestureTriggerType.LONG_SWIPE_IN_UP -> when (side) {
+
+            PanelSide.LEFT -> R.string.gesture_swipe_in_up_left
+
+            PanelSide.RIGHT -> R.string.gesture_swipe_in_up_right
+
+            PanelSide.BOTTOM -> R.string.gesture_swipe_in_up_bottom
+
+            PanelSide.TOP -> R.string.gesture_swipe_in_up_top
+
+        }
+
+        GestureTriggerType.SHORT_SWIPE_IN_DOWN, GestureTriggerType.LONG_SWIPE_IN_DOWN -> when (side) {
+
+            PanelSide.LEFT -> R.string.gesture_swipe_in_down_left
+
+            PanelSide.RIGHT -> R.string.gesture_swipe_in_down_right
+
+            PanelSide.BOTTOM -> R.string.gesture_swipe_in_down_bottom
+
+            PanelSide.TOP -> R.string.gesture_swipe_in_down_top
+
+        }
+
         GestureTriggerType.SHORT_SWIPE_UP -> when (side) {
 
             PanelSide.BOTTOM, PanelSide.TOP -> R.string.gesture_short_swipe_left

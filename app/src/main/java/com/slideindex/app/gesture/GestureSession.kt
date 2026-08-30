@@ -536,12 +536,23 @@ class GestureSession(
         forceReset(notifySessionEnd = true)
     }
 
-    internal fun classifyOptions(): SwipePathRecognizer.ClassifyOptions =
-        if (sessionSettings.actionFor(side, GestureTriggerType.SHORT_SINGLE_TAP, sessionActiveHandleId) is GestureAction.ClickPassthrough) {
+    internal fun classifyOptions(): SwipePathRecognizer.ClassifyOptions {
+        val preferLenientTap = sessionSettings.actionFor(
+            side,
+            GestureTriggerType.SHORT_SINGLE_TAP,
+            sessionActiveHandleId,
+        ) is GestureAction.ClickPassthrough
+        val base = if (preferLenientTap) {
             SwipePathRecognizer.ClassifyOptions.LENIENT_SINGLE_TAP
         } else {
             SwipePathRecognizer.ClassifyOptions.DEFAULT
         }
+        return base.copy(
+            isTriggerConfigured = { trigger ->
+                sessionSettings.actionFor(side, trigger, sessionActiveHandleId) !is GestureAction.None
+            },
+        )
+    }
 
     internal fun enterAdjustMode(mode: ContinuousAdjustController.Mode, rawY: Float) {
         if (sessionAdjustMode == mode) {

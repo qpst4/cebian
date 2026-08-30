@@ -18,6 +18,8 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.overlay.animation.GestureAnimationTriggerDirection.Center
@@ -28,14 +30,40 @@ import com.slideindex.app.overlay.animation.GestureAnimationTriggerDirection.Dow
 import com.slideindex.app.overlay.animation.GestureAnimationTriggerDirection.Up
 import com.slideindex.app.overlay.animation.GestureAnimationTriggerDirection.Up2
 import com.slideindex.app.gesture.GestureAnimationProgress
+import com.slideindex.app.gesture.GestureTriggerType
 import com.slideindex.app.gesture.SwipeDirection
+import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.settings.AnimationStyle
 import com.slideindex.app.settings.BubbleStyle
 import com.slideindex.app.settings.CapsuleStyle
 import com.slideindex.app.settings.WaveStyle
 import com.slideindex.app.settings.animationIconInitialRotation
 import com.slideindex.app.settings.painterIcon
+import com.slideindex.app.ui.ThinActionIcons
+import com.slideindex.app.ui.gestureTriggerIconImageVector
+import com.slideindex.app.ui.gestureTriggerIconRotationZ
 import kotlin.math.abs
+
+@Composable
+private fun rememberCornerPainters(): (PanelSide, GestureTriggerType, Painter) -> Painter {
+    val cornerUpPainter = rememberVectorPainter(ThinActionIcons.CornerArrowUpRight)
+    val cornerDownPainter = rememberVectorPainter(ThinActionIcons.CornerArrowDownRight)
+    val doubleCornerUpPainter = rememberVectorPainter(ThinActionIcons.DoubleCornerArrowUpRight)
+    val doubleCornerDownPainter = rememberVectorPainter(ThinActionIcons.DoubleCornerArrowDownRight)
+
+    return remember(cornerUpPainter, cornerDownPainter, doubleCornerUpPainter, doubleCornerDownPainter) {
+        { side, trigger, fallback ->
+            val vector = gestureTriggerIconImageVector(side, trigger)
+            when (vector) {
+                ThinActionIcons.CornerArrowUpRight -> cornerUpPainter
+                ThinActionIcons.CornerArrowDownRight -> cornerDownPainter
+                ThinActionIcons.DoubleCornerArrowUpRight -> doubleCornerUpPainter
+                ThinActionIcons.DoubleCornerArrowDownRight -> doubleCornerDownPainter
+                else -> fallback
+            }
+        }
+    }
+}
 
 @Composable
 fun GestureAnimation(
@@ -69,7 +97,9 @@ private fun CapsuleGestureAnimation(
     modifier: Modifier = Modifier,
 ) {
     val button = animationState.button ?: return
-    val icon = animationStyle.painterIcon()
+    val shortIcon = animationStyle.painterIcon(isLong = false)
+    val longIcon = animationStyle.painterIcon(isLong = true)
+    val cornerPainterResolver = rememberCornerPainters()
     @Suppress("UNUSED_VARIABLE")
     val redrawFrame = animationState.redrawTick
 
@@ -170,7 +200,11 @@ private fun CapsuleGestureAnimation(
         }
         val radiusCap = minOf(rectSize.width, rectSize.height) / 2f
         val cornerRadius = animationStyle.cornerRadius.toFloat().coerceIn(0f, radiusCap)
-        val activeAlpha = if (animationState.canDistanceTriggered(button, false)) 1f else 0.55f
+        val canTriggered = animationState.canDistanceTriggered(button, isLongSlide = false)
+        val isLongSlide = animationState.canDistanceTriggered(button, isLongSlide = true) ||
+            animationState.triggerDirection.isLong ||
+            animationState.currentTrigger?.isLongDistance == true
+        val activeAlpha = if (canTriggered) 1f else 0.35f
 
         drawRoundRect(
             color = Color(animationStyle.backgroundColor),
@@ -188,12 +222,25 @@ private fun CapsuleGestureAnimation(
             )
         }
 
-        val degree = animationIconInitialRotation(button.position) +
-            triggerRotationOffset(
-                animationState.triggerDirection,
-                button.position,
-                animationState.swipeDirection,
-            )
+        val side = button.position.toPanelSide()
+        val cornerTrigger = animationState.currentTrigger
+        val isCorner = cornerTrigger?.isCornerSwipe == true
+        val baseIcon = if (isLongSlide) longIcon else shortIcon
+        val activeIcon = if (isCorner && cornerTrigger != null) {
+            cornerPainterResolver(side, cornerTrigger, baseIcon)
+        } else {
+            baseIcon
+        }
+        val degree = if (isCorner && cornerTrigger != null) {
+            gestureTriggerIconRotationZ(side, cornerTrigger)
+        } else {
+            animationIconInitialRotation(button.position) +
+                triggerRotationOffset(
+                    animationState.triggerDirection,
+                    button.position,
+                    animationState.swipeDirection,
+                )
+        }
         val iconSize = minOf(rectSize.width, rectSize.height) * animationStyle.iconScale
         val rectCenter = Offset(
             x = topLeft.x + rectSize.width / 2f,
@@ -201,7 +248,7 @@ private fun CapsuleGestureAnimation(
         )
         rotate(degree, pivot = rectCenter) {
             translate(left = rectCenter.x - iconSize / 2f, top = rectCenter.y - iconSize / 2f) {
-                icon.run {
+                activeIcon.run {
                     draw(
                         size = Size(iconSize, iconSize),
                         colorFilter = ColorFilter.tint(Color(animationStyle.iconColor)),
@@ -220,7 +267,9 @@ private fun BubbleGestureAnimation(
     modifier: Modifier = Modifier,
 ) {
     val button = animationState.button ?: return
-    val icon = animationStyle.painterIcon()
+    val shortIcon = animationStyle.painterIcon(isLong = false)
+    val longIcon = animationStyle.painterIcon(isLong = true)
+    val cornerPainterResolver = rememberCornerPainters()
     @Suppress("UNUSED_VARIABLE")
     val redrawFrame = animationState.redrawTick
 
@@ -297,7 +346,11 @@ private fun BubbleGestureAnimation(
                     -radius + offset + yShift
                 }
         }
-        val activeAlpha = if (animationState.canDistanceTriggered(button, false)) 1f else 0.55f
+        val canTriggered = animationState.canDistanceTriggered(button, isLongSlide = false)
+        val isLongSlide = animationState.canDistanceTriggered(button, isLongSlide = true) ||
+            animationState.triggerDirection.isLong ||
+            animationState.currentTrigger?.isLongDistance == true
+        val activeAlpha = if (canTriggered) 1f else 0.35f
 
         drawCircle(
             color = Color(animationStyle.backgroundColor),
@@ -313,12 +366,25 @@ private fun BubbleGestureAnimation(
             )
         }
 
-        val degree = animationIconInitialRotation(button.position) +
-            triggerRotationOffset(
-                animationState.triggerDirection,
-                button.position,
-                animationState.swipeDirection,
-            )
+        val side = button.position.toPanelSide()
+        val cornerTrigger = animationState.currentTrigger
+        val isCorner = cornerTrigger?.isCornerSwipe == true
+        val baseIcon = if (isLongSlide) longIcon else shortIcon
+        val activeIcon = if (isCorner && cornerTrigger != null) {
+            cornerPainterResolver(side, cornerTrigger, baseIcon)
+        } else {
+            baseIcon
+        }
+        val degree = if (isCorner && cornerTrigger != null) {
+            gestureTriggerIconRotationZ(side, cornerTrigger)
+        } else {
+            animationIconInitialRotation(button.position) +
+                triggerRotationOffset(
+                    animationState.triggerDirection,
+                    button.position,
+                    animationState.swipeDirection,
+                )
+        }
         val iconSize = diameter * animationStyle.iconScale
         val bubbleCenter = Offset(centerX, centerY)
         rotate(degree, pivot = bubbleCenter) {
@@ -326,7 +392,7 @@ private fun BubbleGestureAnimation(
                 left = centerX - radius + radius - iconSize / 2f,
                 top = centerY - radius + radius - iconSize / 2f,
             ) {
-                icon.run {
+                activeIcon.run {
                     draw(
                         size = Size(iconSize, iconSize),
                         colorFilter = ColorFilter.tint(Color(animationStyle.iconColor)),
@@ -345,7 +411,9 @@ private fun WaveGestureAnimation(
     modifier: Modifier = Modifier,
 ) {
     val button = animationState.button ?: return
-    val icon = animationStyle.painterIcon()
+    val shortIcon = animationStyle.painterIcon(isLong = false)
+    val longIcon = animationStyle.painterIcon(isLong = true)
+    val cornerPainterResolver = rememberCornerPainters()
     val bezierPath = remember { Path() }
     val density = LocalDensity.current
     @Suppress("UNUSED_VARIABLE")
@@ -538,12 +606,29 @@ private fun WaveGestureAnimation(
             GestureAnimationPosition.Bottom, GestureAnimationPosition.Top ->
                 bezierPath.getBounds().translate(Offset(transformOffset, 0f))
         }
+        val side = button.position.toPanelSide()
+        val cornerTrigger = animationState.currentTrigger
+        val isCorner = cornerTrigger?.isCornerSwipe == true
+        val canTriggered = animationState.canDistanceTriggered(button, isLongSlide = false)
+        val isLongSlide = animationState.canDistanceTriggered(button, isLongSlide = true) ||
+            animationState.triggerDirection.isLong ||
+            animationState.currentTrigger?.isLongDistance == true
+        val baseIcon = if (isLongSlide) longIcon else shortIcon
+        val activeIcon = if (isCorner && cornerTrigger != null) {
+            cornerPainterResolver(side, cornerTrigger, baseIcon)
+        } else {
+            baseIcon
+        }
         val initialDegree = animationIconInitialRotation(button.position)
-        val degree = initialDegree + triggerRotationOffset(
-            triggerDirection,
-            button.position,
-            animationState.swipeDirection,
-        )
+        val degree = if (isCorner && cornerTrigger != null) {
+            gestureTriggerIconRotationZ(side, cornerTrigger)
+        } else {
+            initialDegree + triggerRotationOffset(
+                triggerDirection,
+                button.position,
+                animationState.swipeDirection,
+            )
+        }
         rotate(degree, pivot = bezierBounds.center) {
             val radius = when (button.position) {
                 GestureAnimationPosition.Left, GestureAnimationPosition.Right ->
@@ -569,12 +654,11 @@ private fun WaveGestureAnimation(
                     -paddingVert - animationStyle.strokeWidth
             }
             translate(left = left, top = top) {
-                val canTriggered = animationState.canDistanceTriggered(button, false)
-                icon.run {
+                activeIcon.run {
                     draw(
                         size = Size(radius, radius),
                         colorFilter = ColorFilter.tint(Color(animationStyle.iconColor)),
-                        alpha = if (canTriggered) 1f else 0.25f,
+                        alpha = if (canTriggered) 1f else 0.35f,
                     )
                 }
             }

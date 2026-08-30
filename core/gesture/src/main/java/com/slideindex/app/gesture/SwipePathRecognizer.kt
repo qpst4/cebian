@@ -19,6 +19,7 @@ class SwipePathRecognizer(
         val tapSlopMultiplier: Float = 1f,
         val tapMaxMs: Long = TAP_MAX_MS,
         val preferSingleTap: Boolean = false,
+        val isTriggerConfigured: ((GestureTriggerType) -> Boolean)? = null,
     ) {
         companion object {
             val DEFAULT = ClassifyOptions()
@@ -45,6 +46,7 @@ class SwipePathRecognizer(
     private var stripBounds = RectF()
     private var lastRawX = 0f
     private var lastRawY = 0f
+    private var inwardReachedShortThreshold = false
 
     fun applyDistances(shortDp: Float, longDp: Float) {
         shortDistanceDp = shortDp.coerceIn(0f, MAX_DISTANCE_DP)
@@ -73,6 +75,7 @@ class SwipePathRecognizer(
         peakInward = 0f
         peakSwipeDistance = 0f
         peakDy = 0f
+        inwardReachedShortThreshold = false
     }
 
     fun gestureStartRawX(): Float = startRawX
@@ -134,7 +137,11 @@ class SwipePathRecognizer(
         val dx = rawX - startRawX
         val dy = rawY - startRawY
         val inward = inwardDelta(dx, dy)
-        val swipeDist = resolveDirectionAt(rawX, rawY)?.let { direction ->
+        val resolvedDir = resolveDirectionAt(rawX, rawY)
+        if (resolvedDir == SwipeDirection.IN && inward >= shortDistanceDp * density) {
+            inwardReachedShortThreshold = true
+        }
+        val swipeDist = resolvedDir?.let { direction ->
             measureDistanceForDirection(rawX, rawY, direction)
         } ?: hypot(inward.toDouble(), dy.toDouble()).toFloat()
         if (swipeDist > peakSwipeDistance) {
@@ -267,6 +274,7 @@ class SwipePathRecognizer(
         peakInward = 0f
         peakSwipeDistance = 0f
         peakDy = 0f
+        inwardReachedShortThreshold = false
     }
 
     private fun computeClassification(
@@ -310,7 +318,7 @@ class SwipePathRecognizer(
             }
             partial && options.preferSingleTap && distance < tapSlop -> null
             partial && distance < shortDistanceDp * density && !longPressTriggered -> null
-            else -> directionTrigger(rawX, rawY, distance)
+            else -> directionTrigger(rawX, rawY, distance, options)
         }
         return trigger?.let { SwipeClassification(it, inward, dy) }
     }
@@ -318,8 +326,44 @@ class SwipePathRecognizer(
     private fun inwardDelta(dx: Float, dy: Float = 0f): Float =
         SwipePathGeometry.inwardDelta(dx, dy, side)
 
-    private fun directionTrigger(rawX: Float, rawY: Float, distance: Float): GestureTriggerType? =
-        SwipePathGeometry.classifySwipeTrigger(
+    private fun directionTrigger(
+        rawX: Float,
+        rawY: Float,
+        distance: Float,
+        options: ClassifyOptions,
+    ): GestureTriggerType? {
+        val corner = SwipePathGeometry.resolveCornerSwipeTrigger(
+            side = side,
+            inwardReachedThreshold = inwardReachedShortThreshold,
+            currentInward = inwardDelta(rawX - startRawX, rawY - startRawY),
+            shortThresholdPx = shortDistanceDp * density,
+            longThresholdPx = longDistanceDp * density,
+            startX = startRawX,
+            startY = startRawY,
+            fingerX = rawX,
+            fingerY = rawY,
+            turnThresholdPx = TURN_SLOP_DP * density,
+        )
+        if (corner != null) {
+            val filter = options.isTriggerConfigured
+            if (filter == null) {
+                return corner
+            }
+            val counterpart = when (corner) {
+                GestureTriggerType.SHORT_SWIPE_IN_UP -> GestureTriggerType.LONG_SWIPE_IN_UP
+                GestureTriggerType.LONG_SWIPE_IN_UP -> GestureTriggerType.SHORT_SWIPE_IN_UP
+                GestureTriggerType.SHORT_SWIPE_IN_DOWN -> GestureTriggerType.LONG_SWIPE_IN_DOWN
+                GestureTriggerType.LONG_SWIPE_IN_DOWN -> GestureTriggerType.SHORT_SWIPE_IN_DOWN
+                else -> null
+            }
+            val thisConfigured = filter(corner)
+            val counterpartConfigured = counterpart?.let { filter(it) } ?: false
+            if (thisConfigured || counterpartConfigured) {
+                return corner
+            }
+        }
+
+        return SwipePathGeometry.classifySwipeTrigger(
             side = side,
             stripBounds = stripBounds,
             startX = startRawX,
@@ -330,6 +374,7 @@ class SwipePathRecognizer(
             longThresholdPx = longDistanceDp * density,
             angle = gestureAngle,
         )
+    }
 
     fun currentSwipeDirection(): SwipeDirection? {
         if (!tracking) return null
@@ -401,6 +446,7 @@ class SwipePathRecognizer(
         const val LONG_PRESS_MS = 450L
         private const val TAP_SLOP_DP = 12f
         private const val TAP_LENIENT_SLOP_DP = 36f
+        const val TURN_SLOP_DP = 32f
         private const val INDEX_ENTER_DP = 24f
         private const val TAP_MAX_MS = 220L
         private const val TAP_LENIENT_MAX_MS = 450L

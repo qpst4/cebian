@@ -112,6 +112,36 @@ internal object SwipePathGeometry {
         }
     }
 
+    fun alongDelta(dx: Float, dy: Float, side: PanelSide): Float = when (side) {
+        PanelSide.LEFT, PanelSide.RIGHT -> dy
+        PanelSide.BOTTOM, PanelSide.TOP -> dx
+    }
+
+    fun resolveCornerSwipeTrigger(
+        side: PanelSide,
+        inwardReachedThreshold: Boolean,
+        currentInward: Float,
+        shortThresholdPx: Float,
+        longThresholdPx: Float,
+        startX: Float,
+        startY: Float,
+        fingerX: Float,
+        fingerY: Float,
+        turnThresholdPx: Float,
+    ): GestureTriggerType? {
+        if (!inwardReachedThreshold) return null
+        if (currentInward < shortThresholdPx * 0.45f) return null
+        val along = alongDelta(fingerX - startX, fingerY - startY, side)
+        if (abs(along) < turnThresholdPx) return null
+        val totalDistance = hypot(currentInward.toDouble(), along.toDouble()).toFloat()
+        val isLong = currentInward >= longThresholdPx || totalDistance >= longThresholdPx
+        return if (along < 0f) {
+            if (isLong) GestureTriggerType.LONG_SWIPE_IN_UP else GestureTriggerType.SHORT_SWIPE_IN_UP
+        } else {
+            if (isLong) GestureTriggerType.LONG_SWIPE_IN_DOWN else GestureTriggerType.SHORT_SWIPE_IN_DOWN
+        }
+    }
+
     fun classifySwipeTrigger(
         inward: Float,
         dy: Float,

@@ -8,10 +8,12 @@ package com.slideindex.app.overlay.animation
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.spring
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Offset
+import com.slideindex.app.gesture.GestureTriggerType
 import com.slideindex.app.gesture.SwipeDirection
 import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.settings.WaveStyle
@@ -36,6 +38,10 @@ class GestureAnimationState(
     var triggerDirection: GestureAnimationTriggerDirection by mutableStateOf(GestureAnimationTriggerDirection.Center2)
         private set
     var swipeDirection: SwipeDirection? by mutableStateOf(null)
+        private set
+    var currentTrigger: GestureTriggerType? by mutableStateOf(null)
+        private set
+    var currentDistancePx: Float by mutableFloatStateOf(0f)
         private set
     var isActive by mutableStateOf(false)
         private set
@@ -93,6 +99,8 @@ class GestureAnimationState(
         finger = Offset(rawX, rawY)
         triggerDirection = GestureAnimationTriggerDirection.Center2
         swipeDirection = null
+        currentTrigger = null
+        currentDistancePx = 0f
 
         animJob = scope.launch(start = CoroutineStart.UNDISPATCHED) {
             animMutex.withLock {
@@ -117,13 +125,22 @@ class GestureAnimationState(
         }
     }
 
-    fun onDrag(rawX: Float, rawY: Float, swipeDirection: SwipeDirection?, inwardPx: Float) {
+    fun onDrag(
+        rawX: Float,
+        rawY: Float,
+        swipeDirection: SwipeDirection?,
+        inwardPx: Float,
+        currentTrigger: GestureTriggerType? = null,
+        currentDistancePx: Float = 0f,
+    ) {
         if (!isActive) return
         val dragAmount = Offset(rawX - finger.x, rawY - finger.y)
         finger = Offset(rawX, rawY)
 
-        val longDistance = inwardPx >= longTriggerDistancePx
+        val longDistance = inwardPx >= longTriggerDistancePx || currentDistancePx >= longTriggerDistancePx
         this.swipeDirection = swipeDirection
+        this.currentTrigger = currentTrigger
+        this.currentDistancePx = currentDistancePx
         triggerDirection = swipeDirection.toGestureTriggerDirection(longDistance)
 
         animJob = scope.launch {
@@ -151,6 +168,8 @@ class GestureAnimationState(
         finger = Offset.Unspecified
         triggerDirection = GestureAnimationTriggerDirection.Center2
         swipeDirection = null
+        currentTrigger = null
+        currentDistancePx = 0f
         button = null
         scope.launch {
             animMutex.withLock {
@@ -173,6 +192,8 @@ class GestureAnimationState(
         val position = button?.position ?: run {
             triggerDirection = GestureAnimationTriggerDirection.Center2
             swipeDirection = null
+            currentTrigger = null
+            currentDistancePx = 0f
             clearAnimValues()
             return
         }
@@ -193,6 +214,8 @@ class GestureAnimationState(
             }
             triggerDirection = GestureAnimationTriggerDirection.Center2
             swipeDirection = null
+            currentTrigger = null
+            currentDistancePx = 0f
             clearAnimValues()
         }
     }
@@ -212,6 +235,11 @@ class GestureAnimationState(
 
     fun canDistanceTriggered(target: GestureAnimationButton, isLongSlide: Boolean): Boolean {
         if (!isActive) return false
+        val threshold = if (isLongSlide) longTriggerDistancePx else shortTriggerDistancePx
+        if (currentDistancePx >= threshold) return true
+        if (currentTrigger?.isCornerSwipe == true) {
+            return if (isLongSlide) currentTrigger?.isLongDistance == true else true
+        }
         val originX = origin.x
         val originY = origin.y
         val fingerX = finger.x + stickySlideOffset(target.position, horizontal = true)
@@ -237,7 +265,6 @@ class GestureAnimationState(
             return false
         }
 
-        val threshold = if (isLongSlide) longTriggerDistancePx else shortTriggerDistancePx
         return when (direction) {
             GestureAnimationTriggerDirection.Center, GestureAnimationTriggerDirection.Center2 ->
                 slideDistance >= threshold

@@ -218,31 +218,23 @@ class GestureAnimationCoordinator(
 
 
     private fun classifyOptions(): SwipePathRecognizer.ClassifyOptions {
-
         val settings = settingsProvider()
-
         val handleId = gestureSessionProvider().activeHandleId()
-
         val preferLenientTap = settings.actionFor(
-
             side,
-
             GestureTriggerType.SHORT_SINGLE_TAP,
-
             handleId,
-
         ) is GestureAction.ClickPassthrough
-
-        return if (preferLenientTap) {
-
+        val base = if (preferLenientTap) {
             SwipePathRecognizer.ClassifyOptions.LENIENT_SINGLE_TAP
-
         } else {
-
             SwipePathRecognizer.ClassifyOptions.DEFAULT
-
         }
-
+        return base.copy(
+            isTriggerConfigured = { trigger ->
+                settings.actionFor(side, trigger, handleId) !is GestureAction.None
+            },
+        )
     }
 
 
@@ -261,27 +253,20 @@ class GestureAnimationCoordinator(
         if (!state.isActive) return
 
         val recognizer = pathRecognizerProvider()
-
+        val classification = recognizer.classifyPartial(rawX, rawY, classifyOptions())
         val direction = if (shouldShowGestureAnimation()) {
-
             recognizer.currentSwipeDirection()
-
         } else {
-
             null
-
         }
 
         state.onDrag(
-
             rawX = rawX,
-
             rawY = rawY,
-
             swipeDirection = direction,
-
             inwardPx = recognizer.currentInwardPx(),
-
+            currentTrigger = classification?.trigger,
+            currentDistancePx = recognizer.currentSwipeDistancePx(),
         )
 
     }

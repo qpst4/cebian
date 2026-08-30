@@ -8,6 +8,8 @@ enum class GestureTriggerType(val id: Int, val isLongDistance: Boolean) {
     SHORT_SWIPE_DOWN(4, false),
     SHORT_LONG_PRESS(5, false),
     SHORT_SINGLE_TAP(6, false),
+    SHORT_SWIPE_IN_UP(7, false),
+    SHORT_SWIPE_IN_DOWN(8, false),
     LONG_SWIPE_IN(10, true),
     LONG_SWIPE_UP_RIGHT(11, true),
     LONG_SWIPE_DOWN_RIGHT(12, true),
@@ -15,7 +17,13 @@ enum class GestureTriggerType(val id: Int, val isLongDistance: Boolean) {
     LONG_SWIPE_DOWN(14, true),
     LONG_LONG_PRESS(15, true),
     LONG_SINGLE_TAP(16, true),
+    LONG_SWIPE_IN_UP(17, true),
+    LONG_SWIPE_IN_DOWN(18, true),
     ;
+
+    val isCornerSwipe: Boolean
+        get() = this == SHORT_SWIPE_IN_UP || this == SHORT_SWIPE_IN_DOWN ||
+            this == LONG_SWIPE_IN_UP || this == LONG_SWIPE_IN_DOWN
 
     val supportsIndex: Boolean
         get() = this == SHORT_SWIPE_UP || this == SHORT_SWIPE_DOWN ||

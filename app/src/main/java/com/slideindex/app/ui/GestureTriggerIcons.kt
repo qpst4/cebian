@@ -25,7 +25,7 @@ fun GestureTriggerIcon(
     modifier: Modifier = Modifier,
 ) {
     Icon(
-        imageVector = gestureTriggerIconImageVector(trigger),
+        imageVector = gestureTriggerIconImageVector(side, trigger),
         contentDescription = contentDescription,
         tint = LocalContentColor.current,
         modifier = modifier.graphicsLayer {
@@ -34,11 +34,32 @@ fun GestureTriggerIcon(
     )
 }
 
-fun gestureTriggerIconImageVector(trigger: GestureTriggerType): ImageVector = when {
-    trigger.isLongPress -> MaterialTouchIcons.LongPress
-    trigger.isSingleTap -> MaterialTouchIcons.SingleTap
-    trigger.isLongDistance -> ThinActionIcons.DoubleArrowRight
-    else -> ThinActionIcons.ArrowRight
+fun gestureTriggerIconImageVector(trigger: GestureTriggerType): ImageVector =
+    gestureTriggerIconImageVector(PanelSide.LEFT, trigger)
+
+fun gestureTriggerIconImageVector(side: PanelSide, trigger: GestureTriggerType): ImageVector = when (trigger) {
+    GestureTriggerType.SHORT_SWIPE_IN_UP -> when (side) {
+        PanelSide.LEFT, PanelSide.BOTTOM -> ThinActionIcons.CornerArrowUpRight
+        PanelSide.RIGHT, PanelSide.TOP -> ThinActionIcons.CornerArrowDownRight
+    }
+    GestureTriggerType.SHORT_SWIPE_IN_DOWN -> when (side) {
+        PanelSide.LEFT, PanelSide.BOTTOM -> ThinActionIcons.CornerArrowDownRight
+        PanelSide.RIGHT, PanelSide.TOP -> ThinActionIcons.CornerArrowUpRight
+    }
+    GestureTriggerType.LONG_SWIPE_IN_UP -> when (side) {
+        PanelSide.LEFT, PanelSide.BOTTOM -> ThinActionIcons.DoubleCornerArrowUpRight
+        PanelSide.RIGHT, PanelSide.TOP -> ThinActionIcons.DoubleCornerArrowDownRight
+    }
+    GestureTriggerType.LONG_SWIPE_IN_DOWN -> when (side) {
+        PanelSide.LEFT, PanelSide.BOTTOM -> ThinActionIcons.DoubleCornerArrowDownRight
+        PanelSide.RIGHT, PanelSide.TOP -> ThinActionIcons.DoubleCornerArrowUpRight
+    }
+    else -> when {
+        trigger.isLongPress -> MaterialTouchIcons.LongPress
+        trigger.isSingleTap -> MaterialTouchIcons.SingleTap
+        trigger.isLongDistance -> ThinActionIcons.DoubleArrowRight
+        else -> ThinActionIcons.ArrowRight
+    }
 }
 
 /** 与 SideGesture `TriggerDirection` × `Position` 旋转表一致；[PanelSide.TOP] 按内滑几何补全。 */
@@ -51,6 +72,8 @@ fun gestureTriggerIconRotationZ(side: PanelSide, trigger: GestureTriggerType): F
             TriggerDirectionKind.DownRight -> 45f
             TriggerDirectionKind.Up -> -90f
             TriggerDirectionKind.Down -> 90f
+            TriggerDirectionKind.InUp -> 0f
+            TriggerDirectionKind.InDown -> 0f
             null -> 0f
         }
         PanelSide.RIGHT -> when (trigger.directionKind()) {
@@ -59,6 +82,8 @@ fun gestureTriggerIconRotationZ(side: PanelSide, trigger: GestureTriggerType): F
             TriggerDirectionKind.DownRight -> 135f
             TriggerDirectionKind.Up -> -90f
             TriggerDirectionKind.Down -> 90f
+            TriggerDirectionKind.InUp -> 180f
+            TriggerDirectionKind.InDown -> 180f
             null -> 0f
         }
         PanelSide.BOTTOM -> when (trigger.directionKind()) {
@@ -67,6 +92,8 @@ fun gestureTriggerIconRotationZ(side: PanelSide, trigger: GestureTriggerType): F
             TriggerDirectionKind.DownRight -> -45f
             TriggerDirectionKind.Up -> -180f
             TriggerDirectionKind.Down -> 0f
+            TriggerDirectionKind.InUp -> -90f
+            TriggerDirectionKind.InDown -> -90f
             null -> 0f
         }
         PanelSide.TOP -> when (trigger.directionKind()) {
@@ -75,6 +102,8 @@ fun gestureTriggerIconRotationZ(side: PanelSide, trigger: GestureTriggerType): F
             TriggerDirectionKind.DownRight -> -45f
             TriggerDirectionKind.Up -> 180f
             TriggerDirectionKind.Down -> 0f
+            TriggerDirectionKind.InUp -> 90f
+            TriggerDirectionKind.InDown -> 90f
             null -> 0f
         }
     }
@@ -86,6 +115,8 @@ private enum class TriggerDirectionKind {
     DownRight,
     Up,
     Down,
+    InUp,
+    InDown,
 }
 
 private fun GestureTriggerType.directionKind(): TriggerDirectionKind? = when (this) {
@@ -94,6 +125,8 @@ private fun GestureTriggerType.directionKind(): TriggerDirectionKind? = when (th
     GestureTriggerType.SHORT_SWIPE_DOWN_RIGHT, GestureTriggerType.LONG_SWIPE_DOWN_RIGHT -> TriggerDirectionKind.DownRight
     GestureTriggerType.SHORT_SWIPE_UP, GestureTriggerType.LONG_SWIPE_UP -> TriggerDirectionKind.Up
     GestureTriggerType.SHORT_SWIPE_DOWN, GestureTriggerType.LONG_SWIPE_DOWN -> TriggerDirectionKind.Down
+    GestureTriggerType.SHORT_SWIPE_IN_UP, GestureTriggerType.LONG_SWIPE_IN_UP -> TriggerDirectionKind.InUp
+    GestureTriggerType.SHORT_SWIPE_IN_DOWN, GestureTriggerType.LONG_SWIPE_IN_DOWN -> TriggerDirectionKind.InDown
     else -> null
 }
 
@@ -106,7 +139,11 @@ fun FloatBallGestureType.toGestureTriggerType(): GestureTriggerType? = when (thi
     FloatBallGestureType.SWIPE_SIDE_LONG -> GestureTriggerType.LONG_SWIPE_IN
     FloatBallGestureType.SINGLE_TAP -> GestureTriggerType.SHORT_SINGLE_TAP
     FloatBallGestureType.LONG_PRESS -> GestureTriggerType.SHORT_LONG_PRESS
-    FloatBallGestureType.DOUBLE_TAP -> null
+    FloatBallGestureType.DOUBLE_TAP,
+    FloatBallGestureType.SWIPE_SIDE_RETURN,
+    FloatBallGestureType.SWIPE_UP_RETURN,
+    FloatBallGestureType.SWIPE_DOWN_RETURN,
+    -> null
 }
 
 fun AppSettings.floatBallGestureIconSide(): PanelSide {
@@ -137,6 +174,22 @@ fun FloatBallGestureIcon(
             trigger = trigger,
             contentDescription = contentDescription,
             modifier = modifier,
+        )
+    } else if (type.isReturnGesture) {
+        val rotation = when (type) {
+            FloatBallGestureType.SWIPE_SIDE_RETURN ->
+                if (settings.floatBallGestureIconSide() == PanelSide.RIGHT) 180f else 0f
+            FloatBallGestureType.SWIPE_UP_RETURN -> -90f
+            FloatBallGestureType.SWIPE_DOWN_RETURN -> 90f
+            else -> 0f
+        }
+        Icon(
+            imageVector = ThinActionIcons.SwipeReturn,
+            contentDescription = contentDescription,
+            tint = LocalContentColor.current,
+            modifier = modifier.graphicsLayer {
+                rotationZ = rotation
+            },
         )
     } else {
         Icon(

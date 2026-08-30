@@ -1261,6 +1261,104 @@ internal object ThinActionIcons {
         }
     }
 
+    val CornerArrowUpRight: ImageVector by lazy {
+        createThinIcon("ThinCornerArrowUpRight") {
+            path(
+                stroke = strokeBrush,
+                strokeLineWidth = STROKE_WIDTH,
+                strokeLineCap = StrokeCap.Round,
+                strokeLineJoin = StrokeJoin.Round,
+            ) {
+                moveTo(5f, 17f)
+                lineTo(15f, 17f)
+                lineTo(15f, 7f)
+                moveTo(11f, 11f)
+                lineTo(15f, 7f)
+                lineTo(19f, 11f)
+            }
+        }
+    }
+
+    val CornerArrowDownRight: ImageVector by lazy {
+        createThinIcon("ThinCornerArrowDownRight") {
+            path(
+                stroke = strokeBrush,
+                strokeLineWidth = STROKE_WIDTH,
+                strokeLineCap = StrokeCap.Round,
+                strokeLineJoin = StrokeJoin.Round,
+            ) {
+                moveTo(5f, 7f)
+                lineTo(15f, 7f)
+                lineTo(15f, 17f)
+                moveTo(11f, 13f)
+                lineTo(15f, 17f)
+                lineTo(19f, 13f)
+            }
+        }
+    }
+
+    val DoubleCornerArrowUpRight: ImageVector by lazy {
+        createThinIcon("ThinDoubleCornerArrowUpRight") {
+            path(
+                stroke = strokeBrush,
+                strokeLineWidth = STROKE_WIDTH,
+                strokeLineCap = StrokeCap.Round,
+                strokeLineJoin = StrokeJoin.Round,
+            ) {
+                moveTo(5f, 17f)
+                lineTo(15f, 17f)
+                lineTo(15f, 10.5f)
+                moveTo(11.5f, 14f)
+                lineTo(15f, 10.5f)
+                lineTo(18.5f, 14f)
+                moveTo(11.5f, 9.5f)
+                lineTo(15f, 6f)
+                lineTo(18.5f, 9.5f)
+            }
+        }
+    }
+
+    val DoubleCornerArrowDownRight: ImageVector by lazy {
+        createThinIcon("ThinDoubleCornerArrowDownRight") {
+            path(
+                stroke = strokeBrush,
+                strokeLineWidth = STROKE_WIDTH,
+                strokeLineCap = StrokeCap.Round,
+                strokeLineJoin = StrokeJoin.Round,
+            ) {
+                moveTo(5f, 7f)
+                lineTo(15f, 7f)
+                lineTo(15f, 13.5f)
+                moveTo(11.5f, 10f)
+                lineTo(15f, 13.5f)
+                lineTo(18.5f, 10f)
+                moveTo(11.5f, 14.5f)
+                lineTo(15f, 18f)
+                lineTo(18.5f, 14.5f)
+            }
+        }
+    }
+
+    val SwipeReturn: ImageVector by lazy {
+        createThinIcon("ThinSwipeReturn") {
+            path(
+                stroke = strokeBrush,
+                strokeLineWidth = STROKE_WIDTH,
+                strokeLineCap = StrokeCap.Round,
+                strokeLineJoin = StrokeJoin.Round,
+            ) {
+                moveTo(6f, 16f)
+                lineTo(14f, 16f)
+                curveTo(16.8f, 16f, 18.5f, 14.2f, 18.5f, 12f)
+                curveTo(18.5f, 9.8f, 16.8f, 8f, 14f, 8f)
+                lineTo(6f, 8f)
+                moveTo(9.5f, 5f)
+                lineTo(5.5f, 8f)
+                lineTo(9.5f, 11f)
+            }
+        }
+    }
+
     val DoNotDisturb: ImageVector by lazy {
         createThinIcon("ThinDoNotDisturb") {
             path(

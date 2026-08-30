@@ -172,6 +172,66 @@ class FloatBallGestureDetectorTest {
     }
 
     @Test
+    fun `swipe down then reverse with return action configured fires SWIPE_DOWN_RETURN`() {
+        var fired: FloatBallGestureType? = null
+        val settings = AppSettings(
+            freeWindowModeId = FreeWindowMode.STANDARD.id,
+            floatBall = AppSettings().floatBall.copy(
+                floatBallGestureActions = mapOf(
+                    FloatBallGestureType.SWIPE_DOWN_RETURN to com.slideindex.app.gesture.GestureAction.Back,
+                ),
+            ),
+        )
+        val detector = newDetector(
+            settings = settings,
+            onGesture = { type, _, _ -> fired = type },
+        )
+        val down = MotionEvent.obtain(0, 0, MotionEvent.ACTION_DOWN, 100f, 200f, 0)
+        val moveDown = MotionEvent.obtain(0, 50, MotionEvent.ACTION_MOVE, 100f, 350f, 0) // >= 60dp (180px at 3x)
+        val moveBack = MotionEvent.obtain(0, 100, MotionEvent.ACTION_MOVE, 100f, 250f, 0) // reverse >= 28dp (84px)
+        val up = MotionEvent.obtain(0, 150, MotionEvent.ACTION_UP, 100f, 250f, 0)
+        detector.onTouchEvent(down)
+        detector.onTouchEvent(moveDown)
+        detector.onTouchEvent(moveBack)
+        detector.onTouchEvent(up)
+        assertEquals(FloatBallGestureType.SWIPE_DOWN_RETURN, fired)
+        down.recycle()
+        moveDown.recycle()
+        moveBack.recycle()
+        up.recycle()
+    }
+
+    @Test
+    fun `swipe side then reverse with return action configured fires SWIPE_SIDE_RETURN`() {
+        var fired: FloatBallGestureType? = null
+        val settings = AppSettings(
+            freeWindowModeId = FreeWindowMode.STANDARD.id,
+            floatBall = AppSettings().floatBall.copy(
+                floatBallGestureActions = mapOf(
+                    FloatBallGestureType.SWIPE_SIDE_RETURN to com.slideindex.app.gesture.GestureAction.Back,
+                ),
+            ),
+        )
+        val detector = newDetector(
+            settings = settings,
+            onGesture = { type, _, _ -> fired = type },
+        )
+        val down = MotionEvent.obtain(0, 0, MotionEvent.ACTION_DOWN, 100f, 200f, 0)
+        val moveSide = MotionEvent.obtain(0, 50, MotionEvent.ACTION_MOVE, 300f, 200f, 0)
+        val moveBack = MotionEvent.obtain(0, 100, MotionEvent.ACTION_MOVE, 180f, 200f, 0)
+        val up = MotionEvent.obtain(0, 150, MotionEvent.ACTION_UP, 180f, 200f, 0)
+        detector.onTouchEvent(down)
+        detector.onTouchEvent(moveSide)
+        detector.onTouchEvent(moveBack)
+        detector.onTouchEvent(up)
+        assertEquals(FloatBallGestureType.SWIPE_SIDE_RETURN, fired)
+        down.recycle()
+        moveSide.recycle()
+        moveBack.recycle()
+        up.recycle()
+    }
+
+    @Test
     fun `swipe down reverse then swipe down again fires swipe gesture`() {
         var fired: FloatBallGestureType? = null
         val detector = newDetector { type, _, _ -> fired = type }
@@ -501,6 +561,7 @@ class FloatBallGestureDetectorTest {
     }
 
     private fun newDetector(
+        settings: AppSettings = AppSettings(freeWindowModeId = FreeWindowMode.STANDARD.id),
         onPickStart: (Float, Float, Float, Float) -> Unit = { _, _, _, _ -> },
         onPickEnd: () -> Unit = {},
         onPickCancel: () -> Unit = {},
@@ -512,7 +573,7 @@ class FloatBallGestureDetectorTest {
     ): FloatBallGestureDetector {
         val detector = FloatBallGestureDetector()
         detector.bind(
-            settings = AppSettings(freeWindowModeId = FreeWindowMode.STANDARD.id),
+            settings = settings,
             density = 3f,
             onPickStart = onPickStart,
             onPickDrag = { _, _ -> },

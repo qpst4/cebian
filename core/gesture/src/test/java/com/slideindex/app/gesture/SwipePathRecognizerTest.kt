@@ -55,4 +55,87 @@ class SwipePathRecognizerTest {
 
         assertEquals(GestureTriggerType.SHORT_SINGLE_TAP, result?.trigger)
     }
+
+    @Test
+    fun classifyOnUp_leftPanelInwardThenUp_returnsShortSwipeInUp() {
+        val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
+        recognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        recognizer.applyAngles(GestureAngles())
+
+        recognizer.onTouchDown(0f, 100f, leftStrip)
+        recognizer.onTouchMove(80f, 100f) // Swiped inward first (inward >= 60dp)
+        recognizer.onTouchMove(80f, 60f) // Then turned upward (dy = -40dp, |dy| >= 32dp)
+        val result = recognizer.classifyOnUp(80f, 60f)
+
+        assertEquals(GestureTriggerType.SHORT_SWIPE_IN_UP, result?.trigger)
+    }
+
+    @Test
+    fun classifyOnUp_leftPanelInwardThenDown_returnsShortSwipeInDown() {
+        val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
+        recognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        recognizer.applyAngles(GestureAngles())
+
+        recognizer.onTouchDown(0f, 100f, leftStrip)
+        recognizer.onTouchMove(80f, 100f) // Swiped inward first
+        recognizer.onTouchMove(80f, 140f) // Then turned downward (dy = +40dp)
+        val result = recognizer.classifyOnUp(80f, 140f)
+
+        assertEquals(GestureTriggerType.SHORT_SWIPE_IN_DOWN, result?.trigger)
+    }
+
+    @Test
+    fun classifyOnUp_leftPanelDiagonalUpRight_returnsShortSwipeUpRight() {
+        val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
+        recognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        recognizer.applyAngles(GestureAngles())
+
+        recognizer.onTouchDown(0f, 100f, leftStrip)
+        recognizer.onTouchMove(40f, 60f) // Direct diagonal
+        val result = recognizer.classifyOnUp(80f, 20f)
+
+        assertEquals(GestureTriggerType.SHORT_SWIPE_UP_RIGHT, result?.trigger)
+    }
+
+    @Test
+    fun classifyOnUp_leftPanelInwardThenUpUnconfigured_fallsBackToUpRight() {
+        val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
+        recognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        recognizer.applyAngles(GestureAngles())
+
+        recognizer.onTouchDown(0f, 100f, leftStrip)
+        recognizer.onTouchMove(80f, 100f) // Swiped inward first
+        recognizer.onTouchMove(80f, 60f) // Then turned upward (dy = -40dp)
+
+        val unconfiguredOptions = SwipePathRecognizer.ClassifyOptions(
+            isTriggerConfigured = { trigger ->
+                trigger != GestureTriggerType.SHORT_SWIPE_IN_UP &&
+                    trigger != GestureTriggerType.LONG_SWIPE_IN_UP
+            },
+        )
+        val result = recognizer.classifyOnUp(80f, 60f, unconfiguredOptions)
+
+        assertEquals(GestureTriggerType.SHORT_SWIPE_UP_RIGHT, result?.trigger)
+    }
+
+    @Test
+    fun classifyOnUp_leftPanelInwardThenDownUnconfigured_fallsBackToDownRight() {
+        val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
+        recognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        recognizer.applyAngles(GestureAngles())
+
+        recognizer.onTouchDown(0f, 100f, leftStrip)
+        recognizer.onTouchMove(80f, 100f) // Swiped inward first
+        recognizer.onTouchMove(60f, 180f) // Then turned downward (dx = 60dp, dy = +80dp)
+
+        val unconfiguredOptions = SwipePathRecognizer.ClassifyOptions(
+            isTriggerConfigured = { trigger ->
+                trigger != GestureTriggerType.SHORT_SWIPE_IN_DOWN &&
+                    trigger != GestureTriggerType.LONG_SWIPE_IN_DOWN
+            },
+        )
+        val result = recognizer.classifyOnUp(60f, 180f, unconfiguredOptions)
+
+        assertEquals(GestureTriggerType.SHORT_SWIPE_DOWN_RIGHT, result?.trigger)
+    }
 }

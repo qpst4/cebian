@@ -6,6 +6,8 @@ import android.os.SystemClock
 import android.view.MotionEvent
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.floatball.FloatBallGestureType
+import com.slideindex.app.gesture.GestureAction
+import com.slideindex.app.gesture.isEffective
 import kotlin.math.abs
 import kotlin.math.hypot
 
@@ -14,6 +16,7 @@ import kotlin.math.hypot
  * 超时后锁定取词/区域拾取，抬手不再触发滑动手势。
  * 首次滑出方向后锁定轴向，斜拖/改向不再切换手势提示与抬手判定。
  * 沿锁定轴往回滑则取消手势；再次往原方向滑出可重新触发提示与抬手判定。
+ * 若配置了折返手势且滑出达标后快速搓回，则抬手触发对应折返手势。
  * 抬手判定记录锁定轴正向峰值位移；末尾微回弹在 [GESTURE_CANCEL_RETAIN_FRACTION] 容差内仍触发手势。
  * 单击/双击/长按不进入取词；slop 内球体微跟手，拖出 slop 后进入取词，[PICK_GESTURE_LOCK_MS] 从拖出时刻起算。
  * 黄框暂停（[lockPickFromPause]）与超时锁定等价：抬手仅取词，不触发滑动手势。
@@ -35,6 +38,10 @@ internal class FloatBallGestureDetector(
         const val DIRECTION_RATIO = 1.4f
         /** FV f11261s：40dp 基准。 */
         const val SWIPE_BASE_DP = 40f
+        /** 折返手势反向位移门槛（约 28dp）。 */
+        const val REBOUND_THRESHOLD_DP = 28f
+        /** 拉回原点停顿超时判定为取消（ms）。 */
+        const val REBOUND_CANCEL_HOLD_MS = 320L
         /**
          * 抬手时当前正向位移低于峰值的比例则视为取消；高于则仍触发（容忍末尾微回弹）。
          */
@@ -46,6 +53,7 @@ internal class FloatBallGestureDetector(
     private var sideSwipeShortPx = 60f
     private var upSwipeShortPx = 60f
     private var slopPx = 8f
+    private var configuredActions: Map<FloatBallGestureType, GestureAction> = emptyMap()
 
     private var downX = 0f
     private var downY = 0f
@@ -68,6 +76,7 @@ internal class FloatBallGestureDetector(
     private var gestureArmed = false
     /** 本次拖拽在锁定轴上达到的最大正向位移（px）。 */
     private var peakForwardProgressPx = 0f
+    private var reboundStartTime = 0L
     private var longPressFired = false
     /** 本次按下后是否曾滑出 touch slop；用于拖出再拖回时不误判为单击。 */
     private var movedBeyondSlop = false
@@ -137,6 +146,7 @@ internal class FloatBallGestureDetector(
         sideSwipeShortPx = swipeThresholdPx(settings.floatBallSideSwipeShortPercent, density)
         upSwipeShortPx = swipeThresholdPx(settings.floatBallUpSwipeShortPercent, density)
         slopPx = settings.floatBallPointerSlopDp.coerceIn(4f, 32f) * density
+        configuredActions = settings.floatBallGestureActions
         this.onPickStart = onPickStart
         this.onPickDrag = onPickDrag
         this.onPickEnd = onPickEnd
@@ -235,6 +245,7 @@ internal class FloatBallGestureDetector(
                 val (dx, dy) = projectedDisplacement(totalDx, totalDy)
                 val totalDist = hypot(dx, dy)
                 val locked = pickDragStarted && isPickCommitLocked()
+                val returnGesture = classifyReturnGesture()
                 when {
                     launcherCaptureMode -> {
                         onLauncherCaptureUp?.invoke(event.rawX, event.rawY)
@@ -243,6 +254,10 @@ internal class FloatBallGestureDetector(
                     }
                     longPressFired -> finishGestureOnly()
                     locked -> finishPick()
+                    returnGesture != null -> {
+                        onGesture?.invoke(returnGesture, event.rawX, event.rawY)
+                        finishGestureOnly()
+                    }
                     shouldCommitSwipeGesture(dx, dy) -> {
                         classifySwipe(dx, dy)
                             ?.let { onGesture?.invoke(it, event.rawX, event.rawY) }
@@ -393,6 +408,7 @@ internal class FloatBallGestureDetector(
         val axis = lockedAxis ?: run {
             gestureArmed = false
             peakForwardProgressPx = 0f
+            reboundStartTime = 0L
             return
         }
         if (isPickCommitLocked() || longPressFired) {
@@ -403,6 +419,9 @@ internal class FloatBallGestureDetector(
         val forwardProgress = forwardProgressAlongAxis(axis, projDx, projDy, forwardSign)
         if (forwardProgress > peakForwardProgressPx) {
             peakForwardProgressPx = forwardProgress
+            reboundStartTime = 0L
+        } else if (reboundStartTime == 0L && peakForwardProgressPx - forwardProgress >= REBOUND_THRESHOLD_DP * density) {
+            reboundStartTime = SystemClock.uptimeMillis()
         }
         gestureArmed = retainsGestureCommitment(forwardProgress) &&
             qualifiesAsSwipe(projDx, projDy)
@@ -486,7 +505,49 @@ internal class FloatBallGestureDetector(
         return classifySwipe(dx, dy)
     }
 
+    private fun returnGestureForAxis(axis: LockedSwipeAxis): FloatBallGestureType = when (axis) {
+        LockedSwipeAxis.UP -> FloatBallGestureType.SWIPE_UP_RETURN
+        LockedSwipeAxis.DOWN -> FloatBallGestureType.SWIPE_DOWN_RETURN
+        LockedSwipeAxis.SIDE -> FloatBallGestureType.SWIPE_SIDE_RETURN
+    }
+
+    private fun shortThresholdForAxis(axis: LockedSwipeAxis): Float = when (axis) {
+        LockedSwipeAxis.UP -> upSwipeShortPx
+        LockedSwipeAxis.DOWN -> downSwipeShortPx
+        LockedSwipeAxis.SIDE -> sideSwipeShortPx
+    }
+
+    internal fun classifyReturnGesture(): FloatBallGestureType? {
+        if (isPickCommitLocked() || longPressFired) return null
+        val axis = lockedSwipeAxis ?: return null
+        val returnType = returnGestureForAxis(axis)
+        val action = configuredActions[returnType] ?: GestureAction.None
+        if (!action.isEffective()) return null
+
+        val shortThreshold = shortThresholdForAxis(axis)
+        if (peakForwardProgressPx < shortThreshold) return null
+
+        val (projDx, projDy) = projectedDisplacement(lastX - downX, lastY - downY, axis)
+        val currentForward = forwardProgressAlongAxis(axis, projDx, projDy, lockedAxisForwardSign)
+        val reverseDistance = peakForwardProgressPx - currentForward
+        val reboundThreshold = REBOUND_THRESHOLD_DP * density
+        if (reverseDistance < reboundThreshold) return null
+
+        val now = SystemClock.uptimeMillis()
+        val heldAtOrigin = reboundStartTime > 0L &&
+            now - reboundStartTime >= REBOUND_CANCEL_HOLD_MS &&
+            hypot(lastX - downX, lastY - downY) <= slopPx * 2.5f
+        if (heldAtOrigin) return null
+
+        return returnType
+    }
+
     private fun emitGestureHint(totalDx: Float, totalDy: Float) {
+        val returnGesture = classifyReturnGesture()
+        if (returnGesture != null) {
+            onGestureHint?.invoke(returnGesture)
+            return
+        }
         if (!gestureArmed) {
             onGestureHint?.invoke(null)
             return
@@ -542,6 +603,7 @@ internal class FloatBallGestureDetector(
         lockedAxisForwardSign = 0f
         gestureArmed = false
         peakForwardProgressPx = 0f
+        reboundStartTime = 0L
     }
 
     private fun swipeThresholdPx(percent: Float, density: Float): Float =

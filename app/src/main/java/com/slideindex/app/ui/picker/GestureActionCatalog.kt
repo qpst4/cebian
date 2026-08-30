@@ -79,6 +79,9 @@ object GestureActionCatalog {
 
     fun categoryOf(action: GestureAction): GestureActionCategory = when (action.type) {
         // 1. 导航与系统 (Navigation & System)
+        GestureActionType.NONE,
+        GestureActionType.CORNER_INNER_PIN_WHEEL,
+        GestureActionType.CORNER_INNER_CANCEL,
         GestureActionType.BACK,
         GestureActionType.HOME,
         GestureActionType.RECENTS,
@@ -132,7 +135,6 @@ object GestureActionCatalog {
         -> GestureActionCategory.Intelligence
 
         // 4. 面板与启动 (Panels & Launchers)
-        GestureActionType.NONE,
         GestureActionType.OPEN_INDEX,
         GestureActionType.QUICK_LAUNCHER,
         GestureActionType.APP_SWITCHER,
@@ -169,8 +171,6 @@ object GestureActionCatalog {
         GestureActionType.REMIND_15M,
         GestureActionType.SNOOZE_OVERLAYS,
         GestureActionType.CLICK_PASSTHROUGH,
-        GestureActionType.CORNER_INNER_PIN_WHEEL,
-        GestureActionType.CORNER_INNER_CANCEL,
         -> GestureActionCategory.Pointer
 
         else -> GestureActionCategory.Other
