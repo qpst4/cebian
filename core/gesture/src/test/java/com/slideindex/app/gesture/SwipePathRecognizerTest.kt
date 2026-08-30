@@ -138,4 +138,53 @@ class SwipePathRecognizerTest {
 
         assertEquals(GestureTriggerType.SHORT_SWIPE_DOWN_RIGHT, result?.trigger)
     }
+
+    @Test
+    fun classifyOnUp_leftPanelSwipeInAndBack_returnsShortSwipeInAndBack() {
+        val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
+        recognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        recognizer.applyAngles(GestureAngles())
+
+        recognizer.onTouchDown(0f, 100f, leftStrip)
+        recognizer.onTouchMove(80f, 100f) // Swiped inward (peak = 80dp >= 60dp)
+        recognizer.onTouchMove(40f, 100f) // Retracted back by 40dp (>= 16dp)
+        val result = recognizer.classifyOnUp(30f, 100f)
+
+        assertEquals(GestureTriggerType.SHORT_SWIPE_IN_AND_BACK, result?.trigger)
+    }
+
+    @Test
+    fun classifyOnUp_leftPanelSwipeInAndBackUnconfigured_fallsBackToNullOrStraight() {
+        val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
+        recognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        recognizer.applyAngles(GestureAngles())
+
+        recognizer.onTouchDown(0f, 100f, leftStrip)
+        recognizer.onTouchMove(80f, 100f) // Swiped inward (peak = 80dp)
+        recognizer.onTouchMove(10f, 100f) // Retracted all the way back near edge (dx = 10dp < 60dp)
+
+        val unconfiguredOptions = SwipePathRecognizer.ClassifyOptions(
+            isTriggerConfigured = { trigger ->
+                trigger != GestureTriggerType.SHORT_SWIPE_IN_AND_BACK
+            },
+        )
+        val result = recognizer.classifyOnUp(10f, 100f, unconfiguredOptions)
+
+        // Since current inward distance 10dp is below short threshold 60dp, straight swipe is not triggered -> null (canceled)
+        assertEquals(null, result?.trigger)
+    }
+
+    @Test
+    fun classifyPartial_leftPanelSwipeInAndBack_returnsShortSwipeInAndBackEvenNearEdge() {
+        val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
+        recognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        recognizer.applyAngles(GestureAngles())
+
+        recognizer.onTouchDown(0f, 100f, leftStrip)
+        recognizer.onTouchMove(80f, 100f) // Inward peak = 80dp >= 60dp
+        recognizer.onTouchMove(20f, 100f) // Finger moves back to 20dp (below short distance 60dp)
+
+        val partialResult = recognizer.classifyPartial(20f, 100f)
+        assertEquals(GestureTriggerType.SHORT_SWIPE_IN_AND_BACK, partialResult?.trigger)
+    }
 }

@@ -78,6 +78,9 @@ class GestureSession(
             pathRecognizer = pathRecognizer,
             callbacks = callbacks,
             cancelLongPressCheck = { callbacks.cancelDelayed(longPressCheckRunnable) },
+            isTriggerConfigured = { trigger ->
+                sessionSettings.actionFor(side, trigger, sessionActiveHandleId) !is GestureAction.None
+            },
         )
         longPressCheckRunnable = Runnable {
             if (!active || sessionPanelMode != OverlayPanelMode.NONE) return@Runnable

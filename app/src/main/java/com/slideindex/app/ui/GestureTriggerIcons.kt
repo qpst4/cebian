@@ -54,6 +54,7 @@ fun gestureTriggerIconImageVector(side: PanelSide, trigger: GestureTriggerType):
         PanelSide.LEFT, PanelSide.BOTTOM -> ThinActionIcons.DoubleCornerArrowDownRight
         PanelSide.RIGHT, PanelSide.TOP -> ThinActionIcons.DoubleCornerArrowUpRight
     }
+    GestureTriggerType.SHORT_SWIPE_IN_AND_BACK -> ThinActionIcons.SwipeReturn
     else -> when {
         trigger.isLongPress -> MaterialTouchIcons.LongPress
         trigger.isSingleTap -> MaterialTouchIcons.SingleTap
@@ -68,6 +69,7 @@ fun gestureTriggerIconRotationZ(side: PanelSide, trigger: GestureTriggerType): F
     return when (side) {
         PanelSide.LEFT -> when (trigger.directionKind()) {
             TriggerDirectionKind.In -> 0f
+            TriggerDirectionKind.InReturn -> 0f
             TriggerDirectionKind.UpRight -> -45f
             TriggerDirectionKind.DownRight -> 45f
             TriggerDirectionKind.Up -> -90f
@@ -78,6 +80,7 @@ fun gestureTriggerIconRotationZ(side: PanelSide, trigger: GestureTriggerType): F
         }
         PanelSide.RIGHT -> when (trigger.directionKind()) {
             TriggerDirectionKind.In -> 180f
+            TriggerDirectionKind.InReturn -> 180f
             TriggerDirectionKind.UpRight -> -135f
             TriggerDirectionKind.DownRight -> 135f
             TriggerDirectionKind.Up -> -90f
@@ -88,6 +91,7 @@ fun gestureTriggerIconRotationZ(side: PanelSide, trigger: GestureTriggerType): F
         }
         PanelSide.BOTTOM -> when (trigger.directionKind()) {
             TriggerDirectionKind.In -> -90f
+            TriggerDirectionKind.InReturn -> -90f
             TriggerDirectionKind.UpRight -> -135f
             TriggerDirectionKind.DownRight -> -45f
             TriggerDirectionKind.Up -> -180f
@@ -98,6 +102,7 @@ fun gestureTriggerIconRotationZ(side: PanelSide, trigger: GestureTriggerType): F
         }
         PanelSide.TOP -> when (trigger.directionKind()) {
             TriggerDirectionKind.In -> 90f
+            TriggerDirectionKind.InReturn -> 90f
             TriggerDirectionKind.UpRight -> -135f
             TriggerDirectionKind.DownRight -> -45f
             TriggerDirectionKind.Up -> 180f
@@ -111,6 +116,7 @@ fun gestureTriggerIconRotationZ(side: PanelSide, trigger: GestureTriggerType): F
 
 private enum class TriggerDirectionKind {
     In,
+    InReturn,
     UpRight,
     DownRight,
     Up,
@@ -121,6 +127,7 @@ private enum class TriggerDirectionKind {
 
 private fun GestureTriggerType.directionKind(): TriggerDirectionKind? = when (this) {
     GestureTriggerType.SHORT_SWIPE_IN, GestureTriggerType.LONG_SWIPE_IN -> TriggerDirectionKind.In
+    GestureTriggerType.SHORT_SWIPE_IN_AND_BACK -> TriggerDirectionKind.InReturn
     GestureTriggerType.SHORT_SWIPE_UP_RIGHT, GestureTriggerType.LONG_SWIPE_UP_RIGHT -> TriggerDirectionKind.UpRight
     GestureTriggerType.SHORT_SWIPE_DOWN_RIGHT, GestureTriggerType.LONG_SWIPE_DOWN_RIGHT -> TriggerDirectionKind.DownRight
     GestureTriggerType.SHORT_SWIPE_UP, GestureTriggerType.LONG_SWIPE_UP -> TriggerDirectionKind.Up

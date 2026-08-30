@@ -142,6 +142,26 @@ internal object SwipePathGeometry {
         }
     }
 
+    fun resolveReturnSwipeTrigger(
+        side: PanelSide,
+        inwardReachedThreshold: Boolean,
+        peakInward: Float,
+        currentInward: Float,
+        shortThresholdPx: Float,
+        startX: Float,
+        startY: Float,
+        fingerX: Float,
+        fingerY: Float,
+        returnThresholdPx: Float,
+    ): GestureTriggerType? {
+        if (!inwardReachedThreshold && peakInward < shortThresholdPx) return null
+        val retraction = peakInward - currentInward
+        if (retraction < returnThresholdPx) return null
+        val along = alongDelta(fingerX - startX, fingerY - startY, side)
+        if (abs(along) > shortThresholdPx * 0.75f && abs(along) > retraction * 1.2f) return null
+        return GestureTriggerType.SHORT_SWIPE_IN_AND_BACK
+    }
+
     fun classifySwipeTrigger(
         inward: Float,
         dy: Float,

@@ -588,6 +588,18 @@ fun triggerLabel(side: PanelSide, trigger: GestureTriggerType): String = stringR
 
         }
 
+        GestureTriggerType.SHORT_SWIPE_IN_AND_BACK -> when (side) {
+
+            PanelSide.LEFT -> R.string.gesture_swipe_in_and_back_left
+
+            PanelSide.RIGHT -> R.string.gesture_swipe_in_and_back_right
+
+            PanelSide.BOTTOM -> R.string.gesture_swipe_in_and_back_bottom
+
+            PanelSide.TOP -> R.string.gesture_swipe_in_and_back_top
+
+        }
+
         GestureTriggerType.SHORT_SWIPE_UP -> when (side) {
 
             PanelSide.BOTTOM, PanelSide.TOP -> R.string.gesture_short_swipe_left

@@ -4,10 +4,12 @@ internal class GestureSessionThresholdTracker(
     private val pathRecognizer: SwipePathRecognizer,
     private val callbacks: GestureSession.Callbacks,
     private val cancelLongPressCheck: () -> Unit,
+    private val isTriggerConfigured: (GestureTriggerType) -> Boolean = { true },
 ) {
     private var wasAboveShortThreshold = false
     private var wasAboveLongThreshold = false
     private var longPressHapticFired = false
+    private var returnHapticFired = false
 
     fun trackDistanceHaptics(rawX: Float, rawY: Float) {
         val distance = pathRecognizer.swipeDistance(rawX, rawY)
@@ -20,6 +22,16 @@ internal class GestureSessionThresholdTracker(
         }
         if (aboveLong && !wasAboveLongThreshold) {
             callbacks.hapticLongThreshold()
+        }
+        if (isTriggerConfigured(GestureTriggerType.SHORT_SWIPE_IN_AND_BACK) &&
+            pathRecognizer.isReturnSwipeActive(rawX, rawY)
+        ) {
+            if (!returnHapticFired) {
+                returnHapticFired = true
+                callbacks.hapticGestureStart()
+            }
+        } else {
+            returnHapticFired = false
         }
         wasAboveShortThreshold = aboveShort
         wasAboveLongThreshold = aboveLong
@@ -38,5 +50,6 @@ internal class GestureSessionThresholdTracker(
         wasAboveShortThreshold = false
         wasAboveLongThreshold = false
         longPressHapticFired = false
+        returnHapticFired = false
     }
 }

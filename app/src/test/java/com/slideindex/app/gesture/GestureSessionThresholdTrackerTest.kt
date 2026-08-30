@@ -113,4 +113,95 @@ class GestureSessionThresholdTrackerTest {
 
         assertEquals(2, gestureStartCount)
     }
+
+    @Test
+    fun trackDistanceHaptics_whenReturnConfigured_firesHapticOnReturn() {
+        var returnConfigured = true
+        val configuredTracker = GestureSessionThresholdTracker(
+            pathRecognizer = pathRecognizer,
+            callbacks = object : GestureSession.Callbacks {
+                override fun onSessionStart(mode: com.slideindex.app.overlay.OverlayPanelMode) = Unit
+                override fun onOpenShellCommandPanel(continuousPick: Boolean) = Unit
+                override fun onShellCommandPanelContinuousRelease() = Unit
+                override fun onShowHoneycombLauncher(continuousPick: Boolean, rawX: Float, rawY: Float) = Unit
+                override fun onHoneycombLauncherPointerMove(rawX: Float, rawY: Float) = Unit
+                override fun onHoneycombLauncherContinuousRelease(rawX: Float, rawY: Float) = Unit
+                override fun onShowAppSwitcher(continuousPick: Boolean, rawX: Float, rawY: Float) = Unit
+                override fun onAppSwitcherPointerMove(rawX: Float, rawY: Float) = Unit
+                override fun onAppSwitcherContinuousRelease(rawX: Float, rawY: Float) = Unit
+                override fun onShowAdjustPanel(
+                    mode: com.slideindex.app.util.ContinuousAdjustController.Mode,
+                    fraction: Float,
+                    anchorRawY: Float,
+                    deferWindowLayout: Boolean,
+                ) = Unit
+                override fun onSessionEnd() = Unit
+                override fun onRequestInvalidate() = Unit
+                override fun hapticGestureStart() {
+                    gestureStartCount++
+                }
+                override fun hapticLongThreshold() {
+                    longThresholdCount++
+                }
+                override fun hapticConfirmLaunch() = Unit
+                override fun scheduleDelayed(runnable: Runnable, delayMs: Long) = Unit
+                override fun cancelDelayed(runnable: Runnable) = Unit
+            },
+            cancelLongPressCheck = { },
+            isTriggerConfigured = { returnConfigured },
+        )
+
+        // Slide in to 80dp (crosses 60dp short threshold) -> fires 1st haptic
+        configuredTracker.trackDistanceHaptics(80f, 0f)
+        assertEquals(1, gestureStartCount)
+
+        // Retract to 40dp (retraction = 40dp >= 16dp) -> fires 2nd haptic for return
+        configuredTracker.trackDistanceHaptics(40f, 0f)
+        assertEquals(2, gestureStartCount)
+    }
+
+    @Test
+    fun trackDistanceHaptics_whenReturnUnconfigured_doesNotFireHapticOnReturn() {
+        val unconfiguredTracker = GestureSessionThresholdTracker(
+            pathRecognizer = pathRecognizer,
+            callbacks = object : GestureSession.Callbacks {
+                override fun onSessionStart(mode: com.slideindex.app.overlay.OverlayPanelMode) = Unit
+                override fun onOpenShellCommandPanel(continuousPick: Boolean) = Unit
+                override fun onShellCommandPanelContinuousRelease() = Unit
+                override fun onShowHoneycombLauncher(continuousPick: Boolean, rawX: Float, rawY: Float) = Unit
+                override fun onHoneycombLauncherPointerMove(rawX: Float, rawY: Float) = Unit
+                override fun onHoneycombLauncherContinuousRelease(rawX: Float, rawY: Float) = Unit
+                override fun onShowAppSwitcher(continuousPick: Boolean, rawX: Float, rawY: Float) = Unit
+                override fun onAppSwitcherPointerMove(rawX: Float, rawY: Float) = Unit
+                override fun onAppSwitcherContinuousRelease(rawX: Float, rawY: Float) = Unit
+                override fun onShowAdjustPanel(
+                    mode: com.slideindex.app.util.ContinuousAdjustController.Mode,
+                    fraction: Float,
+                    anchorRawY: Float,
+                    deferWindowLayout: Boolean,
+                ) = Unit
+                override fun onSessionEnd() = Unit
+                override fun onRequestInvalidate() = Unit
+                override fun hapticGestureStart() {
+                    gestureStartCount++
+                }
+                override fun hapticLongThreshold() {
+                    longThresholdCount++
+                }
+                override fun hapticConfirmLaunch() = Unit
+                override fun scheduleDelayed(runnable: Runnable, delayMs: Long) = Unit
+                override fun cancelDelayed(runnable: Runnable) = Unit
+            },
+            cancelLongPressCheck = { },
+            isTriggerConfigured = { false }, // Return gesture is unconfigured
+        )
+
+        // Slide in to 80dp -> fires 1st haptic
+        unconfiguredTracker.trackDistanceHaptics(80f, 0f)
+        assertEquals(1, gestureStartCount)
+
+        // Retract to 40dp -> should NOT fire 2nd haptic
+        unconfiguredTracker.trackDistanceHaptics(40f, 0f)
+        assertEquals(1, gestureStartCount)
+    }
 }

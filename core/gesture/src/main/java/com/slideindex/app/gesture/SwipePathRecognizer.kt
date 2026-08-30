@@ -317,7 +317,13 @@ class SwipePathRecognizer(
                 else null
             }
             partial && options.preferSingleTap && distance < tapSlop -> null
-            partial && distance < shortDistanceDp * density && !longPressTriggered -> null
+            partial && distance < shortDistanceDp * density && !longPressTriggered -> {
+                if (isReturnSwipeActive(rawX, rawY)) {
+                    directionTrigger(rawX, rawY, distance, options)
+                } else {
+                    null
+                }
+            }
             else -> directionTrigger(rawX, rawY, distance, options)
         }
         return trigger?.let { SwipeClassification(it, inward, dy) }
@@ -326,12 +332,47 @@ class SwipePathRecognizer(
     private fun inwardDelta(dx: Float, dy: Float = 0f): Float =
         SwipePathGeometry.inwardDelta(dx, dy, side)
 
+    fun isReturnSwipeActive(rawX: Float, rawY: Float): Boolean {
+        if (!tracking) return false
+        return SwipePathGeometry.resolveReturnSwipeTrigger(
+            side = side,
+            inwardReachedThreshold = inwardReachedShortThreshold,
+            peakInward = peakInward,
+            currentInward = inwardDelta(rawX - startRawX, rawY - startRawY),
+            shortThresholdPx = shortDistanceDp * density,
+            startX = startRawX,
+            startY = startRawY,
+            fingerX = rawX,
+            fingerY = rawY,
+            returnThresholdPx = RETURN_SLOP_DP * density,
+        ) != null
+    }
+
     private fun directionTrigger(
         rawX: Float,
         rawY: Float,
         distance: Float,
         options: ClassifyOptions,
     ): GestureTriggerType? {
+        val returnSwipe = SwipePathGeometry.resolveReturnSwipeTrigger(
+            side = side,
+            inwardReachedThreshold = inwardReachedShortThreshold,
+            peakInward = peakInward,
+            currentInward = inwardDelta(rawX - startRawX, rawY - startRawY),
+            shortThresholdPx = shortDistanceDp * density,
+            startX = startRawX,
+            startY = startRawY,
+            fingerX = rawX,
+            fingerY = rawY,
+            returnThresholdPx = RETURN_SLOP_DP * density,
+        )
+        if (returnSwipe != null) {
+            val filter = options.isTriggerConfigured
+            if (filter == null || filter(returnSwipe)) {
+                return returnSwipe
+            }
+        }
+
         val corner = SwipePathGeometry.resolveCornerSwipeTrigger(
             side = side,
             inwardReachedThreshold = inwardReachedShortThreshold,
@@ -447,6 +488,7 @@ class SwipePathRecognizer(
         private const val TAP_SLOP_DP = 12f
         private const val TAP_LENIENT_SLOP_DP = 36f
         const val TURN_SLOP_DP = 32f
+        const val RETURN_SLOP_DP = 16f
         private const val INDEX_ENTER_DP = 24f
         private const val TAP_MAX_MS = 220L
         private const val TAP_LENIENT_MAX_MS = 450L

@@ -648,6 +648,10 @@
     <string name="gesture_swipe_in_down_bottom">向上后向右滑动</string>
     <string name="gesture_swipe_in_up_top">向下后向左滑动</string>
     <string name="gesture_swipe_in_down_top">向下后向右滑动</string>
+    <string name="gesture_swipe_in_and_back_left">向右后折返滑动</string>
+    <string name="gesture_swipe_in_and_back_right">向左后折返滑动</string>
+    <string name="gesture_swipe_in_and_back_bottom">向上后折返滑动</string>
+    <string name="gesture_swipe_in_and_back_top">向下后折返滑动</string>
     <string name="gesture_short_swipe_up">向上滑动</string>
     <string name="gesture_short_swipe_down">向下滑动</string>
     <string name="gesture_short_swipe_left">向左滑动</string>

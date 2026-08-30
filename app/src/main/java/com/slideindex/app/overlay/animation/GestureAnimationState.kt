@@ -237,6 +237,9 @@ class GestureAnimationState(
         if (!isActive) return false
         val threshold = if (isLongSlide) longTriggerDistancePx else shortTriggerDistancePx
         if (currentDistancePx >= threshold) return true
+        if (currentTrigger?.isReturnSwipe == true) {
+            return !isLongSlide
+        }
         if (currentTrigger?.isCornerSwipe == true) {
             return if (isLongSlide) currentTrigger?.isLongDistance == true else true
         }

@@ -99,6 +99,7 @@ private fun CapsuleGestureAnimation(
     val button = animationState.button ?: return
     val shortIcon = animationStyle.painterIcon(isLong = false)
     val longIcon = animationStyle.painterIcon(isLong = true)
+    val returnIcon = rememberVectorPainter(ThinActionIcons.SwipeReturn)
     val cornerPainterResolver = rememberCornerPainters()
     @Suppress("UNUSED_VARIABLE")
     val redrawFrame = animationState.redrawTick
@@ -225,13 +226,14 @@ private fun CapsuleGestureAnimation(
         val side = button.position.toPanelSide()
         val cornerTrigger = animationState.currentTrigger
         val isCorner = cornerTrigger?.isCornerSwipe == true
+        val isReturn = cornerTrigger?.isReturnSwipe == true
         val baseIcon = if (isLongSlide) longIcon else shortIcon
-        val activeIcon = if (isCorner && cornerTrigger != null) {
-            cornerPainterResolver(side, cornerTrigger, baseIcon)
-        } else {
-            baseIcon
+        val activeIcon = when {
+            isCorner && cornerTrigger != null -> cornerPainterResolver(side, cornerTrigger, baseIcon)
+            isReturn -> returnIcon
+            else -> baseIcon
         }
-        val degree = if (isCorner && cornerTrigger != null) {
+        val degree = if ((isCorner || isReturn) && cornerTrigger != null) {
             gestureTriggerIconRotationZ(side, cornerTrigger)
         } else {
             animationIconInitialRotation(button.position) +
@@ -269,6 +271,7 @@ private fun BubbleGestureAnimation(
     val button = animationState.button ?: return
     val shortIcon = animationStyle.painterIcon(isLong = false)
     val longIcon = animationStyle.painterIcon(isLong = true)
+    val returnIcon = rememberVectorPainter(ThinActionIcons.SwipeReturn)
     val cornerPainterResolver = rememberCornerPainters()
     @Suppress("UNUSED_VARIABLE")
     val redrawFrame = animationState.redrawTick
@@ -369,13 +372,14 @@ private fun BubbleGestureAnimation(
         val side = button.position.toPanelSide()
         val cornerTrigger = animationState.currentTrigger
         val isCorner = cornerTrigger?.isCornerSwipe == true
+        val isReturn = cornerTrigger?.isReturnSwipe == true
         val baseIcon = if (isLongSlide) longIcon else shortIcon
-        val activeIcon = if (isCorner && cornerTrigger != null) {
-            cornerPainterResolver(side, cornerTrigger, baseIcon)
-        } else {
-            baseIcon
+        val activeIcon = when {
+            isCorner && cornerTrigger != null -> cornerPainterResolver(side, cornerTrigger, baseIcon)
+            isReturn -> returnIcon
+            else -> baseIcon
         }
-        val degree = if (isCorner && cornerTrigger != null) {
+        val degree = if ((isCorner || isReturn) && cornerTrigger != null) {
             gestureTriggerIconRotationZ(side, cornerTrigger)
         } else {
             animationIconInitialRotation(button.position) +
@@ -413,6 +417,7 @@ private fun WaveGestureAnimation(
     val button = animationState.button ?: return
     val shortIcon = animationStyle.painterIcon(isLong = false)
     val longIcon = animationStyle.painterIcon(isLong = true)
+    val returnIcon = rememberVectorPainter(ThinActionIcons.SwipeReturn)
     val cornerPainterResolver = rememberCornerPainters()
     val bezierPath = remember { Path() }
     val density = LocalDensity.current
@@ -609,18 +614,19 @@ private fun WaveGestureAnimation(
         val side = button.position.toPanelSide()
         val cornerTrigger = animationState.currentTrigger
         val isCorner = cornerTrigger?.isCornerSwipe == true
+        val isReturn = cornerTrigger?.isReturnSwipe == true
         val canTriggered = animationState.canDistanceTriggered(button, isLongSlide = false)
         val isLongSlide = animationState.canDistanceTriggered(button, isLongSlide = true) ||
             animationState.triggerDirection.isLong ||
             animationState.currentTrigger?.isLongDistance == true
         val baseIcon = if (isLongSlide) longIcon else shortIcon
-        val activeIcon = if (isCorner && cornerTrigger != null) {
-            cornerPainterResolver(side, cornerTrigger, baseIcon)
-        } else {
-            baseIcon
+        val activeIcon = when {
+            isCorner && cornerTrigger != null -> cornerPainterResolver(side, cornerTrigger, baseIcon)
+            isReturn -> returnIcon
+            else -> baseIcon
         }
         val initialDegree = animationIconInitialRotation(button.position)
-        val degree = if (isCorner && cornerTrigger != null) {
+        val degree = if ((isCorner || isReturn) && cornerTrigger != null) {
             gestureTriggerIconRotationZ(side, cornerTrigger)
         } else {
             initialDegree + triggerRotationOffset(
