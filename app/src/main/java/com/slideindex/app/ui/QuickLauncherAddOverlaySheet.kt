@@ -219,31 +219,29 @@ fun QuickLauncherAddOverlaySheet(
                         0 -> R.string.search_actions_hint
                         else -> R.string.search_hint
                     }
-                    if (subScreen !is QuickLauncherAddSubScreen.ShellCommandConfig) {
-                        val isFolderSubScreen = subScreen is QuickLauncherAddSubScreen.MyShortcuts || subScreen is QuickLauncherAddSubScreen.PresetShortcuts
-                        QuickLauncherAddOverlayHeader(
-                            subScreen = subScreen,
-                            onBack = handleOverlayBack,
-                            onDone = requestDismiss,
-                            onCreateFolder = {
-                                clearFolderDraft()
-                                subScreen = QuickLauncherAddSubScreen.CreateFolder
-                            },
-                            showPickerChrome = subScreen is QuickLauncherAddSubScreen.Main || isFolderSubScreen || subScreen is QuickLauncherAddSubScreen.CreateFolder,
-                            selectedTab = selectedTab,
-                            onTabSelected = { selectedTab = it },
-                            searchExpanded = searchExpanded,
-                            onSearchExpandedChange = { searchExpanded = it },
-                            searchQuery = searchQuery,
-                            onSearchChange = { searchQuery = it },
-                            searchFocusRequester = searchFocusRequester,
-                            searchHintResId = searchHintResId,
-                        )
-                        HorizontalDivider(
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
-                            modifier = Modifier.padding(top = 4.dp),
-                        )
-                    }
+                    val isFolderSubScreen = subScreen is QuickLauncherAddSubScreen.MyShortcuts || subScreen is QuickLauncherAddSubScreen.PresetShortcuts
+                    QuickLauncherAddOverlayHeader(
+                        subScreen = subScreen,
+                        onBack = handleOverlayBack,
+                        onDone = requestDismiss,
+                        onCreateFolder = {
+                            clearFolderDraft()
+                            subScreen = QuickLauncherAddSubScreen.CreateFolder
+                        },
+                        showPickerChrome = subScreen is QuickLauncherAddSubScreen.Main || isFolderSubScreen || subScreen is QuickLauncherAddSubScreen.CreateFolder,
+                        selectedTab = selectedTab,
+                        onTabSelected = { selectedTab = it },
+                        searchExpanded = searchExpanded,
+                        onSearchExpandedChange = { searchExpanded = it },
+                        searchQuery = searchQuery,
+                        onSearchChange = { searchQuery = it },
+                        searchFocusRequester = searchFocusRequester,
+                        searchHintResId = searchHintResId,
+                    )
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                        modifier = Modifier.padding(top = 4.dp),
+                    )
                     QuickLauncherAddOverlaySheetContent(
                         modifier = Modifier
                             .weight(1f)

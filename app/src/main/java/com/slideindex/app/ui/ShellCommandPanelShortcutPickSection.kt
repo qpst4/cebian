@@ -24,20 +24,8 @@ fun SettingsCardScope.ShellCommandPanelShortcutPickSection(
     onPick: (ShellCommand) -> Unit,
 ) {
     if (shellCommands.isEmpty()) {
-        Text(
-            text = stringResource(R.string.quick_launcher_shell_shortcuts_empty),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(vertical = 4.dp),
-        )
         return
     }
-    MiuixSmallTitle(
-        stringResource(R.string.quick_launcher_shell_shortcuts_section),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 8.dp),
-    )
     shellCommands.forEach { cmd ->
         SettingNavigationRow(
             icon = { label ->

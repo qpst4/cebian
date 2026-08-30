@@ -340,6 +340,7 @@ fun CornerGestureSlotEditorHost(
             GestureExecuteShellCommandScreen(
                 initialCommand = screen.initialCommand,
                 shellCommands = appSettings.shellCommands,
+                overlayMode = true,
                 onBack = { page = CornerSlotEditorPage.ActionPick },
                 onConfirm = { command ->
                     saveCornerAction(GestureAction.ExecuteShellCommand(command))

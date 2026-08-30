@@ -161,6 +161,8 @@ internal fun QuickLauncherAddOverlaySheetBody(
                 GestureExecuteShellCommandScreen(
                     initialCommand = screen.initialCommand,
                     shellCommands = shellCommands,
+                    embedInParentChrome = true,
+                    overlayMode = true,
                     enableBackHandler = false,
                     onBack = {
                         onSubScreenChange(
