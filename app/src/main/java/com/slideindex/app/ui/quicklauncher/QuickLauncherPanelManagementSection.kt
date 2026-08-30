@@ -138,6 +138,7 @@ fun QuickLauncherPanelManagementSection(
                 },
                 selectedTabIndex = safeIndex,
                 onTabSelected = onSelectedIndexChange,
+                contentHorizontalPadding = 12.dp,
             )
         }
 
