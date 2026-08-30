@@ -706,6 +706,12 @@
     <string name="gesture_action_voice_search_desc">直接呼出免提语音搜索与听写识别面板</string>
     <string name="gesture_action_voice_assistant">语音助手</string>
     <string name="gesture_action_voice_assistant_desc">唤醒系统语音指令模式（相当于耳机语音按键）</string>
+    <string name="gesture_action_toggle_auto_rotate">切换自动旋转</string>
+    <string name="gesture_action_toggle_auto_rotate_desc">开启或关闭屏幕自动旋转开关</string>
+    <string name="gesture_action_force_portrait">锁定竖屏方向</string>
+    <string name="gesture_action_force_portrait_desc">关闭自动旋转并锁定屏幕为竖屏方向</string>
+    <string name="gesture_action_force_landscape">锁定横屏方向</string>
+    <string name="gesture_action_force_landscape_desc">关闭自动旋转并锁定屏幕为横屏方向</string>
     <string name="gesture_action_toggle_mute">响铃静音开关</string>
     <string name="gesture_action_toggle_mute_desc">仅静音来电和通知，不影响媒体音量</string>
     <string name="gesture_action_toggle_mute_permission">需要通知/勿扰访问权限</string>

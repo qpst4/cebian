@@ -252,6 +252,9 @@ class ActionExecutor(
             }
             GestureAction.VoiceSearch -> VoiceActionHelper.launchVoiceSearch(context)
             GestureAction.VoiceAssistant -> VoiceActionHelper.launchVoiceCommand(context)
+            GestureAction.ToggleAutoRotate -> QuickToolsHelper.toggleAutoRotate(context) != null
+            GestureAction.ForcePortrait -> QuickToolsHelper.forcePortrait(context)
+            GestureAction.ForceLandscape -> QuickToolsHelper.forceLandscape(context)
             GestureAction.ToggleMute -> SystemGestureActions.toggleMute(context)
             GestureAction.LockScreenAndSilenceRing -> {
                 SystemGestureActions.silenceRinger(context)

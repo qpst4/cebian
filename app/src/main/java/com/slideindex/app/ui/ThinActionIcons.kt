@@ -3,6 +3,7 @@ package com.slideindex.app.ui
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AcUnit
 import androidx.compose.material.icons.outlined.BrightnessAuto
+import androidx.compose.material.icons.outlined.ScreenRotation
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
@@ -637,6 +638,61 @@ internal object ThinActionIcons {
                 curveTo(18f, 5.5f, 19.5f, 4.5f, 21f, 4.5f)
                 curveTo(19.5f, 4.5f, 18f, 3.5f, 18f, 2f)
                 close()
+            }
+        }
+    }
+
+    /** 自动旋转：官方 Material Symbols ScreenRotation 矢量图标 */
+    val ToggleAutoRotate: ImageVector get() = Icons.Outlined.ScreenRotation
+
+    val ForcePortrait: ImageVector by lazy {
+        createThinIcon("ThinForcePortrait") {
+            path(
+                stroke = strokeBrush,
+                strokeLineWidth = STROKE_WIDTH,
+                strokeLineCap = StrokeCap.Round,
+                strokeLineJoin = StrokeJoin.Round,
+            ) {
+                // 竖屏外框 (Bootstrap Phone)
+                moveTo(7.5f, 3f)
+                lineTo(16.5f, 3f)
+                curveTo(17.6f, 3f, 18.5f, 3.9f, 18.5f, 5f)
+                lineTo(18.5f, 19f)
+                curveTo(18.5f, 20.1f, 17.6f, 21f, 16.5f, 21f)
+                lineTo(7.5f, 21f)
+                curveTo(6.4f, 21f, 5.5f, 20.1f, 5.5f, 19f)
+                lineTo(5.5f, 5f)
+                curveTo(5.5f, 3.9f, 6.4f, 3f, 7.5f, 3f)
+                close()
+                // 底部 Home 标/下巴点
+                moveTo(11.5f, 17.5f)
+                lineTo(12.5f, 17.5f)
+            }
+        }
+    }
+
+    val ForceLandscape: ImageVector by lazy {
+        createThinIcon("ThinForceLandscape") {
+            path(
+                stroke = strokeBrush,
+                strokeLineWidth = STROKE_WIDTH,
+                strokeLineCap = StrokeCap.Round,
+                strokeLineJoin = StrokeJoin.Round,
+            ) {
+                // 横屏外框 (Bootstrap Phone Landscape)
+                moveTo(5f, 5.5f)
+                lineTo(19f, 5.5f)
+                curveTo(20.1f, 5.5f, 21f, 6.4f, 21f, 7.5f)
+                lineTo(21f, 16.5f)
+                curveTo(21f, 17.6f, 20.1f, 18.5f, 19f, 18.5f)
+                lineTo(5f, 18.5f)
+                curveTo(3.9f, 18.5f, 3f, 17.6f, 3f, 16.5f)
+                lineTo(3f, 7.5f)
+                curveTo(3f, 6.4f, 3.9f, 5.5f, 5f, 5.5f)
+                close()
+                // 右侧 Home 标/侧巴点
+                moveTo(17.5f, 11.5f)
+                lineTo(17.5f, 12.5f)
             }
         }
     }

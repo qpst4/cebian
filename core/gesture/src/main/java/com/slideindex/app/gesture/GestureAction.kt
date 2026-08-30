@@ -73,6 +73,9 @@ enum class GestureActionType(val id: Int) {
     REMIND(70),
     VOICE_SEARCH(71),
     VOICE_ASSISTANT(72),
+    TOGGLE_AUTO_ROTATE(73),
+    FORCE_PORTRAIT(74),
+    FORCE_LANDSCAPE(75),
     ;
 
     companion object {
@@ -524,6 +527,24 @@ sealed class GestureAction {
         override val payload = ""
     }
 
+    /** 开启或关闭屏幕自动旋转开关。 */
+    data object ToggleAutoRotate : GestureAction() {
+        override val type = GestureActionType.TOGGLE_AUTO_ROTATE
+        override val payload = ""
+    }
+
+    /** 锁定屏幕为竖屏方向。 */
+    data object ForcePortrait : GestureAction() {
+        override val type = GestureActionType.FORCE_PORTRAIT
+        override val payload = ""
+    }
+
+    /** 锁定屏幕为横屏方向。 */
+    data object ForceLandscape : GestureAction() {
+        override val type = GestureActionType.FORCE_LANDSCAPE
+        override val payload = ""
+    }
+
     companion object {
         /** Actions that support [GestureTriggerMode.CONTINUOUS] on compatible triggers. */
         val continuousTrackingActions: List<GestureAction> = listOf(
@@ -558,6 +579,9 @@ sealed class GestureAction {
                 GestureActionType.LAUNCH_ASSISTANT -> LaunchAssistant
                 GestureActionType.VOICE_SEARCH -> VoiceSearch
                 GestureActionType.VOICE_ASSISTANT -> VoiceAssistant
+                GestureActionType.TOGGLE_AUTO_ROTATE -> ToggleAutoRotate
+                GestureActionType.FORCE_PORTRAIT -> ForcePortrait
+                GestureActionType.FORCE_LANDSCAPE -> ForceLandscape
                 GestureActionType.TOGGLE_MUTE -> ToggleMute
                 GestureActionType.MEDIA_PLAY_PAUSE -> MediaPlayPause
                 GestureActionType.MEDIA_PREVIOUS -> MediaPrevious

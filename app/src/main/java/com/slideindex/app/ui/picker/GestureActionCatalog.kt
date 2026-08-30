@@ -120,6 +120,9 @@ object GestureActionCatalog {
         GestureActionType.SCREEN_RECORD,
         GestureActionType.TOGGLE_WIFI,
         GestureActionType.TOGGLE_MOBILE_DATA,
+        GestureActionType.TOGGLE_AUTO_ROTATE,
+        GestureActionType.FORCE_PORTRAIT,
+        GestureActionType.FORCE_LANDSCAPE,
         GestureActionType.SWITCH_INPUT_METHOD,
         GestureActionType.TOGGLE_MUTE,
         GestureActionType.REFREEZE,
@@ -253,5 +256,8 @@ object GestureActionCatalog {
         GestureAction.LaunchAssistant,
         GestureAction.VoiceSearch,
         GestureAction.VoiceAssistant,
+        GestureAction.ToggleAutoRotate,
+        GestureAction.ForcePortrait,
+        GestureAction.ForceLandscape,
     )
 }

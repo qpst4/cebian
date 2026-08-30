@@ -36,6 +36,12 @@ class GestureActionNormalizedTest {
         assertEquals(GestureAction.VoiceAssistant, GestureAction.from(GestureActionType.VOICE_ASSISTANT, ""))
         assertEquals(GestureActionType.VOICE_SEARCH, GestureActionType.fromId(71))
         assertEquals(GestureActionType.VOICE_ASSISTANT, GestureActionType.fromId(72))
+        assertEquals(GestureAction.ToggleAutoRotate, GestureAction.from(GestureActionType.TOGGLE_AUTO_ROTATE, ""))
+        assertEquals(GestureAction.ForcePortrait, GestureAction.from(GestureActionType.FORCE_PORTRAIT, ""))
+        assertEquals(GestureAction.ForceLandscape, GestureAction.from(GestureActionType.FORCE_LANDSCAPE, ""))
+        assertEquals(GestureActionType.TOGGLE_AUTO_ROTATE, GestureActionType.fromId(73))
+        assertEquals(GestureActionType.FORCE_PORTRAIT, GestureActionType.fromId(74))
+        assertEquals(GestureActionType.FORCE_LANDSCAPE, GestureActionType.fromId(75))
     }
 
     @Test

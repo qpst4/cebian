@@ -2,6 +2,7 @@ package com.slideindex.app.util
 
 import android.content.Context
 import android.provider.Settings
+import android.view.Surface
 
 object QuickToolsHelper {
     fun readWifiEnabled(context: Context): Boolean? {
@@ -152,4 +153,48 @@ object QuickToolsHelper {
             null
         }
     }
+
+    fun setOrientation(context: Context, orientation: Int): Boolean {
+        val appContext = context.applicationContext
+        val rotationVal = when (orientation) {
+            Surface.ROTATION_0 -> 0
+            Surface.ROTATION_90 -> 1
+            Surface.ROTATION_180 -> 2
+            Surface.ROTATION_270 -> 3
+            else -> 0
+        }
+        if (TaskManagerUtil.hasPermission()) {
+            TaskManagerUtil.runShellCommand(
+                "settings",
+                "put",
+                "system",
+                Settings.System.ACCELEROMETER_ROTATION,
+                "0",
+            )
+            val ok = TaskManagerUtil.runShellCommand(
+                "settings",
+                "put",
+                "system",
+                Settings.System.USER_ROTATION,
+                rotationVal.toString(),
+            )
+            if (ok) return true
+        }
+        return runCatching {
+            Settings.System.putInt(
+                appContext.contentResolver,
+                Settings.System.ACCELEROMETER_ROTATION,
+                0,
+            )
+            Settings.System.putInt(
+                appContext.contentResolver,
+                Settings.System.USER_ROTATION,
+                rotationVal,
+            )
+        }.getOrDefault(false)
+    }
+
+    fun forcePortrait(context: Context): Boolean = setOrientation(context, Surface.ROTATION_0)
+
+    fun forceLandscape(context: Context): Boolean = setOrientation(context, Surface.ROTATION_90)
 }

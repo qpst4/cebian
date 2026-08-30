@@ -1561,6 +1561,12 @@
     <string name="gesture_action_voice_search_desc">Launch hands-free voice search and speech recognition panel</string>
     <string name="gesture_action_voice_assistant">Voice assistant</string>
     <string name="gesture_action_voice_assistant_desc">Wake up system voice command mode (like headset voice key)</string>
+    <string name="gesture_action_toggle_auto_rotate">Toggle auto rotate</string>
+    <string name="gesture_action_toggle_auto_rotate_desc">Turn screen auto-rotation on or off</string>
+    <string name="gesture_action_force_portrait">Force portrait</string>
+    <string name="gesture_action_force_portrait_desc">Disable auto-rotation and lock screen to portrait orientation</string>
+    <string name="gesture_action_force_landscape">Force landscape</string>
+    <string name="gesture_action_force_landscape_desc">Disable auto-rotation and lock screen to landscape orientation</string>
     <string name="gesture_action_toggle_mute">Toggle ringer silent</string>
     <string name="gesture_action_toggle_mute_desc">Silence calls and notifications only; media volume is unchanged</string>
     <string name="gesture_action_toggle_mute_permission">Needs notification/Do Not Disturb access</string>
