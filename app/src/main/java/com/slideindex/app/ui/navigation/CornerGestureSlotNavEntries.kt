@@ -19,6 +19,7 @@ import com.slideindex.app.ui.CornerGestureSlotSettingsScreen
 import com.slideindex.app.ui.CornerSlotSubMenuShortcutPickScreen
 import com.slideindex.app.ui.GestureActionPickerScreen
 import com.slideindex.app.ui.GestureExecuteShellCommandScreen
+import com.slideindex.app.ui.GestureSimulateKeyEventScreen
 import com.slideindex.app.ui.picker.ActivityShortcutPickActivityScreen
 import com.slideindex.app.ui.picker.ActivityShortcutPickAppScreen
 import com.slideindex.app.ui.picker.MyShortcutsFolderScreen
@@ -128,6 +129,17 @@ fun NavEntryBuilder.cornerGestureSlotNavEntries(ctx: MainNavContext) {
             onOpenExecuteShellCommand = { command ->
                 ctx.navigate(AppNavKey.HomeCornerGestureSlotShellCommand(key.corner, key.slotIndex, command))
             },
+            onOpenSimulateKeyEvent = { keyEvent ->
+                ctx.navigate(
+                    AppNavKey.HomeCornerGestureSlotSimulateKeyEvent(
+                        key.corner,
+                        key.slotIndex,
+                        keyEvent.keyCode,
+                        keyEvent.keyName,
+                        keyEvent.isLongPress,
+                    ),
+                )
+            },
         )
     }
 
@@ -213,6 +225,24 @@ fun NavEntryBuilder.cornerGestureSlotNavEntries(ctx: MainNavContext) {
             onConfirm = { command ->
                 viewModel.setCornerSlotAction(key.corner, key.slotIndex, GestureAction.ExecuteShellCommand(command))
                 ctx.navigateBackTo(editorKey)
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.HomeCornerGestureSlotSimulateKeyEvent> { key ->
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val editorKey = cornerSlotEditorKey(key.corner, key.slotIndex)
+        val returnKey = AppNavKey.HomeCornerGestureSlotActionPick(key.corner, key.slotIndex)
+        GestureSimulateKeyEventScreen(
+            initialAction = GestureAction.SimulateKeyEvent(
+                keyCode = key.initialKeyCode,
+                keyName = key.initialKeyName,
+                isLongPress = key.initialIsLongPress,
+            ),
+            onBack = { ctx.navigateBackTo(returnKey) },
+            onConfirm = { keyEventAction ->
+                viewModel.setCornerSlotAction(key.corner, key.slotIndex, keyEventAction)
+                ctx.navigateBackTo(returnKey)
             },
         )
     }

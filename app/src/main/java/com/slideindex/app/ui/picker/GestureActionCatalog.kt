@@ -94,6 +94,8 @@ object GestureActionCatalog {
         GestureActionType.POWER_MENU,
         GestureActionType.SCROLL_TO_TOP,
         GestureActionType.SCROLL_TO_BOTTOM,
+        GestureActionType.ONE_HANDED_MODE,
+        GestureActionType.CURRENT_APP_INFO,
         -> GestureActionCategory.Navigation
 
         // 2. 开关与调节 (Controls & Media)
@@ -107,6 +109,8 @@ object GestureActionCatalog {
         GestureActionType.TOGGLE_AUTO_BRIGHTNESS,
         GestureActionType.ADJUST_BRIGHTNESS,
         GestureActionType.ADJUST_VOLUME,
+        GestureActionType.OPEN_VOLUME_PANEL,
+        GestureActionType.OPEN_INTERNET_PANEL,
         GestureActionType.TOGGLE_MUTE,
         GestureActionType.MEDIA_PLAY_PAUSE,
         GestureActionType.MEDIA_PREVIOUS,
@@ -152,6 +156,7 @@ object GestureActionCatalog {
         GestureActionType.SIMULATE_POINTER_SWIPE,
         GestureActionType.SHELL_COMMAND_PANEL,
         GestureActionType.EXECUTE_SHELL_COMMAND,
+        GestureActionType.SIMULATE_KEY_EVENT,
         GestureActionType.FREEZER_PANEL,
         GestureActionType.REFREEZE,
         GestureActionType.REMIND,
@@ -219,6 +224,8 @@ object GestureActionCatalog {
         GestureAction.OpenQuickSettings,
         GestureAction.CloseCurrentApp,
         GestureAction.FreeWindowCurrentApp,
+        GestureAction.OneHandedMode,
+        GestureAction.CurrentAppInfo,
         GestureAction.LockScreen,
         GestureAction.LockScreenAndSilenceRing,
         GestureAction.LockScreenAndMuteAll,
@@ -230,6 +237,7 @@ object GestureActionCatalog {
         // 2. 开关与调节 (Controls & Media)
         GestureAction.ToggleWifi,
         GestureAction.ToggleMobileData,
+        GestureAction.OpenInternetPanel,
         GestureAction.Flashlight,
         GestureAction.ToggleDnd,
         GestureAction.ToggleAutoRotate,
@@ -238,6 +246,7 @@ object GestureActionCatalog {
         GestureAction.ToggleAutoBrightness,
         GestureAction.AdjustBrightness,
         GestureAction.AdjustVolume,
+        GestureAction.OpenVolumePanel,
         GestureAction.ToggleMute,
         GestureAction.MediaPlayPause,
         GestureAction.MediaPrevious,
@@ -269,6 +278,7 @@ object GestureActionCatalog {
         GestureAction.FloatingPointer,
         GestureAction.ShellCommandPanel,
         GestureAction.ExecuteShellCommand(),
+        GestureAction.SimulateKeyEvent(),
         GestureAction.FreezerPanel,
         GestureAction.Refreeze,
         GestureAction.Remind,

@@ -24,6 +24,7 @@ import com.slideindex.app.ui.FloatBallStyleSettingsScreen
 import com.slideindex.app.ui.FloatBallTranslationSettingsScreen
 import com.slideindex.app.ui.GestureActionPickerScreen
 import com.slideindex.app.ui.GestureExecuteShellCommandScreen
+import com.slideindex.app.ui.GestureSimulateKeyEventScreen
 import com.slideindex.app.ui.ImageSearchEngineDetailScreen
 import com.slideindex.app.ui.ImageSearchEngineSettingsScreen
 import com.slideindex.app.ui.NativeEnginePackSettingsScreen
@@ -379,6 +380,16 @@ fun NavEntryBuilder.floatBallNavEntries(ctx: MainNavContext) {
             onOpenPresetShortcuts = { ctx.navigate(AppNavKey.FloatBallGesturePresetShortcuts(key.gestureTypeId)) },
             onOpenPickApp = { ctx.navigate(AppNavKey.FloatBallGesturePickApp(key.gestureTypeId)) },
             onOpenExecuteShellCommand = { cmd -> ctx.navigate(AppNavKey.FloatBallGestureShellCommand(key.gestureTypeId, cmd)) },
+            onOpenSimulateKeyEvent = { keyEvent ->
+                ctx.navigate(
+                    AppNavKey.FloatBallGestureSimulateKeyEvent(
+                        key.gestureTypeId,
+                        keyEvent.keyCode,
+                        keyEvent.keyName,
+                        keyEvent.isLongPress,
+                    ),
+                )
+            },
         )
     }
 
@@ -458,6 +469,27 @@ fun NavEntryBuilder.floatBallNavEntries(ctx: MainNavContext) {
                 viewModel.setFloatBallGestureAction(
                     gestureType,
                     GestureAction.ExecuteShellCommand(command),
+                )
+                ctx.navigateBackTo(returnKey)
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.FloatBallGestureSimulateKeyEvent> { key ->
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val gestureType = FloatBallGestureType.fromId(key.gestureTypeId) ?: FloatBallGestureType.SINGLE_TAP
+        val returnKey = AppNavKey.FloatBallGestureActionPick(key.gestureTypeId)
+        GestureSimulateKeyEventScreen(
+            initialAction = GestureAction.SimulateKeyEvent(
+                keyCode = key.initialKeyCode,
+                keyName = key.initialKeyName,
+                isLongPress = key.initialIsLongPress,
+            ),
+            onBack = { ctx.backStack.removeLastOrNull() },
+            onConfirm = { keyEventAction ->
+                viewModel.setFloatBallGestureAction(
+                    gestureType,
+                    keyEventAction,
                 )
                 ctx.navigateBackTo(returnKey)
             },

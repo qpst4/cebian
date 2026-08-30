@@ -86,6 +86,7 @@ fun LazyListScope.actionPickerActionItems(
     current: GestureAction,
     onSelect: (GestureAction) -> Unit,
     onOpenExecuteShellCommand: () -> Unit,
+    onOpenSimulateKeyEvent: (() -> Unit)? = null,
 ) {
     if (filtered.isEmpty()) {
         item(key = "actions-empty") {
@@ -135,6 +136,22 @@ fun LazyListScope.actionPickerActionItems(
                     onOpenConfig = {
                         requestPermissionForAdjustAction(context, action)
                         onOpenExecuteShellCommand()
+                    },
+                )
+            } else if (action.type == GestureActionType.SIMULATE_KEY_EVENT && onOpenSimulateKeyEvent != null) {
+                val keySubtitle = if (current is GestureAction.SimulateKeyEvent) {
+                    gestureActionSettingSubtitle(current)
+                } else {
+                    gestureActionDescription(action)
+                }
+                ActionPickerSimulateKeyEventRow(
+                    action = action,
+                    segmentIndex = index,
+                    segmentCount = section.actions.size,
+                    subtitle = keySubtitle,
+                    onOpenConfig = {
+                        requestPermissionForAdjustAction(context, action)
+                        onOpenSimulateKeyEvent()
                     },
                 )
             } else {

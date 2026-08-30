@@ -69,6 +69,13 @@ internal object SlideIndexAccessibilityGestureInjector {
             GestureAction.KeepScreenOn -> service.toggleKeepScreenOn()
             GestureAction.ScrollToTop -> scheduleFastVerticalScroll(service, toTop = true)
             GestureAction.ScrollToBottom -> scheduleFastVerticalScroll(service, toTop = false)
+            GestureAction.OneHandedMode -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    service.performGlobalAction(19) // AccessibilityService.GLOBAL_ACTION_ONE_HANDED_MODE
+                } else {
+                    false
+                }
+            }
             else -> false
         }
         if (result) {

@@ -30,6 +30,7 @@ fun gestureActionImageVector(action: GestureAction, outlined: Boolean = false): 
                 pointerSwipeDirectionThinIcon(action.config.direction)
             }
         is GestureAction.ExecuteShellCommand -> ThinActionIcons.Code
+        is GestureAction.SimulateKeyEvent -> ThinActionIcons.Keyboard
         else ->
             if (outlined) {
                 gestureActionTypeOutlinedIcon(action.type)

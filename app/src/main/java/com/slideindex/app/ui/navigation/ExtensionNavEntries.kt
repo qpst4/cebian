@@ -46,6 +46,7 @@ import com.slideindex.app.ui.quicklauncher.HoneycombLauncherAddPickerScreen
 import com.slideindex.app.ui.picker.MyShortcutsFolderScreen
 import com.slideindex.app.ui.picker.PresetShortcutsFolderScreen
 import com.slideindex.app.ui.displayLabelForExecuteShellCommand
+import com.slideindex.app.ui.GestureSimulateKeyEventScreen
 import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.launcher.QuickLauncherItemCodec
 import com.slideindex.app.launcher.QuickLauncherItemType
@@ -379,6 +380,33 @@ fun NavEntryBuilder.extensionNavEntries(ctx: MainNavContext) {
         )
     }
 
+    hiltEntry<AppNavKey.QuickLauncherSimulateKeyEvent> { key ->
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel(ctx.activity)
+        GestureSimulateKeyEventScreen(
+            initialAction = GestureAction.SimulateKeyEvent(
+                keyCode = key.initialKeyCode,
+                keyName = key.initialKeyName,
+                isLongPress = key.initialIsLongPress,
+            ),
+            onBack = { ctx.backStack.removeLastOrNull() },
+            onConfirm = { keyEventAction ->
+                val label = keyEventAction.keyName.ifBlank {
+                    com.slideindex.app.gesture.KeyEventPresets.getDisplayName(keyEventAction.keyCode)
+                }
+                val item = QuickLauncherItem.action(
+                    keyEventAction,
+                    label,
+                )
+                if (key.fromCreateFolder) {
+                    viewModel.addFolderDraftItem(item)
+                } else {
+                    viewModel.addQuickLauncherPanelItem(key.panelId, item)
+                }
+                ctx.backStack.removeLastOrNull()
+            },
+        )
+    }
+
     hiltEntry<AppNavKey.QuickLauncherCreateFolder> { key ->
         val viewModel: ExtensionSettingsViewModel = hiltViewModel(ctx.activity)
         val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
@@ -545,6 +573,30 @@ fun NavEntryBuilder.extensionNavEntries(ctx: MainNavContext) {
                 viewModel.addHoneycombItem(
                     QuickLauncherItem.action(
                         GestureAction.ExecuteShellCommand(command),
+                        label,
+                    ),
+                )
+                ctx.navigateBackTo(AppNavKey.HoneycombLauncherAdd)
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.HoneycombLauncherSimulateKeyEvent> { key ->
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        GestureSimulateKeyEventScreen(
+            initialAction = GestureAction.SimulateKeyEvent(
+                keyCode = key.initialKeyCode,
+                keyName = key.initialKeyName,
+                isLongPress = key.initialIsLongPress,
+            ),
+            onBack = { ctx.navigateBackTo(AppNavKey.HoneycombLauncherAdd) },
+            onConfirm = { keyEventAction ->
+                val label = keyEventAction.keyName.ifBlank {
+                    com.slideindex.app.gesture.KeyEventPresets.getDisplayName(keyEventAction.keyCode)
+                }
+                viewModel.addHoneycombItem(
+                    QuickLauncherItem.action(
+                        keyEventAction,
                         label,
                     ),
                 )
@@ -1196,6 +1248,16 @@ fun NavEntryBuilder.extensionNavEntries(ctx: MainNavContext) {
             onOpenPresetShortcuts = { ctx.navigate(AppNavKey.FloatingPointerRadialPresetShortcuts(key.target, key.slotIndex)) },
             onOpenPickApp = { ctx.navigate(AppNavKey.FloatingPointerRadialPickApp(key.target, key.slotIndex)) },
             onOpenExecuteShellCommand = { cmd -> ctx.navigate(AppNavKey.FloatingPointerRadialShellCommand(key.slotIndex, cmd)) },
+            onOpenSimulateKeyEvent = { keyEvent ->
+                ctx.navigate(
+                    AppNavKey.FloatingPointerRadialSimulateKeyEvent(
+                        key.slotIndex,
+                        keyEvent.keyCode,
+                        keyEvent.keyName,
+                        keyEvent.isLongPress,
+                    ),
+                )
+            },
         )
     }
 
@@ -1292,6 +1354,26 @@ fun NavEntryBuilder.extensionNavEntries(ctx: MainNavContext) {
         )
     }
 
+    hiltEntry<AppNavKey.FloatingPointerRadialSimulateKeyEvent> { key ->
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val returnKey = AppNavKey.FloatingPointerRadialActionPick(FloatingPointerRadialActionTarget.SLOT, key.slotIndex)
+        GestureSimulateKeyEventScreen(
+            initialAction = GestureAction.SimulateKeyEvent(
+                keyCode = key.initialKeyCode,
+                keyName = key.initialKeyName,
+                isLongPress = key.initialIsLongPress,
+            ),
+            onBack = { ctx.backStack.removeLastOrNull() },
+            onConfirm = { keyEventAction ->
+                viewModel.setFloatingPointerRadialSlotAction(
+                    key.slotIndex,
+                    keyEventAction,
+                )
+                ctx.navigateBackTo(returnKey)
+            },
+        )
+    }
+
     hiltEntry<AppNavKey.FloatingPointerRadialSwipeConfig> { key ->
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
         val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
@@ -1378,6 +1460,17 @@ fun NavEntryBuilder.extensionNavEntries(ctx: MainNavContext) {
             onOpenPresetShortcuts = { ctx.navigate(AppNavKey.FloatingPointerEdgePresetShortcuts(key.side, key.slotIndex)) },
             onOpenPickApp = { ctx.navigate(AppNavKey.FloatingPointerEdgePickApp(key.side, key.slotIndex)) },
             onOpenExecuteShellCommand = { cmd -> ctx.navigate(AppNavKey.FloatingPointerEdgeShellCommand(key.side, key.slotIndex, cmd)) },
+            onOpenSimulateKeyEvent = { keyEvent ->
+                ctx.navigate(
+                    AppNavKey.FloatingPointerEdgeSimulateKeyEvent(
+                        key.side,
+                        key.slotIndex,
+                        keyEvent.keyCode,
+                        keyEvent.keyName,
+                        keyEvent.isLongPress,
+                    ),
+                )
+            },
         )
     }
 
@@ -1466,6 +1559,28 @@ fun NavEntryBuilder.extensionNavEntries(ctx: MainNavContext) {
                     side,
                     key.slotIndex,
                     GestureAction.ExecuteShellCommand(command),
+                )
+                ctx.navigateBackTo(returnKey)
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.FloatingPointerEdgeSimulateKeyEvent> { key ->
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val side = key.side.toFloatingPointerEdgeSide()
+        val returnKey = AppNavKey.FloatingPointerEdgeActionPick(key.side, key.slotIndex)
+        GestureSimulateKeyEventScreen(
+            initialAction = GestureAction.SimulateKeyEvent(
+                keyCode = key.initialKeyCode,
+                keyName = key.initialKeyName,
+                isLongPress = key.initialIsLongPress,
+            ),
+            onBack = { ctx.backStack.removeLastOrNull() },
+            onConfirm = { keyEventAction ->
+                viewModel.setFloatingPointerEdgeBarSlotAction(
+                    side,
+                    key.slotIndex,
+                    keyEventAction,
                 )
                 ctx.navigateBackTo(returnKey)
             },

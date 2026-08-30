@@ -183,6 +183,7 @@ fun ExpandPanelSlotPicker(
                         current = currentAction,
                         onSelect = onSelect,
                         onOpenExecuteShellCommand = { onSelect(GestureAction.ExecuteShellCommand()) },
+                        onOpenSimulateKeyEvent = { onSelect(GestureAction.SimulateKeyEvent()) },
                     )
                 }
                 ExpandPanelPickerTab.APPS -> {

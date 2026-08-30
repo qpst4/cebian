@@ -87,6 +87,11 @@ internal fun gestureActionTypeOutlinedIcon(type: GestureActionType): ImageVector
     GestureActionType.TOGGLE_WIFI -> ThinActionIcons.Wifi
     GestureActionType.TOGGLE_MOBILE_DATA -> ThinActionIcons.Cellular
     GestureActionType.SWITCH_INPUT_METHOD -> ThinActionIcons.Keyboard
+    GestureActionType.OPEN_INTERNET_PANEL -> ThinActionIcons.Wifi
+    GestureActionType.OPEN_VOLUME_PANEL -> ThinActionIcons.VolumeUp
+    GestureActionType.ONE_HANDED_MODE -> ThinActionIcons.TouchApp
+    GestureActionType.CURRENT_APP_INFO -> ThinActionIcons.Assistant
+    GestureActionType.SIMULATE_KEY_EVENT -> ThinActionIcons.Keyboard
     GestureActionType.POINTER_GESTURE_RECORDER -> ThinActionIcons.Gesture
     GestureActionType.POINTER_REALTIME_GESTURE -> ThinActionIcons.Gesture
     GestureActionType.OPEN_FLOATING_POINTER_RADIAL_MENU -> ThinActionIcons.MenuOpen
@@ -163,6 +168,11 @@ internal fun gestureActionTypeThinIcon(type: GestureActionType): ImageVector = w
     GestureActionType.TOGGLE_WIFI -> ThinActionIcons.Wifi
     GestureActionType.TOGGLE_MOBILE_DATA -> ThinActionIcons.Cellular
     GestureActionType.SWITCH_INPUT_METHOD -> ThinActionIcons.Keyboard
+    GestureActionType.OPEN_INTERNET_PANEL -> ThinActionIcons.Wifi
+    GestureActionType.OPEN_VOLUME_PANEL -> ThinActionIcons.VolumeUp
+    GestureActionType.ONE_HANDED_MODE -> ThinActionIcons.TouchApp
+    GestureActionType.CURRENT_APP_INFO -> ThinActionIcons.Assistant
+    GestureActionType.SIMULATE_KEY_EVENT -> ThinActionIcons.Keyboard
     GestureActionType.POINTER_GESTURE_RECORDER -> ThinActionIcons.Gesture
     GestureActionType.POINTER_REALTIME_GESTURE -> ThinActionIcons.Gesture
     GestureActionType.OPEN_FLOATING_POINTER_RADIAL_MENU -> ThinActionIcons.MenuOpen

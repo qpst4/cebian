@@ -314,6 +314,11 @@ internal fun GestureSession.handleClassifiedGesture(
         GestureAction.Remind5m,
         GestureAction.Remind10m,
         GestureAction.Remind15m,
+        GestureAction.OpenInternetPanel,
+        GestureAction.OpenVolumePanel,
+        GestureAction.OneHandedMode,
+        GestureAction.CurrentAppInfo,
+        is GestureAction.SimulateKeyEvent,
         is GestureAction.SimulatePointerSwipe,
         is GestureAction.ExecuteShellCommand,
         -> {

@@ -55,6 +55,7 @@ fun GestureActionPickerScreen(
     onOpenPresetShortcuts: () -> Unit,
     onOpenPickApp: () -> Unit,
     onOpenExecuteShellCommand: (String) -> Unit,
+    onOpenSimulateKeyEvent: (GestureAction.SimulateKeyEvent) -> Unit = {},
     includePointerGestureActions: Boolean = false,
     includeCornerInnerZoneActions: Boolean = false,
     pinNoneAtTop: Boolean = true,
@@ -123,86 +124,93 @@ fun GestureActionPickerScreen(
         ActionPickerTab.APPS, ActionPickerTab.SHORTCUTS -> R.string.search_hint
     }
 
-    SettingsLazyScreenScaffold(
-        title = stringResource(R.string.slot_pick_action),
-        onBack = handleBack,
-        modifier = Modifier.fillMaxSize(),
-        actions = {
-            MiuixExpandableSearchIconAction(
-                expanded = searchExpanded,
-                query = searchQuery,
-                onExpandedChange = { searchExpanded = it },
-                onQueryChange = { searchQuery = it },
-            )
-        },
-        bottomContent = {
-            MiuixScaffoldSearchTabBottomContent(
-                searchExpanded = searchExpanded,
-                searchQuery = searchQuery,
-                onSearchQueryChange = { searchQuery = it },
-                focusRequester = searchFocusRequester,
-                hintResId = searchHintResId,
-                tabContent = {
-                    MiuixTabRowWithContour(
-                        tabs = listOf(
-                            stringResource(R.string.action_picker_tab_actions),
-                            stringResource(R.string.action_picker_tab_apps),
-                            stringResource(R.string.action_picker_tab_shortcuts),
-                        ),
-                        selectedTabIndex = selectedTab,
-                        onTabSelected = { selectedTab = it },
-                    )
-                },
-            )
-        },
-    ) {
-        when (ActionPickerTab.entries[selectedTab]) {
-            ActionPickerTab.ACTIONS -> {
-                actionPickerActionItems(
-                    filtered = filteredActions,
-                    current = current,
-                    onSelect = onSelect,
-                    onOpenExecuteShellCommand = {
-                        onOpenExecuteShellCommand(shellConfigInitialCommand)
-                    },
+    androidx.compose.foundation.layout.Box(modifier = Modifier.fillMaxSize()) {
+        SettingsLazyScreenScaffold(
+            title = stringResource(R.string.slot_pick_action),
+            onBack = handleBack,
+            modifier = Modifier.fillMaxSize(),
+            actions = {
+                MiuixExpandableSearchIconAction(
+                    expanded = searchExpanded,
+                    query = searchQuery,
+                    onExpandedChange = { searchExpanded = it },
+                    onQueryChange = { searchQuery = it },
                 )
-            }
-            ActionPickerTab.APPS -> {
-                actionPickerAppItems(
-                    filtered = filteredApps,
-                    current = current,
-                    onSelect = { app -> onSelect(GestureAction.LaunchApp(app.packageName)) },
-                )
-            }
-            ActionPickerTab.SHORTCUTS -> {
-                actionPickerShortcutItems(
-                    appsByPackage = appsByPackage,
+            },
+            bottomContent = {
+                MiuixScaffoldSearchTabBottomContent(
+                    searchExpanded = searchExpanded,
                     searchQuery = searchQuery,
-                    current = current,
-                    onSelect = onSelect,
-                    activityShortcuts = activityShortcuts,
-                    onOpenMyShortcuts = onOpenMyShortcuts,
-                    onOpenPresetShortcuts = onOpenPresetShortcuts,
-                    onBrowseActivityShortcut = onOpenPickApp,
-                    filtered = filteredShortcuts,
-                    loading = loadedCatalog.loading,
-                    scanProgress = loadedCatalog.scanProgress,
-                    onCreateHostClick = { host ->
-                        pendingCreateHost = host
-                        runCatching { createLauncher.launch(host.createIntent()) }
-                            .onFailure { pendingCreateHost = null }
-                    },
-                    shortcutRowContent = { group, shortcut, segmentIndex, segmentCount ->
-                        ActionPickerShortcutRow(
-                            shortcut = shortcut,
-                            packageName = group.app.packageName,
-                            segmentIndex = segmentIndex,
-                            segmentCount = segmentCount,
-                            current = current,
-                            onSelect = onSelect,
+                    onSearchQueryChange = { searchQuery = it },
+                    focusRequester = searchFocusRequester,
+                    hintResId = searchHintResId,
+                    tabContent = {
+                        MiuixTabRowWithContour(
+                            tabs = listOf(
+                                stringResource(R.string.action_picker_tab_actions),
+                                stringResource(R.string.action_picker_tab_apps),
+                                stringResource(R.string.action_picker_tab_shortcuts),
+                            ),
+                            selectedTabIndex = selectedTab,
+                            onTabSelected = { selectedTab = it },
                         )
                     },
                 )
+            },
+        ) {
+            when (ActionPickerTab.entries[selectedTab]) {
+                ActionPickerTab.ACTIONS -> {
+                    actionPickerActionItems(
+                        filtered = filteredActions,
+                        current = current,
+                        onSelect = onSelect,
+                        onOpenExecuteShellCommand = {
+                            onOpenExecuteShellCommand(shellConfigInitialCommand)
+                        },
+                        onOpenSimulateKeyEvent = {
+                            onOpenSimulateKeyEvent(
+                                current as? GestureAction.SimulateKeyEvent ?: GestureAction.SimulateKeyEvent()
+                            )
+                        },
+                    )
+                }
+                ActionPickerTab.APPS -> {
+                    actionPickerAppItems(
+                        filtered = filteredApps,
+                        current = current,
+                        onSelect = { app -> onSelect(GestureAction.LaunchApp(app.packageName)) },
+                    )
+                }
+                ActionPickerTab.SHORTCUTS -> {
+                    actionPickerShortcutItems(
+                        appsByPackage = appsByPackage,
+                        searchQuery = searchQuery,
+                        current = current,
+                        onSelect = onSelect,
+                        activityShortcuts = activityShortcuts,
+                        onOpenMyShortcuts = onOpenMyShortcuts,
+                        onOpenPresetShortcuts = onOpenPresetShortcuts,
+                        onBrowseActivityShortcut = onOpenPickApp,
+                        filtered = filteredShortcuts,
+                        loading = loadedCatalog.loading,
+                        scanProgress = loadedCatalog.scanProgress,
+                        onCreateHostClick = { host ->
+                            pendingCreateHost = host
+                            runCatching { createLauncher.launch(host.createIntent()) }
+                                .onFailure { pendingCreateHost = null }
+                        },
+                        shortcutRowContent = { group, shortcut, segmentIndex, segmentCount ->
+                            ActionPickerShortcutRow(
+                                shortcut = shortcut,
+                                packageName = group.app.packageName,
+                                segmentIndex = segmentIndex,
+                                segmentCount = segmentCount,
+                                current = current,
+                                onSelect = onSelect,
+                            )
+                        },
+                    )
+                }
             }
         }
     }

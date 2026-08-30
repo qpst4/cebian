@@ -72,6 +72,14 @@ sealed interface AppNavKey : NavKey {
         val triggerId: Int,
         val initialCommand: String = "",
     ) : AppNavKey
+    @Serializable data class HomeSideGestureSlotSimulateKeyEvent(
+        val side: String,
+        val handleId: String,
+        val triggerId: Int,
+        val initialKeyCode: Int = 82,
+        val initialKeyName: String = "",
+        val initialIsLongPress: Boolean = false,
+    ) : AppNavKey
     @Serializable data class HomeSideGesturesAppearance(val side: String, val handleId: String) : AppNavKey
     @Serializable data class HomeSideGesturesDesign(val side: String, val handleId: String) : AppNavKey
     @Serializable data object HomeGestureAngle : AppNavKey
@@ -113,6 +121,13 @@ sealed interface AppNavKey : NavKey {
         val slotIndex: Int,
         val initialCommand: String = "",
     ) : AppNavKey
+    @Serializable data class HomeCornerGestureSlotSimulateKeyEvent(
+        val corner: String,
+        val slotIndex: Int,
+        val initialKeyCode: Int = 82,
+        val initialKeyName: String = "",
+        val initialIsLongPress: Boolean = false,
+    ) : AppNavKey
     @Serializable data class HomeCornerGestureSlotSubMenuPick(
         val corner: String,
         val slotIndex: Int,
@@ -141,6 +156,11 @@ sealed interface AppNavKey : NavKey {
     @Serializable data object HomeCornerGestureInnerZonePickApp : AppNavKey
     @Serializable data class HomeCornerGestureInnerZonePickActivity(val packageName: String) : AppNavKey
     @Serializable data class HomeCornerGestureInnerZoneShellCommand(val initialCommand: String = "") : AppNavKey
+    @Serializable data class HomeCornerGestureInnerZoneSimulateKeyEvent(
+        val initialKeyCode: Int = 82,
+        val initialKeyName: String = "",
+        val initialIsLongPress: Boolean = false,
+    ) : AppNavKey
 
     // Shake tab
     @Serializable data object ShakeGestures : AppNavKey
@@ -183,6 +203,14 @@ sealed interface AppNavKey : NavKey {
         val packageName: String = "",
         val initialCommand: String = "",
     ) : AppNavKey
+    @Serializable data class ShakeGestureActionSimulateKeyEvent(
+        val target: ShakeActionPickTarget,
+        val gestureTypeId: Int,
+        val packageName: String = "",
+        val initialKeyCode: Int = 82,
+        val initialKeyName: String = "",
+        val initialIsLongPress: Boolean = false,
+    ) : AppNavKey
 
     // Notification tab
     @Serializable data object NotificationHub : AppNavKey
@@ -200,6 +228,12 @@ sealed interface AppNavKey : NavKey {
     @Serializable data class MessageReminderGesturePickApp(val slot: String) : AppNavKey
     @Serializable data class MessageReminderGesturePickActivity(val slot: String, val packageName: String) : AppNavKey
     @Serializable data class MessageReminderGestureShellCommand(val slot: String, val initialCommand: String = "") : AppNavKey
+    @Serializable data class MessageReminderGestureSimulateKeyEvent(
+        val slot: String,
+        val initialKeyCode: Int = 82,
+        val initialKeyName: String = "",
+        val initialIsLongPress: Boolean = false,
+    ) : AppNavKey
     @Serializable data object MessageReminderDndApps : AppNavKey
     @Serializable data class MessageStyleDetail(val styleId: String) : AppNavKey
     @Serializable data object MessageStyleSideBubbleCount : AppNavKey
@@ -221,6 +255,11 @@ sealed interface AppNavKey : NavKey {
     @Serializable data object ExtensionBackTapActionPickApp : AppNavKey
     @Serializable data class ExtensionBackTapActionPickActivity(val appPackageName: String) : AppNavKey
     @Serializable data class ExtensionBackTapActionShellCommand(val initialCommand: String = "") : AppNavKey
+    @Serializable data class ExtensionBackTapActionSimulateKeyEvent(
+        val initialKeyCode: Int = 82,
+        val initialKeyName: String = "",
+        val initialIsLongPress: Boolean = false,
+    ) : AppNavKey
     @Serializable data object ExtensionBackup : AppNavKey
     @Serializable data object ExtensionMissingPermissions : AppNavKey
     @Serializable data object ExtensionPrivacy : AppNavKey
@@ -228,6 +267,7 @@ sealed interface AppNavKey : NavKey {
     @Serializable data class ExtensionLicenseText(val assetFileName: String) : AppNavKey
     @Serializable data object QuickLauncher : AppNavKey
     @Serializable data class QuickLauncherAdd(val panelId: String) : AppNavKey
+    @Serializable data class QuickLauncherEdit(val panelId: String) : AppNavKey
     @Serializable data class QuickLauncherPickApp(
         val panelId: String,
         val fromCreateFolder: Boolean = false,
@@ -250,6 +290,13 @@ sealed interface AppNavKey : NavKey {
         val initialCommand: String = "",
         val fromCreateFolder: Boolean = false,
     ) : AppNavKey
+    @Serializable data class QuickLauncherSimulateKeyEvent(
+        val panelId: String,
+        val initialKeyCode: Int = 82,
+        val initialKeyName: String = "",
+        val initialIsLongPress: Boolean = false,
+        val fromCreateFolder: Boolean = false,
+    ) : AppNavKey
     @Serializable data class QuickLauncherCreateFolder(val panelId: String) : AppNavKey
 
     @Serializable data object HoneycombLauncher : AppNavKey
@@ -259,6 +306,11 @@ sealed interface AppNavKey : NavKey {
     @Serializable data object HoneycombLauncherMyShortcuts : AppNavKey
     @Serializable data object HoneycombLauncherPresetShortcuts : AppNavKey
     @Serializable data class HoneycombLauncherShellCommand(val initialCommand: String = "") : AppNavKey
+    @Serializable data class HoneycombLauncherSimulateKeyEvent(
+        val initialKeyCode: Int = 82,
+        val initialKeyName: String = "",
+        val initialIsLongPress: Boolean = false,
+    ) : AppNavKey
     @Serializable data object HoneycombDisplaySettings : AppNavKey
     @Serializable data object HolographicLauncherSettings : AppNavKey
     @Serializable data object HolographicLauncherHiddenApps : AppNavKey
@@ -301,6 +353,12 @@ sealed interface AppNavKey : NavKey {
     @Serializable data class FloatBallGestureShellCommand(
         val gestureTypeId: Int,
         val initialCommand: String = "",
+    ) : AppNavKey
+    @Serializable data class FloatBallGestureSimulateKeyEvent(
+        val gestureTypeId: Int,
+        val initialKeyCode: Int = 82,
+        val initialKeyName: String = "",
+        val initialIsLongPress: Boolean = false,
     ) : AppNavKey
     @Serializable data object FloatBallPick : AppNavKey
     @Serializable data object ShareImageOcrHistory : AppNavKey
@@ -356,6 +414,12 @@ sealed interface AppNavKey : NavKey {
         val slotIndex: Int,
         val initialCommand: String = "",
     ) : AppNavKey
+    @Serializable data class FloatingPointerRadialSimulateKeyEvent(
+        val slotIndex: Int,
+        val initialKeyCode: Int = 82,
+        val initialKeyName: String = "",
+        val initialIsLongPress: Boolean = false,
+    ) : AppNavKey
     @Serializable data class FloatingPointerRadialSwipeConfig(val slotIndex: Int) : AppNavKey
     @Serializable data object FloatingPointerEdgeActions : AppNavKey
     @Serializable data class FloatingPointerEdgeSideSettings(val side: String) : AppNavKey
@@ -368,6 +432,13 @@ sealed interface AppNavKey : NavKey {
         val side: String,
         val slotIndex: Int,
         val initialCommand: String = "",
+    ) : AppNavKey
+    @Serializable data class FloatingPointerEdgeSimulateKeyEvent(
+        val side: String,
+        val slotIndex: Int,
+        val initialKeyCode: Int = 82,
+        val initialKeyName: String = "",
+        val initialIsLongPress: Boolean = false,
     ) : AppNavKey
 }
 

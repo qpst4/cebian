@@ -46,6 +46,32 @@ internal fun ActionPickerExecuteShellCommandRow(
 }
 
 @Composable
+internal fun ActionPickerSimulateKeyEventRow(
+    action: GestureAction,
+    segmentIndex: Int,
+    segmentCount: Int,
+    subtitle: String?,
+    onOpenConfig: () -> Unit,
+) {
+    val label = androidx.compose.ui.res.stringResource(com.slideindex.app.R.string.gesture_action_simulate_key_event)
+    Md3PickerListRow(
+        segmentIndex = segmentIndex,
+        segmentCount = segmentCount,
+        title = label,
+        subtitle = subtitle,
+        selected = false,
+        onClick = onOpenConfig,
+        leadingContent = {
+            Md3PickerIconLeading(
+                icon = gestureActionIcon(action, outlined = true),
+                selected = false,
+            )
+        },
+        trailingMode = PickerTrailingMode.None,
+    )
+}
+
+@Composable
 internal fun ActionPickerActionRow(
     action: GestureAction,
     segmentIndex: Int,

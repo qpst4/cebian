@@ -267,6 +267,11 @@ class ActionExecutor(
             GestureAction.MediaPlayPause -> SystemGestureActions.dispatchMediaKey(context, KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE)
             GestureAction.MediaPrevious -> SystemGestureActions.dispatchMediaKey(context, KeyEvent.KEYCODE_MEDIA_PREVIOUS)
             GestureAction.MediaNext -> SystemGestureActions.dispatchMediaKey(context, KeyEvent.KEYCODE_MEDIA_NEXT)
+            GestureAction.OpenInternetPanel -> SystemGestureActions.openNativeInternetPanel(context)
+            GestureAction.OpenVolumePanel -> SystemGestureActions.openNativeVolumePanel(context)
+            GestureAction.OneHandedMode -> SystemGestureActions.toggleOneHandedMode(context)
+            GestureAction.CurrentAppInfo -> SystemGestureActions.openCurrentAppInfo(context)
+            is GestureAction.SimulateKeyEvent -> SystemGestureActions.simulateKeyEvent(context, action.keyCode, action.isLongPress)
             GestureAction.PreviousApp,
             GestureAction.OpenNotifications,
             GestureAction.OpenQuickSettings,

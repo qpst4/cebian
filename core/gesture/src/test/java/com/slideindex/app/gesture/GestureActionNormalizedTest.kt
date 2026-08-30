@@ -42,6 +42,17 @@ class GestureActionNormalizedTest {
         assertEquals(GestureActionType.TOGGLE_AUTO_ROTATE, GestureActionType.fromId(73))
         assertEquals(GestureActionType.FORCE_PORTRAIT, GestureActionType.fromId(74))
         assertEquals(GestureActionType.FORCE_LANDSCAPE, GestureActionType.fromId(75))
+        assertEquals(GestureAction.OpenInternetPanel, GestureAction.from(GestureActionType.OPEN_INTERNET_PANEL, ""))
+        assertEquals(GestureAction.OpenVolumePanel, GestureAction.from(GestureActionType.OPEN_VOLUME_PANEL, ""))
+        assertEquals(GestureAction.OneHandedMode, GestureAction.from(GestureActionType.ONE_HANDED_MODE, ""))
+        assertEquals(GestureAction.CurrentAppInfo, GestureAction.from(GestureActionType.CURRENT_APP_INFO, ""))
+        val keyEvent = GestureAction.SimulateKeyEvent(82, "菜单", true)
+        assertEquals(keyEvent, GestureAction.from(GestureActionType.SIMULATE_KEY_EVENT, keyEvent.payload))
+        assertEquals(GestureActionType.OPEN_INTERNET_PANEL, GestureActionType.fromId(76))
+        assertEquals(GestureActionType.OPEN_VOLUME_PANEL, GestureActionType.fromId(77))
+        assertEquals(GestureActionType.ONE_HANDED_MODE, GestureActionType.fromId(78))
+        assertEquals(GestureActionType.CURRENT_APP_INFO, GestureActionType.fromId(79))
+        assertEquals(GestureActionType.SIMULATE_KEY_EVENT, GestureActionType.fromId(80))
     }
 
     @Test

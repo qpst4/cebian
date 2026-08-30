@@ -50,6 +50,7 @@ import com.slideindex.app.ui.FreeWindowSettingsScreen
 import com.slideindex.app.ui.GestureActionPickerScreen
 import com.slideindex.app.ui.GestureAngleSettingsScreen
 import com.slideindex.app.ui.GestureExecuteShellCommandScreen
+import com.slideindex.app.ui.GestureSimulateKeyEventScreen
 import com.slideindex.app.ui.HiddenAppsScreen
 import com.slideindex.app.ui.LayoutSettingsScreen
 import com.slideindex.app.ui.MainScreen
@@ -375,6 +376,15 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
             onOpenPresetShortcuts = { ctx.navigate(AppNavKey.HomeCornerGestureInnerZonePresetShortcuts) },
             onOpenPickApp = { ctx.navigate(AppNavKey.HomeCornerGestureInnerZonePickApp) },
             onOpenExecuteShellCommand = { cmd -> ctx.navigate(AppNavKey.HomeCornerGestureInnerZoneShellCommand(cmd)) },
+            onOpenSimulateKeyEvent = { keyEvent ->
+                ctx.navigate(
+                    AppNavKey.HomeCornerGestureInnerZoneSimulateKeyEvent(
+                        initialKeyCode = keyEvent.keyCode,
+                        initialKeyName = keyEvent.keyName,
+                        initialIsLongPress = keyEvent.isLongPress,
+                    ),
+                )
+            },
             includeCornerInnerZoneActions = true,
         )
     }
@@ -655,6 +665,18 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
             onOpenPresetShortcuts = { ctx.navigate(AppNavKey.HomeSideGestureSlotPresetShortcuts(key.side, key.handleId, key.triggerId)) },
             onOpenPickApp = { ctx.navigate(AppNavKey.HomeSideGestureSlotPickApp(key.side, key.handleId, key.triggerId)) },
             onOpenExecuteShellCommand = { cmd -> ctx.navigate(AppNavKey.HomeSideGestureSlotShellCommand(key.side, key.handleId, key.triggerId, cmd)) },
+            onOpenSimulateKeyEvent = { keyEvent ->
+                ctx.navigate(
+                    AppNavKey.HomeSideGestureSlotSimulateKeyEvent(
+                        key.side,
+                        key.handleId,
+                        key.triggerId,
+                        keyEvent.keyCode,
+                        keyEvent.keyName,
+                        keyEvent.isLongPress,
+                    ),
+                )
+            },
         )
     }
 
@@ -828,6 +850,56 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
                     key.handleId,
                 )
                 ctx.navigateBackTo(slotConfigKey)
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.HomeSideGestureSlotSimulateKeyEvent> { key ->
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val landscapeEditing = TriggerSettingsLandscapeSession.active
+        val settings = gestureSettings.toMinimalAppSettings().let { base ->
+            if (landscapeEditing) base.forLandscapeEditing() else base
+        }
+        TriggerLandscapeOrientationEffect(landscapeEditing)
+        val side = key.side.toPanelSide()
+        val configSide = settings.gestureConfigSide(side, key.handleId)
+        val trigger = GestureTriggerType.fromId(key.triggerId) ?: GestureTriggerType.SHORT_SWIPE_IN
+        val returnKey = AppNavKey.HomeSideGestureSlotActionPick(key.side, key.handleId, key.triggerId)
+        val currentMode = settings.displayTriggerMode(configSide, trigger, key.handleId)
+        GestureSimulateKeyEventScreen(
+            initialAction = GestureAction.SimulateKeyEvent(
+                keyCode = key.initialKeyCode,
+                keyName = key.initialKeyName,
+                isLongPress = key.initialIsLongPress,
+            ),
+            onBack = { ctx.backStack.removeLastOrNull() },
+            onConfirm = { keyEventAction ->
+                viewModel.setSlotConfig(
+                    side,
+                    trigger,
+                    keyEventAction,
+                    currentMode,
+                    key.handleId,
+                )
+                ctx.navigateBackTo(returnKey)
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.HomeCornerGestureInnerZoneSimulateKeyEvent> { key ->
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val returnKey = AppNavKey.HomeCornerGestureInnerZoneActionPick
+        GestureSimulateKeyEventScreen(
+            initialAction = GestureAction.SimulateKeyEvent(
+                keyCode = key.initialKeyCode,
+                keyName = key.initialKeyName,
+                isLongPress = key.initialIsLongPress,
+            ),
+            onBack = { ctx.backStack.removeLastOrNull() },
+            onConfirm = { keyEventAction ->
+                viewModel.setCornerGestureInnerZoneAction(keyEventAction)
+                ctx.navigateBackTo(returnKey)
             },
         )
     }

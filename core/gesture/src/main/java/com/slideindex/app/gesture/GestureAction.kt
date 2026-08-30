@@ -76,6 +76,11 @@ enum class GestureActionType(val id: Int) {
     TOGGLE_AUTO_ROTATE(73),
     FORCE_PORTRAIT(74),
     FORCE_LANDSCAPE(75),
+    OPEN_INTERNET_PANEL(76),
+    OPEN_VOLUME_PANEL(77),
+    ONE_HANDED_MODE(78),
+    CURRENT_APP_INFO(79),
+    SIMULATE_KEY_EVENT(80),
     ;
 
     companion object {
@@ -545,6 +550,52 @@ sealed class GestureAction {
         override val payload = ""
     }
 
+    /** 打开原生网络连接面板（Wi-Fi/移动网络）。 */
+    data object OpenInternetPanel : GestureAction() {
+        override val type = GestureActionType.OPEN_INTERNET_PANEL
+        override val payload = ""
+    }
+
+    /** 调出系统原生声音调节面板。 */
+    data object OpenVolumePanel : GestureAction() {
+        override val type = GestureActionType.OPEN_VOLUME_PANEL
+        override val payload = ""
+    }
+
+    /** 触发系统原生单手模式（A12+下沉）。 */
+    data object OneHandedMode : GestureAction() {
+        override val type = GestureActionType.ONE_HANDED_MODE
+        override val payload = ""
+    }
+
+    /** 打开当前前台应用信息页面。 */
+    data object CurrentAppInfo : GestureAction() {
+        override val type = GestureActionType.CURRENT_APP_INFO
+        override val payload = ""
+    }
+
+    /** 模拟按键事件（支持自定义 KeyCode 与长按）。 */
+    data class SimulateKeyEvent(
+        val keyCode: Int = 82,
+        val keyName: String = "",
+        val isLongPress: Boolean = false,
+    ) : GestureAction() {
+        override val type = GestureActionType.SIMULATE_KEY_EVENT
+        override val payload: String
+            get() = "$keyCode:$isLongPress:$keyName"
+
+        companion object {
+            fun fromPayload(payload: String): SimulateKeyEvent {
+                if (payload.isBlank()) return SimulateKeyEvent(82, "KEYCODE_MENU", false)
+                val parts = payload.split(":", limit = 3)
+                val code = parts.getOrNull(0)?.toIntOrNull() ?: 82
+                val longPress = parts.getOrNull(1)?.toBooleanStrictOrNull() ?: false
+                val name = parts.getOrNull(2).orEmpty()
+                return SimulateKeyEvent(code, name, longPress)
+            }
+        }
+    }
+
     companion object {
         /** Actions that support [GestureTriggerMode.CONTINUOUS] on compatible triggers. */
         val continuousTrackingActions: List<GestureAction> = listOf(
@@ -637,6 +688,11 @@ sealed class GestureAction {
                 GestureActionType.FREEZER_PANEL -> FreezerPanel
                 GestureActionType.REFREEZE -> Refreeze
                 GestureActionType.TOGGLE_AUTO_BRIGHTNESS -> ToggleAutoBrightness
+                GestureActionType.OPEN_INTERNET_PANEL -> OpenInternetPanel
+                GestureActionType.OPEN_VOLUME_PANEL -> OpenVolumePanel
+                GestureActionType.ONE_HANDED_MODE -> OneHandedMode
+                GestureActionType.CURRENT_APP_INFO -> CurrentAppInfo
+                GestureActionType.SIMULATE_KEY_EVENT -> SimulateKeyEvent.fromPayload(payload)
                 GestureActionType.NONE -> None
             }.normalized()
 

@@ -82,6 +82,11 @@ fun gestureActionDescriptionText(context: Context, action: GestureAction): Strin
         GestureActionType.LOCK_SCREEN_AND_SILENCE_RING -> context.getString(R.string.gesture_action_lock_screen_and_silence_ring_desc)
         GestureActionType.LOCK_SCREEN_AND_MUTE_ALL -> context.getString(R.string.gesture_action_lock_screen_and_mute_all_desc)
         GestureActionType.SNOOZE_OVERLAYS -> context.getString(R.string.gesture_action_snooze_overlays_desc)
+        GestureActionType.OPEN_INTERNET_PANEL -> context.getString(R.string.gesture_action_open_internet_panel_desc)
+        GestureActionType.OPEN_VOLUME_PANEL -> context.getString(R.string.gesture_action_open_volume_panel_desc)
+        GestureActionType.ONE_HANDED_MODE -> context.getString(R.string.gesture_action_one_handed_mode_desc)
+        GestureActionType.CURRENT_APP_INFO -> context.getString(R.string.gesture_action_current_app_info_desc)
+        GestureActionType.SIMULATE_KEY_EVENT -> context.getString(R.string.gesture_action_simulate_key_event_desc)
         else -> null
     }
 
@@ -109,6 +114,10 @@ fun gestureActionLabelText(context: Context, action: GestureAction): String = wh
                 gestureExecuteShellCommandPreview(action.command),
             )
         }
+    }
+    is GestureAction.SimulateKeyEvent -> {
+        val name = if (action.keyName.isNotBlank()) action.keyName else com.slideindex.app.gesture.KeyEventPresets.getDisplayName(action.keyCode)
+        context.getString(R.string.gesture_action_simulate_key_event_named, name)
     }
     else -> when (action.type) {
         GestureActionType.NONE -> context.getString(R.string.gesture_action_none)
@@ -183,6 +192,11 @@ fun gestureActionLabelText(context: Context, action: GestureAction): String = wh
         GestureActionType.TOGGLE_WIFI -> context.getString(R.string.gesture_action_toggle_wifi)
         GestureActionType.TOGGLE_MOBILE_DATA -> context.getString(R.string.gesture_action_toggle_mobile_data)
         GestureActionType.SWITCH_INPUT_METHOD -> context.getString(R.string.gesture_action_switch_input_method)
+        GestureActionType.OPEN_INTERNET_PANEL -> context.getString(R.string.gesture_action_open_internet_panel)
+        GestureActionType.OPEN_VOLUME_PANEL -> context.getString(R.string.gesture_action_open_volume_panel)
+        GestureActionType.ONE_HANDED_MODE -> context.getString(R.string.gesture_action_one_handed_mode)
+        GestureActionType.CURRENT_APP_INFO -> context.getString(R.string.gesture_action_current_app_info)
+        GestureActionType.SIMULATE_KEY_EVENT -> context.getString(R.string.gesture_action_simulate_key_event)
         GestureActionType.CORNER_INNER_CANCEL -> context.getString(R.string.gesture_action_corner_inner_cancel)
         GestureActionType.CORNER_INNER_PIN_WHEEL -> context.getString(R.string.gesture_action_corner_inner_pin_wheel)
         GestureActionType.LAUNCH_APP -> context.getString(R.string.gesture_action_launch_app)
@@ -232,6 +246,14 @@ fun gestureActionLabel(action: GestureAction, settings: AppSettings? = null): St
                 R.string.gesture_action_execute_shell_command_named,
                 gestureExecuteShellCommandPreview(action.command),
             )
+        }
+    }
+    is GestureAction.SimulateKeyEvent -> {
+        if (action.keyName.isBlank() || (action.keyCode == 82 && action.keyName == "KEYCODE_MENU")) {
+            stringResource(R.string.gesture_action_simulate_key_event)
+        } else {
+            val name = if (action.keyName.isNotBlank()) action.keyName else com.slideindex.app.gesture.KeyEventPresets.getDisplayName(action.keyCode)
+            stringResource(R.string.gesture_action_simulate_key_event_named, name)
         }
     }
     else -> when (action.type) {
@@ -307,6 +329,11 @@ fun gestureActionLabel(action: GestureAction, settings: AppSettings? = null): St
         GestureActionType.TOGGLE_WIFI -> stringResource(R.string.gesture_action_toggle_wifi)
         GestureActionType.TOGGLE_MOBILE_DATA -> stringResource(R.string.gesture_action_toggle_mobile_data)
         GestureActionType.SWITCH_INPUT_METHOD -> stringResource(R.string.gesture_action_switch_input_method)
+        GestureActionType.OPEN_INTERNET_PANEL -> stringResource(R.string.gesture_action_open_internet_panel)
+        GestureActionType.OPEN_VOLUME_PANEL -> stringResource(R.string.gesture_action_open_volume_panel)
+        GestureActionType.ONE_HANDED_MODE -> stringResource(R.string.gesture_action_one_handed_mode)
+        GestureActionType.CURRENT_APP_INFO -> stringResource(R.string.gesture_action_current_app_info)
+        GestureActionType.SIMULATE_KEY_EVENT -> stringResource(R.string.gesture_action_simulate_key_event)
         GestureActionType.CORNER_INNER_CANCEL -> stringResource(R.string.gesture_action_corner_inner_cancel)
         GestureActionType.CORNER_INNER_PIN_WHEEL -> stringResource(R.string.gesture_action_corner_inner_pin_wheel)
         GestureActionType.LAUNCH_APP -> stringResource(R.string.gesture_action_launch_app)
@@ -327,6 +354,10 @@ fun gestureActionSettingSubtitle(action: GestureAction): String {
                     gestureExecuteShellCommandPreview(action.command, maxLength = 28),
                 )
             }
+        }
+        is GestureAction.SimulateKeyEvent -> {
+            val name = if (action.keyName.isNotBlank()) action.keyName else com.slideindex.app.gesture.KeyEventPresets.getDisplayName(action.keyCode)
+            stringResource(R.string.gesture_action_simulate_key_event_named, name)
         }
         else -> gestureActionLabel(action)
     }
@@ -355,6 +386,11 @@ fun gestureActionDescription(action: GestureAction): String? = when (action.type
     GestureActionType.TOGGLE_MUTE -> stringResource(R.string.gesture_action_toggle_mute_desc)
     GestureActionType.LOCK_SCREEN_AND_SILENCE_RING -> stringResource(R.string.gesture_action_lock_screen_and_silence_ring_desc)
     GestureActionType.LOCK_SCREEN_AND_MUTE_ALL -> stringResource(R.string.gesture_action_lock_screen_and_mute_all_desc)
+    GestureActionType.OPEN_INTERNET_PANEL -> stringResource(R.string.gesture_action_open_internet_panel_desc)
+    GestureActionType.OPEN_VOLUME_PANEL -> stringResource(R.string.gesture_action_open_volume_panel_desc)
+    GestureActionType.ONE_HANDED_MODE -> stringResource(R.string.gesture_action_one_handed_mode_desc)
+    GestureActionType.CURRENT_APP_INFO -> stringResource(R.string.gesture_action_current_app_info_desc)
+    GestureActionType.SIMULATE_KEY_EVENT -> stringResource(R.string.gesture_action_simulate_key_event_desc)
     GestureActionType.CORNER_INNER_CANCEL -> stringResource(R.string.gesture_action_corner_inner_cancel_desc)
     GestureActionType.CORNER_INNER_PIN_WHEEL -> stringResource(R.string.gesture_action_corner_inner_pin_wheel_desc)
     GestureActionType.SNOOZE_OVERLAYS -> stringResource(R.string.gesture_action_snooze_overlays_desc)

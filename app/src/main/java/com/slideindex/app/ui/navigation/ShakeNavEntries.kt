@@ -16,6 +16,7 @@ import com.slideindex.app.shake.ShakeGestureSettings
 import com.slideindex.app.shake.ShakeGestureType
 import com.slideindex.app.ui.GestureActionPickerScreen
 import com.slideindex.app.ui.GestureExecuteShellCommandScreen
+import com.slideindex.app.ui.GestureSimulateKeyEventScreen
 import com.slideindex.app.ui.ShakeActionSetSettingsScreen
 import com.slideindex.app.ui.ShakeGestureBlacklistScreen
 import com.slideindex.app.ui.ShakeGesturesScreen
@@ -148,6 +149,18 @@ fun NavEntryBuilder.shakeNavEntries(ctx: MainNavContext) {
                         gestureTypeId = key.gestureTypeId,
                         packageName = key.packageName,
                         initialCommand = cmd,
+                    ),
+                )
+            },
+            onOpenSimulateKeyEvent = { keyEvent ->
+                ctx.navigate(
+                    AppNavKey.ShakeGestureActionSimulateKeyEvent(
+                        target = key.target,
+                        gestureTypeId = key.gestureTypeId,
+                        packageName = key.packageName,
+                        initialKeyCode = keyEvent.keyCode,
+                        initialKeyName = keyEvent.keyName,
+                        initialIsLongPress = keyEvent.isLongPress,
                     ),
                 )
             },
@@ -426,6 +439,15 @@ fun NavEntryBuilder.shakeNavEntries(ctx: MainNavContext) {
             onOpenExecuteShellCommand = { cmd ->
                 ctx.navigate(AppNavKey.ExtensionBackTapActionShellCommand(cmd))
             },
+            onOpenSimulateKeyEvent = { keyEvent ->
+                ctx.navigate(
+                    AppNavKey.ExtensionBackTapActionSimulateKeyEvent(
+                        initialKeyCode = keyEvent.keyCode,
+                        initialKeyName = keyEvent.keyName,
+                        initialIsLongPress = keyEvent.isLongPress,
+                    ),
+                )
+            },
         )
     }
 
@@ -513,6 +535,49 @@ fun NavEntryBuilder.shakeNavEntries(ctx: MainNavContext) {
                     ctx.deps.settingsRepository.setBackTapAction(
                         GestureAction.ExecuteShellCommand(command),
                     )
+                    ctx.navigateBackTo(returnKey)
+                }
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.ShakeGestureActionSimulateKeyEvent> { key ->
+        val viewModel: ShakeHubViewModel = hiltViewModel()
+        val gestureType = ShakeGestureType.fromId(key.gestureTypeId) ?: ShakeGestureType.LEFT_FLIP
+        val returnKey = AppNavKey.ShakeGestureActionPick(key.target, key.gestureTypeId, key.packageName)
+        GestureSimulateKeyEventScreen(
+            initialAction = GestureAction.SimulateKeyEvent(
+                keyCode = key.initialKeyCode,
+                keyName = key.initialKeyName,
+                isLongPress = key.initialIsLongPress,
+            ),
+            onBack = { ctx.backStack.removeLastOrNull() },
+            onConfirm = { keyEventAction ->
+                applyShakePickedAction(
+                    viewModel = viewModel,
+                    target = key.target,
+                    gestureType = gestureType,
+                    packageName = key.packageName,
+                    action = keyEventAction,
+                )
+                ctx.navigateBackTo(returnKey)
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.ExtensionBackTapActionSimulateKeyEvent> { key ->
+        val scope = rememberCoroutineScope()
+        val returnKey = AppNavKey.ExtensionBackTapActionPick
+        GestureSimulateKeyEventScreen(
+            initialAction = GestureAction.SimulateKeyEvent(
+                keyCode = key.initialKeyCode,
+                keyName = key.initialKeyName,
+                isLongPress = key.initialIsLongPress,
+            ),
+            onBack = { ctx.backStack.removeLastOrNull() },
+            onConfirm = { keyEventAction ->
+                scope.launch {
+                    ctx.deps.settingsRepository.setBackTapAction(keyEventAction)
                     ctx.navigateBackTo(returnKey)
                 }
             },
