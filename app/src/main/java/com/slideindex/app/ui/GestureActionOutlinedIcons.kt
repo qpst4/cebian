@@ -90,7 +90,6 @@ internal fun gestureActionTypeOutlinedIcon(type: GestureActionType): ImageVector
     GestureActionType.SWITCH_INPUT_METHOD -> ThinActionIcons.Keyboard
     GestureActionType.OPEN_INTERNET_PANEL -> ThinActionIcons.Wifi
     GestureActionType.OPEN_VOLUME_PANEL -> ThinActionIcons.VolumeUp
-    GestureActionType.ONE_HANDED_MODE -> ThinActionIcons.TouchApp
     GestureActionType.CURRENT_APP_INFO -> ThinActionIcons.Assistant
     GestureActionType.SCREEN_OFF_KEEP_AWAKE -> ThinActionIcons.ScreenOffKeepAwake
     GestureActionType.PIN_TO_SCREEN -> ThinActionIcons.Pin
@@ -174,7 +173,6 @@ internal fun gestureActionTypeThinIcon(type: GestureActionType): ImageVector = w
     GestureActionType.SWITCH_INPUT_METHOD -> ThinActionIcons.Keyboard
     GestureActionType.OPEN_INTERNET_PANEL -> ThinActionIcons.Wifi
     GestureActionType.OPEN_VOLUME_PANEL -> ThinActionIcons.VolumeUp
-    GestureActionType.ONE_HANDED_MODE -> ThinActionIcons.TouchApp
     GestureActionType.CURRENT_APP_INFO -> ThinActionIcons.Assistant
     GestureActionType.SCREEN_OFF_KEEP_AWAKE -> ThinActionIcons.ScreenOffKeepAwake
     GestureActionType.PIN_TO_SCREEN -> ThinActionIcons.Pin

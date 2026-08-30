@@ -133,46 +133,6 @@ object SystemGestureActions {
         }.getOrDefault(false)
     }
 
-    /** 切换单手模式（支持无障碍原生与 Shizuku 双通道）。 */
-    fun toggleOneHandedMode(context: Context): Boolean {
-        // 1. 尝试使用 SecureSettingsHelper (如果应用有 WRITE_SECURE_SETTINGS 权限)
-        if (SecureSettingsHelper.hasWriteSecureSettings(context)) {
-            val currentActivated = android.provider.Settings.Secure.getInt(
-                context.contentResolver,
-                "one_handed_mode_activated",
-                0,
-            )
-            val nextActivated = if (currentActivated == 1) 0 else 1
-            android.provider.Settings.Secure.putInt(
-                context.contentResolver,
-                "one_handed_mode_enabled",
-                1,
-            )
-            android.provider.Settings.Secure.putInt(
-                context.contentResolver,
-                "one_handed_mode_activated",
-                nextActivated,
-            )
-        }
-
-        // 2. 通过 Shizuku / Shell 异步切换设置
-        CoroutineScope(Dispatchers.IO).launch {
-            val shellCmd = "settings put secure one_handed_mode_enabled 1; " +
-                "curr=\$(settings get secure one_handed_mode_activated); " +
-                "if [ \"\$curr\" = \"1\" ]; then settings put secure one_handed_mode_activated 0; else settings put secure one_handed_mode_activated 1; fi"
-            val useRoot = ShellCommandExecutor.probeRootAvailable()
-            TaskManagerUtil.runShellCommandLine(shellCmd, useRoot = useRoot)
-        }
-
-        // 3. 无障碍 GlobalAction 19 配合触发
-        val service = com.slideindex.app.service.SlideIndexAccessibilityService.accessibilityInstance()
-        if (service != null && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
-            service.performGlobalAction(19)
-        }
-
-        return true
-    }
-
     /** 打开当前前台应用系统详情页。 */
     fun openCurrentAppInfo(context: Context): Boolean {
         val foregroundPkg = com.slideindex.app.service.SlideIndexAccessibilityService.currentForegroundPackageName()

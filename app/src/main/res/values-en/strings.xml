@@ -1209,8 +1209,6 @@
     <string name="gesture_action_open_internet_panel_desc">Show system native Wi-Fi &amp; mobile network panel</string>
     <string name="gesture_action_open_volume_panel">Native volume panel</string>
     <string name="gesture_action_open_volume_panel_desc">Show system native volume slider popup</string>
-    <string name="gesture_action_one_handed_mode">One-handed mode</string>
-    <string name="gesture_action_one_handed_mode_desc">Trigger system native one-handed pull-down (Android 12+)</string>
     <string name="gesture_action_current_app_info">Current app info</string>
     <string name="gesture_action_current_app_info_desc">Open App Info settings for the current foreground app</string>
     <string name="gesture_action_simulate_key_event">Simulate key event (KeyEvent)</string>

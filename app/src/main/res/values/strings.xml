@@ -765,8 +765,6 @@
     <string name="gesture_action_open_internet_panel_desc">弹出系统原生 Wi-Fi 与移动网络控制面板</string>
     <string name="gesture_action_open_volume_panel">原生声音调节面板</string>
     <string name="gesture_action_open_volume_panel_desc">调出系统原生音量调节条浮窗</string>
-    <string name="gesture_action_one_handed_mode">单手模式</string>
-    <string name="gesture_action_one_handed_mode_desc">触发系统原生单手模式下沉 (Android 12+)</string>
     <string name="gesture_action_current_app_info">当前应用信息</string>
     <string name="gesture_action_current_app_info_desc">打开当前前台应用的应用详情管理页</string>
     <string name="gesture_action_simulate_key_event">模拟按键 (KeyEvent)</string>

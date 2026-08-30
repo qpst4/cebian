@@ -94,7 +94,6 @@ object GestureActionCatalog {
         GestureActionType.POWER_MENU,
         GestureActionType.SCROLL_TO_TOP,
         GestureActionType.SCROLL_TO_BOTTOM,
-        GestureActionType.ONE_HANDED_MODE,
         GestureActionType.CURRENT_APP_INFO,
         GestureActionType.SCREEN_OFF_KEEP_AWAKE,
         -> GestureActionCategory.Navigation
@@ -227,7 +226,6 @@ object GestureActionCatalog {
         GestureAction.OpenQuickSettings,
         GestureAction.CloseCurrentApp,
         GestureAction.FreeWindowCurrentApp,
-        GestureAction.OneHandedMode,
         GestureAction.CurrentAppInfo,
         GestureAction.ScreenOffKeepAwake,
         GestureAction.LockScreen,
