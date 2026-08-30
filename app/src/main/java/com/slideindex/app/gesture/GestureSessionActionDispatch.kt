@@ -101,6 +101,21 @@ internal fun GestureSession.trackContinuousGesture(
             }
         }
 
+        GestureAction.AppCarouselSwitcher -> {
+            if (!sessionContinuousPick.appCarouselSwitcher) {
+                sessionContinuousPick.appCarouselSwitcher = true
+                sessionCallbacks.hapticConfirmLaunch()
+                com.slideindex.app.overlay.carousel.AppCarouselSwitcherOverlay.show(
+                    sessionActionExecutor.context,
+                    sessionSettings,
+                    rawX,
+                    rawY,
+                )
+            } else {
+                com.slideindex.app.overlay.carousel.AppCarouselSwitcherOverlay.onExternalMove(rawX, rawY)
+            }
+        }
+
         GestureAction.AdjustVolume -> enterAdjustMode(ContinuousAdjustController.Mode.VOLUME, rawY)
 
         GestureAction.AdjustBrightness -> enterAdjustMode(ContinuousAdjustController.Mode.BRIGHTNESS, rawY)
@@ -211,6 +226,18 @@ internal fun GestureSession.handleClassifiedGesture(
             endSession()
         }
 
+        GestureAction.AppCarouselSwitcher -> {
+            sessionContinuousPick.appCarouselSwitcher = false
+            sessionCallbacks.hapticConfirmLaunch()
+            com.slideindex.app.overlay.carousel.AppCarouselSwitcherOverlay.show(
+                sessionActionExecutor.context,
+                sessionSettings,
+                rawX,
+                rawY,
+            )
+            endSession()
+        }
+
         GestureAction.HolographicLauncher -> {
             sessionCallbacks.hapticConfirmLaunch()
             sessionActionExecutor.execute(
@@ -318,6 +345,8 @@ internal fun GestureSession.handleClassifiedGesture(
         GestureAction.OpenVolumePanel,
         GestureAction.OneHandedMode,
         GestureAction.CurrentAppInfo,
+        GestureAction.ScreenOffKeepAwake,
+        GestureAction.PinToScreen,
         is GestureAction.SimulateKeyEvent,
         is GestureAction.SimulatePointerSwipe,
         is GestureAction.ExecuteShellCommand,
@@ -383,6 +412,17 @@ internal fun GestureSession.dispatchQuickLauncherAction(
                 GestureAction.AppSwitcher,
                 sessionSettings,
                 anchorRawY = rawY,
+            )
+            return true
+        }
+        GestureAction.AppCarouselSwitcher -> {
+            sessionContinuousPick.appCarouselSwitcher = false
+            if (confirmHaptic) sessionCallbacks.hapticConfirmLaunch()
+            com.slideindex.app.overlay.carousel.AppCarouselSwitcherOverlay.show(
+                sessionActionExecutor.context,
+                sessionSettings,
+                localX,
+                rawY,
             )
             return true
         }

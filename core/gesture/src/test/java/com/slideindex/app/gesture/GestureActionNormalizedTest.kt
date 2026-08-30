@@ -53,6 +53,12 @@ class GestureActionNormalizedTest {
         assertEquals(GestureActionType.ONE_HANDED_MODE, GestureActionType.fromId(78))
         assertEquals(GestureActionType.CURRENT_APP_INFO, GestureActionType.fromId(79))
         assertEquals(GestureActionType.SIMULATE_KEY_EVENT, GestureActionType.fromId(80))
+        assertEquals(GestureAction.ScreenOffKeepAwake, GestureAction.from(GestureActionType.SCREEN_OFF_KEEP_AWAKE, ""))
+        assertEquals(GestureActionType.SCREEN_OFF_KEEP_AWAKE, GestureActionType.fromId(81))
+        assertEquals(GestureAction.PinToScreen, GestureAction.from(GestureActionType.PIN_TO_SCREEN, ""))
+        assertEquals(GestureActionType.PIN_TO_SCREEN, GestureActionType.fromId(82))
+        assertEquals(GestureAction.AppCarouselSwitcher, GestureAction.from(GestureActionType.APP_CAROUSEL_SWITCHER, ""))
+        assertEquals(GestureActionType.APP_CAROUSEL_SWITCHER, GestureActionType.fromId(83))
     }
 
     @Test

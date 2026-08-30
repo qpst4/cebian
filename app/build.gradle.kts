@@ -419,6 +419,7 @@ dependencies {
     ksp(libs.hilt.compiler)
 
     implementation(libs.core.ktx)
+    implementation(libs.androidx.palette)
     implementation(libs.profileinstaller)
     implementation(libs.lifecycle.runtime)
     implementation(libs.lifecycle.viewmodel)

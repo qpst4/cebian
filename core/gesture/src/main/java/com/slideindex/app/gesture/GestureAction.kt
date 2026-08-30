@@ -81,6 +81,9 @@ enum class GestureActionType(val id: Int) {
     ONE_HANDED_MODE(78),
     CURRENT_APP_INFO(79),
     SIMULATE_KEY_EVENT(80),
+    SCREEN_OFF_KEEP_AWAKE(81),
+    PIN_TO_SCREEN(82),
+    APP_CAROUSEL_SWITCHER(83),
     ;
 
     companion object {
@@ -459,6 +462,12 @@ sealed class GestureAction {
         override val payload = ""
     }
 
+    /** 独立应用切换器：卡片轮播与自适应 Squircle 大图标，支持持续手势跟踪与垂直偏移取消。 */
+    data object AppCarouselSwitcher : GestureAction() {
+        override val type = GestureActionType.APP_CAROUSEL_SWITCHER
+        override val payload = ""
+    }
+
     /** 全屏 3D 球应用启动器，弹出后拖拽旋转、点击图标启动。 */
     data object HolographicLauncher : GestureAction() {
         override val type = GestureActionType.HOLOGRAPHIC_LAUNCHER
@@ -574,6 +583,18 @@ sealed class GestureAction {
         override val payload = ""
     }
 
+    /** 息屏挂机 / 伪息屏（全屏黑屏+最低亮度+保持唤醒+双击/音量键解除）。 */
+    data object ScreenOffKeepAwake : GestureAction() {
+        override val type = GestureActionType.SCREEN_OFF_KEEP_AWAKE
+        override val payload = ""
+    }
+
+    /** 钉到屏幕（轻量弹窗选择文本或图片，生成悬浮便签或图片置顶）。 */
+    data object PinToScreen : GestureAction() {
+        override val type = GestureActionType.PIN_TO_SCREEN
+        override val payload = ""
+    }
+
     /** 模拟按键事件（支持自定义 KeyCode 与长按）。 */
     data class SimulateKeyEvent(
         val keyCode: Int = 82,
@@ -605,6 +626,7 @@ sealed class GestureAction {
             ShellCommandPanel,
             HoneycombLauncher,
             AppSwitcher,
+            AppCarouselSwitcher,
             AdjustVolume,
             AdjustBrightness,
             FloatingPointer,
@@ -674,6 +696,7 @@ sealed class GestureAction {
                 GestureActionType.SNOOZE_OVERLAYS -> SnoozeOverlays
                 GestureActionType.HONEYCOMB_LAUNCHER -> HoneycombLauncher
                 GestureActionType.APP_SWITCHER -> AppSwitcher
+                GestureActionType.APP_CAROUSEL_SWITCHER -> AppCarouselSwitcher
                 GestureActionType.HOLOGRAPHIC_LAUNCHER -> HolographicLauncher
                 GestureActionType.VOLUME_PANEL -> VolumePanel
                 GestureActionType.SCREEN_TRANSLATE -> ScreenTranslate
@@ -693,6 +716,8 @@ sealed class GestureAction {
                 GestureActionType.ONE_HANDED_MODE -> OneHandedMode
                 GestureActionType.CURRENT_APP_INFO -> CurrentAppInfo
                 GestureActionType.SIMULATE_KEY_EVENT -> SimulateKeyEvent.fromPayload(payload)
+                GestureActionType.SCREEN_OFF_KEEP_AWAKE -> ScreenOffKeepAwake
+                GestureActionType.PIN_TO_SCREEN -> PinToScreen
                 GestureActionType.NONE -> None
             }.normalized()
 
@@ -752,6 +777,7 @@ fun GestureAction.supportsContinuousTracking(trigger: GestureTriggerType): Boole
     if (!isContinuousTrackingKind()) return false
     return when (this) {
         GestureAction.AppSwitcher,
+        GestureAction.AppCarouselSwitcher,
         GestureAction.HoneycombLauncher,
         is GestureAction.QuickLauncher,
         GestureAction.ShellCommandPanel,
@@ -765,7 +791,7 @@ fun GestureAction.preferredTriggerMode(trigger: GestureTriggerType): GestureTrig
         GestureAction.OpenIndex ->
             if (!trigger.isPressOrTap) GestureTriggerMode.CONTINUOUS else null
         is GestureAction.QuickLauncher, GestureAction.ShellCommandPanel, GestureAction.HoneycombLauncher,
-        GestureAction.AppSwitcher,
+        GestureAction.AppSwitcher, GestureAction.AppCarouselSwitcher,
         ->
             when {
                 trigger.isLongPress -> GestureTriggerMode.CONTINUOUS

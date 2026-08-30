@@ -6,6 +6,7 @@ internal class GestureSessionContinuousPick {
     var shell = false
     var honeycomb = false
     var appSwitcher = false
+    var appCarouselSwitcher = false
 
     fun taskSwitcherActive(): Boolean = taskSwitcher
 
@@ -16,6 +17,8 @@ internal class GestureSessionContinuousPick {
     fun honeycombActive(): Boolean = honeycomb
 
     fun appSwitcherActive(): Boolean = appSwitcher
+
+    fun appCarouselSwitcherActive(): Boolean = appCarouselSwitcher
 
     fun clearQuickLauncher() {
         quickLauncher = false
@@ -33,11 +36,16 @@ internal class GestureSessionContinuousPick {
         appSwitcher = false
     }
 
+    fun clearAppCarouselSwitcher() {
+        appCarouselSwitcher = false
+    }
+
     fun reset() {
         taskSwitcher = false
         quickLauncher = false
         shell = false
         honeycomb = false
         appSwitcher = false
+        appCarouselSwitcher = false
     }
 }

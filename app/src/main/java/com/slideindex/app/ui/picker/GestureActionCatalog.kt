@@ -96,6 +96,7 @@ object GestureActionCatalog {
         GestureActionType.SCROLL_TO_BOTTOM,
         GestureActionType.ONE_HANDED_MODE,
         GestureActionType.CURRENT_APP_INFO,
+        GestureActionType.SCREEN_OFF_KEEP_AWAKE,
         -> GestureActionCategory.Navigation
 
         // 2. 开关与调节 (Controls & Media)
@@ -123,6 +124,7 @@ object GestureActionCatalog {
         GestureActionType.SCREEN_RECORD,
         GestureActionType.REGIONAL_SCREENSHOT_PICK,
         GestureActionType.FULLSCREEN_SCREENSHOT_PICK,
+        GestureActionType.PIN_TO_SCREEN,
         GestureActionType.UNIVERSAL_COPY,
         GestureActionType.SCREEN_TRANSLATE,
         GestureActionType.LAUNCH_ASSISTANT,
@@ -135,6 +137,7 @@ object GestureActionCatalog {
         GestureActionType.OPEN_INDEX,
         GestureActionType.QUICK_LAUNCHER,
         GestureActionType.APP_SWITCHER,
+        GestureActionType.APP_CAROUSEL_SWITCHER,
         GestureActionType.TASK_SWITCHER,
         GestureActionType.HONEYCOMB_LAUNCHER,
         GestureActionType.HOLOGRAPHIC_LAUNCHER,
@@ -226,6 +229,7 @@ object GestureActionCatalog {
         GestureAction.FreeWindowCurrentApp,
         GestureAction.OneHandedMode,
         GestureAction.CurrentAppInfo,
+        GestureAction.ScreenOffKeepAwake,
         GestureAction.LockScreen,
         GestureAction.LockScreenAndSilenceRing,
         GestureAction.LockScreenAndMuteAll,
@@ -258,6 +262,7 @@ object GestureActionCatalog {
         GestureAction.ScreenRecord,
         GestureAction.RegionalScreenshotPick,
         GestureAction.FullscreenScreenshotPick,
+        GestureAction.PinToScreen,
         GestureAction.UniversalCopy,
         GestureAction.ScreenTranslate,
         GestureAction.LaunchAssistant,
@@ -265,6 +270,7 @@ object GestureActionCatalog {
         GestureAction.VoiceAssistant,
 
         // 4. 面板与启动器 (Panels & Launchers)
+        GestureAction.AppCarouselSwitcher,
         GestureAction.SearchPanel,
         GestureAction.VolumePanel,
         GestureAction.ClipboardPanel,

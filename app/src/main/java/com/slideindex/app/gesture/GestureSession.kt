@@ -277,6 +277,11 @@ class GestureSession(
             return
         }
 
+        if (sessionContinuousPick.appCarouselSwitcherActive()) {
+            com.slideindex.app.overlay.carousel.AppCarouselSwitcherOverlay.onExternalMove(rawX, rawY)
+            return
+        }
+
         if (sessionPanelMode != OverlayPanelMode.NONE) {
             if (sessionIndexMode && indexSession.updateSelection(localX, localY)) {
                 callbacks.onRequestInvalidate()
@@ -346,6 +351,13 @@ class GestureSession(
                 if (sessionContinuousPick.appSwitcherActive()) {
                     sessionContinuousPick.clearAppSwitcher()
                     callbacks.onAppSwitcherContinuousRelease(rawX, rawY)
+                    endSession()
+                    return
+                }
+
+                if (sessionContinuousPick.appCarouselSwitcherActive()) {
+                    sessionContinuousPick.clearAppCarouselSwitcher()
+                    com.slideindex.app.overlay.carousel.AppCarouselSwitcherOverlay.onExternalUp(rawX, rawY, false)
                     endSession()
                     return
                 }
@@ -456,6 +468,15 @@ class GestureSession(
             GestureAction.AppSwitcher -> {
                 sessionContinuousPick.appSwitcher = false
                 callbacks.onShowAppSwitcher(continuousPick = false, rawX, rawY)
+            }
+            GestureAction.AppCarouselSwitcher -> {
+                sessionContinuousPick.appCarouselSwitcher = false
+                com.slideindex.app.overlay.carousel.AppCarouselSwitcherOverlay.show(
+                    actionExecutor.context,
+                    sessionSettings,
+                    rawX,
+                    rawY,
+                )
             }
             GestureAction.HolographicLauncher -> {
                 callbacks.hapticConfirmLaunch()

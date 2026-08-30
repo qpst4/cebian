@@ -1483,4 +1483,78 @@ internal object ThinActionIcons {
             }
         }
     }
+
+    /** 钉到屏幕 */
+    val Pin: ImageVector by lazy {
+        createThinIcon("ThinPin") {
+            path(
+                stroke = strokeBrush,
+                strokeLineWidth = STROKE_WIDTH,
+                strokeLineCap = StrokeCap.Round,
+                strokeLineJoin = StrokeJoin.Round,
+            ) {
+                moveTo(16f, 4f)
+                lineTo(20f, 8f)
+                moveTo(14f, 6f)
+                lineTo(9f, 11f)
+                lineTo(5f, 12f)
+                lineTo(12f, 19f)
+                lineTo(13f, 15f)
+                lineTo(18f, 10f)
+                moveTo(8.5f, 15.5f)
+                lineTo(4f, 20f)
+            }
+        }
+    }
+
+    /** 伪息屏 / 保持唤醒挂机 */
+    val ScreenOffKeepAwake: ImageVector by lazy {
+        createThinIcon("ThinScreenOffKeepAwake") {
+            path(
+                stroke = strokeBrush,
+                strokeLineWidth = STROKE_WIDTH,
+                strokeLineCap = StrokeCap.Round,
+                strokeLineJoin = StrokeJoin.Round,
+            ) {
+                moveTo(6f, 4f)
+                lineTo(18f, 4f)
+                lineTo(18f, 20f)
+                lineTo(6f, 20f)
+                close()
+                moveTo(12f, 9f)
+                curveTo(10.34f, 9f, 9f, 10.34f, 9f, 12f)
+                curveTo(9f, 13.66f, 10.34f, 15f, 12f, 15f)
+                curveTo(13.66f, 15f, 15f, 13.66f, 15f, 12f)
+                curveTo(15f, 10.34f, 13.66f, 9f, 12f, 9f)
+                close()
+                moveTo(12f, 17f)
+                lineTo(12f, 17.5f)
+            }
+        }
+    }
+
+    /** 独立应用切换器（卡片轮播） */
+    val AppCarouselSwitcher: ImageVector by lazy {
+        createThinIcon("ThinAppCarouselSwitcher") {
+            path(
+                stroke = strokeBrush,
+                strokeLineWidth = STROKE_WIDTH,
+                strokeLineCap = StrokeCap.Round,
+                strokeLineJoin = StrokeJoin.Round,
+            ) {
+                // Central main card
+                moveTo(8f, 5f)
+                lineTo(16f, 5f)
+                lineTo(16f, 19f)
+                lineTo(8f, 19f)
+                close()
+                // Left partial card
+                moveTo(5f, 7f)
+                lineTo(5f, 17f)
+                // Right partial card
+                moveTo(19f, 7f)
+                lineTo(19f, 17f)
+            }
+        }
+    }
 }

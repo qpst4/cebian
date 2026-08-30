@@ -28,6 +28,7 @@ internal fun gestureActionTypeOutlinedIcon(type: GestureActionType): ImageVector
     GestureActionType.QUICK_LAUNCHER -> ThinActionIcons.Apps
     GestureActionType.HONEYCOMB_LAUNCHER -> ThinActionIcons.Hive
     GestureActionType.APP_SWITCHER -> ThinActionIcons.Apps
+    GestureActionType.APP_CAROUSEL_SWITCHER -> ThinActionIcons.AppCarouselSwitcher
     GestureActionType.HOLOGRAPHIC_LAUNCHER -> ThinActionIcons.Globe
     GestureActionType.TASK_SWITCHER -> ThinActionIcons.ViewCarousel
     GestureActionType.SHELL_COMMAND_PANEL -> ThinActionIcons.Code
@@ -91,6 +92,8 @@ internal fun gestureActionTypeOutlinedIcon(type: GestureActionType): ImageVector
     GestureActionType.OPEN_VOLUME_PANEL -> ThinActionIcons.VolumeUp
     GestureActionType.ONE_HANDED_MODE -> ThinActionIcons.TouchApp
     GestureActionType.CURRENT_APP_INFO -> ThinActionIcons.Assistant
+    GestureActionType.SCREEN_OFF_KEEP_AWAKE -> ThinActionIcons.ScreenOffKeepAwake
+    GestureActionType.PIN_TO_SCREEN -> ThinActionIcons.Pin
     GestureActionType.SIMULATE_KEY_EVENT -> ThinActionIcons.Keyboard
     GestureActionType.POINTER_GESTURE_RECORDER -> ThinActionIcons.Gesture
     GestureActionType.POINTER_REALTIME_GESTURE -> ThinActionIcons.Gesture
@@ -109,6 +112,7 @@ internal fun gestureActionTypeThinIcon(type: GestureActionType): ImageVector = w
     GestureActionType.QUICK_LAUNCHER -> ThinActionIcons.Apps
     GestureActionType.HONEYCOMB_LAUNCHER -> ThinActionIcons.Hive
     GestureActionType.APP_SWITCHER -> ThinActionIcons.Apps
+    GestureActionType.APP_CAROUSEL_SWITCHER -> ThinActionIcons.AppCarouselSwitcher
     GestureActionType.HOLOGRAPHIC_LAUNCHER -> ThinActionIcons.Globe
     GestureActionType.TASK_SWITCHER -> ThinActionIcons.ViewCarousel
     GestureActionType.SHELL_COMMAND_PANEL -> ThinActionIcons.Code
@@ -172,6 +176,8 @@ internal fun gestureActionTypeThinIcon(type: GestureActionType): ImageVector = w
     GestureActionType.OPEN_VOLUME_PANEL -> ThinActionIcons.VolumeUp
     GestureActionType.ONE_HANDED_MODE -> ThinActionIcons.TouchApp
     GestureActionType.CURRENT_APP_INFO -> ThinActionIcons.Assistant
+    GestureActionType.SCREEN_OFF_KEEP_AWAKE -> ThinActionIcons.ScreenOffKeepAwake
+    GestureActionType.PIN_TO_SCREEN -> ThinActionIcons.Pin
     GestureActionType.SIMULATE_KEY_EVENT -> ThinActionIcons.Keyboard
     GestureActionType.POINTER_GESTURE_RECORDER -> ThinActionIcons.Gesture
     GestureActionType.POINTER_REALTIME_GESTURE -> ThinActionIcons.Gesture

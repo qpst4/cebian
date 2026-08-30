@@ -49,14 +49,31 @@ fun filterGestureActions(
     if (q.isEmpty()) return actions
     return actions.filter { action ->
         val label = gestureActionLabelText(context, action)
+        val aliases = gestureActionSearchAliases(action)
         label.lowercase().contains(q) ||
             PinyinHelper.sortKey(label).contains(q) ||
+            aliases.any { it.contains(q) || PinyinHelper.sortKey(it).contains(q) } ||
             gestureActionDescriptionText(context, action)?.lowercase()?.contains(q) == true
     }
 }
 
+fun gestureActionSearchAliases(action: GestureAction): List<String> = when (action.type) {
+    GestureActionType.APP_CAROUSEL_SWITCHER -> listOf("应用切换器", "app switcher", "卡片切换", "应用轮播", "任务轮播", "多任务", "carousel")
+    GestureActionType.SCREEN_OFF_KEEP_AWAKE -> listOf("伪息屏", "息屏挂机", "保持唤醒", "防烧屏", "黑屏挂机", "screen off")
+    GestureActionType.PIN_TO_SCREEN -> listOf("钉到屏幕", "屏幕便签", "置顶图片", "悬浮便签", "pin", "置顶")
+    GestureActionType.ONE_HANDED_MODE -> listOf("单手模式", "one handed", "屏幕下沉")
+    GestureActionType.CURRENT_APP_INFO -> listOf("当前应用信息", "应用详情", "app info", "应用管理")
+    GestureActionType.OPEN_INTERNET_PANEL -> listOf("网络连接面板", "网络面板", "wifi", "移动数据", "internet panel")
+    GestureActionType.OPEN_VOLUME_PANEL -> listOf("原生声音调节", "原生音量", "音量面板", "volume panel")
+    GestureActionType.SIMULATE_KEY_EVENT -> listOf("模拟按键", "按键模拟", "keyevent", "input keyevent")
+    else -> emptyList()
+}
+
 fun gestureActionDescriptionText(context: Context, action: GestureAction): String? =
     when (action.type) {
+        GestureActionType.APP_CAROUSEL_SWITCHER -> context.getString(R.string.gesture_action_app_carousel_switcher_desc)
+        GestureActionType.SCREEN_OFF_KEEP_AWAKE -> context.getString(R.string.gesture_action_screen_off_keep_awake_desc)
+        GestureActionType.PIN_TO_SCREEN -> context.getString(R.string.gesture_action_pin_to_screen_desc)
         GestureActionType.ADJUST_VOLUME -> context.getString(R.string.gesture_action_adjust_volume_desc)
         GestureActionType.ADJUST_BRIGHTNESS -> context.getString(R.string.gesture_action_adjust_brightness_desc)
         GestureActionType.TOGGLE_AUTO_BRIGHTNESS -> context.getString(R.string.gesture_action_toggle_auto_brightness_desc)
@@ -125,6 +142,7 @@ fun gestureActionLabelText(context: Context, action: GestureAction): String = wh
         GestureActionType.QUICK_LAUNCHER -> context.getString(R.string.gesture_action_quick_launcher)
         GestureActionType.HONEYCOMB_LAUNCHER -> context.getString(R.string.gesture_action_honeycomb_launcher)
         GestureActionType.APP_SWITCHER -> context.getString(R.string.gesture_action_app_switcher)
+        GestureActionType.APP_CAROUSEL_SWITCHER -> context.getString(R.string.gesture_action_app_carousel_switcher)
         GestureActionType.HOLOGRAPHIC_LAUNCHER -> context.getString(R.string.gesture_action_holographic_launcher)
         GestureActionType.TASK_SWITCHER -> context.getString(R.string.gesture_action_task_switcher)
         GestureActionType.BACK -> context.getString(R.string.gesture_action_back)
@@ -196,6 +214,8 @@ fun gestureActionLabelText(context: Context, action: GestureAction): String = wh
         GestureActionType.OPEN_VOLUME_PANEL -> context.getString(R.string.gesture_action_open_volume_panel)
         GestureActionType.ONE_HANDED_MODE -> context.getString(R.string.gesture_action_one_handed_mode)
         GestureActionType.CURRENT_APP_INFO -> context.getString(R.string.gesture_action_current_app_info)
+        GestureActionType.SCREEN_OFF_KEEP_AWAKE -> context.getString(R.string.gesture_action_screen_off_keep_awake)
+        GestureActionType.PIN_TO_SCREEN -> context.getString(R.string.gesture_action_pin_to_screen)
         GestureActionType.SIMULATE_KEY_EVENT -> context.getString(R.string.gesture_action_simulate_key_event)
         GestureActionType.CORNER_INNER_CANCEL -> context.getString(R.string.gesture_action_corner_inner_cancel)
         GestureActionType.CORNER_INNER_PIN_WHEEL -> context.getString(R.string.gesture_action_corner_inner_pin_wheel)
@@ -262,6 +282,7 @@ fun gestureActionLabel(action: GestureAction, settings: AppSettings? = null): St
         GestureActionType.QUICK_LAUNCHER -> stringResource(R.string.gesture_action_quick_launcher)
         GestureActionType.HONEYCOMB_LAUNCHER -> stringResource(R.string.gesture_action_honeycomb_launcher)
         GestureActionType.APP_SWITCHER -> stringResource(R.string.gesture_action_app_switcher)
+        GestureActionType.APP_CAROUSEL_SWITCHER -> stringResource(R.string.gesture_action_app_carousel_switcher)
         GestureActionType.HOLOGRAPHIC_LAUNCHER -> stringResource(R.string.gesture_action_holographic_launcher)
         GestureActionType.TASK_SWITCHER -> stringResource(R.string.gesture_action_task_switcher)
         GestureActionType.BACK -> stringResource(R.string.gesture_action_back)
@@ -333,6 +354,8 @@ fun gestureActionLabel(action: GestureAction, settings: AppSettings? = null): St
         GestureActionType.OPEN_VOLUME_PANEL -> stringResource(R.string.gesture_action_open_volume_panel)
         GestureActionType.ONE_HANDED_MODE -> stringResource(R.string.gesture_action_one_handed_mode)
         GestureActionType.CURRENT_APP_INFO -> stringResource(R.string.gesture_action_current_app_info)
+        GestureActionType.SCREEN_OFF_KEEP_AWAKE -> stringResource(R.string.gesture_action_screen_off_keep_awake)
+        GestureActionType.PIN_TO_SCREEN -> stringResource(R.string.gesture_action_pin_to_screen)
         GestureActionType.SIMULATE_KEY_EVENT -> stringResource(R.string.gesture_action_simulate_key_event)
         GestureActionType.CORNER_INNER_CANCEL -> stringResource(R.string.gesture_action_corner_inner_cancel)
         GestureActionType.CORNER_INNER_PIN_WHEEL -> stringResource(R.string.gesture_action_corner_inner_pin_wheel)
@@ -390,6 +413,9 @@ fun gestureActionDescription(action: GestureAction): String? = when (action.type
     GestureActionType.OPEN_VOLUME_PANEL -> stringResource(R.string.gesture_action_open_volume_panel_desc)
     GestureActionType.ONE_HANDED_MODE -> stringResource(R.string.gesture_action_one_handed_mode_desc)
     GestureActionType.CURRENT_APP_INFO -> stringResource(R.string.gesture_action_current_app_info_desc)
+    GestureActionType.SCREEN_OFF_KEEP_AWAKE -> stringResource(R.string.gesture_action_screen_off_keep_awake_desc)
+    GestureActionType.PIN_TO_SCREEN -> stringResource(R.string.gesture_action_pin_to_screen_desc)
+    GestureActionType.APP_CAROUSEL_SWITCHER -> stringResource(R.string.gesture_action_app_carousel_switcher_desc)
     GestureActionType.SIMULATE_KEY_EVENT -> stringResource(R.string.gesture_action_simulate_key_event_desc)
     GestureActionType.CORNER_INNER_CANCEL -> stringResource(R.string.gesture_action_corner_inner_cancel_desc)
     GestureActionType.CORNER_INNER_PIN_WHEEL -> stringResource(R.string.gesture_action_corner_inner_pin_wheel_desc)

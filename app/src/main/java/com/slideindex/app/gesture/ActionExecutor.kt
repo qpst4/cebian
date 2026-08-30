@@ -179,6 +179,12 @@ class ActionExecutor(
                         },
                     )
                 }
+            GestureAction.AppCarouselSwitcher -> {
+                val x = anchorRawX ?: (context.resources.displayMetrics.widthPixels / 2f)
+                val y = anchorRawY ?: (context.resources.displayMetrics.heightPixels / 2f)
+                com.slideindex.app.overlay.carousel.AppCarouselSwitcherOverlay.show(context, settings, x, y)
+                true
+            }
             GestureAction.HolographicLauncher ->
                 overlayPanels.showStandaloneOverlay(anchorRawY) { _ ->
                     HolographicLauncherOverlayWindow.show(
@@ -271,6 +277,14 @@ class ActionExecutor(
             GestureAction.OpenVolumePanel -> SystemGestureActions.openNativeVolumePanel(context)
             GestureAction.OneHandedMode -> SystemGestureActions.toggleOneHandedMode(context)
             GestureAction.CurrentAppInfo -> SystemGestureActions.openCurrentAppInfo(context)
+            GestureAction.ScreenOffKeepAwake -> {
+                com.slideindex.app.overlay.PseudoScreenOffOverlayWindow.toggle(context)
+                true
+            }
+            GestureAction.PinToScreen -> {
+                com.slideindex.app.overlay.PinToScreenDialog.show(context)
+                true
+            }
             is GestureAction.SimulateKeyEvent -> SystemGestureActions.simulateKeyEvent(context, action.keyCode, action.isLongPress)
             GestureAction.PreviousApp,
             GestureAction.OpenNotifications,
