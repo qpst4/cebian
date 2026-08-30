@@ -224,17 +224,17 @@ private fun CapsuleGestureAnimation(
         }
 
         val side = button.position.toPanelSide()
-        val cornerTrigger = animationState.currentTrigger
-        val isCorner = cornerTrigger?.isCornerSwipe == true
-        val isReturn = cornerTrigger?.isReturnSwipe == true
+        val trigger = animationState.currentTrigger
+        val isCorner = trigger?.isCornerSwipe == true
+        val isReturn = trigger?.isReturnSwipe == true
         val baseIcon = if (isLongSlide) longIcon else shortIcon
         val activeIcon = when {
-            isCorner && cornerTrigger != null -> cornerPainterResolver(side, cornerTrigger, baseIcon)
+            trigger != null && isCorner -> cornerPainterResolver(side, trigger, baseIcon)
             isReturn -> returnIcon
             else -> baseIcon
         }
-        val degree = if ((isCorner || isReturn) && cornerTrigger != null) {
-            gestureTriggerIconRotationZ(side, cornerTrigger)
+        val degree = if (trigger != null && (isCorner || isReturn)) {
+            gestureTriggerIconRotationZ(side, trigger)
         } else {
             animationIconInitialRotation(button.position) +
                 triggerRotationOffset(
@@ -370,17 +370,17 @@ private fun BubbleGestureAnimation(
         }
 
         val side = button.position.toPanelSide()
-        val cornerTrigger = animationState.currentTrigger
-        val isCorner = cornerTrigger?.isCornerSwipe == true
-        val isReturn = cornerTrigger?.isReturnSwipe == true
+        val trigger = animationState.currentTrigger
+        val isCorner = trigger?.isCornerSwipe == true
+        val isReturn = trigger?.isReturnSwipe == true
         val baseIcon = if (isLongSlide) longIcon else shortIcon
         val activeIcon = when {
-            isCorner && cornerTrigger != null -> cornerPainterResolver(side, cornerTrigger, baseIcon)
+            trigger != null && isCorner -> cornerPainterResolver(side, trigger, baseIcon)
             isReturn -> returnIcon
             else -> baseIcon
         }
-        val degree = if ((isCorner || isReturn) && cornerTrigger != null) {
-            gestureTriggerIconRotationZ(side, cornerTrigger)
+        val degree = if (trigger != null && (isCorner || isReturn)) {
+            gestureTriggerIconRotationZ(side, trigger)
         } else {
             animationIconInitialRotation(button.position) +
                 triggerRotationOffset(
@@ -612,22 +612,22 @@ private fun WaveGestureAnimation(
                 bezierPath.getBounds().translate(Offset(transformOffset, 0f))
         }
         val side = button.position.toPanelSide()
-        val cornerTrigger = animationState.currentTrigger
-        val isCorner = cornerTrigger?.isCornerSwipe == true
-        val isReturn = cornerTrigger?.isReturnSwipe == true
+        val trigger = animationState.currentTrigger
+        val isCorner = trigger?.isCornerSwipe == true
+        val isReturn = trigger?.isReturnSwipe == true
         val canTriggered = animationState.canDistanceTriggered(button, isLongSlide = false)
         val isLongSlide = animationState.canDistanceTriggered(button, isLongSlide = true) ||
             animationState.triggerDirection.isLong ||
             animationState.currentTrigger?.isLongDistance == true
         val baseIcon = if (isLongSlide) longIcon else shortIcon
         val activeIcon = when {
-            isCorner && cornerTrigger != null -> cornerPainterResolver(side, cornerTrigger, baseIcon)
+            trigger != null && isCorner -> cornerPainterResolver(side, trigger, baseIcon)
             isReturn -> returnIcon
             else -> baseIcon
         }
         val initialDegree = animationIconInitialRotation(button.position)
-        val degree = if ((isCorner || isReturn) && cornerTrigger != null) {
-            gestureTriggerIconRotationZ(side, cornerTrigger)
+        val degree = if (trigger != null && (isCorner || isReturn)) {
+            gestureTriggerIconRotationZ(side, trigger)
         } else {
             initialDegree + triggerRotationOffset(
                 triggerDirection,

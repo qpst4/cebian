@@ -155,6 +155,12 @@ android {
     testOptions {
         unitTests.isIncludeAndroidResources = true
     }
+
+    lint {
+        abortOnError = true
+        checkReleaseBuilds = false
+        disable += setOf("MissingTranslation", "ExtraTranslation")
+    }
 }
 
 androidComponents {

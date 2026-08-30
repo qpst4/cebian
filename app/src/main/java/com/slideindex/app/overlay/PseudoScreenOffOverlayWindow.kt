@@ -48,6 +48,7 @@ object PseudoScreenOffOverlayWindow {
         }
     }
 
+    @Suppress("DEPRECATION")
     fun show(context: Context): Boolean {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             mainHandler.post { show(context) }
