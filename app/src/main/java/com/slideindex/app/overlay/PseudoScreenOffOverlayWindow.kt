@@ -15,6 +15,8 @@ import android.view.Gravity
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
+import android.view.WindowInsets
+import android.view.WindowInsetsController
 import android.view.WindowManager
 import android.widget.FrameLayout
 import android.widget.TextView
@@ -48,7 +50,6 @@ object PseudoScreenOffOverlayWindow {
         }
     }
 
-    @Suppress("DEPRECATION")
     fun show(context: Context): Boolean {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             mainHandler.post { show(context) }
@@ -64,6 +65,18 @@ object PseudoScreenOffOverlayWindow {
 
         val view = PseudoScreenOffView(applicationContext) {
             dismiss()
+        }.apply {
+            addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
+                override fun onViewAttachedToWindow(v: View) {
+                    v.windowInsetsController?.let { controller ->
+                        controller.hide(WindowInsets.Type.systemBars())
+                        controller.systemBarsBehavior =
+                            WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                    }
+                }
+
+                override fun onViewDetachedFromWindow(v: View) = Unit
+            })
         }
 
         val params = WindowManager.LayoutParams(
@@ -73,7 +86,6 @@ object PseudoScreenOffOverlayWindow {
             WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON or
                 WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
-                WindowManager.LayoutParams.FLAG_FULLSCREEN or
                 WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
             PixelFormat.OPAQUE,
         ).apply {
@@ -81,14 +93,6 @@ object PseudoScreenOffOverlayWindow {
             screenBrightness = 0.0f
             buttonBrightness = 0.0f
             layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
-            systemUiVisibility = (
-                View.SYSTEM_UI_FLAG_FULLSCREEN
-                    or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                    or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                    or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                    or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                    or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                )
         }
 
         return try {
