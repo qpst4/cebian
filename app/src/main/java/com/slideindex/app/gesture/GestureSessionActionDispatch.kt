@@ -256,7 +256,9 @@ internal fun GestureSession.handleClassifiedGesture(
             sessionActionExecutor.dispatchClickPassthrough(rawX, rawY, ::endSession)
         }
 
-        GestureAction.Flashlight, GestureAction.LaunchAssistant -> {
+        GestureAction.Flashlight, GestureAction.LaunchAssistant,
+        GestureAction.VoiceSearch, GestureAction.VoiceAssistant,
+        -> {
             sessionCallbacks.hapticConfirmLaunch()
             sessionActionExecutor.execute(action, sessionSettings)
             endSession()

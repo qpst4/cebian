@@ -31,6 +31,7 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.shell.ShellCommand
 import com.slideindex.app.util.ShellCommandRunner
 import com.slideindex.app.util.AssistantLauncher
+import com.slideindex.app.util.VoiceActionHelper
 import com.slideindex.app.util.ContinuousAdjustController
 import com.slideindex.app.util.FlashlightHelper
 import com.slideindex.app.util.InputMethodHelper
@@ -249,6 +250,8 @@ class ActionExecutor(
                 AssistantLauncher.launchDefault(context)
                 true
             }
+            GestureAction.VoiceSearch -> VoiceActionHelper.launchVoiceSearch(context)
+            GestureAction.VoiceAssistant -> VoiceActionHelper.launchVoiceCommand(context)
             GestureAction.ToggleMute -> SystemGestureActions.toggleMute(context)
             GestureAction.LockScreenAndSilenceRing -> {
                 SystemGestureActions.silenceRinger(context)

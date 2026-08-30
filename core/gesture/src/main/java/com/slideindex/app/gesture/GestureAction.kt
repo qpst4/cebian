@@ -71,6 +71,8 @@ enum class GestureActionType(val id: Int) {
     REFREEZE(68),
     TOGGLE_AUTO_BRIGHTNESS(69),
     REMIND(70),
+    VOICE_SEARCH(71),
+    VOICE_ASSISTANT(72),
     ;
 
     companion object {
@@ -197,6 +199,16 @@ sealed class GestureAction {
 
     data object LaunchAssistant : GestureAction() {
         override val type = GestureActionType.LAUNCH_ASSISTANT
+        override val payload = ""
+    }
+
+    data object VoiceSearch : GestureAction() {
+        override val type = GestureActionType.VOICE_SEARCH
+        override val payload = ""
+    }
+
+    data object VoiceAssistant : GestureAction() {
+        override val type = GestureActionType.VOICE_ASSISTANT
         override val payload = ""
     }
 
@@ -544,6 +556,8 @@ sealed class GestureAction {
                 GestureActionType.ADJUST_VOLUME -> AdjustVolume
                 GestureActionType.ADJUST_BRIGHTNESS -> AdjustBrightness
                 GestureActionType.LAUNCH_ASSISTANT -> LaunchAssistant
+                GestureActionType.VOICE_SEARCH -> VoiceSearch
+                GestureActionType.VOICE_ASSISTANT -> VoiceAssistant
                 GestureActionType.TOGGLE_MUTE -> ToggleMute
                 GestureActionType.MEDIA_PLAY_PAUSE -> MediaPlayPause
                 GestureActionType.MEDIA_PREVIOUS -> MediaPrevious

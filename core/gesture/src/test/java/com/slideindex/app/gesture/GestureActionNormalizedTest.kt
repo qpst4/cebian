@@ -31,6 +31,14 @@ class GestureActionNormalizedTest {
     }
 
     @Test
+    fun from_voiceSearchAndAssistant_mapCorrectly() {
+        assertEquals(GestureAction.VoiceSearch, GestureAction.from(GestureActionType.VOICE_SEARCH, ""))
+        assertEquals(GestureAction.VoiceAssistant, GestureAction.from(GestureActionType.VOICE_ASSISTANT, ""))
+        assertEquals(GestureActionType.VOICE_SEARCH, GestureActionType.fromId(71))
+        assertEquals(GestureActionType.VOICE_ASSISTANT, GestureActionType.fromId(72))
+    }
+
+    @Test
     fun gestureRuleCodec_decodeAll_migratesLegacyRemindActions() {
         val rule = GestureRule.slot(
             side = com.slideindex.app.overlay.PanelSide.LEFT,

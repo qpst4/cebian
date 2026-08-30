@@ -702,6 +702,10 @@
     <string name="gesture_action_toggle_auto_brightness">自动亮度</string>
     <string name="gesture_action_toggle_auto_brightness_desc">打开或关闭系统自动亮度</string>
     <string name="gesture_action_launch_assistant">启动默认设备助手</string>
+    <string name="gesture_action_voice_search">语音搜索</string>
+    <string name="gesture_action_voice_search_desc">直接呼出免提语音搜索与听写识别面板</string>
+    <string name="gesture_action_voice_assistant">语音助手</string>
+    <string name="gesture_action_voice_assistant_desc">唤醒系统语音指令模式（相当于耳机语音按键）</string>
     <string name="gesture_action_toggle_mute">响铃静音开关</string>
     <string name="gesture_action_toggle_mute_desc">仅静音来电和通知，不影响媒体音量</string>
     <string name="gesture_action_toggle_mute_permission">需要通知/勿扰访问权限</string>

@@ -51,6 +51,8 @@ internal fun gestureActionTypeOutlinedIcon(type: GestureActionType): ImageVector
     GestureActionType.ADJUST_BRIGHTNESS -> ThinActionIcons.Brightness
     GestureActionType.TOGGLE_AUTO_BRIGHTNESS -> ThinActionIcons.BrightnessAuto
     GestureActionType.LAUNCH_ASSISTANT -> ThinActionIcons.Assistant
+    GestureActionType.VOICE_SEARCH -> ThinActionIcons.VoiceSearch
+    GestureActionType.VOICE_ASSISTANT -> ThinActionIcons.VoiceAssistant
     GestureActionType.TOGGLE_MUTE -> ThinActionIcons.VolumeOff
     GestureActionType.MEDIA_PLAY_PAUSE -> ThinActionIcons.PlayPause
     GestureActionType.MEDIA_PREVIOUS -> ThinActionIcons.SkipPrevious
@@ -122,6 +124,8 @@ internal fun gestureActionTypeThinIcon(type: GestureActionType): ImageVector = w
     GestureActionType.ADJUST_BRIGHTNESS -> ThinActionIcons.Brightness
     GestureActionType.TOGGLE_AUTO_BRIGHTNESS -> ThinActionIcons.BrightnessAuto
     GestureActionType.LAUNCH_ASSISTANT -> ThinActionIcons.Assistant
+    GestureActionType.VOICE_SEARCH -> ThinActionIcons.VoiceSearch
+    GestureActionType.VOICE_ASSISTANT -> ThinActionIcons.VoiceAssistant
     GestureActionType.TOGGLE_MUTE -> ThinActionIcons.VolumeOff
     GestureActionType.MEDIA_PLAY_PAUSE -> ThinActionIcons.PlayPause
     GestureActionType.MEDIA_PREVIOUS -> ThinActionIcons.SkipPrevious

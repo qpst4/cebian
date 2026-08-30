@@ -154,6 +154,8 @@ object GestureActionCatalog {
         GestureActionType.ADJUST_BRIGHTNESS,
         GestureActionType.TOGGLE_AUTO_BRIGHTNESS,
         GestureActionType.LAUNCH_ASSISTANT,
+        GestureActionType.VOICE_SEARCH,
+        GestureActionType.VOICE_ASSISTANT,
         -> GestureActionCategory.Adjust
 
         GestureActionType.SIMULATE_POINTER_SWIPE,
@@ -249,5 +251,7 @@ object GestureActionCatalog {
         GestureAction.AdjustBrightness,
         GestureAction.ToggleAutoBrightness,
         GestureAction.LaunchAssistant,
+        GestureAction.VoiceSearch,
+        GestureAction.VoiceAssistant,
     )
 }

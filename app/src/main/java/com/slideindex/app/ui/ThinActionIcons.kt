@@ -562,11 +562,80 @@ internal object ThinActionIcons {
                 strokeLineCap = StrokeCap.Round,
                 strokeLineJoin = StrokeJoin.Round,
             ) {
-                moveTo(12f, 4f)
-                curveTo(12f, 8.4f, 8.4f, 12f, 4f, 12f)
-                curveTo(8.4f, 12f, 12f, 15.6f, 12f, 20f)
-                curveTo(12f, 15.6f, 15.6f, 12f, 20f, 12f)
-                curveTo(15.6f, 12f, 12f, 8.4f, 12f, 4f)
+                // 魔法棒主体 (斜向杖身)
+                moveTo(2.5f, 21.5f)
+                lineTo(14.5f, 9.5f)
+                // 杖尖分界标线
+                moveTo(11f, 13f)
+                lineTo(13f, 11f)
+                // 杖尖周围迸发的 7 道星芒光束 (Bootstrap Magic)
+                moveTo(14.5f, 2f); lineTo(14.5f, 4.8f)
+                moveTo(20.5f, 3.5f); lineTo(18.5f, 5.5f)
+                moveTo(22f, 9.5f); lineTo(19.2f, 9.5f)
+                moveTo(20.5f, 15.5f); lineTo(18.5f, 13.5f)
+                moveTo(8.5f, 3.5f); lineTo(10.5f, 5.5f)
+                moveTo(7f, 9.5f); lineTo(9.8f, 9.5f)
+                moveTo(14.5f, 17f); lineTo(14.5f, 14.2f)
+            }
+        }
+    }
+
+    val VoiceSearch: ImageVector by lazy {
+        createThinIcon("ThinVoiceSearch") {
+            path(
+                stroke = strokeBrush,
+                strokeLineWidth = STROKE_WIDTH,
+                strokeLineCap = StrokeCap.Round,
+                strokeLineJoin = StrokeJoin.Round,
+            ) {
+                // 麦克风收音胶囊 (Bootstrap Mic)
+                moveTo(12f, 3f)
+                curveTo(10.34f, 3f, 9f, 4.34f, 9f, 6f)
+                lineTo(9f, 12f)
+                curveTo(9f, 13.66f, 10.34f, 15f, 12f, 15f)
+                curveTo(13.66f, 15f, 15f, 13.66f, 15f, 12f)
+                lineTo(15f, 6f)
+                curveTo(15f, 4.34f, 13.66f, 3f, 12f, 3f)
+                close()
+                // U 型托架
+                moveTo(5.5f, 10.5f)
+                curveTo(5.5f, 14.8f, 8.5f, 18f, 12f, 18f)
+                curveTo(15.5f, 18f, 18.5f, 14.8f, 18.5f, 10.5f)
+                // 支架竖线与底座横线
+                moveTo(12f, 18f); lineTo(12f, 21.5f)
+                moveTo(8f, 21.5f); lineTo(16f, 21.5f)
+            }
+        }
+    }
+
+    val VoiceAssistant: ImageVector by lazy {
+        createThinIcon("ThinVoiceAssistant") {
+            path(
+                stroke = strokeBrush,
+                strokeLineWidth = STROKE_WIDTH,
+                strokeLineCap = StrokeCap.Round,
+                strokeLineJoin = StrokeJoin.Round,
+            ) {
+                // 1. 主四角星 (中心偏右下 - Bootstrap Stars)
+                moveTo(12.5f, 8f)
+                curveTo(12.5f, 12f, 9.5f, 14.5f, 5.5f, 14.5f)
+                curveTo(9.5f, 14.5f, 12.5f, 17f, 12.5f, 21f)
+                curveTo(12.5f, 17f, 15.5f, 14.5f, 19.5f, 14.5f)
+                curveTo(15.5f, 14.5f, 12.5f, 12f, 12.5f, 8f)
+                close()
+                // 2. 左上次级星 (Bootstrap 中星)
+                moveTo(6.5f, 2.5f)
+                curveTo(6.5f, 4.8f, 4.8f, 6.5f, 2.5f, 6.5f)
+                curveTo(4.8f, 6.5f, 6.5f, 8.2f, 6.5f, 10.5f)
+                curveTo(6.5f, 8.2f, 8.2f, 6.5f, 10.5f, 6.5f)
+                curveTo(8.2f, 6.5f, 6.5f, 4.8f, 6.5f, 2.5f)
+                close()
+                // 3. 右上小星 (Bootstrap 小星)
+                moveTo(18f, 2f)
+                curveTo(18f, 3.5f, 16.5f, 4.5f, 15f, 4.5f)
+                curveTo(16.5f, 4.5f, 18f, 5.5f, 18f, 7f)
+                curveTo(18f, 5.5f, 19.5f, 4.5f, 21f, 4.5f)
+                curveTo(19.5f, 4.5f, 18f, 3.5f, 18f, 2f)
                 close()
             }
         }
