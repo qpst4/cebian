@@ -49,11 +49,26 @@ fun AppNavKey.isNotificationBranch(): Boolean = when (this) {
 }
 
 fun NavBackStack.navigate(key: AppNavKey) {
-    add(key)
+    if (key !in this) {
+        add(key)
+    }
+}
+
+fun NavBackStack.pop() {
+    if (size > 1) {
+        removeLastOrNull()
+    }
+}
+
+fun NavBackStack.popUntil(predicate: (AppNavKey) -> Boolean) {
+    while (size > 1 && !predicate(last() as? AppNavKey ?: return)) {
+        removeAt(lastIndex)
+    }
 }
 
 fun NavBackStack.navigateBackTo(key: AppNavKey) {
-    while (isNotEmpty() && last() != key) {
+    if (key !in this) return
+    while (size > 1 && last() != key) {
         removeAt(lastIndex)
     }
 }

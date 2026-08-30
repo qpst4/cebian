@@ -119,6 +119,14 @@ fun GestureActionPickerScreen(
         onSelect(launchShortcutFromCreated(created))
     }
 
+    var hasSelected by remember { mutableStateOf(false) }
+    val safeSelect: (GestureAction) -> Unit = { action ->
+        if (!hasSelected) {
+            hasSelected = true
+            onSelect(action)
+        }
+    }
+
     val searchHintResId = when (ActionPickerTab.entries[selectedTab]) {
         ActionPickerTab.ACTIONS -> R.string.search_actions_hint
         ActionPickerTab.APPS, ActionPickerTab.SHORTCUTS -> R.string.search_hint
@@ -163,7 +171,7 @@ fun GestureActionPickerScreen(
                     actionPickerActionItems(
                         filtered = filteredActions,
                         current = current,
-                        onSelect = onSelect,
+                        onSelect = safeSelect,
                         onOpenExecuteShellCommand = {
                             onOpenExecuteShellCommand(shellConfigInitialCommand)
                         },
@@ -178,7 +186,7 @@ fun GestureActionPickerScreen(
                     actionPickerAppItems(
                         filtered = filteredApps,
                         current = current,
-                        onSelect = { app -> onSelect(GestureAction.LaunchApp(app.packageName)) },
+                        onSelect = { app -> safeSelect(GestureAction.LaunchApp(app.packageName)) },
                     )
                 }
                 ActionPickerTab.SHORTCUTS -> {
@@ -186,7 +194,7 @@ fun GestureActionPickerScreen(
                         appsByPackage = appsByPackage,
                         searchQuery = searchQuery,
                         current = current,
-                        onSelect = onSelect,
+                        onSelect = safeSelect,
                         activityShortcuts = activityShortcuts,
                         onOpenMyShortcuts = onOpenMyShortcuts,
                         onOpenPresetShortcuts = onOpenPresetShortcuts,
@@ -206,7 +214,7 @@ fun GestureActionPickerScreen(
                                 segmentIndex = segmentIndex,
                                 segmentCount = segmentCount,
                                 current = current,
-                                onSelect = onSelect,
+                                onSelect = safeSelect,
                             )
                         },
                     )
