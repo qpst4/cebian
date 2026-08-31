@@ -252,6 +252,7 @@ object AppShortcutLoader {
         val packageName: String,
         val className: String,
         val label: String,
+        val pinyinKey: String = PinyinHelper.sortKey(label),
     ) {
         val qualifiedName: String get() = "$packageName/$className"
 
@@ -275,7 +276,7 @@ object AppShortcutLoader {
                     label = info.label,
                 )
             }
-            .sortedBy { PinyinHelper.sortKey(it.label) }
+            .sortedBy { it.pinyinKey }
     }
 
     fun parseCreateShortcutResult(

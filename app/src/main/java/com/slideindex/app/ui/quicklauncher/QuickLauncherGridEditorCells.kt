@@ -153,16 +153,7 @@ internal fun QuickLauncherGridCell(
             null
         }
     }
-    val resolvedIconBitmap = iconBitmap ?: remember(item.type, item.payload, actionIconTintArgb, activityShortcuts, shellCommands) {
-        QuickLauncherIconResolver.iconBitmap(
-            item = item,
-            appsByPackage = appsByPackage,
-            context = context,
-            actionIconTintArgb = actionIconTintArgb,
-            activityShortcuts = activityShortcuts,
-            shellCommands = shellCommands,
-        )
-    }
+    val resolvedIconBitmap = iconBitmap
     val showShortcutBadge = item.showsShortcutBadge()
     val showShellCommandBadge = !showShortcutBadge && item.showsShellCommandBadge(shellCommands)
     val iconSize = iconSizeDp.coerceIn(

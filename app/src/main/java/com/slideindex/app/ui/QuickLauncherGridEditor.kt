@@ -55,6 +55,8 @@ import com.slideindex.app.util.QuickLauncherIconResolver
 import kotlin.math.roundToInt
 
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import com.slideindex.app.launcher.mergeIntoFolder
 
 private const val PAGE_EDGE_RESISTANCE = 0.35f
@@ -107,17 +109,20 @@ fun QuickLauncherGridEditor(
     val haptic = LocalHapticFeedback.current
     val context = LocalContext.current
     val actionIconTintArgb = MaterialTheme.colorScheme.onSurface.toArgb()
-    val iconBitmapCache = remember(items, appsByPackage, actionIconTintArgb, settings.activityShortcuts, settings.shellCommands) {
-        items.mapIndexed { index, item ->
-            index to QuickLauncherIconResolver.iconBitmap(
-                item = item,
-                appsByPackage = appsByPackage,
-                context = context,
-                actionIconTintArgb = actionIconTintArgb,
-                activityShortcuts = settings.activityShortcuts,
-                shellCommands = settings.shellCommands,
-            )
-        }.toMap()
+    var iconBitmapCache by remember { mutableStateOf<Map<Int, android.graphics.Bitmap?>>(emptyMap()) }
+    LaunchedEffect(items, appsByPackage, actionIconTintArgb, settings.activityShortcuts, settings.shellCommands) {
+        iconBitmapCache = withContext(Dispatchers.IO) {
+            items.mapIndexed { index, item ->
+                index to QuickLauncherIconResolver.iconBitmap(
+                    item = item,
+                    appsByPackage = appsByPackage,
+                    context = context,
+                    actionIconTintArgb = actionIconTintArgb,
+                    activityShortcuts = settings.activityShortcuts,
+                    shellCommands = settings.shellCommands,
+                )
+            }.toMap()
+        }
     }
     val itemsState = rememberUpdatedState(items)
 

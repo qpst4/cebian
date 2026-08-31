@@ -535,8 +535,8 @@ private fun QuickLauncherAddAppsTab(
             query.isEmpty() ||
                 app.label.lowercase().contains(query) ||
                 app.packageName.lowercase().contains(query) ||
-                PinyinHelper.sortKey(app.label).contains(query)
-        }.sortedBy { PinyinHelper.sortKey(it.label) }
+                app.pinyinKey.contains(query)
+        }.sortedBy { it.pinyinKey }
     }
     LazyColumn(
         modifier = modifier.fillMaxWidth(),

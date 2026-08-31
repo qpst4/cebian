@@ -65,9 +65,9 @@ fun HiddenAppsScreen(
                 if (query.isEmpty()) return@filter true
                 app.label.lowercase().contains(query) ||
                     app.packageName.lowercase().contains(query) ||
-                    PinyinHelper.sortKey(app.label).contains(query)
+                    app.pinyinKey.contains(query)
             }
-            .sortedBy { PinyinHelper.sortKey(it.label) }
+            .sortedBy { it.pinyinKey }
     }
 
     SettingsLazyScreenScaffoldWithExpandableSearch(

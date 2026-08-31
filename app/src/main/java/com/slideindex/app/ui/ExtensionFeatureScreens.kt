@@ -104,7 +104,7 @@ fun FreezerAppsScreen(
                 (query.isBlank() ||
                     app.label.contains(query, ignoreCase = true) ||
                     app.packageName.contains(query, ignoreCase = true) ||
-                    PinyinHelper.sortKey(app.label).contains(query)) &&
+                    app.pinyinKey.contains(query)) &&
                 when (FreezerTab.entries[selectedTab]) {
                     FreezerTab.ALL -> true
                     FreezerTab.FROZEN -> isFrozenApp(app)

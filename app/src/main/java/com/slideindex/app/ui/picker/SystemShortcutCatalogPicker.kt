@@ -105,13 +105,13 @@ fun filterShortcutCatalog(
         query.isEmpty() ||
             host.label.lowercase().contains(query) ||
             host.packageName.lowercase().contains(query) ||
-            PinyinHelper.sortKey(host.label).contains(query)
-    }.sortedBy { PinyinHelper.sortKey(it.label) }
+            host.pinyinKey.contains(query)
+    }.sortedBy { it.pinyinKey }
     val filteredGroups = shortcutGroups.mapNotNull { group ->
         val appMatches = query.isEmpty() ||
             group.app.label.lowercase().contains(query) ||
             group.app.packageName.lowercase().contains(query) ||
-            PinyinHelper.sortKey(group.app.label).contains(query)
+            group.app.pinyinKey.contains(query)
         val matchedShortcuts = group.shortcuts.filter { shortcut ->
             query.isEmpty() ||
                 appMatches ||

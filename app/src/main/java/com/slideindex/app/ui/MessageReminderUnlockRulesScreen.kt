@@ -47,9 +47,9 @@ fun MessageReminderUnlockRulesScreen(
                 query.isEmpty() ||
                     it.label.lowercase().contains(query) ||
                     it.packageName.lowercase().contains(query) ||
-                    PinyinHelper.sortKey(it.label).contains(query)
+                    it.pinyinKey.contains(query)
             }
-            .sortedBy { PinyinHelper.sortKey(it.label) }
+            .sortedBy { it.pinyinKey }
     }
 
     SettingsLazyScreenScaffoldWithExpandableSearch(

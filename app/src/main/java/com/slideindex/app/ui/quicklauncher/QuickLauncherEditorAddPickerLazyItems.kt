@@ -203,15 +203,12 @@ fun rememberQuickLauncherFilteredApps(
     val query = searchQuery.trim().lowercase()
     return remember(apps, query, enabled) {
         if (!enabled || apps.isEmpty()) return@remember emptyList()
-        val appsWithKey = apps.map { app ->
-            app to PinyinHelper.sortKey(app.label)
-        }
-        val filtered = appsWithKey.filter { (app, pinyin) ->
+        val filtered = apps.filter { app ->
             query.isEmpty() ||
                 app.label.lowercase().contains(query) ||
                 app.packageName.lowercase().contains(query) ||
-                pinyin.contains(query)
+                app.pinyinKey.contains(query)
         }
-        filtered.sortedBy { (_, pinyin) -> pinyin }.map { it.first }
+        filtered.sortedBy { it.pinyinKey }
     }
 }

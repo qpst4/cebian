@@ -1,6 +1,5 @@
 package com.slideindex.app.ui
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
@@ -9,26 +8,40 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.slideindex.app.R
 import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.overlay.honeycombRuntimeItems
 import com.slideindex.app.settings.AppSettings
-import com.slideindex.app.ui.compose.rememberAppRepository
 import com.slideindex.app.ui.miuix.groupedCardItems
-import com.slideindex.app.ui.navigation.rememberContentReady
 import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
-import com.slideindex.app.ui.settings.components.SettingsDeferredLoadingIndicator
 import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffold
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
+import com.slideindex.app.ui.viewmodel.HoneycombLauncherEditorViewModel
+import com.slideindex.app.ui.viewmodel.HoneycombLauncherUiState
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun HoneycombLauncherEditorScreen(
+    viewModel: HoneycombLauncherEditorViewModel,
+    onBack: () -> Unit,
+    onOpenDisplaySettings: () -> Unit,
+    onAdd: () -> Unit,
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    HoneycombLauncherEditorContent(
+        uiState = uiState,
+        onBack = onBack,
+        onSaveItems = viewModel::setItems,
+        onOpenDisplaySettings = onOpenDisplaySettings,
+        onAdd = onAdd,
+        onInteractionActiveChange = viewModel::setLayoutEditing,
+    )
+}
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -39,39 +52,35 @@ fun HoneycombLauncherEditorScreen(
     onOpenDisplaySettings: () -> Unit,
     onAdd: () -> Unit,
 ) {
-    val appRepository = rememberAppRepository()
-    var allApps by remember { mutableStateOf(appRepository.getCachedApps()) }
-    var layoutEditing by remember { mutableStateOf(false) }
-    var items by remember { mutableStateOf(settings.honeycombLauncher.honeycombRuntimeItems()) }
+    val uiState = HoneycombLauncherUiState(
+        items = settings.honeycombLauncher.honeycombRuntimeItems(),
+        displaySettings = settings.honeycombDisplay,
+    )
+    HoneycombLauncherEditorContent(
+        uiState = uiState,
+        onBack = onBack,
+        onSaveItems = onSaveItems,
+        onOpenDisplaySettings = onOpenDisplaySettings,
+        onAdd = onAdd,
+        onInteractionActiveChange = {},
+    )
+}
 
-    LaunchedEffect(settings.honeycombLauncher) {
-        if (!layoutEditing) {
-            items = settings.honeycombLauncher.honeycombRuntimeItems()
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        allApps = appRepository.loadApps(force = false)
-    }
-
-    val appsByPackage = remember(allApps) { allApps.associateBy { it.packageName } }
-
-    fun saveAndBack() {
-        onBack()
-    }
-
-    fun persistItems(next: List<QuickLauncherItem>) {
-        val normalized = next.honeycombRuntimeItems()
-        items = normalized
-        onSaveItems(normalized)
-    }
-
-    val contentReady = rememberContentReady()
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun HoneycombLauncherEditorContent(
+    uiState: HoneycombLauncherUiState,
+    onBack: () -> Unit,
+    onSaveItems: (List<QuickLauncherItem>) -> Unit,
+    onOpenDisplaySettings: () -> Unit,
+    onAdd: () -> Unit,
+    onInteractionActiveChange: (Boolean) -> Unit,
+) {
     SettingsLazyScreenScaffold(
         title = stringResource(R.string.honeycomb_launcher_editor_title),
-        onBack = { saveAndBack() },
+        onBack = onBack,
         modifier = Modifier.fillMaxSize(),
-        userScrollEnabled = !layoutEditing,
+        userScrollEnabled = !uiState.isLayoutEditing,
     ) {
         groupedCardItems(
             keyPrefix = "honeycomb-display-entry",
@@ -88,30 +97,17 @@ fun HoneycombLauncherEditorScreen(
                 },
             ),
         )
-        if (!contentReady) {
-            LazySettingsItem(key = "honeycomb-launcher-loading", fillParentMaxSize = true) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    SettingsDeferredLoadingIndicator()
-                }
-            }
-        } else {
-            LazySettingsItem(key = "honeycomb-launcher-items") {
-                HoneycombLauncherItemsSection(
-                    modifier = Modifier.fillMaxWidth(),
-                    nestedScrollEnabled = false,
-                    items = items,
-                    display = settings.honeycombDisplay,
-                    appsByPackage = appsByPackage,
-                    onItemsChange = ::persistItems,
-                    onAdd = onAdd,
-                    onInteractionActiveChange = { layoutEditing = it },
-                    activityShortcuts = settings.activityShortcuts,
-                    shellCommands = settings.shellCommands,
-                )
-            }
+        LazySettingsItem(key = "honeycomb-launcher-items") {
+            HoneycombLauncherItemsSection(
+                modifier = Modifier.fillMaxWidth(),
+                nestedScrollEnabled = false,
+                items = uiState.items,
+                display = uiState.displaySettings,
+                appsByPackage = uiState.appsByPackage,
+                onItemsChange = onSaveItems,
+                onAdd = onAdd,
+                onInteractionActiveChange = onInteractionActiveChange,
+            )
         }
     }
 }

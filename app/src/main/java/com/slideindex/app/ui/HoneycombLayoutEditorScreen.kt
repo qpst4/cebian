@@ -43,6 +43,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -58,6 +59,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -130,16 +133,19 @@ fun HoneycombLauncherItemsSection(
     val touchSlop = remember(context) {
         android.view.ViewConfiguration.get(context).scaledTouchSlop.toFloat()
     }
-    val iconBitmaps = remember(items, appsByPackage, activityShortcuts, shellCommands) {
-        items.map { item ->
-            QuickLauncherIconResolver.iconBitmap(
-                item,
-                appsByPackage,
-                128,
-                context,
-                activityShortcuts = activityShortcuts,
-                shellCommands = shellCommands,
-            )?.asImageBitmap()
+    var iconBitmaps by remember { mutableStateOf<List<ImageBitmap?>>(emptyList()) }
+    LaunchedEffect(items, appsByPackage, activityShortcuts, shellCommands) {
+        iconBitmaps = withContext(Dispatchers.IO) {
+            items.map { item ->
+                QuickLauncherIconResolver.iconBitmap(
+                    item,
+                    appsByPackage,
+                    128,
+                    context,
+                    activityShortcuts = activityShortcuts,
+                    shellCommands = shellCommands,
+                )?.asImageBitmap()
+            }
         }
     }
     val scrollState = rememberScrollState()

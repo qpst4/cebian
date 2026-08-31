@@ -53,10 +53,8 @@ import com.slideindex.app.widget.WidgetPanelGridLogic
 import com.slideindex.app.widget.WidgetPanelMutator
 import com.slideindex.app.widget.WidgetPanelPage
 import com.slideindex.app.ui.miuix.groupedCardItems
-import com.slideindex.app.ui.navigation.rememberContentReady
 import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingSwitchRow
-import com.slideindex.app.ui.settings.components.SettingsDeferredLoadingIndicator
 import com.slideindex.app.ui.settings.components.settingsCardItems
 import com.slideindex.app.ui.settings.components.SETTINGS_SLIDER_PERCENT_KEY_POINTS_01
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
@@ -70,6 +68,32 @@ import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.clickable
 import kotlin.math.roundToInt
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.slideindex.app.ui.viewmodel.WidgetPanelEditorViewModel
+import com.slideindex.app.ui.viewmodel.WidgetPanelUiState
+
+@OptIn(
+  ExperimentalMaterial3Api::class,
+  ExperimentalMaterial3ExpressiveApi::class,
+  ExperimentalFoundationApi::class,
+)
+@Composable
+fun WidgetPanelSettingsScreen(
+  viewModel: WidgetPanelEditorViewModel,
+  onBack: () -> Unit,
+  onWidthFractionChange: (Float) -> Unit = {},
+) {
+  val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+  WidgetPanelSettingsContent(
+    uiState = uiState,
+    onBack = onBack,
+    onSavePages = viewModel::setPages,
+    onBlurEnabledChange = viewModel::setBlurEnabled,
+    onBlurRadiusChange = viewModel::setBlurRadius,
+    onGridInteractionActiveChange = viewModel::setGridInteractionActive,
+  )
+}
+
 @OptIn(
   ExperimentalMaterial3Api::class,
   ExperimentalMaterial3ExpressiveApi::class,
@@ -84,25 +108,42 @@ fun WidgetPanelSettingsScreen(
   onBlurRadiusChange: (Int) -> Unit = {},
   onWidthFractionChange: (Float) -> Unit,
 ) {
-  var pages by remember {
-    mutableStateOf(
-      WidgetPanelDefaults.effectivePages(settings.widgetPanelPages)
-        .map { WidgetPanelGridLogic.fitPageToGrid(it) },
-    )
-  }
-  var gridInteractionActive by remember { mutableStateOf(false) }
-  val pagerState = rememberPagerState(pageCount = { pages.size })
+  val pages = WidgetPanelDefaults.effectivePages(settings.widgetPanelPages)
+    .map { WidgetPanelGridLogic.fitPageToGrid(it) }
+  val uiState = WidgetPanelUiState(
+    pages = pages,
+    blurEnabled = settings.widgetPanelBlurEnabled,
+    blurRadiusDp = settings.widgetPanelBlurRadiusDp,
+  )
+  WidgetPanelSettingsContent(
+    uiState = uiState,
+    onBack = onBack,
+    onSavePages = onSavePages,
+    onBlurEnabledChange = onBlurEnabledChange,
+    onBlurRadiusChange = onBlurRadiusChange,
+    onGridInteractionActiveChange = {},
+  )
+}
 
-  LaunchedEffect(settings.widgetPanelPages) {
-    pages = WidgetPanelDefaults.effectivePages(settings.widgetPanelPages)
-      .map { WidgetPanelGridLogic.fitPageToGrid(it) }
-  }
-
+@OptIn(
+  ExperimentalMaterial3Api::class,
+  ExperimentalMaterial3ExpressiveApi::class,
+  ExperimentalFoundationApi::class,
+)
+@Composable
+fun WidgetPanelSettingsContent(
+  uiState: WidgetPanelUiState,
+  onBack: () -> Unit,
+  onSavePages: (List<WidgetPanelPage>) -> Unit,
+  onBlurEnabledChange: (Boolean) -> Unit,
+  onBlurRadiusChange: (Int) -> Unit = {},
+  onGridInteractionActiveChange: (Boolean) -> Unit = {},
+) {
+  val pagerState = rememberPagerState(pageCount = { uiState.pages.size })
   val settingsDesc = stringResource(R.string.widget_panel_settings_desc)
   val blurTitle = stringResource(R.string.widget_panel_blur)
   val blurDesc = stringResource(R.string.widget_panel_blur_desc)
   val gridSectionTitle = stringResource(R.string.widget_panel_grid_section)
-  val contentReady = rememberContentReady()
 
   SettingsScreenScaffold(
     title = stringResource(R.string.widget_panel_settings_title),
@@ -120,13 +161,13 @@ fun WidgetPanelSettingsScreen(
             title = blurTitle,
             subtitle = blurDesc,
             icon = { label -> Icon(HubLeadingIcons.widgetPanel(true), contentDescription = label) },
-            checked = settings.widgetPanelBlurEnabled,
+            checked = uiState.blurEnabled,
             enabled = true,
             onCheckedChange = onBlurEnabledChange,
           ) {
             SettingsSliderRow(
               title = stringResource(R.string.honeycomb_blur_strength),
-              value = settings.widgetPanelBlurRadiusDp.toFloat(),
+              value = uiState.blurRadiusDp.toFloat(),
               valueRange = AppSettings.WIDGET_PANEL_BLUR_RADIUS_MIN_DP.toFloat()..
                 AppSettings.WIDGET_PANEL_BLUR_RADIUS_MAX_DP.toFloat(),
               steps = AppSettings.WIDGET_PANEL_BLUR_RADIUS_MAX_DP -
@@ -134,7 +175,7 @@ fun WidgetPanelSettingsScreen(
               enabled = true,
               label = stringResource(
                 R.string.corner_gesture_zone_dp_value,
-                settings.widgetPanelBlurRadiusDp,
+                uiState.blurRadiusDp,
               ),
               onValueChange = { onBlurRadiusChange(it.roundToInt()) },
             )
@@ -147,16 +188,6 @@ fun WidgetPanelSettingsScreen(
       title = gridSectionTitle,
       sectionTop = true,
     )
-    if (!contentReady) {
-      LazySettingsItem(key = "widget-panel-loading", fillParentMaxSize = true) {
-        Box(
-          modifier = Modifier.fillMaxSize(),
-          contentAlignment = Alignment.Center,
-        ) {
-          SettingsDeferredLoadingIndicator()
-        }
-      }
-    } else {
     LazySettingsItem(key = "widget-panel-pager") {
       Column(
         modifier = Modifier
@@ -170,31 +201,27 @@ fun WidgetPanelSettingsScreen(
             .fillMaxWidth()
             .wrapContentHeight(),
         ) { pageIndex ->
-          val page = pages[pageIndex]
+          val page = uiState.pages.getOrElse(pageIndex) { WidgetPanelDefaults.defaultPage }
           WidgetPanelGridEditor(
             page = page,
             pageIndex = pageIndex,
-            allPages = pages,
-            widgetPanelBlurEnabled = settings.widgetPanelBlurEnabled,
-            gridScrollEnabled = !gridInteractionActive,
-            onPagesChange = { updatedPages ->
-              pages = updatedPages
-              onSavePages(updatedPages)
-            },
-            onGridInteractionActiveChange = { gridInteractionActive = it },
+            allPages = uiState.pages,
+            widgetPanelBlurEnabled = uiState.blurEnabled,
+            gridScrollEnabled = !uiState.isGridInteractionActive,
+            onPagesChange = onSavePages,
+            onGridInteractionActiveChange = onGridInteractionActiveChange,
           )
         }
 
-        if (pages.size > 1) {
+        if (uiState.pages.size > 1) {
           Text(
-            text = stringResource(R.string.widget_panel_page_indicator, pagerState.currentPage + 1, pages.size),
+            text = stringResource(R.string.widget_panel_page_indicator, pagerState.currentPage + 1, uiState.pages.size),
             style = MaterialTheme.typography.labelMedium,
             modifier = Modifier.fillMaxWidth(),
             textAlign = TextAlign.Center,
           )
         }
       }
-    }
     }
   }
 }

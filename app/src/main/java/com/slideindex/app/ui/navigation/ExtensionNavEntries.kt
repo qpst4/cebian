@@ -97,6 +97,9 @@ import com.slideindex.app.ui.WidgetPanelSettingsScreen
 import com.slideindex.app.settings.toMinimalAppSettings
 import com.slideindex.app.ui.viewmodel.ExtensionHubViewModel
 import com.slideindex.app.ui.viewmodel.ExtensionSettingsViewModel
+import com.slideindex.app.ui.viewmodel.HoneycombLauncherEditorViewModel
+import com.slideindex.app.ui.viewmodel.QuickLauncherEditorViewModel
+import com.slideindex.app.ui.viewmodel.WidgetPanelEditorViewModel
 import com.slideindex.app.ui.FloatBallTranslationSettingsScreen
 import com.slideindex.app.ui.SearchEnginePreviewSortScreen
 import com.slideindex.app.ui.SearchEngineSettingsScreen
@@ -226,14 +229,10 @@ fun NavEntryBuilder.extensionNavEntries(ctx: MainNavContext) {
     }
 
     hiltEntry<AppNavKey.QuickLauncher> {
-        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
-        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
-        val settings = gestureSettings.toMinimalAppSettings()
+        val viewModel: QuickLauncherEditorViewModel = hiltViewModel()
         QuickLauncherEditorScreen(
-            settings = settings,
+            viewModel = viewModel,
             onBack = { ctx.navigateBackTo(AppNavKey.ExtensionHub) },
-            onSavePanels = viewModel::setQuickLauncherPanels,
-            onDisplayChange = viewModel::setQuickLauncherDisplaySettings,
             onAdd = { panelId -> ctx.navigate(AppNavKey.QuickLauncherAdd(panelId)) },
         )
     }
@@ -466,13 +465,10 @@ fun NavEntryBuilder.extensionNavEntries(ctx: MainNavContext) {
     }
 
     hiltEntry<AppNavKey.HoneycombLauncher> {
-        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
-        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
-        val settings = gestureSettings.toMinimalAppSettings()
+        val viewModel: HoneycombLauncherEditorViewModel = hiltViewModel()
         HoneycombLauncherEditorScreen(
-            settings = settings,
+            viewModel = viewModel,
             onBack = { ctx.navigateBackTo(AppNavKey.ExtensionHub) },
-            onSaveItems = viewModel::setHoneycombLauncherItems,
             onOpenDisplaySettings = { ctx.navigate(AppNavKey.HoneycombDisplaySettings) },
             onAdd = { ctx.navigate(AppNavKey.HoneycombLauncherAdd) },
         )
@@ -870,16 +866,10 @@ fun NavEntryBuilder.extensionNavEntries(ctx: MainNavContext) {
     }
 
     hiltEntry<AppNavKey.WidgetPanel> {
-        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
-        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
-        val settings = gestureSettings.toMinimalAppSettings()
+        val viewModel: WidgetPanelEditorViewModel = hiltViewModel()
         WidgetPanelSettingsScreen(
-            settings = settings,
+            viewModel = viewModel,
             onBack = { ctx.navigateBackTo(AppNavKey.ExtensionHub) },
-            onSavePages = viewModel::setWidgetPanelPages,
-            onBlurEnabledChange = viewModel::setWidgetPanelBlurEnabled,
-            onBlurRadiusChange = viewModel::setWidgetPanelBlurRadiusDp,
-            onWidthFractionChange = viewModel::setWidgetPanelWidthFraction,
         )
     }
 
