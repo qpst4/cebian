@@ -523,8 +523,6 @@
     <string name="search_engine_preset_picker_cat_tools">Tools</string>
     <string name="search_engine_preset_added">Added</string>
     <string name="search_engine_preset_add">Add</string>
-    <string name="search_engine_preset_batch_add">Add selected (%1$d)</string>
-    <string name="search_engine_preset_batch_added_toast">Successfully added %1$d search engines</string>
     <string name="search_engine_preset_single_added_toast">Added \"%1$s\"</string>
     <string name="search_engine_settings_import_section">Import from other apps</string>
     <string name="search_engine_settings_import">Import backup</string>

@@ -61,6 +61,8 @@ import com.slideindex.app.ui.viewmodel.SearchEngineDraft
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import top.yukonga.miuix.kmp.basic.Button as MiuixButton
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
@@ -199,11 +201,12 @@ fun SearchEngineEditorScreen(
         ),
         onBack = onBack,
         actions = {
-            MiuixTextButton(
-                text = stringResource(R.string.search_engine_save),
-                onClick = saveAction,
-                colors = ButtonDefaults.textButtonColorsPrimary(),
-            )
+            top.yukonga.miuix.kmp.basic.IconButton(onClick = saveAction) {
+                top.yukonga.miuix.kmp.basic.Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = stringResource(R.string.search_engine_save),
+                )
+            }
         },
     ) {
         LazySettingsItem(key = "search-engine-editor") {
@@ -420,7 +423,6 @@ fun SearchEngineEditorScreen(
                     }
                 }
             }
-
         }
         }
     }

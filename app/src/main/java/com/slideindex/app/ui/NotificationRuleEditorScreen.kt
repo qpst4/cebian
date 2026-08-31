@@ -30,6 +30,8 @@ import com.slideindex.app.ui.notificationrule.resolveScreenMode
 import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import com.slideindex.app.ui.viewmodel.NotificationHistoryViewModel
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import top.yukonga.miuix.kmp.basic.TextButton
 
 @Composable
@@ -108,10 +110,12 @@ fun NotificationRuleEditorScreen(
         title = title,
         onBack = onBack,
         actions = {
-            TextButton(
-                text = stringResource(R.string.confirm),
-                onClick = saveRule,
-            )
+            top.yukonga.miuix.kmp.basic.IconButton(onClick = saveRule) {
+                top.yukonga.miuix.kmp.basic.Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = stringResource(R.string.confirm),
+                )
+            }
         },
     ) {
         LazySettingsItem(key = "notification-rule-editor") {

@@ -32,6 +32,8 @@ import com.slideindex.app.ui.settings.components.SettingsCardRow
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import com.slideindex.app.ui.settings.components.settingsCardItems
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card as MiuixCard
 import top.yukonga.miuix.kmp.basic.TextButton as MiuixTextButton
@@ -145,12 +147,15 @@ fun GestureExecuteShellCommandScreen(
         enableBackHandler = enableBackHandler,
         overlayMode = overlayMode,
         actions = {
-            MiuixTextButton(
-                text = stringResource(R.string.shell_panel_save),
+            top.yukonga.miuix.kmp.basic.IconButton(
                 onClick = { onConfirm(command.trim()) },
                 enabled = canSave,
-                colors = ButtonDefaults.textButtonColorsPrimary(),
-            )
+            ) {
+                top.yukonga.miuix.kmp.basic.Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = stringResource(R.string.shell_panel_save),
+                )
+            }
         },
     ) {
         if (shellCommands.isNotEmpty()) {

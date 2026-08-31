@@ -4,7 +4,6 @@ import android.graphics.BitmapFactory
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,8 +16,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -27,7 +24,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -59,7 +55,6 @@ import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffold
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import top.yukonga.miuix.kmp.basic.Card
-import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -121,8 +116,6 @@ fun PresetSearchEnginePickerScreen(
         }
     }
 
-    val selectedPresetIds = remember { mutableStateListOf<String>() }
-
     val filteredPresets = remember(selectedCategoryIndex, searchQuery, currentEngines) {
         val cat = categories[selectedCategoryIndex].first
         val query = searchQuery.trim().lowercase()
@@ -166,78 +159,68 @@ fun PresetSearchEnginePickerScreen(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        SettingsLazyScreenScaffold(
-            title = stringResource(R.string.search_engine_preset_picker_title),
-            onBack = handleBack,
-            modifier = Modifier.fillMaxSize(),
-            actions = {
-                MiuixExpandableSearchIconAction(
-                    expanded = searchExpanded,
-                    query = searchQuery,
-                    onExpandedChange = { searchExpanded = it },
-                    onQueryChange = { searchQuery = it },
-                )
-            },
-            bottomContent = {
-                MiuixScaffoldSearchTabBottomContent(
-                    searchExpanded = searchExpanded,
-                    searchQuery = searchQuery,
-                    onSearchQueryChange = { searchQuery = it },
-                    focusRequester = searchFocusRequester,
-                    hintResId = R.string.search_engine_preset_picker_search_hint,
-                    tabContent = {
-                        MiuixTabRowWithContour(
-                            tabs = categories.map { stringResource(it.second) },
-                            selectedTabIndex = selectedCategoryIndex,
-                            onTabSelected = { selectedCategoryIndex = it },
-                        )
-                    },
-                )
-            },
-        ) {
-            if (filteredPresets.isEmpty()) {
-                item(key = "empty") {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(32.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text(
-                            text = stringResource(R.string.search_engine_settings_empty),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-            } else {
-                items(
-                    items = filteredPresets,
-                    key = { it.presetId },
-                ) { preset ->
-                    val alreadyAdded = isAlreadyAdded(preset)
-                    val isSelected = preset.presetId in selectedPresetIds
+    val addedToastTemplate = stringResource(R.string.search_engine_preset_single_added_toast)
 
-                    PresetEngineItemRow(
-                        preset = preset,
-                        alreadyAdded = alreadyAdded,
-                        isSelected = isSelected,
-                        onToggleSelect = {
-                            if (!alreadyAdded) {
-                                if (isSelected) {
-                                selectedPresetIds.remove(preset.presetId)
-                            } else {
-                                selectedPresetIds.add(preset.presetId)
-                            }
-                        }
-                    },
+    SettingsLazyScreenScaffold(
+        title = stringResource(R.string.search_engine_preset_picker_title),
+        onBack = handleBack,
+        modifier = Modifier.fillMaxSize(),
+        actions = {
+            MiuixExpandableSearchIconAction(
+                expanded = searchExpanded,
+                query = searchQuery,
+                onExpandedChange = { searchExpanded = it },
+                onQueryChange = { searchQuery = it },
+            )
+        },
+        bottomContent = {
+            MiuixScaffoldSearchTabBottomContent(
+                searchExpanded = searchExpanded,
+                searchQuery = searchQuery,
+                onSearchQueryChange = { searchQuery = it },
+                focusRequester = searchFocusRequester,
+                hintResId = R.string.search_engine_preset_picker_search_hint,
+                tabContent = {
+                    MiuixTabRowWithContour(
+                        tabs = categories.map { stringResource(it.second) },
+                        selectedTabIndex = selectedCategoryIndex,
+                        onTabSelected = { selectedCategoryIndex = it },
+                    )
+                },
+            )
+        },
+    ) {
+        if (filteredPresets.isEmpty()) {
+            item(key = "empty") {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(32.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = stringResource(R.string.search_engine_settings_empty),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        } else {
+            items(
+                items = filteredPresets,
+                key = { it.presetId },
+            ) { preset ->
+                val alreadyAdded = isAlreadyAdded(preset)
+
+                PresetEngineItemRow(
+                    preset = preset,
+                    alreadyAdded = alreadyAdded,
                     onAddSingle = {
                         val config = instantiatePreset(preset, currentEngines.size)
                         onAddEngines(listOf(config))
                         Toast.makeText(
                             context,
-                            context.getString(R.string.search_engine_preset_single_added_toast, preset.name),
+                            String.format(addedToastTemplate, preset.name),
                             Toast.LENGTH_SHORT,
                         ).show()
                     },
@@ -245,43 +228,8 @@ fun PresetSearchEnginePickerScreen(
             }
         }
 
-            item(key = "bottom_spacer") {
-                Spacer(modifier = Modifier.height(80.dp))
-            }
-        }
-
-        // 底部批量添加悬浮栏
-        if (selectedPresetIds.isNotEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.BottomCenter)
-                    .background(MiuixTheme.colorScheme.background)
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-            ) {
-                Button(
-                    onClick = {
-                        val toAdd = allPresets
-                            .filter { it.presetId in selectedPresetIds && !isAlreadyAdded(it) }
-                            .mapIndexed { index, preset ->
-                                instantiatePreset(preset, currentEngines.size + index)
-                            }
-                        if (toAdd.isNotEmpty()) {
-                            onAddEngines(toAdd)
-                            Toast.makeText(
-                                context,
-                                context.getString(R.string.search_engine_preset_batch_added_toast, toAdd.size),
-                                Toast.LENGTH_SHORT,
-                            ).show()
-                        }
-                        selectedPresetIds.clear()
-                        onBack()
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Text(stringResource(R.string.search_engine_preset_batch_add, selectedPresetIds.size))
-                }
-            }
+        item(key = "bottom_spacer") {
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
@@ -290,8 +238,6 @@ fun PresetSearchEnginePickerScreen(
 private fun PresetEngineItemRow(
     preset: PresetSearchEngine,
     alreadyAdded: Boolean,
-    isSelected: Boolean,
-    onToggleSelect: () -> Unit,
     onAddSingle: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -323,8 +269,7 @@ private fun PresetEngineItemRow(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 5.dp)
-            .clickable(enabled = !alreadyAdded) { onToggleSelect() },
+            .padding(horizontal = 16.dp, vertical = 5.dp),
     ) {
         Row(
             modifier = Modifier
@@ -332,15 +277,6 @@ private fun PresetEngineItemRow(
                 .padding(horizontal = 14.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            if (!alreadyAdded) {
-                Checkbox(
-                    checked = isSelected,
-                    onCheckedChange = { onToggleSelect() },
-                    modifier = Modifier.size(24.dp),
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-            }
-
             // 图标
             Box(
                 modifier = Modifier

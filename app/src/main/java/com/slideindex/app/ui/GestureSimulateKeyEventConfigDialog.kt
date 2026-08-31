@@ -31,6 +31,8 @@ import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card as MiuixCard
 import top.yukonga.miuix.kmp.basic.TextButton as MiuixTextButton
@@ -266,11 +268,12 @@ fun GestureSimulateKeyEventScreen(
             enableBackHandler = enableBackHandler,
             overlayMode = overlayMode,
             actions = {
-                MiuixTextButton(
-                    text = stringResource(R.string.shell_panel_save),
-                    onClick = handleSave,
-                    colors = ButtonDefaults.textButtonColorsPrimary(),
-                )
+                top.yukonga.miuix.kmp.basic.IconButton(onClick = handleSave) {
+                    top.yukonga.miuix.kmp.basic.Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = stringResource(R.string.shell_panel_save),
+                    )
+                }
             },
         ) {
             item(key = "search_box") {

@@ -1449,8 +1449,6 @@
     <string name="search_engine_preset_picker_cat_tools">工具</string>
     <string name="search_engine_preset_added">已添加</string>
     <string name="search_engine_preset_add">添加</string>
-    <string name="search_engine_preset_batch_add">批量添加所选（%1$d）</string>
-    <string name="search_engine_preset_batch_added_toast">已成功添加 %1$d 个搜索引擎</string>
     <string name="search_engine_preset_single_added_toast">已添加「%1$s」</string>
     <string name="search_engine_settings_import_section">从其他 App 导入</string>
     <string name="search_engine_settings_import">导入备份</string>

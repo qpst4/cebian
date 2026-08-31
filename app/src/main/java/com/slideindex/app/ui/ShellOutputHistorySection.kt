@@ -126,10 +126,13 @@ fun ShellOutputHistoryScreen(
         },
     ) {
         item(key = "search") {
-            MiuixLabeledTextField(
-                value = query,
-                onValueChange = { query = it },
-                label = stringResource(R.string.shell_panel_history_search_hint),
+            com.slideindex.app.ui.miuix.MiuixSearchField(
+                query = query,
+                onQueryChange = { query = it },
+                hintResId = R.string.shell_panel_history_search_hint,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 6.dp),
             )
         }
         if (filtered.isEmpty()) {
