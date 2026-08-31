@@ -1,76 +1,67 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- 基础 Squircle 渐变圆角底板 -->
+    <!-- 1. 底层微晶视窗基座 (柔光半透明深浅自适应背景) -->
     <path
-        android:pathData="M 38,18 L 70,18 C 86,18 90,22 90,38 L 90,70 C 90,86 86,90 70,90 L 38,90 C 22,90 18,86 18,70 L 18,38 C 18,22 22,18 38,18 Z">
-        <aapt:attr name="android:fillColor">
-            <gradient
-                android:angle="315"
-                android:endColor="#32177C"
-                android:startColor="#6340E6"
-                android:type="linear" />
-        </aapt:attr>
-    </path>
-
-    <!-- 手机屏幕暗调主视窗 -->
-    <path
-        android:fillAlpha="0.3"
-        android:fillColor="#000000"
-        android:pathData="M 36,24 L 72,24 C 82,24 84,26 84,36 L 84,72 C 84,82 82,84 72,84 L 36,84 C 26,84 24,82 24,72 L 24,36 C 24,26 26,24 36,24 Z" />
-
-    <!-- 屏幕主区背景内容模拟骨架行（弱透明度） -->
-    <path
-        android:fillAlpha="0.28"
+        android:fillAlpha="0.14"
         android:fillColor="#FFFFFF"
-        android:pathData="M 30,34 L 46,34 C 47.1,34 48,34.9 48,36 C 48,37.1 47.1,38 46,38 L 30,38 C 28.9,38 28,37.1 28,36 C 28,34.9 28.9,34 30,34 Z" />
-    <path
-        android:fillAlpha="0.22"
-        android:fillColor="#FFFFFF"
-        android:pathData="M 30,44 L 42,44 C 43.1,44 44,44.9 44,46 C 44,47.1 43.1,48 42,48 L 30,48 C 28.9,48 28,47.1 28,46 C 28,44.9 28.9,44 30,44 Z" />
-    <path
-        android:fillAlpha="0.16"
-        android:fillColor="#FFFFFF"
-        android:pathData="M 30,54 L 44,54 C 45.1,54 46,54.9 46,56 C 46,57.1 45.1,58 44,58 L 30,58 C 28.9,58 28,57.1 28,56 C 28,54.9 28.9,54 30,54 Z" />
+        android:pathData="M 38,14 L 70,14 C 84,14 94,24 94,38 L 94,70 C 94,84 84,94 70,94 L 38,94 C 24,94 14,84 14,70 L 14,38 C 14,24 24,14 38,14 Z" />
 
-    <!-- 侧边呼出的高亮半透明卡片面板（右侧呼出） -->
+    <!-- 2. 外层微晶视窗柔和边框 -->
     <path
-        android:pathData="M 52,24 L 72,24 C 82,24 84,26 84,36 L 84,72 C 84,82 82,84 72,84 L 52,84 C 48,84 46,82 46,78 L 46,30 C 46,26 48,24 52,24 Z">
-        <aapt:attr name="android:fillColor">
-            <gradient
-                android:angle="315"
-                android:endColor="#DCD0FF"
-                android:startColor="#FFFFFF"
-                android:type="linear" />
-        </aapt:attr>
-    </path>
-
-    <!-- 侧边栏内部的功能项/胶囊图标 -->
-    <path
-        android:fillColor="#5D3BE2"
-        android:pathData="M 56,34 L 74,34 C 75.6,34 77,35.4 77,37 L 77,37 C 77,38.6 75.6,40 74,40 L 56,40 C 54.4,40 53,38.6 53,37 L 53,37 C 53,35.4 54.4,34 56,34 Z" />
-
-    <path
-        android:fillColor="#7653ED"
-        android:pathData="M 56,46 L 74,46 C 75.6,46 77,47.4 77,49 L 77,49 C 77,50.6 75.6,52 74,52 L 56,52 C 54.4,52 53,50.6 53,49 L 53,49 C 53,47.4 54.4,46 56,46 Z" />
-
-    <path
-        android:fillColor="#8F6FF4"
-        android:pathData="M 56,58 L 74,58 C 75.6,58 77,59.4 77,61 L 77,61 C 77,62.6 75.6,64 74,64 L 56,64 C 54.4,64 53,62.6 53,61 L 53,61 C 53,59.4 54.4,58 56,58 Z" />
-
-    <!-- 侧边栏边缘的手势滑块/指示手柄（高亮光标 Handle） -->
-    <path
-        android:fillColor="#4A26DA"
-        android:pathData="M 42,45 L 45,45 C 46.6,45 48,46.3 48,48 L 48,60 C 48,61.7 46.6,63 45,63 L 42,63 C 40.3,63 39,61.7 39,60 L 39,48 C 39,46.3 40.3,45 42,45 Z" />
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M 43.5,50 L 43.5,58"
-        android:strokeWidth="1.5"
+        android:pathData="M 38,14 L 70,14 C 84,14 94,24 94,38 L 94,70 C 94,84 84,94 70,94 L 38,94 C 24,94 14,84 14,70 L 14,38 C 14,24 24,14 38,14 Z"
+        android:strokeWidth="2.6"
         android:strokeColor="#FFFFFF"
+        android:strokeAlpha="0.55"
+        android:strokeLineJoin="round" />
+
+    <!-- 3. 左侧动态内容骨架线 (平衡左右视觉重量) -->
+    <path
+        android:pathData="M 23,32 L 40,32"
+        android:strokeWidth="3.5"
+        android:strokeColor="#FFFFFF"
+        android:strokeLineCap="round"
+        android:strokeAlpha="0.45" />
+    <path
+        android:pathData="M 23,46 L 36,46"
+        android:strokeWidth="3.5"
+        android:strokeColor="#FFFFFF"
+        android:strokeLineCap="round"
+        android:strokeAlpha="0.45" />
+    <path
+        android:pathData="M 23,60 L 42,60"
+        android:strokeWidth="3.5"
+        android:strokeColor="#FFFFFF"
+        android:strokeLineCap="round"
+        android:strokeAlpha="0.45" />
+    <path
+        android:pathData="M 23,74 L 33,74"
+        android:strokeWidth="3.5"
+        android:strokeColor="#FFFFFF"
+        android:strokeLineCap="round"
+        android:strokeAlpha="0.35" />
+
+    <!-- 4. 右侧悬浮功能面板 (黄金分割高亮层 + 3 胶囊镂空) -->
+    <path
+        android:fillAlpha="0.9"
+        android:fillColor="#FFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M 62,20 L 74,20 C 82,20 88,26 88,34 L 88,74 C 88,82 82,88 74,88 L 62,88 C 54,88 48,82 48,74 L 48,34 C 48,26 54,20 62,20 Z
+            M 57,34 L 79,34 C 81.2,34 83,35.8 83,38 C 83,40.2 81.2,42 79,42 L 57,42 C 54.8,42 53,40.2 53,38 C 53,35.8 54.8,34 57,34 Z
+            M 57,50 L 79,50 C 81.2,50 83,51.8 83,54 C 83,56.2 81.2,58 79,58 L 57,58 C 54.8,58 53,56.2 53,54 C 53,51.8 54.8,50 57,50 Z
+            M 57,66 L 79,66 C 81.2,66 83,67.8 83,70 C 83,72.2 81.2,74 79,74 L 57,74 C 54.8,74 53,72.2 53,70 C 53,67.8 54.8,66 57,66 Z" />
+
+    <!-- 5. 侧边栏交互手柄 (悬浮微凸指示器) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M 44,43 C 47.5,43 49.5,45.5 49.5,49 L 49.5,59 C 49.5,62.5 47.5,65 44,65 C 40.5,65 38.5,62.5 38.5,59 L 38.5,49 C 38.5,45.5 40.5,43 44,43 Z" />
+    <path
+        android:pathData="M 44,49 L 44,59"
+        android:strokeWidth="1.8"
+        android:strokeColor="#000000"
         android:strokeLineCap="round" />
 
 </vector>

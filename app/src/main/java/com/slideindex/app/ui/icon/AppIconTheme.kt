@@ -32,6 +32,13 @@ enum class AppIconTheme(
         descRes = R.string.app_icon_green_desc,
         iconRes = R.drawable.ic_launcher_preview_green,
         componentSimpleName = "MainActivityGreen",
+    ),
+    MATERIAL_YOU(
+        id = 3,
+        titleRes = R.string.app_icon_monet,
+        descRes = R.string.app_icon_monet_desc,
+        iconRes = R.drawable.ic_launcher_preview_monet,
+        componentSimpleName = "MainActivityMonet",
     );
 
     companion object {

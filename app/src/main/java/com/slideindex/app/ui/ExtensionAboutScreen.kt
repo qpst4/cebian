@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
@@ -54,6 +55,7 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.onSizeChanged
@@ -218,7 +220,7 @@ private fun AboutContent(
         }
     }
 
-    var logoHeightDp by remember { mutableStateOf(280.dp) }
+    var logoHeightDp by remember { mutableStateOf(300.dp) }
 
     val versionCodeProgress = { ((scrollProgress() - 0.05f) / 0.15f).coerceIn(0f, 1f) }
     val projectNameProgress = { ((scrollProgress() - 0.20f) / 0.15f).coerceIn(0f, 1f) }
@@ -266,19 +268,32 @@ private fun AboutContent(
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
-                    .size(90.dp)
+                    .size(118.dp)
                     .graphicsLayer {
                         val p = iconProgress()
                         alpha = 1 - p
                         scaleX = 1 - (p * 0.05f)
                         scaleY = 1 - (p * 0.05f)
-                    }
-                    .clip(RoundedCornerShape(20.dp)),
+                    },
             ) {
                 Image(
-                    painter = painterResource(selectedIconTheme.iconRes),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .then(
+                            if (blurEnabled) {
+                                Modifier.textureBlur(
+                                    backdrop = backdrop,
+                                    shape = RoundedCornerShape(0.dp),
+                                    blurRadius = 120f,
+                                    colors = BlurColors(blendColors = logoBlend),
+                                    contentBlendMode = BlendMode.DstIn,
+                                    enabled = true,
+                                )
+                            } else Modifier
+                        ),
+                    painter = painterResource(R.drawable.app_logo),
+                    colorFilter = ColorFilter.tint(MiuixTheme.colorScheme.onBackground),
                     contentDescription = "icon",
-                    modifier = Modifier.fillMaxSize(),
                 )
             }
             Text(

@@ -2319,6 +2319,8 @@
     <string name="app_icon_blue_desc">沉稳原生 · 安全质感</string>
     <string name="app_icon_green">极客青绿</string>
     <string name="app_icon_green_desc">极速响应 · 赛博活力</string>
+    <string name="app_icon_monet">Material 莫奈</string>
+    <string name="app_icon_monet_desc">随壁纸与系统动态着色</string>
     <string name="auto_check_update_title">自动检查更新</string>
     <string name="auto_check_update_hint">手势服务运行时后台检查新版本并通知</string>
     <string name="update_available_title">发现新版本</string>

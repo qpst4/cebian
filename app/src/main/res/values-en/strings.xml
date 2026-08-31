@@ -2316,6 +2316,8 @@ Questions: open a GitHub Issue on the project repository.</string>
     <string name="app_icon_blue_desc">Clean &amp; elegant</string>
     <string name="app_icon_green">Cyber Green</string>
     <string name="app_icon_green_desc">Fast &amp; modern</string>
+    <string name="app_icon_monet">Material Monet</string>
+    <string name="app_icon_monet_desc">Dynamic colors matching wallpaper and system</string>
     <string name="auto_check_update_title">Auto-check for updates</string>
     <string name="auto_check_update_hint">Check for new versions in background while gesture service runs</string>
     <string name="update_available_title">Update available</string>
