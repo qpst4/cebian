@@ -27,20 +27,24 @@ class MlKitTranslateModelInstaller @Inject constructor(
 ) {
     suspend fun isModelDownloaded(languageCode: String): Boolean {
         val mlKitCode = toMlKitLanguage(languageCode) ?: return false
-        val model = TranslateRemoteModel.Builder(mlKitCode).build()
-        return suspendCancellableCoroutine { continuation ->
-            RemoteModelManager.getInstance()
-                .isModelDownloaded(model)
-                .addOnSuccessListener { downloaded ->
-                    if (continuation.isActive) {
-                        continuation.resume(downloaded)
+        return try {
+            val model = TranslateRemoteModel.Builder(mlKitCode).build()
+            suspendCancellableCoroutine { continuation ->
+                RemoteModelManager.getInstance()
+                    .isModelDownloaded(model)
+                    .addOnSuccessListener { downloaded ->
+                        if (continuation.isActive) {
+                            continuation.resume(downloaded)
+                        }
                     }
-                }
-                .addOnFailureListener {
-                    if (continuation.isActive) {
-                        continuation.resume(false)
+                    .addOnFailureListener {
+                        if (continuation.isActive) {
+                            continuation.resume(false)
+                        }
                     }
-                }
+            }
+        } catch (e: Throwable) {
+            false
         }
     }
 
@@ -70,8 +74,33 @@ class MlKitTranslateModelInstaller @Inject constructor(
             return@channelFlow
         }
 
-        val model = TranslateRemoteModel.Builder(mlKitCode).build()
-        val remoteModelManager = RemoteModelManager.getInstance()
+        val model = try {
+            TranslateRemoteModel.Builder(mlKitCode).build()
+        } catch (e: Throwable) {
+            trySend(
+                TranslateDownloadState(
+                    languageCode = languageCode,
+                    phase = TranslateDownloadPhase.FAILED,
+                    errorMessage = e.message ?: "model_init_failed",
+                ),
+            )
+            close()
+            return@channelFlow
+        }
+
+        val remoteModelManager = try {
+            RemoteModelManager.getInstance()
+        } catch (e: Throwable) {
+            trySend(
+                TranslateDownloadState(
+                    languageCode = languageCode,
+                    phase = TranslateDownloadPhase.FAILED,
+                    errorMessage = e.message ?: "remote_model_manager_unavailable",
+                ),
+            )
+            close()
+            return@channelFlow
+        }
 
         if (repository.isInstalled(languageCode) && isModelDownloaded(languageCode)) {
             trySend(TranslateDownloadState(languageCode = languageCode, phase = TranslateDownloadPhase.READY))
@@ -95,44 +124,70 @@ class MlKitTranslateModelInstaller @Inject constructor(
         var failedMessage: String? = null
         var completed = false
 
-        val downloadTask = remoteModelManager.download(
-            model,
-            DownloadConditions.Builder().apply {
+        try {
+            val conditions = DownloadConditions.Builder().apply {
                 if (wifiOnly) requireWifi()
-            }.build(),
-        )
+            }.build()
 
-        downloadTask
-            .addOnSuccessListener {
-                repository.writeInstalled(languageCode)
-                completed = true
-                trySend(TranslateDownloadState(languageCode = languageCode, phase = TranslateDownloadPhase.READY))
+            val downloadTask = remoteModelManager.download(model, conditions)
+            if (downloadTask == null) {
+                trySend(
+                    TranslateDownloadState(
+                        languageCode = languageCode,
+                        phase = TranslateDownloadPhase.FAILED,
+                        errorMessage = "download_task_null",
+                    ),
+                )
                 close()
+                return@channelFlow
             }
-            .addOnFailureListener { error ->
-                failedMessage = error.message ?: "download_failed"
-                if (!completed) {
-                    trySend(
-                        TranslateDownloadState(
-                            languageCode = languageCode,
-                            phase = TranslateDownloadPhase.FAILED,
-                            errorMessage = failedMessage,
-                        ),
-                    )
+
+            downloadTask
+                .addOnSuccessListener {
+                    repository.writeInstalled(languageCode)
+                    completed = true
+                    trySend(TranslateDownloadState(languageCode = languageCode, phase = TranslateDownloadPhase.READY))
                     close()
                 }
-            }
+                .addOnFailureListener { error ->
+                    failedMessage = error.message ?: "download_failed"
+                    if (!completed) {
+                        trySend(
+                            TranslateDownloadState(
+                                languageCode = languageCode,
+                                phase = TranslateDownloadPhase.FAILED,
+                                errorMessage = failedMessage,
+                            ),
+                        )
+                        close()
+                    }
+                }
+        } catch (e: Throwable) {
+            trySend(
+                TranslateDownloadState(
+                    languageCode = languageCode,
+                    phase = TranslateDownloadPhase.FAILED,
+                    errorMessage = e.message ?: "download_failed",
+                ),
+            )
+            close()
+            return@channelFlow
+        }
 
         val progressJob = launch {
-            while (isActive && !completed && failedMessage == null) {
-                val progress = progressTracker.queryProgress(mlKitCode)
-                if (progress != null) {
-                    emitDownloading(progress.bytesDownloaded, progress.totalBytes)
+            try {
+                while (isActive && !completed && failedMessage == null) {
+                    val progress = progressTracker.queryProgress(mlKitCode)
+                    if (progress != null) {
+                        emitDownloading(progress.bytesDownloaded, progress.totalBytes)
+                    }
+                    if (isModelDownloaded(languageCode)) {
+                        break
+                    }
+                    delay(PROGRESS_POLL_INTERVAL_MS)
                 }
-                if (isModelDownloaded(languageCode)) {
-                    break
-                }
-                delay(PROGRESS_POLL_INTERVAL_MS)
+            } catch (e: Throwable) {
+                // Ignore background tracker exceptions
             }
         }
 
@@ -143,16 +198,20 @@ class MlKitTranslateModelInstaller @Inject constructor(
 
     suspend fun delete(languageCode: String) {
         val mlKitCode = toMlKitLanguage(languageCode) ?: return
-        val model = TranslateRemoteModel.Builder(mlKitCode).build()
-        suspendCancellableCoroutine { continuation ->
-            RemoteModelManager.getInstance()
-                .deleteDownloadedModel(model)
-                .addOnCompleteListener {
-                    repository.deleteLanguage(languageCode)
-                    if (continuation.isActive) {
-                        continuation.resume(Unit)
+        try {
+            val model = TranslateRemoteModel.Builder(mlKitCode).build()
+            suspendCancellableCoroutine { continuation ->
+                RemoteModelManager.getInstance()
+                    .deleteDownloadedModel(model)
+                    .addOnCompleteListener {
+                        repository.deleteLanguage(languageCode)
+                        if (continuation.isActive) {
+                            continuation.resume(Unit)
+                        }
                     }
-                }
+            }
+        } catch (e: Throwable) {
+            repository.deleteLanguage(languageCode)
         }
     }
 

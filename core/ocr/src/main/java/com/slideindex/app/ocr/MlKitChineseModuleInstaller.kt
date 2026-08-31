@@ -28,19 +28,29 @@ class MlKitChineseModuleInstaller @Inject constructor(
         TextRecognition.getClient(ChineseTextRecognizerOptions.Builder().build())
     }
 
-    suspend fun isModuleAvailable(): Boolean = suspendCancellableCoroutine { continuation ->
-        ModuleInstall.getClient(context)
-            .areModulesAvailable(textRecognizer)
-            .addOnSuccessListener { response ->
-                if (continuation.isActive) {
-                    continuation.resume(response.areModulesAvailable())
-                }
-            }
-            .addOnFailureListener {
+    suspend fun isModuleAvailable(): Boolean = try {
+        suspendCancellableCoroutine { continuation ->
+            try {
+                ModuleInstall.getClient(context)
+                    .areModulesAvailable(textRecognizer)
+                    .addOnSuccessListener { response ->
+                        if (continuation.isActive) {
+                            continuation.resume(response.areModulesAvailable())
+                        }
+                    }
+                    .addOnFailureListener {
+                        if (continuation.isActive) {
+                            continuation.resume(false)
+                        }
+                    }
+            } catch (e: Throwable) {
                 if (continuation.isActive) {
                     continuation.resume(false)
                 }
             }
+        }
+    } catch (e: Throwable) {
+        false
     }
 
     fun install(modelId: String, wifiOnly: Boolean): Flow<OcrModelDownloadState> = callbackFlow {
@@ -56,7 +66,20 @@ class MlKitChineseModuleInstaller @Inject constructor(
             return@callbackFlow
         }
 
-        val moduleInstallClient = ModuleInstall.getClient(context)
+        val moduleInstallClient = try {
+            ModuleInstall.getClient(context)
+        } catch (e: Throwable) {
+            trySend(
+                OcrModelDownloadState(
+                    modelId = modelId,
+                    phase = OcrModelDownloadPhase.FAILED,
+                    errorMessage = e.message ?: "module_install_unavailable",
+                ),
+            )
+            close()
+            return@callbackFlow
+        }
+
         if (isModuleAvailable()) {
             writeInstalledManifest(modelId)
             trySend(OcrModelDownloadState(modelId = modelId, phase = OcrModelDownloadPhase.READY))
@@ -73,85 +96,123 @@ class MlKitChineseModuleInstaller @Inject constructor(
         )
 
         val listener = InstallStatusListener { update ->
-            when (update.installState) {
-                ModuleInstallStatusUpdate.InstallState.STATE_COMPLETED -> {
-                    writeInstalledManifest(modelId)
-                    trySend(
-                        OcrModelDownloadState(
-                            modelId = modelId,
-                            phase = OcrModelDownloadPhase.READY,
-                            bytesDownloaded = MLKIT_CHINESE_SIZE_BYTES,
-                            totalBytes = MLKIT_CHINESE_SIZE_BYTES,
-                        ),
-                    )
-                    close()
+            try {
+                when (update.installState) {
+                    ModuleInstallStatusUpdate.InstallState.STATE_COMPLETED -> {
+                        writeInstalledManifest(modelId)
+                        trySend(
+                            OcrModelDownloadState(
+                                modelId = modelId,
+                                phase = OcrModelDownloadPhase.READY,
+                                bytesDownloaded = MLKIT_CHINESE_SIZE_BYTES,
+                                totalBytes = MLKIT_CHINESE_SIZE_BYTES,
+                            ),
+                        )
+                        close()
+                    }
+                    ModuleInstallStatusUpdate.InstallState.STATE_FAILED -> {
+                        trySend(
+                            OcrModelDownloadState(
+                                modelId = modelId,
+                                phase = OcrModelDownloadPhase.FAILED,
+                                errorMessage = "mlkit_module_install_failed",
+                            ),
+                        )
+                        close()
+                    }
+                    ModuleInstallStatusUpdate.InstallState.STATE_CANCELED -> {
+                        trySend(OcrModelDownloadState(modelId = modelId, phase = OcrModelDownloadPhase.CANCELLED))
+                        close()
+                    }
+                    else -> {
+                        val progressInfo = update.progressInfo ?: return@InstallStatusListener
+                        trySend(
+                            OcrModelDownloadState(
+                                modelId = modelId,
+                                phase = OcrModelDownloadPhase.DOWNLOADING,
+                                bytesDownloaded = progressInfo.bytesDownloaded,
+                                totalBytes = progressInfo.totalBytesToDownload.takeIf { it > 0L }
+                                    ?: MLKIT_CHINESE_SIZE_BYTES,
+                            ),
+                        )
+                    }
                 }
-                ModuleInstallStatusUpdate.InstallState.STATE_FAILED -> {
-                    trySend(
-                        OcrModelDownloadState(
-                            modelId = modelId,
-                            phase = OcrModelDownloadPhase.FAILED,
-                            errorMessage = "mlkit_module_install_failed",
-                        ),
-                    )
-                    close()
-                }
-                ModuleInstallStatusUpdate.InstallState.STATE_CANCELED -> {
-                    trySend(OcrModelDownloadState(modelId = modelId, phase = OcrModelDownloadPhase.CANCELLED))
-                    close()
-                }
-                else -> {
-                    val progressInfo = update.progressInfo ?: return@InstallStatusListener
-                    trySend(
-                        OcrModelDownloadState(
-                            modelId = modelId,
-                            phase = OcrModelDownloadPhase.DOWNLOADING,
-                            bytesDownloaded = progressInfo.bytesDownloaded,
-                            totalBytes = progressInfo.totalBytesToDownload.takeIf { it > 0L }
-                                ?: MLKIT_CHINESE_SIZE_BYTES,
-                        ),
-                    )
-                }
-            }
-        }
-
-        val request = ModuleInstallRequest.newBuilder()
-            .addApi(textRecognizer)
-            .setListener(listener)
-            .build()
-
-        moduleInstallClient.installModules(request)
-            .addOnSuccessListener { response ->
-                if (response.areModulesAlreadyInstalled()) {
-                    writeInstalledManifest(modelId)
-                    trySend(OcrModelDownloadState(modelId = modelId, phase = OcrModelDownloadPhase.READY))
-                    close()
-                }
-            }
-            .addOnFailureListener { error ->
+            } catch (e: Throwable) {
                 trySend(
                     OcrModelDownloadState(
                         modelId = modelId,
                         phase = OcrModelDownloadPhase.FAILED,
-                        errorMessage = error.message ?: "mlkit_install_failed",
+                        errorMessage = e.message ?: "mlkit_install_failed",
                     ),
                 )
                 close()
             }
+        }
+
+        try {
+            val request = ModuleInstallRequest.newBuilder()
+                .addApi(textRecognizer)
+                .setListener(listener)
+                .build()
+
+            moduleInstallClient.installModules(request)
+                .addOnSuccessListener { response ->
+                    if (response.areModulesAlreadyInstalled()) {
+                        writeInstalledManifest(modelId)
+                        trySend(OcrModelDownloadState(modelId = modelId, phase = OcrModelDownloadPhase.READY))
+                        close()
+                    }
+                }
+                .addOnFailureListener { error ->
+                    trySend(
+                        OcrModelDownloadState(
+                            modelId = modelId,
+                            phase = OcrModelDownloadPhase.FAILED,
+                            errorMessage = error.message ?: "mlkit_install_failed",
+                        ),
+                    )
+                    close()
+                }
+        } catch (e: Throwable) {
+            trySend(
+                OcrModelDownloadState(
+                    modelId = modelId,
+                    phase = OcrModelDownloadPhase.FAILED,
+                    errorMessage = e.message ?: "mlkit_install_failed",
+                ),
+            )
+            close()
+        }
 
         awaitClose {
-            moduleInstallClient.unregisterListener(listener)
+            try {
+                moduleInstallClient.unregisterListener(listener)
+            } catch (e: Throwable) {
+                // Ignore
+            }
         }
     }
 
-    suspend fun release() = suspendCancellableCoroutine { continuation ->
-        ModuleInstall.getClient(context)
-            .releaseModules(textRecognizer)
-            .addOnCompleteListener {
-                if (continuation.isActive) {
-                    continuation.resume(Unit)
+    suspend fun release() {
+        try {
+            suspendCancellableCoroutine { continuation ->
+                try {
+                    ModuleInstall.getClient(context)
+                        .releaseModules(textRecognizer)
+                        .addOnCompleteListener {
+                            if (continuation.isActive) {
+                                continuation.resume(Unit)
+                            }
+                        }
+                } catch (e: Throwable) {
+                    if (continuation.isActive) {
+                        continuation.resume(Unit)
+                    }
                 }
             }
+        } catch (e: Throwable) {
+            // Ignore
+        }
     }
 
     private fun writeInstalledManifest(modelId: String) {

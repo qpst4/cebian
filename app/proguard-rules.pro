@@ -87,6 +87,13 @@
 -keep class org.opencv.** { *; }
 -dontwarn org.opencv.**
 
+# Google ML Kit & Play Services
+-keep class com.google.mlkit.** { *; }
+-keep interface com.google.mlkit.** { *; }
+-keep class com.google.android.gms.** { *; }
+-dontwarn com.google.mlkit.**
+-dontwarn com.google.android.gms.**
+
 # ---------------------------------------------------------------------------
 # Hilt / Dagger
 -keep class dagger.hilt.** { *; }
