@@ -112,6 +112,9 @@ class SlideIndexAccessibilityService : AccessibilityService() {
         fun currentForegroundPackageName(): String? =
             instance?.foregroundTracker?.currPackageName
 
+        fun currentForegroundClassName(): String? =
+            instance?.foregroundTracker?.currClassName
+
         fun perform(action: GestureAction): Boolean =
             SlideIndexAccessibilityGestureInjector.perform(action) { instance }
 

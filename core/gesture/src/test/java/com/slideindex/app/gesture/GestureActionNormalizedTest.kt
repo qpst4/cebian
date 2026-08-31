@@ -57,6 +57,8 @@ class GestureActionNormalizedTest {
         assertEquals(GestureActionType.PIN_TO_SCREEN, GestureActionType.fromId(82))
         assertEquals(GestureAction.AppCarouselSwitcher, GestureAction.from(GestureActionType.APP_CAROUSEL_SWITCHER, ""))
         assertEquals(GestureActionType.APP_CAROUSEL_SWITCHER, GestureActionType.fromId(83))
+        assertEquals(GestureAction.ForegroundActivityInspector, GestureAction.from(GestureActionType.FOREGROUND_ACTIVITY_INSPECTOR, ""))
+        assertEquals(GestureActionType.FOREGROUND_ACTIVITY_INSPECTOR, GestureActionType.fromId(84))
     }
 
     @Test

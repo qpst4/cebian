@@ -18,6 +18,8 @@ internal class SlideIndexAccessibilityForegroundTracker(
         private set
     var currPackageName: String? = null
         private set
+    var currClassName: String? = null
+        private set
 
     /** 系统已启用输入法的包名；输入法窗口不应进入“上一应用”历史。 */
     private val imePackages: Set<String> by lazy { detectImePackages() }
@@ -32,6 +34,12 @@ internal class SlideIndexAccessibilityForegroundTracker(
             overlayHost()?.refreshTriggerVisibility()
             return
         }
+        val className = event.className?.toString()?.takeIf { it.isNotBlank() } ?: ""
+        if (!isImePackageOrClass(packageName, className)) {
+            currClassName = className
+            com.slideindex.app.overlay.ForegroundActivityInspectorOverlayWindow.onForegroundWindowStateChanged(packageName, className)
+        }
+
         if (com.slideindex.app.overlay.WidgetPopupOverlayWindow.isShowing &&
             !com.slideindex.app.overlay.WidgetPopupOverlayWindow.isAddFlowActive) {
             com.slideindex.app.overlay.WidgetPopupOverlayWindow.dismiss()
@@ -60,6 +68,15 @@ internal class SlideIndexAccessibilityForegroundTracker(
     fun handleWindowsChanged() {
         onSyncLockScreen()
         overlayHost()?.refreshTriggerVisibility()
+        if (com.slideindex.app.overlay.ForegroundActivityInspectorOverlayWindow.isShowing) {
+            val rootNode = service.rootInActiveWindow
+            val activePkg = rootNode?.packageName?.toString()
+            val activeCls = rootNode?.className?.toString()
+            if (!activePkg.isNullOrBlank() && activePkg != service.applicationContext.packageName && !isImePackageOrClass(activePkg, activeCls.orEmpty())) {
+                currClassName = activeCls.orEmpty()
+                com.slideindex.app.overlay.ForegroundActivityInspectorOverlayWindow.onForegroundWindowStateChanged(activePkg, activeCls.orEmpty())
+            }
+        }
     }
 
     fun launchPreviousApp(): Boolean {
@@ -108,6 +125,25 @@ internal class SlideIndexAccessibilityForegroundTracker(
         return runCatching {
             inputMethodManager.enabledInputMethodList.map { it.packageName }.toSet()
         }.getOrDefault(emptySet())
+    }
+
+    private fun isImePackageOrClass(packageName: String, className: String): Boolean {
+        if (packageName.isBlank()) return false
+        if (packageName in imePackages) return true
+        if (className.contains("inputmethod", ignoreCase = true) ||
+            className.contains("InputMethodService", ignoreCase = true) ||
+            className.startsWith("android.inputmethodservice.") ||
+            className == "android.widget.PopupWindow" ||
+            className == "android.widget.Toast"
+        ) {
+            return true
+        }
+        val imm = runCatching { service.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager }.getOrNull()
+        val dynamicImes = runCatching { imm?.enabledInputMethodList?.map { it.packageName }?.toSet() }.getOrNull()
+        if (dynamicImes?.contains(packageName) == true) {
+            return true
+        }
+        return false
     }
 }
 

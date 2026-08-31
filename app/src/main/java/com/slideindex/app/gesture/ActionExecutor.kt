@@ -284,6 +284,10 @@ class ActionExecutor(
                 com.slideindex.app.overlay.PinToScreenDialog.show(context)
                 true
             }
+            GestureAction.ForegroundActivityInspector -> {
+                com.slideindex.app.overlay.ForegroundActivityInspectorOverlayWindow.toggle(context)
+                true
+            }
             is GestureAction.SimulateKeyEvent -> SystemGestureActions.simulateKeyEvent(context, action.keyCode, action.isLongPress)
             GestureAction.PreviousApp,
             GestureAction.OpenNotifications,

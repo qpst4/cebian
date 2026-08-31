@@ -102,6 +102,7 @@ internal fun gestureActionTypeOutlinedIcon(type: GestureActionType): ImageVector
     GestureActionType.CORNER_INNER_CANCEL -> ThinActionIcons.Close
     GestureActionType.CORNER_INNER_PIN_WHEEL -> ThinActionIcons.TouchApp
     GestureActionType.SNOOZE_OVERLAYS -> ThinActionIcons.VisibilityOff
+    GestureActionType.FOREGROUND_ACTIVITY_INSPECTOR -> ThinActionIcons.Search
 }
 
 @Suppress("DEPRECATION")
@@ -185,4 +186,5 @@ internal fun gestureActionTypeThinIcon(type: GestureActionType): ImageVector = w
     GestureActionType.CORNER_INNER_CANCEL -> ThinActionIcons.Close
     GestureActionType.CORNER_INNER_PIN_WHEEL -> ThinActionIcons.TouchApp
     GestureActionType.SNOOZE_OVERLAYS -> ThinActionIcons.VisibilityOff
+    GestureActionType.FOREGROUND_ACTIVITY_INSPECTOR -> ThinActionIcons.Search
 }

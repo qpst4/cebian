@@ -800,6 +800,16 @@
     <string name="gesture_action_pin_to_screen_desc">选择剪贴板文本或图片生成可拖动置顶悬浮窗</string>
     <string name="gesture_action_app_carousel_switcher">应用切换器</string>
     <string name="gesture_action_app_carousel_switcher_desc">手势滑动轮播与自适应卡片大图标应用切换器</string>
+    <string name="gesture_action_foreground_activity_inspector">前台活动探测</string>
+    <string name="gesture_action_foreground_activity_inspector_desc">悬浮窗实时显示当前前台应用的包名与 Activity 类名</string>
+    <string name="foreground_activity_inspector_title">前台活动探测</string>
+    <string name="foreground_activity_inspector_pkg_copied">已复制包名</string>
+    <string name="foreground_activity_inspector_act_copied">已复制 Activity 类名</string>
+    <string name="foreground_activity_inspector_all_copied">已复制完整前台信息</string>
+    <string name="foreground_activity_inspector_waiting">等待前台窗口事件…</string>
+    <string name="foreground_activity_inspector_history_title">活动跳转历史</string>
+    <string name="foreground_activity_inspector_history_empty">暂无跳转历史记录</string>
+    <string name="foreground_activity_inspector_history_clear">清空历史</string>
     <string name="pin_to_screen_title">钉到屏幕</string>
     <string name="pin_to_screen_tab_text">文本便签</string>
     <string name="pin_to_screen_tab_image">置顶图片</string>

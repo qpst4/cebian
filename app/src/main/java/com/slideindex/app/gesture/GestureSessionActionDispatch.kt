@@ -346,6 +346,7 @@ internal fun GestureSession.handleClassifiedGesture(
         GestureAction.CurrentAppInfo,
         GestureAction.ScreenOffKeepAwake,
         GestureAction.PinToScreen,
+        GestureAction.ForegroundActivityInspector,
         is GestureAction.SimulateKeyEvent,
         is GestureAction.SimulatePointerSwipe,
         is GestureAction.ExecuteShellCommand,

@@ -1232,6 +1232,16 @@
     <string name="gesture_action_pin_to_screen_desc">Pin clipboard text or image as a draggable floating note or overlay</string>
     <string name="gesture_action_app_carousel_switcher">App switcher</string>
     <string name="gesture_action_app_carousel_switcher_desc">Swipe carousel app switcher with adaptive squircle tiles</string>
+    <string name="gesture_action_foreground_activity_inspector">Activity Inspector</string>
+    <string name="gesture_action_foreground_activity_inspector_desc">Floating HUD displaying current foreground package and Activity class name</string>
+    <string name="foreground_activity_inspector_title">Activity Inspector</string>
+    <string name="foreground_activity_inspector_pkg_copied">Package name copied</string>
+    <string name="foreground_activity_inspector_act_copied">Activity class copied</string>
+    <string name="foreground_activity_inspector_all_copied">Foreground info copied</string>
+    <string name="foreground_activity_inspector_waiting">Waiting for window events…</string>
+    <string name="foreground_activity_inspector_history_title">Activity History</string>
+    <string name="foreground_activity_inspector_history_empty">No activity history yet</string>
+    <string name="foreground_activity_inspector_history_clear">Clear</string>
     <string name="pin_to_screen_title">Pin to screen</string>
     <string name="pin_to_screen_tab_text">Text Note</string>
     <string name="pin_to_screen_tab_image">Pinned Image</string>

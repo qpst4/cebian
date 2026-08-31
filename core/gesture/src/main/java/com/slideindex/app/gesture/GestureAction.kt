@@ -83,6 +83,7 @@ enum class GestureActionType(val id: Int) {
     SCREEN_OFF_KEEP_AWAKE(81),
     PIN_TO_SCREEN(82),
     APP_CAROUSEL_SWITCHER(83),
+    FOREGROUND_ACTIVITY_INSPECTOR(84),
     ;
 
     companion object {
@@ -588,6 +589,12 @@ sealed class GestureAction {
         override val payload = ""
     }
 
+    /** 实时前台活动探测悬浮窗（显示当前前台应用包名与 Activity 类名）。 */
+    data object ForegroundActivityInspector : GestureAction() {
+        override val type = GestureActionType.FOREGROUND_ACTIVITY_INSPECTOR
+        override val payload = ""
+    }
+
     /** 模拟按键事件（支持自定义 KeyCode 与长按）。 */
     data class SimulateKeyEvent(
         val keyCode: Int = 82,
@@ -710,6 +717,7 @@ sealed class GestureAction {
                 GestureActionType.SIMULATE_KEY_EVENT -> SimulateKeyEvent.fromPayload(payload)
                 GestureActionType.SCREEN_OFF_KEEP_AWAKE -> ScreenOffKeepAwake
                 GestureActionType.PIN_TO_SCREEN -> PinToScreen
+                GestureActionType.FOREGROUND_ACTIVITY_INSPECTOR -> ForegroundActivityInspector
                 GestureActionType.NONE -> None
             }.normalized()
 
