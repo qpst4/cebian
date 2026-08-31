@@ -348,7 +348,14 @@ class ActionExecutor(
                             android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP or
                             android.content.Intent.FLAG_ACTIVITY_REORDER_TO_FRONT,
                     )
-                    putExtra(com.slideindex.app.MainActivity.EXTRA_NAV_ROUTE, "extension_freezer")
+                    putExtra(
+                        com.slideindex.app.MainActivity.EXTRA_NAV_ROUTE,
+                        com.slideindex.app.MainActivity.NAV_ROUTE_EXTENSION_FREEZER,
+                    )
+                    putExtra(
+                        com.slideindex.app.MainActivity.EXTRA_FREEZER_TAB,
+                        com.slideindex.app.MainActivity.FREEZER_TAB_FROZEN,
+                    )
                 }
                 context.startActivity(intent)
                 true

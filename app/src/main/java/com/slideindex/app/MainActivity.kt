@@ -23,6 +23,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.lifecycleScope
 import com.slideindex.app.clipboard.monitor.ClipboardMonitorStartup
 import com.slideindex.app.di.AppDependencies
+import com.slideindex.app.freezer.FreezerLaunchState
+import com.slideindex.app.freezer.FreezerTab
 import com.slideindex.app.notification.NotificationHistoryLaunchState
 import com.slideindex.app.overlay.LayoutPreviewContent
 import com.slideindex.app.overlay.LayoutPreviewFocus
@@ -135,6 +137,7 @@ class MainActivity : ComponentActivity() {
                 permissionStates = permissionStates,
                 initialIntentAction = initialIntentAction,
                 initialNavRoute = initialNavRoute,
+                onNavRouteConsumed = { pendingNavRoute.value = null },
             )
         }
     }
@@ -149,6 +152,9 @@ class MainActivity : ComponentActivity() {
         val resolvedAction = resolveLaunchAction(intent)
         currentIntentAction.value = resolvedAction
         pendingNavRoute.value = intent?.getStringExtra(EXTRA_NAV_ROUTE)
+        when (intent?.getStringExtra(EXTRA_FREEZER_TAB)) {
+            FREEZER_TAB_FROZEN -> FreezerLaunchState.setPendingInitialTab(FreezerTab.FROZEN)
+        }
         reportShortcutUsageIfNeeded(resolvedAction)
     }
 
@@ -366,6 +372,9 @@ class MainActivity : ComponentActivity() {
     companion object {
         const val ACTION_OPEN_NOTIFICATION_HISTORY = "com.slideindex.app.action.OPEN_NOTIFICATION_HISTORY"
         const val EXTRA_NAV_ROUTE = "extra_nav_route"
+        const val EXTRA_FREEZER_TAB = "extra_freezer_tab"
+        const val NAV_ROUTE_EXTENSION_FREEZER = "extension_freezer"
+        const val FREEZER_TAB_FROZEN = "frozen"
 
         private const val DEEP_LINK_SCHEME = "cebian"
         private const val DEEP_LINK_HOST = "open"

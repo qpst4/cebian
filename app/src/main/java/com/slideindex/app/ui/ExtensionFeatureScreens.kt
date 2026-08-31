@@ -11,7 +11,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -56,9 +56,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.math.roundToInt
+import androidx.compose.runtime.mutableIntStateOf
+import com.slideindex.app.freezer.FreezerLaunchState
+import com.slideindex.app.freezer.FreezerTab
 import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
-
-private enum class FreezerTab { ALL, FROZEN, ACTIVE }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -74,7 +75,17 @@ fun FreezerAppsScreen(
     var allApps by remember { mutableStateOf<List<AppInfo>>(emptyList()) }
     var isLoadingApps by remember { mutableStateOf(true) }
     var searchQuery by remember { mutableStateOf("") }
-    var selectedTab by remember { mutableIntStateOf(FreezerTab.ALL.ordinal) }
+    var selectedTab by rememberSaveable {
+        val pending = FreezerLaunchState.consumePendingInitialTab()
+        mutableIntStateOf((pending ?: FreezerTab.ALL).ordinal)
+    }
+    val pendingInitialTab by FreezerLaunchState.pendingInitialTab.collectAsStateWithLifecycle()
+    LaunchedEffect(pendingInitialTab) {
+        pendingInitialTab?.let { tab ->
+            selectedTab = tab.ordinal
+            FreezerLaunchState.consumePendingInitialTab()
+        }
+    }
     var showSystemApps by remember { mutableStateOf(false) }
     var rootAvailable by remember { mutableStateOf<Boolean?>(null) }
     val scope = rememberCoroutineScope()

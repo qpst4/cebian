@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -101,6 +102,7 @@ fun MainNavHost(
     permissionStates: NavPermissionStates,
     initialIntentAction: String? = null,
     initialNavRoute: String? = null,
+    onNavRouteConsumed: () -> Unit = {},
 ) {
     val settingsSnapshot = remember(deps) { deps.settingsRepository.readSnapshot() }
     val rootSettings by deps.settingsRepository.appRootSettings.collectAsStateWithLifecycle(
@@ -117,7 +119,7 @@ fun MainNavHost(
             initialIntentAction == MainActivity.ACTION_OPEN_NOTIFICATION_HISTORY -> {
                 MainBottomNavDestination.Notification.name
             }
-            initialNavRoute == "extension_freezer" -> {
+            initialNavRoute == MainActivity.NAV_ROUTE_EXTENSION_FREEZER -> {
                 MainBottomNavDestination.Extension.name
             }
             else -> MainBottomNavDestination.Home.name
@@ -136,7 +138,7 @@ fun MainNavHost(
     }
     val notificationBackStack = rememberNavBackStack<AppNavKey>(*notificationInitial)
 
-    val extensionInitial = if (initialNavRoute == "extension_freezer") {
+    val extensionInitial = if (initialNavRoute == MainActivity.NAV_ROUTE_EXTENSION_FREEZER) {
         arrayOf(AppNavKey.ExtensionHub, AppNavKey.ExtensionFreezer)
     } else {
         arrayOf(AppNavKey.ExtensionHub)
@@ -187,6 +189,21 @@ fun MainNavHost(
         bottomNavStyle = effectiveBottomNavStyle,
     )
 
+    SideEffect {
+        if (initialNavRoute == MainActivity.NAV_ROUTE_EXTENSION_FREEZER) {
+            val extensionTab = MainBottomNavDestination.Extension.name
+            if (savedBottomNavTab != extensionTab) {
+                savedBottomNavTab = extensionTab
+            }
+            if (extensionBackStack.lastOrNull() != AppNavKey.ExtensionFreezer) {
+                extensionBackStack.clear()
+                extensionBackStack.add(AppNavKey.ExtensionHub)
+                extensionBackStack.add(AppNavKey.ExtensionFreezer)
+            }
+            onNavRouteConsumed()
+        }
+    }
+
     LaunchedEffect(initialIntentAction, initialNavRoute) {
         if (initialIntentAction == MainActivity.ACTION_OPEN_NOTIFICATION_HISTORY) {
             savedBottomNavTab = MainBottomNavDestination.Notification.name
@@ -194,14 +211,6 @@ fun MainNavHost(
                 notificationBackStack.clear()
                 notificationBackStack.add(AppNavKey.NotificationHub)
                 notificationBackStack.add(AppNavKey.NotificationHistory)
-            }
-        }
-        when (initialNavRoute) {
-            "extension_freezer" -> {
-                savedBottomNavTab = MainBottomNavDestination.Extension.name
-                extensionBackStack.clear()
-                extensionBackStack.add(AppNavKey.ExtensionHub)
-                extensionBackStack.add(AppNavKey.ExtensionFreezer)
             }
         }
     }
