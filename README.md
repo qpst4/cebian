@@ -136,17 +136,38 @@
 
 #### 📸 核心界面与交互预览
 
-<div align="center">
-
-| 边角轮盘（二级快捷菜单） | 圆环启动器（FV 风格） | 快速启动器（网格多面板） |
-| :---: | :---: | :---: |
-| <img src="art/screenshots/01_circle_launcher_framed.webp" width="100%" alt="边角轮盘" /> | <img src="art/screenshots/03_honeycomb_launcher_framed.webp" width="100%" alt="圆环启动器" /> | <img src="art/screenshots/06_quick_launcher_framed.webp" width="100%" alt="快速启动器" /> |
-| **悬浮指针（虚拟摇杆）** | **Shell 命令面板（Shizuku）** | **剪贴板历史 / 暂存收纳** |
-| <img src="art/screenshots/08_floating_pointer_framed.webp" width="100%" alt="悬浮指针" /> | <img src="art/screenshots/07_shell_panel_framed.webp" width="100%" alt="Shell 命令面板" /> | <img src="art/screenshots/10_clipboard_panel_framed.webp" width="100%" alt="剪贴板历史" /> |
-| **应用索引（拼音导轨）** | **Widget 悬浮小部件** | **钉图暂存浮窗** |
-| <img src="art/screenshots/05_app_index_framed.webp" width="100%" alt="应用索引" /> | <img src="art/screenshots/09_widget_panel_framed.webp" width="100%" alt="Widget 悬浮面板" /> | <img src="art/screenshots/11_pin_image_framed.webp" width="100%" alt="钉图暂存" /> |
-
-</div>
+<table>
+  <tr>
+    <th width="33.33%" align="center">边角轮盘（二级快捷菜单）</th>
+    <th width="33.33%" align="center">圆环启动器（FV 风格）</th>
+    <th width="33.33%" align="center">快速启动器（网格多面板）</th>
+  </tr>
+  <tr>
+    <td align="center"><img src="art/screenshots/01_circle_launcher_framed.webp" width="100%" alt="边角轮盘" /></td>
+    <td align="center"><img src="art/screenshots/03_honeycomb_launcher_framed.webp" width="100%" alt="圆环启动器" /></td>
+    <td align="center"><img src="art/screenshots/06_quick_launcher_framed.webp" width="100%" alt="快速启动器" /></td>
+  </tr>
+  <tr>
+    <th align="center">悬浮指针（虚拟摇杆）</th>
+    <th align="center">Shell 命令面板（Shizuku）</th>
+    <th align="center">剪贴板历史 / 暂存收纳</th>
+  </tr>
+  <tr>
+    <td align="center"><img src="art/screenshots/08_floating_pointer_framed.webp" width="100%" alt="悬浮指针" /></td>
+    <td align="center"><img src="art/screenshots/07_shell_panel_framed.webp" width="100%" alt="Shell 命令面板" /></td>
+    <td align="center"><img src="art/screenshots/10_clipboard_panel_framed.webp" width="100%" alt="剪贴板历史" /></td>
+  </tr>
+  <tr>
+    <th align="center">应用索引（拼音导轨）</th>
+    <th align="center">Widget 悬浮小部件</th>
+    <th align="center">钉图暂存浮窗</th>
+  </tr>
+  <tr>
+    <td align="center"><img src="art/screenshots/05_app_index_framed.webp" width="100%" alt="应用索引" /></td>
+    <td align="center"><img src="art/screenshots/09_widget_panel_framed.webp" width="100%" alt="Widget 悬浮面板" /></td>
+    <td align="center"><img src="art/screenshots/11_pin_image_framed.webp" width="100%" alt="钉图暂存" /></td>
+  </tr>
+</table>
 
 ---
 
