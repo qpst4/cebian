@@ -1,10 +1,10 @@
 package com.slideindex.app.ui.feedback
 
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import top.yukonga.miuix.kmp.basic.SnackbarHost
+import top.yukonga.miuix.kmp.basic.SnackbarHostState
 
 @Composable
 fun UserMessageSnackbarHost(
@@ -22,7 +22,7 @@ fun UserMessageSnackbarHost(
         }
     }
     SnackbarHost(
-        hostState = snackbarHostState,
+        state = snackbarHostState,
         modifier = modifier,
     )
 }
