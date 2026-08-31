@@ -1300,7 +1300,7 @@
     <string name="back_tap_enabled">Enable back double-tap</string>
     <string name="back_tap_action">Trigger action</string>
     <string name="back_tap_sensitivity">Sensitivity</string>
-    <string name="back_tap_range">Detection range</string>
+    <string name="back_tap_range">Double-tap interval</string>
     <string name="back_tap_mode">Work mode</string>
     <string name="back_tap_mode_always">Always</string>
     <string name="back_tap_mode_screen_on">Screen on only</string>

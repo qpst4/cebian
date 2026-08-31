@@ -11,11 +11,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FilterChip
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -44,16 +42,19 @@ import com.slideindex.app.ui.miuix.MiuixTabRowContourHost
 import com.slideindex.app.ui.miuix.MiuixTabRowWithContour
 import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
+import com.slideindex.app.ui.settings.components.SettingRadioRow
 import com.slideindex.app.ui.settings.components.SettingSwitchRow
 import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffoldWithExpandableSearch
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import com.slideindex.app.ui.settings.components.SettingsSliderRow
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
+import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import com.slideindex.app.util.PinyinHelper
 import com.slideindex.app.util.TaskManagerUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.math.roundToInt
 import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
 
 private enum class FreezerTab { ALL, FROZEN, ACTIVE }
@@ -246,6 +247,7 @@ fun BackTapSettingsScreen(
     )
     val backTap = settings.backTapSettings
     val scope = rememberCoroutineScope()
+    val modeSectionTitle = stringResource(R.string.back_tap_mode)
 
     SettingsScreenScaffold(
         title = stringResource(R.string.extension_back_tap_title),
@@ -272,6 +274,7 @@ fun BackTapSettingsScreen(
                             icon = { label -> Icon(Icons.Default.TouchApp, contentDescription = label) },
                             title = stringResource(R.string.back_tap_action),
                             subtitle = gestureActionLabelText(context, backTap.action),
+                            enabled = backTap.enabled,
                             onClick = onOpenActionPick,
                         )
                     },
@@ -296,78 +299,86 @@ fun BackTapSettingsScreen(
                 )
                 add(
                     settingsCardScopeItem("range") {
+                        val intervalMs = 250 + backTap.range * 60
                         SettingsSliderRow(
                             title = stringResource(R.string.back_tap_range),
                             value = backTap.range.toFloat(),
                             valueRange = 1f..10f,
                             steps = 8,
                             enabled = backTap.enabled,
-                            label = backTap.range.toString(),
+                            label = "${intervalMs} ms",
+                            formatLabel = { "${250 + it.roundToInt() * 60} ms" },
                             onValueChange = { scope.launch { settingsRepository.setBackTapRange(it.toInt()) } },
                         )
                     },
                 )
             },
         )
-        item {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-            ) {
-                Text(text = stringResource(R.string.back_tap_mode), modifier = Modifier.weight(1f))
-            }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                BackTapMode.entries.forEach { mode ->
-                    FilterChip(
-                        selected = backTap.mode == mode,
-                        onClick = { scope.launch { settingsRepository.setBackTapMode(mode) } },
-                        enabled = backTap.enabled,
-                        label = {
-                            Text(
-                                when (mode) {
-                                    BackTapMode.ALWAYS -> stringResource(R.string.back_tap_mode_always)
-                                    BackTapMode.SCREEN_ON -> stringResource(R.string.back_tap_mode_screen_on)
-                                    BackTapMode.SCREEN_OFF -> stringResource(R.string.back_tap_mode_screen_off)
-                                },
-                            )
-                        },
-                    )
-                }
-            }
-        }
-        item {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-            ) {
-                Text(text = stringResource(R.string.back_tap_vibration_feedback), modifier = Modifier.weight(1f))
-                Switch(
-                    checked = backTap.vibrationFeedbackEnabled,
-                    enabled = backTap.enabled,
-                    onCheckedChange = { scope.launch { settingsRepository.setBackTapVibrationFeedbackEnabled(it) } },
+        settingsLazySmallTitle(
+            key = "section-back-tap-mode",
+            title = modeSectionTitle,
+            sectionTop = true,
+        )
+        groupedCardItems(
+            keyPrefix = "back-tap-mode",
+            selectableGroup = true,
+            items = buildList {
+                add(
+                    settingsCardScopeItem("mode-always") {
+                        SettingRadioRow(
+                            title = stringResource(R.string.back_tap_mode_always),
+                            selected = backTap.mode == BackTapMode.ALWAYS,
+                            enabled = backTap.enabled,
+                            onClick = { scope.launch { settingsRepository.setBackTapMode(BackTapMode.ALWAYS) } },
+                        )
+                    },
                 )
-            }
-        }
-        item {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-            ) {
-                Text(text = stringResource(R.string.back_tap_pause_charging), modifier = Modifier.weight(1f))
-                Switch(
-                    checked = backTap.pauseWhileCharging,
-                    enabled = backTap.enabled,
-                    onCheckedChange = { scope.launch { settingsRepository.setBackTapPauseWhileCharging(it) } },
+                add(
+                    settingsCardScopeItem("mode-screen-on") {
+                        SettingRadioRow(
+                            title = stringResource(R.string.back_tap_mode_screen_on),
+                            selected = backTap.mode == BackTapMode.SCREEN_ON,
+                            enabled = backTap.enabled,
+                            onClick = { scope.launch { settingsRepository.setBackTapMode(BackTapMode.SCREEN_ON) } },
+                        )
+                    },
                 )
-            }
-        }
+                add(
+                    settingsCardScopeItem("mode-screen-off") {
+                        SettingRadioRow(
+                            title = stringResource(R.string.back_tap_mode_screen_off),
+                            selected = backTap.mode == BackTapMode.SCREEN_OFF,
+                            enabled = backTap.enabled,
+                            onClick = { scope.launch { settingsRepository.setBackTapMode(BackTapMode.SCREEN_OFF) } },
+                        )
+                    },
+                )
+            },
+        )
+        groupedCardItems(
+            keyPrefix = "back-tap-options",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("vibration-feedback") {
+                        SettingSwitchRow(
+                            title = stringResource(R.string.back_tap_vibration_feedback),
+                            checked = backTap.vibrationFeedbackEnabled,
+                            enabled = backTap.enabled,
+                            onCheckedChange = { scope.launch { settingsRepository.setBackTapVibrationFeedbackEnabled(it) } },
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("pause-charging") {
+                        SettingSwitchRow(
+                            title = stringResource(R.string.back_tap_pause_charging),
+                            checked = backTap.pauseWhileCharging,
+                            enabled = backTap.enabled,
+                            onCheckedChange = { scope.launch { settingsRepository.setBackTapPauseWhileCharging(it) } },
+                        )
+                    },
+                )
+            },
+        )
     }
 }

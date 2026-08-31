@@ -105,7 +105,7 @@ class BackTapDetector(
         baseThreshold = (MAX_THRESHOLD * exp(-v * SENSITIVITY_EXP_FACTOR)).toFloat()
     }
 
-    // 检测范围 1-10，越高允许的双击间隔越长
+    // 双击间隔 1-10（对应 310ms ~ 850ms），越高允许的双击间隔越长
     fun setRange(value: Int) {
         val v = value.coerceIn(1, 10)
         maxGapNs = MIN_MAX_GAP_NS + v * RANGE_STEP_NS

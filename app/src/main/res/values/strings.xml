@@ -863,7 +863,7 @@
     <string name="freezer_root_unavailable">Root 不可用（部分机型需 Root 才能冻结）</string>
     <string name="back_tap_action">触发动作</string>
     <string name="back_tap_sensitivity">灵敏度</string>
-    <string name="back_tap_range">检测范围</string>
+    <string name="back_tap_range">双击间隔</string>
     <string name="back_tap_mode">工作模式</string>
     <string name="back_tap_mode_always">始终</string>
     <string name="back_tap_mode_screen_on">仅亮屏</string>
