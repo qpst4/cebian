@@ -183,19 +183,19 @@ class MainActivity : ComponentActivity() {
     private fun setupDynamicShortcuts() {
         val toggleGestureShortcut = ShortcutInfoCompat.Builder(this, "toggle_gesture")
             .setShortLabel(getString(R.string.shortcut_toggle_gesture))
-            .setIcon(IconCompat.createWithResource(this, R.drawable.ic_launcher)) // fallback icon
+            .setIcon(IconCompat.createWithResource(this, R.mipmap.ic_launcher)) // fallback icon
             .setIntent(Intent(this, ToggleGestureTrampolineActivity::class.java).setAction("com.slideindex.app.action.TOGGLE_GESTURE"))
             .build()
 
         val notificationHubShortcut = ShortcutInfoCompat.Builder(this, "notification_hub")
             .setShortLabel(getString(R.string.shortcut_notification_hub))
-            .setIcon(IconCompat.createWithResource(this, R.drawable.ic_launcher))
+            .setIcon(IconCompat.createWithResource(this, R.mipmap.ic_launcher))
             .setIntent(Intent(this, MainActivity::class.java).setAction(ACTION_OPEN_NOTIFICATION_HISTORY))
             .build()
 
         val shellPanelShortcut = ShortcutInfoCompat.Builder(this, "shell_panel")
             .setShortLabel(getString(R.string.shortcut_shell_panel))
-            .setIcon(IconCompat.createWithResource(this, R.drawable.ic_launcher))
+            .setIcon(IconCompat.createWithResource(this, R.mipmap.ic_launcher))
             .setIntent(ShellCommandPanelTrampolineActivity.createIntent(this).setAction("com.slideindex.app.action.OPEN_SHELL_PANEL"))
             .build()
 
@@ -205,7 +205,7 @@ class MainActivity : ComponentActivity() {
         )
             .setShortLabel(getString(R.string.shortcut_stash_panel))
             .setLongLabel(getString(R.string.gesture_action_stash_panel))
-            .setIcon(IconCompat.createWithResource(this, R.drawable.ic_launcher))
+            .setIcon(IconCompat.createWithResource(this, R.mipmap.ic_launcher))
             .setIntent(StashClipboardTrampolineActivity.createIntent(this, StashPanelInitialTab.Stash))
             .build()
 
@@ -215,7 +215,7 @@ class MainActivity : ComponentActivity() {
         )
             .setShortLabel(getString(R.string.shortcut_clipboard_panel))
             .setLongLabel(getString(R.string.gesture_action_clipboard_panel))
-            .setIcon(IconCompat.createWithResource(this, R.drawable.ic_launcher))
+            .setIcon(IconCompat.createWithResource(this, R.mipmap.ic_launcher))
             .setIntent(StashClipboardTrampolineActivity.createIntent(this, StashPanelInitialTab.Clipboard))
             .build()
 

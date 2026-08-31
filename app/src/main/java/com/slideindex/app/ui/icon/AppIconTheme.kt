@@ -16,21 +16,21 @@ enum class AppIconTheme(
         id = 0,
         titleRes = R.string.app_icon_violet,
         descRes = R.string.app_icon_violet_desc,
-        iconRes = R.drawable.ic_launcher_violet,
+        iconRes = R.drawable.ic_launcher_preview_violet,
         componentSimpleName = "MainActivity",
     ),
     OCEAN_BLUE(
         id = 1,
         titleRes = R.string.app_icon_blue,
         descRes = R.string.app_icon_blue_desc,
-        iconRes = R.drawable.ic_launcher_blue,
+        iconRes = R.drawable.ic_launcher_preview_blue,
         componentSimpleName = "MainActivityBlue",
     ),
     CYBER_GREEN(
         id = 2,
         titleRes = R.string.app_icon_green,
         descRes = R.string.app_icon_green_desc,
-        iconRes = R.drawable.ic_launcher_green,
+        iconRes = R.drawable.ic_launcher_preview_green,
         componentSimpleName = "MainActivityGreen",
     );
 
