@@ -68,10 +68,12 @@ import com.slideindex.app.ui.mainAppPrefersNavigationRail
 import com.slideindex.app.ui.mainAppRootBottomContentPadding
 import com.slideindex.app.ui.MainMiuixBottomNavOuterPadding
 import com.slideindex.app.ui.MainFloatingNavBarBottomOffset
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.slideindex.app.update.UpdateHost
 import com.slideindex.app.update.UpdateViewModel
-import com.slideindex.app.ui.OnboardingDialog
+import com.slideindex.app.ui.OnboardingScreen
+import com.slideindex.app.util.PermissionHelper
 import com.slideindex.app.ui.compose.LocalAppDependencies
 import com.slideindex.app.ui.feedback.UserMessageSnackbarHost
 import com.slideindex.app.ui.miuix.theme.ModuleTheme
@@ -79,6 +81,7 @@ import com.slideindex.app.ui.miuix.theme.toModuleThemeSettings
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.android.awaitFrame
+import kotlinx.coroutines.launch
 
 /** 底栏显隐动画时长（与 NavDisplay 默认转场大致对齐）。 */
 internal const val MainNavTransitionDurationMs = 400
@@ -231,6 +234,32 @@ fun MainNavHost(
 
     DisposableEffect(Unit) {
         onDispose { FloatingPointerAreaPreviewOverlay.hide() }
+    }
+
+    val coroutineScope = rememberCoroutineScope()
+    if (!rootSettings.onboardingCompleted) {
+        CompositionLocalProvider(LocalAppDependencies provides deps) {
+            ModuleTheme(settings = overlayUiSettings.toModuleThemeSettings()) {
+                OnboardingScreen(
+                    permissions = permissions,
+                    onRequestOverlay = {
+                        activity.startActivity(PermissionHelper.overlaySettingsIntent(activity))
+                    },
+                    onRequestAccessibility = {
+                        activity.startActivity(PermissionHelper.accessibilitySettingsIntent())
+                    },
+                    onRequestNotification = {
+                        activity.requestNotificationPermission()
+                    },
+                    onComplete = {
+                        coroutineScope.launch {
+                            deps.settingsRepository.setOnboardingCompleted(true)
+                        }
+                    },
+                )
+            }
+        }
+        return
     }
 
     val snackbarHostState = remember { SnackbarHostState() }
@@ -449,23 +478,6 @@ fun MainNavHost(
                         bottomNavReselectCount = bottomNavReselectCounts[currentTab] ?: 0,
                     )
                 }
-                OnboardingDialog(
-                    visible = !rootSettings.onboardingCompleted,
-                    permissions = permissions,
-                    onRequestOverlay = { globalNavContext.openOverlaySettings() },
-                    onRequestAccessibility = { globalNavContext.openAccessibilitySettings() },
-                    onRequestNotification = { globalNavContext.requestNotificationPermission() },
-                    onComplete = {
-                        globalNavContext.launch {
-                            deps.settingsRepository.setOnboardingCompleted(true)
-                        }
-                    },
-                    onSkip = {
-                        globalNavContext.launch {
-                            deps.settingsRepository.setOnboardingCompleted(true)
-                        }
-                    },
-                )
                 UpdateHost(viewModel = updateViewModel, entryIntentAction = initialIntentAction)
             }
         }

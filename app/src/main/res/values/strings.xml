@@ -2202,6 +2202,21 @@
     <string name="onboarding_done_title">准备就绪</string>
     <string name="onboarding_done_body">核心权限已配置完成。你可以在首页继续调整手势，或在扩展页导入已有配置。</string>
     <string name="onboarding_permission_granted">已授权</string>
+    <string name="onboarding_back">返回</string>
+    <string name="onboarding_enter_app">进入 App</string>
+    <string name="onboarding_disclaimer_title">免责声明</string>
+    <string name="onboarding_disclaimer_body">本应用及相关模块功能仅供个人设备管理与效率提升使用，不用于规避法律法规、访问控制或未经授权的系统操作。\n\n请在知悉相关功能原理的前提下使用，并对启用、修改及配置所产生的结果负责。</string>
+    <string name="onboarding_disclaimer_agree">我已阅读并同意以上声明</string>
+    <string name="onboarding_core_permissions_title">核心权限</string>
+    <string name="onboarding_core_permissions_body">边栏需要以下权限以提供边缘手势识别、悬浮触发条及后台常驻服务。请在系统设置中授予相应权限。</string>
+    <string name="onboarding_permission_overlay_short">用于显示边缘触发条与悬浮操作面板</string>
+    <string name="onboarding_permission_accessibility_short">用于识别边缘手势并执行全局快捷操作</string>
+    <string name="onboarding_permission_notification_title">通知与常驻服务</string>
+    <string name="onboarding_permission_notification_short">用于保持后台稳定运行并接收操作提示</string>
+    <string name="onboarding_permission_app_list_title">读取应用列表</string>
+    <string name="onboarding_permission_app_list_short">用于在侧边栏和快速启动面板中展示与搜索应用</string>
+    <string name="onboarding_permission_status_ready">已就绪</string>
+    <string name="onboarding_permission_status_grant">去授权</string>
 
     <string name="shell_panel_restart_success">Shell 服务已重启（build=%1$d）</string>
     <string name="shell_panel_restart_outdated">Shell 服务版本过旧（api=%1$d），请在 Shizuku 中更新</string>

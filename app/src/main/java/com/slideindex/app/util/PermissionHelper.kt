@@ -146,4 +146,25 @@ object PermissionHelper {
         context.startActivity(writeSettingsIntent(context))
         return false
     }
+
+    fun hasAppListPermission(context: Context): Boolean {
+        return runCatching {
+            val apps = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                context.packageManager.getInstalledApplications(PackageManager.ApplicationInfoFlags.of(0))
+            } else {
+                context.packageManager.getInstalledApplications(0)
+            }
+            apps.size > 1
+        }.getOrDefault(false)
+    }
+
+    fun requestAppListPermission(context: Context) {
+        runCatching {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                context.packageManager.getInstalledApplications(PackageManager.ApplicationInfoFlags.of(0))
+            } else {
+                context.packageManager.getInstalledApplications(0)
+            }
+        }
+    }
 }

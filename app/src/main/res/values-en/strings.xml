@@ -2201,6 +2201,21 @@
     <string name="onboarding_done_title">You are all set</string>
     <string name="onboarding_done_body">Core permissions are configured. Tune gestures on Home or import an existing backup from Extensions.</string>
     <string name="onboarding_permission_granted">Granted</string>
+    <string name="onboarding_back">Back</string>
+    <string name="onboarding_enter_app">Enter App</string>
+    <string name="onboarding_disclaimer_title">Disclaimer</string>
+    <string name="onboarding_disclaimer_body">This app and its modules are intended solely for personal device management and productivity enhancements, not for circumventing regulations, access controls, or unauthorized operations.\n\nPlease ensure you understand how these features work, and take responsibility for any rules, modifications, or settings enabled.</string>
+    <string name="onboarding_disclaimer_agree">I have read and agree to the disclaimer</string>
+    <string name="onboarding_core_permissions_title">Core Permissions</string>
+    <string name="onboarding_core_permissions_body">Cebian requires the following permissions to support edge gesture recognition, floating trigger bars, and reliable background operations. Please grant them in system settings.</string>
+    <string name="onboarding_permission_overlay_short">For displaying edge triggers and floating panels</string>
+    <string name="onboarding_permission_accessibility_short">For detecting edge gestures and triggering system actions</string>
+    <string name="onboarding_permission_notification_title">Notification &amp; Service</string>
+    <string name="onboarding_permission_notification_short">For keeping background services alive and sending alerts</string>
+    <string name="onboarding_permission_app_list_title">Query Installed Apps</string>
+    <string name="onboarding_permission_app_list_short">For displaying and searching apps in sidebar and quick launcher</string>
+    <string name="onboarding_permission_status_ready">Ready</string>
+    <string name="onboarding_permission_status_grant">Grant</string>
 
     <string name="privacy_policy_title">Privacy policy</string>
     <string name="privacy_policy_subtitle">How data is handled and whether it is uploaded</string>
