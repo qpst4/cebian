@@ -14,6 +14,13 @@ object SearchEngineIconStorage {
         return saveIconFromBytes(context, bytes)
     }
 
+    fun saveIconFromAsset(context: Context, assetRelativePath: String): String? {
+        val bytes = runCatching {
+            context.assets.open(assetRelativePath).use { it.readBytes() }
+        }.getOrNull() ?: return null
+        return saveIconFromBytes(context, bytes)
+    }
+
     fun saveIconFromPackage(context: Context, packageName: String): String? {
         if (packageName.isBlank()) return null
         val drawable = runCatching {

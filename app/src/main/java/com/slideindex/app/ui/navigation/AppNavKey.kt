@@ -364,6 +364,7 @@ sealed interface AppNavKey : NavKey {
     @Serializable data object ShareImageOcrHistory : AppNavKey
     @Serializable data object FloatBallTranslation : AppNavKey
     @Serializable data object FloatBallSearchEngine : AppNavKey
+    @Serializable data object FloatBallSearchEnginePresetPicker : AppNavKey
     @Serializable data class FloatBallSearchEngineEditor(val engineId: String = "") : AppNavKey
     @Serializable data object FloatBallSearchEnginePreviewSort : AppNavKey
     @Serializable data object FloatBallImageSearchEngine : AppNavKey

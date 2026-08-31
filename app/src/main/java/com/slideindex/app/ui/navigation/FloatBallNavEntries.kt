@@ -82,6 +82,7 @@ fun NavEntryBuilder.floatBallNavEntries(ctx: MainNavContext) {
             settings = settings,
             importPreviewState = importPreviewState,
             onBack = { ctx.backStack.removeLastOrNull() },
+            onOpenPresetPicker = { ctx.navigate(AppNavKey.FloatBallSearchEnginePresetPicker) },
             onImport = viewModel::previewImport,
             onDismissImportPreview = viewModel::dismissImportPreview,
             onConfirmImport = viewModel::confirmImport,
@@ -95,6 +96,17 @@ fun NavEntryBuilder.floatBallNavEntries(ctx: MainNavContext) {
             onOpenEditor = { engineId ->
                 ctx.navigate(AppNavKey.FloatBallSearchEngineEditor(engineId.orEmpty()))
             },
+        )
+    }
+
+    hiltEntry<AppNavKey.FloatBallSearchEnginePresetPicker> {
+        val viewModel: SearchEngineSettingsViewModel = hiltViewModel()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val settings = overlaySettings.toMinimalAppSettings()
+        com.slideindex.app.ui.PresetSearchEnginePickerScreen(
+            currentEngines = settings.searchEngines,
+            onBack = { ctx.backStack.removeLastOrNull() },
+            onAddEngines = viewModel::addEngines,
         )
     }
 

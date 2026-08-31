@@ -65,6 +65,7 @@ fun SearchEngineSettingsScreen(
     settings: AppSettings,
     importPreviewState: SearchEngineImportPreviewState?,
     onBack: () -> Unit,
+    onOpenPresetPicker: () -> Unit,
     onImport: (android.net.Uri) -> Unit,
     onDismissImportPreview: () -> Unit,
     onConfirmImport: (replaceExisting: Boolean) -> Unit,
@@ -201,6 +202,20 @@ fun SearchEngineSettingsScreen(
         groupedCardItems(
             keyPrefix = "add_action",
             items = listOf(
+                settingsCardScopeItem("preset_catalog") {
+                    SettingNavigationRow(
+                        icon = { label ->
+                            Icon(
+                                ThinActionIcons.Search,
+                                contentDescription = label,
+                                modifier = Modifier.size(24.dp),
+                            )
+                        },
+                        title = stringResource(R.string.search_engine_settings_preset_catalog),
+                        subtitle = stringResource(R.string.search_engine_settings_preset_catalog_subtitle),
+                        onClick = onOpenPresetPicker,
+                    )
+                },
                 settingsCardScopeItem("add_engine") {
                     SettingNavigationRow(
                         icon = {

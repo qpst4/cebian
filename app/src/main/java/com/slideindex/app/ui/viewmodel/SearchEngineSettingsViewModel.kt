@@ -253,6 +253,19 @@ class SearchEngineSettingsViewModel @Inject constructor(
         }
     }
 
+    fun addEngines(newEngines: List<SearchEngineConfig>) {
+        if (newEngines.isEmpty()) return
+        viewModelScope.launch {
+            val existing = settings.value.searchEngines.toMutableList()
+            var nextOrder = (existing.maxOfOrNull { it.sortOrder } ?: -1) + 1
+            for (engine in newEngines) {
+                existing.add(engine.copy(sortOrder = nextOrder++))
+                invalidateSearchEngineIconCache(engine.id)
+            }
+            persistEngines(existing.sortedBy { it.sortOrder })
+        }
+    }
+
     fun deleteEngine(id: String) {
         viewModelScope.launch {
             val engines = settings.value.searchEngines
