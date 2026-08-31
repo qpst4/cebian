@@ -17,6 +17,12 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.slideindex.app.notification.NotificationListenerPort
 import com.slideindex.app.util.BrightnessControlHelper
 import com.slideindex.app.util.ContinuousAdjustController
@@ -106,7 +112,9 @@ class OhoQuickToolsPanelState(
     private var brightnessAutoToggleSuppressObserverUntilMs = 0L
     private var mediaPollRunnable: Runnable? = null
     private var brightnessPollRunnable: Runnable? = null
-    private var slowSyncThread: Thread? = null
+    private val stateScope = CoroutineScope(Dispatchers.IO)
+    private var slowSyncJob: Job? = null
+    private var mobileDataSyncJob: Job? = null
     private val torchListener: (Boolean) -> Unit = { enabled ->
         mainHandler.post { activeStates[OhoTile.FLASHLIGHT] = enabled }
     }
@@ -159,25 +167,26 @@ class OhoQuickToolsPanelState(
         endBrightnessAdjustRunnable = null
         brightnessAutoRefreshRunnable?.let { mainHandler.removeCallbacks(it) }
         brightnessAutoRefreshRunnable = null
-        slowSyncThread?.interrupt()
-        slowSyncThread = null
+        slowSyncJob?.cancel()
+        slowSyncJob = null
+        mobileDataSyncJob?.cancel()
+        mobileDataSyncJob = null
     }
 
     private fun refreshSlowStates() {
-        slowSyncThread?.interrupt()
-        slowSyncThread = Thread {
+        slowSyncJob?.cancel()
+        slowSyncJob = stateScope.launch {
             val wifi = QuickToolsHelper.readWifiEnabled(appContext) == true
             val mobileData = QuickToolsHelper.readMobileDataEnabled(appContext) == true
             val bluetooth = QuickToolsHelper.readBluetoothEnabled(appContext) == true
             val mobileSwitch = QuickToolsHelper.readMobileDataSwitchState(appContext)
-            if (Thread.currentThread().isInterrupted) return@Thread
-            mainHandler.post {
+            withContext(Dispatchers.Main) {
                 activeStates[OhoTile.WIFI] = wifi
                 activeStates[OhoTile.MOBILE_DATA] = mobileData
                 activeStates[OhoTile.BLUETOOTH] = bluetooth
                 mobileSwitch?.let { activeStates[OhoTile.MOBILE_DATA] = it }
             }
-        }.also { it.start() }
+        }
     }
 
     private fun refreshMobileDataFromSystem() {
@@ -187,16 +196,16 @@ class OhoQuickToolsPanelState(
     }
 
     private fun refreshMobileDataStateAsync() {
-        Thread {
+        mobileDataSyncJob?.cancel()
+        mobileDataSyncJob = stateScope.launch {
             repeat(5) { attempt ->
-                if (Thread.currentThread().isInterrupted) return@Thread
                 val switch = QuickToolsHelper.readMobileDataSwitchState(appContext)
                 if (switch != null) {
-                    mainHandler.post { activeStates[OhoTile.MOBILE_DATA] = switch }
+                    withContext(Dispatchers.Main) { activeStates[OhoTile.MOBILE_DATA] = switch }
                 }
-                if (attempt < 4) Thread.sleep(350L)
+                if (attempt < 4) delay(350L)
             }
-        }.start()
+        }
     }
 
     fun refreshBrightnessFromSystem() {

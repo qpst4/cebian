@@ -37,7 +37,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 
 /**
  * Samsung OHO+ style full-screen transparent overlay window hosting pure native widget popup card.
@@ -383,11 +382,7 @@ object WidgetPopupOverlayWindow {
   private fun flushPendingPages() {
     val pending = pendingPagesToSave ?: return
     val deps = overlayDeps ?: return
-    runCatching {
-      runBlocking {
-        deps.widgetPanelPersistence.persistNow(pending)
-      }
-    }.onFailure { Log.e(TAG, "flushPendingPages failed", it) }
+    deps.widgetPanelPersistence.schedulePersist(pending)
     pendingPagesToSave = null
   }
 

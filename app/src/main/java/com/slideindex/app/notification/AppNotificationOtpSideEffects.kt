@@ -7,8 +7,6 @@ import com.slideindex.app.otp.OtpClipboardHelper
 import com.slideindex.app.settings.SettingsRepository
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
 
 @Singleton
 class AppNotificationOtpSideEffects @Inject constructor(
@@ -28,7 +26,7 @@ class AppNotificationOtpSideEffects @Inject constructor(
     ) {
         val appContext = context.applicationContext
         if (autoInputEnabled) {
-            val settings = runBlocking { settingsRepository.settings.first() }
+            val settings = settingsRepository.readSnapshot()
             OtpAutoFillController.queueCode(code)
             OtpAutoInputOrchestrator.requestAutoFill(appContext, code, settings, recordId)
         }

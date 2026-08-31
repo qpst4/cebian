@@ -4,6 +4,9 @@ import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.view.KeyEvent
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import com.slideindex.app.data.AppRepository
 import com.slideindex.app.gesture.executor.ActionExecutorLaunch
 import com.slideindex.app.gesture.executor.ActionExecutorMediaSystem
@@ -351,11 +354,9 @@ class ActionExecutor(
                 true
             }
             GestureAction.Refreeze -> {
-                Thread {
-                    kotlinx.coroutines.runBlocking {
-                        FreezerOperations.refreezeAll(context, settings.freezerAppPackages)
-                    }
-                }.start()
+                CoroutineScope(Dispatchers.IO).launch {
+                    FreezerOperations.refreezeAll(context, settings.freezerAppPackages)
+                }
                 true
             }
             GestureAction.SnoozeOverlays -> {

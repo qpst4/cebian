@@ -7,20 +7,21 @@ import android.os.Looper
 import android.util.Log
 import com.slideindex.app.search.ral.PrivilegedActivityLauncher
 import com.slideindex.app.util.TaskManagerUtil
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.launch
 
 /**
  * Launch non-exported activities using RootActivityLauncher-compatible strategy chain.
  *
  * Based on [Root Activity Launcher](https://github.com/zacharee/RootActivityLauncher) (GPL-3.0).
  *
- * When called on the main thread, work runs on a background thread and [onComplete]
- * is invoked on the main thread when finished (avoids ANR).
+ * Work runs on IO coroutine dispatcher and [onComplete] is invoked on the main thread when finished (avoids ANR).
  */
 object NonExportedActivityLauncher {
     private const val TAG = "NonExportedActivityLauncher"
     private val mainHandler = Handler(Looper.getMainLooper())
+    private val launcherScope = CoroutineScope(Dispatchers.IO)
 
     fun launch(
         context: Context,
@@ -43,29 +44,17 @@ object NonExportedActivityLauncher {
         }
 
         val appContext = context.applicationContext
-        val work = {
-            val success = runBlocking(Dispatchers.IO) {
-                PrivilegedActivityLauncher.launch(
-                    context = appContext,
-                    packageName = packageName,
-                    activityName = activityName,
-                    privilegedOnly = true,
-                ).isEmpty()
-            }
+        launcherScope.launch {
+            val success = PrivilegedActivityLauncher.launch(
+                context = appContext,
+                packageName = packageName,
+                activityName = activityName,
+                privilegedOnly = true,
+            ).isEmpty()
             onComplete?.let { callback ->
                 mainHandler.post { callback(success) }
             }
-            success
         }
-
-        return if (Looper.myLooper() == Looper.getMainLooper()) {
-            Thread(
-                Runnable { work() },
-                "non-exported-launch",
-            ).start()
-            true
-        } else {
-            work()
-        }
+        return true
     }
 }
