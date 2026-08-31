@@ -581,25 +581,31 @@ internal object SettingsSnapshotReader {
         return decoded.ifEmpty { FloatBallGestureCodec.defaultActions() }
     }
 
-    fun readShakeGestureSettings(prefs: Preferences): ShakeGestureSettings =
-        ShakeGestureSettings(
+    fun readShakeGestureSettings(prefs: Preferences): ShakeGestureSettings {
+        val isMigrated = prefs[SettingsPreferenceKeys.SHAKE_SENSITIVITY_V2_MIGRATED] ?: false
+        return ShakeGestureSettings(
             enabled = prefs[SettingsPreferenceKeys.SHAKE_GESTURES_ENABLED] ?: false,
             basicActions = ShakeGestureCodec.decodeAllActions(prefs[SettingsPreferenceKeys.SHAKE_GESTURE_ACTIONS] ?: emptySet()),
             lockScreenShakeEnabled = prefs[SettingsPreferenceKeys.LOCK_SCREEN_SHAKE_ENABLED] ?: false,
             lockScreenActions = ShakeGestureCodec.decodeAllActions(prefs[SettingsPreferenceKeys.SHAKE_LOCK_SCREEN_ACTIONS] ?: emptySet()),
             independentAppShakeEnabled = prefs[SettingsPreferenceKeys.INDEPENDENT_APP_SHAKE_ENABLED] ?: false,
             perAppActions = ShakeGestureCodec.decodePerAppActions(prefs[SettingsPreferenceKeys.SHAKE_PER_APP_ACTIONS] ?: emptySet()),
-            globalSensitivity = prefs[SettingsPreferenceKeys.SHAKE_GLOBAL_SENSITIVITY] ?: 9.0f,
-            independentSensitivityEnabled = prefs[SettingsPreferenceKeys.SHAKE_INDEPENDENT_SENSITIVITY_ENABLED] ?: false,
-            perDirectionSensitivity = ShakeGestureCodec.decodePerDirectionSensitivity(
-                prefs[SettingsPreferenceKeys.SHAKE_PER_DIRECTION_SENSITIVITY] ?: emptySet(),
-            ),
+            globalSensitivity = if (isMigrated) (prefs[SettingsPreferenceKeys.SHAKE_GLOBAL_SENSITIVITY] ?: 3.0f) else 3.0f,
+            independentSensitivityEnabled = if (isMigrated) (prefs[SettingsPreferenceKeys.SHAKE_INDEPENDENT_SENSITIVITY_ENABLED] ?: false) else false,
+            perDirectionSensitivity = if (isMigrated) {
+                ShakeGestureCodec.decodePerDirectionSensitivity(
+                    prefs[SettingsPreferenceKeys.SHAKE_PER_DIRECTION_SENSITIVITY] ?: emptySet(),
+                )
+            } else {
+                emptyMap()
+            },
             vibrationFeedbackEnabled = prefs[SettingsPreferenceKeys.SHAKE_VIBRATION_FEEDBACK_ENABLED] ?: true,
             animationFeedbackEnabled = prefs[SettingsPreferenceKeys.SHAKE_ANIMATION_FEEDBACK_ENABLED] ?: false,
             animationColorArgb = prefs[SettingsPreferenceKeys.SHAKE_ANIMATION_COLOR] ?: 0xFF424242.toInt(),
             disableInLandscape = prefs[SettingsPreferenceKeys.SHAKE_DISABLE_IN_LANDSCAPE] ?: false,
             blacklistedPackages = prefs[SettingsPreferenceKeys.SHAKE_BLACKLIST_PACKAGES] ?: emptySet(),
         )
+    }
 
     fun readBackTapSettings(prefs: Preferences): BackTapSettings {
         val actionType = intPreference(prefs, SettingsPreferenceKeys.BACK_TAP_ACTION_TYPE, GestureActionType.NONE.id)

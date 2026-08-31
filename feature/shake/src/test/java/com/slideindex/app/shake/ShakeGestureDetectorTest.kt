@@ -14,9 +14,11 @@ class ShakeGestureDetectorTest {
     private val context: Context = RuntimeEnvironment.getApplication()
 
     @Test
-    fun effectiveThreshold_clampsUiValue() {
-        assertEquals(1f, ShakeGestureDetector.effectiveThreshold(0.2f))
-        assertEquals(10f, ShakeGestureDetector.effectiveThreshold(25f))
+    fun effectiveThreshold_higherValueMeansLowerThreshold() {
+        assertEquals(10f, ShakeGestureDetector.effectiveThreshold(1f))
+        assertEquals(8f, ShakeGestureDetector.effectiveThreshold(3f))
+        assertEquals(5f, ShakeGestureDetector.effectiveThreshold(6f))
+        assertEquals(1f, ShakeGestureDetector.effectiveThreshold(10f))
     }
 
     @Test

@@ -344,7 +344,7 @@ fun NavEntryBuilder.floatBallNavEntries(ctx: MainNavContext) {
         val permissions = ctx.collectPermissions()
         FloatBallStyleSettingsScreen(
             settings = settings,
-            enabled = settings.floatBallEnabled && permissions.accessibilityGranted,
+            enabled = true,
             onBack = { ctx.navigateBackTo(AppNavKey.FloatBallAppearance) },
             onStyleTypeChange = viewModel::setFloatBallStyleType,
             onCustomImageUriChange = viewModel::setFloatBallCustomImageUri,

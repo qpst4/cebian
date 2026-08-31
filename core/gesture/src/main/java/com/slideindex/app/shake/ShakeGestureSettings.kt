@@ -24,7 +24,7 @@ data class ShakeGestureSettings(
     val lockScreenActions: Map<ShakeGestureType, GestureAction> = defaultBasicActions(),
     val independentAppShakeEnabled: Boolean = false,
     val perAppActions: Map<String, Map<ShakeGestureType, GestureAction>> = emptyMap(),
-    val globalSensitivity: Float = 9.0f,
+    val globalSensitivity: Float = 3.0f,
     val independentSensitivityEnabled: Boolean = false,
     val perDirectionSensitivity: Map<ShakeGestureType, Float> = emptyMap(),
     val vibrationFeedbackEnabled: Boolean = true,

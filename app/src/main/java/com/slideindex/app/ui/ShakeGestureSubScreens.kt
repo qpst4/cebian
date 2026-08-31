@@ -198,9 +198,9 @@ fun ShakeIndependentSensitivityScreen(
 
                                 formatLabel = { String.format(java.util.Locale.US, "%.1f", it) },
 
-                                startLabel = stringResource(R.string.shake_gestures_sensitivity_easy),
+                                startLabel = stringResource(R.string.shake_gestures_sensitivity_hard),
 
-                                endLabel = stringResource(R.string.shake_gestures_sensitivity_hard),
+                                endLabel = stringResource(R.string.shake_gestures_sensitivity_easy),
 
                                 onValueChange = { onSensitivityChange(type, it) },
 

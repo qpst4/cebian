@@ -254,6 +254,7 @@ internal object SettingsPreferenceKeys {
     val LOCK_SCREEN_SHAKE_ENABLED = booleanPreferencesKey("lock_screen_shake_enabled")
     val INDEPENDENT_APP_SHAKE_ENABLED = booleanPreferencesKey("independent_app_shake_enabled")
     val SHAKE_GLOBAL_SENSITIVITY = floatPreferencesKey("shake_global_sensitivity")
+    val SHAKE_SENSITIVITY_V2_MIGRATED = booleanPreferencesKey("shake_sensitivity_v2_migrated")
     val SHAKE_INDEPENDENT_SENSITIVITY_ENABLED =
             booleanPreferencesKey("shake_independent_sensitivity_enabled")
     val SHAKE_VIBRATION_FEEDBACK_ENABLED = booleanPreferencesKey("shake_vibration_feedback_enabled")

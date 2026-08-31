@@ -69,16 +69,6 @@ fun FloatBallAppearanceSettingsScreen(
     onAppearancePreviewCommit: () -> Unit = {},
     onAppearancePreviewRestore: () -> Unit = {},
 ) {
-    val controlsEnabled = settings.floatBallEnabled && accessibilityGranted
-
-    DisposableEffect(Unit) {
-        onDispose {
-            onPositionYPreviewStop(true)
-            onStripZonePreviewStop()
-            onAppearancePreviewRestore()
-        }
-    }
-
     val appearanceSectionTitle = stringResource(R.string.float_ball_section_appearance)
     val positionSectionTitle = stringResource(R.string.float_ball_position)
     val positionXyHint = stringResource(R.string.float_ball_position_xy_hint)
@@ -114,7 +104,7 @@ fun FloatBallAppearanceSettingsScreen(
                             },
                             title = stringResource(R.string.float_ball_style_picker_title),
                             subtitle = floatBallStyleLabel(settings.floatBallStyleType),
-                            enabled = controlsEnabled,
+                            enabled = true,
                             onClick = onOpenStyleSettings,
                         )
                     },
@@ -126,7 +116,7 @@ fun FloatBallAppearanceSettingsScreen(
                             value = settings.floatBallSizeDp,
                             valueRange = 36f..72f,
                             steps = 8,
-                            enabled = controlsEnabled,
+                            enabled = true,
                             label = stringResource(
                                 R.string.float_ball_size_value,
                                 settings.floatBallSizeDp,
@@ -148,7 +138,7 @@ fun FloatBallAppearanceSettingsScreen(
                             title = stringResource(R.string.float_ball_opacity),
                             value = settings.floatBallOpacity,
                             valueRange = floatBallOpacityRange,
-                            enabled = controlsEnabled,
+                            enabled = true,
                             label = fractionPercentLabel(settings.floatBallOpacity),
                             formatLabel = ::fractionPercentLabel,
                             keyPoints = SETTINGS_SLIDER_PERCENT_KEY_POINTS_01,
@@ -182,7 +172,7 @@ fun FloatBallAppearanceSettingsScreen(
                             subtitle = floatBallPositionModeLabel(positionMode),
                             items = positionModeEntries.map { floatBallPositionModeLabel(it) },
                             selectedIndex = positionModeIndex,
-                            enabled = controlsEnabled,
+                            enabled = true,
                             onSelectedIndexChange = { onPositionModeChange(positionModeEntries[it]) },
                         )
                     },
@@ -193,7 +183,7 @@ fun FloatBallAppearanceSettingsScreen(
                             title = stringResource(R.string.float_ball_visible_fraction),
                             value = settings.floatBallVisibleFraction,
                             valueRange = floatBallVisibleFractionRange,
-                            enabled = controlsEnabled,
+                            enabled = true,
                             label = fractionPercentLabel(settings.floatBallVisibleFraction),
                             formatLabel = ::fractionPercentLabel,
                             snapValue = fractionPercentSnap(floatBallVisibleFractionRange),
@@ -214,7 +204,7 @@ fun FloatBallAppearanceSettingsScreen(
                             title = stringResource(R.string.float_ball_position_y),
                             value = settings.floatBallPositionYFraction,
                             valueRange = FloatBallPositionFractions.MIN_Y..FloatBallPositionFractions.MAX_Y,
-                            enabled = controlsEnabled,
+                            enabled = true,
                             label = "",
                             formatLabel = { "${(it * 100).roundToInt()}%" },
                             keyPoints = SETTINGS_SLIDER_PERCENT_KEY_POINTS_01,
@@ -248,7 +238,7 @@ fun FloatBallAppearanceSettingsScreen(
                                 title = stringResource(R.string.float_ball_line_height),
                                 value = settings.floatBallLineHeightFraction,
                                 valueRange = floatBallLineHeightRange,
-                                enabled = controlsEnabled,
+                                enabled = true,
                                 label = lineHeightPercentLabel(settings.floatBallLineHeightFraction),
                                 formatLabel = ::lineHeightPercentLabel,
                                 snapValue = { value ->
@@ -271,7 +261,7 @@ fun FloatBallAppearanceSettingsScreen(
                                 title = stringResource(R.string.float_ball_line_width),
                                 value = settings.floatBallLineWidthFraction,
                                 valueRange = floatBallLineWidthRange,
-                                enabled = controlsEnabled,
+                                enabled = true,
                                 label = fractionPercentLabel(settings.floatBallLineWidthFraction),
                                 formatLabel = ::fractionPercentLabel,
                                 snapValue = fractionPercentSnap(floatBallLineWidthRange),
@@ -294,7 +284,7 @@ fun FloatBallAppearanceSettingsScreen(
                                 title = stringResource(R.string.float_ball_line_opacity),
                                 value = settings.floatBallLineOpacity,
                                 valueRange = floatBallOpacityRange,
-                                enabled = controlsEnabled,
+                                enabled = true,
                                 label = fractionPercentLabel(settings.floatBallLineOpacity),
                                 formatLabel = ::fractionPercentLabel,
                                 snapValue = fractionPercentSnap(floatBallOpacityRange),

@@ -3,7 +3,7 @@ package com.slideindex.app.shake
 internal object ShakeGestureClassifier {
     fun clampSensitivity(value: Float): Float = value.coerceIn(1f, 10f)
 
-    fun effectiveThreshold(uiValue: Float): Float = clampSensitivity(uiValue)
+    fun effectiveThreshold(uiValue: Float): Float = 11.0f - clampSensitivity(uiValue)
 
     fun detectDirection(
         axisX: Float,

@@ -30,7 +30,7 @@
     <string name="shake_gestures_independent_app">Per-app shake</string>
     <string name="shake_gestures_independent_app_desc">Set exclusive shake actions for specific apps</string>
     <string name="shake_gestures_global_sensitivity">Global sensitivity</string>
-    <string name="shake_gestures_sensitivity_hint">Lower values are easier to trigger</string>
+    <string name="shake_gestures_sensitivity_hint">Higher values are easier to trigger</string>
     <string name="shake_gestures_sensitivity_easy">Easier</string>
     <string name="shake_gestures_sensitivity_hard">Harder</string>
     <string name="shake_gestures_independent_sensitivity">Independent sensitivity</string>

@@ -55,6 +55,7 @@ class ShakeSettingsMutator @Inject constructor(
         val updated = current.perDirectionSensitivity.toMutableMap().apply {
             put(type, value.coerceIn(1f, 10f))
         }
+        prefs[SettingsPreferenceKeys.SHAKE_SENSITIVITY_V2_MIGRATED] = true
         prefs[SettingsPreferenceKeys.SHAKE_PER_DIRECTION_SENSITIVITY] = ShakeGestureCodec.encodePerDirectionSensitivity(updated)
     }
 
@@ -64,6 +65,7 @@ class ShakeSettingsMutator @Inject constructor(
         editor.edit { it[SettingsPreferenceKeys.INDEPENDENT_APP_SHAKE_ENABLED] = enabled }
 
     suspend fun setShakeGlobalSensitivity(value: Float) = editor.edit {
+        it[SettingsPreferenceKeys.SHAKE_SENSITIVITY_V2_MIGRATED] = true
         it[SettingsPreferenceKeys.SHAKE_GLOBAL_SENSITIVITY] = value.coerceIn(1f, 10f)
     }
 

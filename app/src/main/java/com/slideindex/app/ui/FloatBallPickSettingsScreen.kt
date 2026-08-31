@@ -53,7 +53,6 @@ fun FloatBallPickSettingsScreen(
     onOpenOcrModels: () -> Unit,
     onOpenShareImageOcrHistory: () -> Unit,
 ) {
-    val controlsEnabled = settings.floatBallEnabled && accessibilityGranted
     val askEveryTimeLabel = FloatBallPickSettingsViewModel.ASK_EVERY_TIME_LABEL
     val readyOptions = (imageViewerOptions as? ImageViewerOptionsState.Ready)?.options
     val imageViewerItems = remember(readyOptions) {
@@ -99,7 +98,7 @@ fun FloatBallPickSettingsScreen(
                             title = stringResource(R.string.float_ball_ocr_fallback),
                             subtitle = stringResource(R.string.float_ball_ocr_fallback_desc),
                             checked = settings.floatBallOcrFallbackEnabled,
-                            enabled = controlsEnabled,
+                            enabled = true,
                             onCheckedChange = onOcrFallbackChange,
                         )
                     },
@@ -110,7 +109,7 @@ fun FloatBallPickSettingsScreen(
                             icon = { label -> Icon(Icons.Default.Download, contentDescription = label) },
                             title = stringResource(R.string.float_ball_ocr_models),
                             subtitle = ocrModelSelectionSubtitle(settings.floatBallOcrModelId),
-                            enabled = controlsEnabled,
+                            enabled = true,
                             onClick = onOpenOcrModels,
                         )
                     },
@@ -121,7 +120,7 @@ fun FloatBallPickSettingsScreen(
                             title = stringResource(R.string.share_image_ocr_history_enabled),
                             subtitle = stringResource(R.string.share_image_ocr_history_enabled_desc),
                             checked = settings.shareImageOcrHistoryEnabled,
-                            enabled = controlsEnabled,
+                            enabled = true,
                             onCheckedChange = onShareImageOcrHistoryEnabledChange,
                         )
                     },
@@ -130,7 +129,7 @@ fun FloatBallPickSettingsScreen(
                     settingsCardScopeItem("history-entry") {
                         ShareImageOcrHistoryEntryRow(
                             historyCount = historyCount,
-                            enabled = controlsEnabled,
+                            enabled = true,
                             onClick = onOpenShareImageOcrHistory,
                         )
                     },
@@ -143,7 +142,7 @@ fun FloatBallPickSettingsScreen(
                             dialogButtonText = stringResource(R.string.cancel),
                             items = imageViewerItems,
                             selectedIndex = selectedImageViewerIndex,
-                            enabled = controlsEnabled && imageViewerOptions is ImageViewerOptionsState.Ready,
+                            enabled = imageViewerOptions is ImageViewerOptionsState.Ready,
                             icon = { label -> Icon(Icons.Default.Image, contentDescription = label) },
                             onSelectedIndexChange = { index ->
                                 val option = readyOptions?.getOrNull(index) ?: return@SettingSpinnerRow
@@ -169,7 +168,7 @@ fun FloatBallPickSettingsScreen(
                             title = stringResource(R.string.float_ball_pick_text_first_panel),
                             subtitle = stringResource(R.string.float_ball_pick_text_first_panel_desc),
                             checked = settings.floatBallPickTextFirstPanel,
-                            enabled = controlsEnabled,
+                            enabled = true,
                             onCheckedChange = onPickTextFirstPanelChange,
                         )
                     },
@@ -181,7 +180,7 @@ fun FloatBallPickSettingsScreen(
                             value = settings.floatBallPickTextSizeSp,
                             valueRange = 12f..22f,
                             steps = 9,
-                            enabled = controlsEnabled,
+                            enabled = true,
                             label = stringResource(R.string.float_ball_text_size_value, settings.floatBallPickTextSizeSp),
                             onValueChange = onPickTextSizeChange,
                         )
@@ -195,7 +194,7 @@ fun FloatBallPickSettingsScreen(
                             valueRange = PickPanelSlideAnimationDefaults.MIN_MS.toFloat()
                                 ..PickPanelSlideAnimationDefaults.MAX_MS.toFloat(),
                             steps = (PickPanelSlideAnimationDefaults.MAX_MS - PickPanelSlideAnimationDefaults.MIN_MS) / 10,
-                            enabled = controlsEnabled,
+                            enabled = true,
                             label = stringResource(
                                 R.string.float_ball_pick_panel_animation_ms_value,
                                 settings.floatBallPickPanelEnterAnimationMs,
@@ -212,7 +211,7 @@ fun FloatBallPickSettingsScreen(
                             valueRange = PickPanelSlideAnimationDefaults.MIN_MS.toFloat()
                                 ..PickPanelSlideAnimationDefaults.MAX_MS.toFloat(),
                             steps = (PickPanelSlideAnimationDefaults.MAX_MS - PickPanelSlideAnimationDefaults.MIN_MS) / 10,
-                            enabled = controlsEnabled,
+                            enabled = true,
                             label = stringResource(
                                 R.string.float_ball_pick_panel_animation_ms_value,
                                 settings.floatBallPickPanelExitAnimationMs,
@@ -239,7 +238,7 @@ fun FloatBallPickSettingsScreen(
                             value = settings.floatBallPickCrossArmDp,
                             valueRange = 4f..16f,
                             steps = 23,
-                            enabled = controlsEnabled,
+                            enabled = true,
                             label = stringResource(
                                 R.string.float_ball_pick_cross_arm_value,
                                 settings.floatBallPickCrossArmDp,
@@ -255,7 +254,7 @@ fun FloatBallPickSettingsScreen(
                             value = settings.floatBallPickOffsetDp,
                             valueRange = 4f..48f,
                             steps = 10,
-                            enabled = controlsEnabled,
+                            enabled = true,
                             label = stringResource(R.string.float_ball_size_value, settings.floatBallPickOffsetDp),
                             onValueChange = onPickOffsetChange,
                         )
@@ -266,7 +265,7 @@ fun FloatBallPickSettingsScreen(
                         SettingExpandableSwitchRow(
                             title = advancedPickSectionTitle,
                             checked = advancedPickExpanded.value,
-                            enabled = controlsEnabled,
+                            enabled = true,
                             onCheckedChange = { advancedPickExpanded.value = it },
                         ) {
                             SettingsSliderRow(
@@ -274,7 +273,7 @@ fun FloatBallPickSettingsScreen(
                                 value = settings.floatBallPickBottomTransitionFraction,
                                 valueRange = 0.05f..0.22f,
                                 steps = 8,
-                                enabled = controlsEnabled,
+                                enabled = true,
                                 label = stringResource(
                                     R.string.floating_pointer_percent_value,
                                     (settings.floatBallPickBottomTransitionFraction * 100).roundToInt(),
@@ -286,7 +285,7 @@ fun FloatBallPickSettingsScreen(
                                 value = settings.floatBallPointerSpeedFraction,
                                 valueRange = FloatingPointerBounds.SENSITIVITY_MIN..FloatingPointerBounds.SENSITIVITY_MAX,
                                 steps = 10,
-                                enabled = controlsEnabled,
+                                enabled = true,
                                 label = stringResource(
                                     R.string.floating_pointer_percent_value,
                                     (settings.floatBallPointerSpeedFraction * 100).roundToInt(),
@@ -298,7 +297,7 @@ fun FloatBallPickSettingsScreen(
                                 value = settings.floatBallPointerSpeedVerticalFraction,
                                 valueRange = FloatingPointerBounds.SENSITIVITY_MIN..FloatingPointerBounds.SENSITIVITY_MAX,
                                 steps = 10,
-                                enabled = controlsEnabled,
+                                enabled = true,
                                 label = stringResource(
                                     R.string.floating_pointer_percent_value,
                                     (settings.floatBallPointerSpeedVerticalFraction * 100).roundToInt(),
@@ -310,7 +309,7 @@ fun FloatBallPickSettingsScreen(
                                 value = settings.floatBallPointerSlopDp,
                                 valueRange = 4f..32f,
                                 steps = 6,
-                                enabled = controlsEnabled,
+                                enabled = true,
                                 label = stringResource(R.string.float_ball_size_value, settings.floatBallPointerSlopDp),
                                 onValueChange = onPointerSlopChange,
                             )
@@ -319,7 +318,7 @@ fun FloatBallPickSettingsScreen(
                                 value = settings.floatBallHoverPauseDelayMs.toFloat(),
                                 valueRange = 200f..1000f,
                                 steps = 15,
-                                enabled = controlsEnabled,
+                                enabled = true,
                                 label = stringResource(
                                     R.string.float_ball_pick_panel_animation_ms_value,
                                     settings.floatBallHoverPauseDelayMs,
@@ -331,7 +330,7 @@ fun FloatBallPickSettingsScreen(
                                 value = settings.floatBallRegionalCancelSlopDp,
                                 valueRange = 3f..30f,
                                 steps = 26,
-                                enabled = controlsEnabled,
+                                enabled = true,
                                 label = stringResource(R.string.float_ball_size_value, settings.floatBallRegionalCancelSlopDp),
                                 onValueChange = onRegionalCancelSlopDpChange,
                             )

@@ -64,206 +64,105 @@ fun FloatBallGestureSettingsScreen(
 
 ) {
 
-    val controlsEnabled = settings.floatBallEnabled && accessibilityGranted
-
-
-
     val distanceSectionTitle = stringResource(R.string.float_ball_gesture_distance_section)
-
     val actionsSectionTitle = stringResource(R.string.float_ball_gesture_actions_section)
 
-
-
     SettingsScreenScaffold(
-
         title = stringResource(R.string.float_ball_gesture_settings_title),
-
         onBack = onBack,
-
     ) {
-
         settingsLazySmallTitle(
-
             key = "section-distance",
-
             title = distanceSectionTitle,
-
             sectionTop = true,
-
         )
-
         groupedCardItems(
-
             keyPrefix = "float-ball-gesture-distance",
-
             items = buildList {
-
                 add(
-
                     settingsCardScopeItem("down-swipe-distance") {
-
                         SettingsSliderRow(
-
                             title = stringResource(R.string.float_ball_gesture_down_swipe_distance),
-
                             value = settings.floatBallDownSwipeShortPercent,
-
                             valueRange = 50f..500f,
-
                             steps = 18,
-
-                            enabled = controlsEnabled,
-
+                            enabled = true,
                             label = stringResource(
-
                                 R.string.floating_pointer_percent_value,
-
                                 settings.floatBallDownSwipeShortPercent.roundToInt(),
-
                             ),
-
                             onValueChange = onDownSwipeShortPercentChange,
-
                         )
-
                     },
-
                 )
-
                 add(
-
                     settingsCardScopeItem("side-swipe-distance") {
-
                         SettingsSliderRow(
-
                             title = stringResource(R.string.float_ball_gesture_side_swipe_distance),
-
                             value = settings.floatBallSideSwipeShortPercent,
-
                             valueRange = 50f..500f,
-
                             steps = 18,
-
-                            enabled = controlsEnabled,
-
+                            enabled = true,
                             label = stringResource(
-
                                 R.string.floating_pointer_percent_value,
-
                                 settings.floatBallSideSwipeShortPercent.roundToInt(),
-
                             ),
-
                             onValueChange = onSideSwipeShortPercentChange,
-
                         )
-
                     },
-
                 )
-
                 add(
-
                     settingsCardScopeItem("up-swipe-distance") {
-
                         SettingsSliderRow(
-
                             title = stringResource(R.string.float_ball_gesture_up_swipe_distance),
-
                             value = settings.floatBallUpSwipeShortPercent,
-
                             valueRange = 50f..500f,
-
                             steps = 18,
-
-                            enabled = controlsEnabled,
-
+                            enabled = true,
                             label = stringResource(
-
                                 R.string.floating_pointer_percent_value,
-
                                 settings.floatBallUpSwipeShortPercent.roundToInt(),
-
                             ),
-
                             onValueChange = onUpSwipeShortPercentChange,
-
                         )
-
                     },
-
                 )
-
             },
-
         )
 
         settingsLazySmallTitle(
-
             key = "section-actions",
-
             title = actionsSectionTitle,
-
             sectionTop = true,
-
         )
-
         groupedCardItems(
-
             keyPrefix = "float-ball-gesture-actions",
-
             items = buildList {
-
                 FloatBallGestureType.settingsDisplayOrder().forEach { type ->
-
                     val action = settings.floatBallGestureActions[type] ?: GestureAction.None
-
                     add(
-
                         settingsCardScopeItem("action-${type.name}") {
-
                             FloatBallGestureActionRow(
-
                                 type = type,
-
                                 settings = settings,
-
                                 title = floatBallGestureLabel(type),
-
                                 action = action,
-
-                                enabled = controlsEnabled,
-
+                                enabled = true,
                                 showSettings = action is GestureAction.LaunchApp ||
-
                                     action is GestureAction.LaunchShortcut ||
-
                                     action is GestureAction.SimulatePointerSwipe ||
-
                                     action is GestureAction.ExecuteShellCommand,
-
                                 onClick = { onOpenActionPick(type) },
-
                                 onSettingsClick = if (action is GestureAction.ExecuteShellCommand) {
-
                                     { onOpenShellCommand(type, action.command) }
-
                                 } else {
-
                                     null
-
                                 },
-
                             )
-
                         },
-
                     )
-
                 }
-
             },
-
         )
 
     }

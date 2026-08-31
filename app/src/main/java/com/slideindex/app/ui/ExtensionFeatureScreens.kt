@@ -48,6 +48,7 @@ import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffoldWithE
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import com.slideindex.app.ui.settings.components.SettingsSliderRow
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
+import com.slideindex.app.ui.settings.components.settingsLazyHint
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import com.slideindex.app.util.PinyinHelper
 import com.slideindex.app.util.TaskManagerUtil
@@ -248,6 +249,7 @@ fun BackTapSettingsScreen(
     val backTap = settings.backTapSettings
     val scope = rememberCoroutineScope()
     val modeSectionTitle = stringResource(R.string.back_tap_mode)
+    val sensitivityHint = stringResource(R.string.shake_gestures_sensitivity_hint)
 
     SettingsScreenScaffold(
         title = stringResource(R.string.extension_back_tap_title),
@@ -293,6 +295,8 @@ fun BackTapSettingsScreen(
                             steps = 8,
                             enabled = backTap.enabled,
                             label = backTap.sensitivity.toString(),
+                            startLabel = stringResource(R.string.shake_gestures_sensitivity_hard),
+                            endLabel = stringResource(R.string.shake_gestures_sensitivity_easy),
                             onValueChange = { scope.launch { settingsRepository.setBackTapSensitivity(it.toInt()) } },
                         )
                     },
@@ -314,6 +318,7 @@ fun BackTapSettingsScreen(
                 )
             },
         )
+        settingsLazyHint(key = "back-tap-sensitivity-hint", text = sensitivityHint)
         settingsLazySmallTitle(
             key = "section-back-tap-mode",
             title = modeSectionTitle,

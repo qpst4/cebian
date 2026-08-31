@@ -355,8 +355,8 @@ fun ShakeGesturesScreen(
                             enabled = settings.enabled && !settings.independentSensitivityEnabled,
                             label = String.format(java.util.Locale.US, "%.1f", settings.globalSensitivity),
                             formatLabel = { String.format(java.util.Locale.US, "%.1f", it) },
-                            startLabel = stringResource(R.string.shake_gestures_sensitivity_easy),
-                            endLabel = stringResource(R.string.shake_gestures_sensitivity_hard),
+                            startLabel = stringResource(R.string.shake_gestures_sensitivity_hard),
+                            endLabel = stringResource(R.string.shake_gestures_sensitivity_easy),
                             onValueChange = onGlobalSensitivityChange,
                         )
                     },

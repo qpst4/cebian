@@ -38,8 +38,6 @@ fun FloatBallSettingsScreen(
     onOpenSearchEngineSettings: () -> Unit,
     onOpenImageSearchEngineSettings: () -> Unit,
 ) {
-    val controlsEnabled = settings.floatBallEnabled && accessibilityGranted
-
     val sectionFeaturesTitle = stringResource(R.string.settings_section_features)
 
     SettingsScreenScaffold(
@@ -84,7 +82,7 @@ fun FloatBallSettingsScreen(
                                 settings.floatBallSizeDp,
                                 (settings.floatBallOpacity * 100).roundToInt(),
                             ),
-                            enabled = controlsEnabled,
+                            enabled = true,
                             onClick = onOpenAppearanceSettings,
                         )
                     },
@@ -95,7 +93,7 @@ fun FloatBallSettingsScreen(
                             icon = { label -> Icon(HomeLeadingIcons.gesture(true), contentDescription = label) },
                             title = stringResource(R.string.float_ball_gesture_settings_title),
                             subtitle = stringResource(R.string.float_ball_gesture_settings_summary),
-                            enabled = controlsEnabled,
+                            enabled = true,
                             onClick = onOpenGestureSettings,
                         )
                     },
@@ -114,7 +112,7 @@ fun FloatBallSettingsScreen(
                                     stringResource(R.string.float_ball_ocr_fallback_off)
                                 },
                             ),
-                            enabled = controlsEnabled,
+                            enabled = true,
                             onClick = onOpenPickSettings,
                         )
                     },
@@ -125,7 +123,7 @@ fun FloatBallSettingsScreen(
                             icon = { label -> Icon(Icons.Outlined.Translate, contentDescription = label) },
                             title = stringResource(R.string.float_ball_translation_settings_title),
                             subtitle = floatBallTranslationSubtitle(settings),
-                            enabled = controlsEnabled,
+                            enabled = true,
                             onClick = onOpenTranslationSettings,
                         )
                     },
@@ -140,7 +138,7 @@ fun FloatBallSettingsScreen(
                                 SearchEngineStore.textPickPanelEngines(settings.searchEngines).size,
                                 SearchEngineStore.textPickPanelEngines(settings.searchEngines).size,
                             ),
-                            enabled = controlsEnabled,
+                            enabled = true,
                             onClick = onOpenSearchEngineSettings,
                         )
                     },
@@ -158,7 +156,7 @@ fun FloatBallSettingsScreen(
                                     settings.aggregatedImageSearchEngines,
                                 ).size,
                             ),
-                            enabled = controlsEnabled,
+                            enabled = true,
                             onClick = onOpenImageSearchEngineSettings,
                         )
                     },

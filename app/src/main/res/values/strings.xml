@@ -29,7 +29,7 @@
     <string name="shake_gestures_independent_app">独立应用晃动</string>
     <string name="shake_gestures_independent_app_desc">为特定应用设置专属晃动动作</string>
     <string name="shake_gestures_global_sensitivity">全局灵敏度</string>
-    <string name="shake_gestures_sensitivity_hint">数值越低越容易触发</string>
+    <string name="shake_gestures_sensitivity_hint">数值越高越容易触发</string>
     <string name="shake_gestures_sensitivity_easy">易触发</string>
     <string name="shake_gestures_sensitivity_hard">难触发</string>
     <string name="shake_gestures_independent_sensitivity">独立灵敏度</string>

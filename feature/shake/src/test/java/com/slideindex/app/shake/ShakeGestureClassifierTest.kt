@@ -14,6 +14,14 @@ class ShakeGestureClassifierTest {
     }
 
     @Test
+    fun effectiveThreshold_higherValueMeansLowerThreshold() {
+        assertEquals(10f, ShakeGestureClassifier.effectiveThreshold(1f))
+        assertEquals(8f, ShakeGestureClassifier.effectiveThreshold(3f))
+        assertEquals(5f, ShakeGestureClassifier.effectiveThreshold(6f))
+        assertEquals(1f, ShakeGestureClassifier.effectiveThreshold(10f))
+    }
+
+    @Test
     fun detectDirection_rightFlip_whenAxisYExceedsThreshold() {
         val direction = ShakeGestureClassifier.detectDirection(
             axisX = 0f,
