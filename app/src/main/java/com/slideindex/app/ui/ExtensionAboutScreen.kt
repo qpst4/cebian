@@ -33,6 +33,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.Memory
 import androidx.compose.material.icons.outlined.NewReleases
@@ -479,6 +480,21 @@ private fun AboutContent(
                                 title = stringResource(R.string.extension_native_engine_packs_entry_title),
                                 subtitle = stringResource(R.string.about_native_engine_packs_entry_desc),
                                 onClick = onOpenNativeEnginePacks,
+                            )
+                        },
+                    )
+                    add(
+                        settingsCardScopeItem("diagnostic-report") {
+                            SettingNavigationRow(
+                                icon = { label -> Icon(Icons.Outlined.BugReport, contentDescription = label) },
+                                title = "复制系统诊断与错误日志",
+                                subtitle = "一键导出系统状态与最近崩溃堆栈 (100% 本地隐私)",
+                                onClick = {
+                                    val report = com.slideindex.app.util.LocalCrashHandler.generateDiagnosticReport(context)
+                                    val cm = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as? android.content.ClipboardManager
+                                    cm?.setPrimaryClip(android.content.ClipData.newPlainText("Cebian Diagnostic Report", report))
+                                    android.widget.Toast.makeText(context, "诊断与错误日志已复制至剪贴板", android.widget.Toast.LENGTH_SHORT).show()
+                                },
                             )
                         },
                     )

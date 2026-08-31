@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
@@ -202,15 +203,26 @@ fun WidgetPanelSettingsContent(
             .wrapContentHeight(),
         ) { pageIndex ->
           val page = uiState.pages.getOrElse(pageIndex) { WidgetPanelDefaults.defaultPage }
-          WidgetPanelGridEditor(
-            page = page,
-            pageIndex = pageIndex,
-            allPages = uiState.pages,
-            widgetPanelBlurEnabled = uiState.blurEnabled,
-            gridScrollEnabled = !uiState.isGridInteractionActive,
-            onPagesChange = onSavePages,
-            onGridInteractionActiveChange = onGridInteractionActiveChange,
-          )
+          Box(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center,
+          ) {
+            Box(
+              modifier = Modifier
+                .fillMaxWidth()
+                .widthIn(max = 520.dp),
+            ) {
+              WidgetPanelGridEditor(
+                page = page,
+                pageIndex = pageIndex,
+                allPages = uiState.pages,
+                widgetPanelBlurEnabled = uiState.blurEnabled,
+                gridScrollEnabled = !uiState.isGridInteractionActive,
+                onPagesChange = onSavePages,
+                onGridInteractionActiveChange = onGridInteractionActiveChange,
+              )
+            }
+          }
         }
 
         if (uiState.pages.size > 1) {

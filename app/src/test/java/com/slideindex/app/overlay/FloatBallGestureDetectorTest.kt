@@ -4,6 +4,7 @@ import com.slideindex.app.floatball.FloatBallGestureType
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.FloatBallSide
 import com.slideindex.app.settings.FreeWindowMode
+import com.slideindex.app.settings.FreeWindowSettings
 import android.view.MotionEvent
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -175,7 +176,7 @@ class FloatBallGestureDetectorTest {
     fun `swipe down then reverse with return action configured fires SWIPE_DOWN_RETURN`() {
         var fired: FloatBallGestureType? = null
         val settings = AppSettings(
-            freeWindowModeId = FreeWindowMode.STANDARD.id,
+            freeWindow = FreeWindowSettings(freeWindowModeId = FreeWindowMode.STANDARD.id),
             floatBall = AppSettings().floatBall.copy(
                 floatBallGestureActions = mapOf(
                     FloatBallGestureType.SWIPE_DOWN_RETURN to com.slideindex.app.gesture.GestureAction.Back,
@@ -205,7 +206,7 @@ class FloatBallGestureDetectorTest {
     fun `swipe side then reverse with return action configured fires SWIPE_SIDE_RETURN`() {
         var fired: FloatBallGestureType? = null
         val settings = AppSettings(
-            freeWindowModeId = FreeWindowMode.STANDARD.id,
+            freeWindow = FreeWindowSettings(freeWindowModeId = FreeWindowMode.STANDARD.id),
             floatBall = AppSettings().floatBall.copy(
                 floatBallGestureActions = mapOf(
                     FloatBallGestureType.SWIPE_SIDE_RETURN to com.slideindex.app.gesture.GestureAction.Back,
@@ -260,7 +261,7 @@ class FloatBallGestureDetectorTest {
             onGesture = { _, _, _ -> },
         ).also {
             it.bind(
-                settings = AppSettings(freeWindowModeId = FreeWindowMode.STANDARD.id),
+                settings = AppSettings(freeWindow = FreeWindowSettings(freeWindowModeId = FreeWindowMode.STANDARD.id)),
                 density = 3f,
                 onPickStart = { _, _, _, _ -> },
                 onPickDrag = { _, _ -> },
@@ -520,7 +521,7 @@ class FloatBallGestureDetectorTest {
 
         val detector = FloatBallGestureDetector()
         detector.bind(
-            settings = AppSettings(freeWindowModeId = FreeWindowMode.STANDARD.id),
+            settings = AppSettings(freeWindow = FreeWindowSettings(freeWindowModeId = FreeWindowMode.STANDARD.id)),
             density = 3f,
             onPickStart = { _, _, fingerX, fingerY ->
                 startFingerX = fingerX
@@ -561,7 +562,7 @@ class FloatBallGestureDetectorTest {
     }
 
     private fun newDetector(
-        settings: AppSettings = AppSettings(freeWindowModeId = FreeWindowMode.STANDARD.id),
+        settings: AppSettings = AppSettings(freeWindow = FreeWindowSettings(freeWindowModeId = FreeWindowMode.STANDARD.id)),
         onPickStart: (Float, Float, Float, Float) -> Unit = { _, _, _, _ -> },
         onPickEnd: () -> Unit = {},
         onPickCancel: () -> Unit = {},

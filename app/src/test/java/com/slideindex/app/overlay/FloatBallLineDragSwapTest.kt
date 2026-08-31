@@ -5,12 +5,13 @@ import com.slideindex.app.settings.FloatBallPositionMode
 import com.slideindex.app.settings.FloatBallSettings
 import com.slideindex.app.settings.FloatBallSide
 import com.slideindex.app.settings.FreeWindowMode
+import com.slideindex.app.settings.FreeWindowSettings
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class FloatBallLineDragSwapTest {
   private fun testSettings(activeSide: FloatBallSide) = AppSettings(
-    freeWindowModeId = FreeWindowMode.STANDARD.id,
+    freeWindow = FreeWindowSettings(freeWindowModeId = FreeWindowMode.STANDARD.id),
     floatBall = FloatBallSettings(
       floatBallPositionMode = FloatBallPositionMode.BOTH_EDGES,
       floatBallActiveSide = activeSide,

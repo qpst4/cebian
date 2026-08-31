@@ -35,6 +35,7 @@ class SlideIndexApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        com.slideindex.app.util.LocalCrashHandler.install(this)
         HiddenApiBootstrap.install()
         NativeEngineRuntime.coordinator = nativeEnginePackCoordinator
         NativeEngineRuntime.onRequestSegmentationPack = { segmentationEngineProvisioner.requestIfNeeded() }
@@ -67,6 +68,15 @@ class SlideIndexApp : Application() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             val enabled = deps.settingsRepository.readSnapshot().predictiveBackEnabled
             PredictiveBackHelper.applyEnabled(applicationInfo, enabled)
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    override fun onTrimMemory(level: Int) {
+        super.onTrimMemory(level)
+        if (level >= TRIM_MEMORY_RUNNING_CRITICAL || level >= TRIM_MEMORY_UI_HIDDEN) {
+            com.slideindex.app.clipboard.ClipboardThumbnailCache.evictAll()
+            com.slideindex.app.util.GestureActionIconBitmap.evictAll()
         }
     }
 

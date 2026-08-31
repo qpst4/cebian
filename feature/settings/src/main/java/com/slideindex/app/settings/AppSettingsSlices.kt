@@ -338,3 +338,38 @@ data class SearchPanelSettings(
     val aggregatedImageSearchEngines: List<AggregatedImageSearchEngineConfig> =
         AppSettings.defaultAggregatedImageSearchEngines(),
 )
+
+/** 自由小窗模式与尺寸。 */
+data class FreeWindowSettings(
+    val freeWindowEnabled: Boolean = false,
+    val freeWindowModeId: Int = FreeWindowMode.detectDefault().id,
+    val freeWindowWidthFraction: Float = 0.8f,
+    val freeWindowHeightFraction: Float = 0.55f,
+    val freeWindowLeftFraction: Float = 0.1f,
+    val freeWindowTopFraction: Float = 0.15f,
+)
+
+/** 小部件面板尺寸、模糊与页面。 */
+data class WidgetPanelSettings(
+    val widgetPanelPages: List<com.slideindex.app.widget.WidgetPanelPage> = emptyList(),
+    val widgetPanelWidthFraction: Float = 0.8f,
+    val widgetPanelHeightFraction: Float = 0.55f,
+    val widgetPanelTopFraction: Float = 0.15f,
+    val widgetPanelBlurEnabled: Boolean = true,
+    val widgetPanelBlurRadiusDp: Int = AppSettings.WIDGET_PANEL_BLUR_RADIUS_DEFAULT_DP,
+)
+
+/** 验证码提取与自动填充规则。 */
+data class OtpSettings(
+    val otpCopyToClipboard: Boolean = false,
+    val otpKeywordsRegex: String = com.slideindex.app.otp.OtpKeywords.DEFAULT_KEYWORDS_REGEX,
+    val otpUserMatchRules: List<com.slideindex.app.otp.OtpMatchRule> = emptyList(),
+    val otpDisabledOfficialRuleIds: Set<String> = emptySet(),
+    val otpAutoInputEnabled: Boolean = false,
+    val otpAutoConfirmEnabled: Boolean = false,
+    val otpAutoInputDelayMs: Int = 0,
+    val otpAutoInputIntervalMs: Int = 0,
+    val otpLsposedSmsCaptureEnabled: Boolean = false,
+    val otpLsposedSystemInjectEnabled: Boolean = true,
+)
+

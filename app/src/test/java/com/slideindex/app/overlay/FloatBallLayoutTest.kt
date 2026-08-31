@@ -6,6 +6,7 @@ import com.slideindex.app.settings.FloatBallPositionMode
 import com.slideindex.app.settings.FloatBallSettings
 import com.slideindex.app.settings.FloatBallSide
 import com.slideindex.app.settings.FreeWindowMode
+import com.slideindex.app.settings.FreeWindowSettings
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import kotlin.math.max
@@ -20,7 +21,7 @@ class FloatBallLayoutTest {
   }
 
   private fun testSettings(floatBall: FloatBallSettings) = AppSettings(
-    freeWindowModeId = FreeWindowMode.STANDARD.id,
+    freeWindow = FreeWindowSettings(freeWindowModeId = FreeWindowMode.STANDARD.id),
     floatBall = floatBall,
   )
 

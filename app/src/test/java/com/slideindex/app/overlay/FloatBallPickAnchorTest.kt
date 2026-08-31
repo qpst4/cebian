@@ -3,6 +3,7 @@ package com.slideindex.app.overlay
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.FloatBallSide
 import com.slideindex.app.settings.FreeWindowMode
+import com.slideindex.app.settings.FreeWindowSettings
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -13,7 +14,7 @@ class FloatBallPickAnchorTest {
   private val ballSizePx = 144f
   private val density = 3f
 
-  private fun testSettings() = AppSettings(freeWindowModeId = FreeWindowMode.STANDARD.id)
+  private fun testSettings() = AppSettings(freeWindow = FreeWindowSettings(freeWindowModeId = FreeWindowMode.STANDARD.id))
 
   @Test
   fun pick_is_above_ball_when_far_from_bottom() {

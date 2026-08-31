@@ -73,12 +73,14 @@ fun GestureSettings.toMinimalAppSettings(): AppSettings = AppSettings(
         appLaunchPolicyId = appLaunchPolicyId,
         longPressLaunchDurationMs = longPressLaunchDurationMs,
     ),
-    widgetPanelPages = widgetPanelPages,
-    widgetPanelWidthFraction = widgetPanelWidthFraction,
-    widgetPanelHeightFraction = widgetPanelHeightFraction,
-    widgetPanelTopFraction = widgetPanelTopFraction,
-    widgetPanelBlurEnabled = widgetPanelBlurEnabled,
-    widgetPanelBlurRadiusDp = widgetPanelBlurRadiusDp,
+    widgetPanel = WidgetPanelSettings(
+        widgetPanelPages = widgetPanelPages,
+        widgetPanelWidthFraction = widgetPanelWidthFraction,
+        widgetPanelHeightFraction = widgetPanelHeightFraction,
+        widgetPanelTopFraction = widgetPanelTopFraction,
+        widgetPanelBlurEnabled = widgetPanelBlurEnabled,
+        widgetPanelBlurRadiusDp = widgetPanelBlurRadiusDp,
+    ),
     debugPerformanceMonitorEnabled = debugPerformanceMonitorEnabled,
 )
 
@@ -97,12 +99,14 @@ fun OverlaySettings.toMinimalAppSettings(): AppSettings = AppSettings(
     bottomNavClassicBlurRadiusDp = bottomNavClassicBlurRadiusDp,
     bottomNavLiquidGlassBlurRadiusDp = bottomNavLiquidGlassBlurRadiusDp,
     bottomNavFloatingNavBlurRadiusDp = bottomNavFloatingNavBlurRadiusDp,
-    freeWindowEnabled = freeWindowEnabled,
-    freeWindowModeId = freeWindowModeId,
-    freeWindowWidthFraction = freeWindowWidthFraction,
-    freeWindowHeightFraction = freeWindowHeightFraction,
-    freeWindowLeftFraction = freeWindowLeftFraction,
-    freeWindowTopFraction = freeWindowTopFraction,
+    freeWindow = FreeWindowSettings(
+        freeWindowEnabled = freeWindowEnabled,
+        freeWindowModeId = freeWindowModeId,
+        freeWindowWidthFraction = freeWindowWidthFraction,
+        freeWindowHeightFraction = freeWindowHeightFraction,
+        freeWindowLeftFraction = freeWindowLeftFraction,
+        freeWindowTopFraction = freeWindowTopFraction,
+    ),
     floatingPointer = FloatingPointerSettings(
         floatingPointerSensitivityFraction = floatingPointerSensitivityFraction,
         floatingPointerJoystickDiameterPx = floatingPointerJoystickDiameterPx,
@@ -263,12 +267,14 @@ fun OverlaySettings.toMinimalAppSettings(): AppSettings = AppSettings(
 )
 
 fun FreeWindowUiSettings.toMinimalAppSettings(): AppSettings = AppSettings(
-    freeWindowEnabled = freeWindowEnabled,
-    freeWindowModeId = freeWindowModeId,
-    freeWindowWidthFraction = freeWindowWidthFraction,
-    freeWindowHeightFraction = freeWindowHeightFraction,
-    freeWindowLeftFraction = freeWindowLeftFraction,
-    freeWindowTopFraction = freeWindowTopFraction,
+    freeWindow = FreeWindowSettings(
+        freeWindowEnabled = freeWindowEnabled,
+        freeWindowModeId = freeWindowModeId,
+        freeWindowWidthFraction = freeWindowWidthFraction,
+        freeWindowHeightFraction = freeWindowHeightFraction,
+        freeWindowLeftFraction = freeWindowLeftFraction,
+        freeWindowTopFraction = freeWindowTopFraction,
+    ),
     launcher = LauncherSettings(
         appLaunchPolicyId = appLaunchPolicyId,
         longPressLaunchDurationMs = longPressLaunchDurationMs,
@@ -276,21 +282,23 @@ fun FreeWindowUiSettings.toMinimalAppSettings(): AppSettings = AppSettings(
 )
 
 fun OtpUiSettings.toMinimalAppSettings(): AppSettings = AppSettings(
-    otpCopyToClipboard = otpCopyToClipboard,
-    otpKeywordsRegex = otpKeywordsRegex,
-    otpUserMatchRules = otpUserMatchRules,
-    otpDisabledOfficialRuleIds = otpDisabledOfficialRuleIds,
-    otpAutoInputEnabled = otpAutoInputEnabled,
-    otpAutoConfirmEnabled = otpAutoConfirmEnabled,
-    otpAutoInputDelayMs = otpAutoInputDelayMs,
-    otpAutoInputIntervalMs = otpAutoInputIntervalMs,
-    otpLsposedSmsCaptureEnabled = otpLsposedSmsCaptureEnabled,
-    otpLsposedSystemInjectEnabled = otpLsposedSystemInjectEnabled,
+    otp = OtpSettings(
+        otpCopyToClipboard = otpCopyToClipboard,
+        otpKeywordsRegex = otpKeywordsRegex,
+        otpUserMatchRules = otpUserMatchRules,
+        otpDisabledOfficialRuleIds = otpDisabledOfficialRuleIds,
+        otpAutoInputEnabled = otpAutoInputEnabled,
+        otpAutoConfirmEnabled = otpAutoConfirmEnabled,
+        otpAutoInputDelayMs = otpAutoInputDelayMs,
+        otpAutoInputIntervalMs = otpAutoInputIntervalMs,
+        otpLsposedSmsCaptureEnabled = otpLsposedSmsCaptureEnabled,
+        otpLsposedSystemInjectEnabled = otpLsposedSystemInjectEnabled,
+    ),
 )
 
 fun ExtensionHubSettings.toMinimalAppSettings(): AppSettings = AppSettings(
     appsPerRow = appsPerRow,
-    widgetPanelPages = widgetPanelPages,
+    widgetPanel = WidgetPanelSettings(widgetPanelPages = widgetPanelPages),
     floatingPointer = FloatingPointerSettings(
         floatingPointerJoystickDiameterPx = floatingPointerJoystickDiameterPx,
         floatingPointerPointerDiameterPx = floatingPointerPointerDiameterPx,

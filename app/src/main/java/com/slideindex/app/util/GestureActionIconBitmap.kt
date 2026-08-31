@@ -41,6 +41,10 @@ object GestureActionIconBitmap {
 
     private val cache = object : LruCache<String, Bitmap>(96) {}
 
+    fun evictAll() {
+        cache.evictAll()
+    }
+
     fun preload(
         action: GestureAction,
         sizePx: Int,

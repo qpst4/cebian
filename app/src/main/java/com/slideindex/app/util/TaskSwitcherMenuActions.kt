@@ -76,7 +76,7 @@ object TaskSwitcherMenuActions {
         app: AppInfo? = null,
         onSessionEnd: (() -> Unit)? = null,
     ) {
-        val effective = settings.copy(freeWindowEnabled = true)
+        val effective = settings.copy(freeWindow = settings.freeWindow.copy(freeWindowEnabled = true))
         val target = app ?: appRepository.lookupApp(packageName)
         if (target != null) {
             appRepository.launchApp(target, effective, fullscreen = false)

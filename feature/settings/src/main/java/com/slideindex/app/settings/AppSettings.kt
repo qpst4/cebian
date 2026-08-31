@@ -39,12 +39,7 @@ data class AppSettings(
     val hideTriggerOnLockScreen: Boolean = false,
     val hideTriggerOnLauncher: Boolean = false,
     val dynamicColorEnabled: Boolean = true,
-    val freeWindowEnabled: Boolean = false,
-    val freeWindowModeId: Int = FreeWindowMode.detectDefault().id,
-    val freeWindowWidthFraction: Float = 0.8f,
-    val freeWindowHeightFraction: Float = 0.55f,
-    val freeWindowLeftFraction: Float = 0.1f,
-    val freeWindowTopFraction: Float = 0.15f,
+    val freeWindow: FreeWindowSettings = FreeWindowSettings(),
     val launcher: LauncherSettings = LauncherSettings(),
     val themeColorArgb: Int = 0xFF6750A4.toInt(),
     val themePaletteStyleId: Int = ThemePaletteStyle.TONAL_SPOT.id,
@@ -63,23 +58,9 @@ data class AppSettings(
     /** 液态玻璃底栏模糊强度（dp，用于是否启用 haze 阈值）。 */
     val bottomNavLiquidGlassBlurRadiusDp: Float = BottomNavBlurDefaults.LIQUID_GLASS_DEFAULT_RADIUS_DP,
     val bottomNavFloatingNavBlurRadiusDp: Float = BottomNavBlurDefaults.FLOATING_NAV_DEFAULT_RADIUS_DP,
-    val widgetPanelPages: List<com.slideindex.app.widget.WidgetPanelPage> = emptyList(),
-    val widgetPanelWidthFraction: Float = 0.8f,
-    val widgetPanelHeightFraction: Float = 0.55f,
-    val widgetPanelTopFraction: Float = 0.15f,
-    val widgetPanelBlurEnabled: Boolean = true,
-    val widgetPanelBlurRadiusDp: Int = WIDGET_PANEL_BLUR_RADIUS_DEFAULT_DP,
+    val widgetPanel: WidgetPanelSettings = WidgetPanelSettings(),
     val floatingPointer: FloatingPointerSettings = FloatingPointerSettings(),
-    val otpCopyToClipboard: Boolean = false,
-    val otpKeywordsRegex: String = OtpKeywords.DEFAULT_KEYWORDS_REGEX,
-    val otpUserMatchRules: List<com.slideindex.app.otp.OtpMatchRule> = emptyList(),
-    val otpDisabledOfficialRuleIds: Set<String> = emptySet(),
-    val otpAutoInputEnabled: Boolean = false,
-    val otpAutoConfirmEnabled: Boolean = false,
-    val otpAutoInputDelayMs: Int = 0,
-    val otpAutoInputIntervalMs: Int = 0,
-    val otpLsposedSmsCaptureEnabled: Boolean = false,
-    val otpLsposedSystemInjectEnabled: Boolean = true,
+    val otp: OtpSettings = OtpSettings(),
     val cornerGestureSettings: CornerGestureSettings = CornerGestureSettings(),
     val shakeGestureSettings: ShakeGestureSettings = ShakeGestureSettings(),
     val backTapSettings: BackTapSettings = BackTapSettings(),
@@ -101,6 +82,31 @@ data class AppSettings(
         }
 
     // region 分片字段的扁平别名：保持拆分前的读取 API 不变。
+
+    val freeWindowEnabled get() = freeWindow.freeWindowEnabled
+    val freeWindowModeId get() = freeWindow.freeWindowModeId
+    val freeWindowWidthFraction get() = freeWindow.freeWindowWidthFraction
+    val freeWindowHeightFraction get() = freeWindow.freeWindowHeightFraction
+    val freeWindowLeftFraction get() = freeWindow.freeWindowLeftFraction
+    val freeWindowTopFraction get() = freeWindow.freeWindowTopFraction
+
+    val widgetPanelPages get() = widgetPanel.widgetPanelPages
+    val widgetPanelWidthFraction get() = widgetPanel.widgetPanelWidthFraction
+    val widgetPanelHeightFraction get() = widgetPanel.widgetPanelHeightFraction
+    val widgetPanelTopFraction get() = widgetPanel.widgetPanelTopFraction
+    val widgetPanelBlurEnabled get() = widgetPanel.widgetPanelBlurEnabled
+    val widgetPanelBlurRadiusDp get() = widgetPanel.widgetPanelBlurRadiusDp
+
+    val otpCopyToClipboard get() = otp.otpCopyToClipboard
+    val otpKeywordsRegex get() = otp.otpKeywordsRegex
+    val otpUserMatchRules get() = otp.otpUserMatchRules
+    val otpDisabledOfficialRuleIds get() = otp.otpDisabledOfficialRuleIds
+    val otpAutoInputEnabled get() = otp.otpAutoInputEnabled
+    val otpAutoConfirmEnabled get() = otp.otpAutoConfirmEnabled
+    val otpAutoInputDelayMs get() = otp.otpAutoInputDelayMs
+    val otpAutoInputIntervalMs get() = otp.otpAutoInputIntervalMs
+    val otpLsposedSmsCaptureEnabled get() = otp.otpLsposedSmsCaptureEnabled
+    val otpLsposedSystemInjectEnabled get() = otp.otpLsposedSystemInjectEnabled
 
     val leftEdgeEnabled get() = edgeTrigger.leftEdgeEnabled
     val rightEdgeEnabled get() = edgeTrigger.rightEdgeEnabled

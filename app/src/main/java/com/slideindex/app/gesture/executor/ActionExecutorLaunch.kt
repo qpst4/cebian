@@ -129,7 +129,7 @@ internal class ActionExecutorLaunch(
     }
 
     fun freeWindowForegroundApp(settings: AppSettings) {
-        val effectiveSettings = settings.copy(freeWindowEnabled = true)
+        val effectiveSettings = settings.copy(freeWindow = settings.freeWindow.copy(freeWindowEnabled = true))
         val targetPackage = resolveFreeWindowTargetPackage()
         val runMove = Runnable {
             Thread {

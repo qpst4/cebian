@@ -64,8 +64,10 @@ class OtpAutoFillUiLabelsTest {
     @Test
     fun formatRuntimeStatusReflectsInjectPipeline() {
         val settings = AppSettings(
-            otpAutoInputEnabled = true,
-            otpLsposedSystemInjectEnabled = true,
+            otp = com.slideindex.app.settings.OtpSettings(
+                otpAutoInputEnabled = true,
+                otpLsposedSystemInjectEnabled = true,
+            ),
         )
         val status = OtpAutoFillUiLabels.formatRuntimeStatus(context, settings, accessibilityGranted = true)
         assertTrue(status.contains("LSPosed"))

@@ -1,7 +1,9 @@
 package com.slideindex.app.ui
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -9,8 +11,10 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.slideindex.app.R
 import com.slideindex.app.launcher.QuickLauncherItem
@@ -98,16 +102,23 @@ fun HoneycombLauncherEditorContent(
             ),
         )
         LazySettingsItem(key = "honeycomb-launcher-items") {
-            HoneycombLauncherItemsSection(
+            Box(
                 modifier = Modifier.fillMaxWidth(),
-                nestedScrollEnabled = false,
-                items = uiState.items,
-                display = uiState.displaySettings,
-                appsByPackage = uiState.appsByPackage,
-                onItemsChange = onSaveItems,
-                onAdd = onAdd,
-                onInteractionActiveChange = onInteractionActiveChange,
-            )
+                contentAlignment = Alignment.Center,
+            ) {
+                HoneycombLauncherItemsSection(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .widthIn(max = 520.dp),
+                    nestedScrollEnabled = false,
+                    items = uiState.items,
+                    display = uiState.displaySettings,
+                    appsByPackage = uiState.appsByPackage,
+                    onItemsChange = onSaveItems,
+                    onAdd = onAdd,
+                    onInteractionActiveChange = onInteractionActiveChange,
+                )
+            }
         }
     }
 }

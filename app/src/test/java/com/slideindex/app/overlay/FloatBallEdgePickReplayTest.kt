@@ -4,6 +4,7 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.FloatBallSettings
 import com.slideindex.app.settings.FloatBallSide
 import com.slideindex.app.settings.FreeWindowMode
+import com.slideindex.app.settings.FreeWindowSettings
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -14,7 +15,7 @@ class FloatBallEdgePickReplayTest {
     private val marginPx = 24
 
     private fun testSettings(): AppSettings = AppSettings(
-        freeWindowModeId = FreeWindowMode.STANDARD.id,
+        freeWindow = FreeWindowSettings(freeWindowModeId = FreeWindowMode.STANDARD.id),
         floatBall = FloatBallSettings(
             floatBallPointerSpeedFraction = 0.52f,
             floatBallPointerSlopDp = 8f,

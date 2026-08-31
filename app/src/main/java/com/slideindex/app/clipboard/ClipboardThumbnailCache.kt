@@ -14,6 +14,10 @@ object ClipboardThumbnailCache {
         override fun sizeOf(key: String, value: Bitmap): Int = value.byteCount
     }
 
+    fun evictAll() {
+        bitmapCache.evictAll()
+    }
+
     fun loadEntryThumbnailsForPreview(
         context: Context,
         entry: ClipboardEntry,
