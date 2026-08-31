@@ -141,13 +141,9 @@ The app features four main navigation tabs: 🏠 **Home** · 📳 **Motion** · 
 | Corner Radial Menu | Circle Launcher (FV Style) | Quick Launcher (Grid) |
 | :---: | :---: | :---: |
 | <img src="art/screenshots/01_circle_launcher_framed.webp" width="100%" alt="Corner Radial Menu" /> | <img src="art/screenshots/03_honeycomb_launcher_framed.webp" width="100%" alt="Circle Launcher" /> | <img src="art/screenshots/06_quick_launcher_framed.webp" width="100%" alt="Quick Launcher" /> |
-
-| Floating Pointer (Joystick) | Shell Command Panel (Shizuku) | Clipboard History / Stash |
-| :---: | :---: | :---: |
+| **Floating Pointer (Joystick)** | **Shell Command Panel (Shizuku)** | **Clipboard History / Stash** |
 | <img src="art/screenshots/08_floating_pointer_framed.webp" width="100%" alt="Floating Pointer" /> | <img src="art/screenshots/07_shell_panel_framed.webp" width="100%" alt="Shell Command Panel" /> | <img src="art/screenshots/10_clipboard_panel_framed.webp" width="100%" alt="Clipboard History" /> |
-
-| App Index (Pinyin Rail) | Widget Floating Panel | Pin Screenshot Window |
-| :---: | :---: | :---: |
+| **App Index (Pinyin Rail)** | **Widget Floating Panel** | **Pin Screenshot Window** |
 | <img src="art/screenshots/05_app_index_framed.webp" width="100%" alt="App Index" /> | <img src="art/screenshots/09_widget_panel_framed.webp" width="100%" alt="Widget Floating Panel" /> | <img src="art/screenshots/11_pin_image_framed.webp" width="100%" alt="Pin Screenshot" /> |
 
 </div>
