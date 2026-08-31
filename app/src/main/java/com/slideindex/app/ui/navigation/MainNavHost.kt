@@ -81,6 +81,7 @@ import com.slideindex.app.ui.miuix.theme.toModuleThemeSettings
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.android.awaitFrame
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 /** 底栏显隐动画时长（与 NavDisplay 默认转场大致对齐）。 */
@@ -254,6 +255,10 @@ fun MainNavHost(
                     onComplete = {
                         coroutineScope.launch {
                             deps.settingsRepository.setOnboardingCompleted(true)
+                            deps.applicationScope.launch(Dispatchers.IO) {
+                                deps.appRepository.loadApps()
+                                com.slideindex.app.widget.WidgetCatalog.preload(activity.applicationContext)
+                            }
                         }
                     },
                 )

@@ -46,9 +46,11 @@ class SlideIndexApp : Application() {
         ClipboardMonitorStartup.runOnMainWhenIdle {
             ocrInstalledModelStartupVerifier.start()
             JiebaWarmUp.start(this@SlideIndexApp)
-            deps.applicationScope.launch(Dispatchers.IO) {
-                deps.appRepository.loadApps()
-                com.slideindex.app.widget.WidgetCatalog.preload(this@SlideIndexApp)
+            if (deps.settingsRepository.readSnapshot().onboardingCompleted) {
+                deps.applicationScope.launch(Dispatchers.IO) {
+                    deps.appRepository.loadApps()
+                    com.slideindex.app.widget.WidgetCatalog.preload(this@SlideIndexApp)
+                }
             }
         }
         deps.stashRepository

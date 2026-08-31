@@ -158,13 +158,24 @@ object PermissionHelper {
         }.getOrDefault(false)
     }
 
+    fun appListSettingsIntent(context: Context): Intent {
+        val miuiIntent = Intent("miui.intent.action.APP_PERM_EDITOR").apply {
+            setClassName("com.miui.securitycenter", "com.miui.permcenter.permissions.PermissionsEditorActivity")
+            putExtra("extra_pkgname", context.packageName)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        if (context.packageManager.resolveActivity(miuiIntent, PackageManager.MATCH_DEFAULT_ONLY) != null) {
+            return miuiIntent
+        }
+        return Intent(
+            Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+            "package:${context.packageName}".toUri(),
+        ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    }
+
     fun requestAppListPermission(context: Context) {
         runCatching {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                context.packageManager.getInstalledApplications(PackageManager.ApplicationInfoFlags.of(0))
-            } else {
-                context.packageManager.getInstalledApplications(0)
-            }
+            context.startActivity(appListSettingsIntent(context))
         }
     }
 }
