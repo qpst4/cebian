@@ -7,6 +7,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.Color
+import com.slideindex.app.ui.theme.LocalAppDarkTheme
 import top.yukonga.miuix.kmp.basic.TabRow
 import top.yukonga.miuix.kmp.basic.TabRowColors
 import top.yukonga.miuix.kmp.basic.TabRowDefaults
@@ -23,15 +25,19 @@ enum class MiuixTabRowContourHost {
 
 @Composable
 fun miuixTabRowContourColors(host: MiuixTabRowContourHost): TabRowColors {
-    val scheme = MiuixTheme.colorScheme
+    val isDark = LocalAppDarkTheme.current
     return when (host) {
         MiuixTabRowContourHost.AppScaffold -> TabRowDefaults.tabRowColors(
-            backgroundColor = scheme.surfaceContainer,
-            selectedBackgroundColor = scheme.surfaceContainerHigh,
+            backgroundColor = if (isDark) Color(0xFF242426) else Color(0xFFF0F0F0),
+            selectedBackgroundColor = if (isDark) Color(0xFF3A3A3C) else Color.White,
+            contentColor = if (isDark) Color(0xFF8E8E93) else Color(0xFF8E8E93),
+            selectedContentColor = if (isDark) Color.White else Color(0xFF1C1C1E),
         )
         MiuixTabRowContourHost.SurfaceContainer -> TabRowDefaults.tabRowColors(
-            backgroundColor = scheme.surface,
-            selectedBackgroundColor = scheme.surfaceContainer,
+            backgroundColor = if (isDark) Color(0xFF1C1C1E) else Color(0xFFF0F0F0),
+            selectedBackgroundColor = if (isDark) Color(0xFF3A3A3C) else Color.White,
+            contentColor = if (isDark) Color(0xFF8E8E93) else Color(0xFF8E8E93),
+            selectedContentColor = if (isDark) Color.White else Color(0xFF1C1C1E),
         )
     }
 }
