@@ -2,10 +2,13 @@ package com.slideindex.app.freezer
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import top.yukonga.miuix.kmp.basic.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AcUnit
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -55,6 +58,7 @@ fun FreezerPanelContent(
     onBack: (() -> Unit)? = null,
     onManageApps: (() -> Unit)? = null,
     onAppLaunched: (() -> Unit)? = null,
+    overlayMode: Boolean = false,
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -67,6 +71,7 @@ fun FreezerPanelContent(
     var freezeStateRevision by remember { mutableIntStateOf(0) }
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var searchExpanded by rememberSaveable { mutableStateOf(false) }
+    var overflowMenuExpanded by remember { mutableStateOf(false) }
     val searchFocusRequester = remember { FocusRequester() }
     val scope = rememberCoroutineScope()
     val screenTitle = title ?: stringResource(R.string.extension_freezer_title)
@@ -158,12 +163,40 @@ fun FreezerPanelContent(
                     )
                 }
             }
-            WindowIconDropdownMenu(entry = overflowMenuEntry) {
-                Icon(
-                    imageVector = Icons.Default.MoreVert,
-                    contentDescription = stringResource(R.string.freezer_batch_menu),
-                    tint = MiuixTheme.colorScheme.onBackground,
-                )
+            if (overlayMode) {
+                Box {
+                    IconButton(onClick = { overflowMenuExpanded = true }) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = stringResource(R.string.freezer_batch_menu),
+                            tint = MiuixTheme.colorScheme.onBackground,
+                        )
+                    }
+                    DropdownMenu(
+                        expanded = overflowMenuExpanded,
+                        onDismissRequest = { overflowMenuExpanded = false },
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text(unfreezeAllLabel) },
+                            onClick = {
+                                overflowMenuExpanded = false
+                                scope.launch {
+                                    if (FreezerOperations.unfreezeAll(context, settings.freezerAppPackages) > 0) {
+                                        freezeStateRevision++
+                                    }
+                                }
+                            },
+                        )
+                    }
+                }
+            } else {
+                WindowIconDropdownMenu(entry = overflowMenuEntry) {
+                    Icon(
+                        imageVector = Icons.Default.MoreVert,
+                        contentDescription = stringResource(R.string.freezer_batch_menu),
+                        tint = MiuixTheme.colorScheme.onBackground,
+                    )
+                }
             }
         },
         bottomContent = {
@@ -211,6 +244,7 @@ fun FreezerPanelContent(
                     modifier = Modifier.fillMaxSize(),
                     onAppLaunched = onAppLaunched,
                     onManageApps = onManageApps,
+                    overlayMode = overlayMode,
                 )
             }
         }

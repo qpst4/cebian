@@ -1305,7 +1305,7 @@
     <string name="universal_copy_copied">Copied %1$d item(s)</string>
     <string name="universal_copy_no_text">No copyable text found</string>
     <string name="gesture_action_freezer_panel">App freezer</string>
-    <string name="gesture_action_freezer_panel_desc">Open freezer management</string>
+    <string name="gesture_action_freezer_panel_desc">Open freezer overlay</string>
     <string name="gesture_action_refreeze">Re-freeze apps</string>
     <string name="gesture_action_refreeze_desc">Disable all apps in freezer list that are currently enabled</string>
     <string name="gesture_action_remind">Alarm reminder in N min</string>

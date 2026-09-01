@@ -874,7 +874,7 @@
     <string name="universal_copy_copied">已复制 %1$d 项</string>
     <string name="universal_copy_no_text">未找到可复制文本</string>
     <string name="gesture_action_freezer_panel">冰箱</string>
-    <string name="gesture_action_freezer_panel_desc">打开冰箱应用管理</string>
+    <string name="gesture_action_freezer_panel_desc">打开冰箱悬浮窗</string>
     <string name="gesture_action_refreeze">重冻应用</string>
     <string name="gesture_action_refreeze_desc">冻结冰箱列表中已启用的应用</string>
     <string name="extension_freezer_title">冰箱</string>

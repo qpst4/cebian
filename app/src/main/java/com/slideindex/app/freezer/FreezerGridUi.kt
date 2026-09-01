@@ -5,6 +5,8 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -12,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -21,6 +24,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -63,6 +67,7 @@ fun FreezerGridUi(
     contentPadding: PaddingValues = PaddingValues(0.dp),
     onAppLaunched: (() -> Unit)? = null,
     onManageApps: (() -> Unit)? = null,
+    overlayMode: Boolean = false,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -177,71 +182,170 @@ fun FreezerGridUi(
 
     actionTarget?.let { app ->
         val frozen = FreezerOperations.isFrozen(context, app.packageName)
-        AlertDialog(
-            onDismissRequest = { actionTarget = null },
-            title = { Text(app.label) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(
-                        text = app.packageName,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    TextButton(
-                        onClick = {
-                            scope.launch {
-                                if (FreezerOperations.setFrozen(context, app.packageName, !frozen)) {
-                                    onFreezeStateRevisionBump()
+        if (overlayMode) {
+            FreezerAppActionOverlaySheet(
+                app = app,
+                frozen = frozen,
+                onDismiss = { actionTarget = null },
+                onToggleFrozen = {
+                    scope.launch {
+                        if (FreezerOperations.setFrozen(context, app.packageName, !frozen)) {
+                            onFreezeStateRevisionBump()
+                        }
+                        actionTarget = null
+                    }
+                },
+                onAddToHome = {
+                    if (!FreezerAppShortcutHelper.requestPinAppShortcut(context, app)) {
+                        FreezerAppShortcutHelper.showPinShortcutFailedToast(context)
+                    }
+                    actionTarget = null
+                },
+                onRemoveFromList = {
+                    scope.launch {
+                        settingsRepository.removeFreezerApp(app.packageName)
+                        actionTarget = null
+                    }
+                },
+            )
+        } else {
+            AlertDialog(
+                onDismissRequest = { actionTarget = null },
+                title = { Text(app.label) },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(
+                            text = app.packageName,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        TextButton(
+                            onClick = {
+                                scope.launch {
+                                    if (FreezerOperations.setFrozen(context, app.packageName, !frozen)) {
+                                        onFreezeStateRevisionBump()
+                                    }
+                                    actionTarget = null
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(
+                                stringResource(
+                                    if (frozen) R.string.freezer_action_unfreeze else R.string.freezer_action_freeze,
+                                ),
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                        }
+                        TextButton(
+                            onClick = {
+                                if (!FreezerAppShortcutHelper.requestPinAppShortcut(context, app)) {
+                                    FreezerAppShortcutHelper.showPinShortcutFailedToast(context)
                                 }
                                 actionTarget = null
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text(
-                            stringResource(
-                                if (frozen) R.string.freezer_action_unfreeze else R.string.freezer_action_freeze,
-                            ),
+                            },
                             modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
-                    TextButton(
-                        onClick = {
-                            if (!FreezerAppShortcutHelper.requestPinAppShortcut(context, app)) {
-                                FreezerAppShortcutHelper.showPinShortcutFailedToast(context)
-                            }
-                            actionTarget = null
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text(
-                            stringResource(R.string.freezer_action_add_to_home),
+                        ) {
+                            Text(
+                                stringResource(R.string.freezer_action_add_to_home),
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                        }
+                        TextButton(
+                            onClick = {
+                                scope.launch {
+                                    settingsRepository.removeFreezerApp(app.packageName)
+                                    actionTarget = null
+                                }
+                            },
                             modifier = Modifier.fillMaxWidth(),
-                        )
+                        ) {
+                            Text(
+                                stringResource(R.string.freezer_remove_from_list),
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                        }
                     }
-                    TextButton(
-                        onClick = {
-                            scope.launch {
-                                settingsRepository.removeFreezerApp(app.packageName)
-                                actionTarget = null
-                            }
-                        },
+                },
+                confirmButton = {},
+                dismissButton = {
+                    TextButton(onClick = { actionTarget = null }) {
+                        Text(stringResource(R.string.cancel))
+                    }
+                },
+            )
+        }
+    }
+}
+
+@Composable
+private fun FreezerAppActionOverlaySheet(
+    app: AppInfo,
+    frozen: Boolean,
+    onDismiss: () -> Unit,
+    onToggleFrozen: () -> Unit,
+    onAddToHome: () -> Unit,
+    onRemoveFromList: () -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.45f))
+            .clickable(onClick = onDismiss),
+        contentAlignment = Alignment.Center,
+    ) {
+        Surface(
+            modifier = Modifier
+                .padding(horizontal = 24.dp)
+                .clickable(
+                    interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                    indication = null,
+                    onClick = {},
+                ),
+            shape = RoundedCornerShape(20.dp),
+            tonalElevation = 6.dp,
+        ) {
+            Column(
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Text(
+                    text = app.label,
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                Text(
+                    text = app.packageName,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                TextButton(onClick = onToggleFrozen, modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        stringResource(
+                            if (frozen) R.string.freezer_action_unfreeze else R.string.freezer_action_freeze,
+                        ),
                         modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text(
-                            stringResource(R.string.freezer_remove_from_list),
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
+                    )
                 }
-            },
-            confirmButton = {},
-            dismissButton = {
-                TextButton(onClick = { actionTarget = null }) {
-                    Text(stringResource(R.string.cancel))
+                TextButton(onClick = onAddToHome, modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        stringResource(R.string.freezer_action_add_to_home),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
                 }
-            },
-        )
+                TextButton(onClick = onRemoveFromList, modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        stringResource(R.string.freezer_remove_from_list),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+                TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) {
+                    Text(
+                        stringResource(R.string.cancel),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            }
+        }
     }
 }
 

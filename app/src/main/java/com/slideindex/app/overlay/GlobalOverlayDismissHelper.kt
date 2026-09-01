@@ -3,6 +3,7 @@ package com.slideindex.app.overlay
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import com.slideindex.app.freezer.FreezerOverlayWindow
 import com.slideindex.app.overlay.appswitcher.AppSwitcherOverlayWindow
 import com.slideindex.app.overlay.searchpanel.SearchPanelOverlayWindow
 
@@ -31,6 +32,7 @@ object GlobalOverlayDismissHelper {
         runCatching { AppSwitcherOverlayWindow.dismiss() }
         runCatching { FloatBallImageSearchPanel.dismiss() }
         runCatching { FloatBallStashPanel.dismiss() }
+        runCatching { FreezerOverlayWindow.dismiss() }
         runCatching { FloatBallTranslatePanel.dismiss() }
         runCatching { FloatIconOverlayWindow.dismiss() }
         runCatching { MessageReplyOverlayWindow.dismiss() }

@@ -27,7 +27,7 @@ import com.slideindex.app.service.ClipboardFloatLifecycle
 import com.slideindex.app.copy.UniversalCopyOverlay
 import com.slideindex.app.freezer.FreezerLaunchState
 import com.slideindex.app.freezer.FreezerOperations
-import com.slideindex.app.freezer.FreezerPanelIntents
+import com.slideindex.app.freezer.FreezerOverlayWindow
 import com.slideindex.app.freezer.FreezerTab
 import com.slideindex.app.overlay.volumepanel.VolumePanelOverlayWindow
 import com.slideindex.app.remind.RemindDurationPickerOverlay
@@ -345,7 +345,7 @@ class ActionExecutor(
             }
             GestureAction.FreezerPanel -> {
                 FreezerLaunchState.setPendingInitialTab(FreezerTab.FROZEN)
-                context.startActivity(FreezerPanelIntents.openPanel(context))
+                FreezerOverlayWindow.show(context)
                 true
             }
             GestureAction.Refreeze -> {
