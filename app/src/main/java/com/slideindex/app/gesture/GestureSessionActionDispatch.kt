@@ -122,7 +122,12 @@ internal fun GestureSession.trackContinuousGesture(
 
         GestureAction.FloatingPointer -> {
             if (!sessionMoveTimeActionFired &&
-                sessionPathRecognizer.hasMetThreshold(classification.trigger, rawX, rawY)
+                sessionPathRecognizer.hasMetThreshold(
+                    classification.trigger,
+                    rawX,
+                    rawY,
+                    classifyOptions(),
+                )
             ) {
                 sessionMoveTimeActionFired = true
                 sessionCallbacks.cancelDelayed(sessionLongPressCheckRunnable)
@@ -140,7 +145,12 @@ internal fun GestureSession.trackContinuousGesture(
 
         GestureAction.RegionalScreenshotPick -> {
             if (!sessionMoveTimeActionFired &&
-                sessionPathRecognizer.hasMetThreshold(classification.trigger, rawX, rawY)
+                sessionPathRecognizer.hasMetThreshold(
+                    classification.trigger,
+                    rawX,
+                    rawY,
+                    classifyOptions(),
+                )
             ) {
                 sessionMoveTimeActionFired = true
                 sessionCallbacks.cancelDelayed(sessionLongPressCheckRunnable)

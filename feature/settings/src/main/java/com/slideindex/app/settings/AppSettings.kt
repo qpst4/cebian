@@ -143,6 +143,8 @@ data class AppSettings(
     val gestureHintEnabled get() = edgeTrigger.gestureHintEnabled
     val gestureHintStyleId get() = edgeTrigger.gestureHintStyleId
     val gestureHintFingerOffsetDp get() = edgeTrigger.gestureHintFingerOffsetDp
+    val swipeHoverDurationMs get() = edgeTrigger.swipeHoverDurationMs
+    val inwardHoverCompoundEnabled get() = edgeTrigger.inwardHoverCompoundEnabled
     val animationStyles get() = edgeTrigger.animationStyles
     val gestureAngles get() = edgeTrigger.gestureAngles
 

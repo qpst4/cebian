@@ -72,6 +72,7 @@ class GestureSession(
 
     private val thresholdTracker: GestureSessionThresholdTracker
     private val longPressCheckRunnable: Runnable
+    private val hoverHapticCheckRunnable: Runnable
 
     init {
         thresholdTracker = GestureSessionThresholdTracker(
@@ -91,7 +92,12 @@ class GestureSession(
                 GestureTriggerMode.IMMEDIATE -> {
                     if (sessionMoveTimeActionFired) return@Runnable
                     if (pathRecognizer.isLongPressArmed() ||
-                        pathRecognizer.hasMetThreshold(classification.trigger, lastRawX, lastRawY)
+                        pathRecognizer.hasMetThreshold(
+                            classification.trigger,
+                            lastRawX,
+                            lastRawY,
+                            classifyOptions(),
+                        )
                     ) {
                         dispatchMoveTimeGesture(
                             classification,
@@ -114,12 +120,21 @@ class GestureSession(
                 GestureTriggerMode.ON_RELEASE, GestureTriggerMode.DEFAULT -> Unit
             }
         }
+        hoverHapticCheckRunnable = Runnable {
+            if (!active || sessionPanelMode != OverlayPanelMode.NONE || sessionMoveTimeActionFired) return@Runnable
+            pathRecognizer.onTouchMove(lastRawX, lastRawY)
+            syncPathHaptics(lastRawX, lastRawY)
+        }
     }
 
     fun applySettings(newSettings: AppSettings) {
         sessionSettings = newSettings
         indexSession.applySettings(newSettings)
         pathRecognizer.applyAngles(newSettings.gestureAngles)
+        pathRecognizer.applyHoverSettings(
+            durationMs = newSettings.swipeHoverDurationMs.toLong(),
+            inwardCompoundEnabled = newSettings.inwardHoverCompoundEnabled,
+        )
         applyActiveHandleDistances()
     }
 
@@ -295,20 +310,19 @@ class GestureSession(
         if (sessionMoveTimeActionFired) return
 
         pathRecognizer.onTouchMove(rawX, rawY)
-
-        if (!pathRecognizer.longPressEligible()) {
-            callbacks.cancelDelayed(longPressCheckRunnable)
-        }
-
-        thresholdTracker.maybeHapticLongPress(rawX, rawY)
-        thresholdTracker.trackDistanceHaptics(rawX, rawY)
+        syncPathHaptics(rawX, rawY)
 
         val classification = pathRecognizer.classifyPartial(rawX, rawY, classifyOptions()) ?: return
 
         when (sessionSettings.resolvedTriggerMode(side, classification.trigger, sessionActiveHandleId)) {
             GestureTriggerMode.IMMEDIATE -> {
                 if (!sessionMoveTimeActionFired &&
-                    pathRecognizer.hasMetThreshold(classification.trigger, rawX, rawY)
+                    pathRecognizer.hasMetThreshold(
+                        classification.trigger,
+                        rawX,
+                        rawY,
+                        classifyOptions(),
+                    )
                 ) {
                     dispatchMoveTimeGesture(classification, rawX, rawY, localX, localY)
                 }
@@ -392,7 +406,8 @@ class GestureSession(
                     return
                 }
 
-                thresholdTracker.maybeHapticLongPress(rawX, rawY)
+                pathRecognizer.onTouchMove(rawX, rawY)
+                syncPathHaptics(rawX, rawY)
 
                 val gestureStartRawY = pathRecognizer.gestureStartRawY()
                 val classification = pathRecognizer.classifyOnUp(rawX, rawY, classifyOptions()) ?: run {
@@ -402,6 +417,9 @@ class GestureSession(
 
                 val mode = sessionSettings.resolvedTriggerMode(side, classification.trigger, sessionActiveHandleId)
                 if (mode == GestureTriggerMode.IMMEDIATE) {
+                    if (!sessionMoveTimeActionFired) {
+                        dispatchMoveTimeGesture(classification, rawX, rawY, localX, localY)
+                    }
                     endSession()
                     return
                 }
@@ -525,6 +543,7 @@ class GestureSession(
         sessionQuickLauncherPanelId = ""
 
         callbacks.cancelDelayed(longPressCheckRunnable)
+        callbacks.cancelDelayed(hoverHapticCheckRunnable)
         actionExecutor.endContinuousAdjust()
         pathRecognizer.reset()
         indexSession.endSession()
@@ -555,6 +574,24 @@ class GestureSession(
                 sessionSettings.actionFor(side, trigger, sessionActiveHandleId) !is GestureAction.None
             },
         )
+    }
+
+    private fun syncPathHaptics(rawX: Float, rawY: Float) {
+        if (!pathRecognizer.longPressEligible()) {
+            callbacks.cancelDelayed(longPressCheckRunnable)
+        }
+        thresholdTracker.maybeHapticLongPress(rawX, rawY)
+        thresholdTracker.trackDistanceHaptics(rawX, rawY)
+        scheduleHoverHapticIfNeeded()
+    }
+
+    private fun scheduleHoverHapticIfNeeded() {
+        callbacks.cancelDelayed(hoverHapticCheckRunnable)
+        if (pathRecognizer.isHoverSatisfied()) return
+        val hoverTrigger = pathRecognizer.activeHoverTrigger() ?: return
+        if (sessionSettings.actionFor(side, hoverTrigger, sessionActiveHandleId) is GestureAction.None) return
+        val remaining = pathRecognizer.hoverHoldRemainingMs() ?: return
+        callbacks.scheduleDelayed(hoverHapticCheckRunnable, remaining)
     }
 
     internal fun enterAdjustMode(mode: ContinuousAdjustController.Mode, rawY: Float) {

@@ -126,12 +126,22 @@ private enum class TriggerDirectionKind {
 }
 
 private fun GestureTriggerType.directionKind(): TriggerDirectionKind? = when (this) {
-    GestureTriggerType.SHORT_SWIPE_IN, GestureTriggerType.LONG_SWIPE_IN -> TriggerDirectionKind.In
+    GestureTriggerType.SHORT_SWIPE_IN, GestureTriggerType.LONG_SWIPE_IN,
+    GestureTriggerType.SHORT_SWIPE_IN_HOVER,
+    -> TriggerDirectionKind.In
     GestureTriggerType.SHORT_SWIPE_IN_AND_BACK -> TriggerDirectionKind.InReturn
-    GestureTriggerType.SHORT_SWIPE_UP_RIGHT, GestureTriggerType.LONG_SWIPE_UP_RIGHT -> TriggerDirectionKind.UpRight
-    GestureTriggerType.SHORT_SWIPE_DOWN_RIGHT, GestureTriggerType.LONG_SWIPE_DOWN_RIGHT -> TriggerDirectionKind.DownRight
-    GestureTriggerType.SHORT_SWIPE_UP, GestureTriggerType.LONG_SWIPE_UP -> TriggerDirectionKind.Up
-    GestureTriggerType.SHORT_SWIPE_DOWN, GestureTriggerType.LONG_SWIPE_DOWN -> TriggerDirectionKind.Down
+    GestureTriggerType.SHORT_SWIPE_UP_RIGHT, GestureTriggerType.LONG_SWIPE_UP_RIGHT,
+    GestureTriggerType.SHORT_SWIPE_UP_RIGHT_HOVER,
+    -> TriggerDirectionKind.UpRight
+    GestureTriggerType.SHORT_SWIPE_DOWN_RIGHT, GestureTriggerType.LONG_SWIPE_DOWN_RIGHT,
+    GestureTriggerType.SHORT_SWIPE_DOWN_RIGHT_HOVER,
+    -> TriggerDirectionKind.DownRight
+    GestureTriggerType.SHORT_SWIPE_UP, GestureTriggerType.LONG_SWIPE_UP,
+    GestureTriggerType.SHORT_SWIPE_UP_HOVER,
+    -> TriggerDirectionKind.Up
+    GestureTriggerType.SHORT_SWIPE_DOWN, GestureTriggerType.LONG_SWIPE_DOWN,
+    GestureTriggerType.SHORT_SWIPE_DOWN_HOVER,
+    -> TriggerDirectionKind.Down
     GestureTriggerType.SHORT_SWIPE_IN_UP, GestureTriggerType.LONG_SWIPE_IN_UP -> TriggerDirectionKind.InUp
     GestureTriggerType.SHORT_SWIPE_IN_DOWN, GestureTriggerType.LONG_SWIPE_IN_DOWN -> TriggerDirectionKind.InDown
     else -> null

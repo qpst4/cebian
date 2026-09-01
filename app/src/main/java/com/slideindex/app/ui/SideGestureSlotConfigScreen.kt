@@ -640,6 +640,37 @@ fun triggerLabel(side: PanelSide, trigger: GestureTriggerType): String = stringR
 
         GestureTriggerType.LONG_SINGLE_TAP -> R.string.gesture_long_single_tap
 
+        GestureTriggerType.SHORT_SWIPE_IN_HOVER -> when (side) {
+            PanelSide.LEFT -> R.string.gesture_swipe_in_hover_left
+            PanelSide.RIGHT -> R.string.gesture_swipe_in_hover_right
+            PanelSide.BOTTOM -> R.string.gesture_swipe_in_hover_bottom
+            PanelSide.TOP -> R.string.gesture_swipe_in_hover_top
+        }
+
+        GestureTriggerType.SHORT_SWIPE_UP_RIGHT_HOVER -> when (side) {
+            PanelSide.LEFT -> R.string.gesture_swipe_up_right_hover_on_left
+            PanelSide.RIGHT -> R.string.gesture_swipe_up_left_hover_on_right
+            PanelSide.BOTTOM -> R.string.gesture_swipe_up_left_hover_on_bottom
+            PanelSide.TOP -> R.string.gesture_swipe_up_left_hover_on_top
+        }
+
+        GestureTriggerType.SHORT_SWIPE_DOWN_RIGHT_HOVER -> when (side) {
+            PanelSide.LEFT -> R.string.gesture_swipe_down_right_hover_on_left
+            PanelSide.RIGHT -> R.string.gesture_swipe_down_left_hover_on_right
+            PanelSide.BOTTOM -> R.string.gesture_swipe_down_right_hover_on_bottom
+            PanelSide.TOP -> R.string.gesture_swipe_down_right_hover_on_top
+        }
+
+        GestureTriggerType.SHORT_SWIPE_UP_HOVER -> when (side) {
+            PanelSide.BOTTOM, PanelSide.TOP -> R.string.gesture_short_swipe_left_hover
+            else -> R.string.gesture_short_swipe_up_hover
+        }
+
+        GestureTriggerType.SHORT_SWIPE_DOWN_HOVER -> when (side) {
+            PanelSide.BOTTOM, PanelSide.TOP -> R.string.gesture_short_swipe_right_hover
+            else -> R.string.gesture_short_swipe_down_hover
+        }
+
     },
 
 )

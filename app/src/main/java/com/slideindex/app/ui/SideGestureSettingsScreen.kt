@@ -65,6 +65,8 @@ import com.slideindex.app.overlay.PanelSide
 
 import com.slideindex.app.settings.AppSettings
 
+import com.slideindex.app.settings.SwipeHoverDurationLimits
+
 import com.slideindex.app.ui.miuix.CardItem
 
 import com.slideindex.app.ui.miuix.groupedCardItems
@@ -74,6 +76,7 @@ import com.slideindex.app.ui.settings.components.SettingsCardScope
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
+import kotlin.math.roundToInt
 
 
 
@@ -102,6 +105,10 @@ fun SideGestureSettingsScreen(
     onOpenSlotConfig: (GestureTriggerType) -> Unit,
 
     onAlignOppositeGesturesChange: (enabled: Boolean, mirrorSourceSide: PanelSide?) -> Unit = { _, _ -> },
+
+    onSwipeHoverDurationChange: (Int) -> Unit = {},
+
+    onInwardHoverCompoundChange: (Boolean) -> Unit = {},
 
     onPreviewStart: () -> Unit = {},
 
@@ -225,6 +232,22 @@ fun SideGestureSettingsScreen(
 
     )
 
+    val hoverItems = sideGestureSlotCardItems(
+
+        settings = settings,
+
+        slotSide = slotSide,
+
+        handleId = handleId,
+
+        side = side,
+
+        triggers = GestureTriggerType.hoverSwipeEntries(),
+
+        onOpenSlotConfig = onOpenSlotConfig,
+
+    )
+
 
 
     val behaviorSectionTitle = stringResource(R.string.side_gestures_behavior_section)
@@ -232,6 +255,8 @@ fun SideGestureSettingsScreen(
     val shortDistanceSectionTitle = stringResource(R.string.side_gestures_short_distance)
 
     val pressTapSectionTitle = stringResource(R.string.side_gestures_press_tap)
+
+    val hoverSectionTitle = stringResource(R.string.side_gestures_hover)
 
     val longDistanceSectionTitle = stringResource(R.string.side_gestures_long_distance)
 
@@ -365,6 +390,60 @@ fun SideGestureSettingsScreen(
 
                 }
 
+                add(
+
+                    settingsCardScopeItem("swipe-hover-duration") {
+
+                        SettingsSliderRow(
+
+                            title = stringResource(R.string.side_gestures_hover_duration),
+
+                            value = settings.swipeHoverDurationMs.toFloat(),
+
+                            valueRange = SwipeHoverDurationLimits.MIN_MS.toFloat()..SwipeHoverDurationLimits.MAX_MS.toFloat(),
+
+                            steps = (SwipeHoverDurationLimits.MAX_MS - SwipeHoverDurationLimits.MIN_MS) / 10,
+
+                            enabled = serviceEnabled,
+
+                            label = stringResource(
+
+                                R.string.side_gestures_hover_duration_value,
+
+                                settings.swipeHoverDurationMs,
+
+                            ),
+
+                            onValueChange = { onSwipeHoverDurationChange(it.roundToInt()) },
+
+                        )
+
+                    },
+
+                )
+
+                add(
+
+                    settingsCardScopeItem("inward-hover-compound") {
+
+                        SettingSwitchRow(
+
+                            title = stringResource(R.string.side_gestures_inward_hover_compound),
+
+                            subtitle = stringResource(R.string.side_gestures_inward_hover_compound_desc),
+
+                            checked = settings.inwardHoverCompoundEnabled,
+
+                            enabled = serviceEnabled,
+
+                            onCheckedChange = onInwardHoverCompoundChange,
+
+                        )
+
+                    },
+
+                )
+
             },
 
         )
@@ -392,6 +471,18 @@ fun SideGestureSettingsScreen(
         )
 
         groupedCardItems("side-gesture-press-tap", pressTapItems)
+
+        settingsLazySmallTitle(
+
+            key = "section-hover",
+
+            title = hoverSectionTitle,
+
+            sectionTop = true,
+
+        )
+
+        groupedCardItems("side-gesture-hover", hoverItems)
 
         settingsLazySmallTitle(
 

@@ -7,13 +7,22 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.robolectric.shadows.ShadowSystemClock
+import java.util.concurrent.TimeUnit
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [30])
+@Config(sdk = [30], instrumentedPackages = ["com.slideindex.app.gesture"])
 class SwipePathRecognizerTest {
 
     private val leftStrip = RectF(0f, 0f, 20f, 2000f)
     private val rightStrip = RectF(180f, 0f, 200f, 2000f)
+
+    private fun hoverConfiguredOptions(): SwipePathRecognizer.ClassifyOptions =
+        SwipePathRecognizer.ClassifyOptions(
+            isTriggerConfigured = { trigger ->
+                trigger.isHoverSwipe || trigger == GestureTriggerType.SHORT_SWIPE_IN
+            },
+        )
 
     @Test
     fun classifyOnUp_leftPanelInwardSwipe_returnsShortSwipeIn() {
@@ -65,7 +74,7 @@ class SwipePathRecognizerTest {
         recognizer.onTouchDown(0f, 100f, leftStrip)
         recognizer.onTouchMove(80f, 100f) // Swiped inward first (inward >= 60dp)
         recognizer.onTouchMove(80f, 60f) // Then turned upward (dy = -40dp, |dy| >= 32dp)
-        val result = recognizer.classifyOnUp(80f, 60f)
+        val result = recognizer.classifyOnUp(80f, 55f)
 
         assertEquals(GestureTriggerType.SHORT_SWIPE_IN_UP, result?.trigger)
     }
@@ -78,8 +87,8 @@ class SwipePathRecognizerTest {
 
         recognizer.onTouchDown(0f, 100f, leftStrip)
         recognizer.onTouchMove(80f, 100f) // Swiped inward first
-        recognizer.onTouchMove(80f, 140f) // Then turned downward (dy = +40dp)
-        val result = recognizer.classifyOnUp(80f, 140f)
+        recognizer.onTouchMove(80f, 140f) // Then turned downward
+        val result = recognizer.classifyOnUp(80f, 170f)
 
         assertEquals(GestureTriggerType.SHORT_SWIPE_IN_DOWN, result?.trigger)
     }
@@ -113,7 +122,7 @@ class SwipePathRecognizerTest {
                     trigger != GestureTriggerType.LONG_SWIPE_IN_UP
             },
         )
-        val result = recognizer.classifyOnUp(80f, 60f, unconfiguredOptions)
+        val result = recognizer.classifyOnUp(80f, 55f, unconfiguredOptions)
 
         assertEquals(GestureTriggerType.SHORT_SWIPE_UP_RIGHT, result?.trigger)
     }
@@ -175,6 +184,57 @@ class SwipePathRecognizerTest {
     }
 
     @Test
+    fun classifyOnUp_leftPanelInwardWithSlightDownDrift_staysShortSwipeIn() {
+        val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
+        recognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        recognizer.applyAngles(GestureAngles())
+
+        recognizer.onTouchDown(0f, 100f, leftStrip)
+        recognizer.onTouchMove(40f, 120f)
+        val result = recognizer.classifyOnUp(80f, 140f)
+
+        assertEquals(GestureTriggerType.SHORT_SWIPE_IN, result?.trigger)
+    }
+
+    @Test
+    fun classifyOnUp_leftPanelInwardWithDownDriftExceedingTurnSlop_staysShortSwipeIn() {
+        val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
+        recognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        recognizer.applyAngles(GestureAngles())
+
+        recognizer.onTouchDown(0f, 100f, leftStrip)
+        val result = recognizer.classifyOnUp(100f, 135f)
+
+        assertEquals(GestureTriggerType.SHORT_SWIPE_IN, result?.trigger)
+    }
+
+    @Test
+    fun classifyOnUp_leftPanelInwardThenDownWhileOverallStillIn_staysShortSwipeIn() {
+        val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
+        recognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        recognizer.applyAngles(GestureAngles())
+
+        recognizer.onTouchDown(0f, 100f, leftStrip)
+        recognizer.onTouchMove(80f, 100f)
+        val result = recognizer.classifyOnUp(80f, 140f)
+
+        assertEquals(GestureTriggerType.SHORT_SWIPE_IN, result?.trigger)
+    }
+
+    @Test
+    fun classifyOnUp_leftPanelHorizontalThenDownWithoutLeavingInSector_staysShortSwipeIn() {
+        val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
+        recognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        recognizer.applyAngles(GestureAngles())
+
+        recognizer.onTouchDown(0f, 100f, leftStrip)
+        recognizer.onTouchMove(90f, 100f)
+        val result = recognizer.classifyOnUp(100f, 135f)
+
+        assertEquals(GestureTriggerType.SHORT_SWIPE_IN, result?.trigger)
+    }
+
+    @Test
     fun classifyPartial_leftPanelSwipeInAndBack_returnsShortSwipeInAndBackEvenNearEdge() {
         val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
         recognizer.applyDistances(shortDp = 60f, longDp = 120f)
@@ -186,5 +246,180 @@ class SwipePathRecognizerTest {
 
         val partialResult = recognizer.classifyPartial(20f, 100f)
         assertEquals(GestureTriggerType.SHORT_SWIPE_IN_AND_BACK, partialResult?.trigger)
+    }
+
+    @Test
+    fun classifyOnUp_leftPanelInwardHold_returnsShortSwipeInHover() {
+        val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
+        recognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        recognizer.applyAngles(GestureAngles())
+        recognizer.applyHoverSettings(durationMs = 250L, inwardCompoundEnabled = true)
+
+        recognizer.onTouchDown(0f, 100f, leftStrip)
+        recognizer.onTouchMove(80f, 100f)
+        ShadowSystemClock.advanceBy(300L, TimeUnit.MILLISECONDS)
+        val result = recognizer.classifyOnUp(80f, 100f, hoverConfiguredOptions())
+
+        assertEquals(GestureTriggerType.SHORT_SWIPE_IN_HOVER, result?.trigger)
+    }
+
+    @Test
+    fun classifyOnUp_leftPanelInwardHoldThenLongSwipe_cancelsHover() {
+        val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
+        recognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        recognizer.applyAngles(GestureAngles())
+        recognizer.applyHoverSettings(durationMs = 250L, inwardCompoundEnabled = true)
+
+        recognizer.onTouchDown(0f, 100f, leftStrip)
+        recognizer.onTouchMove(80f, 100f)
+        ShadowSystemClock.advanceBy(300L, TimeUnit.MILLISECONDS)
+        recognizer.onTouchMove(80f, 100f)
+        recognizer.onTouchMove(130f, 100f)
+        val result = recognizer.classifyOnUp(130f, 100f)
+
+        assertEquals(GestureTriggerType.LONG_SWIPE_IN, result?.trigger)
+    }
+
+    @Test
+    fun classifyOnUp_leftPanelInwardHoverThenUp_returnsShortSwipeInUp() {
+        val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
+        recognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        recognizer.applyAngles(GestureAngles())
+        recognizer.applyHoverSettings(durationMs = 250L, inwardCompoundEnabled = true)
+
+        recognizer.onTouchDown(0f, 100f, leftStrip)
+        recognizer.onTouchMove(80f, 100f)
+        ShadowSystemClock.advanceBy(300L, TimeUnit.MILLISECONDS)
+        recognizer.onTouchMove(80f, 100f)
+        recognizer.onTouchMove(80f, 60f)
+        val result = recognizer.classifyOnUp(80f, 55f)
+
+        assertEquals(GestureTriggerType.SHORT_SWIPE_IN_UP, result?.trigger)
+    }
+
+    @Test
+    fun classifyOnUp_leftPanelInwardHoldWithMovement_cancelsHover() {
+        val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
+        recognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        recognizer.applyAngles(GestureAngles())
+        recognizer.applyHoverSettings(durationMs = 250L, inwardCompoundEnabled = false)
+
+        recognizer.onTouchDown(0f, 100f, leftStrip)
+        recognizer.onTouchMove(80f, 100f)
+        recognizer.onTouchMove(95f, 100f)
+        ShadowSystemClock.advanceBy(300L, TimeUnit.MILLISECONDS)
+        recognizer.onTouchMove(95f, 100f)
+        val result = recognizer.classifyOnUp(95f, 100f)
+
+        assertEquals(GestureTriggerType.SHORT_SWIPE_IN, result?.trigger)
+    }
+
+    @Test
+    fun classifyOnUp_leftPanelDiagonalHold_returnsShortSwipeUpRightHover() {
+        val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
+        recognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        recognizer.applyAngles(GestureAngles())
+        recognizer.applyHoverSettings(durationMs = 250L, inwardCompoundEnabled = false)
+
+        recognizer.onTouchDown(0f, 100f, leftStrip)
+        recognizer.onTouchMove(80f, 20f)
+        ShadowSystemClock.advanceBy(300L, TimeUnit.MILLISECONDS)
+        val result = recognizer.classifyOnUp(80f, 20f, hoverConfiguredOptions())
+
+        assertEquals(GestureTriggerType.SHORT_SWIPE_UP_RIGHT_HOVER, result?.trigger)
+    }
+
+    @Test
+    fun classifyPartial_leftPanelInwardHoldWithHoverConfigured_defersShortSwipe() {
+        val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
+        recognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        recognizer.applyAngles(GestureAngles())
+        recognizer.applyHoverSettings(durationMs = 250L, inwardCompoundEnabled = true)
+
+        recognizer.onTouchDown(0f, 100f, leftStrip)
+        recognizer.onTouchMove(80f, 100f)
+
+        val partial = recognizer.classifyPartial(80f, 100f, hoverConfiguredOptions())
+        assertEquals(null, partial?.trigger)
+    }
+
+    @Test
+    fun classifyOnUp_continuousInwardSwipeThenHold_returnsShortSwipeInHover() {
+        val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
+        recognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        recognizer.applyAngles(GestureAngles())
+        recognizer.applyHoverSettings(durationMs = 250L, inwardCompoundEnabled = true)
+
+        recognizer.onTouchDown(0f, 100f, leftStrip)
+        recognizer.onTouchMove(40f, 100f)
+        recognizer.onTouchMove(80f, 100f)
+        ShadowSystemClock.advanceBy(300L, TimeUnit.MILLISECONDS)
+        val result = recognizer.classifyOnUp(80f, 100f, hoverConfiguredOptions())
+
+        assertEquals(GestureTriggerType.SHORT_SWIPE_IN_HOVER, result?.trigger)
+    }
+
+    @Test
+    fun classifyPartial_continuousInwardSwipeWithHoverConfigured_defersShortSwipe() {
+        val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
+        recognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        recognizer.applyAngles(GestureAngles())
+        recognizer.applyHoverSettings(durationMs = 250L, inwardCompoundEnabled = true)
+
+        recognizer.onTouchDown(0f, 100f, leftStrip)
+        recognizer.onTouchMove(40f, 100f)
+        recognizer.onTouchMove(80f, 100f)
+
+        val partial = recognizer.classifyPartial(80f, 100f, hoverConfiguredOptions())
+        assertEquals(null, partial?.trigger)
+    }
+
+    @Test
+    fun classifyOnUp_leftPanelInwardHoldWithHoverConfigured_returnsHoverNotShortSwipe() {
+        val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
+        recognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        recognizer.applyAngles(GestureAngles())
+        recognizer.applyHoverSettings(durationMs = 250L, inwardCompoundEnabled = false)
+
+        recognizer.onTouchDown(0f, 100f, leftStrip)
+        recognizer.onTouchMove(80f, 100f)
+        ShadowSystemClock.advanceBy(300L, TimeUnit.MILLISECONDS)
+        val result = recognizer.classifyOnUp(80f, 100f, hoverConfiguredOptions())
+
+        assertEquals(GestureTriggerType.SHORT_SWIPE_IN_HOVER, result?.trigger)
+    }
+
+    @Test
+    fun classifyOnUp_hoverHoldWithSmallDirectionJitter_stillReturnsHover() {
+        val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
+        recognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        recognizer.applyAngles(GestureAngles())
+        recognizer.applyHoverSettings(durationMs = 250L, inwardCompoundEnabled = false)
+
+        recognizer.onTouchDown(0f, 100f, leftStrip)
+        recognizer.onTouchMove(80f, 100f)
+        ShadowSystemClock.advanceBy(200L, TimeUnit.MILLISECONDS)
+        recognizer.onTouchMove(84f, 100f)
+        ShadowSystemClock.advanceBy(100L, TimeUnit.MILLISECONDS)
+        val result = recognizer.classifyOnUp(84f, 100f, hoverConfiguredOptions())
+
+        assertEquals(GestureTriggerType.SHORT_SWIPE_IN_HOVER, result?.trigger)
+    }
+
+    @Test
+    fun classifyOnUp_hoverHoldWithLargeDirectionProgress_resetsTimer() {
+        val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
+        recognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        recognizer.applyAngles(GestureAngles())
+        recognizer.applyHoverSettings(durationMs = 250L, inwardCompoundEnabled = false)
+
+        recognizer.onTouchDown(0f, 100f, leftStrip)
+        recognizer.onTouchMove(80f, 100f)
+        ShadowSystemClock.advanceBy(200L, TimeUnit.MILLISECONDS)
+        recognizer.onTouchMove(95f, 100f)
+        ShadowSystemClock.advanceBy(200L, TimeUnit.MILLISECONDS)
+        val result = recognizer.classifyOnUp(95f, 100f, hoverConfiguredOptions())
+
+        assertEquals(GestureTriggerType.SHORT_SWIPE_IN, result?.trigger)
     }
 }

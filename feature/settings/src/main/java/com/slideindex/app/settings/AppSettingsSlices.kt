@@ -62,6 +62,8 @@ data class EdgeTriggerSettings(
     val gestureHintStyleId: Int = GestureHintStyle.BUBBLE.id,
     /** 手势动画相对手指的垂直偏移（dp）；0 为贴在手指高度，增大则远离指腹（侧/底向上，顶向下）。 */
     val gestureHintFingerOffsetDp: Float = 0f,
+    val swipeHoverDurationMs: Int = 250,
+    val inwardHoverCompoundEnabled: Boolean = true,
     val animationStyles: AnimationStyles = AnimationStyles(),
     val gestureAngles: GestureAngles = GestureAngles(),
 )

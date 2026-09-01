@@ -188,6 +188,8 @@ class SettingsRepository @Inject constructor(
     suspend fun setGestureHintEnabled(enabled: Boolean) = edge.setGestureHintEnabled(enabled)
     suspend fun setGestureHintStyle(style: GestureHintStyle) = edge.setGestureHintStyle(style)
     suspend fun setGestureHintFingerOffsetDp(value: Float) = edge.setGestureHintFingerOffsetDp(value)
+    suspend fun setSwipeHoverDurationMs(value: Int) = edge.setSwipeHoverDurationMs(value)
+    suspend fun setInwardHoverCompoundEnabled(enabled: Boolean) = edge.setInwardHoverCompoundEnabled(enabled)
     suspend fun setAnimationStyles(styles: AnimationStyles) = edge.setAnimationStyles(styles)
     suspend fun updateWaveStyle(style: WaveStyle) = edge.updateWaveStyle(style)
     suspend fun updateCapsuleStyle(style: CapsuleStyle) = edge.updateCapsuleStyle(style)

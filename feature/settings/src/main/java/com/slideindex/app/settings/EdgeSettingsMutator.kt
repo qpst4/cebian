@@ -361,6 +361,18 @@ class EdgeSettingsMutator @Inject constructor(
         it[SettingsPreferenceKeys.GESTURE_HINT_FINGER_OFFSET_DP] = value
     }
 
+    suspend fun setSwipeHoverDurationMs(value: Int) = editor.edit {
+        it[SettingsPreferenceKeys.SWIPE_HOVER_DURATION_MS] =
+            value.coerceIn(
+                SwipeHoverDurationLimits.MIN_MS,
+                SwipeHoverDurationLimits.MAX_MS,
+            )
+    }
+
+    suspend fun setInwardHoverCompoundEnabled(enabled: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.INWARD_HOVER_COMPOUND_ENABLED] = enabled
+    }
+
     suspend fun setAnimationStyles(styles: AnimationStyles) = editor.edit {
         it[SettingsPreferenceKeys.ANIMATION_STYLES] = AnimationStyleCodec.encode(styles)
     }

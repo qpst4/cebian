@@ -259,6 +259,14 @@ class HomeDetailSettingsViewModel @Inject constructor(
         settingsRepository.setLongSwipeDistanceDp(side, handleId, value, landscapeEditing())
     }
 
+    fun setSwipeHoverDurationMs(value: Int) = launchSettingsWrite {
+        settingsRepository.setSwipeHoverDurationMs(value)
+    }
+
+    fun setInwardHoverCompoundEnabled(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setInwardHoverCompoundEnabled(enabled)
+    }
+
     fun setEdgeTriggerWidthDp(side: PanelSide, value: Float) = launchSettingsWrite {
         settingsRepository.setEdgeTriggerWidthDp(side, value)
     }

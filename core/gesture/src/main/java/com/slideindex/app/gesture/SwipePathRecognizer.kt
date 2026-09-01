@@ -47,6 +47,23 @@ class SwipePathRecognizer(
     private var lastRawX = 0f
     private var lastRawY = 0f
     private var inwardReachedShortThreshold = false
+    private var shortThresholdAnchorX = 0f
+    private var shortThresholdAnchorY = 0f
+    private var hasShortThresholdAnchor = false
+    private var shortThresholdDirection: SwipeDirection? = null
+    private var hoverAnchorX = 0f
+    private var hoverAnchorY = 0f
+    private var hoverHoldStartMs = 0L
+    private var hoverPeakDirectionDistance = 0f
+    private var hoverTracking = false
+    private var hoverSatisfied = false
+    private var hoverCancelled = false
+    private var hoverJustSatisfied = false
+    private var compoundAnchorX = 0f
+    private var compoundAnchorY = 0f
+    private var compoundModeArmed = false
+    private var hoverDurationMs = DEFAULT_HOVER_DURATION_MS
+    private var inwardHoverCompoundEnabled = true
 
     fun applyDistances(shortDp: Float, longDp: Float) {
         shortDistanceDp = shortDp.coerceIn(0f, MAX_DISTANCE_DP)
@@ -62,6 +79,11 @@ class SwipePathRecognizer(
         gestureAngle = angles.forSide(side)
     }
 
+    fun applyHoverSettings(durationMs: Long, inwardCompoundEnabled: Boolean) {
+        hoverDurationMs = durationMs.coerceIn(HOVER_DURATION_MIN_MS, HOVER_DURATION_MAX_MS)
+        inwardHoverCompoundEnabled = inwardCompoundEnabled
+    }
+
     fun onTouchDown(rawX: Float, rawY: Float, bounds: RectF) {
         stripBounds = RectF(bounds)
         startRawX = rawX
@@ -75,7 +97,26 @@ class SwipePathRecognizer(
         peakInward = 0f
         peakSwipeDistance = 0f
         peakDy = 0f
+        resetHoverState()
+    }
+
+    private fun resetHoverState() {
         inwardReachedShortThreshold = false
+        shortThresholdAnchorX = 0f
+        shortThresholdAnchorY = 0f
+        hasShortThresholdAnchor = false
+        shortThresholdDirection = null
+        hoverAnchorX = 0f
+        hoverAnchorY = 0f
+        hoverHoldStartMs = 0L
+        hoverPeakDirectionDistance = 0f
+        hoverTracking = false
+        hoverSatisfied = false
+        hoverCancelled = false
+        hoverJustSatisfied = false
+        compoundAnchorX = 0f
+        compoundAnchorY = 0f
+        compoundModeArmed = false
     }
 
     fun gestureStartRawX(): Float = startRawX
@@ -101,6 +142,7 @@ class SwipePathRecognizer(
         peakInward = 0f
         peakSwipeDistance = 0f
         peakDy = 0f
+        resetHoverState()
     }
 
     fun gestureDistance(rawX: Float, rawY: Float): Float {
@@ -139,6 +181,11 @@ class SwipePathRecognizer(
         val inward = inwardDelta(dx, dy)
         val resolvedDir = resolveDirectionAt(rawX, rawY)
         if (resolvedDir == SwipeDirection.IN && inward >= shortDistanceDp * density) {
+            if (!inwardReachedShortThreshold) {
+                shortThresholdAnchorX = rawX
+                shortThresholdAnchorY = rawY
+                hasShortThresholdAnchor = true
+            }
             inwardReachedShortThreshold = true
         }
         val swipeDist = resolvedDir?.let { direction ->
@@ -151,11 +198,123 @@ class SwipePathRecognizer(
         } else {
             peakInward = maxOf(peakInward, inward)
         }
-        if (movedBeyondLongPressSlop) return
         val dist = hypot(dx.toDouble(), dy.toDouble()).toFloat()
-        if (dist >= TAP_SLOP_DP * density) {
+        if (!movedBeyondLongPressSlop && dist >= TAP_SLOP_DP * density) {
             movedBeyondLongPressSlop = true
         }
+        updateHoverState(rawX, rawY, resolvedDir, swipeDist)
+    }
+
+    private fun updateHoverState(
+        rawX: Float,
+        rawY: Float,
+        resolvedDir: SwipeDirection?,
+        swipeDist: Float,
+    ) {
+        val shortPx = shortDistanceDp * density
+        val longPx = longDistanceDp * density
+
+        if (resolvedDir != null && swipeDist >= shortPx && shortThresholdDirection == null) {
+            shortThresholdDirection = resolvedDir
+            hoverAnchorX = rawX
+            hoverAnchorY = rawY
+            hoverPeakDirectionDistance = measureDistanceForDirection(rawX, rawY, resolvedDir)
+            hoverHoldStartMs = 0L
+            hoverTracking = true
+        }
+
+        if (hoverCancelled || !hoverTracking || shortThresholdDirection == null) return
+
+        val directionDistance = measureDistanceForDirection(rawX, rawY, shortThresholdDirection)
+        if (directionDistance >= longPx) {
+            cancelHover()
+            return
+        }
+
+        if (compoundModeArmed) {
+            return
+        }
+
+        if (!hoverSatisfied) {
+            if (directionDistance > hoverPeakDirectionDistance + DIRECTION_PROGRESS_EPSILON_DP * density) {
+                val advanced = directionDistance - hoverPeakDirectionDistance
+                hoverPeakDirectionDistance = directionDistance
+                hoverAnchorX = rawX
+                hoverAnchorY = rawY
+                if (hoverHoldStartMs == 0L || advanced >= HOVER_HOLD_RESET_DP * density) {
+                    hoverHoldStartMs = 0L
+                    return
+                }
+            }
+
+            val anchorDist = hypot(
+                (rawX - hoverAnchorX).toDouble(),
+                (rawY - hoverAnchorY).toDouble(),
+            ).toFloat()
+            if (anchorDist >= HOVER_SLOP_DP * density) {
+                cancelHover()
+                return
+            }
+
+            val now = System.currentTimeMillis()
+            if (hoverHoldStartMs == 0L) {
+                hoverHoldStartMs = now
+            }
+            if (now - hoverHoldStartMs < hoverDurationMs) return
+
+            hoverSatisfied = true
+            hoverJustSatisfied = true
+            compoundAnchorX = rawX
+            compoundAnchorY = rawY
+            if (shortThresholdDirection == SwipeDirection.IN && inwardHoverCompoundEnabled) {
+                compoundModeArmed = true
+            }
+            return
+        }
+
+        val anchorDist = hypot(
+            (rawX - compoundAnchorX).toDouble(),
+            (rawY - compoundAnchorY).toDouble(),
+        ).toFloat()
+        if (anchorDist >= HOVER_SLOP_DP * density) {
+            cancelHover()
+        }
+    }
+
+    private fun cancelHover() {
+        hoverCancelled = true
+        hoverTracking = false
+        hoverSatisfied = false
+        compoundModeArmed = false
+    }
+
+    fun consumeHoverJustSatisfied(): Boolean {
+        if (!hoverJustSatisfied) return false
+        hoverJustSatisfied = false
+        return true
+    }
+
+    fun activeHoverTrigger(): GestureTriggerType? =
+        shortThresholdDirection?.toHoverTrigger()
+
+    fun isHoverSatisfied(): Boolean = hoverSatisfied
+
+    fun hoverHoldRemainingMs(): Long? {
+        if (hoverCancelled || !hoverTracking || hoverSatisfied || compoundModeArmed) return null
+        if (shortThresholdDirection == null || hoverHoldStartMs == 0L) return null
+        val elapsed = System.currentTimeMillis() - hoverHoldStartMs
+        return (hoverDurationMs - elapsed).coerceAtLeast(0L)
+    }
+
+    fun isCompoundModeArmed(): Boolean = compoundModeArmed
+
+    private fun movedFromHoverAnchor(rawX: Float, rawY: Float): Boolean {
+        val anchorX = compoundAnchorX
+        val anchorY = compoundAnchorY
+        return hypot(
+            (rawX - anchorX).toDouble(),
+            (rawY - anchorY).toDouble(),
+        ) >= HOVER_SLOP_DP * density
     }
 
     fun swipeDistance(rawX: Float, rawY: Float): Float {
@@ -240,8 +399,18 @@ class SwipePathRecognizer(
         return classification
     }
 
-    fun hasMetThreshold(trigger: GestureTriggerType, rawX: Float, rawY: Float): Boolean {
+    fun hasMetThreshold(
+        trigger: GestureTriggerType,
+        rawX: Float,
+        rawY: Float,
+        options: ClassifyOptions = ClassifyOptions.DEFAULT,
+    ): Boolean {
         if (!tracking) return false
+        if (trigger.isHoverSwipe) return isHoverReady(rawX, rawY)
+        if (shouldDeferBaseSwipeForHover(options)) {
+            val baseTrigger = shortThresholdDirection?.toBaseShortTrigger()
+            if (trigger == baseTrigger && !hoverSatisfied) return false
+        }
         val distance = swipeDistance(rawX, rawY)
         return when {
             trigger.isLongPress -> longPressTriggered
@@ -274,7 +443,12 @@ class SwipePathRecognizer(
         peakInward = 0f
         peakSwipeDistance = 0f
         peakDy = 0f
-        inwardReachedShortThreshold = false
+        resetHoverState()
+    }
+
+    private fun isHoverReady(rawX: Float, rawY: Float): Boolean {
+        if (!hoverSatisfied || hoverCancelled || shortThresholdDirection == null) return false
+        return !movedFromHoverAnchor(rawX, rawY)
     }
 
     private fun computeClassification(
@@ -319,12 +493,12 @@ class SwipePathRecognizer(
             partial && options.preferSingleTap && distance < tapSlop -> null
             partial && distance < shortDistanceDp * density && !longPressTriggered -> {
                 if (isReturnSwipeActive(rawX, rawY)) {
-                    directionTrigger(rawX, rawY, distance, options)
+                    directionTrigger(rawX, rawY, distance, options, partial)
                 } else {
                     null
                 }
             }
-            else -> directionTrigger(rawX, rawY, distance, options)
+            else -> directionTrigger(rawX, rawY, distance, options, partial)
         }
         return trigger?.let { SwipeClassification(it, inward, dy) }
     }
@@ -353,6 +527,7 @@ class SwipePathRecognizer(
         rawY: Float,
         distance: Float,
         options: ClassifyOptions,
+        partial: Boolean,
     ): GestureTriggerType? {
         val returnSwipe = SwipePathGeometry.resolveReturnSwipeTrigger(
             side = side,
@@ -373,33 +548,56 @@ class SwipePathRecognizer(
             }
         }
 
-        val corner = SwipePathGeometry.resolveCornerSwipeTrigger(
-            side = side,
-            inwardReachedThreshold = inwardReachedShortThreshold,
-            currentInward = inwardDelta(rawX - startRawX, rawY - startRawY),
-            shortThresholdPx = shortDistanceDp * density,
-            longThresholdPx = longDistanceDp * density,
-            startX = startRawX,
-            startY = startRawY,
-            fingerX = rawX,
-            fingerY = rawY,
-            turnThresholdPx = TURN_SLOP_DP * density,
-        )
+        if (compoundModeArmed && movedFromHoverAnchor(rawX, rawY)) {
+            val compoundCorner = SwipePathGeometry.resolveCornerSwipeTrigger(
+                side = side,
+                stripBounds = stripBounds,
+                inwardReachedThreshold = true,
+                currentInward = inwardDelta(rawX - startRawX, rawY - startRawY),
+                shortThresholdPx = shortDistanceDp * density,
+                longThresholdPx = longDistanceDp * density,
+                gestureStartX = startRawX,
+                gestureStartY = startRawY,
+                anchorX = compoundAnchorX,
+                anchorY = compoundAnchorY,
+                fingerX = rawX,
+                fingerY = rawY,
+                turnThresholdPx = TURN_SLOP_DP * density,
+                angle = gestureAngle,
+            )
+            if (compoundCorner != null && isCornerConfigured(compoundCorner, options)) {
+                return compoundCorner
+            }
+        }
+
+        resolveHoverTrigger(rawX, rawY, options, partial)?.let { return it }
+
+        if (partial && shouldDeferBaseSwipeForHover(options)) {
+            return null
+        }
+
+        val corner = if (hasShortThresholdAnchor && !compoundModeArmed) {
+            SwipePathGeometry.resolveCornerSwipeTrigger(
+                side = side,
+                stripBounds = stripBounds,
+                inwardReachedThreshold = inwardReachedShortThreshold,
+                currentInward = inwardDelta(rawX - startRawX, rawY - startRawY),
+                shortThresholdPx = shortDistanceDp * density,
+                longThresholdPx = longDistanceDp * density,
+                gestureStartX = startRawX,
+                gestureStartY = startRawY,
+                anchorX = shortThresholdAnchorX,
+                anchorY = shortThresholdAnchorY,
+                fingerX = rawX,
+                fingerY = rawY,
+                turnThresholdPx = TURN_SLOP_DP * density,
+                angle = gestureAngle,
+            )
+        } else {
+            null
+        }
         if (corner != null) {
-            val filter = options.isTriggerConfigured
-            if (filter == null) {
-                return corner
-            }
-            val counterpart = when (corner) {
-                GestureTriggerType.SHORT_SWIPE_IN_UP -> GestureTriggerType.LONG_SWIPE_IN_UP
-                GestureTriggerType.LONG_SWIPE_IN_UP -> GestureTriggerType.SHORT_SWIPE_IN_UP
-                GestureTriggerType.SHORT_SWIPE_IN_DOWN -> GestureTriggerType.LONG_SWIPE_IN_DOWN
-                GestureTriggerType.LONG_SWIPE_IN_DOWN -> GestureTriggerType.SHORT_SWIPE_IN_DOWN
-                else -> null
-            }
-            val thisConfigured = filter(corner)
-            val counterpartConfigured = counterpart?.let { filter(it) } ?: false
-            if (thisConfigured || counterpartConfigured) {
+            if (isCornerConfigured(corner, options)) {
                 return corner
             }
         }
@@ -415,6 +613,49 @@ class SwipePathRecognizer(
             longThresholdPx = longDistanceDp * density,
             angle = gestureAngle,
         )
+    }
+
+    private fun isCornerConfigured(
+        corner: GestureTriggerType,
+        options: ClassifyOptions,
+    ): Boolean {
+        val filter = options.isTriggerConfigured ?: return true
+        val counterpart = when (corner) {
+            GestureTriggerType.SHORT_SWIPE_IN_UP -> GestureTriggerType.LONG_SWIPE_IN_UP
+            GestureTriggerType.LONG_SWIPE_IN_UP -> GestureTriggerType.SHORT_SWIPE_IN_UP
+            GestureTriggerType.SHORT_SWIPE_IN_DOWN -> GestureTriggerType.LONG_SWIPE_IN_DOWN
+            GestureTriggerType.LONG_SWIPE_IN_DOWN -> GestureTriggerType.SHORT_SWIPE_IN_DOWN
+            else -> null
+        }
+        return filter(corner) || (counterpart?.let { filter(it) } ?: false)
+    }
+
+    private fun isHoverSlotConfigured(options: ClassifyOptions): Boolean {
+        val hoverTrigger = shortThresholdDirection?.toHoverTrigger() ?: return false
+        val filter = options.isTriggerConfigured ?: return true
+        return filter(hoverTrigger)
+    }
+
+    private fun isHoverTrackingActive(): Boolean =
+        hoverTracking && !hoverCancelled && shortThresholdDirection != null
+
+    private fun shouldDeferBaseSwipeForHover(options: ClassifyOptions): Boolean {
+        if (!isHoverTrackingActive()) return false
+        return isHoverSlotConfigured(options)
+    }
+
+    private fun resolveHoverTrigger(
+        rawX: Float,
+        rawY: Float,
+        options: ClassifyOptions,
+        partial: Boolean,
+    ): GestureTriggerType? {
+        if (!isHoverReady(rawX, rawY)) return null
+        if (compoundModeArmed && partial) return null
+        val hoverTrigger = shortThresholdDirection?.toHoverTrigger() ?: return null
+        val filter = options.isTriggerConfigured
+        if (filter != null && !filter(hoverTrigger)) return null
+        return hoverTrigger
     }
 
     fun currentSwipeDirection(): SwipeDirection? {
@@ -489,6 +730,12 @@ class SwipePathRecognizer(
         private const val TAP_LENIENT_SLOP_DP = 36f
         const val TURN_SLOP_DP = 32f
         const val RETURN_SLOP_DP = 16f
+        const val HOVER_SLOP_DP = 12f
+        const val DIRECTION_PROGRESS_EPSILON_DP = 2f
+        const val HOVER_HOLD_RESET_DP = 8f
+        const val DEFAULT_HOVER_DURATION_MS = 250L
+        const val HOVER_DURATION_MIN_MS = 150L
+        const val HOVER_DURATION_MAX_MS = 500L
         private const val INDEX_ENTER_DP = 24f
         private const val TAP_MAX_MS = 220L
         private const val TAP_LENIENT_MAX_MS = 450L

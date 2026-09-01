@@ -119,26 +119,72 @@ internal object SwipePathGeometry {
 
     fun resolveCornerSwipeTrigger(
         side: PanelSide,
+        stripBounds: RectF,
         inwardReachedThreshold: Boolean,
         currentInward: Float,
         shortThresholdPx: Float,
         longThresholdPx: Float,
-        startX: Float,
-        startY: Float,
+        gestureStartX: Float,
+        gestureStartY: Float,
+        anchorX: Float,
+        anchorY: Float,
         fingerX: Float,
         fingerY: Float,
         turnThresholdPx: Float,
+        angle: GestureAngle,
     ): GestureTriggerType? {
         if (!inwardReachedThreshold) return null
         if (currentInward < shortThresholdPx * 0.45f) return null
-        val along = alongDelta(fingerX - startX, fingerY - startY, side)
-        if (abs(along) < turnThresholdPx) return null
-        val totalDistance = hypot(currentInward.toDouble(), along.toDouble()).toFloat()
+        val overallDirection = resolveSwipeDirection(
+            side = side,
+            stripBounds = stripBounds,
+            startX = gestureStartX,
+            startY = gestureStartY,
+            fingerX = fingerX,
+            fingerY = fingerY,
+            angle = angle,
+        ) ?: return null
+        // 整体轨迹仍在侧滑扇形内时，始终保持侧滑，不升级为 L 手势。
+        if (overallDirection == SwipeDirection.IN) return null
+        val secondSegmentDirection = resolveSwipeDirection(
+            side = side,
+            stripBounds = stripBounds,
+            startX = anchorX,
+            startY = anchorY,
+            fingerX = fingerX,
+            fingerY = fingerY,
+            angle = angle,
+        ) ?: return null
+        if (secondSegmentDirection == SwipeDirection.IN) return null
+        val secondSegmentInward = inwardDelta(fingerX - anchorX, fingerY - anchorY, side).coerceAtLeast(0f)
+        val secondSegmentAlong = alongDelta(fingerX - anchorX, fingerY - anchorY, side)
+        // 第二段须以沿边位移为主；仍在斜向推进时视为同一段侧滑/斜滑。
+        if (secondSegmentInward >= turnThresholdPx * 0.35f &&
+            abs(secondSegmentAlong) < secondSegmentInward * 1.2f
+        ) {
+            return null
+        }
+        val secondSegmentDistance = measureTriggerDistance(
+            side = side,
+            direction = secondSegmentDirection,
+            startX = anchorX,
+            startY = anchorY,
+            fingerX = fingerX,
+            fingerY = fingerY,
+            stripBounds = stripBounds,
+        )
+        if (secondSegmentDistance < turnThresholdPx) return null
+        val alongFromStart = alongDelta(fingerX - gestureStartX, fingerY - gestureStartY, side)
+        val totalDistance = hypot(currentInward.toDouble(), alongFromStart.toDouble()).toFloat()
         val isLong = currentInward >= longThresholdPx || totalDistance >= longThresholdPx
-        return if (along < 0f) {
-            if (isLong) GestureTriggerType.LONG_SWIPE_IN_UP else GestureTriggerType.SHORT_SWIPE_IN_UP
-        } else {
-            if (isLong) GestureTriggerType.LONG_SWIPE_IN_DOWN else GestureTriggerType.SHORT_SWIPE_IN_DOWN
+        return when (secondSegmentDirection) {
+            SwipeDirection.UP, SwipeDirection.UP_RIGHT -> {
+                if (isLong) GestureTriggerType.LONG_SWIPE_IN_UP else GestureTriggerType.SHORT_SWIPE_IN_UP
+            }
+            SwipeDirection.DOWN, SwipeDirection.DOWN_RIGHT -> {
+                if (isLong) GestureTriggerType.LONG_SWIPE_IN_DOWN else GestureTriggerType.SHORT_SWIPE_IN_DOWN
+            }
+            SwipeDirection.IN -> null
         }
     }
 

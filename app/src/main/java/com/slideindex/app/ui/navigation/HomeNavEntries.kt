@@ -517,6 +517,8 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
                     viewModel.setTriggerAlignOppositeGestures(key.handleId, side, false)
                 }
             },
+            onSwipeHoverDurationChange = viewModel::setSwipeHoverDurationMs,
+            onInwardHoverCompoundChange = viewModel::setInwardHoverCompoundEnabled,
         )
     }
 

@@ -204,6 +204,75 @@ class SwipePathGeometryTest {
     }
 
     @Test
+    fun resolveCornerSwipeTrigger_secondSegmentStillIn_returnsNull() {
+        val strip = RectF(0f, 0f, 20f, 2000f)
+        val trigger = SwipePathGeometry.resolveCornerSwipeTrigger(
+            side = PanelSide.LEFT,
+            stripBounds = strip,
+            inwardReachedThreshold = true,
+            currentInward = 80f,
+            shortThresholdPx = 60f,
+            longThresholdPx = 120f,
+            gestureStartX = 0f,
+            gestureStartY = 100f,
+            anchorX = 60f,
+            anchorY = 130f,
+            fingerX = 80f,
+            fingerY = 140f,
+            turnThresholdPx = 32f,
+            angle = GestureAngle.DEFAULT_LEFT,
+        )
+
+        assertNull(trigger)
+    }
+
+    @Test
+    fun resolveCornerSwipeTrigger_overallStillIn_returnsNull() {
+        val strip = RectF(0f, 0f, 20f, 2000f)
+        val trigger = SwipePathGeometry.resolveCornerSwipeTrigger(
+            side = PanelSide.LEFT,
+            stripBounds = strip,
+            inwardReachedThreshold = true,
+            currentInward = 80f,
+            shortThresholdPx = 60f,
+            longThresholdPx = 120f,
+            gestureStartX = 0f,
+            gestureStartY = 100f,
+            anchorX = 80f,
+            anchorY = 100f,
+            fingerX = 80f,
+            fingerY = 140f,
+            turnThresholdPx = 32f,
+            angle = GestureAngle.DEFAULT_LEFT,
+        )
+
+        assertNull(trigger)
+    }
+
+    @Test
+    fun resolveCornerSwipeTrigger_secondSegmentDown_returnsShortSwipeInDown() {
+        val strip = RectF(0f, 0f, 20f, 2000f)
+        val trigger = SwipePathGeometry.resolveCornerSwipeTrigger(
+            side = PanelSide.LEFT,
+            stripBounds = strip,
+            inwardReachedThreshold = true,
+            currentInward = 80f,
+            shortThresholdPx = 60f,
+            longThresholdPx = 120f,
+            gestureStartX = 0f,
+            gestureStartY = 100f,
+            anchorX = 80f,
+            anchorY = 100f,
+            fingerX = 80f,
+            fingerY = 170f,
+            turnThresholdPx = 32f,
+            angle = GestureAngle.DEFAULT_LEFT,
+        )
+
+        assertEquals(GestureTriggerType.SHORT_SWIPE_IN_DOWN, trigger)
+    }
+
+    @Test
     fun classifyOnUp_topPanelLenientTapWithHorizontalJitter_returnsSingleTap() {
         val topStrip = RectF(400f, 0f, 600f, 66f)
         val recognizer = SwipePathRecognizer(PanelSide.TOP, density = 3f)

@@ -204,4 +204,19 @@ class GestureSessionThresholdTrackerTest {
         unconfiguredTracker.trackDistanceHaptics(40f, 0f)
         assertEquals(1, gestureStartCount)
     }
+
+    @Test
+    fun trackDistanceHaptics_firesHoverHapticAfterHoldWithoutIntermediateMoves() {
+        pathRecognizer.applyHoverSettings(durationMs = 250L, inwardCompoundEnabled = true)
+        pathRecognizer.onTouchDown(0f, 100f, leftStrip)
+        pathRecognizer.onTouchMove(80f, 100f)
+        tracker.trackDistanceHaptics(80f, 100f)
+        assertEquals(1, gestureStartCount)
+
+        ShadowSystemClock.advanceBy(300L, TimeUnit.MILLISECONDS)
+        pathRecognizer.onTouchMove(80f, 100f)
+        tracker.trackDistanceHaptics(80f, 100f)
+
+        assertEquals(2, gestureStartCount)
+    }
 }
