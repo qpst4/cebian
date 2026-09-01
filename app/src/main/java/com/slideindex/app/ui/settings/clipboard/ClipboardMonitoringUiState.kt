@@ -84,9 +84,10 @@ fun isClipboardMonitoringBackendReady(
 ): Boolean {
     val effective = mode.effective(privilegeMode)
     return when {
+        effective.usesStandardApi -> true
         effective.usesRoot -> state.rootAvailable
         else -> state.shizukuGranted
-    } && state.overlayGranted
+    } && (effective.usesStandardApi || state.overlayGranted)
 }
 
 fun AppSettings.isClipboardMonitoringBackendReady(state: ClipboardMonitoringUiState): Boolean =

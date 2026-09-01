@@ -154,6 +154,9 @@ private fun clipboardIndexHistorySubtitle(
         !settings.clipboardBackgroundMonitoring ->
             stringResource(R.string.stash_clipboard_entry_summary_clipboard_off)
         settings.isClipboardMonitoringBackendReady(monitoringUi) &&
+            settings.effectiveClipboardMonitoringMode().usesStandardApi ->
+            stringResource(R.string.stash_clipboard_entry_summary_clipboard_standard)
+        settings.isClipboardMonitoringBackendReady(monitoringUi) &&
             settings.effectiveClipboardMonitoringMode().usesRoot ->
             stringResource(R.string.stash_clipboard_entry_summary_clipboard_root)
         settings.isClipboardMonitoringBackendReady(monitoringUi) ->
@@ -369,6 +372,8 @@ fun ClipboardHistorySettingsScreen(
                             SettingLinkRow(
                                 title = stringResource(R.string.clipboard_monitor_backend_status_title),
                                 subtitle = when {
+                                    monitoringMode.usesStandardApi ->
+                                        stringResource(R.string.clipboard_monitor_backend_standard_ready)
                                     monitoringMode.usesRoot && monitoringUi.rootAvailable ->
                                         stringResource(R.string.clipboard_monitor_backend_root_ready)
                                     monitoringMode.usesRoot ->
@@ -760,6 +765,8 @@ fun SettingsCardScope.StashClipboardEntryCard(
     val clipboardPart = when {
         !settings.clipboardBackgroundMonitoring ->
             stringResource(R.string.stash_clipboard_entry_summary_clipboard_off)
+        appSettings.isClipboardMonitoringBackendReady(monitoringUi) && effectiveMode.usesStandardApi ->
+            stringResource(R.string.stash_clipboard_entry_summary_clipboard_standard)
         appSettings.isClipboardMonitoringBackendReady(monitoringUi) && effectiveMode.usesRoot ->
             stringResource(R.string.stash_clipboard_entry_summary_clipboard_root)
         appSettings.isClipboardMonitoringBackendReady(monitoringUi) ->
@@ -796,6 +803,8 @@ private fun clipboardMonitoringModeLabel(mode: ClipboardMonitoringMode): String 
         stringResource(R.string.clipboard_monitoring_mode_root_logs)
     ClipboardMonitoringMode.ROOT_HIDDEN_API ->
         stringResource(R.string.clipboard_monitoring_mode_root_hidden_api)
+    ClipboardMonitoringMode.STANDARD ->
+        stringResource(R.string.clipboard_monitoring_mode_standard)
 }
 
 @Composable
@@ -819,6 +828,8 @@ private fun clipboardMonitoringModeDescription(
         stringResource(R.string.clipboard_monitoring_mode_root_logs_desc)
     ClipboardMonitoringMode.ROOT_HIDDEN_API ->
         stringResource(R.string.clipboard_monitoring_mode_root_hidden_api_desc)
+    ClipboardMonitoringMode.STANDARD ->
+        stringResource(R.string.clipboard_monitoring_mode_standard_desc)
 }
 
 @Composable

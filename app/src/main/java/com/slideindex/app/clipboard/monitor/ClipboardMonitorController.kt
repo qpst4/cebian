@@ -104,6 +104,7 @@ class ClipboardMonitorController @Inject constructor(
     }
 
     private fun canStart(mode: ClipboardMonitoringMode): Boolean {
+        if (mode.usesStandardApi) return true
         if (mode.usesRoot) {
             if (!isRootAvailable()) {
                 Log.w(TAG, "root unavailable")
@@ -119,6 +120,7 @@ class ClipboardMonitorController @Inject constructor(
     private fun startForegroundServiceInternal(mode: ClipboardMonitoringMode) {
         if (!canStart(mode)) return
         val intent = Intent(appContext, ClipboardMonitorForegroundService::class.java).apply {
+            putExtra(ClipboardMonitorForegroundService.EXTRA_USE_STANDARD, mode.usesStandardApi)
             putExtra(ClipboardMonitorForegroundService.EXTRA_USE_ROOT, mode.usesRoot)
             putExtra(
                 ClipboardMonitorForegroundService.EXTRA_USE_HIDDEN_API,

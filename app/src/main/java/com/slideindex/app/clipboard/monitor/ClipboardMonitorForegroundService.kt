@@ -9,6 +9,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.content.ClipboardManager
 import android.content.ComponentName
 import android.content.Intent
 import android.content.ServiceConnection
@@ -23,6 +24,7 @@ import androidx.core.app.NotificationCompat
 import com.slideindex.app.MainActivity
 import com.slideindex.app.R
 import com.slideindex.app.clipboard.ClipboardFocusReader
+import com.slideindex.app.clipboard.ClipboardReader
 import com.slideindex.app.util.PermissionHelper
 import java.io.File
 import java.lang.ref.WeakReference
@@ -33,11 +35,13 @@ class ClipboardMonitorForegroundService : Service() {
     private val mainHandler = ChangeHandler(this)
     private var useRoot = false
     private var useHiddenApi = false
+    private var useStandard = false
     private var listenerThread: Thread? = null
     private var lastChangedTime = 0L
     private val changedMinIntervalMs = 200L
     private var listenerService: IClipboardListenerService? = null
     private var bindGeneration = 0
+    private var standardClipListener: ClipboardManager.OnPrimaryClipChangedListener? = null
 
     private val clipboardListenerCallback by lazy {
         object : IOnClipboardChanged.Stub() {
@@ -49,7 +53,7 @@ class ClipboardMonitorForegroundService : Service() {
                 if (controller.config.ignoreNextCopy) {
                     controller.config.ignoreNextCopy = false
                 } else {
-                    mainHandler.sendEmptyMessage(0)
+                    mainHandler.sendEmptyMessage(MSG_CLIPBOARD_CHANGED)
                 }
             }
         }
@@ -65,17 +69,19 @@ class ClipboardMonitorForegroundService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        useStandard = intent?.getBooleanExtra(EXTRA_USE_STANDARD, false) == true
         useRoot = intent?.getBooleanExtra(EXTRA_USE_ROOT, false) == true
         useHiddenApi = intent?.getBooleanExtra(EXTRA_USE_HIDDEN_API, false) == true
         promoteToForeground(
             ClipboardMonitorNotificationTexts.waitingTitle(this),
-            ClipboardMonitorNotificationTexts.waitingText(this, useRoot, useHiddenApi),
+            ClipboardMonitorNotificationTexts.waitingText(this, useRoot, useHiddenApi, useStandard),
         )
 
         mainHandler.removeCallbacksAndMessages(null)
         bindGeneration++
         val currentBindGeneration = bindGeneration
 
+        stopStandardListening()
         runCatching { listenerService?.stopListening() }
         listenerService = null
         listenerThread?.interrupt()
@@ -95,6 +101,10 @@ class ClipboardMonitorForegroundService : Service() {
                     onStartCommand(intent, flags, startId)
                 }
             }, CONTROLLER_RETRY_MS)
+            return START_NOT_STICKY
+        }
+        if (useStandard) {
+            startStandardListening(controller)
             return START_NOT_STICKY
         }
         if (!useRoot) {
@@ -215,14 +225,55 @@ class ClipboardMonitorForegroundService : Service() {
         }
     }
 
-    private fun showFloatFocusView() {
+    private fun startStandardListening(controller: ClipboardMonitorController) {
+        val clipboard = getSystemService(CLIPBOARD_SERVICE) as? ClipboardManager ?: run {
+            updateNotification(
+                getString(R.string.clipboard_monitor_notification_error_title),
+                getString(R.string.clipboard_monitor_notification_error_unknown),
+            )
+            controller.markListening(false)
+            stopSelf()
+            return
+        }
+        val listener = ClipboardManager.OnPrimaryClipChangedListener {
+            mainHandler.post {
+                if (controller.config.ignoreNextCopy) {
+                    controller.config.ignoreNextCopy = false
+                } else {
+                    mainHandler.sendEmptyMessage(MSG_CLIPBOARD_CHANGED)
+                }
+            }
+        }
+        standardClipListener = listener
+        clipboard.addPrimaryClipChangedListener(listener)
+        controller.markListening(true)
+        updateNotification(
+            ClipboardMonitorNotificationTexts.runningTitle(this),
+            ClipboardMonitorNotificationTexts.runningText(this, useRoot, useHiddenApi, useStandard),
+        )
+    }
+
+    private fun stopStandardListening() {
+        val listener = standardClipListener ?: return
+        (getSystemService(CLIPBOARD_SERVICE) as? ClipboardManager)
+            ?.removePrimaryClipChangedListener(listener)
+        standardClipListener = null
+    }
+
+    private fun handleClipboardChanged() {
+        val now = System.currentTimeMillis()
+        if (now - lastChangedTime < changedMinIntervalMs) return
+        lastChangedTime = now
+        if (useStandard) {
+            ClipboardReader.read(applicationContext)?.let { payload ->
+                ClipboardMonitorController.peek()?.dispatchPayload(payload)
+            }
+            return
+        }
         if (!hasOverlayCapability()) {
             Log.w(tag, "overlay capability missing")
             return
         }
-        val now = System.currentTimeMillis()
-        if (now - lastChangedTime < changedMinIntervalMs) return
-        lastChangedTime = now
         ClipboardFocusReader.read(applicationContext) { payload ->
             if (payload != null) {
                 ClipboardMonitorController.peek()?.dispatchPayload(payload)
@@ -251,6 +302,7 @@ class ClipboardMonitorForegroundService : Service() {
     override fun onDestroy() {
         bindGeneration++
         mainHandler.removeCallbacksAndMessages(null)
+        stopStandardListening()
         ClipboardMonitorController.peek()?.markListening(false)
         listenerThread?.interrupt()
         listenerThread = null
@@ -258,7 +310,7 @@ class ClipboardMonitorForegroundService : Service() {
             runCatching { listenerService?.exit() }
         }
         ClipboardMonitorController.peek()?.unbindListeningService()
-        if (!useRoot) {
+        if (!useRoot && !useStandard) {
             Shizuku.removeBinderReceivedListener(onBinderReceivedListener)
             Shizuku.removeBinderDeadListener(onBinderDeadListener)
         }
@@ -356,13 +408,15 @@ class ClipboardMonitorForegroundService : Service() {
         private val outer = WeakReference(service)
 
         override fun handleMessage(msg: Message) {
-            outer.get()?.showFloatFocusView()
+            outer.get()?.handleClipboardChanged()
         }
     }
 
     companion object {
         const val EXTRA_USE_ROOT = "useRoot"
         const val EXTRA_USE_HIDDEN_API = "useHiddenApi"
+        const val EXTRA_USE_STANDARD = "useStandard"
+        private const val MSG_CLIPBOARD_CHANGED = 1
         private const val CHANNEL_ID = "clipboard_monitor"
         private const val NOTIFICATION_ID = 4102
         private const val CONTROLLER_RETRY_MS = 400L

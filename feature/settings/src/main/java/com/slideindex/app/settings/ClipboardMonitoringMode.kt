@@ -6,6 +6,7 @@ enum class ClipboardMonitoringMode(val storageValue: String) {
     SHIZUKU_HIDDEN_API("shizuku_hidden_api"),
     ROOT_LOGS("root_logs"),
     ROOT_HIDDEN_API("root_hidden_api"),
+    STANDARD("standard"),
     ;
 
     val usesRoot: Boolean
@@ -13,6 +14,9 @@ enum class ClipboardMonitoringMode(val storageValue: String) {
 
     val usesHiddenApi: Boolean
         get() = this == SHIZUKU_HIDDEN_API || this == ROOT_HIDDEN_API
+
+    val usesStandardApi: Boolean
+        get() = this == STANDARD
 
     fun effective(privilegeMode: PrivilegeMode): ClipboardMonitoringMode =
         when (this) {
@@ -24,7 +28,7 @@ enum class ClipboardMonitoringMode(val storageValue: String) {
         }
 
     fun remappedForPrivilege(privilegeMode: PrivilegeMode): ClipboardMonitoringMode? {
-        if (this == FOLLOW_PRIVILEGE) return null
+        if (this == FOLLOW_PRIVILEGE || this == STANDARD) return null
         val remapped = manualCaptureKind().toStoredMode(privilegeMode)
         return if (remapped == this) null else remapped
     }
