@@ -110,5 +110,5 @@ internal object ShakeGestureClassifier {
         globalSensitivity: Float,
         perDirectionSensitivity: Map<ShakeGestureType, Float>,
     ): Float =
-        clampSensitivity(perDirectionSensitivity[type] ?: globalSensitivity)
+        effectiveThreshold(perDirectionSensitivity[type] ?: globalSensitivity)
 }

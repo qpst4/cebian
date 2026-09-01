@@ -71,4 +71,52 @@ class ShakeGestureClassifierTest {
 
         assertNull(direction)
     }
+
+    @Test
+    fun detectDirection_independentMode_emptyPerDirection_usesEffectiveThreshold() {
+        val direction = ShakeGestureClassifier.detectDirection(
+            axisX = 0f,
+            axisY = 5f,
+            axisZ = 0f,
+            absX = 0f,
+            absY = 5f,
+            absZ = 0f,
+            globalSensitivity = 3f,
+            independentEnabled = true,
+            perDirectionSensitivity = emptyMap(),
+        )
+
+        assertNull(direction)
+    }
+
+    @Test
+    fun detectDirection_independentMode_minimumSensitivityIsHardest() {
+        val atMin = ShakeGestureClassifier.detectDirection(
+            axisX = 0f,
+            axisY = 9f,
+            axisZ = 0f,
+            absX = 0f,
+            absY = 9f,
+            absZ = 0f,
+            globalSensitivity = 1f,
+            independentEnabled = true,
+            perDirectionSensitivity = mapOf(ShakeGestureType.RIGHT_FLIP to 1f),
+        )
+
+        assertNull(atMin)
+
+        val atMax = ShakeGestureClassifier.detectDirection(
+            axisX = 0f,
+            axisY = 2.6f,
+            axisZ = 0f,
+            absX = 0f,
+            absY = 2.6f,
+            absZ = 0f,
+            globalSensitivity = 10f,
+            independentEnabled = true,
+            perDirectionSensitivity = mapOf(ShakeGestureType.RIGHT_FLIP to 10f),
+        )
+
+        assertEquals(ShakeGestureType.RIGHT_FLIP, atMax)
+    }
 }
