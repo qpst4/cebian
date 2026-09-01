@@ -65,6 +65,15 @@ object TaskManagerUtil {
     @Volatile
     private var warmUpInFlight = false
 
+    @Volatile
+    private var privilegedWarmUpInFlight = false
+
+    @Volatile
+    private var cachedDirectRootAccess: Boolean? = null
+
+    @Volatile
+    private var cachedDirectRootAccessAtMs = 0L
+
     private val taskWorkerLock = Any()
 
     private val privilegedOpsExecutor = Executors.newSingleThreadExecutor { runnable ->
@@ -161,6 +170,8 @@ object TaskManagerUtil {
     fun invalidatePrivilegedAccessCache() {
         cachedRootAccess = null
         cachedRootAccessAtMs = 0L
+        cachedDirectRootAccess = null
+        cachedDirectRootAccessAtMs = 0L
     }
 
     fun hasPrivilegedAccess(): Boolean =
@@ -262,6 +273,58 @@ object TaskManagerUtil {
                 warmUpInFlight = false
             }
         }.start()
+    }
+
+    fun warmUpPrivilegedBackend() {
+        when {
+            PrivilegeGateway.isShizukuMode() && hasShizukuPermission() -> warmUp()
+            PrivilegeGateway.isRootMode() && !privilegedWarmUpInFlight -> {
+                privilegedWarmUpInFlight = true
+                privilegedOpsExecutor.execute {
+                    onPrivilegedOpsThread.set(true)
+                    try {
+                        val live = RootPrivilegedOperations.probeRootAvailable()
+                        cachedRootAccess = live
+                        cachedRootAccessAtMs = SystemClock.elapsedRealtime()
+                    } catch (error: Exception) {
+                        Log.w(TAG, "warmUpPrivilegedBackend failed", error)
+                    } finally {
+                        onPrivilegedOpsThread.set(false)
+                        privilegedWarmUpInFlight = false
+                    }
+                }
+            }
+        }
+    }
+
+    fun probeDirectRootAvailable(): Boolean {
+        val now = SystemClock.elapsedRealtime()
+        cachedDirectRootAccess?.let { cached ->
+            if (now - cachedDirectRootAccessAtMs < ROOT_ACCESS_CACHE_MS) return cached
+        }
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            scheduleDirectRootProbe()
+            return cachedDirectRootAccess ?: false
+        }
+        val live = runPrivilegedOpsBlocking {
+            com.slideindex.app.shizuku.TaskManagerShellExecutor.probeRootAvailable()
+        }
+        cachedDirectRootAccess = live
+        cachedDirectRootAccessAtMs = now
+        return live
+    }
+
+    private fun scheduleDirectRootProbe() {
+        privilegedOpsExecutor.execute {
+            onPrivilegedOpsThread.set(true)
+            try {
+                val live = com.slideindex.app.shizuku.TaskManagerShellExecutor.probeRootAvailable()
+                cachedDirectRootAccess = live
+                cachedDirectRootAccessAtMs = SystemClock.elapsedRealtime()
+            } finally {
+                onPrivilegedOpsThread.set(false)
+            }
+        }
     }
 
     fun prefetchRecentTasks(force: Boolean = false) {

@@ -126,6 +126,25 @@
             </intent-filter>
         </activity>
 
+        <!-- 冰箱：仅通过手势 / Pin 快捷方式打开，不注册 LAUNCHER alias（避免 Flyme 假「卸载」图标） -->
+        <activity
+            android:name=".freezer.FreezerPanelActivity"
+            android:exported="true"
+            android:icon="@drawable/ic_freezer_launcher"
+            android:label="@string/freezer_shortcut_label"
+            android:launchMode="singleTask"
+            android:taskAffinity="com.slideindex.app.freezer"
+            android:theme="@style/Theme.SlideIndex" />
+
+        <activity
+            android:name=".freezer.FreezerAppLaunchTrampolineActivity"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:noHistory="true"
+            android:taskAffinity="com.slideindex.app.freezer.launch"
+            android:theme="@style/Theme.SlideIndex.Transparent" />
+
         <!-- 动态图标别名：深海湛蓝 -->
         <activity-alias
             android:name=".MainActivityBlue"

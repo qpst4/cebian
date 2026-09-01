@@ -15,7 +15,8 @@ import com.slideindex.app.ui.FloatingPointerPointerSettingsScreen
 import com.slideindex.app.ui.FloatingPointerRadialMenuSettingsScreen
 import com.slideindex.app.ui.FloatingPointerSettingsScreen
 import com.slideindex.app.ui.ExtensionAboutScreen
-import com.slideindex.app.ui.FreezerAppsScreen
+import com.slideindex.app.ui.FreezerAppsPickerScreen
+import com.slideindex.app.ui.FreezerHomeScreen
 import com.slideindex.app.ui.ThirdPartyNoticesScreen
 import com.slideindex.app.ui.LicenseTextScreen
 import com.slideindex.app.ui.FloatBallAppearanceSettingsScreen
@@ -150,9 +151,17 @@ fun NavEntryBuilder.extensionNavEntries(ctx: MainNavContext) {
     }
 
     hiltEntry<AppNavKey.ExtensionFreezer> {
-        FreezerAppsScreen(
+        FreezerHomeScreen(
             settingsRepository = ctx.deps.settingsRepository,
             onBack = { ctx.navigateBackTo(AppNavKey.ExtensionHub) },
+            onOpenManageApps = { ctx.navigate(AppNavKey.ExtensionFreezerApps) },
+        )
+    }
+
+    hiltEntry<AppNavKey.ExtensionFreezerApps> {
+        FreezerAppsPickerScreen(
+            settingsRepository = ctx.deps.settingsRepository,
+            onBack = { ctx.navigateBackTo(AppNavKey.ExtensionFreezer) },
         )
     }
 

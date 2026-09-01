@@ -65,8 +65,8 @@ class OverlayServiceController(
         if (listenerEnabled) {
             com.slideindex.app.util.MediaSessionHelper.ensureNotificationListenerConnected(context)
         }
-        if (TaskManagerUtil.hasShizukuPermission()) {
-            TaskManagerUtil.warmUp()
+        if (TaskManagerUtil.hasPrivilegedAccess()) {
+            TaskManagerUtil.warmUpPrivilegedBackend()
         }
     }
 

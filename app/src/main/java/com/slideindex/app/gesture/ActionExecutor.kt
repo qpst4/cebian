@@ -25,7 +25,10 @@ import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.overlay.WidgetPopupOverlayWindow
 import com.slideindex.app.service.ClipboardFloatLifecycle
 import com.slideindex.app.copy.UniversalCopyOverlay
+import com.slideindex.app.freezer.FreezerLaunchState
 import com.slideindex.app.freezer.FreezerOperations
+import com.slideindex.app.freezer.FreezerPanelIntents
+import com.slideindex.app.freezer.FreezerTab
 import com.slideindex.app.overlay.volumepanel.VolumePanelOverlayWindow
 import com.slideindex.app.remind.RemindDurationPickerOverlay
 import com.slideindex.app.service.SlideIndexAccessibilityService
@@ -341,23 +344,8 @@ class ActionExecutor(
                 true
             }
             GestureAction.FreezerPanel -> {
-                val intent = android.content.Intent(context, com.slideindex.app.MainActivity::class.java).apply {
-                    addFlags(
-                        android.content.Intent.FLAG_ACTIVITY_NEW_TASK or
-                            android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                            android.content.Intent.FLAG_ACTIVITY_SINGLE_TOP or
-                            android.content.Intent.FLAG_ACTIVITY_REORDER_TO_FRONT,
-                    )
-                    putExtra(
-                        com.slideindex.app.MainActivity.EXTRA_NAV_ROUTE,
-                        com.slideindex.app.MainActivity.NAV_ROUTE_EXTENSION_FREEZER,
-                    )
-                    putExtra(
-                        com.slideindex.app.MainActivity.EXTRA_FREEZER_TAB,
-                        com.slideindex.app.MainActivity.FREEZER_TAB_FROZEN,
-                    )
-                }
-                context.startActivity(intent)
+                FreezerLaunchState.setPendingInitialTab(FreezerTab.FROZEN)
+                context.startActivity(FreezerPanelIntents.openPanel(context))
                 true
             }
             GestureAction.Refreeze -> {

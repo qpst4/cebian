@@ -39,7 +39,7 @@ class ShellCommandPanelTrampolineActivity : ComponentActivity() {
     private val shizukuPermissionListener = Shizuku.OnRequestPermissionResultListener { _, grantResult ->
         shizukuGrantedState.value = grantResult == PackageManager.PERMISSION_GRANTED
         if (shizukuGrantedState.value) {
-            TaskManagerUtil.warmUp()
+            TaskManagerUtil.warmUpPrivilegedBackend()
         }
     }
 

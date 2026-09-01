@@ -268,6 +268,7 @@ internal object SettingsPreferenceKeys {
     val SHAKE_DISABLE_IN_LANDSCAPE = booleanPreferencesKey("shake_disable_in_landscape")
     val SHAKE_BLACKLIST_PACKAGES = stringSetPreferencesKey("shake_blacklist_packages")
     val FREEZER_APP_PACKAGES = stringSetPreferencesKey("freezer_app_packages")
+    val FREEZER_SHOW_IN_LAUNCHER = booleanPreferencesKey("freezer_show_in_launcher")
     val EXPAND_PANEL_SHORTCUTS = stringPreferencesKey("expand_panel_shortcuts")
     val BACK_TAP_ENABLED = booleanPreferencesKey("back_tap_enabled")
     val BACK_TAP_SENSITIVITY = intPreferencesKey("back_tap_sensitivity")

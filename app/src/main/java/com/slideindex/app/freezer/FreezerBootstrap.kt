@@ -17,7 +17,7 @@ object FreezerBootstrap {
             .mapNotNull { it.activityInfo?.packageName }
             .filter { pkg ->
                 runCatching {
-                    pm.getApplicationEnabledSetting(pkg) == PackageManager.COMPONENT_ENABLED_STATE_DISABLED
+                    pm.getApplicationInfo(pkg, 0).enabled.not()
                 }.getOrDefault(false)
             }
             .toSet()

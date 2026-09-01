@@ -448,6 +448,22 @@ class EdgeSettingsMutator @Inject constructor(
         it[SettingsPreferenceKeys.FREEZER_APP_PACKAGES] = packages
     }
 
+    suspend fun addFreezerApp(packageName: String) = editor.edit {
+        val current = it[SettingsPreferenceKeys.FREEZER_APP_PACKAGES]?.toMutableSet() ?: mutableSetOf()
+        current.add(packageName)
+        it[SettingsPreferenceKeys.FREEZER_APP_PACKAGES] = current
+    }
+
+    suspend fun removeFreezerApp(packageName: String) = editor.edit {
+        val current = it[SettingsPreferenceKeys.FREEZER_APP_PACKAGES]?.toMutableSet() ?: return@edit
+        current.remove(packageName)
+        it[SettingsPreferenceKeys.FREEZER_APP_PACKAGES] = current
+    }
+
+    suspend fun setFreezerShowInLauncher(enabled: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.FREEZER_SHOW_IN_LAUNCHER] = enabled
+    }
+
     suspend fun setExpandPanelSlotAction(index: Int, action: com.slideindex.app.gesture.GestureAction?) = editor.edit {
         val current = readExpandPanelSlotActions(it).toMutableList()
         if (index !in current.indices) return@edit

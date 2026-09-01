@@ -23,5 +23,5 @@ object PrivilegeGateway {
 
     fun isShizukuMode(): Boolean = mode == PrivilegeMode.SHIZUKU
 
-    fun probeDirectRootAvailable(): Boolean = TaskManagerShellExecutor.probeRootAvailable()
+    fun probeDirectRootAvailable(): Boolean = TaskManagerUtil.probeDirectRootAvailable()
 }

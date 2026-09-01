@@ -13,6 +13,7 @@ object ShizukuRequirement {
     fun needsShizuku(settings: AppSettings): Boolean {
         if (settings.privilegeMode == PrivilegeMode.SHIZUKU) return true
         if (!settings.clipboardBackgroundMonitoring) return false
-        return !settings.effectiveClipboardMonitoringMode().usesRoot
+        val effective = settings.effectiveClipboardMonitoringMode()
+        return !effective.usesRoot && !effective.usesStandardApi
     }
 }

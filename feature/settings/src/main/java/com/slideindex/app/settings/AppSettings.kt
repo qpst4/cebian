@@ -153,6 +153,7 @@ data class AppSettings(
     val longPressLaunchDurationMs get() = launcher.longPressLaunchDurationMs
     val hiddenAppPackages get() = launcher.hiddenAppPackages
     val freezerAppPackages get() = launcher.freezerAppPackages
+    val freezerShowInLauncher get() = launcher.freezerShowInLauncher
     val expandPanelSlotActions get() = launcher.expandPanelSlotActions
     val previousAppExcludedPackages get() = launcher.previousAppExcludedPackages
     val excludedAppScopes get() = launcher.excludedAppScopes

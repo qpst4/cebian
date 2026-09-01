@@ -119,7 +119,8 @@ fun MainNavHost(
             initialIntentAction == MainActivity.ACTION_OPEN_NOTIFICATION_HISTORY -> {
                 MainBottomNavDestination.Notification.name
             }
-            initialNavRoute == MainActivity.NAV_ROUTE_EXTENSION_FREEZER -> {
+            initialNavRoute == MainActivity.NAV_ROUTE_EXTENSION_FREEZER ||
+                initialNavRoute == MainActivity.NAV_ROUTE_EXTENSION_FREEZER_APPS -> {
                 MainBottomNavDestination.Extension.name
             }
             else -> MainBottomNavDestination.Home.name
@@ -138,10 +139,14 @@ fun MainNavHost(
     }
     val notificationBackStack = rememberNavBackStack<AppNavKey>(*notificationInitial)
 
-    val extensionInitial = if (initialNavRoute == MainActivity.NAV_ROUTE_EXTENSION_FREEZER) {
-        arrayOf(AppNavKey.ExtensionHub, AppNavKey.ExtensionFreezer)
-    } else {
-        arrayOf(AppNavKey.ExtensionHub)
+    val extensionInitial = when (initialNavRoute) {
+        MainActivity.NAV_ROUTE_EXTENSION_FREEZER_APPS -> {
+            arrayOf(AppNavKey.ExtensionHub, AppNavKey.ExtensionFreezer, AppNavKey.ExtensionFreezerApps)
+        }
+        MainActivity.NAV_ROUTE_EXTENSION_FREEZER -> {
+            arrayOf(AppNavKey.ExtensionHub, AppNavKey.ExtensionFreezer)
+        }
+        else -> arrayOf(AppNavKey.ExtensionHub)
     }
     val extensionBackStack = rememberNavBackStack<AppNavKey>(*extensionInitial)
 
@@ -190,17 +195,32 @@ fun MainNavHost(
     )
 
     SideEffect {
-        if (initialNavRoute == MainActivity.NAV_ROUTE_EXTENSION_FREEZER) {
-            val extensionTab = MainBottomNavDestination.Extension.name
-            if (savedBottomNavTab != extensionTab) {
-                savedBottomNavTab = extensionTab
+        when (initialNavRoute) {
+            MainActivity.NAV_ROUTE_EXTENSION_FREEZER -> {
+                val extensionTab = MainBottomNavDestination.Extension.name
+                if (savedBottomNavTab != extensionTab) {
+                    savedBottomNavTab = extensionTab
+                }
+                if (extensionBackStack.lastOrNull() != AppNavKey.ExtensionFreezer) {
+                    extensionBackStack.clear()
+                    extensionBackStack.add(AppNavKey.ExtensionHub)
+                    extensionBackStack.add(AppNavKey.ExtensionFreezer)
+                }
+                onNavRouteConsumed()
             }
-            if (extensionBackStack.lastOrNull() != AppNavKey.ExtensionFreezer) {
-                extensionBackStack.clear()
-                extensionBackStack.add(AppNavKey.ExtensionHub)
-                extensionBackStack.add(AppNavKey.ExtensionFreezer)
+            MainActivity.NAV_ROUTE_EXTENSION_FREEZER_APPS -> {
+                val extensionTab = MainBottomNavDestination.Extension.name
+                if (savedBottomNavTab != extensionTab) {
+                    savedBottomNavTab = extensionTab
+                }
+                if (extensionBackStack.lastOrNull() != AppNavKey.ExtensionFreezerApps) {
+                    extensionBackStack.clear()
+                    extensionBackStack.add(AppNavKey.ExtensionHub)
+                    extensionBackStack.add(AppNavKey.ExtensionFreezer)
+                    extensionBackStack.add(AppNavKey.ExtensionFreezerApps)
+                }
+                onNavRouteConsumed()
             }
-            onNavRouteConsumed()
         }
     }
 

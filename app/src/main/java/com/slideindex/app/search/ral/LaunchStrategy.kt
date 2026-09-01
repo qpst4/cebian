@@ -69,9 +69,10 @@ internal interface RootLaunchStrategy : CommandLaunchStrategy {
         if (args.intent.flags != 0) {
             command.append(" -f ${args.intent.flags}")
         }
-        val result = TaskManagerShellExecutor.runAsRootUser(
+        val result = TaskManagerUtil.runShellCommandLine(
             command.toString(),
-            TaskManagerShellExecutor.SHELL_COMMAND_TIMEOUT_MS,
+            useRoot = true,
+            timeoutMs = TaskManagerShellExecutor.SHELL_COMMAND_TIMEOUT_MS,
         )
         return if (result.exitCode == 0) {
             emptyList()

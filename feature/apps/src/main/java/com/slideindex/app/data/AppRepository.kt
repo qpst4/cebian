@@ -42,6 +42,12 @@ class AppRepository @Inject constructor(
         return apps
     }
 
+    suspend fun resolveFreezerMembers(packages: Set<String>): List<AppInfo> = withContext(Dispatchers.IO) {
+        packages.mapNotNull { packageName ->
+            resolveAppInfo(packageName) ?: lookupApp(packageName)
+        }.sortedBy { it.pinyinKey }
+    }
+
     fun getCachedApps(): List<AppInfo> = cachedApps
 
     fun hasCachedApps(): Boolean = cachedApps.isNotEmpty()

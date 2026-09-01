@@ -213,6 +213,9 @@ class SettingsRepository @Inject constructor(
     suspend fun setAccessibilityKeepAliveEnabled(enabled: Boolean) = edge.setAccessibilityKeepAliveEnabled(enabled)
     suspend fun setHapticStrengthLevel(level: Int) = edge.setHapticStrengthLevel(level)
     suspend fun addHiddenApp(packageName: String) = edge.addHiddenApp(packageName)
+    suspend fun addFreezerApp(packageName: String) = edge.addFreezerApp(packageName)
+    suspend fun removeFreezerApp(packageName: String) = edge.removeFreezerApp(packageName)
+    suspend fun setFreezerShowInLauncher(enabled: Boolean) = edge.setFreezerShowInLauncher(enabled)
     suspend fun setFreezerAppPackages(packages: Set<String>) = edge.setFreezerAppPackages(packages)
     suspend fun setExpandPanelSlotAction(index: Int, action: com.slideindex.app.gesture.GestureAction?) =
         edge.setExpandPanelSlotAction(index, action)

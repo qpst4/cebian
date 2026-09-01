@@ -249,6 +249,7 @@ sealed interface AppNavKey : NavKey {
     @Serializable data object ExtensionHub : AppNavKey
     @Serializable data object ExtensionAbout : AppNavKey
     @Serializable data object ExtensionFreezer : AppNavKey
+    @Serializable data object ExtensionFreezerApps : AppNavKey
     @Serializable data object ExtensionBackTap : AppNavKey
     @Serializable data object ExtensionBackTapActionPick : AppNavKey
     @Serializable data object ExtensionBackTapActionMyShortcuts : AppNavKey

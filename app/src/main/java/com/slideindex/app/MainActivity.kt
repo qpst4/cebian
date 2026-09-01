@@ -99,7 +99,7 @@ class MainActivity : ComponentActivity() {
     private val shizukuPermissionListener = Shizuku.OnRequestPermissionResultListener { _, grantResult ->
         permissionStates.shizukuGranted.value = grantResult == PackageManager.PERMISSION_GRANTED
         if (permissionStates.shizukuGranted.value) {
-            TaskManagerUtil.warmUp()
+            TaskManagerUtil.warmUpPrivilegedBackend()
             deps.clipboardHistoryRepository.syncClipboardMonitoringFromSettings()
         }
     }
@@ -374,6 +374,7 @@ class MainActivity : ComponentActivity() {
         const val EXTRA_NAV_ROUTE = "extra_nav_route"
         const val EXTRA_FREEZER_TAB = "extra_freezer_tab"
         const val NAV_ROUTE_EXTENSION_FREEZER = "extension_freezer"
+        const val NAV_ROUTE_EXTENSION_FREEZER_APPS = "extension_freezer_apps"
         const val FREEZER_TAB_FROZEN = "frozen"
 
         private const val DEEP_LINK_SCHEME = "cebian"

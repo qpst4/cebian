@@ -46,10 +46,12 @@ internal object RootPrivilegedOperations {
     fun forceStopPackage(packageName: String?): Boolean = tasks.forceStopPackage(packageName)
 
     fun getPublishedShortcuts(packageName: String?): Array<String> =
-        TaskManagerShortcutResolver(TaskManagerShellExecutor).getPublishedShortcuts(packageName)
+        TaskManagerShortcutResolver(TaskManagerShellExecutor, preferRoot = true)
+            .getPublishedShortcuts(packageName)
 
     fun getAllPublishedShortcuts(): Array<String> =
-        TaskManagerShortcutResolver(TaskManagerShellExecutor).getAllPublishedShortcuts()
+        TaskManagerShortcutResolver(TaskManagerShellExecutor, preferRoot = true)
+            .getAllPublishedShortcuts()
 
     fun startPublishedShortcut(packageName: String?, shortcutId: String?): Boolean =
         tasks.startPublishedShortcut(packageName, shortcutId)

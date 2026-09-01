@@ -7,6 +7,7 @@ import com.slideindex.app.di.AppDependencies
 import com.slideindex.app.di.OtpAutoFillStatsInstaller
 import com.slideindex.app.di.OcrInstalledModelStartupVerifier
 import com.slideindex.app.di.PrivilegeModeInitializer
+import com.slideindex.app.freezer.FreezerLauncherHelper
 import com.slideindex.app.di.ShizukuInitializer
 import com.slideindex.app.nativeengine.NativeEnginePackCoordinator
 import com.slideindex.app.nativeengine.NativeEngineRuntime
@@ -44,6 +45,7 @@ class SlideIndexApp : Application() {
         shizukuInitializer.start()
         otpAutoFillStatsInstaller.install()
         com.slideindex.app.ui.icon.AppIconTheme.ensureSelectedThemeEnabled(this)
+        FreezerLauncherHelper.cleanupLegacyAlias(this)
         ClipboardMonitorStartup.applicationReady = true
         // 首帧后再做 OCR 校验、分词 warm-up、应用列表扫描，减轻装后首开卡顿
         ClipboardMonitorStartup.runOnMainWhenIdle {

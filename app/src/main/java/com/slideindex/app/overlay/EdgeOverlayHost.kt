@@ -71,7 +71,7 @@ class EdgeOverlayHost(
             deps.appRepository.loadApps()
         }
         if (TaskManagerUtil.hasPermission()) {
-            TaskManagerUtil.warmUp()
+            TaskManagerUtil.warmUpPrivilegedBackend()
         }
         floatBallController = FloatBallController(context, scope, deps.settingsRepository)
         cornerGestureHost = CornerGestureHost(context, scope, deps).also { it.start() }

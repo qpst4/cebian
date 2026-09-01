@@ -9,13 +9,14 @@ import com.slideindex.app.util.ShortcutSystemFileReader
 
 internal class TaskManagerShortcutResolver(
     private val shell: TaskManagerShellExecutor = TaskManagerShellExecutor,
+    private val preferRoot: Boolean = false,
 ) {
     private val dumpsysLoader = TaskManagerShortcutDumpsysLoader(shell)
     private val xmlLoader = TaskManagerShortcutXmlLoader(shell, dumpsysLoader)
 
     fun getPublishedShortcuts(packageName: String?): Array<String> {
         if (packageName.isNullOrBlank()) return emptyArray()
-        val useRoot = shell.probeRootAvailable()
+        val useRoot = preferRoot || shell.probeRootAvailable()
         val merged = linkedMapOf<String, String>()
         dumpsysLoader.collectPublishedShortcuts(packageName).forEach { (id, label) ->
             merged[id] = label
@@ -43,7 +44,7 @@ internal class TaskManagerShortcutResolver(
                 shortcuts.map { (id, label) -> "$pkg\t$id\t$label" }
             }.toTypedArray()
 
-        val useRoot = shell.probeRootAvailable()
+        val useRoot = preferRoot || shell.probeRootAvailable()
         Log.i(TAG, "getAllPublishedShortcuts start root=$useRoot uid=${Process.myUid()}")
 
         val dumpsysDump = dumpsysLoader.loadAllPackagesShortcutDump(useRoot)
