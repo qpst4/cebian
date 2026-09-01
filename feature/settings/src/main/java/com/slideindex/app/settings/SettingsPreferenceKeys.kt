@@ -81,6 +81,7 @@ internal object SettingsPreferenceKeys {
     val HAPTIC_STRENGTH = intPreferencesKey("haptic_strength_level")
     val SELECTED_HINT_ICON_SIZE_DP = intPreferencesKey("selected_hint_icon_size_dp")
     val HIDE_FROM_RECENTS = booleanPreferencesKey("hide_from_recents")
+    val PRIVILEGE_MODE = stringPreferencesKey("privilege_mode")
     val PREDICTIVE_BACK_ENABLED = booleanPreferencesKey("predictive_back_enabled")
     val SWIPE_DISMISS_ENABLED = booleanPreferencesKey("swipe_dismiss_enabled")
     val ACCESSIBILITY_KEEP_ALIVE = booleanPreferencesKey("accessibility_keep_alive")

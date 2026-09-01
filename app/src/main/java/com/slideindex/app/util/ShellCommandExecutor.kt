@@ -1,6 +1,7 @@
 package com.slideindex.app.util
 
 import android.os.SystemClock
+import com.slideindex.app.privilege.PrivilegeGateway
 import com.slideindex.app.shell.ShellCommand
 import com.slideindex.app.shell.ShellCommandTemplate
 import com.slideindex.app.shell.ShellTemplateContext
@@ -36,6 +37,7 @@ object ShellCommandExecutor {
     }
 
     private fun resolveUseRoot(): Boolean {
+        if (PrivilegeGateway.isRootMode()) return true
         val now = SystemClock.elapsedRealtime()
         cachedRootAvailable?.let { cached ->
             if (now - rootProbeAtMs < ROOT_PROBE_CACHE_MS) return cached

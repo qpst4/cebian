@@ -4,11 +4,15 @@ import android.os.Build
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import top.yukonga.miuix.kmp.nav.core.NavEntryBuilder
 import com.slideindex.app.R
 import com.slideindex.app.gesture.GestureAction
@@ -40,6 +44,7 @@ import com.slideindex.app.settings.titleRes
 import com.slideindex.app.settings.toMinimalAppSettings
 import com.slideindex.app.ui.InteractionAppearanceSettingsScreen
 import com.slideindex.app.ui.AppKeepAliveSettingsScreen
+import com.slideindex.app.ui.PrivilegeModeSettingsScreen
 import com.slideindex.app.ui.CornerGestureInteractionScreen
 import com.slideindex.app.ui.CornerGestureSettingsScreen
 import com.slideindex.app.ui.CornerGestureSlotsSettingsScreen
@@ -90,19 +95,37 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
             factory.create(homeEffects)
         }
         val settings by viewModel.homeMainSettings.collectAsStateWithLifecycle()
+        val appSettings by viewModel.settings.collectAsStateWithLifecycle()
         val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        var privilegedAccessGranted by remember { mutableStateOf(false) }
+        var rootAccessGranted by remember { mutableStateOf(false) }
+        LaunchedEffect(appSettings.privilegeMode, permissions.shizukuGranted) {
+            withContext(Dispatchers.IO) {
+                privilegedAccessGranted = com.slideindex.app.util.TaskManagerUtil.hasPrivilegedAccess()
+                rootAccessGranted = when (appSettings.privilegeMode) {
+                    com.slideindex.app.settings.PrivilegeMode.ROOT ->
+                        com.slideindex.app.util.TaskManagerUtil.hasPrivilegedAccess()
+                    com.slideindex.app.settings.PrivilegeMode.SHIZUKU -> true
+                }
+            }
+        }
         MainScreen(
             settings = settings,
             cornerGestureSettings = overlaySettings.cornerGestureSettings,
+            privilegeMode = appSettings.privilegeMode,
+            privilegedAccessGranted = privilegedAccessGranted,
+            rootAccessGranted = rootAccessGranted,
             notificationGranted = permissions.notificationGranted,
             shizukuGranted = permissions.shizukuGranted,
             accessibilityGranted = permissions.accessibilityGranted,
             batteryOptimizationExempt = permissions.batteryOptimizationExempt,
             onRequestNotification = { viewModel.requestNotificationPermission() },
             onRequestShizuku = { viewModel.requestShizuku() },
+            onRequestRootAccess = { ctx.navigate(AppNavKey.HomePrivilegeMode) },
             onRequestAccessibility = { viewModel.openAccessibilitySettings() },
             onRequestBatteryOptimization = { ctx.requestBatteryOptimization() },
             onGestureEnabledChange = { enabled -> viewModel.setServiceEnabled(enabled) },
+            onOpenPrivilegeModeSettings = { ctx.navigate(AppNavKey.HomePrivilegeMode) },
             onOpenAppKeepAliveSettings = { ctx.navigate(AppNavKey.HomeAppKeepAlive) },
             onOpenFloatBallSettings = { ctx.navigate(AppNavKey.FloatBall) },
             onOpenFreeWindowSettings = { ctx.navigate(AppNavKey.HomeFreeWindow) },
@@ -158,6 +181,34 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
         )
     }
 
+    hiltEntry<AppNavKey.HomePrivilegeMode> {
+        val homeEffects = remember(ctx) { MainNavHomeEffects(ctx) }
+        val viewModel: HomeViewModel = hiltViewModel<HomeViewModel, HomeViewModel.Factory> { factory ->
+            factory.create(homeEffects)
+        }
+        val appSettings by viewModel.settings.collectAsStateWithLifecycle()
+        var rootAvailable by remember { mutableStateOf(false) }
+        var shizukuReady by remember { mutableStateOf(false) }
+        LaunchedEffect(appSettings.privilegeMode) {
+            withContext(Dispatchers.IO) {
+                shizukuReady = com.slideindex.app.util.TaskManagerUtil.hasShizukuPermission()
+                rootAvailable = if (appSettings.privilegeMode == com.slideindex.app.settings.PrivilegeMode.ROOT) {
+                    com.slideindex.app.util.TaskManagerUtil.hasPrivilegedAccess()
+                } else {
+                    false
+                }
+            }
+        }
+        PrivilegeModeSettingsScreen(
+            privilegeMode = appSettings.privilegeMode,
+            shizukuGranted = shizukuReady,
+            rootAvailable = rootAvailable,
+            onBack = { ctx.navigateBackTo(AppNavKey.HomeMain) },
+            onPrivilegeModeChange = viewModel::setPrivilegeMode,
+            onRequestShizuku = { ctx.requestShizuku() },
+        )
+    }
+
     hiltEntry<AppNavKey.HomeAppKeepAlive> {
         val keepAliveEffects = remember(ctx) { MainNavKeepAliveEffects(ctx) }
         val viewModel: KeepAliveSettingsViewModel =
@@ -166,12 +217,18 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
             }
         val keepAliveSettings by viewModel.keepAliveUiSettings.collectAsStateWithLifecycle()
         val permissions = ctx.collectPermissions()
+        var privilegedAccessGranted by remember { mutableStateOf(false) }
+        LaunchedEffect(Unit) {
+            withContext(Dispatchers.IO) {
+                privilegedAccessGranted = com.slideindex.app.util.TaskManagerUtil.hasPrivilegedAccess()
+            }
+        }
         AppKeepAliveSettingsScreen(
             hideFromRecents = keepAliveSettings.hideFromRecents,
             batteryOptimizationExempt = permissions.batteryOptimizationExempt,
             accessibilityKeepAliveEnabled = keepAliveSettings.accessibilityKeepAliveEnabled,
             writeSecureSettingsGranted = permissions.writeSecureSettingsGranted,
-            shizukuGranted = permissions.shizukuGranted,
+            privilegedAccessGranted = privilegedAccessGranted,
             onBack = { ctx.navigateBackTo(AppNavKey.HomeMain) },
             onRequestBatteryOptimization = { ctx.requestBatteryOptimization() },
             onRequestAutoStart = { ctx.openAutoStartSettings() },

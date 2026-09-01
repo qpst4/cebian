@@ -12,6 +12,7 @@ import android.view.MotionEvent
 import androidx.core.graphics.withSave
 import androidx.core.graphics.withTranslation
 import com.slideindex.app.R
+import com.slideindex.app.privilege.PrivilegeUiStrings
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.shell.ShellCommand
 import com.slideindex.app.shell.ShellCommandIconResolver
@@ -336,15 +337,16 @@ class ShellCommandPanelController(
             typeface = Typeface.DEFAULT_BOLD
         }
         canvas.drawText(
-            host.context.getString(R.string.shell_panel_shizuku_label),
+            host.context.getString(PrivilegeUiStrings.shellPanelLabelRes()),
             panelRect.left + host.dp(16f),
             panelRect.top + host.dp(22f) - titlePaint.ascent(),
             titlePaint,
         )
-        val status = if (TaskManagerUtil.hasPermission()) {
-            host.context.getString(R.string.shell_panel_shizuku_active)
+        val privileged = TaskManagerUtil.hasPermission()
+        val status = if (privileged) {
+            host.context.getString(PrivilegeUiStrings.shellPanelActiveRes())
         } else {
-            host.context.getString(R.string.shell_panel_shizuku_inactive)
+            host.context.getString(PrivilegeUiStrings.shellPanelInactiveRes())
         }
         canvas.drawText(
             status,

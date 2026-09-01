@@ -30,6 +30,7 @@ data class AppSettings(
     val hapticEnabled: Boolean = true,
     val hapticStrengthLevel: Int = HapticStrength.MEDIUM.level,
     val hideFromRecents: Boolean = false,
+    val privilegeMode: PrivilegeMode = PrivilegeMode.SHIZUKU,
     /** Android 14+ 侧滑返回跟手动画（需系统预测性返回可用）。 */
     val predictiveBackEnabled: Boolean = false,
     /** 页内横移返回上一页（miuix-nav swipeDismiss）。 */

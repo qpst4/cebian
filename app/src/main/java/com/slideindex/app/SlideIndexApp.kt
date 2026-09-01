@@ -6,6 +6,7 @@ import com.slideindex.app.clipboard.monitor.ClipboardMonitorStartup
 import com.slideindex.app.di.AppDependencies
 import com.slideindex.app.di.OtpAutoFillStatsInstaller
 import com.slideindex.app.di.OcrInstalledModelStartupVerifier
+import com.slideindex.app.di.PrivilegeModeInitializer
 import com.slideindex.app.di.ShizukuInitializer
 import com.slideindex.app.nativeengine.NativeEnginePackCoordinator
 import com.slideindex.app.nativeengine.NativeEngineRuntime
@@ -28,6 +29,7 @@ import kotlinx.coroutines.launch
 class SlideIndexApp : Application() {
     @Inject lateinit var deps: AppDependencies
     @Inject lateinit var shizukuInitializer: ShizukuInitializer
+    @Inject lateinit var privilegeModeInitializer: PrivilegeModeInitializer
     @Inject lateinit var otpAutoFillStatsInstaller: OtpAutoFillStatsInstaller
     @Inject lateinit var ocrInstalledModelStartupVerifier: OcrInstalledModelStartupVerifier
     @Inject lateinit var nativeEnginePackCoordinator: NativeEnginePackCoordinator

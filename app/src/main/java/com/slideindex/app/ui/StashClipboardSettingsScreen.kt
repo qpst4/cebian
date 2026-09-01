@@ -28,6 +28,7 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.ClipboardFloatEntryClickAction
 import com.slideindex.app.settings.ClipboardHistoryCapacity
 import com.slideindex.app.settings.ClipboardMonitoringMode
+import com.slideindex.app.settings.effectiveClipboardMonitoringMode
 import com.slideindex.app.settings.ExtensionHubSettings
 import com.slideindex.app.settings.HistoryFloatHandleWidth
 import com.slideindex.app.settings.toMinimalAppSettings
@@ -152,10 +153,10 @@ private fun clipboardIndexHistorySubtitle(
     val monitor = when {
         !settings.clipboardBackgroundMonitoring ->
             stringResource(R.string.stash_clipboard_entry_summary_clipboard_off)
-        isClipboardMonitoringBackendReady(settings.clipboardBackgroundMonitoringMode, monitoringUi) &&
-            settings.clipboardBackgroundMonitoringMode.usesRoot ->
+        settings.isClipboardMonitoringBackendReady(monitoringUi) &&
+            settings.effectiveClipboardMonitoringMode().usesRoot ->
             stringResource(R.string.stash_clipboard_entry_summary_clipboard_root)
-        isClipboardMonitoringBackendReady(settings.clipboardBackgroundMonitoringMode, monitoringUi) ->
+        settings.isClipboardMonitoringBackendReady(monitoringUi) ->
             stringResource(R.string.stash_clipboard_entry_summary_clipboard_shizuku)
         else ->
             stringResource(R.string.stash_clipboard_entry_summary_clipboard_not_ready)
@@ -183,6 +184,9 @@ fun ClipboardHistorySettingsScreen(
         if (it >= 0) it else capacityPresets.indexOf(100).coerceAtLeast(0)
     }
     val monitoringUi = rememberClipboardMonitoringUiState(settings)
+    var readLogsGranted by remember {
+        mutableStateOf(ClipboardPermissionHelper.hasReadLogsPermission(context))
+    }
     var mediaReadGranted by remember {
         mutableStateOf(ClipboardPermissionHelper.hasMediaReadPermission(context))
     }
@@ -219,6 +223,7 @@ fun ClipboardHistorySettingsScreen(
 
     LaunchedEffect(settings.clipboardScreenshotMonitoring) {
         mediaReadGranted = ClipboardPermissionHelper.hasMediaReadPermission(context)
+        readLogsGranted = ClipboardPermissionHelper.hasReadLogsPermission(context)
     }
 
     var showShizukuReadLogsDialog by remember { mutableStateOf(false) }
@@ -339,7 +344,10 @@ fun ClipboardHistorySettingsScreen(
                         ) {
                             SettingDropdownRow(
                                 title = stringResource(R.string.clipboard_background_monitoring_mode_title),
-                                subtitle = clipboardMonitoringModeDescription(settings.clipboardBackgroundMonitoringMode),
+                                subtitle = clipboardMonitoringModeDescription(
+                                    settings.clipboardBackgroundMonitoringMode,
+                                    settings,
+                                ),
                                 items = modeEntries.map { clipboardMonitoringModeLabel(it) },
                                 selectedIndex = modeEntries.indexOf(settings.clipboardBackgroundMonitoringMode)
                                     .coerceAtLeast(0),
@@ -354,9 +362,8 @@ fun ClipboardHistorySettingsScreen(
             groupedCardItems(
                 keyPrefix = "clipboard-background-status",
                 items = buildList {
-                    val monitoringMode = settings.clipboardBackgroundMonitoringMode
-                    val backendReady = isClipboardMonitoringBackendReady(monitoringMode, monitoringUi)
-                    val readLogsGranted = ClipboardPermissionHelper.hasReadLogsPermission(context)
+                    val monitoringMode = settings.effectiveClipboardMonitoringMode()
+                    val backendReady = settings.isClipboardMonitoringBackendReady(monitoringUi)
                     add(
                         settingsCardScopeItem("backend-status") {
                             SettingLinkRow(
@@ -748,13 +755,14 @@ fun SettingsCardScope.StashClipboardEntryCard(
         stashEntryCount,
         stashEntryCount,
     )
-    val mode = settings.clipboardBackgroundMonitoringMode
+    val appSettings = settings.toMinimalAppSettings()
+    val effectiveMode = appSettings.effectiveClipboardMonitoringMode()
     val clipboardPart = when {
         !settings.clipboardBackgroundMonitoring ->
             stringResource(R.string.stash_clipboard_entry_summary_clipboard_off)
-        isClipboardMonitoringBackendReady(mode, monitoringUi) && mode.usesRoot ->
+        appSettings.isClipboardMonitoringBackendReady(monitoringUi) && effectiveMode.usesRoot ->
             stringResource(R.string.stash_clipboard_entry_summary_clipboard_root)
-        isClipboardMonitoringBackendReady(mode, monitoringUi) ->
+        appSettings.isClipboardMonitoringBackendReady(monitoringUi) ->
             stringResource(R.string.stash_clipboard_entry_summary_clipboard_shizuku)
         else ->
             stringResource(R.string.stash_clipboard_entry_summary_clipboard_not_ready)
@@ -778,18 +786,39 @@ private fun clipboardFloatClickActionLabel(action: ClipboardFloatEntryClickActio
 
 @Composable
 private fun clipboardMonitoringModeLabel(mode: ClipboardMonitoringMode): String = when (mode) {
-    ClipboardMonitoringMode.SHIZUKU_LOGS -> stringResource(R.string.clipboard_monitoring_mode_shizuku_logs)
-    ClipboardMonitoringMode.SHIZUKU_HIDDEN_API -> stringResource(R.string.clipboard_monitoring_mode_shizuku_hidden_api)
-    ClipboardMonitoringMode.ROOT_LOGS -> stringResource(R.string.clipboard_monitoring_mode_root_logs)
-    ClipboardMonitoringMode.ROOT_HIDDEN_API -> stringResource(R.string.clipboard_monitoring_mode_root_hidden_api)
+    ClipboardMonitoringMode.FOLLOW_PRIVILEGE ->
+        stringResource(R.string.clipboard_monitoring_mode_follow_privilege)
+    ClipboardMonitoringMode.SHIZUKU_LOGS ->
+        stringResource(R.string.clipboard_monitoring_mode_shizuku_logs)
+    ClipboardMonitoringMode.SHIZUKU_HIDDEN_API ->
+        stringResource(R.string.clipboard_monitoring_mode_shizuku_hidden_api)
+    ClipboardMonitoringMode.ROOT_LOGS ->
+        stringResource(R.string.clipboard_monitoring_mode_root_logs)
+    ClipboardMonitoringMode.ROOT_HIDDEN_API ->
+        stringResource(R.string.clipboard_monitoring_mode_root_hidden_api)
 }
 
 @Composable
-private fun clipboardMonitoringModeDescription(mode: ClipboardMonitoringMode): String = when (mode) {
-    ClipboardMonitoringMode.SHIZUKU_LOGS -> stringResource(R.string.clipboard_monitoring_mode_shizuku_logs_desc)
-    ClipboardMonitoringMode.SHIZUKU_HIDDEN_API -> stringResource(R.string.clipboard_monitoring_mode_shizuku_hidden_api_desc)
-    ClipboardMonitoringMode.ROOT_LOGS -> stringResource(R.string.clipboard_monitoring_mode_root_logs_desc)
-    ClipboardMonitoringMode.ROOT_HIDDEN_API -> stringResource(R.string.clipboard_monitoring_mode_root_hidden_api_desc)
+private fun clipboardMonitoringModeDescription(
+    mode: ClipboardMonitoringMode,
+    settings: AppSettings,
+): String = when (mode) {
+    ClipboardMonitoringMode.FOLLOW_PRIVILEGE -> {
+        val effective = mode.effective(settings.privilegeMode)
+        val path = when {
+            effective.usesRoot -> stringResource(R.string.privilege_mode_root)
+            else -> stringResource(R.string.privilege_mode_shizuku)
+        }
+        stringResource(R.string.clipboard_monitoring_mode_follow_privilege_desc, path)
+    }
+    ClipboardMonitoringMode.SHIZUKU_LOGS ->
+        stringResource(R.string.clipboard_monitoring_mode_shizuku_logs_desc)
+    ClipboardMonitoringMode.SHIZUKU_HIDDEN_API ->
+        stringResource(R.string.clipboard_monitoring_mode_shizuku_hidden_api_desc)
+    ClipboardMonitoringMode.ROOT_LOGS ->
+        stringResource(R.string.clipboard_monitoring_mode_root_logs_desc)
+    ClipboardMonitoringMode.ROOT_HIDDEN_API ->
+        stringResource(R.string.clipboard_monitoring_mode_root_hidden_api_desc)
 }
 
 @Composable

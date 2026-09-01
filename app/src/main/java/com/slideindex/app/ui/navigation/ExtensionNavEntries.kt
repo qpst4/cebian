@@ -905,8 +905,7 @@ fun NavEntryBuilder.extensionNavEntries(ctx: MainNavContext) {
     hiltEntry<AppNavKey.ClipboardHistorySettings> {
         val viewModel: StashClipboardSettingsViewModel = hiltViewModel()
         val context = LocalContext.current
-        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
-        val settings = overlaySettings.toMinimalAppSettings()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
         val clipboardEntryCount by viewModel.clipboardHistoryRepository.entryCount.collectAsStateWithLifecycle()
         ClipboardHistorySettingsScreen(
             settings = settings,

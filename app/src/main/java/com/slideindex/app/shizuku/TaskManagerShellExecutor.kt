@@ -1,6 +1,7 @@
 package com.slideindex.app.shizuku
 
 import android.os.Process
+import com.slideindex.app.privilege.PrivilegeGateway
 
 internal object TaskManagerShellExecutor {
 
@@ -61,13 +62,39 @@ internal object TaskManagerShellExecutor {
         if (Process.myUid() == 0) {
             return shellCommandWithOutput(timeoutMs, *buildPlainShellArgs(command))
         }
+        return RootShellSession.run(command, timeoutMs)
+    }
+
+    fun runPrivilegedCommand(
+        command: String,
+        timeoutMs: Long = SHELL_COMMAND_TIMEOUT_MS,
+    ): ShellExecResult {
+        if (Process.myUid() == Process.SHELL_UID) {
+            return shellCommandWithOutput(timeoutMs, *buildPlainShellArgs(command))
+        }
+        val root = runAsRootUser(command, timeoutMs)
+        if (hasUsableOutput(root) || root.exitCode == 0) return root
+        if (PrivilegeGateway.isRootMode()) return root
         val su = resolveSuInvocation()
         val q = shellQuote(command)
-        val scripts = listOf(
-            "$su -c $q",
-            "$su 0 sh -c $q",
+        val sh = resolveShPath()
+        val asShell = runFirstSuccessfulShellScript(
+            listOf(
+                "$su shell -c $q",
+                "$su 2000 $sh -c $q",
+            ),
+            timeoutMs,
         )
-        return runFirstSuccessfulShellScript(scripts, timeoutMs)
+        return if (hasUsableOutput(asShell)) asShell else root
+    }
+
+    fun hasUsableOutput(result: ShellExecResult): Boolean {
+        if (result.exitCode != 0) return false
+        val output = result.output.trim()
+        if (output.isEmpty()) return false
+        if (output.startsWith("Command timed out")) return false
+        if (output.startsWith("(no output")) return false
+        return true
     }
 
     fun runAsShellUser(command: String): ShellExecResult {
@@ -91,7 +118,7 @@ internal object TaskManagerShellExecutor {
         return when {
             Process.myUid() == 0 -> true
             else -> {
-                val result = runAsRootUser("id -u")
+                val result = RootShellSession.run("id -u", SHELL_COMMAND_TIMEOUT_MS)
                 result.exitCode == 0 && parseNumericUid(result.output) == 0
             }
         }

@@ -6,6 +6,7 @@ import android.content.Intent
 import android.widget.Toast
 import com.slideindex.app.R
 import com.slideindex.app.launcher.QuickLauncherItem
+import com.slideindex.app.privilege.PrivilegeUiStrings
 import com.slideindex.app.search.NonExportedActivityLauncher
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.shouldLaunchFullscreen
@@ -107,7 +108,7 @@ object ActivityShortcutLauncher {
 
     private fun launchNonExported(context: Context, packageName: String, activityClassName: String): Boolean {
         if (!TaskManagerUtil.hasPermission()) {
-            Toast.makeText(context, R.string.activity_shortcut_shizuku_required, Toast.LENGTH_LONG).show()
+            Toast.makeText(context, PrivilegeUiStrings.privilegedAccessRequiredRes(), Toast.LENGTH_LONG).show()
             return false
         }
         NonExportedActivityLauncher.launch(

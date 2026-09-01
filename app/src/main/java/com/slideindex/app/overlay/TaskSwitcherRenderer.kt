@@ -9,13 +9,14 @@ import androidx.core.graphics.withClip
 import androidx.core.graphics.withTranslation
 import com.slideindex.app.R
 import com.slideindex.app.data.AppInfo
+import com.slideindex.app.privilege.PrivilegeUiStrings
 import com.slideindex.app.overlay.layout.TaskSwitcherLayoutEngine
 import com.slideindex.app.overlay.layout.TaskSwitcherPanelLayout
 import com.slideindex.app.util.RecentAppEntry
-import com.slideindex.app.util.TaskManagerUtil
 
 internal data class TaskSwitcherRenderState(
     val loading: Boolean,
+    val privilegedAccess: Boolean,
     val recentEntries: List<RecentAppEntry>,
     val rowHighlight: Int,
     val closeHighlight: Int,
@@ -67,14 +68,20 @@ internal class TaskSwitcherRenderer(
         val panel = layout.panelRect
         val panelCorner = host.dp(13f)
         drawElevationShadow(canvas, panel, panelCorner)
-        val blurDrawn = frostedGlassDrawable.draw(
-            canvas = canvas,
-            bounds = panel,
-            cornerRadiusPx = panelCorner,
-            blurRadiusPx = host.dp(57f).toInt(),
-            tintColor = theme.cardBackground,
-        )
-        if (!blurDrawn) {
+        val useFrostedGlass = host.panelEnterProgress() >= 0.99f
+        if (useFrostedGlass) {
+            val blurDrawn = frostedGlassDrawable.draw(
+                canvas = canvas,
+                bounds = panel,
+                cornerRadiusPx = panelCorner,
+                blurRadiusPx = host.dp(57f).toInt(),
+                tintColor = theme.cardBackground,
+            )
+            if (!blurDrawn) {
+                elevatedCardPaint.color = theme.cardBackground
+                canvas.drawRoundRect(panel, panelCorner, panelCorner, elevatedCardPaint)
+            }
+        } else {
             elevatedCardPaint.color = theme.cardBackground
             canvas.drawRoundRect(panel, panelCorner, panelCorner, elevatedCardPaint)
         }
@@ -86,8 +93,8 @@ internal class TaskSwitcherRenderer(
                 textAlign = Paint.Align.CENTER
             }
             val hint = when {
-                !TaskManagerUtil.hasPermission() ->
-                    host.context.getString(R.string.task_switcher_no_shizuku)
+                !state.privilegedAccess ->
+                    host.context.getString(PrivilegeUiStrings.taskSwitcherAccessRequiredRes())
                 state.loading ->
                     host.context.getString(R.string.task_switcher_loading)
                 else ->

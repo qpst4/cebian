@@ -345,22 +345,20 @@ internal class TaskSwitcherTouchHandler(
     private fun dismissTaskCards(entries: List<RecentAppEntry>) {
         if (entries.isEmpty() || !TaskManagerUtil.hasPermission()) return
         Thread {
-            TaskManagerUtil.runOnTaskWorker {
-                entries.filterNot { it.isLocked }.forEach { entry ->
-                    val removed = if (entry.taskId > 0) {
-                        TaskManagerUtil.removeTaskById(entry.taskId)
-                    } else {
-                        TaskManagerUtil.removeTaskByPackage(entry.app.packageName)
-                    }
-                    if (!removed) {
-                        Log.w(
-                            "EdgeGestureOverlay",
-                            "dismissTaskCards failed package=${entry.app.packageName} taskId=${entry.taskId}",
-                        )
-                    }
+            entries.filterNot { it.isLocked }.forEach { entry ->
+                val removed = if (entry.taskId > 0) {
+                    TaskManagerUtil.removeTaskById(entry.taskId)
+                } else {
+                    TaskManagerUtil.removeTaskByPackage(entry.app.packageName)
                 }
-                RecentTasksLoader.syncFromSystem(host.appRepository())
+                if (!removed) {
+                    Log.w(
+                        "EdgeGestureOverlay",
+                        "dismissTaskCards failed package=${entry.app.packageName} taskId=${entry.taskId}",
+                    )
+                }
             }
+            RecentTasksLoader.requestRefreshAfterSwitch(host.appRepository())
         }.start()
     }
 }

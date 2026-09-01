@@ -49,6 +49,38 @@ internal object TaskManagerUtilShortcuts {
         return finalizeCategorizedShortcutMap(merged)
     }
 
+    fun loadCategorizedSystemShortcutMapFromRows(
+        rows: List<String>,
+        onProgress: ((ShortcutScanProgress) -> Unit)? = null,
+    ): Map<ShortcutKind, Map<String, List<SystemShortcutEntry>>> {
+        val merged = ShortcutKind.entries.associateWith { linkedMapOf<String, LinkedHashMap<String, SystemShortcutEntry>>() }
+        fun putEntry(kind: ShortcutKind, packageName: String, entry: SystemShortcutEntry) {
+            merged.getValue(kind).getOrPut(packageName) { linkedMapOf() }.putIfAbsent(entry.id, entry)
+        }
+        fun absorbFlat(packageName: String, id: String, label: String) {
+            if (!ShortcutDisplayRules.isDisplayable(id, label)) return
+            putEntry(
+                ShortcutKind.DYNAMIC,
+                packageName,
+                SystemShortcutEntry(
+                    id = id,
+                    label = label,
+                    kinds = setOf(ShortcutKind.DYNAMIC),
+                ),
+            )
+        }
+
+        onProgress?.invoke(ShortcutScanProgress(ShortcutScanPhase.DUMPSYS, 0, 0))
+        Log.i(TAG, "loadCategorizedSystemShortcutMap root rows=${rows.size}")
+        rows.forEach { row ->
+            val parts = row.split('\t')
+            if (parts.size >= 3) {
+                absorbFlat(parts[0].trim(), parts[1].trim(), parts[2].trim())
+            }
+        }
+        return finalizeCategorizedShortcutMap(merged)
+    }
+
     private fun finalizeCategorizedShortcutMap(
         merged: Map<ShortcutKind, LinkedHashMap<String, LinkedHashMap<String, SystemShortcutEntry>>>,
     ): Map<ShortcutKind, Map<String, List<SystemShortcutEntry>>> =

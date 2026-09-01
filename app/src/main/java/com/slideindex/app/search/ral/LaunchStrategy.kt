@@ -7,7 +7,9 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.core.net.toUri
-import eu.chainfire.libsuperuser.Shell
+import com.slideindex.app.privilege.PrivilegeGateway
+import com.slideindex.app.shizuku.TaskManagerShellExecutor
+import com.slideindex.app.util.TaskManagerUtil
 import rikka.shizuku.Shizuku
 
 internal interface LaunchStrategy {
@@ -40,7 +42,8 @@ internal interface BinderWrapperLaunchStrategy : LaunchStrategy, BinderWrapper {
 
 internal interface ShizukuLaunchStrategy : BinderWrapperLaunchStrategy, ShizukuBinderWrapperHost {
     override suspend fun Context.canRun(args: LaunchArgs): Boolean =
-        Shizuku.pingBinder() && (hasShizukuPermission || requestShizukuPermission())
+        PrivilegeGateway.isShizukuMode() &&
+            Shizuku.pingBinder() && (hasShizukuPermission || requestShizukuPermission())
 }
 
 internal interface BinderActivityLaunchStrategy : BinderWrapperLaunchStrategy {
@@ -57,14 +60,24 @@ internal interface BinderActivityLaunchStrategy : BinderWrapperLaunchStrategy {
 }
 
 internal interface RootLaunchStrategy : CommandLaunchStrategy {
-    override suspend fun Context.canRun(args: LaunchArgs): Boolean = Shell.SU.available()
+    override suspend fun Context.canRun(args: LaunchArgs): Boolean =
+        PrivilegeGateway.isRootMode() && TaskManagerUtil.peekPrivilegedAccess()
 
     override suspend fun Context.tryLaunch(args: LaunchArgs): List<Throwable> {
         val command = StringBuilder(makeCommand(args))
         appendCommandExtras(command, args)
-        val errorOutput = mutableListOf<String>()
-        val result = Shell.Pool.SU.run(command.toString(), null, errorOutput, false)
-        return if (result == 0) emptyList() else listOf(Exception(errorOutput.joinToString("\n")))
+        if (args.intent.flags != 0) {
+            command.append(" -f ${args.intent.flags}")
+        }
+        val result = TaskManagerShellExecutor.runAsRootUser(
+            command.toString(),
+            TaskManagerShellExecutor.SHELL_COMMAND_TIMEOUT_MS,
+        )
+        return if (result.exitCode == 0) {
+            emptyList()
+        } else {
+            listOf(Exception(result.output.ifBlank { "am start failed (exit=${result.exitCode})" }))
+        }
     }
 }
 

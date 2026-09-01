@@ -5,6 +5,7 @@ import android.content.Intent
 import android.media.AudioManager
 import android.provider.Settings
 import android.view.KeyEvent
+import com.slideindex.app.privilege.PrivilegeGateway
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -159,7 +160,7 @@ object SystemGestureActions {
             "input keyevent $keyCode"
         }
         CoroutineScope(Dispatchers.IO).launch {
-            val useRoot = ShellCommandExecutor.probeRootAvailable()
+            val useRoot = PrivilegeGateway.isRootMode()
             val result = TaskManagerUtil.runShellCommandLine(cmd, useRoot = useRoot)
             if (!result.success) {
                 val errorMsg = result.output.ifBlank { "ExitCode ${result.exitCode}" }

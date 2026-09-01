@@ -13,6 +13,7 @@ import com.slideindex.app.R
 import com.slideindex.app.autofill.OtpAutoInputNodeHelper
 import com.slideindex.app.overlay.FloatBallTextPick
 import com.slideindex.app.overlay.pickresult.PickResultUrl
+import com.slideindex.app.privilege.PrivilegeUiStrings
 import com.slideindex.app.service.LaunchTrampolineActivity
 import com.slideindex.app.service.SlideIndexAccessibilityService
 import com.slideindex.app.settings.AppSettings
@@ -194,7 +195,7 @@ object SearchEngineLauncher {
         autoInputEnter: Boolean,
     ): Boolean {
         if (!TaskManagerUtil.hasPermission()) {
-            Toast.makeText(context, R.string.search_engine_shizuku_required, Toast.LENGTH_LONG).show()
+            Toast.makeText(context, PrivilegeUiStrings.privilegedAccessRequiredRes(), Toast.LENGTH_LONG).show()
             return false
         }
         if (autoInputEnter && !SlideIndexAccessibilityService.isConnected()) {

@@ -8,7 +8,7 @@ import android.os.IBinder
 import android.util.Log
 
 internal class TaskManagerFreeWindowOperations(
-    private val shell: TaskManagerShellExecutor = TaskManagerShellExecutor,
+    private val shell: TaskShellPort = DefaultTaskShellPort,
     private val tasks: TaskManagerTaskOperations = TaskManagerTaskOperations(),
 ) {
 

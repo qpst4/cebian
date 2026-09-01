@@ -38,14 +38,18 @@ object PrivilegedActivityLauncher {
         val appContext = context.applicationContext
         val args = createLaunchArgs(appContext, packageName, activityName)
         val errors = mutableListOf<Throwable>()
-        val strategies = if (privilegedOnly) {
-            activityLaunchStrategies.filter { strategy ->
-                strategy !is ActivityLaunchStrategy.Normal &&
-                    strategy !is ActivityLaunchStrategy.Iterative
+        val strategies = activityLaunchStrategies
+            .filter { it.allowedForCurrentPrivilegeMode() }
+            .let { candidates ->
+                if (privilegedOnly) {
+                    candidates.filter { strategy ->
+                        strategy !is ActivityLaunchStrategy.Normal &&
+                            strategy !is ActivityLaunchStrategy.Iterative
+                    }
+                } else {
+                    candidates
+                }
             }
-        } else {
-            activityLaunchStrategies
-        }
 
         for (strategy in strategies) {
             with(strategy) {

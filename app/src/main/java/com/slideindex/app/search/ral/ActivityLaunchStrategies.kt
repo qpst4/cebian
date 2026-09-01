@@ -14,6 +14,8 @@ import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import com.slideindex.app.privilege.PrivilegeGateway
+import com.slideindex.app.settings.PrivilegeMode
 import rikka.shizuku.Shizuku
 import rikka.shizuku.SystemServiceHelper
 
@@ -81,8 +83,9 @@ internal sealed interface ActivityLaunchStrategy : LaunchStrategy {
                 PackageManager.PERMISSION_GRANTED
 
         override suspend fun Context.canRun(args: LaunchArgs): Boolean =
-            hasWriteSecureSettings() ||
-                (Shizuku.pingBinder() && (hasShizukuPermission || requestShizukuPermission()))
+            PrivilegeGateway.isShizukuMode() &&
+                (hasWriteSecureSettings() ||
+                    (Shizuku.pingBinder() && (hasShizukuPermission || requestShizukuPermission())))
 
         override suspend fun Context.callLaunch(intent: Intent) {
             if (!hasWriteSecureSettings()) {
@@ -131,7 +134,14 @@ internal sealed interface ActivityLaunchStrategy : LaunchStrategy {
         override val priority: Int = 1
         override val label: String = "Root"
 
-        override fun makeCommand(args: LaunchArgs): String = "am start -n ${args.intent.toUri(0)}"
+        override fun makeCommand(args: LaunchArgs): String {
+            val component = args.intent.component
+            if (component != null) {
+                return "am start -n ${component.flattenToShortString()}"
+            }
+            val uri = args.intent.toUri(Intent.URI_INTENT_SCHEME)
+            return "am start '$uri'"
+        }
     }
 }
 
@@ -143,3 +153,14 @@ internal val activityLaunchStrategies: List<ActivityLaunchStrategy> = listOf(
     ActivityLaunchStrategy.Root,
     ActivityLaunchStrategy.AssistantJava,
 ).sortedByDescending { it.priority }
+
+internal fun ActivityLaunchStrategy.allowedForCurrentPrivilegeMode(): Boolean =
+    when (PrivilegeGateway.mode) {
+        PrivilegeMode.ROOT -> when (this) {
+            is ActivityLaunchStrategy.ShizukuJava,
+            is ActivityLaunchStrategy.AssistantJava,
+            -> false
+            else -> true
+        }
+        PrivilegeMode.SHIZUKU -> this !is RootLaunchStrategy
+    }

@@ -203,6 +203,11 @@ class SettingsRepository @Inject constructor(
     suspend fun setPanelOpacity(value: Float) = edge.setPanelOpacity(value)
     suspend fun setHapticEnabled(enabled: Boolean) = edge.setHapticEnabled(enabled)
     suspend fun setHideFromRecents(enabled: Boolean) = edge.setHideFromRecents(enabled)
+
+    suspend fun setPrivilegeMode(mode: PrivilegeMode): Result<Unit> =
+        editor.edit { prefs ->
+            prefs[SettingsPreferenceKeys.PRIVILEGE_MODE] = mode.storageValue
+        }
     suspend fun setPredictiveBackEnabled(enabled: Boolean) = edge.setPredictiveBackEnabled(enabled)
     suspend fun setSwipeDismissEnabled(enabled: Boolean) = edge.setSwipeDismissEnabled(enabled)
     suspend fun setAccessibilityKeepAliveEnabled(enabled: Boolean) = edge.setAccessibilityKeepAliveEnabled(enabled)

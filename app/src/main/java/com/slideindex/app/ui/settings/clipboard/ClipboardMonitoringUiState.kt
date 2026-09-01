@@ -13,6 +13,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.slideindex.app.clipboard.monitor.ClipboardMonitorController
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.ClipboardMonitoringMode
+import com.slideindex.app.settings.PrivilegeMode
 import com.slideindex.app.util.PermissionHelper
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.EntryPoint
@@ -78,8 +79,19 @@ fun rememberClipboardMonitoringUiState(settings: AppSettings): ClipboardMonitori
 
 fun isClipboardMonitoringBackendReady(
     mode: ClipboardMonitoringMode,
+    privilegeMode: PrivilegeMode,
     state: ClipboardMonitoringUiState,
-): Boolean = when {
-    mode.usesRoot -> state.rootAvailable
-    else -> state.shizukuGranted
-} && state.overlayGranted
+): Boolean {
+    val effective = mode.effective(privilegeMode)
+    return when {
+        effective.usesRoot -> state.rootAvailable
+        else -> state.shizukuGranted
+    } && state.overlayGranted
+}
+
+fun AppSettings.isClipboardMonitoringBackendReady(state: ClipboardMonitoringUiState): Boolean =
+    isClipboardMonitoringBackendReady(
+        mode = clipboardBackgroundMonitoringMode,
+        privilegeMode = privilegeMode,
+        state = state,
+    )

@@ -50,6 +50,7 @@ import com.slideindex.app.ui.settings.components.SettingsSliderRow
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 import com.slideindex.app.ui.settings.components.settingsLazyHint
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
+import com.slideindex.app.settings.PrivilegeMode
 import com.slideindex.app.util.PinyinHelper
 import com.slideindex.app.util.TaskManagerUtil
 import kotlinx.coroutines.Dispatchers
@@ -87,11 +88,10 @@ fun FreezerAppsScreen(
         }
     }
     var showSystemApps by remember { mutableStateOf(false) }
-    var rootAvailable by remember { mutableStateOf<Boolean?>(null) }
+    var privilegedAccessGranted by remember { mutableStateOf<Boolean?>(null) }
     val scope = rememberCoroutineScope()
-    val shizukuGranted = remember { TaskManagerUtil.hasPermission() }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(settings.privilegeMode) {
         isLoadingApps = true
         allApps = appRepository.loadFreezerApps(force = true)
         val bootstrap = FreezerBootstrap.scanDisabledLauncherPackages(context)
@@ -102,7 +102,9 @@ fun FreezerAppsScreen(
                 settingsRepository.setFreezerAppPackages(merged)
             }
         }
-        rootAvailable = withContext(Dispatchers.IO) { TaskManagerUtil.probeRootAvailable() }
+        privilegedAccessGranted = withContext(Dispatchers.IO) {
+            TaskManagerUtil.hasPrivilegedAccess()
+        }
         isLoadingApps = false
     }
 
@@ -134,24 +136,19 @@ fun FreezerAppsScreen(
     ) {
         item(key = "freezer-hint") {
             MiuixHintText(
-                buildString {
-                    append(
-                        if (shizukuGranted) {
+                when (settings.privilegeMode) {
+                    PrivilegeMode.SHIZUKU ->
+                        if (privilegedAccessGranted == true) {
                             stringResource(R.string.freezer_shizuku_granted)
                         } else {
                             stringResource(R.string.freezer_shizuku_denied)
-                        },
-                    )
-                    rootAvailable?.let { root ->
-                        append('\n')
-                        append(
-                            if (root) {
-                                stringResource(R.string.freezer_root_available)
-                            } else {
-                                stringResource(R.string.freezer_root_unavailable)
-                            },
-                        )
-                    }
+                        }
+                    PrivilegeMode.ROOT ->
+                        if (privilegedAccessGranted == true) {
+                            stringResource(R.string.privilege_mode_status_root_ready)
+                        } else {
+                            stringResource(R.string.privilege_mode_status_root_missing)
+                        }
                 },
             )
         }

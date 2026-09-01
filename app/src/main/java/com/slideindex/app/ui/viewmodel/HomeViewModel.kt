@@ -12,6 +12,7 @@ import com.slideindex.app.settings.BottomNavBlurDefaults
 import com.slideindex.app.settings.BottomNavMode
 import com.slideindex.app.settings.BottomNavStyle
 import com.slideindex.app.settings.DarkBackgroundStyle
+import com.slideindex.app.settings.PrivilegeMode
 import com.slideindex.app.settings.SettingsRepository
 import com.slideindex.app.settings.ThemePaletteStyle
 import com.slideindex.app.settings.TopAppBarBlurStyle
@@ -148,6 +149,10 @@ class HomeViewModel @AssistedInject constructor(
     fun requestShizuku() = effects.requestShizuku()
 
     fun openAccessibilitySettings() = effects.openAccessibilitySettings()
+
+    fun setPrivilegeMode(mode: PrivilegeMode) = launchSettingsWrite {
+        settingsRepository.setPrivilegeMode(mode)
+    }
 
     @AssistedFactory
     interface Factory {

@@ -35,7 +35,7 @@ object NonExportedActivityLauncher {
             return false
         }
         if (!TaskManagerUtil.hasPermission()) {
-            Log.w(TAG, "Shizuku permission missing for $packageName/$activityName")
+            Log.w(TAG, "privileged access missing for $packageName/$activityName")
             onComplete?.let { mainHandler.post { it(false) } }
             return false
         }

@@ -9,7 +9,7 @@ class TaskManagerUserService() : ITaskManagerService.Stub() {
     private val shellRunner = ShellCommandRunner { args -> shell.shellCommand(*args) }
     private val tasks = TaskManagerTaskOperations(shellRunner)
     private val shortcuts = TaskManagerShortcutResolver(shell)
-    private val freeWindow = TaskManagerFreeWindowOperations(shell, tasks)
+    private val freeWindow = TaskManagerFreeWindowOperations(DefaultTaskShellPort, tasks)
 
     @Keep
     constructor(context: Context) : this()

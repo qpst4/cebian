@@ -7,7 +7,7 @@ import android.os.Handler
 import android.os.Looper
 import com.slideindex.app.clipboard.monitor.ClipboardMonitorController
 import com.slideindex.app.clipboard.monitor.ClipboardMonitorProcess
-import com.slideindex.app.settings.ClipboardMonitoringMode
+import com.slideindex.app.settings.effectiveClipboardMonitoringMode
 import com.slideindex.app.settings.SettingsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
@@ -336,7 +336,7 @@ class ClipboardHistoryRepository @Inject constructor(
             stopClipboardListening()
             return
         }
-        clipboardMonitorController.startIfNeeded(settings.clipboardBackgroundMonitoringMode)
+        clipboardMonitorController.startIfNeeded(settings.effectiveClipboardMonitoringMode())
     }
 
     fun restartClipboardMonitoringFromSettings() {
@@ -346,7 +346,7 @@ class ClipboardHistoryRepository @Inject constructor(
             stopClipboardListening()
             return
         }
-        clipboardMonitorController.restart(settings.clipboardBackgroundMonitoringMode)
+        clipboardMonitorController.restart(settings.effectiveClipboardMonitoringMode())
     }
 
     fun startClipboardListening() {

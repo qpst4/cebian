@@ -7,6 +7,7 @@ import android.text.TextUtils
 import com.slideindex.app.service.SlideIndexAccessibilityService
 import com.slideindex.app.util.PermissionHelper
 import com.slideindex.app.util.SecureSettingsHelper
+import com.slideindex.app.privilege.PrivilegeGateway
 import com.slideindex.app.util.TaskManagerUtil
 
 object OtpAccessibilitySettingsHelper {
@@ -54,21 +55,17 @@ object OtpAccessibilitySettingsHelper {
     }
 
     private fun toggleMainAccessibilityViaRoot(context: Context, enable: Boolean): Boolean {
-        if (!TaskManagerUtil.probeRootAvailable()) return false
+        if (!PrivilegeGateway.isRootMode()) return false
+        if (!TaskManagerUtil.hasPrivilegedAccess()) return false
         val component = ComponentName(context, SlideIndexAccessibilityService::class.java)
         val serviceId = component.flattenToString()
-        return try {
-            val command = if (enable) {
-                buildEnableCommand(context, serviceId)
-            } else {
-                buildDisableCommand(context, serviceId)
-            }
-            val process = Runtime.getRuntime().exec(arrayOf("su", "-c", command))
-            val exitCode = process.waitFor()
-            exitCode == 0 && isAccessibilityReady(context) == enable
-        } catch (_: Throwable) {
-            false
+        val command = if (enable) {
+            buildEnableCommand(context, serviceId)
+        } else {
+            buildDisableCommand(context, serviceId)
         }
+        val result = TaskManagerUtil.runShellCommandLine(command, useRoot = true)
+        return result.success && isAccessibilityReady(context) == enable
     }
 
     private fun buildEnableCommand(context: Context, serviceId: String): String {

@@ -95,7 +95,8 @@ data class ExtensionHubSettings(
     val floatingPointerPointerDiameterPx: Float = 100f,
     val floatingPointerSensitivityFraction: Float = 0.52f,
     val clipboardBackgroundMonitoring: Boolean = true,
-    val clipboardBackgroundMonitoringMode: ClipboardMonitoringMode = ClipboardMonitoringMode.SHIZUKU_LOGS,
+    val clipboardBackgroundMonitoringMode: ClipboardMonitoringMode = ClipboardMonitoringMode.FOLLOW_PRIVILEGE,
+    val privilegeMode: PrivilegeMode = PrivilegeMode.SHIZUKU,
     val holographicHiddenAppCount: Int = 0,
 ) {
     companion object {
@@ -111,6 +112,7 @@ data class ExtensionHubSettings(
             floatingPointerSensitivityFraction = settings.floatingPointerSensitivityFraction,
             clipboardBackgroundMonitoring = settings.clipboardBackgroundMonitoring,
             clipboardBackgroundMonitoringMode = settings.clipboardBackgroundMonitoringMode,
+            privilegeMode = settings.privilegeMode,
             holographicHiddenAppCount = settings.holographicLauncher.hiddenAppPackages.size,
         )
     }

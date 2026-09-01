@@ -106,6 +106,7 @@ internal class TaskSwitcherOverlayController(
     internal var taskSwitcherGestureScrolled = false
     internal var taskSwitcherExiting = false
     internal var taskSwitcherLoading = false
+    internal var taskSwitcherPrivilegedAccess = false
 
     fun handleTouch(event: MotionEvent, localX: Float, localY: Float): Boolean =
         touchHandler.handleTouch(event, localX, localY)
@@ -124,12 +125,13 @@ internal class TaskSwitcherOverlayController(
         touchHandler.clearTaskSwitcherPickHighlights()
 
         recentApps = mutableListOf()
-        taskSwitcherLoading = TaskManagerUtil.hasPermission()
+        taskSwitcherPrivilegedAccess = TaskManagerUtil.peekPrivilegedAccess()
+        taskSwitcherLoading = taskSwitcherPrivilegedAccess
         if (!deferInvalidate) {
             invalidateTaskSwitcherPanel()
         }
 
-        if (!TaskManagerUtil.hasPermission()) {
+        if (!taskSwitcherPrivilegedAccess) {
             if (!deferInvalidate) {
                 invalidateTaskSwitcherPanel()
             }
@@ -146,6 +148,11 @@ internal class TaskSwitcherOverlayController(
             taskSwitcherLoading = false
             recentApps = fresh.toMutableList()
             taskSwitcherLayout = null
+            val iconSize = host.dp(30f).toInt().coerceAtLeast(48)
+            host.appRepository().warmLaunchIconBitmapsAsync(
+                fresh.map { it.app.packageName },
+                iconSize,
+            )
             invalidateTaskSwitcherPanel()
         }
     }
@@ -270,6 +277,7 @@ internal class TaskSwitcherOverlayController(
 
     private fun taskSwitcherRenderState() = TaskSwitcherRenderState(
         loading = taskSwitcherLoading,
+        privilegedAccess = taskSwitcherPrivilegedAccess,
         recentEntries = recentApps,
         rowHighlight = taskSwitcherRowHighlight,
         closeHighlight = taskSwitcherCloseHighlight,

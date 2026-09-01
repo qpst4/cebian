@@ -6,11 +6,19 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
+import java.util.concurrent.Callable
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 import android.util.Log
 import android.widget.Toast
 import com.slideindex.app.R
 import com.slideindex.app.service.OverlayService
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.privilege.PrivilegeGateway
+import com.slideindex.app.privilege.RootPrivilegedOperations
+import com.slideindex.app.settings.PrivilegeMode
 import com.slideindex.app.shizuku.ITaskManagerService
 import com.slideindex.app.shizuku.ShizukuUserServiceHost
 import rikka.shizuku.Shizuku
@@ -59,6 +67,67 @@ object TaskManagerUtil {
 
     private val taskWorkerLock = Any()
 
+    private val privilegedOpsExecutor = Executors.newSingleThreadExecutor { runnable ->
+        Thread(runnable, "PrivilegedTaskOps").apply { isDaemon = true }
+    }
+
+    private const val PRIVILEGED_OPS_TIMEOUT_MS = 8_000L
+
+    private val onPrivilegedOpsThread = ThreadLocal.withInitial { false }
+
+    @Suppress("UNCHECKED_CAST")
+    private inline fun <reified T> privilegedMainThreadFallback(): T = when (T::class) {
+        Boolean::class -> false as T
+        ShellCommandResult::class -> ShellCommandResult(-1, "主线程跳过特权任务") as T
+        Int::class -> 0 as T
+        String::class -> "" as T
+        Unit::class -> Unit as T
+        else -> when {
+            Map::class.java.isAssignableFrom(T::class.java) -> {
+                @Suppress("UNCHECKED_CAST")
+                emptyMap<Any, Any>() as T
+            }
+            else -> throw IllegalStateException(
+                "Privileged task cannot run on main thread for ${T::class.java.simpleName}",
+            )
+        }
+    }
+
+    private inline fun <reified T> runPrivilegedOpsBlocking(noinline block: () -> T): T {
+        if (onPrivilegedOpsThread.get() == true) {
+            return block()
+        }
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            privilegedOpsExecutor.execute {
+                onPrivilegedOpsThread.set(true)
+                try {
+                    runCatching { block() }
+                } finally {
+                    onPrivilegedOpsThread.set(false)
+                }
+            }
+            return privilegedMainThreadFallback()
+        }
+        return try {
+            privilegedOpsExecutor.submit(
+                Callable {
+                    onPrivilegedOpsThread.set(true)
+                    try {
+                        block()
+                    } finally {
+                        onPrivilegedOpsThread.set(false)
+                    }
+                },
+            ).get(PRIVILEGED_OPS_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+        } catch (error: TimeoutException) {
+            Log.e(TAG, "privileged task timed out", error)
+            privilegedMainThreadFallback()
+        } catch (error: Exception) {
+            Log.e(TAG, "privileged task failed", error)
+            privilegedMainThreadFallback()
+        }
+    }
+
     private fun peekBoundService(): ITaskManagerService? = ShizukuUserServiceHost.peek()
 
     private fun bindService(context: Context): ITaskManagerService? =
@@ -77,12 +146,68 @@ object TaskManagerUtil {
     fun isShizukuRunning(): Boolean =
         runCatching { Shizuku.pingBinder() }.getOrDefault(false)
 
-    fun hasPermission(): Boolean =
+    fun hasShizukuPermission(): Boolean =
         isShizukuRunning() &&
             Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED
 
+    private const val ROOT_ACCESS_CACHE_MS = 30_000L
+
+    @Volatile
+    private var cachedRootAccess: Boolean? = null
+
+    @Volatile
+    private var cachedRootAccessAtMs = 0L
+
+    fun invalidatePrivilegedAccessCache() {
+        cachedRootAccess = null
+        cachedRootAccessAtMs = 0L
+    }
+
+    fun hasPrivilegedAccess(): Boolean =
+        when (PrivilegeGateway.mode) {
+            PrivilegeMode.ROOT -> cachedRootAccess()
+            PrivilegeMode.SHIZUKU -> hasShizukuPermission()
+        }
+
+    fun peekPrivilegedAccess(): Boolean =
+        when (PrivilegeGateway.mode) {
+            PrivilegeMode.ROOT -> cachedRootAccess ?: true
+            PrivilegeMode.SHIZUKU -> hasShizukuPermission()
+        }
+
+    private fun cachedRootAccess(): Boolean {
+        val now = SystemClock.elapsedRealtime()
+        cachedRootAccess?.let { cached ->
+            if (now - cachedRootAccessAtMs < ROOT_ACCESS_CACHE_MS) return cached
+        }
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            scheduleRootAccessProbe()
+            return cachedRootAccess ?: true
+        }
+        val live = runPrivilegedOpsBlocking { RootPrivilegedOperations.probeRootAvailable() }
+        cachedRootAccess = live
+        cachedRootAccessAtMs = now
+        return live
+    }
+
+    private fun scheduleRootAccessProbe() {
+        privilegedOpsExecutor.execute {
+            onPrivilegedOpsThread.set(true)
+            try {
+                val live = RootPrivilegedOperations.probeRootAvailable()
+                cachedRootAccess = live
+                cachedRootAccessAtMs = SystemClock.elapsedRealtime()
+            } finally {
+                onPrivilegedOpsThread.set(false)
+            }
+        }
+    }
+
+    fun hasPermission(): Boolean = hasPrivilegedAccess()
+
     fun checkAndRequestPermission(activity: Activity): Boolean {
-        if (hasPermission()) return true
+        if (hasPrivilegedAccess()) return true
+        if (PrivilegeGateway.isRootMode()) return false
         requestPermission(activity)
         return false
     }
@@ -99,7 +224,8 @@ object TaskManagerUtil {
     }
 
     fun requestPermission(context: Context) {
-        if (hasPermission()) return
+        if (PrivilegeGateway.isRootMode()) return
+        if (hasShizukuPermission()) return
         if (!isShizukuRunning()) {
             if (openShizukuApp(context)) {
                 showShizukuToast(context, R.string.shizuku_start_service_hint)
@@ -125,7 +251,7 @@ object TaskManagerUtil {
     }
 
     fun warmUp() {
-        if (!hasPermission() || warmUpInFlight) return
+        if (!PrivilegeGateway.isShizukuMode() || !hasShizukuPermission() || warmUpInFlight) return
         warmUpInFlight = true
         Thread {
             try {
@@ -147,7 +273,7 @@ object TaskManagerUtil {
     }
 
     fun ensureServiceBound() {
-        if (!hasPermission() || peekBoundService() != null) return
+        if (!PrivilegeGateway.isShizukuMode() || !hasShizukuPermission() || peekBoundService() != null) return
         Thread {
             runCatching { bindService(appContext()) }
                 .onFailure { error -> Log.w(TAG, "ensureServiceBound failed", error) }
@@ -155,13 +281,24 @@ object TaskManagerUtil {
     }
 
     fun refreshRecentTasks(): List<RecentTaskRef> {
-        if (!hasPermission()) return emptyList()
+        if (!hasPrivilegedAccess()) return emptyList()
+        if (PrivilegeGateway.isRootMode()) {
+            return runPrivilegedTask("refreshRecentTasks") {
+                TaskManagerTaskQueries.parseRecentTaskRows(RootPrivilegedOperations.getRecentTasks())
+            } ?: emptyList()
+        }
         val taskService = peekBoundService() ?: bindService(appContext()) ?: return emptyList()
         return TaskManagerTaskQueries.fetchRecentTasksFromService(taskService)
     }
 
     fun resolveTaskIdForIdentifier(identifier: String): Int? {
-        if (identifier.isBlank() || !hasPermission()) return null
+        if (identifier.isBlank() || !hasPrivilegedAccess()) return null
+        if (PrivilegeGateway.isRootMode()) {
+            return runPrivilegedTask("resolveTaskIdForIdentifier") {
+                val ids = RootPrivilegedOperations.getTaskIdsForPackage(identifier.trim())
+                TaskManagerTaskQueries.resolveTaskIdFromIds(ids)
+            }
+        }
         val service = bindService(appContext()) ?: bindFreshService() ?: return null
         val ids = runCatching { service.getTaskIdsForPackage(identifier.trim()) }
             .getOrDefault(emptyArray())
@@ -169,7 +306,10 @@ object TaskManagerUtil {
     }
 
     fun removeTaskById(taskId: Int): Boolean {
-        if (taskId <= 0 || !hasPermission()) return false
+        if (taskId <= 0 || !hasPrivilegedAccess()) return false
+        if (PrivilegeGateway.isRootMode()) {
+            return runOnTaskWorker { RootPrivilegedOperations.removeTaskById(taskId.toString()) }
+        }
         return runOnTaskWorker {
             bindFreshService(MIN_REMOVE_TASK_API)?.removeTaskById(taskId.toString()) == true
         }
@@ -180,13 +320,22 @@ object TaskManagerUtil {
         identifier: String = "",
         topComponent: String = "",
     ): Boolean {
-        if (!hasPermission()) {
-            Log.w(TAG, "switchToTask skipped: no Shizuku permission")
+        if (!hasPrivilegedAccess()) {
+            Log.w(TAG, "switchToTask skipped: no privileged access")
             return false
         }
         if (taskId <= 0 && identifier.isBlank()) {
             Log.w(TAG, "switchToTask skipped: no taskId or identifier")
             return false
+        }
+        if (PrivilegeGateway.isRootMode()) {
+            return runPrivilegedTask("switchToTask:$taskId") {
+                RootPrivilegedOperations.switchToTask(
+                    if (taskId > 0) taskId.toString() else "",
+                    identifier,
+                    topComponent,
+                )
+            } ?: false
         }
         val service = peekBoundService() ?: bindService(appContext()) ?: run {
             Log.w(TAG, "switchToTask failed: UserService unavailable")
@@ -218,6 +367,12 @@ object TaskManagerUtil {
         if (!packageName.isNullOrBlank()) {
             return removeTaskByPackage(packageName)
         }
+        if (PrivilegeGateway.isRootMode()) {
+            return runPrivilegedTask("removeCurrentFrontAppTask") {
+                val taskId = RootPrivilegedOperations.getFrontTaskId().takeIf { it.isNotBlank() } ?: return@runPrivilegedTask false
+                RootPrivilegedOperations.removeTaskById(taskId)
+            } ?: false
+        }
         val taskService = bindService(appContext()) ?: return false
         return try {
             val taskId = taskService.getFrontTaskId().takeIf { it.isNotBlank() } ?: return false
@@ -231,6 +386,13 @@ object TaskManagerUtil {
     fun removeTaskByPackage(packageName: String): Boolean {
         if (packageName.isBlank()) return false
         if (TaskSwitcherLockStore.isLocked(appContext(), packageName)) return false
+        if (PrivilegeGateway.isRootMode()) {
+            return runPrivilegedTask("removeTaskByPackage:$packageName") {
+                val taskIds = RootPrivilegedOperations.getTaskIdsForPackage(packageName)
+                if (taskIds.isEmpty()) return@runPrivilegedTask false
+                taskIds.any { RootPrivilegedOperations.removeTaskById(it) }
+            } ?: false
+        }
         return try {
             val taskService = bindFreshService(MIN_TASK_IDS_API) ?: return false
             val taskIds = taskService.getTaskIdsForPackage(packageName)
@@ -244,24 +406,40 @@ object TaskManagerUtil {
 
     fun forceStopPackage(packageName: String): Boolean {
         if (packageName.isBlank()) return false
-        if (!hasPermission()) return false
+        if (!hasPrivilegedAccess()) return false
+        if (PrivilegeGateway.isRootMode()) {
+            return runOnTaskWorker { RootPrivilegedOperations.forceStopPackage(packageName) }
+        }
         return runOnTaskWorker {
             bindFreshService(MIN_FORCE_STOP_API)?.forceStopPackage(packageName) == true
         }
     }
 
-    fun movePackageToFreeWindow(packageName: String, settings: AppSettings): Boolean =
-        TaskManagerUtilFreeWindow.movePackageToFreeWindow(
+    fun movePackageToFreeWindow(packageName: String, settings: AppSettings): Boolean {
+        if (!hasPrivilegedAccess()) return false
+        if (PrivilegeGateway.isRootMode()) {
+            return runOnTaskWorker {
+                val taskId = RootPrivilegedOperations.getTaskIdsForPackage(packageName).firstOrNull()
+                    ?: return@runOnTaskWorker false
+                RootPrivilegedOperations.moveTaskToFreeWindow(taskId, settings, appContext())
+            }
+        }
+        return TaskManagerUtilFreeWindow.movePackageToFreeWindow(
             packageName = packageName,
             settings = settings,
-            hasPermission = hasPermission(),
+            hasPermission = true,
             bindFreshService = ::bindFreshService,
         )
+    }
 
     fun getPublishedShortcuts(packageName: String): List<Pair<String, String>> {
-        if (packageName.isBlank() || !hasPermission()) return emptyList()
+        if (packageName.isBlank() || !hasPrivilegedAccess()) return emptyList()
         return runOnTaskWorker {
-            val rows = bindFreshService(MIN_SHORTCUTS_API)?.getPublishedShortcuts(packageName).orEmpty()
+            val rows = if (PrivilegeGateway.isRootMode()) {
+                RootPrivilegedOperations.getPublishedShortcuts(packageName)
+            } else {
+                bindFreshService(MIN_SHORTCUTS_API)?.getPublishedShortcuts(packageName).orEmpty()
+            }
             rows.mapNotNull { row ->
                 val parts = row.split('\t', limit = 2)
                 val id = parts.getOrNull(0)?.trim().orEmpty()
@@ -273,57 +451,98 @@ object TaskManagerUtil {
     }
 
     fun startPublishedShortcut(packageName: String, shortcutId: String): Boolean {
-        if (packageName.isBlank() || shortcutId.isBlank() || !hasPermission()) return false
+        if (packageName.isBlank() || shortcutId.isBlank() || !hasPrivilegedAccess()) return false
         return runOnTaskWorker {
-            bindFreshService(MIN_SHORTCUTS_API)?.startPublishedShortcut(packageName, shortcutId) == true
+            if (PrivilegeGateway.isRootMode()) {
+                RootPrivilegedOperations.startPublishedShortcut(packageName, shortcutId)
+            } else {
+                bindFreshService(MIN_SHORTCUTS_API)?.startPublishedShortcut(packageName, shortcutId) == true
+            }
         }
     }
 
     fun loadCategorizedSystemShortcutMap(
         onProgress: ((ShortcutScanProgress) -> Unit)? = null,
-    ): Map<ShortcutKind, Map<String, List<SystemShortcutEntry>>> =
-        TaskManagerUtilShortcuts.loadCategorizedSystemShortcutMap(
-            hasPermission = hasPermission(),
+    ): Map<ShortcutKind, Map<String, List<SystemShortcutEntry>>> {
+        if (PrivilegeGateway.isRootMode() && hasPrivilegedAccess()) {
+            return runOnTaskWorker {
+                TaskManagerUtilShortcuts.loadCategorizedSystemShortcutMapFromRows(
+                    RootPrivilegedOperations.getAllPublishedShortcuts().toList(),
+                    onProgress,
+                )
+            }
+        }
+        return TaskManagerUtilShortcuts.loadCategorizedSystemShortcutMap(
+            hasPermission = hasShizukuPermission(),
             bindFreshService = ::bindFreshService,
             readServiceApi = ::readServiceApi,
             onProgress = onProgress,
         )
+    }
 
     fun showVoiceAssistant(): Boolean {
-        if (!hasPermission()) return false
+        if (!hasPrivilegedAccess()) return false
+        if (PrivilegeGateway.isRootMode()) {
+            return runOnTaskWorker { RootPrivilegedOperations.showVoiceAssistant() }
+        }
         return runOnTaskWorker {
             bindFreshService()?.showVoiceAssistant() == true
         }
     }
 
     fun runShellCommand(vararg cmd: String): Boolean {
-        if (!hasPermission()) return false
+        if (!hasPrivilegedAccess()) return false
+        if (PrivilegeGateway.isRootMode()) {
+            return runOnTaskWorker { RootPrivilegedOperations.runShellCommand(*cmd) }
+        }
         return runOnTaskWorker {
             bindFreshService()?.runShellCommand(cmd) == true
         }
     }
 
-    fun runShellCommandOutput(vararg cmd: String): ShellCommandResult =
-        TaskManagerUtilShell.runShellCommandOutput(hasPermission(), ::bindFreshService, *cmd)
+    fun runShellCommandOutput(vararg cmd: String): ShellCommandResult {
+        if (PrivilegeGateway.isRootMode()) {
+            if (!hasPrivilegedAccess()) {
+                return ShellCommandResult(exitCode = -1, output = "无 Root 权限")
+            }
+            return runOnTaskWorker { RootPrivilegedOperations.runShellCommandOutput(*cmd) }
+        }
+        return TaskManagerUtilShell.runShellCommandOutput(hasShizukuPermission(), ::bindFreshService, *cmd)
+    }
 
     fun probeRootAvailable(): Boolean =
-        TaskManagerUtilShell.probeRootAvailable(hasPermission(), ::bindFreshService, ::readServiceApi)
+        when (PrivilegeGateway.mode) {
+            PrivilegeMode.ROOT ->
+                runOnTaskWorker { RootPrivilegedOperations.probeRootAvailable() }
+            PrivilegeMode.SHIZUKU ->
+                TaskManagerUtilShell.probeRootAvailable(hasShizukuPermission(), ::bindFreshService, ::readServiceApi)
+        }
 
     fun runShellCommandLine(
         command: String,
         useRoot: Boolean,
         timeoutMs: Long = 35_000L,
-    ): ShellCommandResult =
-        TaskManagerUtilShell.runShellCommandLine(
-            hasPermission = hasPermission(),
+    ): ShellCommandResult {
+        if (PrivilegeGateway.isRootMode()) {
+            if (!hasPrivilegedAccess()) {
+                return ShellCommandResult(exitCode = -1, output = "无 Root 权限")
+            }
+            return runOnTaskWorker { RootPrivilegedOperations.runShellCommandLine(command, timeoutMs) }
+        }
+        return TaskManagerUtilShell.runShellCommandLine(
+            hasPermission = hasShizukuPermission(),
             bindFreshService = ::bindFreshService,
             readServiceApi = ::readServiceApi,
             command = command,
             useRoot = useRoot,
             timeoutMs = timeoutMs,
         )
+    }
 
-    fun <T> runOnTaskWorker(block: () -> T): T {
+    internal inline fun <reified T> runOnTaskWorker(noinline block: () -> T): T {
+        if (PrivilegeGateway.isRootMode()) {
+            return runPrivilegedOpsBlocking(block)
+        }
         if (Looper.myLooper() == Looper.getMainLooper()) {
             // bindService runs inline on main; never block main on a background worker lock.
             return block()
@@ -333,19 +552,78 @@ object TaskManagerUtil {
         }
     }
 
-    fun moveFrontTaskToFreeWindow(settings: AppSettings): Boolean =
-        TaskManagerUtilFreeWindow.moveFrontTaskToFreeWindow(
+    private fun <T> runPrivilegedTask(label: String, block: () -> T): T? {
+        if (onPrivilegedOpsThread.get() == true) {
+            return block()
+        }
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            privilegedOpsExecutor.execute {
+                onPrivilegedOpsThread.set(true)
+                try {
+                    runCatching { block() }
+                } finally {
+                    onPrivilegedOpsThread.set(false)
+                }
+            }
+            Log.w(TAG, "$label dispatched on main thread")
+            return null
+        }
+        return try {
+            privilegedOpsExecutor.submit(
+                Callable {
+                    onPrivilegedOpsThread.set(true)
+                    try {
+                        block()
+                    } finally {
+                        onPrivilegedOpsThread.set(false)
+                    }
+                },
+            ).get(PRIVILEGED_OPS_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+        } catch (error: TimeoutException) {
+            Log.e(TAG, "$label timed out", error)
+            null
+        } catch (error: Exception) {
+            Log.e(TAG, "$label failed", error)
+            null
+        }
+    }
+
+    fun moveFrontTaskToFreeWindow(settings: AppSettings): Boolean {
+        if (!hasPrivilegedAccess()) return false
+        if (PrivilegeGateway.isRootMode()) {
+            return runPrivilegedTask("moveFrontTaskToFreeWindow") {
+                val taskId = RootPrivilegedOperations.getFrontTaskId().takeIf { it.isNotBlank() }
+                    ?: return@runPrivilegedTask false
+                val frontPackage = RootPrivilegedOperations.getFrontTaskPackage()
+                if (frontPackage.isNotBlank() &&
+                    TaskExclusions.shouldSkipFreeWindow(frontPackage, appContext().packageName)
+                ) {
+                    return@runPrivilegedTask false
+                }
+                RootPrivilegedOperations.moveTaskToFreeWindow(taskId, settings, appContext())
+            } ?: false
+        }
+        return TaskManagerUtilFreeWindow.moveFrontTaskToFreeWindow(
             settings = settings,
-            hasPermission = hasPermission(),
+            hasPermission = true,
             appContext = appContext(),
             bindFreshService = ::bindFreshService,
             forceRestartUserService = ::forceRestartUserService,
         )
+    }
 
-    fun restartShellService(): Int = ShizukuUserServiceHost.restart(appContext())
+    fun restartShellService(): Int {
+        if (PrivilegeGateway.isRootMode()) return 0
+        return ShizukuUserServiceHost.restart(appContext())
+    }
 
     fun getRecentTaskPackages(): List<String>? {
-        if (!hasPermission()) return null
+        if (!hasPrivilegedAccess()) return null
+        if (PrivilegeGateway.isRootMode()) {
+            return runPrivilegedTask("getRecentTaskPackages") {
+                RootPrivilegedOperations.getRecentTaskPackages().toList()
+            }
+        }
         val taskService = peekBoundService() ?: bindService(appContext()) ?: return null
         return try {
             taskService.getRecentTaskPackages().toList()

@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.settings.CornerGestureSettings
 import com.slideindex.app.settings.HomeMainSettings
+import com.slideindex.app.settings.PrivilegeMode
 import com.slideindex.app.ui.animationstyle.GestureAnimationSettingsRows
 import com.slideindex.app.ui.miuix.MiuixHubScaffold
 import com.slideindex.app.ui.miuix.groupedCardItems
@@ -28,15 +29,20 @@ import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 fun MainScreen(
     settings: HomeMainSettings,
     cornerGestureSettings: CornerGestureSettings,
+    privilegeMode: PrivilegeMode,
+    privilegedAccessGranted: Boolean,
+    rootAccessGranted: Boolean,
     notificationGranted: Boolean,
     shizukuGranted: Boolean,
     accessibilityGranted: Boolean,
     batteryOptimizationExempt: Boolean,
     onRequestNotification: () -> Unit,
     onRequestShizuku: () -> Unit,
+    onRequestRootAccess: () -> Unit,
     onRequestAccessibility: () -> Unit,
     onRequestBatteryOptimization: () -> Unit = {},
     onGestureEnabledChange: (Boolean) -> Unit,
+    onOpenPrivilegeModeSettings: () -> Unit,
     onOpenAppKeepAliveSettings: () -> Unit,
     onOpenFloatBallSettings: () -> Unit,
     onOpenFreeWindowSettings: () -> Unit,
@@ -83,13 +89,23 @@ fun MainScreen(
                 ),
             )
         }
-        if (!shizukuGranted) {
+        if (privilegeMode == PrivilegeMode.SHIZUKU && !shizukuGranted) {
             add(
                 PendingPermissionItem(
                     title = stringResource(R.string.permission_shizuku_title),
                     description = stringResource(R.string.permission_shizuku_desc),
                     grantLabel = stringResource(R.string.permission_shizuku_grant),
                     onGrant = onRequestShizuku,
+                ),
+            )
+        }
+        if (privilegeMode == PrivilegeMode.ROOT && !rootAccessGranted) {
+            add(
+                PendingPermissionItem(
+                    title = stringResource(R.string.permission_root_title),
+                    description = stringResource(R.string.permission_root_desc),
+                    grantLabel = stringResource(R.string.permission_root_grant),
+                    onGrant = onRequestRootAccess,
                 ),
             )
         }
@@ -164,6 +180,18 @@ fun MainScreen(
                                     onGestureEnabledChange(false)
                                 }
                             },
+                            )
+                        }
+                    },
+                )
+                add(
+                    settingsCardItem("privilege-mode") {
+                        SettingsCardScopeContent {
+                            PrivilegeModeEntryCard(
+                                privilegeMode = privilegeMode,
+                                privilegedAccessGranted = privilegedAccessGranted,
+                                outlinedLeadingIcons = true,
+                                onClick = onOpenPrivilegeModeSettings,
                             )
                         }
                     },

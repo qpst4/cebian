@@ -14,9 +14,9 @@ import android.util.Log
 import androidx.core.content.ContextCompat
 import com.slideindex.app.clipboard.ClipboardPayload
 import com.slideindex.app.settings.ClipboardMonitoringMode
+import com.slideindex.app.privilege.PrivilegeGateway
+import com.slideindex.app.util.TaskManagerUtil
 import dagger.hilt.android.qualifiers.ApplicationContext
-import java.io.BufferedReader
-import java.io.InputStreamReader
 import javax.inject.Inject
 import javax.inject.Singleton
 import rikka.shizuku.Shizuku
@@ -175,16 +175,12 @@ class ClipboardMonitorController @Inject constructor(
         Shizuku.requestPermission(requestCode)
     }
 
-    fun isRootAvailable(): Boolean {
-        return runCatching {
-            val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "id"))
-            BufferedReader(InputStreamReader(process.inputStream)).use { reader ->
-                val line = reader.readLine().orEmpty()
-                process.waitFor()
-                line.contains("uid=0")
-            }
-        }.getOrDefault(false)
-    }
+    fun isRootAvailable(): Boolean =
+        if (PrivilegeGateway.isRootMode()) {
+            TaskManagerUtil.peekPrivilegedAccess()
+        } else {
+            PrivilegeGateway.probeDirectRootAvailable()
+        }
 
     companion object {
         private const val TAG = "ClipboardMonitor"

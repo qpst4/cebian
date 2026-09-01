@@ -116,7 +116,7 @@ data class OverlaySettings(
     val floatBallImageSearchPickPanelTransparency: Float = 0.65f,
     val shareImageOcrHistoryEnabled: Boolean = true,
     val clipboardBackgroundMonitoring: Boolean = true,
-    val clipboardBackgroundMonitoringMode: ClipboardMonitoringMode = ClipboardMonitoringMode.SHIZUKU_LOGS,
+    val clipboardBackgroundMonitoringMode: ClipboardMonitoringMode = ClipboardMonitoringMode.FOLLOW_PRIVILEGE,
     val clipboardScreenshotMonitoring: Boolean = false,
     val clipboardHistoryMaxEntries: Int = 100,
     val clipboardHistoryFloatEnabled: Boolean = false,

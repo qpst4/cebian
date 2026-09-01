@@ -33,7 +33,9 @@ import androidx.compose.material.icons.outlined.SwapHoriz
 import androidx.compose.material.icons.outlined.TouchApp
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.outlined.Vibration
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.SwapHoriz
+import androidx.compose.material.icons.outlined.Security
 import androidx.compose.ui.graphics.vector.ImageVector
 
 internal fun homeLeadingIcon(outlined: Boolean, filled: ImageVector, outlinedIcon: ImageVector): ImageVector =
@@ -43,6 +45,8 @@ internal object HomeLeadingIcons {
     fun gesture(outlined: Boolean) = homeLeadingIcon(outlined, Icons.Default.Gesture, Icons.Outlined.Gesture)
     fun batteryKeepAlive(outlined: Boolean) =
         if (outlined) HomeCustomIcons.BatteryKeepAliveOutlined else Icons.Default.BatteryChargingFull
+    fun privilegeMode(outlined: Boolean) =
+        homeLeadingIcon(outlined, Icons.Default.Security, Icons.Outlined.Security)
     fun cornerWheel(outlined: Boolean) = HomeCustomIcons.CornerWheel
     fun triggerCollection(outlined: Boolean) =
         homeLeadingIcon(outlined, Icons.Default.TouchApp, Icons.Outlined.TouchApp)

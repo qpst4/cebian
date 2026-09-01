@@ -310,4 +310,5 @@ fun ExtensionHubSettings.toMinimalAppSettings(): AppSettings = AppSettings(
         clipboardBackgroundMonitoring = clipboardBackgroundMonitoring,
         clipboardBackgroundMonitoringMode = clipboardBackgroundMonitoringMode,
     ),
+    privilegeMode = privilegeMode,
 )

@@ -30,6 +30,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
+import com.slideindex.app.privilege.PrivilegeGateway
+import com.slideindex.app.privilege.PrivilegeUiStrings
 import androidx.compose.foundation.layout.width
 import com.slideindex.app.shell.ShellCommand
 import com.slideindex.app.ui.settings.components.SettingLinkRow
@@ -53,11 +55,11 @@ internal fun ShellShizukuStatusCard(
         SettingsCardRow(key = "shell_shizuku_status") { position ->
             BasicComponent(
                 modifier = Modifier.settingsGroupedRowBackground(position.index, position.count),
-                title = stringResource(R.string.shell_panel_shizuku_label),
+                title = stringResource(PrivilegeUiStrings.shellPanelLabelRes()),
                 summary = if (shizukuGranted) {
-                    stringResource(R.string.shell_panel_shizuku_active_desc)
+                    stringResource(PrivilegeUiStrings.shellPanelActiveDescRes())
                 } else {
-                    stringResource(R.string.shell_panel_shizuku_inactive_desc)
+                    stringResource(PrivilegeUiStrings.shellPanelInactiveDescRes())
                 },
                 startAction = {
                     Box(
@@ -74,7 +76,7 @@ internal fun ShellShizukuStatusCard(
                     )
                 },
                 endActions = {
-                    if (shizukuGranted) {
+                    if (shizukuGranted && PrivilegeGateway.isShizukuMode()) {
                         if (restartingService) {
                             LoadingIndicator(modifier = Modifier.size(20.dp))
                         } else {
@@ -89,10 +91,10 @@ internal fun ShellShizukuStatusCard(
                 },
             )
         }
-        if (!shizukuGranted) {
+        if (!shizukuGranted && PrivilegeGateway.isShizukuMode()) {
             SettingLinkRow(
-                title = stringResource(R.string.permission_shizuku_grant),
-                subtitle = stringResource(R.string.permission_shizuku_desc),
+                title = stringResource(PrivilegeUiStrings.shellPanelGrantTitleRes()),
+                subtitle = stringResource(PrivilegeUiStrings.shellPanelGrantDescRes()),
                 onClick = onRequestShizuku,
             )
         }

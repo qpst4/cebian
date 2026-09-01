@@ -19,12 +19,14 @@ object SecureSettingsHelper {
     fun adbGrantCommand(context: Context): String =
         "adb shell pm grant ${context.packageName} $PERMISSION"
 
-    fun grantViaShizuku(context: Context): Boolean {
-        if (!TaskManagerUtil.hasPermission()) return false
+    fun grantViaPrivilegedShell(context: Context): Boolean {
+        if (!TaskManagerUtil.hasPrivilegedAccess()) return false
         val packageName = context.packageName
         val granted = TaskManagerUtil.runShellCommand("pm", "grant", packageName, PERMISSION)
         return granted && hasWriteSecureSettings(context)
     }
+
+    fun grantViaShizuku(context: Context): Boolean = grantViaPrivilegedShell(context)
 
     /**
      * Re-enables this app's accessibility service via Secure settings when permission is granted.

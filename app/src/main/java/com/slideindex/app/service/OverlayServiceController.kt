@@ -53,7 +53,7 @@ class OverlayServiceController(
         permissionStates.overlayGranted.value = PermissionHelper.canDrawOverlays(context)
         permissionStates.notificationGranted.value = PermissionHelper.hasNotificationPermission(context)
         permissionStates.usageAccessGranted.value = PermissionHelper.hasUsageAccess(context)
-        permissionStates.shizukuGranted.value = TaskManagerUtil.hasPermission()
+        permissionStates.shizukuGranted.value = TaskManagerUtil.hasPrivilegedAccess()
         permissionStates.accessibilityGranted.value =
             PermissionHelper.isAccessibilityServiceEnabled(context)
         permissionStates.batteryOptimizationExempt.value =
@@ -65,7 +65,7 @@ class OverlayServiceController(
         if (listenerEnabled) {
             com.slideindex.app.util.MediaSessionHelper.ensureNotificationListenerConnected(context)
         }
-        if (permissionStates.shizukuGranted.value) {
+        if (TaskManagerUtil.hasShizukuPermission()) {
             TaskManagerUtil.warmUp()
         }
     }

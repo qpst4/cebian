@@ -13,6 +13,7 @@ data class AppRootSettings(
     val onboardingCompleted: Boolean = false,
     val hideFromRecents: Boolean = false,
     val predictiveBackEnabled: Boolean = false,
+    val privilegeMode: PrivilegeMode = PrivilegeMode.SHIZUKU,
 ) {
     companion object {
         fun from(settings: AppSettings): AppRootSettings = AppRootSettings(
@@ -22,6 +23,7 @@ data class AppRootSettings(
             onboardingCompleted = settings.onboardingCompleted,
             hideFromRecents = settings.hideFromRecents,
             predictiveBackEnabled = settings.predictiveBackEnabled,
+            privilegeMode = settings.privilegeMode,
         )
     }
 }

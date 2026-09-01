@@ -9,23 +9,23 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.widget.Toast
 import com.slideindex.app.R
+import com.slideindex.app.privilege.PrivilegeGateway
 import com.slideindex.app.util.TaskManagerUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 object FreezerOperations {
-    fun hasShellAccess(): Boolean =
-        TaskManagerUtil.hasPermission() || TaskManagerUtil.probeRootAvailable()
+    fun hasShellAccess(): Boolean = TaskManagerUtil.hasPrivilegedAccess()
 
     suspend fun setFrozen(context: Context, packageName: String, frozen: Boolean): Boolean =
         withContext(Dispatchers.IO) {
-            if (!TaskManagerUtil.hasPermission() && !TaskManagerUtil.probeRootAvailable()) {
+            if (!TaskManagerUtil.hasPrivilegedAccess()) {
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, R.string.freezer_permission_required, Toast.LENGTH_SHORT).show()
                 }
                 return@withContext false
             }
-            val useRoot = TaskManagerUtil.probeRootAvailable()
+            val useRoot = PrivilegeGateway.isRootMode()
             val commands = if (frozen) {
                 listOf(
                     "pm disable-user --user 0 $packageName",

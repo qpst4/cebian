@@ -97,8 +97,10 @@ class ClipboardMonitorForegroundService : Service() {
             }, CONTROLLER_RETRY_MS)
             return START_NOT_STICKY
         }
-        Shizuku.addBinderReceivedListenerSticky(onBinderReceivedListener)
-        Shizuku.addBinderDeadListener(onBinderDeadListener)
+        if (!useRoot) {
+            Shizuku.addBinderReceivedListenerSticky(onBinderReceivedListener)
+            Shizuku.addBinderDeadListener(onBinderDeadListener)
+        }
         if (useHiddenApi && !copyAssetToExternalPrivateDir(applicationContext, LISTENER_ZIP_ASSET)) {
             updateNotification(
                 getString(R.string.clipboard_monitor_notification_error_title),
@@ -256,8 +258,10 @@ class ClipboardMonitorForegroundService : Service() {
             runCatching { listenerService?.exit() }
         }
         ClipboardMonitorController.peek()?.unbindListeningService()
-        Shizuku.removeBinderReceivedListener(onBinderReceivedListener)
-        Shizuku.removeBinderDeadListener(onBinderDeadListener)
+        if (!useRoot) {
+            Shizuku.removeBinderReceivedListener(onBinderReceivedListener)
+            Shizuku.removeBinderDeadListener(onBinderDeadListener)
+        }
         listenerService = null
         stopForegroundCompat()
         super.onDestroy()

@@ -15,6 +15,7 @@ import com.slideindex.app.ui.gestureExecuteShellCommandPreview
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.ui.quickLauncherPanelLabel
 import com.slideindex.app.ui.compose.rememberAppRepository
+import com.slideindex.app.privilege.PrivilegeUiStrings
 import com.slideindex.app.util.PermissionHelper
 import com.slideindex.app.util.PinyinHelper
 import com.slideindex.app.util.TaskManagerUtil
@@ -474,7 +475,7 @@ fun gestureActionPermissionHintText(context: Context, action: GestureAction): St
         GestureActionType.EXECUTE_SHELL_COMMAND,
         -> {
             if (TaskManagerUtil.hasPermission()) return null
-            context.getString(R.string.gesture_action_toggle_shell_permission)
+            context.getString(PrivilegeUiStrings.shellActionPermissionRes())
         }
         GestureActionType.FLASHLIGHT -> {
             if (ContextCompat.checkSelfPermission(context, android.Manifest.permission.CAMERA) ==
