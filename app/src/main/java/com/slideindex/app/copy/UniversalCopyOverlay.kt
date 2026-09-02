@@ -58,8 +58,7 @@ object UniversalCopyOverlay {
     }
 
     fun collectAndShow(service: SlideIndexAccessibilityService) {
-        val root = service.rootInActiveWindow
-        val blocks = UniversalCopyCollector.collectAll(root)
+        val blocks = UniversalCopyCollector.collectAllFromService(service)
         show(service, blocks)
     }
 

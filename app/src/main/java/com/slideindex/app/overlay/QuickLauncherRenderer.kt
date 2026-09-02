@@ -259,7 +259,6 @@ internal class QuickLauncherRenderer(
             canvas.translate(translateX, 0f)
         }
         val m = ctrl.quickLauncherColumnsPerPage()
-        val appCount = entries.size
         val pageSize = ctrl.quickLauncherPageSize().coerceAtLeast(1)
         val pageStart = pageIndex * pageSize
         val fromGlobal = if (recordCells) ctrl.quickLauncherPanelController.dragSourceGlobal() else -1
@@ -295,11 +294,7 @@ internal class QuickLauncherRenderer(
         } else {
             -1
         }
-        val slotCount = when {
-            dragMapping != null -> pageSize
-            recordCells && ctrl.quickLauncherPanelController.editMode -> pageSize
-            else -> appCount.coerceAtMost(pageSize)
-        }
+        val slotCount = pageSize
         fun drawCellAt(index: Int) {
             if (index !in 0 until slotCount) return
             val globalHere = pageStart + index
@@ -312,8 +307,9 @@ internal class QuickLauncherRenderer(
                 if (index !in entries.indices) return
                 item = entries[index]
             }
+            val col = index % m
             val row = index / m
-            val visualCol = visualColumn(index, m, slotCount, host.side())
+            val visualCol = visualColumn(col, m, m, host.side())
             val left = panelRect.left + ctrl.quickLauncherGridPadding + visualCol * ctrl.quickLauncherCellWidth
             val top = panelRect.top + ctrl.quickLauncherHeaderHeight + ctrl.quickLauncherGridPadding +
                 row * ctrl.quickLauncherCellHeight

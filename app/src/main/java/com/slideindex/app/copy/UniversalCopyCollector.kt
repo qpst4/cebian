@@ -5,8 +5,11 @@ package com.slideindex.app.copy
  * Licensed under GPL-3.0. Modified for com.slideindex.app.
  */
 
+import android.accessibilityservice.AccessibilityService
 import android.graphics.Rect
+import android.os.Build
 import android.view.accessibility.AccessibilityNodeInfo
+import android.view.accessibility.AccessibilityWindowInfo
 
 data class UniversalCopyBlock(
     val text: String,
@@ -22,6 +25,55 @@ object UniversalCopyCollector {
         traverse(root, items)
         items.sortWith(compareBy({ it.bounds.top }, { it.bounds.left }))
         return deduplicate(items).map { UniversalCopyBlock(it.text, Rect(it.bounds)) }
+    }
+
+    /**
+     * 快速启动器等全屏 overlay 会使 [AccessibilityService.rootInActiveWindow] 指向本应用；
+     * 此时改从非本包的 [TYPE_APPLICATION] 窗口采集下层宿主文本。
+     */
+    fun collectAllFromService(service: AccessibilityService): List<UniversalCopyBlock> {
+        val selfPackage = service.packageName
+        val activeRoot = service.rootInActiveWindow
+        val activePackage = activeRoot?.packageName?.toString()
+        if (!activePackage.isNullOrBlank() && activePackage != selfPackage) {
+            return collectAll(activeRoot)
+        }
+
+        val merged = mutableListOf<UniversalCopyBlock>()
+        val seen = LinkedHashSet<String>()
+        for (window in service.windows) {
+            when (window.type) {
+                AccessibilityWindowInfo.TYPE_ACCESSIBILITY_OVERLAY,
+                AccessibilityWindowInfo.TYPE_INPUT_METHOD,
+                -> continue
+            }
+            if (window.type != AccessibilityWindowInfo.TYPE_APPLICATION) continue
+            val root = window.root ?: continue
+            val packageName = root.packageName?.toString()
+            if (packageName.isNullOrBlank() || packageName == selfPackage) {
+                releaseNode(root)
+                continue
+            }
+            try {
+                for (block in collectAll(root)) {
+                    val key = "${block.bounds}|${block.text}"
+                    if (seen.add(key)) merged += block
+                }
+            } finally {
+                releaseNode(root)
+            }
+        }
+        if (merged.isEmpty()) {
+            return collectAll(activeRoot)
+        }
+        merged.sortWith(compareBy({ it.bounds.top }, { it.bounds.left }))
+        return merged
+    }
+
+    private fun releaseNode(node: AccessibilityNodeInfo) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) return
+        @Suppress("DEPRECATION")
+        node.recycle()
     }
 
     private data class TextItem(val text: String, val bounds: Rect)
