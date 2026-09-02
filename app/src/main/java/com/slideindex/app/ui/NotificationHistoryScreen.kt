@@ -80,7 +80,7 @@ fun NotificationHistoryScreen(
     var pendingDeleteItem by remember { mutableStateOf<NotificationHistoryItem?>(null) }
     var showClearAllConfirm by remember { mutableStateOf(false) }
     val replayOpenAppDialog by viewModel.replayOpenAppDialog.collectAsStateWithLifecycle()
-    var selectedTab by remember { mutableIntStateOf(NotificationFilterTab.ACTIVE.ordinal) }
+    var selectedTab by remember { mutableIntStateOf(NotificationFilterTab.HISTORY.ordinal) }
     val visibleHistoryItems = uiState.classification.visibleItems
     val hiddenItems = uiState.classification.hiddenItems
     val filteredHistoryItems = uiState.filteredHistoryItems

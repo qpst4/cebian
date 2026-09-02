@@ -19,8 +19,8 @@ import com.slideindex.app.R
 import com.slideindex.app.ui.miuix.MiuixTabRowWithContour
 
 internal enum class NotificationFilterTab {
-    ACTIVE,
     HISTORY,
+    ACTIVE,
     HIDDEN,
 }
 
@@ -31,8 +31,8 @@ internal fun NotificationHistoryTabRow(
 ) {
     MiuixTabRowWithContour(
         tabs = listOf(
-            stringResource(R.string.notification_filter_tab_active),
             stringResource(R.string.notification_filter_tab_history),
+            stringResource(R.string.notification_filter_tab_active),
             stringResource(R.string.notification_filter_history_hidden),
         ),
         selectedTabIndex = selectedTab,

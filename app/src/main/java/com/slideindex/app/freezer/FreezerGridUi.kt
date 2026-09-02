@@ -3,10 +3,11 @@ package com.slideindex.app.freezer
 import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -14,17 +15,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AcUnit
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -35,7 +34,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.layout.ContentScale
@@ -52,6 +53,14 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.SettingsRepository
 import com.slideindex.app.util.PickerAppIconBitmap
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.DropdownDefaults
+import top.yukonga.miuix.kmp.basic.DropdownEntry
+import top.yukonga.miuix.kmp.basic.DropdownItem
+import top.yukonga.miuix.kmp.basic.Text as MiuixText
+import top.yukonga.miuix.kmp.basic.TextButton as MiuixTextButton
+import top.yukonga.miuix.kmp.popup.WindowDropdownDialog
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalFoundationApi::class)
 @Composable
@@ -182,168 +191,185 @@ fun FreezerGridUi(
 
     actionTarget?.let { app ->
         val frozen = FreezerOperations.isFrozen(context, app.packageName)
+        val dismissMenu = { actionTarget = null }
+        val menuActions = FreezerAppActionCallbacks(
+            onLaunchFreeWindow = {
+                scope.launch {
+                    if (!FreezerOperations.launchAndUnfreeze(
+                            context,
+                            appRepository,
+                            settings,
+                            app,
+                            fullscreen = false,
+                        )
+                    ) {
+                        Toast.makeText(
+                            context,
+                            R.string.freezer_launch_failed,
+                            Toast.LENGTH_SHORT,
+                        ).show()
+                        return@launch
+                    }
+                    onFreezeStateRevisionBump()
+                    onAppLaunched?.invoke()
+                    dismissMenu()
+                }
+            },
+            onToggleFrozen = {
+                scope.launch {
+                    if (FreezerOperations.setFrozen(context, app.packageName, !frozen)) {
+                        onFreezeStateRevisionBump()
+                    }
+                    dismissMenu()
+                }
+            },
+            onAddToHome = {
+                if (!FreezerAppShortcutHelper.requestPinAppShortcut(context, app)) {
+                    FreezerAppShortcutHelper.showPinShortcutFailedToast(context)
+                }
+                dismissMenu()
+            },
+            onRemoveFromList = {
+                scope.launch {
+                    settingsRepository.removeFreezerApp(app.packageName)
+                    dismissMenu()
+                }
+            },
+        )
         if (overlayMode) {
-            FreezerAppActionOverlaySheet(
+            FreezerAppActionOverlayMenu(
                 app = app,
                 frozen = frozen,
-                onDismiss = { actionTarget = null },
-                onToggleFrozen = {
-                    scope.launch {
-                        if (FreezerOperations.setFrozen(context, app.packageName, !frozen)) {
-                            onFreezeStateRevisionBump()
-                        }
-                        actionTarget = null
-                    }
-                },
-                onAddToHome = {
-                    if (!FreezerAppShortcutHelper.requestPinAppShortcut(context, app)) {
-                        FreezerAppShortcutHelper.showPinShortcutFailedToast(context)
-                    }
-                    actionTarget = null
-                },
-                onRemoveFromList = {
-                    scope.launch {
-                        settingsRepository.removeFreezerApp(app.packageName)
-                        actionTarget = null
-                    }
-                },
+                onDismiss = dismissMenu,
+                callbacks = menuActions,
             )
         } else {
-            AlertDialog(
-                onDismissRequest = { actionTarget = null },
-                title = { Text(app.label) },
-                text = {
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text(
-                            text = app.packageName,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        TextButton(
-                            onClick = {
-                                scope.launch {
-                                    if (FreezerOperations.setFrozen(context, app.packageName, !frozen)) {
-                                        onFreezeStateRevisionBump()
-                                    }
-                                    actionTarget = null
-                                }
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Text(
-                                stringResource(
-                                    if (frozen) R.string.freezer_action_unfreeze else R.string.freezer_action_freeze,
-                                ),
-                                modifier = Modifier.fillMaxWidth(),
-                            )
-                        }
-                        TextButton(
-                            onClick = {
-                                if (!FreezerAppShortcutHelper.requestPinAppShortcut(context, app)) {
-                                    FreezerAppShortcutHelper.showPinShortcutFailedToast(context)
-                                }
-                                actionTarget = null
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Text(
-                                stringResource(R.string.freezer_action_add_to_home),
-                                modifier = Modifier.fillMaxWidth(),
-                            )
-                        }
-                        TextButton(
-                            onClick = {
-                                scope.launch {
-                                    settingsRepository.removeFreezerApp(app.packageName)
-                                    actionTarget = null
-                                }
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                        ) {
-                            Text(
-                                stringResource(R.string.freezer_remove_from_list),
-                                modifier = Modifier.fillMaxWidth(),
-                            )
-                        }
-                    }
-                },
-                confirmButton = {},
-                dismissButton = {
-                    TextButton(onClick = { actionTarget = null }) {
-                        Text(stringResource(R.string.cancel))
-                    }
-                },
+            FreezerAppActionWindowMenu(
+                app = app,
+                frozen = frozen,
+                onDismiss = dismissMenu,
+                callbacks = menuActions,
             )
         }
     }
 }
 
+private data class FreezerAppActionCallbacks(
+    val onLaunchFreeWindow: () -> Unit,
+    val onToggleFrozen: () -> Unit,
+    val onAddToHome: () -> Unit,
+    val onRemoveFromList: () -> Unit,
+)
+
 @Composable
-private fun FreezerAppActionOverlaySheet(
+private fun FreezerAppActionWindowMenu(
     app: AppInfo,
     frozen: Boolean,
     onDismiss: () -> Unit,
-    onToggleFrozen: () -> Unit,
-    onAddToHome: () -> Unit,
-    onRemoveFromList: () -> Unit,
+    callbacks: FreezerAppActionCallbacks,
 ) {
+    val launchFreeWindowLabel = stringResource(R.string.task_switcher_menu_free_window)
+    val freezeLabel = stringResource(
+        if (frozen) R.string.freezer_action_unfreeze else R.string.freezer_action_freeze,
+    )
+    val addToHomeLabel = stringResource(R.string.freezer_action_add_to_home)
+    val removeFromListLabel = stringResource(R.string.freezer_remove_from_list)
+    val cancelLabel = stringResource(R.string.cancel)
+    val menuEntry = DropdownEntry(
+        items = listOf(
+            DropdownItem(
+                text = launchFreeWindowLabel,
+                onClick = callbacks.onLaunchFreeWindow,
+            ),
+            DropdownItem(
+                text = freezeLabel,
+                onClick = callbacks.onToggleFrozen,
+            ),
+            DropdownItem(
+                text = addToHomeLabel,
+                onClick = callbacks.onAddToHome,
+            ),
+            DropdownItem(
+                text = removeFromListLabel,
+                onClick = callbacks.onRemoveFromList,
+            ),
+        ),
+    )
+    WindowDropdownDialog(
+        entry = menuEntry,
+        title = app.label,
+        dialogButtonString = cancelLabel,
+        show = true,
+        onDismiss = onDismiss,
+        onDismissFinished = {},
+        dropdownColors = DropdownDefaults.dropdownColors(),
+    )
+}
+
+@Composable
+private fun FreezerAppActionOverlayMenu(
+    app: AppInfo,
+    frozen: Boolean,
+    onDismiss: () -> Unit,
+    callbacks: FreezerAppActionCallbacks,
+) {
+    val launchFreeWindowLabel = stringResource(R.string.task_switcher_menu_free_window)
+    val freezeLabel = stringResource(
+        if (frozen) R.string.freezer_action_unfreeze else R.string.freezer_action_freeze,
+    )
+    val addToHomeLabel = stringResource(R.string.freezer_action_add_to_home)
+    val removeFromListLabel = stringResource(R.string.freezer_remove_from_list)
+    val cancelLabel = stringResource(R.string.cancel)
+    val menuItems = listOf(
+        launchFreeWindowLabel to callbacks.onLaunchFreeWindow,
+        freezeLabel to callbacks.onToggleFrozen,
+        addToHomeLabel to callbacks.onAddToHome,
+        removeFromListLabel to callbacks.onRemoveFromList,
+    )
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.45f))
+            .background(Color.Black.copy(alpha = 0.45f))
             .clickable(onClick = onDismiss),
         contentAlignment = Alignment.Center,
     ) {
-        Surface(
+        Card(
             modifier = Modifier
                 .padding(horizontal = 24.dp)
+                .clip(RoundedCornerShape(20.dp))
                 .clickable(
-                    interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                    interactionSource = remember { MutableInteractionSource() },
                     indication = null,
                     onClick = {},
                 ),
-            shape = RoundedCornerShape(20.dp),
-            tonalElevation = 6.dp,
         ) {
             Column(
                 modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
-                Text(
+                MiuixText(
                     text = app.label,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MiuixTheme.textStyles.title4,
+                    color = MiuixTheme.colorScheme.onSurface,
                 )
-                Text(
+                MiuixText(
                     text = app.packageName,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MiuixTheme.textStyles.body2,
+                    color = MiuixTheme.colorScheme.onSurfaceSecondary,
                 )
-                TextButton(onClick = onToggleFrozen, modifier = Modifier.fillMaxWidth()) {
-                    Text(
-                        stringResource(
-                            if (frozen) R.string.freezer_action_unfreeze else R.string.freezer_action_freeze,
-                        ),
+                menuItems.forEach { (label, onClick) ->
+                    MiuixTextButton(
+                        text = label,
+                        onClick = onClick,
                         modifier = Modifier.fillMaxWidth(),
                     )
                 }
-                TextButton(onClick = onAddToHome, modifier = Modifier.fillMaxWidth()) {
-                    Text(
-                        stringResource(R.string.freezer_action_add_to_home),
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
-                TextButton(onClick = onRemoveFromList, modifier = Modifier.fillMaxWidth()) {
-                    Text(
-                        stringResource(R.string.freezer_remove_from_list),
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
-                TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) {
-                    Text(
-                        stringResource(R.string.cancel),
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
+                MiuixTextButton(
+                    text = cancelLabel,
+                    onClick = onDismiss,
+                    modifier = Modifier.fillMaxWidth(),
+                )
             }
         }
     }
