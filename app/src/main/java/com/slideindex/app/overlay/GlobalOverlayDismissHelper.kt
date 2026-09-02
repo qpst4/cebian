@@ -42,6 +42,7 @@ object GlobalOverlayDismissHelper {
         runCatching { OhoQuickToolsOverlayWindow.dismiss() }
         runCatching { HoneycombAppPickerOverlayWindow.dismiss() }
         runCatching { AppSwitcherOverlayWindow.dismiss() }
+        runCatching { com.slideindex.app.overlay.carousel.AppCarouselSwitcherOverlay.dismiss() }
         runCatching { FloatBallImageSearchPanel.dismiss() }
         runCatching { FloatBallStashPanel.dismiss() }
         runCatching { FreezerOverlayWindow.dismiss() }

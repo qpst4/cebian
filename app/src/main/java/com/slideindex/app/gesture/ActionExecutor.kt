@@ -189,7 +189,6 @@ class ActionExecutor(
                 val x = anchorRawX ?: (context.resources.displayMetrics.widthPixels / 2f)
                 val y = anchorRawY ?: (context.resources.displayMetrics.heightPixels / 2f)
                 com.slideindex.app.overlay.carousel.AppCarouselSwitcherOverlay.show(context, settings, x, y)
-                true
             }
             GestureAction.HolographicLauncher ->
                 overlayPanels.showStandaloneOverlay(anchorRawY) { _ ->

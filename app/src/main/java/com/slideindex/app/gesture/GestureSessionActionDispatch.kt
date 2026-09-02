@@ -103,14 +103,16 @@ internal fun GestureSession.trackContinuousGesture(
 
         GestureAction.AppCarouselSwitcher -> {
             if (!sessionContinuousPick.appCarouselSwitcher) {
-                sessionContinuousPick.appCarouselSwitcher = true
-                sessionCallbacks.hapticConfirmLaunch()
-                com.slideindex.app.overlay.carousel.AppCarouselSwitcherOverlay.show(
+                val shown = com.slideindex.app.overlay.carousel.AppCarouselSwitcherOverlay.show(
                     sessionActionExecutor.context,
                     sessionSettings,
                     rawX,
                     rawY,
                 )
+                if (shown) {
+                    sessionContinuousPick.appCarouselSwitcher = true
+                    sessionCallbacks.hapticConfirmLaunch()
+                }
             } else {
                 com.slideindex.app.overlay.carousel.AppCarouselSwitcherOverlay.onExternalMove(rawX, rawY)
             }

@@ -4,16 +4,28 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.PixelFormat
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
 import android.view.Gravity
 import android.view.WindowManager
+import com.slideindex.app.di.OverlayDependencyAccess
+import com.slideindex.app.overlay.OverlayWindowTypes
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.util.PermissionHelper
 import java.lang.ref.WeakReference
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 /**
  * 全新独立应用切换器悬浮窗控制器：
  * 管理 AppCarouselSwitcherView 悬浮窗添加、移除与手势生命周期。
  */
+@SuppressLint("StaticFieldLeak")
 object AppCarouselSwitcherOverlay {
+    private const val TAG = "AppCarouselSwitcher"
+    private val mainHandler = Handler(Looper.getMainLooper())
+
     private var activeViewRef: WeakReference<AppCarouselSwitcherView>? = null
     private var windowManager: WindowManager? = null
 
@@ -21,42 +33,69 @@ object AppCarouselSwitcherOverlay {
         get() = activeViewRef?.get() != null
 
     @SuppressLint("RtlHardcoded")
-    fun show(context: Context, settings: AppSettings, anchorX: Float, anchorY: Float) {
+    fun show(context: Context, settings: AppSettings, anchorX: Float, anchorY: Float): Boolean {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            var result = false
+            val latch = CountDownLatch(1)
+            mainHandler.post {
+                result = show(context, settings, anchorX, anchorY)
+                latch.countDown()
+            }
+            runCatching { latch.await(500, TimeUnit.MILLISECONDS) }
+            return result
+        }
+
+        if (!PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) {
+            Log.w(TAG, "show: accessibility service not enabled")
+            return false
+        }
+
+        val hostContext = OverlayDependencyAccess.overlayHostContext()
+            ?: run {
+                Log.w(TAG, "show: accessibility service not connected")
+                return false
+            }
+
         dismiss()
 
-        val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+        val wm = hostContext.getSystemService(WindowManager::class.java)
+            ?: run {
+                Log.w(TAG, "show: WindowManager unavailable")
+                return false
+            }
         windowManager = wm
 
-        val view = AppCarouselSwitcherView(context) {
+        val view = AppCarouselSwitcherView(hostContext) {
             dismiss()
         }
         view.configure(settings, anchorX, anchorY)
 
-        val layoutType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-        } else {
-            @Suppress("DEPRECATION")
-            WindowManager.LayoutParams.TYPE_PHONE
-        }
-
         val params = WindowManager.LayoutParams(
             WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.MATCH_PARENT,
-            layoutType,
+            OverlayWindowTypes.appSwitcherWindowType(hostContext),
             WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
                 WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
+                WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
             PixelFormat.TRANSLUCENT,
         ).apply {
             gravity = Gravity.TOP or Gravity.LEFT
+            OverlayWindowTypes.ensureNoBrightnessOverride(this)
+            flags = flags or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
             }
         }
 
-        runCatching {
+        return try {
             wm.addView(view, params)
             activeViewRef = WeakReference(view)
+            true
+        } catch (t: Throwable) {
+            Log.e(TAG, "show: addView failed", t)
+            windowManager = null
+            false
         }
     }
 
@@ -70,6 +109,14 @@ object AppCarouselSwitcherOverlay {
 
     fun onExternalCancel() {
         activeViewRef?.get()?.onExternalCancel()
+    }
+
+    fun onGestureSessionEnd() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { onGestureSessionEnd() }
+            return
+        }
+        dismiss()
     }
 
     fun dismiss() {

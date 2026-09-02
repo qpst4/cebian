@@ -159,6 +159,7 @@ internal class EdgeGestureSessionCoordinator(
         shellCoordinator.onSessionEnd()
         HoneycombAppPickerOverlayWindow.onGestureSessionEnd()
         AppSwitcherOverlayWindow.onGestureSessionEnd()
+        com.slideindex.app.overlay.carousel.AppCarouselSwitcherOverlay.onGestureSessionEnd()
         layoutCoordinator.notifyOverlayLayoutIfNeeded()
         notifyPresentationTouchRequirementChanged()
         notifyAccessibilityStructure()
