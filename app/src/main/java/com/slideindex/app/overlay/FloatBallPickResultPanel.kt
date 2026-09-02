@@ -1894,8 +1894,7 @@ object FloatBallPickResultPanel {
                 clearTranslateState()
                 applyPanelShellPassive()
                 panelDismissing = false
-                com.slideindex.app.service.SlideIndexAccessibilityService.bringEdgeChromeAbovePanels(forceReAdd = true)
-                com.slideindex.app.service.SlideIndexAccessibilityService.refreshTriggerVisuals()
+                com.slideindex.app.service.SlideIndexAccessibilityService.recoverTriggerInteraction()
                 com.slideindex.app.service.SlideIndexAccessibilityService.refreshOverlaySuppression()
             }
         } else {

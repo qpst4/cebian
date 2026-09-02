@@ -244,11 +244,32 @@ class GestureSession(
         val matchedHandleId = zoneLayout.findTriggerHandleAtScreen(rawX, rawY)
             ?: zoneLayout.findTriggerHandleAt(localX, localY)
             ?: return false
+        return beginTouchDown(matchedHandleId, rawX, rawY, localX, localY)
+    }
 
-        sessionActiveHandleId = matchedHandleId
+    /** Capture strip already received the touch; skip global hit-test (rotation-safe). */
+    fun onTouchDownForHandle(
+        handleId: String,
+        rawX: Float,
+        rawY: Float,
+        localX: Float,
+        localY: Float,
+    ): Boolean {
+        if (active) return false
+        if (sessionSettings.triggerHandles(side).isEmpty()) return false
+        if (sessionSettings.triggerHandle(side, handleId) == null) return false
+        return beginTouchDown(handleId, rawX, rawY, localX, localY)
+    }
 
+    private fun beginTouchDown(
+        handleId: String,
+        rawX: Float,
+        rawY: Float,
+        localX: Float,
+        localY: Float,
+    ): Boolean {
+        sessionActiveHandleId = handleId
         applyActiveHandleDistances()
-
         active = true
         sessionIndexMode = false
         sessionAdjustMode = null
@@ -257,12 +278,10 @@ class GestureSession(
         sessionMoveTimeActionFired = false
         thresholdTracker.reset()
         sessionContinuousPick.reset()
-
         lastRawX = rawX
         lastRawY = rawY
         lastLocalX = localX
         lastLocalY = localY
-
         OverlayService.captureGestureForegroundPackage()
         val stripBounds = zoneLayout.screenTriggerStripBounds(sessionActiveHandleId)
         pathRecognizer.onTouchDown(rawX, rawY, stripBounds)

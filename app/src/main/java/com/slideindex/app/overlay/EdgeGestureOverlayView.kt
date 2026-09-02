@@ -24,6 +24,7 @@ import com.slideindex.app.gesture.SwipePathRecognizer
 import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.shell.ShellCommand
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.settings.triggerHandles
 import com.slideindex.app.util.ContinuousAdjustController
 import com.slideindex.app.util.GestureActionIconBitmap
 import com.slideindex.app.util.HapticHelper
@@ -313,6 +314,29 @@ class EdgeGestureOverlayView(
     }
 
     fun handleOverlayTouch(event: MotionEvent): Boolean = touchDispatcher.handleTouch(event)
+
+    fun handleCaptureStripTouch(event: MotionEvent, triggerIndex: Int): Boolean {
+        val handle = settings.triggerHandles(side).getOrNull(triggerIndex) ?: return false
+        val (localX, localY) = rawToLocal(event.rawX, event.rawY)
+        return when (event.actionMasked) {
+            MotionEvent.ACTION_DOWN -> {
+                layoutCoordinator.syncZoneLayout()
+                if (!touchDispatcher.beginCaptureStripTouch(
+                        handleId = handle.id,
+                        rawX = event.rawX,
+                        rawY = event.rawY,
+                        localX = localX,
+                        localY = localY,
+                    )
+                ) {
+                    return false
+                }
+                edgeCaptureTouchActive = true
+                true
+            }
+            else -> touchDispatcher.handleTouch(event)
+        }
+    }
 
     @SuppressLint("ClickableViewAccessibility") // Overlay gesture surface; not a clickable control
     override fun onTouchEvent(event: MotionEvent): Boolean {

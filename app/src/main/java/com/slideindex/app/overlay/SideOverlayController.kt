@@ -439,11 +439,14 @@ class SideOverlayController(
     }
 
     fun refreshTriggerVisualWindows() {
-        if (windowManager.edgeOverlayDetached ||
-            windowManager.overlayLayoutSuspended() ||
-            windowManager.presentationView == null
-        ) return
-        syncRuntimeVisuals()
+        resyncCaptureInteraction()
+    }
+
+    fun resyncCaptureInteraction() {
+        if (settings.triggerHandles(side).isEmpty()) return
+        if (windowManager.edgeOverlayDetached || windowManager.overlayLayoutSuspended()) return
+        resumeCaptureAfterPassthrough()
+        windowManager.syncCaptureWindowLayout()
     }
 
     fun bringEdgeWindowsAbovePanels(forceReAdd: Boolean = true) {
@@ -451,6 +454,7 @@ class SideOverlayController(
             windowManager.overlayLayoutSuspended()
         ) return
         windowManager.bringEdgeWindowsToFront(forceReAdd)
+        windowManager.syncCaptureWindowLayout()
     }
 
     fun edgePresentationNeedsChromeRaise(): Boolean = windowManager.needsChromeRaisedAbovePresentation()

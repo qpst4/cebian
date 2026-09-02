@@ -109,6 +109,10 @@ class EdgeOverlayHost(
         previewActive = false
     }
 
+    fun recoverTriggerInteraction() {
+        overlayManager?.recoverTriggerInteraction()
+    }
+
     fun onConfigurationChanged() {
         overlayManager?.relayoutTriggersForConfigurationChange()
         cornerGestureHost?.onConfigurationChanged()

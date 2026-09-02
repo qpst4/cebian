@@ -153,6 +153,17 @@ internal class SideOverlayWindowManager(
         ctrl.syncRuntimeVisuals()
     }
 
+    private fun captureTouchHandler(
+        presentation: EdgeGestureOverlayView,
+        triggerIndex: Int,
+    ): (android.view.MotionEvent) -> Boolean = { event ->
+        if (ctrl.settings.triggerHandles(side).isEmpty()) {
+            false
+        } else {
+            presentation.handleCaptureStripTouch(event, triggerIndex)
+        }
+    }
+
     fun syncPresentationTouchState() {
         if (overlayLayoutSuspended()) return
         val content = presentationView ?: return
@@ -298,17 +309,11 @@ internal class SideOverlayWindowManager(
 
     fun attachCaptureWindows(presentation: EdgeGestureOverlayView) {
         if (overlayLayoutSuspended()) return
-        val touchHandler: (android.view.MotionEvent) -> Boolean = { event ->
-            if (ctrl.settings.triggerHandles(side).isEmpty()) {
-                false
-            } else {
-                presentation.handleOverlayTouch(event)
-            }
-        }
         val handles = ctrl.settings.triggerHandles(side)
         computeCaptureWindowBounds().forEachIndexed { index, bounds ->
             val params = createCaptureLayoutParams()
             applyCaptureLayout(params, bounds)
+            val touchHandler = captureTouchHandler(presentation, index)
             val capture = EdgeTouchCaptureView(overlayContext, side, index, touchHandler)
             applyCaptureChrome(capture, handles.getOrNull(index)?.design)
             runCatching { addOverlayView(capture, params) }
@@ -368,19 +373,13 @@ internal class SideOverlayWindowManager(
     ) {
         val bounds = computeCaptureWindowBounds()
         val handles = ctrl.settings.triggerHandles(side)
-        val touchHandler: (android.view.MotionEvent) -> Boolean = { event ->
-            if (ctrl.settings.triggerHandles(side).isEmpty()) {
-                false
-            } else {
-                presentation.handleOverlayTouch(event)
-            }
-        }
         val passthrough = capturePassthroughSuspended || presentation.presentationShouldPassthroughTouches()
         while (touchCaptureWindows.size > bounds.size) {
             val slot = touchCaptureWindows.removeAt(touchCaptureWindows.lastIndex)
             removeOverlayView(slot.view)
         }
         bounds.forEachIndexed { index, bound ->
+            val touchHandler = captureTouchHandler(presentation, index)
             if (index >= touchCaptureWindows.size) {
                 if (!applyToWindowManager) return@forEachIndexed
                 val params = createCaptureLayoutParams()
@@ -513,7 +512,31 @@ internal class SideOverlayWindowManager(
         touchCaptureWindows.forEach { slot ->
             bringWindowToFront(slot.view, slot.params, forceReAdd)
         }
+        restoreCaptureTouchFlagsOnAllWindows()
         chromeZOrderFront = true
+    }
+
+    /** Re-apply touch flags after z-order remove/add; stale NOT_TOUCHABLE leaves chrome visible but dead. */
+    private fun restoreCaptureTouchFlagsOnAllWindows() {
+        if (touchCaptureWindows.isEmpty()) return
+        val passthrough = shouldPassthroughCaptureTouches()
+        touchCaptureWindows.forEach { slot ->
+            if (passthrough) {
+                applyPresentationPassthroughFlags(slot.params)
+            } else {
+                applyCaptureTouchFlags(slot.params)
+            }
+            if (slot.view.isAttachedToWindow) {
+                runCatching { windowManager.updateViewLayout(slot.view, slot.params) }
+                    .onFailure { Log.e(TAG, "Failed to restore capture touch flags", it) }
+            }
+        }
+    }
+
+    private fun shouldPassthroughCaptureTouches(): Boolean {
+        if (capturePassthroughSuspended) return true
+        val presentation = presentationView ?: return false
+        return presentation.presentationShouldPassthroughTouches()
     }
 
     private var chromeZOrderFront = true

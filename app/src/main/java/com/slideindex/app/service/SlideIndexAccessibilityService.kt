@@ -315,6 +315,10 @@ class SlideIndexAccessibilityService : AccessibilityService() {
             instance?.edgeOverlayHost?.refreshOverlaySuppression()
         }
 
+        fun recoverTriggerInteraction() {
+            instance?.edgeOverlayHost?.recoverTriggerInteraction()
+        }
+
         fun refreshTriggerVisuals() {
             instance?.edgeOverlayHost?.refreshTriggerVisuals()
         }
@@ -525,10 +529,12 @@ class SlideIndexAccessibilityService : AccessibilityService() {
     private fun scheduleOverlaySuppressionAfterConfigurationChange() {
         mainHandler.postDelayed({
             syncForegroundPackageForOverlaySuppression()
+            edgeOverlayHost?.recoverTriggerInteraction()
             edgeOverlayHost?.refreshOverlaySuppression()
         }, CONFIG_CHANGE_SUPPRESSION_RETRY_MS)
         mainHandler.postDelayed({
             syncForegroundPackageForOverlaySuppression()
+            edgeOverlayHost?.recoverTriggerInteraction()
             edgeOverlayHost?.refreshOverlaySuppression()
         }, CONFIG_CHANGE_SUPPRESSION_RETRY_MS * 2)
     }

@@ -27,6 +27,33 @@ internal class EdgeGestureTouchDispatcher(
     private val setEdgeCaptureTouchActive: (Boolean) -> Unit,
     private val composeOverlayDialogShowing: () -> Boolean,
 ) {
+    fun beginCaptureStripTouch(
+        handleId: String,
+        rawX: Float,
+        rawY: Float,
+        localX: Float,
+        localY: Float,
+    ): Boolean {
+        if (UniversalCopyOverlay.isShowing) return false
+        if (composeOverlayDialogShowing()) return false
+        if (gestureSession.panelMode() != OverlayPanelMode.NONE && !gestureSession.isActive()) {
+            gestureSession.forceReset(notifySessionEnd = true)
+        }
+        if (gestureSession.isActive()) {
+            shellCoordinator.closePanelTrampolineIfContinuous()
+            gestureSession.forceReset(notifySessionEnd = false)
+        }
+        if (!gestureSession.onTouchDownForHandle(handleId, rawX, rawY, localX, localY)) {
+            return false
+        }
+        FloatingPointerAreaPreviewOverlay.onEdgeTriggerTouch(rawX, rawY)
+        setEdgeCaptureTouchActive(true)
+        onSyncZoneLayout()
+        onGestureTrackingStart()
+        gestureAnimationCoordinator.onTouchDown(rawX, rawY)
+        return true
+    }
+
     fun handleTouch(event: MotionEvent): Boolean {
         if (UniversalCopyOverlay.isShowing) return false
         if (composeOverlayDialogShowing()) return false

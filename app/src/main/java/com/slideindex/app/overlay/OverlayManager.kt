@@ -232,12 +232,19 @@ class OverlayManager(
             refreshTriggerVisibilityNow()
             return
         }
+        recoverTriggerInteraction()
+    }
+
+    fun recoverTriggerInteraction() {
+        if (!currentSettings.serviceEnabled) return
+        recoverOverlaysIfIdle()
+        resumeEdgeCapturesAfterPassthrough()
         val screenWidth = context.resources.displayMetrics.widthPixels
         leftController?.updateSettings(currentSettings, screenWidth)
         rightController?.updateSettings(currentSettings, screenWidth)
         bottomController?.updateSettings(currentSettings, screenWidth)
         topController?.updateSettings(currentSettings, screenWidth)
-        refreshTriggerVisibilityNow()
+        bringEdgeChromeAbovePanels(forceReAdd = true)
     }
 
     fun refreshTriggerVisuals() {
