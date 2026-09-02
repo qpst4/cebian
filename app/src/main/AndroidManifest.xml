@@ -388,6 +388,29 @@
         </activity>
 
         <activity
+            android:name=".service.SearchPanelTrampolineActivity"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@style/Theme.SlideIndex.Transparent">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:host="open"
+                    android:path="/search-panel"
+                    android:scheme="cebian" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.slideindex.app.action.OPEN_SEARCH_PANEL" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <activity
             android:name=".service.ShareImageOcrTrampolineActivity"
             android:excludeFromRecents="true"
             android:exported="true"

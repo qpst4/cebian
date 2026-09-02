@@ -15,6 +15,7 @@ import com.slideindex.app.ui.FloatingPointerPointerSettingsScreen
 import com.slideindex.app.ui.FloatingPointerRadialMenuSettingsScreen
 import com.slideindex.app.ui.FloatingPointerSettingsScreen
 import com.slideindex.app.ui.ExtensionAboutScreen
+import com.slideindex.app.ui.ExternalInvocationHelpScreen
 import com.slideindex.app.ui.FreezerAppsPickerScreen
 import com.slideindex.app.ui.FreezerHomeScreen
 import com.slideindex.app.ui.ThirdPartyNoticesScreen
@@ -139,6 +140,7 @@ fun NavEntryBuilder.extensionNavEntries(ctx: MainNavContext) {
             onOpenHoneycombLauncher = { ctx.navigate(AppNavKey.HoneycombLauncher) },
             onOpenHolographicLauncher = { ctx.navigate(AppNavKey.HolographicLauncherSettings) },
             onOpenActivityShortcuts = { ctx.navigate(AppNavKey.ActivityShortcuts) },
+            onOpenExternalInvocations = { ctx.navigate(AppNavKey.ExtensionExternalInvocations) },
             onOpenShellCommands = { ctx.navigate(AppNavKey.ShellCommands) },
             onOpenWidgetPanel = { ctx.navigate(AppNavKey.WidgetPanel) },
             onOpenFloatingPointer = { ctx.navigate(AppNavKey.FloatingPointer) },
@@ -162,6 +164,12 @@ fun NavEntryBuilder.extensionNavEntries(ctx: MainNavContext) {
         FreezerAppsPickerScreen(
             settingsRepository = ctx.deps.settingsRepository,
             onBack = { ctx.navigateBackTo(AppNavKey.ExtensionFreezer) },
+        )
+    }
+
+    hiltEntry<AppNavKey.ExtensionExternalInvocations> {
+        ExternalInvocationHelpScreen(
+            onBack = { ctx.navigateBackTo(AppNavKey.ExtensionHub) },
         )
     }
 

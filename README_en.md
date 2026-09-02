@@ -128,6 +128,7 @@ The app features four main navigation tabs: 🏠 **Home** · 📳 **Motion** · 
 | **App Freezer** | Extensions → App Freezer | Batch freeze and unfreeze background apps via Shizuku / Root with quick re-freeze gesture |
 | **Search Panel** | Extensions → Search Panel | Unified search for apps, contacts, files, system settings, web queries, and reverse image search |
 | **Activity Shortcuts** | Extensions → Activity Shortcuts | Hidden system settings, non-exported activity launcher, App Shortcuts, and URI deep links |
+| **External Invocation** | Extensions → External Invocation | `cebian://` deeplinks and intent actions for Tasker, MacroDroid, and other automations |
 | **Shell Commands** | Extensions → Shell Commands | Command panels, template variable substitution, and custom icons via Shizuku / Root |
 | **Widget Panel** | Extensions → Widget Panel | Floating desktop widget host with adjustable blur background and multi-selection |
 | **Floating Pointer** | Extensions → Floating Pointer | Virtual joystick-controlled ring pointer with hover selection, radial actions, and gesture macro replay |
@@ -168,6 +169,65 @@ The app features four main navigation tabs: 🏠 **Home** · 📳 **Motion** · 
     <td align="center"><img src="art/screenshots/11_pin_image_framed.webp" width="100%" alt="Pin Screenshot" /></td>
   </tr>
 </table>
+
+---
+
+## 🔗 External Invocation
+
+Open Cebian panels from other apps, Tasker, MacroDroid, or `adb`. In-app reference: **Extensions → Shortcuts & actions → External Invocation** (tap to copy).
+
+> **Prerequisites:** Search panel, stash, and clipboard require the sidebar and accessibility service. Notification hub requires notification listener access.
+
+### Deeplinks (recommended)
+
+Format: `cebian://open/<path>?q=<optional query>`
+
+| Feature | URI | Notes |
+| :--- | :--- | :--- |
+| Notification hub | `cebian://open/notification-history` | Open notification hub |
+| Notification hub (prefill) | `cebian://open/notification-history?q=keyword` | Open with search prefill |
+| Stash | `cebian://open/stash` | Open stash panel |
+| Stash (prefill) | `cebian://open/stash?q=keyword` | Open with search prefill |
+| Clipboard | `cebian://open/clipboard` | Open clipboard panel |
+| Clipboard (prefill) | `cebian://open/clipboard?q=keyword` | Open with search prefill |
+| Search panel | `cebian://open/search-panel` | Open search panel |
+| Search panel (prefill) | `cebian://open/search-panel?q=keyword` | Open with query prefill |
+
+Examples:
+
+```bash
+# Open search panel
+adb shell am start -a android.intent.action.VIEW -d "cebian://open/search-panel"
+
+# Open search panel with prefill
+adb shell am start -a android.intent.action.VIEW -d "cebian://open/search-panel?q=weather"
+```
+
+### Intent actions (advanced)
+
+Use when there is no matching URI, or when you need an explicit component. Package name: `com.slideindex.app`.
+
+| Feature | Action | Component | Optional extra |
+| :--- | :--- | :--- | :--- |
+| Notification hub | `com.slideindex.app.action.OPEN_NOTIFICATION_HISTORY` | `.MainActivity` | — (use deeplink for search prefill) |
+| Stash | `com.slideindex.app.action.OPEN_STASH_PANEL` | `.service.StashClipboardTrampolineActivity` | `q` |
+| Clipboard | `com.slideindex.app.action.OPEN_CLIPBOARD_PANEL` | `.service.StashClipboardTrampolineActivity` | `q` |
+| Search panel | `com.slideindex.app.action.OPEN_SEARCH_PANEL` | `.service.SearchPanelTrampolineActivity` | `q` |
+| Toggle gestures | `com.slideindex.app.action.TOGGLE_GESTURE` | `.service.ToggleGestureTrampolineActivity` | — |
+| Shell panel | `com.slideindex.app.action.OPEN_SHELL_PANEL` | `.service.ShellCommandPanelTrampolineActivity` | — (not exported; app shortcuts only) |
+
+Examples:
+
+```bash
+# Open search panel with prefill
+adb shell am start -a com.slideindex.app.action.OPEN_SEARCH_PANEL \
+  -n com.slideindex.app/.service.SearchPanelTrampolineActivity \
+  --es q "weather"
+
+# Toggle edge gesture master switch
+adb shell am start -a com.slideindex.app.action.TOGGLE_GESTURE \
+  -n com.slideindex.app/.service.ToggleGestureTrampolineActivity
+```
 
 ---
 

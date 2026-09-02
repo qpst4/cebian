@@ -38,6 +38,7 @@ fun ExtensionHubScreen(
     onOpenHoneycombLauncher: () -> Unit,
     onOpenHolographicLauncher: () -> Unit,
     onOpenActivityShortcuts: () -> Unit,
+    onOpenExternalInvocations: () -> Unit,
     onOpenShellCommands: () -> Unit,
     onOpenWidgetPanel: () -> Unit,
     onOpenFloatingPointer: () -> Unit,
@@ -157,6 +158,13 @@ fun ExtensionHubScreen(
                             shortcutCount = settings.activityShortcutCount,
                             outlinedLeadingIcons = true,
                             onClick = onOpenActivityShortcuts,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("external-invocation") {
+                        ExternalInvocationEntryCard(
+                            onClick = onOpenExternalInvocations,
                         )
                     },
                 )

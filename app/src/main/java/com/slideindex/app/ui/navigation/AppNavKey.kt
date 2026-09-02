@@ -247,6 +247,7 @@ sealed interface AppNavKey : NavKey {
 
     // Extension tab
     @Serializable data object ExtensionHub : AppNavKey
+    @Serializable data object ExtensionExternalInvocations : AppNavKey
     @Serializable data object ExtensionAbout : AppNavKey
     @Serializable data object ExtensionFreezer : AppNavKey
     @Serializable data object ExtensionFreezerApps : AppNavKey

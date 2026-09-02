@@ -128,6 +128,7 @@
 | **应用冻结室** | 扩展 → 冻结室 | 批量冻结后台顽固应用与一键解冻（依赖 Shizuku / Root），支持手势面板快捷重新冻结 |
 | **搜索面板** | 扩展 → 搜索面板 | 本地应用、联系人、文件、系统设置项与网络文字/以图搜图聚合搜索 |
 | **Activity 快捷方式** | 扩展 → Activity 快捷方式 | 系统隐藏设置、未导出 Activity 提取、App Shortcuts 快捷方式与 URI 深链 |
+| **外部调用** | 扩展 → 外部调用 | `cebian://` Deeplink 与 Intent Action，供 Tasker / MacroDroid 等搭配使用 |
 | **Shell 命令** | 扩展 → Shell 命令 | 命令面板、模板变量替换与自定义图标；依赖 Shizuku / Root 执行 |
 | **Widget 面板** | 扩展 → Widget 面板 | 将桌面小部件悬浮化绑定展示，支持可调模糊背景与快捷多选 |
 | **悬浮指针** | 扩展 → 悬浮指针 | 跟手虚拟摇杆控制环形指针，支持悬停框选、径向功能环与手势录制回放 |
@@ -168,6 +169,65 @@
     <td align="center"><img src="art/screenshots/11_pin_image_framed.webp" width="100%" alt="钉图暂存" /></td>
   </tr>
 </table>
+
+---
+
+## 🔗 外部调用
+
+从其他应用、Tasker、MacroDroid 或 `adb` 唤起边栏面板。应用内可在 **扩展 → 快捷操作 → 外部调用** 查看并一键复制。
+
+> **前置条件：** 搜索面板、收纳夹、剪贴板面板需已开启边栏与无障碍服务；通知滤盒需已授予通知监听权限。
+
+### Deeplink（推荐）
+
+统一格式：`cebian://open/<path>?q=<可选关键词>`
+
+| 功能 | URI | 说明 |
+| :--- | :--- | :--- |
+| 通知滤盒 | `cebian://open/notification-history` | 打开通知滤盒 |
+| 通知滤盒（预填搜索） | `cebian://open/notification-history?q=关键词` | 打开并预填搜索词 |
+| 收纳夹 | `cebian://open/stash` | 打开收纳夹面板 |
+| 收纳夹（预填搜索） | `cebian://open/stash?q=关键词` | 打开并预填搜索词 |
+| 剪贴板 | `cebian://open/clipboard` | 打开剪贴板面板 |
+| 剪贴板（预填搜索） | `cebian://open/clipboard?q=关键词` | 打开并预填搜索词 |
+| 搜索面板 | `cebian://open/search-panel` | 打开搜索面板 |
+| 搜索面板（预填关键词） | `cebian://open/search-panel?q=关键词` | 打开并预填搜索词 |
+
+示例：
+
+```bash
+# 打开搜索面板
+adb shell am start -a android.intent.action.VIEW -d "cebian://open/search-panel"
+
+# 打开搜索面板并预填关键词
+adb shell am start -a android.intent.action.VIEW -d "cebian://open/search-panel?q=天气"
+```
+
+### Intent Action（高级）
+
+无 URI 对应能力、或需显式指定组件时使用。包名均为 `com.slideindex.app`。
+
+| 功能 | Action | 组件 | 可选 extra |
+| :--- | :--- | :--- | :--- |
+| 通知滤盒 | `com.slideindex.app.action.OPEN_NOTIFICATION_HISTORY` | `.MainActivity` | —（预填搜索请用 Deeplink） |
+| 收纳夹 | `com.slideindex.app.action.OPEN_STASH_PANEL` | `.service.StashClipboardTrampolineActivity` | `q` |
+| 剪贴板 | `com.slideindex.app.action.OPEN_CLIPBOARD_PANEL` | `.service.StashClipboardTrampolineActivity` | `q` |
+| 搜索面板 | `com.slideindex.app.action.OPEN_SEARCH_PANEL` | `.service.SearchPanelTrampolineActivity` | `q` |
+| 切换手势开关 | `com.slideindex.app.action.TOGGLE_GESTURE` | `.service.ToggleGestureTrampolineActivity` | — |
+| Shell 命令面板 | `com.slideindex.app.action.OPEN_SHELL_PANEL` | `.service.ShellCommandPanelTrampolineActivity` | —（未对外导出，仅供应用内快捷方式） |
+
+示例：
+
+```bash
+# 打开搜索面板并预填关键词
+adb shell am start -a com.slideindex.app.action.OPEN_SEARCH_PANEL \
+  -n com.slideindex.app/.service.SearchPanelTrampolineActivity \
+  --es q "天气"
+
+# 切换边缘手势总开关
+adb shell am start -a com.slideindex.app.action.TOGGLE_GESTURE \
+  -n com.slideindex.app/.service.ToggleGestureTrampolineActivity
+```
 
 ---
 
