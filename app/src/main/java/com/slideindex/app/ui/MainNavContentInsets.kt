@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -20,6 +21,9 @@ import androidx.compose.ui.unit.Dp
  * Miuix [NavigationRail] 分列时由 Row 占位，此值为 0。
  */
 val LocalMainNavContentStartInset = compositionLocalOf { 0.dp }
+
+/** 限制 Nav 内容绘制在分配区域内，避免栈底页面在 Rail 切换/横屏布局变化时从左侧露出。 */
+fun Modifier.mainNavRailContentClip(): Modifier = clipToBounds()
 
 /** 宽屏 Miuix Rail 右侧内容列：吸收 rail 已处理的 start inset，并补 end 侧 systemBars/cutout。 */
 @Composable

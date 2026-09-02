@@ -20,6 +20,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.lifecycleScope
 import com.slideindex.app.clipboard.monitor.ClipboardMonitorStartup
 import com.slideindex.app.di.AppDependencies
@@ -43,6 +45,8 @@ import com.slideindex.app.service.ToggleGestureTrampolineActivity
 import com.slideindex.app.overlay.StashPanelInitialTab
 import com.slideindex.app.ui.navigation.MainNavHost
 import com.slideindex.app.ui.navigation.NavPermissionStates
+import com.slideindex.app.update.UpdateAppForeground
+import com.slideindex.app.update.UpdateIntents
 import com.slideindex.app.util.PermissionHelper
 import com.slideindex.app.util.PredictiveBackHelper
 import com.slideindex.app.util.TaskManagerUtil
@@ -72,6 +76,7 @@ class MainActivity : ComponentActivity() {
 
     private val currentIntentAction = mutableStateOf<String?>(null)
     private val pendingNavRoute = mutableStateOf<String?>(null)
+    private val pendingShowUpdate = mutableStateOf(false)
     private lateinit var overlayServiceController: OverlayServiceController
     private val permissionRefreshHandler = Handler(Looper.getMainLooper())
     private var accessibilitySettingsObserver: ContentObserver? = null
@@ -122,6 +127,15 @@ class MainActivity : ComponentActivity() {
             settingsRepository = deps.settingsRepository,
         )
         Shizuku.addRequestPermissionResultListener(shizukuPermissionListener)
+        lifecycle.addObserver(
+            LifecycleEventObserver { _, event ->
+                when (event) {
+                    Lifecycle.Event.ON_START -> UpdateAppForeground.isInForeground = true
+                    Lifecycle.Event.ON_STOP -> UpdateAppForeground.isInForeground = false
+                    else -> Unit
+                }
+            },
+        )
         enableEdgeToEdge()
         refreshPermissionState()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
@@ -131,13 +145,16 @@ class MainActivity : ComponentActivity() {
         setContent {
             val initialIntentAction by currentIntentAction
             val initialNavRoute by pendingNavRoute
+            val showUpdate by pendingShowUpdate
             MainNavHost(
                 activity = this@MainActivity,
                 deps = deps,
                 permissionStates = permissionStates,
                 initialIntentAction = initialIntentAction,
                 initialNavRoute = initialNavRoute,
+                showUpdateFromIntent = showUpdate,
                 onNavRouteConsumed = { pendingNavRoute.value = null },
+                onShowUpdateConsumed = { pendingShowUpdate.value = false },
             )
         }
     }
@@ -152,6 +169,7 @@ class MainActivity : ComponentActivity() {
         val resolvedAction = resolveLaunchAction(intent)
         currentIntentAction.value = resolvedAction
         pendingNavRoute.value = intent?.getStringExtra(EXTRA_NAV_ROUTE)
+        pendingShowUpdate.value = intent?.getBooleanExtra(UpdateIntents.EXTRA_SHOW_UPDATE, false) == true
         when (intent?.getStringExtra(EXTRA_FREEZER_TAB)) {
             FREEZER_TAB_FROZEN -> FreezerLaunchState.setPendingInitialTab(FreezerTab.FROZEN)
         }

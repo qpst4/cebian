@@ -9,6 +9,7 @@ import androidx.compose.material.icons.automirrored.outlined.Article
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.Gavel
 import androidx.compose.material.icons.outlined.AcUnit
+import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.Memory
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -46,6 +47,8 @@ fun ExtensionHubScreen(
     onOpenSearchPanel: () -> Unit,
     onOpenFreezer: () -> Unit = {},
     onOpenSettingsBackup: () -> Unit,
+    onOpenNativeEnginePacks: () -> Unit,
+    onOpenDiagnosticLogs: () -> Unit,
     onOpenAbout: () -> Unit,
 ) {
     val listState = rememberLazyListState()
@@ -57,7 +60,7 @@ fun ExtensionHubScreen(
     val launchPanelTitle = stringResource(R.string.extension_section_launch_panel)
     val shortcutsTitle = stringResource(R.string.extension_section_shortcuts)
     val toolsTitle = stringResource(R.string.extension_section_tools)
-    val otherTitle = stringResource(R.string.extension_section_other)
+    val maintenanceTitle = stringResource(R.string.extension_section_maintenance)
     val aboutTitle = stringResource(R.string.about_section_title)
 
     MiuixHubScaffold(
@@ -213,18 +216,34 @@ fun ExtensionHubScreen(
         )
 
         settingsLazySmallTitle(
-            key = "other_section",
-            title = otherTitle,
+            key = "maintenance_section",
+            title = maintenanceTitle,
             sectionTop = true,
         )
         groupedCardItems(
-            keyPrefix = "extension_other",
+            keyPrefix = "extension_maintenance",
             items = buildList {
                 add(
                     settingsCardScopeItem("settings-backup") {
                         SettingsBackupEntryCard(
                             outlinedLeadingIcons = true,
                             onClick = onOpenSettingsBackup,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("native-engine-packs") {
+                        NativeEnginePacksEntryCard(
+                            outlinedLeadingIcons = true,
+                            onClick = onOpenNativeEnginePacks,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("diagnostic-logs") {
+                        DiagnosticLogsEntryCard(
+                            outlinedLeadingIcons = true,
+                            onClick = onOpenDiagnosticLogs,
                         )
                     },
                 )
@@ -249,11 +268,27 @@ fun ExtensionHubScreen(
 }
 
 @Composable
-fun SettingsCardScope.NativeEnginePacksEntryCard(onClick: () -> Unit) {
+fun SettingsCardScope.NativeEnginePacksEntryCard(
+    outlinedLeadingIcons: Boolean = false,
+    onClick: () -> Unit,
+) {
     SettingNavigationRow(
         icon = { label -> Icon(Icons.Outlined.Memory, contentDescription = label) },
         title = stringResource(R.string.extension_native_engine_packs_entry_title),
         subtitle = stringResource(R.string.extension_native_engine_packs_entry_desc),
+        onClick = onClick,
+    )
+}
+
+@Composable
+fun SettingsCardScope.DiagnosticLogsEntryCard(
+    outlinedLeadingIcons: Boolean = false,
+    onClick: () -> Unit,
+) {
+    SettingNavigationRow(
+        icon = { label -> Icon(Icons.Outlined.BugReport, contentDescription = label) },
+        title = stringResource(R.string.diagnostic_report_entry_title),
+        subtitle = stringResource(R.string.diagnostic_report_entry_subtitle),
         onClick = onClick,
     )
 }

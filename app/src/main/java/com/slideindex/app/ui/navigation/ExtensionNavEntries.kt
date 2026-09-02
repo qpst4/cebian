@@ -1,8 +1,10 @@
 package com.slideindex.app.ui.navigation
 
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.yukonga.miuix.kmp.nav.core.NavEntryBuilder
@@ -14,6 +16,7 @@ import com.slideindex.app.ui.FloatingPointerJoystickSettingsScreen
 import com.slideindex.app.ui.FloatingPointerPointerSettingsScreen
 import com.slideindex.app.ui.FloatingPointerRadialMenuSettingsScreen
 import com.slideindex.app.ui.FloatingPointerSettingsScreen
+import com.slideindex.app.ui.DiagnosticLogScreen
 import com.slideindex.app.ui.ExtensionAboutScreen
 import com.slideindex.app.ui.ExternalInvocationHelpScreen
 import com.slideindex.app.ui.FreezerAppsPickerScreen
@@ -89,6 +92,7 @@ import com.slideindex.app.ui.ShellCommandPanelScreen
 import com.slideindex.app.ui.ShellCommandEditorScreen
 import com.slideindex.app.ui.ShellOutputHistoryScreen
 import com.slideindex.app.ui.ShellResultScreen
+import com.slideindex.app.clipboard.ClipboardPermissionHelper
 import com.slideindex.app.util.PermissionHelper
 import com.slideindex.app.shell.ShellCommandIconStorage
 import com.slideindex.app.util.ShellCommandRunner
@@ -97,6 +101,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.slideindex.app.ui.WidgetPanelSettingsScreen
 import com.slideindex.app.settings.toMinimalAppSettings
+import com.slideindex.app.ui.viewmodel.DiagnosticLogViewModel
 import com.slideindex.app.ui.viewmodel.ExtensionHubViewModel
 import com.slideindex.app.ui.viewmodel.ExtensionSettingsViewModel
 import com.slideindex.app.ui.viewmodel.HoneycombLauncherEditorViewModel
@@ -148,6 +153,8 @@ fun NavEntryBuilder.extensionNavEntries(ctx: MainNavContext) {
             onOpenSearchPanel = { ctx.navigate(AppNavKey.SearchPanel) },
             onOpenFreezer = { ctx.navigate(AppNavKey.ExtensionFreezer) },
             onOpenSettingsBackup = { ctx.navigate(AppNavKey.ExtensionBackup) },
+            onOpenNativeEnginePacks = { ctx.navigate(AppNavKey.NativeEnginePacks) },
+            onOpenDiagnosticLogs = { ctx.navigate(AppNavKey.ExtensionDiagnosticLogs) },
             onOpenAbout = { ctx.navigate(AppNavKey.ExtensionAbout) },
         )
     }
@@ -180,10 +187,32 @@ fun NavEntryBuilder.extensionNavEntries(ctx: MainNavContext) {
             onBack = { ctx.navigateBackTo(AppNavKey.ExtensionHub) },
             onOpenPrivacyPolicy = { ctx.navigate(AppNavKey.ExtensionPrivacy) },
             onOpenThirdPartyNotices = { ctx.navigate(AppNavKey.ExtensionThirdPartyNotices) },
-            onOpenNativeEnginePacks = { ctx.navigate(AppNavKey.NativeEnginePacks) },
             onCheckUpdate = updateViewModel::checkManually,
             autoCheckUpdate = updateUiState.autoCheckUpdate,
             onAutoCheckUpdateChange = updateViewModel::setAutoCheckUpdate,
+        )
+    }
+
+    hiltEntry<AppNavKey.ExtensionDiagnosticLogs> {
+        val viewModel: DiagnosticLogViewModel = hiltViewModel()
+        val permissions = ctx.collectPermissions()
+        val context = LocalContext.current
+        var readLogsGranted by remember {
+            mutableStateOf(ClipboardPermissionHelper.hasReadLogsPermission(context))
+        }
+        LaunchedEffect(permissions.shizukuGranted) {
+            readLogsGranted = ClipboardPermissionHelper.hasReadLogsPermission(context)
+        }
+        DiagnosticLogScreen(
+            viewModel = viewModel,
+            shizukuGranted = permissions.shizukuGranted,
+            readLogsGranted = readLogsGranted,
+            onBack = { ctx.navigateBackTo(AppNavKey.ExtensionHub) },
+            onRequestShizuku = { ctx.requestShizuku() },
+            onRequestReadLogs = {
+                ctx.requestReadLogsGrant()
+                readLogsGranted = ClipboardPermissionHelper.hasReadLogsPermission(context)
+            },
         )
     }
 

@@ -97,9 +97,34 @@ class UpdateViewModel @Inject constructor(
         }
     }
 
+    fun checkFromNotification() {
+        viewModelScope.launch {
+            val result = repository.checkAndCache(force = true)
+            when (result) {
+                UpdateRepository.CheckResult.Failed ->
+                    showCheckFailed(CheckFailedReason.NetworkUnavailable)
+                is UpdateRepository.CheckResult.RateLimited ->
+                    showCheckFailed(CheckFailedReason.RateLimited)
+                is UpdateRepository.CheckResult.NoApk ->
+                    showCheckFailed(CheckFailedReason.NoApk)
+                else -> {
+                    if (DownloadController.flow.value.status == DownloadController.DownloadStatus.FAILED) {
+                        DownloadController.reset()
+                    }
+                    recompute(OpenMode.Force)
+                }
+            }
+        }
+    }
+
     fun setAutoCheckUpdate(enabled: Boolean) {
         viewModelScope.launch {
             preferencesStore.update { it.copy(autoCheckUpdate = enabled) }
+            if (enabled) {
+                UpdateCheckScheduler.schedule(context)
+            } else {
+                UpdateCheckScheduler.cancel(context)
+            }
         }
     }
 

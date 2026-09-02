@@ -24,15 +24,7 @@ object UpdateNotifications {
 
     fun ensureChannels(context: Context) {
         val nm = context.getSystemService(NotificationManager::class.java) ?: return
-        if (nm.getNotificationChannel(CHANNEL_UPDATE) == null) {
-            nm.createNotificationChannel(
-                NotificationChannel(
-                    CHANNEL_UPDATE,
-                    context.getString(R.string.update_channel_update),
-                    NotificationManager.IMPORTANCE_LOW,
-                ),
-            )
-        }
+        ensureUpdateChannel(context, nm)
         if (nm.getNotificationChannel(CHANNEL_DOWNLOAD) == null) {
             nm.createNotificationChannel(
                 NotificationChannel(
@@ -44,9 +36,27 @@ object UpdateNotifications {
         }
     }
 
-    private fun contentIntent(context: Context): PendingIntent {
+    private fun ensureUpdateChannel(context: Context, nm: NotificationManager) {
+        val existing = nm.getNotificationChannel(CHANNEL_UPDATE)
+        if (existing?.importance == NotificationManager.IMPORTANCE_DEFAULT) return
+        if (existing != null) {
+            nm.deleteNotificationChannel(CHANNEL_UPDATE)
+        }
+        nm.createNotificationChannel(
+            NotificationChannel(
+                CHANNEL_UPDATE,
+                context.getString(R.string.update_channel_update),
+                NotificationManager.IMPORTANCE_DEFAULT,
+            ),
+        )
+    }
+
+    private fun contentIntent(context: Context, showUpdate: Boolean): PendingIntent {
         val intent = Intent(context, MainActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            if (showUpdate) {
+                putExtra(UpdateIntents.EXTRA_SHOW_UPDATE, true)
+            }
         }
         return PendingIntent.getActivity(
             context,
@@ -67,9 +77,9 @@ object UpdateNotifications {
                     UpdateChecker.displayVersion(version),
                 ),
             )
-            .setContentIntent(contentIntent(context))
+            .setContentIntent(contentIntent(context, showUpdate = true))
             .setAutoCancel(true)
-            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .build()
         notifyIfPermitted(context, NOTIFICATION_ID_NEW_VERSION, notification)
     }
@@ -87,7 +97,7 @@ object UpdateNotifications {
             .setProgress(100, progress.coerceIn(0, 100), false)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
-            .setContentIntent(contentIntent(context))
+            .setContentIntent(contentIntent(context, showUpdate = false))
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .build()
     }
@@ -111,7 +121,7 @@ object UpdateNotifications {
                     UpdateChecker.displayVersion(version),
                 ),
             )
-            .setContentIntent(contentIntent(context))
+            .setContentIntent(contentIntent(context, showUpdate = false))
             .setAutoCancel(true)
             .setOngoing(false)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
@@ -125,7 +135,7 @@ object UpdateNotifications {
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(context.getString(R.string.update_notification_failed_title))
             .setContentText(context.getString(R.string.update_notification_failed_content))
-            .setContentIntent(contentIntent(context))
+            .setContentIntent(contentIntent(context, showUpdate = false))
             .setAutoCancel(true)
             .setOngoing(false)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)

@@ -61,6 +61,7 @@ import com.slideindex.app.ui.ClassicFloatingSideNavRailOverlay
 import com.slideindex.app.ui.LocalMainNavContentStartInset
 import com.slideindex.app.ui.classicFloatingSideNavRailSlotWidth
 import com.slideindex.app.ui.mainNavMiuixRailContentInsets
+import com.slideindex.app.ui.mainNavRailContentClip
 import com.slideindex.app.ui.MainBottomNavDestination
 import com.slideindex.app.ui.MainMiuixNavigationRail
 import com.slideindex.app.ui.MainBottomNavHorizontalPadding
@@ -102,7 +103,9 @@ fun MainNavHost(
     permissionStates: NavPermissionStates,
     initialIntentAction: String? = null,
     initialNavRoute: String? = null,
+    showUpdateFromIntent: Boolean = false,
     onNavRouteConsumed: () -> Unit = {},
+    onShowUpdateConsumed: () -> Unit = {},
 ) {
     val settingsSnapshot = remember(deps) { deps.settingsRepository.readSnapshot() }
     val rootSettings by deps.settingsRepository.appRootSettings.collectAsStateWithLifecycle(
@@ -430,9 +433,14 @@ fun MainNavHost(
                             val classicRailInset = classicFloatingSideNavRailSlotWidth()
                             Box(modifier = Modifier.fillMaxSize()) {
                                 CompositionLocalProvider(
-                                    LocalMainNavContentStartInset provides classicRailInset,
+                                    LocalMainNavContentStartInset provides 0.dp,
                                 ) {
-                                    Box(modifier = navContentModifier) {
+                                    Box(
+                                        modifier = navContentModifier
+                                            .fillMaxSize()
+                                            .padding(start = classicRailInset)
+                                            .mainNavRailContentClip(),
+                                    ) {
                                         mainTabNavContent()
                                     }
                                 }
@@ -458,7 +466,8 @@ fun MainNavHost(
                                     modifier = navContentModifier
                                         .weight(1f)
                                         .fillMaxHeight()
-                                        .mainNavMiuixRailContentInsets(),
+                                        .mainNavMiuixRailContentInsets()
+                                        .mainNavRailContentClip(),
                                 ) {
                                     CompositionLocalProvider(
                                         LocalMainNavContentStartInset provides 0.dp,
@@ -512,7 +521,12 @@ fun MainNavHost(
                         bottomNavReselectCount = bottomNavReselectCounts[currentTab] ?: 0,
                     )
                 }
-                UpdateHost(viewModel = updateViewModel, entryIntentAction = initialIntentAction)
+                UpdateHost(
+                    viewModel = updateViewModel,
+                    entryIntentAction = initialIntentAction,
+                    showUpdateFromIntent = showUpdateFromIntent,
+                    onShowUpdateConsumed = onShowUpdateConsumed,
+                )
             }
         }
     }
@@ -681,6 +695,7 @@ internal fun MainTabNavStackSingle(
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .mainNavRailContentClip()
             .then(
                 if (hazeState != null && bottomNavUsesHaze && isActiveForHaze) {
                     Modifier.hazeSource(state = hazeState)

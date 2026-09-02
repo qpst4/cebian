@@ -548,6 +548,11 @@
             tools:ignore="Instantiatable" />
 
         <service
+            android:name=".diagnostic.DiagnosticLogUserService"
+            android:exported="false"
+            tools:ignore="Instantiatable" />
+
+        <service
             android:name=".shizuku.TaskManagerUserService"
             android:exported="false"
             tools:ignore="Instantiatable" />

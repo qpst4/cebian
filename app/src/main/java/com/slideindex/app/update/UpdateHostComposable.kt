@@ -21,7 +21,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.slideindex.app.R
 
 @Composable
-fun UpdateHost(viewModel: UpdateViewModel, entryIntentAction: String? = null) {
+fun UpdateHost(
+    viewModel: UpdateViewModel,
+    entryIntentAction: String? = null,
+    showUpdateFromIntent: Boolean = false,
+    onShowUpdateConsumed: () -> Unit = {},
+) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -56,6 +61,13 @@ fun UpdateHost(viewModel: UpdateViewModel, entryIntentAction: String? = null) {
 
     LaunchedEffect(entryIntentAction) {
         viewModel.onEntry()
+    }
+
+    LaunchedEffect(showUpdateFromIntent) {
+        if (showUpdateFromIntent) {
+            viewModel.checkFromNotification()
+            onShowUpdateConsumed()
+        }
     }
 
     DisposableEffect(lifecycleOwner) {

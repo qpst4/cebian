@@ -6,6 +6,7 @@ import android.os.Build
 import android.provider.Settings
 import android.util.Log
 import androidx.core.app.NotificationManagerCompat
+import com.slideindex.app.clipboard.ClipboardPermissionHelper
 import java.io.File
 import java.io.PrintWriter
 import java.io.StringWriter
@@ -19,8 +20,18 @@ import java.util.Locale
  */
 object LocalCrashHandler {
     private const val TAG = "LocalCrashHandler"
-    private const val CRASH_FILE_NAME = "crash_log.txt"
+    private const val LEGACY_CRASH_FILE_NAME = "crash_log.txt"
+    private const val CRASH_DIR_NAME = "crashes"
+    private const val CRASH_FILE_PREFIX = "crash_"
+    private const val CRASH_FILE_SUFFIX = ".txt"
+    private const val MAX_CRASH_FILES = 20
     private var defaultHandler: Thread.UncaughtExceptionHandler? = null
+
+    data class CrashReportEntry(
+        val fileName: String,
+        val timestampMs: Long,
+        val previewLine: String,
+    )
 
     fun install(context: Context) {
         val appContext = context.applicationContext
@@ -29,6 +40,26 @@ object LocalCrashHandler {
             saveCrashReport(appContext, thread, throwable)
             defaultHandler?.uncaughtException(thread, throwable)
         }
+        migrateLegacyCrashReport(appContext)
+    }
+
+    private fun crashDir(context: Context): File =
+        File(context.filesDir, CRASH_DIR_NAME).apply { mkdirs() }
+
+    private fun migrateLegacyCrashReport(context: Context) {
+        val legacy = File(context.filesDir, LEGACY_CRASH_FILE_NAME)
+        if (!legacy.exists() || !legacy.isFile) return
+        runCatching {
+            val content = legacy.readText()
+            if (content.isNotBlank()) {
+                val stamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date(legacy.lastModified()))
+                val target = File(crashDir(context), "$CRASH_FILE_PREFIX$stamp$CRASH_FILE_SUFFIX")
+                if (!target.exists()) {
+                    target.writeText(content)
+                }
+            }
+            legacy.delete()
+        }.onFailure { Log.w(TAG, "Failed to migrate legacy crash report", it) }
     }
 
     private fun saveCrashReport(context: Context, thread: Thread, throwable: Throwable) {
@@ -53,25 +84,62 @@ object LocalCrashHandler {
                 appendLine("==============================================")
             }
 
-            val file = File(context.filesDir, CRASH_FILE_NAME)
+            val stamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+            val file = File(crashDir(context), "$CRASH_FILE_PREFIX$stamp$CRASH_FILE_SUFFIX")
             file.writeText(info)
+            pruneOldCrashReports(context)
         }.onFailure { Log.e(TAG, "Failed to save crash report", it) }
     }
 
-    fun readLastCrashReport(context: Context): String? {
-        val file = File(context.filesDir, CRASH_FILE_NAME)
-        return if (file.exists() && file.isFile) {
-            runCatching { file.readText() }.getOrNull()
-        } else {
-            null
+    private fun pruneOldCrashReports(context: Context) {
+        val files = listCrashReportFiles(context)
+        if (files.size <= MAX_CRASH_FILES) return
+        files.drop(MAX_CRASH_FILES).forEach { file ->
+            runCatching { file.delete() }
         }
     }
 
-    fun clearCrashReport(context: Context) {
-        val file = File(context.filesDir, CRASH_FILE_NAME)
-        if (file.exists()) {
-            file.delete()
+    private fun listCrashReportFiles(context: Context): List<File> =
+        crashDir(context)
+            .listFiles { file ->
+                file.isFile &&
+                    file.name.startsWith(CRASH_FILE_PREFIX) &&
+                    file.name.endsWith(CRASH_FILE_SUFFIX)
+            }
+            ?.sortedByDescending { it.lastModified() }
+            .orEmpty()
+
+    fun listCrashReports(context: Context): List<CrashReportEntry> =
+        listCrashReportFiles(context).map { file ->
+            val preview = runCatching { file.readLines().firstOrNull { it.isNotBlank() }.orEmpty() }
+                .getOrDefault("")
+            CrashReportEntry(
+                fileName = file.name,
+                timestampMs = file.lastModified(),
+                previewLine = preview,
+            )
         }
+
+    fun readCrashReport(context: Context, fileName: String): String? {
+        val file = File(crashDir(context), fileName)
+        if (!file.exists() || !file.isFile) return null
+        return runCatching { file.readText() }.getOrNull()
+    }
+
+    fun readLastCrashReport(context: Context): String? {
+        val latest = listCrashReportFiles(context).firstOrNull() ?: return null
+        return runCatching { latest.readText() }.getOrNull()
+    }
+
+    fun clearCrashReports(context: Context) {
+        listCrashReportFiles(context).forEach { file ->
+            runCatching { file.delete() }
+        }
+        File(context.filesDir, LEGACY_CRASH_FILE_NAME).delete()
+    }
+
+    fun clearCrashReport(context: Context) {
+        clearCrashReports(context)
     }
 
     /**
@@ -106,7 +174,7 @@ object LocalCrashHandler {
         val notificationListeners = NotificationManagerCompat.getEnabledListenerPackages(context)
         val notificationListenerGranted = notificationListeners.contains(context.packageName)
 
-        val lastCrash = readLastCrashReport(context)
+        val crashReports = listCrashReports(context)
 
         return buildString {
             appendLine("### Cebian 系统诊断与排错报告")
@@ -119,15 +187,21 @@ object LocalCrashHandler {
             appendLine("- 悬浮窗权限 (Overlay): ${if (overlayGranted) "✅ 已开启" else "❌ 未开启"}")
             appendLine("- 无障碍服务 (Accessibility): ${if (accessibilityGranted) "✅ 已开启" else "❌ 未开启"}")
             appendLine("- 通知监听服务 (Notification Listener): ${if (notificationListenerGranted) "✅ 已开启" else "❌ 未开启"}")
+            appendLine("- 读取日志 (READ_LOGS): ${if (ClipboardPermissionHelper.hasReadLogsPermission(context)) "✅ 已授予" else "❌ 未授予"}")
             appendLine()
-            if (!lastCrash.isNullOrBlank()) {
-                appendLine("#### 最近一次异常崩溃日志")
-                appendLine("```text")
-                appendLine(lastCrash.trim())
-                appendLine("```")
-            } else {
+            if (crashReports.isEmpty()) {
                 appendLine("#### 崩溃日志记录")
                 appendLine("✅ 暂无未捕获异常崩溃记录（运行稳定）")
+            } else {
+                appendLine("#### 崩溃历史 (${crashReports.size} 份)")
+                crashReports.forEachIndexed { index, entry ->
+                    appendLine()
+                    appendLine("##### #${index + 1} ${entry.fileName}")
+                    val body = readCrashReport(context, entry.fileName).orEmpty().trim()
+                    appendLine("```text")
+                    appendLine(body)
+                    appendLine("```")
+                }
             }
         }
     }

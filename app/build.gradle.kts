@@ -434,6 +434,7 @@ dependencies {
     implementation(libs.hilt.navigation.compose)
     implementation(libs.lifecycle.runtime.compose)
     implementation(libs.lifecycle.service)
+    implementation(libs.work.runtime.ktx)
     implementation(libs.savedstate)
     implementation(libs.activity.compose)
     implementation(libs.webkit)

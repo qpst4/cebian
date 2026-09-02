@@ -24,6 +24,10 @@ object DiagnosticReportExporter {
     private val exportScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     fun copyOrShare(context: Context) {
+        shareOrCopy(context)
+    }
+
+    fun shareOrCopy(context: Context) {
         val appContext = context.applicationContext
         val uiContext = context
         exportScope.launch {
@@ -37,13 +41,11 @@ object DiagnosticReportExporter {
 
     private fun buildExportOutcome(appContext: Context): ExportOutcome {
         val fullReport = LocalCrashHandler.generateDiagnosticReport(appContext)
-        val truncationSuffix = appContext.getString(R.string.diagnostic_report_truncation_suffix)
-        val clipboardText = truncateUtf8(fullReport, MAX_CLIPBOARD_BYTES, truncationSuffix)
-        val truncated = fullReport.toByteArray(Charsets.UTF_8).size > MAX_CLIPBOARD_BYTES
+        val stamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+        val fileName = "cebian_diagnostic_$stamp.log"
         return ExportOutcome.Ready(
-            clipboardText = clipboardText,
             fullReport = fullReport,
-            truncated = truncated,
+            fileName = fileName,
         )
     }
 
@@ -57,17 +59,20 @@ object DiagnosticReportExporter {
                 Toast.makeText(appContext, R.string.diagnostic_report_export_failed, Toast.LENGTH_LONG).show()
             }
             is ExportOutcome.Ready -> {
-                if (copyToClipboard(appContext, outcome.clipboardText)) {
-                    val messageRes = if (outcome.truncated) {
+                if (shareReport(uiContext, outcome.fullReport, outcome.fileName)) {
+                    Toast.makeText(appContext, R.string.diagnostic_report_shared, Toast.LENGTH_SHORT).show()
+                    return
+                }
+                val truncationSuffix = appContext.getString(R.string.diagnostic_report_truncation_suffix)
+                val clipboardText = truncateUtf8(outcome.fullReport, MAX_CLIPBOARD_BYTES, truncationSuffix)
+                val truncated = outcome.fullReport.toByteArray(Charsets.UTF_8).size > MAX_CLIPBOARD_BYTES
+                if (copyToClipboard(appContext, clipboardText)) {
+                    val messageRes = if (truncated) {
                         R.string.diagnostic_report_copied_truncated
                     } else {
                         R.string.diagnostic_report_copied
                     }
                     Toast.makeText(appContext, messageRes, Toast.LENGTH_SHORT).show()
-                    return
-                }
-                if (shareReport(uiContext, outcome.fullReport)) {
-                    Toast.makeText(appContext, R.string.diagnostic_report_shared_fallback, Toast.LENGTH_LONG).show()
                 } else {
                     Toast.makeText(appContext, R.string.diagnostic_report_export_failed, Toast.LENGTH_LONG).show()
                 }
@@ -77,9 +82,8 @@ object DiagnosticReportExporter {
 
     private sealed class ExportOutcome {
         data class Ready(
-            val clipboardText: String,
             val fullReport: String,
-            val truncated: Boolean,
+            val fileName: String,
         ) : ExportOutcome()
 
         data object Failed : ExportOutcome()
@@ -93,11 +97,10 @@ object DiagnosticReportExporter {
         }.getOrDefault(false)
     }
 
-    private fun shareReport(context: Context, report: String): Boolean {
+    private fun shareReport(context: Context, report: String, fileName: String): Boolean {
         return runCatching {
             val dir = File(context.cacheDir, "diagnostics").apply { mkdirs() }
-            val stamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-            val file = File(dir, "cebian_diagnostic_$stamp.txt")
+            val file = File(dir, fileName)
             file.writeText(report, Charsets.UTF_8)
             val uri = FileProvider.getUriForFile(
                 context,
@@ -108,7 +111,7 @@ object DiagnosticReportExporter {
                 Intent(Intent.ACTION_SEND).apply {
                     type = "text/plain"
                     putExtra(Intent.EXTRA_STREAM, uri)
-                    putExtra(Intent.EXTRA_SUBJECT, "Cebian Diagnostic Report")
+                    putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.diagnostic_report_share_subject))
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 },
                 context.getString(R.string.diagnostic_report_share_chooser_title),

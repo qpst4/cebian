@@ -19,9 +19,6 @@ import com.slideindex.app.overlay.LayoutPreviewFocus
 import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.shake.FaceDownGestureHost
 import com.slideindex.app.shake.ShakeGestureHost
-import com.slideindex.app.update.UpdateNotifications
-import com.slideindex.app.update.UpdatePreferencesStore
-import com.slideindex.app.update.UpdateRepository
 import com.slideindex.app.util.SecureSettingsHelper
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
@@ -38,8 +35,6 @@ class OverlayService : LifecycleService() {
     @javax.inject.Inject lateinit var deps: AppDependencies
     @javax.inject.Inject lateinit var shakeGestureHost: ShakeGestureHost
     @javax.inject.Inject lateinit var faceDownGestureHost: FaceDownGestureHost
-    @javax.inject.Inject lateinit var updateRepository: UpdateRepository
-    @javax.inject.Inject lateinit var updatePreferencesStore: UpdatePreferencesStore
 
     override fun onCreate() {
         super.onCreate()
@@ -49,7 +44,6 @@ class OverlayService : LifecycleService() {
         shakeGestureHost.start(lifecycleScope)
         faceDownGestureHost.start(lifecycleScope)
         startAccessibilityWatchdog()
-        startUpdateChecker()
     }
 
     private fun startAccessibilityWatchdog() {
@@ -66,29 +60,6 @@ class OverlayService : LifecycleService() {
         }
     }
 
-    private fun startUpdateChecker() {
-        lifecycleScope.launch {
-            while (isActive) {
-                try {
-                    val prefs = updatePreferencesStore.read()
-                    if (prefs.autoCheckUpdate && updateRepository.shouldCheck()) {
-                        when (val result = updateRepository.checkAndCache(force = false)) {
-                            is UpdateRepository.CheckResult.NewVersion -> {
-                                val ignored = updatePreferencesStore.read().ignoredUpdateVersion
-                                val version = result.state.latestVersion
-                                if (version.isNotBlank() && version != ignored) {
-                                    UpdateNotifications.showNewVersion(this@OverlayService, version)
-                                }
-                            }
-                            else -> Unit
-                        }
-                    }
-                } catch (_: Exception) {
-                }
-                delay(UPDATE_CHECK_TICK_INTERVAL_MS)
-            }
-        }
-    }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
@@ -201,6 +172,5 @@ class OverlayService : LifecycleService() {
         private const val CHANNEL_ID = "slide_index_service"
         private const val NOTIFICATION_ID = 1001
         private const val ACCESSIBILITY_WATCHDOG_INTERVAL_MS = 60_000L
-        private const val UPDATE_CHECK_TICK_INTERVAL_MS = 30 * 60 * 1000L
     }
 }

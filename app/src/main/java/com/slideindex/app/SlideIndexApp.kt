@@ -19,6 +19,8 @@ import com.slideindex.app.service.HistoryFloatLifecycle
 import com.slideindex.app.util.HiddenApiBootstrap
 import com.slideindex.app.util.PredictiveBackHelper
 import com.slideindex.app.util.ServiceEnabledStore
+import com.slideindex.app.update.UpdateCheckScheduler
+import com.slideindex.app.update.UpdatePreferencesStore
 import com.slideindex.app.widget.WidgetPanelPage
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
@@ -35,6 +37,7 @@ class SlideIndexApp : Application() {
     @Inject lateinit var ocrInstalledModelStartupVerifier: OcrInstalledModelStartupVerifier
     @Inject lateinit var nativeEnginePackCoordinator: NativeEnginePackCoordinator
     @Inject lateinit var segmentationEngineProvisioner: SegmentationEngineProvisioner
+    @Inject lateinit var updatePreferencesStore: UpdatePreferencesStore
 
     override fun onCreate() {
         super.onCreate()
@@ -69,6 +72,11 @@ class SlideIndexApp : Application() {
             ClipboardFloatLifecycle.syncFromSettings(this@SlideIndexApp, deps.settingsRepository)
         }
         GestureToggleTileWarmup.requestListening(this, "appOnCreate")
+        deps.applicationScope.launch {
+            if (updatePreferencesStore.read().autoCheckUpdate) {
+                UpdateCheckScheduler.schedule(this@SlideIndexApp)
+            }
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             val enabled = deps.settingsRepository.readSnapshot().predictiveBackEnabled
             PredictiveBackHelper.applyEnabled(applicationInfo, enabled)
