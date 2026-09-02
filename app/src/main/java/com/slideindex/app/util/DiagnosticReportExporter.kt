@@ -11,33 +11,78 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 object DiagnosticReportExporter {
 
     private const val MAX_CLIPBOARD_BYTES = 500 * 1024
 
+    private val exportScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
     fun copyOrShare(context: Context) {
         val appContext = context.applicationContext
+        val uiContext = context
+        exportScope.launch {
+            val outcome = runCatching { buildExportOutcome(appContext) }
+                .getOrElse { ExportOutcome.Failed }
+            withContext(Dispatchers.Main.immediate) {
+                presentOutcome(uiContext, appContext, outcome)
+            }
+        }
+    }
+
+    private fun buildExportOutcome(appContext: Context): ExportOutcome {
         val fullReport = LocalCrashHandler.generateDiagnosticReport(appContext)
         val truncationSuffix = appContext.getString(R.string.diagnostic_report_truncation_suffix)
         val clipboardText = truncateUtf8(fullReport, MAX_CLIPBOARD_BYTES, truncationSuffix)
         val truncated = fullReport.toByteArray(Charsets.UTF_8).size > MAX_CLIPBOARD_BYTES
+        return ExportOutcome.Ready(
+            clipboardText = clipboardText,
+            fullReport = fullReport,
+            truncated = truncated,
+        )
+    }
 
-        if (copyToClipboard(appContext, clipboardText)) {
-            val messageRes = if (truncated) {
-                R.string.diagnostic_report_copied_truncated
-            } else {
-                R.string.diagnostic_report_copied
+    private fun presentOutcome(
+        uiContext: Context,
+        appContext: Context,
+        outcome: ExportOutcome,
+    ) {
+        when (outcome) {
+            ExportOutcome.Failed -> {
+                Toast.makeText(appContext, R.string.diagnostic_report_export_failed, Toast.LENGTH_LONG).show()
             }
-            Toast.makeText(appContext, messageRes, Toast.LENGTH_SHORT).show()
-            return
+            is ExportOutcome.Ready -> {
+                if (copyToClipboard(appContext, outcome.clipboardText)) {
+                    val messageRes = if (outcome.truncated) {
+                        R.string.diagnostic_report_copied_truncated
+                    } else {
+                        R.string.diagnostic_report_copied
+                    }
+                    Toast.makeText(appContext, messageRes, Toast.LENGTH_SHORT).show()
+                    return
+                }
+                if (shareReport(uiContext, outcome.fullReport)) {
+                    Toast.makeText(appContext, R.string.diagnostic_report_shared_fallback, Toast.LENGTH_LONG).show()
+                } else {
+                    Toast.makeText(appContext, R.string.diagnostic_report_export_failed, Toast.LENGTH_LONG).show()
+                }
+            }
         }
+    }
 
-        if (shareReport(context, fullReport)) {
-            Toast.makeText(appContext, R.string.diagnostic_report_shared_fallback, Toast.LENGTH_LONG).show()
-        } else {
-            Toast.makeText(appContext, R.string.diagnostic_report_export_failed, Toast.LENGTH_LONG).show()
-        }
+    private sealed class ExportOutcome {
+        data class Ready(
+            val clipboardText: String,
+            val fullReport: String,
+            val truncated: Boolean,
+        ) : ExportOutcome()
+
+        data object Failed : ExportOutcome()
     }
 
     private fun copyToClipboard(context: Context, text: String): Boolean {
@@ -79,12 +124,15 @@ object DiagnosticReportExporter {
     private fun truncateUtf8(text: String, maxBytes: Int, suffix: String): String {
         val bytes = text.toByteArray(Charsets.UTF_8)
         if (bytes.size <= maxBytes) return text
+
         val suffixBytes = suffix.toByteArray(Charsets.UTF_8)
         val budget = (maxBytes - suffixBytes.size).coerceAtLeast(0)
-        var end = text.length
-        while (end > 0 && text.substring(0, end).toByteArray(Charsets.UTF_8).size > budget) {
-            end--
+        if (budget <= 0) return suffix
+
+        var cut = budget
+        while (cut > 0 && (bytes[cut - 1].toInt() and 0xC0) == 0x80) {
+            cut--
         }
-        return text.substring(0, end) + suffix
+        return String(bytes, 0, cut, Charsets.UTF_8) + suffix
     }
 }
