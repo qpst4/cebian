@@ -671,9 +671,9 @@ object FloatBallOverlay {
         }
     }
 
-    fun dismiss() {
+    fun dismiss(destroyPickPanelShell: Boolean = false) {
         if (Looper.myLooper() != Looper.getMainLooper()) {
-            mainHandler.post { dismiss() }
+            mainHandler.post { dismiss(destroyPickPanelShell) }
             return
         }
         cancelPassiveLineRestore()
@@ -693,7 +693,7 @@ object FloatBallOverlay {
         displayOwner?.destroy()
         if (FloatBallPickResultPanel.isShowing) {
             Log.i(TAG, "dismiss: skip pick result panel destroy while panel is showing")
-        } else {
+        } else if (destroyPickPanelShell) {
             FloatBallPickResultPanel.destroy()
         }
         displayOwner = null

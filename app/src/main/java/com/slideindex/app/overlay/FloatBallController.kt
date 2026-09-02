@@ -27,7 +27,7 @@ class FloatBallController(
 
     fun apply(settings: AppSettings) {
         if (!PermissionHelper.isAccessibilityServiceEnabled(context)) {
-            FloatBallOverlay.dismiss()
+            FloatBallOverlay.dismiss(destroyPickPanelShell = true)
             return
         }
         if (!styleAssetMigrationDone) {
@@ -52,6 +52,9 @@ class FloatBallController(
                 },
             )
         } else {
+            if (!FloatBallOverlay.isShowing) {
+                return
+            }
             if (FloatBallPickResultPanel.isShowing) {
                 Log.i(TAG, "apply: suppress float ball without tearing down pick panel")
                 FloatBallOverlay.hideChromeForEdgeRegionalPick()
@@ -62,7 +65,7 @@ class FloatBallController(
     }
 
     fun stop() {
-        FloatBallOverlay.dismiss()
+        FloatBallOverlay.dismiss(destroyPickPanelShell = true)
     }
 
     private fun isFloatBallSuppressed(settings: AppSettings): Boolean =

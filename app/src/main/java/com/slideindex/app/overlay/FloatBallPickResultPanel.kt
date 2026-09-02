@@ -1894,6 +1894,8 @@ object FloatBallPickResultPanel {
                 clearTranslateState()
                 applyPanelShellPassive()
                 panelDismissing = false
+                com.slideindex.app.service.SlideIndexAccessibilityService.bringEdgeChromeAbovePanels(forceReAdd = true)
+                com.slideindex.app.service.SlideIndexAccessibilityService.refreshTriggerVisuals()
                 com.slideindex.app.service.SlideIndexAccessibilityService.refreshOverlaySuppression()
             }
         } else {
@@ -1915,7 +1917,7 @@ object FloatBallPickResultPanel {
             screenOffReceiver?.let { receiver ->
                 appContext?.let { ctx -> runCatching { ctx.unregisterReceiver(receiver) } }
             }
-            view.post { currentOwner.destroy() }
+            runCatching { currentOwner.destroy() }
 
             backHandler?.detach()
             backHandler = null
@@ -2054,7 +2056,7 @@ object FloatBallPickResultPanel {
         val overlayContext = OverlayCompose.themedContext(context)
         val compose = OverlayCompose.createComposeView(overlayContext, dialogOwner).apply {
             setContent {
-                val visibleState = panelVisibilityState!!
+                val visibleState = panelVisibilityState ?: return@setContent
                 if (!visibleState.currentState && !visibleState.targetState) return@setContent
                 OverlayTextToolbarProvider {
                 val panelShowToken = panelShowTokenHolder.intValue
