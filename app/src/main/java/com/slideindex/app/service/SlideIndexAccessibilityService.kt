@@ -554,13 +554,15 @@ class SlideIndexAccessibilityService : AccessibilityService() {
 
     override fun onDestroy() {
         ClipboardAccess.repository?.stopListening()
-        otpCoordinator.unregisterReceiver()
-        watchdog.unregisterScreenLockReceiver()
+        if (::otpCoordinator.isInitialized) otpCoordinator.unregisterReceiver()
+        if (::watchdog.isInitialized) {
+            watchdog.unregisterScreenLockReceiver()
+            watchdog.releaseWakeLock()
+        }
         edgeOverlayHost?.stop()
         edgeOverlayHost = null
-        backTapGestureHost.stop()
+        if (::backTapGestureHost.isInitialized) backTapGestureHost.stop()
         serviceScope.cancel()
-        watchdog.releaseWakeLock()
         instance = null
         super.onDestroy()
     }

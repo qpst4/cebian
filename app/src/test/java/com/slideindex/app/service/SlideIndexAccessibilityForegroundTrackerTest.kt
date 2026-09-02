@@ -121,6 +121,28 @@ class SlideIndexAccessibilityForegroundTrackerTest {
     }
 
     @Test
+    fun resolveActivePackageForPreviousApp_prefersResolvedLaunchableHost() {
+        val active = resolveActivePackageForPreviousApp(
+            resolvedHostPackage = "com.chrome",
+            rootActivePackage = "com.android.systemui",
+            hasLaunchIntent = { it == "com.chrome" },
+        )
+
+        assertEquals("com.chrome", active)
+    }
+
+    @Test
+    fun resolveActivePackageForPreviousApp_fallsBackToRootWhenResolvedNotLaunchable() {
+        val active = resolveActivePackageForPreviousApp(
+            resolvedHostPackage = "com.android.systemui",
+            rootActivePackage = "com.wechat",
+            hasLaunchIntent = { it != "com.android.systemui" },
+        )
+
+        assertEquals("com.wechat", active)
+    }
+
+    @Test
     fun computeLaunchPreviousAppPlan_returnsNullWhenPrevEqualsCurr() {
         val plan = computeLaunchPreviousAppPlan(
             prevPackageName = "com.same.app",

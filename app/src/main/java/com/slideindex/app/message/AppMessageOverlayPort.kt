@@ -48,6 +48,15 @@ import javax.inject.Singleton
 class AppMessageOverlayPort @Inject constructor() : MessageOverlayPort {
     private var unlockConfirmationHost: OverlayComposeDialogHost? = null
     private val mainHandler = Handler(Looper.getMainLooper())
+    private var unlockBringToFrontRunnable: Runnable? = null
+    private var unlockAutoDismissRunnable: Runnable? = null
+
+    private fun cancelUnlockConfirmationCallbacks() {
+        unlockBringToFrontRunnable?.let { mainHandler.removeCallbacks(it) }
+        unlockAutoDismissRunnable?.let { mainHandler.removeCallbacks(it) }
+        unlockBringToFrontRunnable = null
+        unlockAutoDismissRunnable = null
+    }
 
     override fun containsNotification(style: MessageStyle, data: NotificationData): Boolean =
         when (style) {
@@ -169,6 +178,7 @@ class AppMessageOverlayPort @Inject constructor() : MessageOverlayPort {
         onConfirm: (alwaysAllow: Boolean) -> Unit,
         onDismiss: () -> Unit,
     ) {
+        cancelUnlockConfirmationCallbacks()
         val appLabel = runCatching {
             context.packageManager.getApplicationLabel(
                 context.packageManager.getApplicationInfo(data.packageName, 0),
@@ -182,7 +192,10 @@ class AppMessageOverlayPort @Inject constructor() : MessageOverlayPort {
             unlockConfirmationHost = it
         }
         host.show(
-            onDismiss = onDismiss,
+            onDismiss = {
+                cancelUnlockConfirmationCallbacks()
+                onDismiss()
+            },
         ) {
             var alwaysAllow by remember { mutableStateOf(false) }
             val badgeBackground = MaterialTheme.colorScheme.surfaceContainer
@@ -305,11 +318,18 @@ class AppMessageOverlayPort @Inject constructor() : MessageOverlayPort {
                 }
             }
         }
-        mainHandler.postDelayed({ host.bringToFront() }, 250L)
+        val bringToFrontRunnable = Runnable { host.bringToFront() }
+        unlockBringToFrontRunnable = bringToFrontRunnable
+        mainHandler.postDelayed(bringToFrontRunnable, 250L)
         if (autoDismissSeconds > 0) {
-            mainHandler.postDelayed({
+            val autoDismissRunnable = Runnable {
                 if (host.isShowing) host.dismiss()
-            }, autoDismissSeconds.coerceIn(1, 30) * 1000L)
+            }
+            unlockAutoDismissRunnable = autoDismissRunnable
+            mainHandler.postDelayed(
+                autoDismissRunnable,
+                autoDismissSeconds.coerceIn(1, 30) * 1000L,
+            )
         }
     }
 

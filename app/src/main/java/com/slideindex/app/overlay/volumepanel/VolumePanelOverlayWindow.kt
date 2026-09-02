@@ -67,6 +67,7 @@ object VolumePanelOverlayWindow {
     private var owner: OverlayComposeOwner? = null
     private var panelVisibilityState: MutableTransitionState<Boolean>? = null
     private var screenOffReceiver: BroadcastReceiver? = null
+    private var screenOffReceiverHost: Context? = null
     private var appContext: Context? = null
     private var backHandler: OverlayViewBackHandler? = null
     private var bringAboveToken = 0
@@ -87,7 +88,6 @@ object VolumePanelOverlayWindow {
             return result
         }
         if (isShowing) {
-            dismiss()
             return true
         }
         if (!PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) {
@@ -205,9 +205,10 @@ object VolumePanelOverlayWindow {
         if (view != null && wm != null) {
             runCatching { wm.removeView(view) }
         }
-        owner?.destroy()
+        val dialogOwner = owner
         owner = null
         composeView = null
+        OverlayCompose.teardownOverlayCompose(view, dialogOwner)
         windowManager = null
         panelVisibilityState = null
     }
@@ -219,14 +220,16 @@ object VolumePanelOverlayWindow {
                 if (intent?.action == Intent.ACTION_SCREEN_OFF) dismiss()
             }
         }
-        context.registerReceiver(receiver, IntentFilter(Intent.ACTION_SCREEN_OFF), Context.RECEIVER_NOT_EXPORTED)
         screenOffReceiver = receiver
+        screenOffReceiverHost = context
+        context.registerReceiver(receiver, IntentFilter(Intent.ACTION_SCREEN_OFF), Context.RECEIVER_NOT_EXPORTED)
     }
 
     private fun unregisterScreenOffReceiver() {
         val receiver = screenOffReceiver ?: return
-        runCatching { appContext?.unregisterReceiver(receiver) }
+        screenOffReceiverHost?.let { host -> runCatching { host.unregisterReceiver(receiver) } }
         screenOffReceiver = null
+        screenOffReceiverHost = null
     }
 }
 

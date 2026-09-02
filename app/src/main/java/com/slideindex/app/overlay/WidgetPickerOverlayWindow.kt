@@ -58,8 +58,9 @@ object WidgetPickerOverlayWindow {
   private var layoutParams: WindowManager.LayoutParams? = null
   private var backHandler: OverlayViewBackHandler? = null
   private var requestAnimatedDismiss: (() -> Unit)? = null
-  private var screenOffReceiver: BroadcastReceiver? = null
-  private var appContext: Context? = null
+    private var screenOffReceiver: BroadcastReceiver? = null
+    private var screenOffReceiverHost: Context? = null
+    private var appContext: Context? = null
   @Volatile
   private var dismissing = false
 
@@ -201,8 +202,7 @@ object WidgetPickerOverlayWindow {
     if (view != null && wm != null) {
       runCatching { wm.removeView(view) }
     }
-    view?.let { OverlayCompose.clearViewTreeOwners(it) }
-    dialogOwner?.destroy()
+    OverlayCompose.teardownOverlayCompose(view, dialogOwner)
     dismissing = false
     OverlaySceneController.onContentPanelHidden()
     WidgetPopupOverlayWindow.resumeAfterPickerOverlay()
@@ -218,13 +218,21 @@ object WidgetPickerOverlayWindow {
       }
     }
     screenOffReceiver = receiver
-    runCatching { context.registerReceiver(receiver, IntentFilter(Intent.ACTION_SCREEN_OFF)) }
+    screenOffReceiverHost = context
+    runCatching {
+      context.registerReceiver(
+        receiver,
+        IntentFilter(Intent.ACTION_SCREEN_OFF),
+        Context.RECEIVER_NOT_EXPORTED,
+      )
+    }
   }
 
   private fun unregisterScreenOffReceiver() {
     val receiver = screenOffReceiver ?: return
-    appContext?.let { ctx -> runCatching { ctx.unregisterReceiver(receiver) } }
+    screenOffReceiverHost?.let { host -> runCatching { host.unregisterReceiver(receiver) } }
     screenOffReceiver = null
+    screenOffReceiverHost = null
   }
 }
 

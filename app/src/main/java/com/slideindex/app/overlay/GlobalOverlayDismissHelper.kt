@@ -3,9 +3,13 @@ package com.slideindex.app.overlay
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import com.slideindex.app.copy.UniversalCopyOverlay
 import com.slideindex.app.freezer.FreezerOverlayWindow
 import com.slideindex.app.overlay.appswitcher.AppSwitcherOverlayWindow
+import com.slideindex.app.overlay.holographic.HolographicLauncherOverlayWindow
 import com.slideindex.app.overlay.searchpanel.SearchPanelOverlayWindow
+import com.slideindex.app.overlay.volumepanel.VolumePanelOverlayWindow
+import com.slideindex.app.translate.overlay.ScreenTranslationController
 
 /**
  * Helper to safely dismiss all active overlay panels when screen turns off or device locks.
@@ -14,9 +18,17 @@ object GlobalOverlayDismissHelper {
     private const val TAG = "GlobalOverlayDismiss"
     private val mainHandler = Handler(Looper.getMainLooper())
 
+    @Volatile
+    private var dismissPosted = false
+
     fun dismissAllPanels() {
         if (Looper.myLooper() != Looper.getMainLooper()) {
-            mainHandler.post { dismissAllPanels() }
+            if (dismissPosted) return
+            dismissPosted = true
+            mainHandler.post {
+                dismissPosted = false
+                dismissAllPanels()
+            }
             return
         }
         Log.i(TAG, "Dismissing all active overlay panels due to screen off / device lock")
@@ -37,6 +49,12 @@ object GlobalOverlayDismissHelper {
         runCatching { FloatIconOverlayWindow.dismiss() }
         runCatching { MessageReplyOverlayWindow.dismiss() }
         runCatching { ForegroundActivityInspectorOverlayWindow.dismiss() }
+        runCatching { VolumePanelOverlayWindow.dismiss() }
+        runCatching { FloatingPointerOverlayWindow.dismiss() }
+        runCatching { HolographicLauncherOverlayWindow.dismiss() }
+        runCatching { DanmakuOverlayWindow.detach() }
+        runCatching { UniversalCopyOverlay.dismiss() }
+        runCatching { ScreenTranslationController.dismissIfActive() }
         runCatching { com.slideindex.app.service.ClipboardFloatService.hideWindowFromStatic() }
     }
 }

@@ -6,7 +6,9 @@ package com.slideindex.app.overlay
  */
 
 import android.content.Context
+import android.content.ContextWrapper
 import android.graphics.PixelFormat
+import android.view.ContextThemeWrapper
 import android.view.Gravity
 import android.view.WindowManager
 import com.slideindex.app.util.PermissionHelper
@@ -25,13 +27,30 @@ object OverlayWindowTypes {
 
     fun overlayWindowType(context: Context): Int {
         val a11yHost = com.slideindex.app.service.SlideIndexAccessibilityService.overlayHostContext()
-        val isA11yContext = context is android.accessibilityservice.AccessibilityService ||
-            (a11yHost != null && context == a11yHost)
+        val base = unwrapOverlayHost(context)
+        val hostBase = a11yHost?.let { unwrapOverlayHost(it) }
+        val isA11yContext = base is android.accessibilityservice.AccessibilityService ||
+            (hostBase != null && base == hostBase)
         return if (isA11yContext && PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) {
             WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY
         } else {
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
         }
+    }
+
+    /** 剥除 [ContextThemeWrapper] / [android.window.WindowContext] 包装，用于窗口类型判定。 */
+    internal fun unwrapOverlayHost(context: Context): Context {
+        var current = context
+        while (current is ContextThemeWrapper) {
+            current = current.baseContext
+        }
+        if (current.javaClass.name == "android.window.WindowContext") {
+            val base = (current as? ContextWrapper)?.baseContext
+            if (base != null) {
+                current = base
+            }
+        }
+        return current
     }
 
     /**

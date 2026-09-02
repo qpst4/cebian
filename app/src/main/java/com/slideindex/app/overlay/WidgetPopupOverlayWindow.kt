@@ -393,6 +393,7 @@ object WidgetPopupOverlayWindow {
   }
 
   private fun cleanup() {
+    ++chromeRaiseToken
     OverlayPerformanceMonitorBinding.onOverlayHidden(appContext)
     settingsCollectJob?.cancel()
     settingsCollectJob = null

@@ -230,7 +230,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
         }
         // hideWindow() 已落盘；此处仅处理未走 hideWindow 的异常销毁，且需能 capture 当前窗口
         if (viewAdded) {
-            persistGeometryOnClose(blocking = true)
+            persistGeometryOnClose(blocking = false)
         }
         if (viewAdded) {
             composeView?.let { runCatching { windowManager.removeView(it) } }
@@ -253,7 +253,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
     }
 
     private fun loadSettingsSnapshot() {
-        val snapshot = runBlocking { deps.settingsRepository.readFreshSnapshot() }
+        val snapshot = deps.settingsRepository.readSnapshot()
         rememberPosition = snapshot.clipboardFloatPanelPinPosition
         showChipPref = snapshot.clipboardFloatShowChip
         clickAction = snapshot.clipboardFloatEntryClickAction

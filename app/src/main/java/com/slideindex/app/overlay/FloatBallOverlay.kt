@@ -44,6 +44,7 @@ import kotlin.math.roundToInt
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -80,7 +81,7 @@ object FloatBallOverlay {
     private var passivePickPreviewAnchor: Offset? = null
 
     private val mainHandler = Handler(Looper.getMainLooper())
-    private val overlayScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private var overlayScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private val dragSession = FloatBallDragSession()
 
     private var windowManager: WindowManager? = null
@@ -712,6 +713,8 @@ object FloatBallOverlay {
         appContext = null
         setDragging(false)
         dragOriginatedFromLine = false
+        overlayScope.cancel()
+        overlayScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
         lineDragEndedWithGesture = false
         dragActiveSideOverride = null
         committedActiveSideUntilPersist = null

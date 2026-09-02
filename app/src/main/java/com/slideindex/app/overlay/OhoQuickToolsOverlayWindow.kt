@@ -64,6 +64,7 @@ object OhoQuickToolsOverlayWindow {
     private var anchorRawYState: MutableState<Float?>? = null
     private var settingsState: MutableState<AppSettings>? = null
     private var screenOffReceiver: BroadcastReceiver? = null
+    private var screenOffReceiverHost: Context? = null
     private var appContext: Context? = null
 
     val isShowing: Boolean get() = composeView != null && visibleState?.value == true
@@ -227,13 +228,21 @@ object OhoQuickToolsOverlayWindow {
     }
 
     private fun registerScreenOffReceiver(context: Context) {
+        if (screenOffReceiver != null) return
         val receiver = object : BroadcastReceiver() {
             override fun onReceive(receiverContext: Context?, intent: Intent?) {
                 if (intent?.action == Intent.ACTION_SCREEN_OFF) dismiss()
             }
         }
         screenOffReceiver = receiver
-        runCatching { context.registerReceiver(receiver, IntentFilter(Intent.ACTION_SCREEN_OFF)) }
+        screenOffReceiverHost = context
+        runCatching {
+            context.registerReceiver(
+                receiver,
+                IntentFilter(Intent.ACTION_SCREEN_OFF),
+                Context.RECEIVER_NOT_EXPORTED,
+            )
+        }
     }
 
     private fun cleanup() {
@@ -243,12 +252,13 @@ object OhoQuickToolsOverlayWindow {
             runCatching { wm.removeView(view) }
         }
         screenOffReceiver?.let { receiver ->
-            appContext?.let { ctx -> runCatching { ctx.unregisterReceiver(receiver) } }
+            screenOffReceiverHost?.let { host -> runCatching { host.unregisterReceiver(receiver) } }
         }
         panelState?.stopLiveSync()
-        owner?.destroy()
+        val dialogOwner = owner
         owner = null
         composeView = null
+        OverlayCompose.teardownOverlayCompose(view, dialogOwner)
         windowManager = null
         panelState = null
         visibleState = null
@@ -257,6 +267,7 @@ object OhoQuickToolsOverlayWindow {
         anchorRawYState = null
         settingsState = null
         screenOffReceiver = null
+        screenOffReceiverHost = null
         appContext = null
     }
 

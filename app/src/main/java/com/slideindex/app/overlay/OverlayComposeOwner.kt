@@ -9,6 +9,7 @@ import android.util.Log
 import android.view.ContextThemeWrapper
 import android.view.Display
 import android.view.View
+import android.view.WindowManager
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.lifecycle.Lifecycle
@@ -71,16 +72,32 @@ object OverlayCompose {
         }
         val display = resolveDisplay(context) ?: run {
             Log.w(TAG, "resolveUiContext: no display for ${context.javaClass.name}")
-            return context
+            return context.applicationContext
         }
-        val windowType = OverlayWindowTypes.overlayWindowType(context)
-        return runCatching {
-            context.createWindowContext(display, windowType, null)
-        }.getOrElse { error ->
-            Log.e(TAG, "createWindowContext failed for ${context.javaClass.name}", error)
-            context
+        val windowTypes = listOf(
+            OverlayWindowTypes.overlayWindowType(unwrapThemeContext(context)),
+            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+        ).distinct()
+        for (windowType in windowTypes) {
+            createWindowContextOrNull(context, display, windowType)?.let { return it }
+            val appContext = context.applicationContext
+            if (appContext !== context) {
+                createWindowContextOrNull(appContext, display, windowType)?.let { return it }
+            }
         }
+        Log.e(TAG, "resolveUiContext: all createWindowContext attempts failed for ${context.javaClass.name}")
+        return context.applicationContext
     }
+
+    private fun createWindowContextOrNull(
+        context: Context,
+        display: Display,
+        windowType: Int,
+    ): Context? = runCatching {
+        context.createWindowContext(display, windowType, null)
+    }.onFailure { error ->
+        Log.w(TAG, "createWindowContext failed for ${context.javaClass.name} type=$windowType", error)
+    }.getOrNull()
 
     /**
      * Android 16+ 对非视觉 Context 调用 [Context.getDisplay] 会直接抛异常；
@@ -127,5 +144,12 @@ object OverlayCompose {
     fun disposeComposeView(view: ComposeView?) {
         if (view == null) return
         runCatching { view.disposeComposition() }
+    }
+
+    /** 浮层拆除时统一释放 Compose composition、ViewTree owner 与 [OverlayComposeOwner]。 */
+    fun teardownOverlayCompose(composeView: ComposeView?, owner: OverlayComposeOwner?) {
+        disposeComposeView(composeView)
+        composeView?.let { clearViewTreeOwners(it) }
+        owner?.destroy()
     }
 }

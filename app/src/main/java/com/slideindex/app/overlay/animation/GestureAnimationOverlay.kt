@@ -233,9 +233,10 @@ class GestureAnimationOverlayController(
     fun detach() {
         hide()
         val view = composeView ?: return
+        val dialogOwner = owner
         runCatching { (view.parent as? ViewGroup)?.removeView(view) }
         parent?.let { host -> OverlayCompose.clearViewTreeOwners(host) }
-        owner?.destroy()
+        OverlayCompose.teardownOverlayCompose(view, dialogOwner)
         composeView = null
         owner = null
         parent = null

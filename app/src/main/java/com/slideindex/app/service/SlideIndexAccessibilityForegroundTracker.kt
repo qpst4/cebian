@@ -85,7 +85,11 @@ internal class SlideIndexAccessibilityForegroundTracker(
         val plan = computeLaunchPreviousAppPlan(
             prevPackageName = prevPackageName,
             currPackageName = currPackageName,
-            activePackageName = service.rootInActiveWindow?.packageName?.toString(),
+            activePackageName = resolveActivePackageForPreviousApp(
+                resolvedHostPackage = AccessibilityForegroundResolver.resolveHostPackage(service),
+                rootActivePackage = service.rootInActiveWindow?.packageName?.toString(),
+                hasLaunchIntent = ::hasLaunchIntent,
+            ),
             excludedPackages = excludedPackages(),
         ) ?: return false
         return when (plan) {
@@ -194,6 +198,15 @@ internal sealed interface LaunchPreviousAppPlan {
         val newPrevPackageName: String?,
         val newCurrPackageName: String?,
     ) : LaunchPreviousAppPlan
+}
+
+internal fun resolveActivePackageForPreviousApp(
+    resolvedHostPackage: String?,
+    rootActivePackage: String?,
+    hasLaunchIntent: (String) -> Boolean,
+): String? = when {
+    !resolvedHostPackage.isNullOrBlank() && hasLaunchIntent(resolvedHostPackage) -> resolvedHostPackage
+    else -> rootActivePackage
 }
 
 internal fun computeLaunchPreviousAppPlan(
