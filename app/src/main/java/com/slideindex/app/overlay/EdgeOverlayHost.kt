@@ -189,7 +189,9 @@ class EdgeOverlayHost(
             .withGestureAnglesPreview()
             .withOverlayLayoutPreview()
         cornerGestureHost?.refreshSuppression()
-        floatBallController?.apply(settings)
+        if (!FloatBallPickResultPanel.isShowing) {
+            floatBallController?.apply(settings)
+        }
         overlayManager?.onEnvironmentChanged()
     }
 

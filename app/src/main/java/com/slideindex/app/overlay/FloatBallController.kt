@@ -1,6 +1,7 @@
 package com.slideindex.app.overlay
 
 import android.content.Context
+import android.util.Log
 import androidx.core.net.toUri
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.SettingsRepository
@@ -19,6 +20,10 @@ class FloatBallController(
     private val settingsRepository: SettingsRepository,
 ) {
     private var styleAssetMigrationDone = false
+
+    companion object {
+        private const val TAG = "FloatBallController"
+    }
 
     fun apply(settings: AppSettings) {
         if (!PermissionHelper.isAccessibilityServiceEnabled(context)) {
@@ -47,7 +52,12 @@ class FloatBallController(
                 },
             )
         } else {
-            FloatBallOverlay.dismiss()
+            if (FloatBallPickResultPanel.isShowing) {
+                Log.i(TAG, "apply: suppress float ball without tearing down pick panel")
+                FloatBallOverlay.hideChromeForEdgeRegionalPick()
+            } else {
+                FloatBallOverlay.dismiss()
+            }
         }
     }
 

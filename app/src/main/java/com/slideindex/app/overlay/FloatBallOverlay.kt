@@ -691,7 +691,11 @@ object FloatBallOverlay {
         gestureHintWindow.detach()
         displayView?.dispose()
         displayOwner?.destroy()
-        FloatBallPickResultPanel.destroy()
+        if (FloatBallPickResultPanel.isShowing) {
+            Log.i(TAG, "dismiss: skip pick result panel destroy while panel is showing")
+        } else {
+            FloatBallPickResultPanel.destroy()
+        }
         displayOwner = null
         displayView = null
         displayLayoutParams = null

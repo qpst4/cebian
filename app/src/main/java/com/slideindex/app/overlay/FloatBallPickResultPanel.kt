@@ -1894,6 +1894,7 @@ object FloatBallPickResultPanel {
                 clearTranslateState()
                 applyPanelShellPassive()
                 panelDismissing = false
+                com.slideindex.app.service.SlideIndexAccessibilityService.refreshOverlaySuppression()
             }
         } else {
             panelDismissing = false
@@ -1905,6 +1906,7 @@ object FloatBallPickResultPanel {
             mainHandler.post { destroy() }
             return
         }
+        Log.i(TAG, "destroy invoked pickPanelVisible=$pickPanelVisible")
         val currentOwner = owner
         val view = composeView
         val wm = windowManager

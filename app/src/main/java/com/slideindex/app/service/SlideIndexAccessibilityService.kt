@@ -311,6 +311,10 @@ class SlideIndexAccessibilityService : AccessibilityService() {
             instance?.edgeOverlayHost?.recoverOverlaysIfIdle()
         }
 
+        fun refreshOverlaySuppression() {
+            instance?.edgeOverlayHost?.refreshOverlaySuppression()
+        }
+
         fun refreshTriggerVisuals() {
             instance?.edgeOverlayHost?.refreshTriggerVisuals()
         }
