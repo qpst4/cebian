@@ -13,32 +13,25 @@ import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
 import android.view.WindowManager.LayoutParams
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.ViewCompositionStrategy
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.LifecycleRegistry
-import androidx.lifecycle.setViewTreeLifecycleOwner
-import androidx.savedstate.SavedStateRegistry
-import androidx.savedstate.SavedStateRegistryController
-import androidx.savedstate.SavedStateRegistryOwner
-import androidx.savedstate.setViewTreeSavedStateRegistryOwner
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import com.slideindex.app.overlay.OverlayCompose
+import com.slideindex.app.overlay.OverlayComposeOwner
+import com.slideindex.app.overlay.OverlayWindowTypes
 import com.slideindex.app.overlay.history.HistoryFloatContent
 import com.slideindex.app.settings.HistoryFloatHandleWidth
 import com.slideindex.app.stash.StashCoordinator
 
-class HistoryFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner {
+class HistoryFloatService : Service() {
     private lateinit var windowManager: WindowManager
     private lateinit var mainParams: LayoutParams
-    private lateinit var composeView: ComposeView
-    private val lifecycleRegistry = LifecycleRegistry(this)
-    private val savedStateRegistryController = SavedStateRegistryController.create(this)
+    private var composeView: ComposeView? = null
+    private var composeOwner: OverlayComposeOwner? = null
     private var handleVisible by mutableStateOf(true)
     private var handleWidth by mutableIntStateOf(HistoryFloatHandleWidth.DEFAULT_DP)
     private var lockLoc = true
@@ -56,26 +49,16 @@ class HistoryFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner {
         }
     }
 
-    override val lifecycle: Lifecycle
-        get() = lifecycleRegistry
-
-    override val savedStateRegistry: SavedStateRegistry
-        get() = savedStateRegistryController.savedStateRegistry
-
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onCreate() {
         super.onCreate()
-        savedStateRegistryController.performAttach()
-        savedStateRegistryController.performRestore(null)
-        lifecycleRegistry.currentState = Lifecycle.State.CREATED
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         mainParams = LayoutParams()
-        composeView = ComposeView(this).apply {
-            setLayerType(android.view.View.LAYER_TYPE_HARDWARE, null)
-            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnDetachedFromWindow)
-            setViewTreeLifecycleOwner(this@HistoryFloatService)
-            setViewTreeSavedStateRegistryOwner(this@HistoryFloatService)
+        val overlayContext = OverlayCompose.themedContext(this)
+        val owner = OverlayComposeOwner()
+        composeOwner = owner
+        composeView = OverlayCompose.createComposeView(overlayContext, owner).apply {
             setOnApplyWindowInsetsListener { _, insets ->
                 updateFullscreenVisibility()
                 insets
@@ -92,7 +75,6 @@ class HistoryFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        lifecycleRegistry.currentState = Lifecycle.State.STARTED
         when (intent?.action) {
             ACTION_LOCK_POSITION -> {
                 lockLoc = intent.getBooleanExtra(EXTRA_LOCK_POSITION, lockLoc)
@@ -121,10 +103,13 @@ class HistoryFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner {
     override fun onDestroy() {
         fullscreenCheckHandler.removeCallbacks(fullscreenCheckRunnable)
         if (viewAdded) {
-            windowManager.removeView(composeView)
+            composeView?.let { runCatching { windowManager.removeView(it) } }
             viewAdded = false
         }
-        lifecycleRegistry.currentState = Lifecycle.State.DESTROYED
+        OverlayCompose.disposeComposeView(composeView)
+        composeOwner?.destroy()
+        composeOwner = null
+        composeView = null
         super.onDestroy()
     }
 
@@ -135,18 +120,20 @@ class HistoryFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner {
     }
 
     private fun showFloatWindow() {
+        val view = composeView ?: return
         if (!Settings.canDrawOverlays(this) || viewAdded) {
             return
         }
 
-        mainParams.type = LayoutParams.TYPE_APPLICATION_OVERLAY
+        mainParams.type = OverlayWindowTypes.overlayWindowType(this)
         mainParams.format = PixelFormat.RGBA_8888
         mainParams.width = LayoutParams.WRAP_CONTENT
         mainParams.height = LayoutParams.WRAP_CONTENT
         mainParams.flags = BASE_WINDOW_FLAGS
         mainParams.gravity = Gravity.END or Gravity.CENTER_VERTICAL
+        OverlayWindowTypes.ensureNoBrightnessOverride(mainParams)
         setPos1P3()
-        windowManager.addView(composeView, mainParams)
+        windowManager.addView(view, mainParams)
         viewAdded = true
         updateLandscapeVisibility()
         updateFullscreenVisibility()
@@ -162,13 +149,14 @@ class HistoryFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner {
     }
 
     private fun moveHandle(dy: Float) {
+        val view = composeView ?: return
         if (lockLoc || !viewAdded) {
             return
         }
         positionY += dy.toInt()
         mainParams.x = 0
         mainParams.y = positionY
-        windowManager.updateViewLayout(composeView, mainParams)
+        windowManager.updateViewLayout(view, mainParams)
     }
 
     private fun openClipboardPanel() {
@@ -201,6 +189,7 @@ class HistoryFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner {
     }
 
     private fun applyFloatVisibility() {
+        val view = composeView ?: return
         val hidden = hiddenForFullscreen || hiddenForLandscape
         val expectedFlags = if (hidden) {
             BASE_WINDOW_FLAGS or LayoutParams.FLAG_NOT_TOUCHABLE
@@ -209,14 +198,15 @@ class HistoryFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner {
         }
         if (viewAdded && mainParams.flags != expectedFlags) {
             mainParams.flags = expectedFlags
-            windowManager.updateViewLayout(composeView, mainParams)
+            windowManager.updateViewLayout(view, mainParams)
         }
-        composeView.alpha = if (hidden) 0f else 1f
-        composeView.visibility = View.VISIBLE
+        view.alpha = if (hidden) 0f else 1f
+        view.visibility = View.VISIBLE
     }
 
     private fun isSystemFullscreen(): Boolean {
-        composeView.getWindowVisibleDisplayFrame(visibleDisplayFrame)
+        val view = composeView ?: return false
+        view.getWindowVisibleDisplayFrame(visibleDisplayFrame)
         val statusBarHeight = getStatusBarHeight()
         if (statusBarHeight <= 0) {
             return false
@@ -226,7 +216,8 @@ class HistoryFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner {
 
     private fun getStatusBarHeight(): Int {
         if (!viewAdded) return 0
-        return ViewCompat.getRootWindowInsets(composeView)
+        val view = composeView ?: return 0
+        return ViewCompat.getRootWindowInsets(view)
             ?.getInsets(WindowInsetsCompat.Type.statusBars())
             ?.top ?: 0
     }
