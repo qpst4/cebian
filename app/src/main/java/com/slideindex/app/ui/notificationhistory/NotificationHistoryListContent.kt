@@ -212,5 +212,6 @@ internal fun ActiveNotificationEntry.toHistoryItem(): NotificationHistoryItem {
         postedAtMs = postedAtMs,
         intentUri = null,
         notificationKey = key,
+        channelId = channelId,
     )
 }

@@ -1846,6 +1846,10 @@
     <string name="notification_history_clear_all">清空</string>
     <string name="notification_history_delete">删除</string>
     <string name="notification_history_menu_reopen">重新打开</string>
+    <string name="notification_history_channel_id_label">渠道 ID：%1$s</string>
+    <string name="notification_history_menu_copy_channel_id">复制渠道 ID</string>
+    <string name="notification_history_menu_open_channel_settings">打开通知设置</string>
+    <string name="notification_history_channel_id_copied">已复制渠道 ID：%1$s</string>
     <string name="notification_history_delete_confirm_title">删除这条通知？</string>
     <string name="notification_history_delete_confirm_message">将从滤盒中移除这条通知记录，此操作无法撤销。</string>
     <string name="notification_history_clear_all_confirm_title">清空所有通知？</string>

@@ -20,6 +20,7 @@ object NotificationHistoryCodec {
                     .put("pendingIntentBase64", item.pendingIntentBase64)
                     .put("extrasBase64", item.extrasBase64)
                     .put("notificationKey", item.notificationKey)
+                    .put("channelId", item.channelId)
                     .put("hidden", item.hidden)
                     .put("extractedCode", item.extractedCode)
                     .put("extractionAttempted", item.extractionAttempted),
@@ -50,6 +51,7 @@ object NotificationHistoryCodec {
                             pendingIntentBase64 = obj.optString("pendingIntentBase64").takeIf { it.isNotBlank() },
                             extrasBase64 = obj.optString("extrasBase64").takeIf { it.isNotBlank() },
                             notificationKey = obj.optString("notificationKey").takeIf { it.isNotBlank() },
+                            channelId = obj.optString("channelId").takeIf { it.isNotBlank() },
                             hidden = obj.optBoolean("hidden", false),
                             extractedCode = obj.optString("extractedCode").takeIf { it.isNotBlank() },
                             extractionAttempted = obj.optBoolean("extractionAttempted", false),

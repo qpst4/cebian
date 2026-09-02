@@ -130,6 +130,7 @@ class NotificationHistoryRecorder @Inject constructor(
             pendingIntentBase64 = capturedIntent.pendingIntentBase64,
             extrasBase64 = capturedIntent.extrasBase64,
             notificationKey = sbn.key,
+            channelId = NotificationChannelSupport.channelIdFrom(notification),
             hidden = shouldHide,
             extractedCode = extractedCode,
             extractionAttempted = extraction.attempted,

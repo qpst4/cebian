@@ -255,6 +255,7 @@ class NotificationHistoryRepository @Inject constructor(
             postedAtMs = entry.postedAtMs,
             intentUri = null,
             notificationKey = entry.key,
+            channelId = entry.channelId,
         )
         return replay(item)
     }
@@ -397,6 +398,8 @@ class NotificationHistoryRepository @Inject constructor(
             text = text,
             postedAtMs = sbn.postTime.takeIf { it > 0L } ?: System.currentTimeMillis(),
             historyItem = historyItem,
+            channelId = NotificationChannelSupport.channelIdFrom(notification)
+                ?: historyItem?.channelId,
         )
     }
 
@@ -411,6 +414,7 @@ class NotificationHistoryRepository @Inject constructor(
             intentExtrasBase64 = incoming.intentExtrasBase64 ?: existing.intentExtrasBase64,
             pendingIntentBase64 = incoming.pendingIntentBase64 ?: existing.pendingIntentBase64,
             extrasBase64 = incoming.extrasBase64 ?: existing.extrasBase64,
+            channelId = incoming.channelId ?: existing.channelId,
             extractedCode = incoming.extractedCode ?: existing.extractedCode,
             extractionAttempted = incoming.extractionAttempted || existing.extractionAttempted,
             hidden = incoming.hidden || existing.hidden,

@@ -14,6 +14,7 @@ data class NotificationHistoryItem(
     val pendingIntentBase64: String? = null,
     val extrasBase64: String? = null,
     val notificationKey: String?,
+    val channelId: String? = null,
     val hidden: Boolean = false,
     val extractedCode: String? = null,
     val extractionAttempted: Boolean = false,
@@ -26,4 +27,5 @@ data class ActiveNotificationEntry(
     val text: String,
     val postedAtMs: Long,
     val historyItem: NotificationHistoryItem?,
+    val channelId: String? = null,
 )

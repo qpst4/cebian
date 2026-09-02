@@ -1041,6 +1041,10 @@
     <string name="notification_history_clear_all">Clear all</string>
     <string name="notification_history_delete">Delete</string>
     <string name="notification_history_menu_reopen">Reopen</string>
+    <string name="notification_history_channel_id_label">Channel ID: %1$s</string>
+    <string name="notification_history_menu_copy_channel_id">Copy channel ID</string>
+    <string name="notification_history_menu_open_channel_settings">Open notification settings</string>
+    <string name="notification_history_channel_id_copied">Channel ID copied: %1$s</string>
     <string name="notification_history_delete_confirm_title">Delete this notification?</string>
     <string name="notification_history_delete_confirm_message">This removes the record from the filter box. This cannot be undone.</string>
     <string name="notification_history_clear_all_confirm_title">Clear all notifications?</string>

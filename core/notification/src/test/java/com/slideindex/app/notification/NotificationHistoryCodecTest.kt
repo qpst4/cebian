@@ -26,6 +26,7 @@ class NotificationHistoryCodecTest {
                 pendingIntentBase64 = "pending",
                 extrasBase64 = "notification-extras",
                 notificationKey = "0|com.example|1",
+                channelId = "messages",
                 hidden = true,
                 extractedCode = "123456",
                 extractionAttempted = true,

@@ -1,5 +1,9 @@
 package com.slideindex.app.ui.notificationhistory
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -37,6 +41,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.data.AppInfo
+import com.slideindex.app.notification.NotificationChannelSupport
 import com.slideindex.app.notification.NotificationFilterRule
 import com.slideindex.app.notification.NotificationHistoryItem
 import com.slideindex.app.otp.OtpClipboardHelper
@@ -61,10 +66,15 @@ internal fun NotificationHistoryRow(
     val context = LocalContext.current
     var showMenu by remember { mutableStateOf(false) }
     val displayTitle = item.title.ifBlank { appInfo?.label ?: item.packageName }
+    val channelId = remember(item.id, item.channelId, item.notificationKey, item.postedAtMs) {
+        NotificationChannelSupport.resolveChannelId(item)
+    }
     val reopenLabel = stringResource(R.string.notification_history_menu_reopen)
     val hideLabel = stringResource(R.string.notification_filter_hide)
     val restoreLabel = stringResource(R.string.notification_history_menu_restore)
     val deleteLabel = stringResource(R.string.notification_history_delete)
+    val copyChannelIdLabel = stringResource(R.string.notification_history_menu_copy_channel_id)
+    val openChannelSettingsLabel = stringResource(R.string.notification_history_menu_open_channel_settings)
     val menuEntry = DropdownEntry(
         items = buildList {
             add(
@@ -73,6 +83,30 @@ internal fun NotificationHistoryRow(
                     onClick = {
                         showMenu = false
                         onOpen()
+                    },
+                ),
+            )
+            if (!channelId.isNullOrBlank()) {
+                add(
+                    DropdownItem(
+                        text = copyChannelIdLabel,
+                        onClick = {
+                            showMenu = false
+                            copyChannelIdToClipboard(context, channelId)
+                        },
+                    ),
+                )
+            }
+            add(
+                DropdownItem(
+                    text = openChannelSettingsLabel,
+                    onClick = {
+                        showMenu = false
+                        NotificationChannelSupport.openSettings(
+                            context = context,
+                            packageName = item.packageName,
+                            channelId = channelId,
+                        )
                     },
                 ),
             )
@@ -197,6 +231,32 @@ internal fun NotificationHistoryRow(
                             }
                         }
                     }
+                    if (!channelId.isNullOrBlank()) {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = stringResource(R.string.notification_history_channel_id_label, channelId),
+                                style = MiuixTheme.textStyles.footnote1,
+                                color = MiuixTheme.colorScheme.onSurfaceSecondary,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f, fill = false),
+                            )
+                            IconButton(
+                                onClick = { copyChannelIdToClipboard(context, channelId) },
+                                modifier = Modifier.size(32.dp),
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.ContentCopy,
+                                    contentDescription = stringResource(R.string.notification_history_menu_copy_channel_id),
+                                    modifier = Modifier.size(18.dp),
+                                    tint = MiuixTheme.colorScheme.onSurfaceSecondary,
+                                )
+                            }
+                        }
+                    }
                     Text(
                         text = buildString {
                             append(appInfo?.label ?: item.packageName)
@@ -231,4 +291,14 @@ internal fun NotificationHistoryRow(
             dropdownColors = DropdownDefaults.dropdownColors(),
         )
     }
+}
+
+private fun copyChannelIdToClipboard(context: Context, channelId: String) {
+    val clipboard = context.getSystemService(ClipboardManager::class.java) ?: return
+    clipboard.setPrimaryClip(ClipData.newPlainText("channel_id", channelId))
+    Toast.makeText(
+        context,
+        context.getString(R.string.notification_history_channel_id_copied, channelId),
+        Toast.LENGTH_SHORT,
+    ).show()
 }
