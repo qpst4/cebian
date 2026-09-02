@@ -4,6 +4,36 @@ All notable changes to Cebian are documented in this file.
 
 ## [Unreleased]
 
+## [1.9.9.9] - 2026-09-02
+
+### Added
+- **首次引导**：重构为 HyperOS 3 流体背景与 MIUIX 三步向导；全屏沉浸式避免冷启动闪现主页；优化权限请求时机并新增应用列表权限检测
+- **手势**：新增「短滑后悬停」五向槽位与可配置停留时长、向内复合模式；定时触发悬停震动并容忍手指微抖
+- **手势**：新增前台 Activity Inspector 实时 HUD 与历史面板
+- **冰箱**：网格冰箱 UI（Miuix 风格网格页、管理页、Pin 桌面快捷方式）；冻结/解冻对齐雹 PM API 与 shell 路径；手势打开默认进入已冻结列表与底部悬浮窗
+- **特权模式**：Root / Shizuku 二选一特权模式与双执行链路；任务管理、RAL、剪贴板监听等按模式分流
+- **剪贴板**：新增标准 API 剪贴板监听模式（ClipboardManager 公开监听），无需 Root/Shizuku/悬浮窗
+- **通知滤盒**：展示渠道 ID 并支持跳转系统通知设置；默认打开历史标签
+- **晃动手势**：灵敏度扩至 20 档（阈值 2–20 rad/s），旧 1–10 刻度 v3 迁移保持手感
+- **搜索引擎**：内置文字搜索引擎预设库与自选添加界面
+- **主题与图标**：Material You Monet 主题图标与自适应 Launcher mipmaps；关于页新增 Monet 图标主题选项
+
+### Fixed
+- **按应用禁用**：横屏下改用无障碍窗口实时识别前台包名；移除 UsageStats 轮询与横屏仅 relayout 路径，修复游戏与全屏视频中触钮/悬浮球仍显示
+- **晃动手势**：独立灵敏度路径应用 effectiveThreshold 换算；修正刻度与迁移（数值越高越灵敏，默认 3.0）
+- **设置**：悬浮球主开关关闭时子页面仍可进入配置
+- **首次引导**：修复冷启动应用列表弹窗拦截与「去授权」跳转系统/MIUI 权限管理页
+- **诊断**：诊断导出移至后台线程，避免主线程 ANR
+- **ML Kit**：修复翻译语言包下载崩溃；OCR 增加错误防护
+- **冰箱**：修复 overlay 长按菜单崩溃；手势打开时减少首页闪屏
+
+### Changed
+- **架构**：启动器切页动画优化；100% 纯 ViewModel UDF 架构迁移；消除 runBlocking 与阻塞 IO
+- **设置与稳定性**：加固 AppSettings slices；自适应二维网格；onTrimMemory 与本地崩溃上报
+- **UI 规范**：Material3 Snackbar 全面迁移为 MIUIX 原生 SnackbarHost；背部双击设置页重构为统一 MIUIX 卡片规范
+- **UI 细节**：MiuixTabRowWithContour 浅色底槽与滑块对比度优化；搜索引擎编辑器顶栏与预设选择器简化
+- **文档**：README 截图表格统一布局与列宽规范
+
 ## [1.9.9.8] - 2026-08-31
 
 ### Added
