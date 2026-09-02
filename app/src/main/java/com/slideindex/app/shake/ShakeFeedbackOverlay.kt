@@ -90,8 +90,7 @@ object ShakeFeedbackOverlay {
             if (wm != null && view != null) {
                 runCatching { wm.removeView(view) }
             }
-            OverlayCompose.disposeComposeView(view)
-            composeOwner?.destroy()
+            OverlayCompose.teardownOverlayCompose(view, composeOwner)
             composeOwner = null
             composeView = null
             windowManager = null

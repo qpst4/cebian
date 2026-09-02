@@ -98,7 +98,7 @@ object FloatBallOverlay {
     private var lineIdleChromeView: ComposeView? = null
     private var ballIconView: FloatBallIconView? = null
     private var cursorPreviewView: FloatBallCursorPreviewView? = null
-    private var screenOffReceiver: BroadcastReceiver? = null
+    private val screenOffDismissReceiver = ScreenOffDismissReceiver { hideCursor() }
     private var appContext: Context? = null
     private var positionYPreviewRestore: Float? = null
     private var appearancePreviewRestore: FloatBallAppearancePreviewSnapshot? = null
@@ -689,9 +689,6 @@ object FloatBallOverlay {
         lineTouchHost?.let { view -> wm?.let { runCatching { it.removeView(view) } } }
         destroySplitIdleChrome()
         gestureHintWindow.detach()
-        screenOffReceiver?.let { receiver ->
-            appContext?.let { ctx -> runCatching { ctx.unregisterReceiver(receiver) } }
-        }
         displayView?.dispose()
         displayOwner?.destroy()
         FloatBallPickResultPanel.destroy()
@@ -709,7 +706,7 @@ object FloatBallOverlay {
         dragActiveSideOverrideState = null
         onPositionPersisted = null
         onActiveSidePersisted = null
-        screenOffReceiver = null
+        screenOffDismissReceiver.unregister()
         appContext = null
         setDragging(false)
         dragOriginatedFromLine = false
@@ -1202,7 +1199,7 @@ object FloatBallOverlay {
         ballIconView = ballIcon
         cursorPreviewView = cursorPreview
         appContext = hostContext
-        registerScreenOffReceiver(hostContext)
+        screenOffDismissReceiver.register(hostContext)
         gestureHintWindow.attach(hostContext, wm)
 
         applyAllLayouts(settings)
@@ -3077,17 +3074,6 @@ object FloatBallOverlay {
         flushDragChromeLayout()
     }
 
-    private fun registerScreenOffReceiver(context: Context) {
-        if (screenOffReceiver != null) return
-        val receiver = object : BroadcastReceiver() {
-            override fun onReceive(receiverContext: Context?, intent: Intent?) {
-                if (intent?.action == Intent.ACTION_SCREEN_OFF) hideCursor()
-            }
-        }
-        screenOffReceiver = receiver
-        runCatching { context.registerReceiver(receiver, IntentFilter(Intent.ACTION_SCREEN_OFF)) }
-    }
-
     private fun floatBallStyleSignature(settings: AppSettings?): String {
         if (settings == null) return ""
         return buildString {
@@ -3101,4 +3087,3 @@ object FloatBallOverlay {
         }
     }
 }
-

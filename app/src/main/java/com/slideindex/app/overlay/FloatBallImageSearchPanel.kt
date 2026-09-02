@@ -196,7 +196,7 @@ object FloatBallImageSearchPanel {
     private var owner: OverlayComposeOwner? = null
     private var windowManager: WindowManager? = null
     private var layoutParams: WindowManager.LayoutParams? = null
-    private var screenOffReceiver: BroadcastReceiver? = null
+    private val screenOffDismissReceiver = ScreenOffDismissReceiver { dismiss() }
     private var backHandlerRef = WeakReference<OverlayViewBackHandler>(null)
     private var backHandler: OverlayViewBackHandler?
         get() = backHandlerRef.get()
@@ -282,13 +282,9 @@ object FloatBallImageSearchPanel {
         if (view != null && wm != null) {
             runCatching { wm.removeView(view) }
         }
-        screenOffReceiver?.let { receiver ->
-            appContext?.let { ctx -> runCatching { ctx.unregisterReceiver(receiver) } }
-        }
+        screenOffDismissReceiver.unregister()
         val currentOwner = owner
-        if (currentOwner != null) {
-            view?.post { currentOwner.destroy() } ?: currentOwner.destroy()
-        }
+        OverlayCompose.teardownOverlayCompose(view, currentOwner)
         backHandler?.detach()
         backHandler = null
         owner = null
@@ -296,7 +292,6 @@ object FloatBallImageSearchPanel {
         windowManager = null
         bitmapState = null
         retryTokenState = null
-        screenOffReceiver = null
         appContext = null
         fileChooserSuppressed = false
     }
@@ -398,7 +393,7 @@ object FloatBallImageSearchPanel {
         appContext = context.applicationContext as android.app.Application
         panelVisible.value = true
         backHandler = OverlayViewBackHandler(compose, ::dismiss).also { it.attach() }
-        registerScreenOffReceiver(context)
+        screenOffDismissReceiver.register(context)
     }
 
     private fun buildLayoutParams(context: Context): WindowManager.LayoutParams {
@@ -417,16 +412,6 @@ object FloatBallImageSearchPanel {
         }
     }
 
-    private fun registerScreenOffReceiver(context: Context) {
-        if (screenOffReceiver != null) return
-        val receiver = object : BroadcastReceiver() {
-            override fun onReceive(receiverContext: Context?, intent: Intent?) {
-                if (intent?.action == Intent.ACTION_SCREEN_OFF) dismiss()
-            }
-        }
-        screenOffReceiver = receiver
-        runCatching { context.registerReceiver(receiver, IntentFilter(Intent.ACTION_SCREEN_OFF)) }
-    }
 }
 
 @Composable

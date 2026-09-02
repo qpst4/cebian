@@ -60,7 +60,8 @@ object WidgetPopupOverlayWindow {
 
   @Volatile
   private var pendingPagesToSave: List<WidgetPanelPage>? = null
-  private var screenOffReceiver: BroadcastReceiver? = null
+  private val screenOffDismissReceiver = ScreenOffDismissReceiver { dismiss() }
+  private var chromeRaiseRunnable: Runnable? = null
   private var appContext: Context? = null
   private var overlayDeps: OverlayDependencies? = null
   private var settingsCollectJob: Job? = null
@@ -169,7 +170,7 @@ object WidgetPopupOverlayWindow {
 
     OverlayPerformanceMonitorBinding.onOverlayShown(settings, hostContext)
     startSettingsSync(deps)
-    registerScreenOffReceiver(hostContext)
+    screenOffDismissReceiver.register(hostContext)
     OverlayPanelSystemGestureExclusion.attach(root, excludeLeftBackEdge = false)
     if (FloatBallOverlay.isShowing) {
       FloatBallOverlay.notifyPanelAttachedAboveChrome()
@@ -296,6 +297,8 @@ object WidgetPopupOverlayWindow {
 
   private fun scheduleBringChromeAbovePanels() {
     if (!FloatBallOverlay.isShowing) return
+    chromeRaiseRunnable?.let { mainHandler.removeCallbacks(it) }
+    chromeRaiseRunnable = null
     var token = ++chromeRaiseToken
     fun attempt() {
       if (token != chromeRaiseToken) return
@@ -306,7 +309,7 @@ object WidgetPopupOverlayWindow {
       attempt()
       rootLayout?.postOnAnimation { attempt() }
     }
-    mainHandler.postDelayed({ attempt() }, CHROME_RAISE_RETRY_MS)
+    mainHandler.postDelayed(Runnable { attempt() }.also { chromeRaiseRunnable = it }, CHROME_RAISE_RETRY_MS)
   }
 
   /** Clear NOT_FOCUSABLE + OverlayViewBackHandler so system back reaches us. */
@@ -369,16 +372,6 @@ object WidgetPopupOverlayWindow {
     }
   }
 
-  private fun registerScreenOffReceiver(context: Context) {
-    val receiver = object : BroadcastReceiver() {
-      override fun onReceive(receiverContext: Context?, intent: Intent?) {
-        if (intent?.action == Intent.ACTION_SCREEN_OFF) dismiss()
-      }
-    }
-    screenOffReceiver = receiver
-    runCatching { context.registerReceiver(receiver, IntentFilter(Intent.ACTION_SCREEN_OFF)) }
-  }
-
   private fun flushPendingPages() {
     val pending = pendingPagesToSave ?: return
     val deps = overlayDeps ?: return
@@ -394,6 +387,8 @@ object WidgetPopupOverlayWindow {
 
   private fun cleanup() {
     ++chromeRaiseToken
+    chromeRaiseRunnable?.let { mainHandler.removeCallbacks(it) }
+    chromeRaiseRunnable = null
     OverlayPerformanceMonitorBinding.onOverlayHidden(appContext)
     settingsCollectJob?.cancel()
     settingsCollectJob = null
@@ -413,9 +408,7 @@ object WidgetPopupOverlayWindow {
         WidgetPopupHost.stopListening(ctx)
       }
     }
-    screenOffReceiver?.let { receiver ->
-      appContext?.let { ctx -> runCatching { ctx.unregisterReceiver(receiver) } }
-    }
+    screenOffDismissReceiver.unregister()
     rootLayout = null
     cardLayout = null
     layoutParams = null
@@ -431,7 +424,6 @@ object WidgetPopupOverlayWindow {
     currentAnchorRawY = null
     isWidgetAddFlowActive = false
     pendingPagesToSave = null
-    screenOffReceiver = null
     appContext = null
     overlayDeps = null
   }

@@ -63,8 +63,7 @@ object OhoQuickToolsOverlayWindow {
     private var panelSideState: MutableState<PanelSide?>? = null
     private var anchorRawYState: MutableState<Float?>? = null
     private var settingsState: MutableState<AppSettings>? = null
-    private var screenOffReceiver: BroadcastReceiver? = null
-    private var screenOffReceiverHost: Context? = null
+    private val screenOffDismissReceiver = ScreenOffDismissReceiver { dismiss() }
     private var appContext: Context? = null
 
     val isShowing: Boolean get() = composeView != null && visibleState?.value == true
@@ -148,7 +147,7 @@ object OhoQuickToolsOverlayWindow {
         anchorRawYState = anchorY
         settingsState = settingsHolder
         appContext = hostContext
-        registerScreenOffReceiver(hostContext)
+        screenOffDismissReceiver.register(hostContext)
 
         // Attach the window first, then refresh state and animate in so the trigger gesture
         // doesn't block on I/O or first Compose composition.
@@ -227,33 +226,13 @@ object OhoQuickToolsOverlayWindow {
         }
     }
 
-    private fun registerScreenOffReceiver(context: Context) {
-        if (screenOffReceiver != null) return
-        val receiver = object : BroadcastReceiver() {
-            override fun onReceive(receiverContext: Context?, intent: Intent?) {
-                if (intent?.action == Intent.ACTION_SCREEN_OFF) dismiss()
-            }
-        }
-        screenOffReceiver = receiver
-        screenOffReceiverHost = context
-        runCatching {
-            context.registerReceiver(
-                receiver,
-                IntentFilter(Intent.ACTION_SCREEN_OFF),
-                Context.RECEIVER_NOT_EXPORTED,
-            )
-        }
-    }
-
     private fun cleanup() {
         val view = composeView
         val wm = windowManager
         if (view != null && wm != null) {
             runCatching { wm.removeView(view) }
         }
-        screenOffReceiver?.let { receiver ->
-            screenOffReceiverHost?.let { host -> runCatching { host.unregisterReceiver(receiver) } }
-        }
+        screenOffDismissReceiver.unregister()
         panelState?.stopLiveSync()
         val dialogOwner = owner
         owner = null
@@ -266,8 +245,6 @@ object OhoQuickToolsOverlayWindow {
         panelSideState = null
         anchorRawYState = null
         settingsState = null
-        screenOffReceiver = null
-        screenOffReceiverHost = null
         appContext = null
     }
 

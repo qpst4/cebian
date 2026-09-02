@@ -13,6 +13,7 @@ import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.gesture.ActionExecutor
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.overlay.ScreenOffDismissReceiver
 import com.slideindex.app.util.PermissionHelper
 
 @SuppressLint("StaticFieldLeak")
@@ -21,7 +22,7 @@ object HolographicLauncherOverlayWindow {
     private val mainHandler = Handler(Looper.getMainLooper())
 
     private var controller: HolographicLauncherOverlayController? = null
-    private var screenOffReceiver: BroadcastReceiver? = null
+    private val screenOffDismissReceiver = ScreenOffDismissReceiver { dismiss() }
     private var appContext: Context? = null
 
     val isShowing: Boolean get() = controller?.isVisible == true
@@ -74,7 +75,7 @@ object HolographicLauncherOverlayWindow {
             settings = holographicSettings,
             listener = object : HolographicLauncherOverlayView.Listener {
                 override fun onLaunch(app: HolographicLauncherApp) {
-                    unregisterScreenOffReceiver()
+                    screenOffDismissReceiver.unregister()
                     overlayController.removeNow()
                     releaseOverlayState()
                     actionExecutor.execute(
@@ -84,7 +85,7 @@ object HolographicLauncherOverlayWindow {
                 }
 
                 override fun onClosed() {
-                    unregisterScreenOffReceiver()
+                    screenOffDismissReceiver.unregister()
                     overlayController.removeNow()
                     releaseOverlayState()
                 }
@@ -93,7 +94,7 @@ object HolographicLauncherOverlayWindow {
         if (!shown) return false
 
         appContext = hostContext
-        registerScreenOffReceiver(hostContext)
+        screenOffDismissReceiver.register(hostContext)
         return true
     }
 
@@ -103,7 +104,7 @@ object HolographicLauncherOverlayWindow {
             return
         }
         controller?.removeNow()
-        unregisterScreenOffReceiver()
+        screenOffDismissReceiver.unregister()
         releaseOverlayState()
     }
 
@@ -123,28 +124,6 @@ object HolographicLauncherOverlayWindow {
                     icon = appRepository.launchIconDrawable(info.packageName),
                 )
             }
-    }
-
-    private fun registerScreenOffReceiver(context: Context) {
-        unregisterScreenOffReceiver()
-        val receiver = object : BroadcastReceiver() {
-            override fun onReceive(ctx: Context?, intent: Intent?) {
-                if (intent?.action == Intent.ACTION_SCREEN_OFF) {
-                    dismiss()
-                }
-            }
-        }
-        screenOffReceiver = receiver
-        context.registerReceiver(receiver, IntentFilter(Intent.ACTION_SCREEN_OFF))
-    }
-
-    private fun unregisterScreenOffReceiver() {
-        val receiver = screenOffReceiver
-        val ctx = appContext
-        if (receiver != null && ctx != null) {
-            runCatching { ctx.unregisterReceiver(receiver) }
-        }
-        screenOffReceiver = null
     }
 
     private fun releaseOverlayState() {

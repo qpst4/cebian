@@ -39,7 +39,6 @@ import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold
 import com.slideindex.app.ui.LocalMainNavContentStartInset
 import top.yukonga.miuix.kmp.blur.layerBackdrop
-import top.yukonga.miuix.kmp.squircle.squircleSurface
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 import top.yukonga.miuix.kmp.utils.scrollEndHaptic
@@ -316,7 +315,7 @@ fun Modifier.miuixGroupedCardItem(
             top = if (top) outerTopPadding else 0.dp,
             bottom = if (bottom) outerBottomPadding else 0.dp,
         )
-        .squircleSurface(
+        .miuixSquircleSurface(
             color = color,
             topStart = if (top) r else z,
             topEnd = if (top) r else z,

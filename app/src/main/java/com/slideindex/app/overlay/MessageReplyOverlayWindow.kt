@@ -173,8 +173,7 @@ object MessageReplyOverlayWindow {
         if (wm != null && view != null) {
             runCatching { wm.removeView(view) }
         }
-        OverlayCompose.disposeComposeView(composeView)
-        owner?.destroy()
+        OverlayCompose.teardownOverlayCompose(composeView, owner)
         owner = null
         composeView = null
         windowManager = null

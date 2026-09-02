@@ -14,8 +14,6 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.ui.WidgetPickerScreen
 import com.slideindex.app.ui.miuix.theme.ModuleTheme
 import com.slideindex.app.widget.WidgetProviderEntry
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
 
 /**
  * Fallback picker when [com.slideindex.app.overlay.WidgetPickerOverlayWindow] cannot attach
@@ -33,9 +31,7 @@ class WidgetPickerTrampolineActivity : ComponentActivity() {
     )
     super.onCreate(savedInstanceState)
 
-    var appSettings by mutableStateOf(
-      runBlocking { deps.settingsRepository.settings.first() },
-    )
+    var appSettings by mutableStateOf(deps.settingsRepository.readSnapshot())
 
     setContent {
       ModuleTheme(settings = appSettings) {

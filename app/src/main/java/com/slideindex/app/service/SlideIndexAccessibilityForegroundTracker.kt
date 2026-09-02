@@ -30,7 +30,12 @@ internal class SlideIndexAccessibilityForegroundTracker(
         val selfPackage = service.applicationContext.packageName
         val resolvedPackage = AccessibilityForegroundResolver.resolveHostPackage(service)
         val eventPackage = event.packageName?.toString()?.takeIf { it.isNotBlank() }
-        val packageName = resolvedPackage ?: eventPackage
+        val packageName = resolveForegroundPackageForTracking(
+            resolvedPackage = resolvedPackage,
+            eventPackage = eventPackage,
+            selfPackage = selfPackage,
+            hasLaunchIntent = ::hasLaunchIntent,
+        )
         if (packageName.isNullOrBlank() || packageName == selfPackage) {
             overlayHost()?.refreshOverlaySuppression()
             return
@@ -88,16 +93,26 @@ internal class SlideIndexAccessibilityForegroundTracker(
             activePackageName = resolveActivePackageForPreviousApp(
                 resolvedHostPackage = AccessibilityForegroundResolver.resolveHostPackage(service),
                 rootActivePackage = service.rootInActiveWindow?.packageName?.toString(),
+                selfPackage = service.applicationContext.packageName,
                 hasLaunchIntent = ::hasLaunchIntent,
             ),
             excludedPackages = excludedPackages(),
         ) ?: return false
         return when (plan) {
-            is LaunchPreviousAppPlan.LaunchCurrent -> launchPackage(plan.packageName)
+            is LaunchPreviousAppPlan.LaunchCurrent -> {
+                val launched = launchPackage(plan.packageName)
+                if (launched) {
+                    OverlayService.foregroundPackage = plan.packageName
+                    overlayHost()?.updateForegroundPackage(plan.packageName)
+                }
+                launched
+            }
             is LaunchPreviousAppPlan.SwapToPrevious -> {
                 if (launchPackage(plan.targetPackage)) {
                     prevPackageName = plan.newPrevPackageName
                     currPackageName = plan.newCurrPackageName
+                    OverlayService.foregroundPackage = plan.newCurrPackageName
+                    overlayHost()?.updateForegroundPackage(plan.newCurrPackageName)
                     true
                 } else {
                     false
@@ -200,13 +215,40 @@ internal sealed interface LaunchPreviousAppPlan {
     ) : LaunchPreviousAppPlan
 }
 
+internal fun resolveForegroundPackageForTracking(
+    resolvedPackage: String?,
+    eventPackage: String?,
+    selfPackage: String,
+    hasLaunchIntent: (String) -> Boolean,
+): String? {
+    val resolved = resolvedPackage
+        ?.takeIf { it.isNotBlank() && it != selfPackage && hasLaunchIntent(it) }
+    val event = eventPackage
+        ?.takeIf { it.isNotBlank() && it != selfPackage && hasLaunchIntent(it) }
+    // 全屏 overlay（如小组件面板）仍显示时，resolveHostPackage 可能滞后于真实前台；
+    // WINDOW_STATE_CHANGED 的 event 反映最新切换，与 resolved 冲突时以 event 为准。
+    if (event != null && resolved != null && event != resolved) {
+        return event
+    }
+    return resolved ?: eventPackage?.takeUnless { it.isBlank() || it == selfPackage }
+}
+
 internal fun resolveActivePackageForPreviousApp(
     resolvedHostPackage: String?,
     rootActivePackage: String?,
+    selfPackage: String,
     hasLaunchIntent: (String) -> Boolean,
-): String? = when {
-    !resolvedHostPackage.isNullOrBlank() && hasLaunchIntent(resolvedHostPackage) -> resolvedHostPackage
-    else -> rootActivePackage
+): String? {
+    val resolved = resolvedHostPackage
+        ?.takeIf { it.isNotBlank() && it != selfPackage && hasLaunchIntent(it) }
+    val root = rootActivePackage
+        ?.takeIf { it.isNotBlank() && it != selfPackage && hasLaunchIntent(it) }
+    // 全屏 overlay 会使 rootInActiveWindow 指向本应用；此时以 resolveHostPackage 的底层宿主为准。
+    return when {
+        resolved != null && root != null && resolved != root -> resolved
+        resolved != null -> resolved
+        else -> root
+    }
 }
 
 internal fun computeLaunchPreviousAppPlan(

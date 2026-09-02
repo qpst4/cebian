@@ -10,10 +10,14 @@ import android.os.Looper
 import android.util.Log
 import android.view.WindowManager
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -26,6 +30,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -35,14 +40,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.overlay.compositor.OverlaySceneController
 import com.slideindex.app.service.SlideIndexAccessibilityService
 import com.slideindex.app.service.WidgetPickerTrampoline
 import com.slideindex.app.ui.WidgetPickerScreen
+import com.slideindex.app.ui.miuix.LocalMiuixSquircleEnabled
 import com.slideindex.app.ui.theme.OverlayAwareModuleTheme
 import com.slideindex.app.util.PermissionHelper
 import com.slideindex.app.widget.WidgetPopupHost
@@ -58,8 +64,7 @@ object WidgetPickerOverlayWindow {
   private var layoutParams: WindowManager.LayoutParams? = null
   private var backHandler: OverlayViewBackHandler? = null
   private var requestAnimatedDismiss: (() -> Unit)? = null
-    private var screenOffReceiver: BroadcastReceiver? = null
-    private var screenOffReceiverHost: Context? = null
+    private val screenOffDismissReceiver = ScreenOffDismissReceiver { dismissFromBack() }
     private var appContext: Context? = null
   @Volatile
   private var dismissing = false
@@ -75,8 +80,12 @@ object WidgetPickerOverlayWindow {
       error("WidgetPickerOverlayWindow.show must be called on the main thread")
     }
     if (isShowing) {
-      composeView?.requestFocus()
-      return true
+      val existing = composeView
+      if (existing != null && existing.isAttachedToWindow) {
+        existing.requestFocus()
+        return true
+      }
+      forceCleanupStalePicker()
     }
     dismissing = false
     if (!PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) {
@@ -99,76 +108,138 @@ object WidgetPickerOverlayWindow {
       return false
     }
     val dialogOwner = OverlayComposeOwner()
+    var pendingView: ComposeView? = null
 
-    val appDeps = runCatching {
-      dagger.hilt.android.EntryPointAccessors.fromApplication(
-        hostContext.applicationContext,
-        com.slideindex.app.di.AppGraphEntryPoint::class.java,
-      ).dependencies()
-    }.getOrNull()
+    return try {
+      val appDeps = runCatching {
+        dagger.hilt.android.EntryPointAccessors.fromApplication(
+          hostContext.applicationContext,
+          com.slideindex.app.di.AppGraphEntryPoint::class.java,
+        ).dependencies()
+      }.getOrNull()
 
-    val view = OverlayCompose.createComposeView(hostContext, dialogOwner).apply {
-      isFocusable = true
-      isFocusableInTouchMode = true
-      setContent {
-        androidx.compose.runtime.CompositionLocalProvider(
-          *(listOfNotNull(
-            appDeps?.let { com.slideindex.app.ui.compose.LocalAppDependencies provides it },
-          ).toTypedArray())
-        ) {
-          OverlayAwareModuleTheme {
-            var picked by remember { mutableStateOf(false) }
-            WidgetPickerOverlayRoot(
-              onAnimatedDismissReady = { handler -> requestAnimatedDismiss = handler },
-              onDismissRequest = {
-                if (!picked) {
-                  WidgetPickerTrampoline.deliverCancel()
-                }
-                dismiss()
-              },
-              onWidgetSelected = { entry ->
-                picked = true
-                WidgetPickerTrampoline.startBindFlow(hostContext, entry.provider.provider)
-                mainHandler.post {
-                  requestAnimatedDismiss?.invoke() ?: dismiss()
-                }
-              },
-            )
+      val view = OverlayCompose.createComposeView(hostContext, dialogOwner).also {
+        pendingView = it
+      }.apply {
+        isFocusable = true
+        isFocusableInTouchMode = true
+        setContent {
+          androidx.compose.runtime.CompositionLocalProvider(
+            *(listOfNotNull(
+              appDeps?.let { com.slideindex.app.ui.compose.LocalAppDependencies provides it },
+            ).toTypedArray())
+          ) {
+            OverlayAwareModuleTheme {
+              CompositionLocalProvider(LocalMiuixSquircleEnabled provides false) {
+                var picked by remember { mutableStateOf(false) }
+                WidgetPickerOverlayRoot(
+                onAnimatedDismissReady = { handler -> requestAnimatedDismiss = handler },
+                onDismissRequest = {
+                  if (!picked) {
+                    WidgetPickerTrampoline.deliverCancel()
+                  }
+                  dismiss()
+                },
+                onWidgetSelected = { entry ->
+                  picked = true
+                  WidgetPickerTrampoline.startBindFlow(hostContext, entry.provider.provider)
+                  mainHandler.post {
+                    requestAnimatedDismiss?.invoke() ?: dismiss()
+                  }
+                },
+                )
+              }
+            }
           }
         }
       }
-    }
 
-    val params = OverlayPanelLayoutParams.fullScreenOverlay(
-      context = hostContext,
-      focusable = true,
-    )
+      val params = OverlayPanelLayoutParams.fullScreenOverlay(
+        context = hostContext,
+        focusable = true,
+      )
 
-    val added = runCatching { wm.addView(view, params) }
-      .onFailure { Log.e(TAG, "addView failed", it) }
-      .isSuccess
-    if (!added) {
-      dialogOwner.destroy()
-      WidgetPopupOverlayWindow.resumeAfterPickerOverlay()
+      val added = runCatching { wm.addView(view, params) }
+        .onFailure { Log.e(TAG, "addView failed", it) }
+        .isSuccess
+      if (!added) {
+        abortPickerShow(wm, view, dialogOwner)
+        WidgetPickerTrampoline.deliverCancel()
+        return false
+      }
+
+      windowManager = wm
+      composeView = view
+      owner = dialogOwner
+      layoutParams = params
+      appContext = hostContext.applicationContext
+      backHandler = OverlayViewBackHandler(view, ::handlePanelBack).also { it.attach() }
+      OverlayPanelSystemGestureExclusion.attach(view, excludeLeftBackEdge = false)
+      if (FloatBallOverlay.isShowing) {
+        FloatBallOverlay.notifyPanelAttachedAboveChrome()
+      }
+      OverlaySceneController.onContentPanelShown()
+      screenOffDismissReceiver.register(hostContext)
+      view.requestFocus()
+      view.post { view.requestFocus() }
+      true
+    } catch (t: Throwable) {
+      Log.e(TAG, "show failed", t)
+      abortPickerShow(wm, pendingView, dialogOwner)
+      composeView = null
+      windowManager = null
+      owner = null
+      layoutParams = null
+      appContext = null
+      backHandler = null
+      requestAnimatedDismiss = null
       WidgetPickerTrampoline.deliverCancel()
-      return false
+      false
     }
+  }
 
-    windowManager = wm
-    composeView = view
-    owner = dialogOwner
-    layoutParams = params
-    appContext = hostContext.applicationContext
-    backHandler = OverlayViewBackHandler(view, ::handlePanelBack).also { it.attach() }
-    OverlayPanelSystemGestureExclusion.attach(view, excludeLeftBackEdge = false)
-    if (FloatBallOverlay.isShowing) {
-      FloatBallOverlay.notifyPanelAttachedAboveChrome()
+  private fun forceCleanupStalePicker() {
+    val view = composeView
+    val wm = windowManager
+    val dialogOwner = owner
+    composeView = null
+    windowManager = null
+    layoutParams = null
+    owner = null
+    appContext = null
+    backHandler?.detach()
+    backHandler = null
+    requestAnimatedDismiss = null
+    screenOffDismissReceiver.unregister()
+    if (view != null && wm != null) {
+      runCatching { wm.removeView(view) }
+      OverlayCompose.teardownOverlayCompose(view, dialogOwner)
+    } else {
+      OverlayCompose.teardownOverlayCompose(view, dialogOwner)
     }
-    OverlaySceneController.onContentPanelShown()
-    registerScreenOffReceiver(hostContext)
-    view.requestFocus()
-    view.post { view.requestFocus() }
-    return true
+    dismissing = false
+  }
+
+  private fun abortPickerShow(
+    wm: WindowManager?,
+    view: android.view.View?,
+    dialogOwner: OverlayComposeOwner?,
+  ) {
+    screenOffDismissReceiver.unregister()
+    backHandler?.detach()
+    backHandler = null
+    requestAnimatedDismiss = null
+    if (view != null && wm != null) {
+      runCatching { wm.removeView(view) }
+      if (view is ComposeView) {
+        OverlayCompose.teardownOverlayCompose(view, dialogOwner)
+      } else {
+        dialogOwner?.destroy()
+      }
+    } else {
+      OverlayCompose.teardownOverlayCompose(view as? ComposeView, dialogOwner)
+    }
+    WidgetPopupOverlayWindow.resumeAfterPickerOverlay()
   }
 
   fun dismissFromBack() {
@@ -190,7 +261,7 @@ object WidgetPickerOverlayWindow {
     backHandler?.detach()
     backHandler = null
     requestAnimatedDismiss = null
-    unregisterScreenOffReceiver()
+    screenOffDismissReceiver.unregister()
     val view = composeView
     val wm = windowManager
     val dialogOwner = owner
@@ -201,38 +272,16 @@ object WidgetPickerOverlayWindow {
     appContext = null
     if (view != null && wm != null) {
       runCatching { wm.removeView(view) }
+      OverlayCompose.teardownOverlayCompose(view, dialogOwner)
+      dismissing = false
+      OverlaySceneController.onContentPanelHidden()
+      WidgetPopupOverlayWindow.resumeAfterPickerOverlay()
+    } else {
+      OverlayCompose.teardownOverlayCompose(view, dialogOwner)
+      dismissing = false
+      OverlaySceneController.onContentPanelHidden()
+      WidgetPopupOverlayWindow.resumeAfterPickerOverlay()
     }
-    OverlayCompose.teardownOverlayCompose(view, dialogOwner)
-    dismissing = false
-    OverlaySceneController.onContentPanelHidden()
-    WidgetPopupOverlayWindow.resumeAfterPickerOverlay()
-  }
-
-  private fun registerScreenOffReceiver(context: Context) {
-    if (screenOffReceiver != null) return
-    val receiver = object : BroadcastReceiver() {
-      override fun onReceive(receiverContext: Context?, intent: Intent?) {
-        if (intent?.action == Intent.ACTION_SCREEN_OFF) {
-          dismissFromBack()
-        }
-      }
-    }
-    screenOffReceiver = receiver
-    screenOffReceiverHost = context
-    runCatching {
-      context.registerReceiver(
-        receiver,
-        IntentFilter(Intent.ACTION_SCREEN_OFF),
-        Context.RECEIVER_NOT_EXPORTED,
-      )
-    }
-  }
-
-  private fun unregisterScreenOffReceiver() {
-    val receiver = screenOffReceiver ?: return
-    screenOffReceiverHost?.let { host -> runCatching { host.unregisterReceiver(receiver) } }
-    screenOffReceiver = null
-    screenOffReceiverHost = null
   }
 }
 
@@ -260,17 +309,10 @@ fun WidgetPickerOverlayRoot(
     onDispose { onAnimatedDismissReady(null) }
   }
 
-  val progress by animateFloatAsState(
-    targetValue = if (visible) 1f else 0f,
-    animationSpec = if (visible) {
-      tween(PICKER_ANIM_IN_MS, easing = LinearOutSlowInEasing)
-    } else {
-      tween(PICKER_ANIM_OUT_MS, easing = FastOutLinearInEasing)
-    },
-    label = "widgetPickerProgress",
-  )
-
-  val dismiss = dismissAnimated
+  val scrimEnterSpec = tween<Float>(PICKER_ANIM_IN_MS, easing = LinearOutSlowInEasing)
+  val scrimExitSpec = tween<Float>(PICKER_ANIM_OUT_MS, easing = FastOutLinearInEasing)
+  val panelEnterSpec = tween<IntOffset>(PICKER_ANIM_IN_MS, easing = LinearOutSlowInEasing)
+  val panelExitSpec = tween<IntOffset>(PICKER_ANIM_OUT_MS, easing = FastOutLinearInEasing)
 
   LaunchedEffect(visible, hasOpened) {
     if (!visible && hasOpened) {
@@ -279,39 +321,52 @@ fun WidgetPickerOverlayRoot(
     }
   }
 
+  val dismiss = dismissAnimated
+
   Box(modifier = Modifier.fillMaxSize()) {
-    Box(
-      modifier = Modifier
-        .fillMaxSize()
-        .background(Color.Black.copy(alpha = 0.5f * progress))
-        .clickable(
-          interactionSource = remember { MutableInteractionSource() },
-          indication = null,
-          onClick = dismiss,
-        ),
-    )
+    AnimatedVisibility(
+      visible = visible,
+      enter = fadeIn(scrimEnterSpec),
+      exit = fadeOut(scrimExitSpec),
+      modifier = Modifier.fillMaxSize(),
+    ) {
+      Box(
+        modifier = Modifier
+          .fillMaxSize()
+          .background(Color.Black.copy(alpha = 0.5f))
+          .clickable(
+            interactionSource = remember { MutableInteractionSource() },
+            indication = null,
+            onClick = dismiss,
+          ),
+      )
+    }
 
     BoxWithConstraints(
       modifier = Modifier.fillMaxSize(),
       contentAlignment = Alignment.BottomCenter,
     ) {
-      val density = LocalDensity.current
       val sheetHeight = maxHeight * 0.85f
-      val offsetY = with(density) { sheetHeight.toPx() * (1f - progress) }
+      val slideOffset = with(LocalDensity.current) { sheetHeight.roundToPx() }
 
-      Surface(
-        modifier = Modifier
-          .fillMaxWidth()
-          .height(sheetHeight)
-          .graphicsLayer { translationY = offsetY }
-          .clickable(
-            interactionSource = remember { MutableInteractionSource() },
-            indication = null,
-            onClick = {},
-          ),
-        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-        color = Color(0xFFF7F7F7),
+      AnimatedVisibility(
+        visible = visible,
+        enter = fadeIn(scrimEnterSpec) + slideInVertically(panelEnterSpec) { slideOffset },
+        exit = fadeOut(scrimExitSpec) + slideOutVertically(panelExitSpec) { slideOffset },
+        modifier = Modifier.fillMaxWidth(),
       ) {
+        Surface(
+          modifier = Modifier
+            .fillMaxWidth()
+            .height(sheetHeight)
+            .clickable(
+              interactionSource = remember { MutableInteractionSource() },
+              indication = null,
+              onClick = {},
+            ),
+          shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+          color = Color(0xFFF7F7F7),
+        ) {
         val context = androidx.compose.ui.platform.LocalContext.current
         val (initialAppPkgs, initialShortcutKeys) = remember {
           WidgetPickerTrampoline.getCurrentPageConfiguredItems()
@@ -361,6 +416,7 @@ fun WidgetPickerOverlayRoot(
           enableBackHandler = false,
           overlayMode = true,
         )
+        }
       }
     }
   }

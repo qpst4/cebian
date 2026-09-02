@@ -1,9 +1,7 @@
 package com.slideindex.app.overlay.searchpanel
 
-import android.content.BroadcastReceiver
+import com.slideindex.app.overlay.ScreenOffDismissReceiver
 import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
 import android.graphics.PixelFormat
 import android.os.Handler
 import android.os.Looper
@@ -14,6 +12,7 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.FrameLayout
 import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.ui.platform.ComposeView
 import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.slideindex.app.overlay.FloatBallOverlay
@@ -39,11 +38,13 @@ object SearchPanelOverlayWindow {
             composeViewRef = java.lang.ref.WeakReference(value)
         }
     private var owner: OverlayComposeOwner? = null
-    private var screenOffReceiver: BroadcastReceiver? = null
+    private val screenOffDismissReceiver = ScreenOffDismissReceiver { dismiss() }
     private var appContext: android.app.Application? = null
     private var layoutParams: WindowManager.LayoutParams? = null
     private var panelVisibilityState: MutableTransitionState<Boolean>? = null
     private var bringAboveToken = 0
+    private var bringAboveRunnableA: Runnable? = null
+    private var bringAboveRunnableB: Runnable? = null
     private var dismissToken = 0
 
     /** Warm-up keeps [composeView] alive while hidden; only treat visible window as showing. */
@@ -53,9 +54,17 @@ object SearchPanelOverlayWindow {
     val isNativeBlurActive: Boolean get() = nativeBlurActive
     private var nativeBlurActive = false
 
+    private fun cancelBringAboveRetries() {
+        bringAboveRunnableA?.let { mainHandler.removeCallbacks(it) }
+        bringAboveRunnableB?.let { mainHandler.removeCallbacks(it) }
+        bringAboveRunnableA = null
+        bringAboveRunnableB = null
+    }
+
     /** Float ball may finish attaching after the panel window; retry z-order fixes. */
     private fun scheduleBringFloatBallAbovePanels() {
         val token = ++bringAboveToken
+        cancelBringAboveRetries()
         fun attempt() {
             if (token != bringAboveToken) return
             FloatBallOverlay.scheduleChromeAbovePanels()
@@ -65,8 +74,12 @@ object SearchPanelOverlayWindow {
             attempt()
             composeView?.postOnAnimation { attempt() }
         }
-        mainHandler.postDelayed({ attempt() }, 200)
-        mainHandler.postDelayed({ attempt() }, 800)
+        val delayedA = Runnable { attempt() }
+        val delayedB = Runnable { attempt() }
+        bringAboveRunnableA = delayedA
+        bringAboveRunnableB = delayedB
+        mainHandler.postDelayed(delayedA, 200)
+        mainHandler.postDelayed(delayedB, 800)
     }
 
     fun warmUp(context: Context) {
@@ -126,6 +139,7 @@ object SearchPanelOverlayWindow {
             return
         }
         ++bringAboveToken
+        cancelBringAboveRetries()
         val token = ++dismissToken
         SearchPanelSessionState.persistBeforeDismiss?.invoke()
         panelVisibilityState?.targetState = false
@@ -302,34 +316,34 @@ object SearchPanelOverlayWindow {
         }
         composeView?.let { OverlayPanelSystemGestureExclusion.attach(it) }
 
-        screenOffReceiver = object : BroadcastReceiver() {
-            override fun onReceive(context: Context?, intent: Intent?) {
-                if (intent?.action == Intent.ACTION_SCREEN_OFF) {
-                    dismiss()
-                }
-            }
-        }
-        appContext?.registerReceiver(screenOffReceiver, IntentFilter(Intent.ACTION_SCREEN_OFF))
+        screenOffDismissReceiver.register(hostContext)
     }
 
     private fun destroyWindow() {
         if (composeView == null) return
+        cancelBringAboveRetries()
+        val frame = composeView
+        val dialogOwner = owner
+        val childCompose = (frame as? FrameLayout)?.let { parent ->
+            (0 until parent.childCount)
+                .map { parent.getChildAt(it) }
+                .filterIsInstance<ComposeView>()
+                .firstOrNull()
+        }
         try {
-            owner?.destroy()
-            windowManager?.removeView(composeView)
+            frame?.let { windowManager?.removeView(it) }
         } catch (e: Exception) {
             Log.e(TAG, "Error removing window", e)
         }
+        OverlayCompose.teardownOverlayCompose(childCompose, dialogOwner)
+        frame?.let { OverlayCompose.clearViewTreeOwners(it) }
         composeView = null
         owner = null
         windowManager = null
         layoutParams = null
         nativeBlurActive = false
         panelVisibilityState = null
-        screenOffReceiver?.let {
-            appContext?.unregisterReceiver(it)
-            screenOffReceiver = null
-        }
+        screenOffDismissReceiver.unregister()
         appContext = null
     }
 }

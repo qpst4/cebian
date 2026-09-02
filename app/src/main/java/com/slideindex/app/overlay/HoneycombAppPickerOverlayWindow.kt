@@ -28,7 +28,7 @@ object HoneycombAppPickerOverlayWindow {
 
     private var controller: HoneycombOverlayController? = null
     private var appContext: Context? = null
-    private var screenOffReceiver: BroadcastReceiver? = null
+    private val screenOffDismissReceiver = ScreenOffDismissReceiver { dismiss() }
     private var externalTracking = false
     /** Browse mode stays open after the edge gesture session ends. */
     private var persistAfterSessionEnd = false
@@ -122,13 +122,13 @@ object HoneycombAppPickerOverlayWindow {
                         settings = settings,
                         selectionPressDurationMs = selectionPressDurationMs,
                     )
-                    unregisterScreenOffReceiver()
+                    screenOffDismissReceiver.unregister()
                     releaseOverlayState()
                     launchCallback(target.item, longPressArmed)
                 }
 
                 override fun onClosed() {
-                    unregisterScreenOffReceiver()
+                    screenOffDismissReceiver.unregister()
                     releaseOverlayState()
                 }
             },
@@ -136,7 +136,7 @@ object HoneycombAppPickerOverlayWindow {
         if (!shown) return false
 
         appContext = hostContext
-        registerScreenOffReceiver(hostContext)
+        screenOffDismissReceiver.register(hostContext)
         if (externalTracking) {
             overlayController.externalMove(anchorRawX, anchorRawY)
         }
@@ -202,7 +202,7 @@ object HoneycombAppPickerOverlayWindow {
             return
         }
         controller?.removeNow()
-        unregisterScreenOffReceiver()
+        screenOffDismissReceiver.unregister()
         releaseOverlayState()
     }
 
@@ -218,22 +218,4 @@ object HoneycombAppPickerOverlayWindow {
         settings: AppSettings,
         selectionPressDurationMs: Long,
     ): Boolean = settings.resolveHoneycombLongPressArmed(selectionPressDurationMs.coerceAtLeast(0L))
-
-    private fun registerScreenOffReceiver(context: Context) {
-        unregisterScreenOffReceiver()
-        val receiver = object : BroadcastReceiver() {
-            override fun onReceive(receiverContext: Context?, intent: Intent?) {
-                if (intent?.action == Intent.ACTION_SCREEN_OFF) dismiss()
-            }
-        }
-        screenOffReceiver = receiver
-        runCatching { context.registerReceiver(receiver, IntentFilter(Intent.ACTION_SCREEN_OFF)) }
-    }
-
-    private fun unregisterScreenOffReceiver() {
-        screenOffReceiver?.let { receiver ->
-            appContext?.let { ctx -> runCatching { ctx.unregisterReceiver(receiver) } }
-        }
-        screenOffReceiver = null
-    }
 }

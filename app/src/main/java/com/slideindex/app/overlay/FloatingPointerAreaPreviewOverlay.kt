@@ -95,8 +95,7 @@ object FloatingPointerAreaPreviewOverlay {
         }
 
         if (token != showToken) {
-            OverlayCompose.disposeComposeView(composeView)
-            owner.destroy()
+            OverlayCompose.teardownOverlayCompose(composeView, owner)
             return
         }
 
@@ -105,8 +104,7 @@ object FloatingPointerAreaPreviewOverlay {
         val displayAdded = runCatching { wm.addView(composeView, displayParams) }.isSuccess
         if (!displayAdded || token != showToken) {
             runCatching { wm.removeView(composeView) }
-            OverlayCompose.disposeComposeView(composeView)
-            owner.destroy()
+            OverlayCompose.teardownOverlayCompose(composeView, owner)
             return
         }
 
@@ -141,8 +139,7 @@ object FloatingPointerAreaPreviewOverlay {
         settingsState = null
         triggerPositionState = null
         view?.let { runCatching { wm?.removeView(it) } }
-        OverlayCompose.disposeComposeView(view)
-        owner?.destroy()
+        OverlayCompose.teardownOverlayCompose(view, owner)
     }
 
     fun updateSettings(settings: AppSettings) {

@@ -201,8 +201,8 @@ internal class FloatBallGestureHintWindow {
         hide()
         val wm = windowManager
         hintView?.let { view -> wm?.let { runCatching { it.removeView(view) } } }
-        OverlayCompose.disposeComposeView(hintView)
-        owner?.destroy()
+        val dialogOwner = owner
+        OverlayCompose.teardownOverlayCompose(hintView, dialogOwner)
         windowManager = null
         hintView = null
         hintParams = null

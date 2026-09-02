@@ -125,6 +125,7 @@ class SlideIndexAccessibilityForegroundTrackerTest {
         val active = resolveActivePackageForPreviousApp(
             resolvedHostPackage = "com.chrome",
             rootActivePackage = "com.android.systemui",
+            selfPackage = "com.slideindex.app",
             hasLaunchIntent = { it == "com.chrome" },
         )
 
@@ -136,10 +137,106 @@ class SlideIndexAccessibilityForegroundTrackerTest {
         val active = resolveActivePackageForPreviousApp(
             resolvedHostPackage = "com.android.systemui",
             rootActivePackage = "com.wechat",
+            selfPackage = "com.slideindex.app",
             hasLaunchIntent = { it != "com.android.systemui" },
         )
 
         assertEquals("com.wechat", active)
+    }
+
+    @Test
+    fun resolveActivePackageForPreviousApp_ignoresSelfRootWhenResolvedHostAvailable() {
+        val active = resolveActivePackageForPreviousApp(
+            resolvedHostPackage = "com.wechat",
+            rootActivePackage = "com.slideindex.app",
+            selfPackage = "com.slideindex.app",
+            hasLaunchIntent = { true },
+        )
+
+        assertEquals("com.wechat", active)
+    }
+
+    @Test
+    fun resolveActivePackageForPreviousApp_prefersResolvedWhenRootDisagrees() {
+        val active = resolveActivePackageForPreviousApp(
+            resolvedHostPackage = "com.old.app",
+            rootActivePackage = "com.new.app",
+            selfPackage = "com.slideindex.app",
+            hasLaunchIntent = { true },
+        )
+
+        assertEquals("com.old.app", active)
+    }
+
+    @Test
+    fun resolveForegroundPackageForTracking_prefersEventWhenResolvedStale() {
+        val pkg = resolveForegroundPackageForTracking(
+            resolvedPackage = "com.old.app",
+            eventPackage = "com.new.app",
+            selfPackage = "com.slideindex.app",
+            hasLaunchIntent = { true },
+        )
+
+        assertEquals("com.new.app", pkg)
+    }
+
+    @Test
+    fun resolveForegroundPackageForTracking_usesResolvedWhenEventMatches() {
+        val pkg = resolveForegroundPackageForTracking(
+            resolvedPackage = "com.example.app",
+            eventPackage = "com.example.app",
+            selfPackage = "com.slideindex.app",
+            hasLaunchIntent = { true },
+        )
+
+        assertEquals("com.example.app", pkg)
+    }
+
+    @Test
+    fun widgetPanelPreviousAppSwap_notCorruptedByStaleResolved() {
+        var prev: String? = "com.app.b"
+        var curr: String? = "com.app.a"
+
+        val firstPlan = computeLaunchPreviousAppPlan(
+            prevPackageName = prev,
+            currPackageName = curr,
+            activePackageName = "com.app.a",
+        )
+        assertTrue(firstPlan is LaunchPreviousAppPlan.SwapToPrevious)
+        val swap = firstPlan as LaunchPreviousAppPlan.SwapToPrevious
+        assertEquals("com.app.b", swap.targetPackage)
+        prev = swap.newPrevPackageName
+        curr = swap.newCurrPackageName
+        assertEquals("com.app.a", prev)
+        assertEquals("com.app.b", curr)
+
+        val trackedPkg = resolveForegroundPackageForTracking(
+            resolvedPackage = "com.app.a",
+            eventPackage = "com.app.b",
+            selfPackage = "com.slideindex.app",
+            hasLaunchIntent = { true },
+        )
+        val update = computeWindowStatePackageUpdate(
+            packageName = trackedPkg!!,
+            selfPackageName = "com.slideindex.app",
+            prevPackageName = prev,
+            currPackageName = curr,
+            hasLaunchIntent = true,
+        )
+        assertEquals(WindowStatePackageUpdate.SamePackage, update)
+
+        val secondPlan = computeLaunchPreviousAppPlan(
+            prevPackageName = prev,
+            currPackageName = curr,
+            activePackageName = resolveActivePackageForPreviousApp(
+                resolvedHostPackage = "com.app.b",
+                rootActivePackage = "com.slideindex.app",
+                selfPackage = "com.slideindex.app",
+                hasLaunchIntent = { true },
+            ),
+        )
+        assertTrue(secondPlan is LaunchPreviousAppPlan.SwapToPrevious)
+        assertEquals("com.app.a", (secondPlan as LaunchPreviousAppPlan.SwapToPrevious).targetPackage)
     }
 
     @Test

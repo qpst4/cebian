@@ -108,6 +108,6 @@ internal class FloatBallDisplayHost(
     }
 
     fun dispose() {
-        OverlayCompose.disposeComposeView(lineChromeComposeView)
+        OverlayCompose.teardownOverlayCompose(lineChromeComposeView, lineChromeOwner)
     }
 }

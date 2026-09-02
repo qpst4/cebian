@@ -49,7 +49,7 @@ object FloatingPointerOverlayWindow {
     internal var session: FloatingPointerSession? = null
     internal var displayLayoutParams: WindowManager.LayoutParams? = null
     internal var touchLayoutParams: WindowManager.LayoutParams? = null
-    internal var screenOffReceiver: BroadcastReceiver? = null
+    internal val screenOffDismissReceiver = ScreenOffDismissReceiver { windowLifecycle.dismiss() }
     internal var appContext: Context? = null
     internal var settingsCollectJob: Job? = null
     internal var idleHideRunnable: Runnable? = null

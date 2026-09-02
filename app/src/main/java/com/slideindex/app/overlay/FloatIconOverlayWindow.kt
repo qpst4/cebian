@@ -65,7 +65,7 @@ object FloatIconOverlayWindow {
     private var windowManager: WindowManager? = null
     private var composeView: ComposeView? = null
     private var owner: OverlayComposeOwner? = null
-    private var screenOffReceiver: BroadcastReceiver? = null
+    private val screenOffDismissReceiver = ScreenOffDismissReceiver { dismiss() }
     private var appContext: Context? = null
     private var nextEntryId = 0L
 
@@ -198,7 +198,7 @@ object FloatIconOverlayWindow {
         composeView = view
         owner = dialogOwner
         appContext = hostContext
-        registerScreenOffReceiver(hostContext)
+        screenOffDismissReceiver.register(hostContext)
     }
 
     private fun scheduleAutoDismiss(entry: FloatIconEntry) {
@@ -288,28 +288,16 @@ object FloatIconOverlayWindow {
         }
     }
 
-    private fun registerScreenOffReceiver(context: Context) {
-        val receiver = object : BroadcastReceiver() {
-            override fun onReceive(receiverContext: Context?, intent: Intent?) {
-                if (intent?.action == Intent.ACTION_SCREEN_OFF) dismiss()
-            }
-        }
-        screenOffReceiver = receiver
-        runCatching { context.registerReceiver(receiver, IntentFilter(Intent.ACTION_SCREEN_OFF)) }
-    }
-
     private fun cleanupWindow() {
         val wm = windowManager
-        composeView?.let { view -> wm?.let { runCatching { it.removeView(view) } } }
-        screenOffReceiver?.let { receiver ->
-            appContext?.let { ctx -> runCatching { ctx.unregisterReceiver(receiver) } }
-        }
-        OverlayCompose.disposeComposeView(composeView)
-        owner?.destroy()
+        val view = composeView
+        val dialogOwner = owner
+        view?.let { v -> wm?.let { runCatching { it.removeView(v) } } }
+        screenOffDismissReceiver.unregister()
+        OverlayCompose.teardownOverlayCompose(view, dialogOwner)
         owner = null
         composeView = null
         windowManager = null
-        screenOffReceiver = null
         appContext = null
     }
 }

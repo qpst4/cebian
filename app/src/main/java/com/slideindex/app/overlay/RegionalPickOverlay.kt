@@ -55,7 +55,7 @@ object RegionalPickOverlay {
     private var displayHost: FrameLayout? = null
     private var cursorPreviewView: FloatBallCursorPreviewView? = null
     private var ballDragVisualView: FloatBallDragVisualView? = null
-    private var screenOffReceiver: BroadcastReceiver? = null
+    private val screenOffDismissReceiver = ScreenOffDismissReceiver { dismiss() }
     private var appContext: Context? = null
     private var settings: AppSettings? = null
 
@@ -196,6 +196,7 @@ object RegionalPickOverlay {
         ballVisualDockSide = null
         displayHost?.visibility = View.GONE
         mainHandler.post { FloatBallOverlay.restoreChromeAfterRegionalPick() }
+        screenOffDismissReceiver.unregister()
         FloatBallPickResultPanel.releaseWarmUpShell()
     }
 
@@ -275,7 +276,7 @@ object RegionalPickOverlay {
         cursorPreviewView = preview
         ballDragVisualView = ballVisual
         appContext = hostContext
-        registerScreenOffReceiver(hostContext)
+        screenOffDismissReceiver.register(hostContext)
         return true
     }
 
@@ -765,16 +766,5 @@ object RegionalPickOverlay {
         val right = max(start.x, end.x).roundToInt()
         val bottom = max(start.y, end.y).roundToInt()
         return Rect(left, top, right, bottom)
-    }
-
-    private fun registerScreenOffReceiver(context: Context) {
-        if (screenOffReceiver != null) return
-        val receiver = object : BroadcastReceiver() {
-            override fun onReceive(receiverContext: Context?, intent: Intent?) {
-                if (intent?.action == Intent.ACTION_SCREEN_OFF) dismiss()
-            }
-        }
-        screenOffReceiver = receiver
-        runCatching { context.registerReceiver(receiver, IntentFilter(Intent.ACTION_SCREEN_OFF)) }
     }
 }

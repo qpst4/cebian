@@ -32,7 +32,7 @@ class OverlayFullScreenPanelHost(
 
     private var windowManager: WindowManager? = null
     private var layoutParams: WindowManager.LayoutParams? = null
-    private var screenOffReceiver: BroadcastReceiver? = null
+    private val screenOffDismissReceiver = ScreenOffDismissReceiver { onScreenOff() }
     private var appContext: Context? = null
 
     val isAttached: Boolean get() = composeView != null
@@ -91,7 +91,7 @@ class OverlayFullScreenPanelHost(
         ownerRef = dialogOwner
         layoutParams = params
         appContext = context
-        registerScreenOffReceiver(context)
+        screenOffDismissReceiver.register(context)
         return dialogOwner
     }
 
@@ -218,7 +218,7 @@ class OverlayFullScreenPanelHost(
             if (currentOwner == null || view == null || wm == null) return@runOnMain
 
             runCatching { wm.removeView(view) }
-            unregisterScreenOffReceiver()
+            screenOffDismissReceiver.unregister()
             view.post { currentOwner.destroy() }
 
             composeViewRef = null
@@ -227,27 +227,5 @@ class OverlayFullScreenPanelHost(
             windowManager = null
             appContext = null
         }
-    }
-
-    private fun registerScreenOffReceiver(context: Context) {
-        if (screenOffReceiver != null) return
-        val receiver = object : BroadcastReceiver() {
-            override fun onReceive(ctx: Context?, intent: Intent?) {
-                if (intent?.action == Intent.ACTION_SCREEN_OFF) {
-                    onScreenOff()
-                }
-            }
-        }
-        screenOffReceiver = receiver
-        runCatching {
-            context.registerReceiver(receiver, IntentFilter(Intent.ACTION_SCREEN_OFF))
-        }
-    }
-
-    private fun unregisterScreenOffReceiver() {
-        val receiver = screenOffReceiver
-        if (receiver == null) return
-        appContext?.let { ctx -> runCatching { ctx.unregisterReceiver(receiver) } }
-        screenOffReceiver = null
     }
 }

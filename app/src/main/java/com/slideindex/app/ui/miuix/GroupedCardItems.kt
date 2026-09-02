@@ -19,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import top.yukonga.miuix.kmp.squircle.squircleSurface
 import top.yukonga.miuix.kmp.theme.LocalContentColor
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
@@ -44,17 +43,13 @@ fun CardSegment(
     selectableGroup: Boolean = false,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    val background = if (topCornerRadius == 0.dp && bottomCornerRadius == 0.dp) {
-        Modifier.background(color)
-    } else {
-        Modifier.squircleSurface(
-            color = color,
-            topStart = topCornerRadius,
-            topEnd = topCornerRadius,
-            bottomEnd = bottomCornerRadius,
-            bottomStart = bottomCornerRadius,
-        )
-    }
+    val background = Modifier.miuixSquircleSurface(
+        color = color,
+        topStart = topCornerRadius,
+        topEnd = topCornerRadius,
+        bottomEnd = bottomCornerRadius,
+        bottomStart = bottomCornerRadius,
+    )
     CompositionLocalProvider(LocalContentColor provides contentColor) {
         Column(
             modifier = modifier

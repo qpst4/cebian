@@ -13,9 +13,9 @@ import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.gesture.ActionExecutor
 import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.launcher.QuickLauncherItemType
+import com.slideindex.app.overlay.ScreenOffDismissReceiver
 import com.slideindex.app.overlay.FloatBallLayout
 import com.slideindex.app.overlay.FloatBallOverlay
-import com.slideindex.app.overlay.OverlayCompose
 import com.slideindex.app.overlay.OverlayComposeDialogHost
 import com.slideindex.app.overlay.OverlayDisplayMetrics
 import com.slideindex.app.overlay.HoneycombIconLoader
@@ -52,7 +52,7 @@ object AppSwitcherOverlayWindow {
     private var slotConfigDialogHost: OverlayComposeDialogHost? = null
     private var lastSettings: AppSettings = AppSettings()
     private var appContext: Context? = null
-    private var screenOffReceiver: BroadcastReceiver? = null
+    private val screenOffDismissReceiver = ScreenOffDismissReceiver { dismiss() }
     private var externalTracking = false
     private var persistAfterPin = false
     private var activeSide: FvAppSwitcherSide? = null
@@ -160,7 +160,6 @@ object AppSwitcherOverlayWindow {
                 Log.w(TAG, "show: accessibility service not connected")
                 return false
             }
-        val overlayContext = OverlayCompose.themedContext(hostContext)
         val deps = OverlayDependencyAccess.overlayDependencies(hostContext)
         val appRepository = deps?.appRepository
         val apps = appRepository?.getCachedApps().orEmpty()
@@ -202,7 +201,7 @@ object AppSwitcherOverlayWindow {
             FvAppSwitcherSide.TOP -> edgeInsetPx
         }
 
-        val overlayController = controller ?: AppSwitcherOverlayController(overlayContext, mainHandler).also {
+        val overlayController = controller ?: AppSwitcherOverlayController(hostContext, mainHandler).also {
             controller = it
         }
         this.externalTracking = externalTracking
@@ -239,18 +238,16 @@ object AppSwitcherOverlayWindow {
             screenWidth = screenWidth,
             listener = object : AppSwitcherOverlayController.Listener {
                 override fun onLaunch(target: com.slideindex.app.overlay.HoneycombRuntimeTarget, longPressArmed: Boolean) {
-                    unregisterScreenOffReceiver()
+                    screenOffDismissReceiver.unregister()
                     releaseOverlayState()
                     launchCallback(target.item, longPressArmed)
                 }
 
                 override fun onClosed() {
-                    if (overlayController.isVisible() &&
-                        (persistAfterPin || overlayController.isPinned())
-                    ) {
+                    if (persistAfterPin || overlayController.isPinned()) {
                         return
                     }
-                    unregisterScreenOffReceiver()
+                    screenOffDismissReceiver.unregister()
                     releaseOverlayState()
                 }
 
@@ -369,12 +366,14 @@ object AppSwitcherOverlayWindow {
             },
         )
         if (!shown) {
+            Log.w(TAG, "show: overlayController.show returned false")
             FloatBallOverlay.restoreChromeAfterAppSwitcher()
             return false
         }
 
-        appContext = overlayContext
-        registerScreenOffReceiver(overlayContext)
+        controller = overlayController
+        appContext = hostContext.applicationContext
+        screenOffDismissReceiver.register(hostContext)
         if (externalTracking) {
             overlayController.externalMove(anchorRawX, anchorRawY)
         } else {
@@ -475,9 +474,7 @@ object AppSwitcherOverlayWindow {
             mainHandler.post { onGestureSessionEnd() }
             return
         }
-        if (controller?.isVisible() == true &&
-            (persistAfterPin || controller?.isPinned() == true)
-        ) {
+        if (persistAfterPin || controller?.isPinned() == true) {
             return
         }
         dismiss()
@@ -491,7 +488,7 @@ object AppSwitcherOverlayWindow {
         slotConfigDialogHost?.dismiss()
         slotConfigDialogHost = null
         controller?.removeNow()
-        unregisterScreenOffReceiver()
+        screenOffDismissReceiver.unregister()
         releaseOverlayState()
     }
 
@@ -639,24 +636,6 @@ object AppSwitcherOverlayWindow {
         persistAfterPin = false
         activeSide = null
         editModeActive = false
-    }
-
-    private fun registerScreenOffReceiver(context: Context) {
-        unregisterScreenOffReceiver()
-        val receiver = object : BroadcastReceiver() {
-            override fun onReceive(receiverContext: Context?, intent: Intent?) {
-                if (intent?.action == Intent.ACTION_SCREEN_OFF) dismiss()
-            }
-        }
-        screenOffReceiver = receiver
-        runCatching { context.registerReceiver(receiver, IntentFilter(Intent.ACTION_SCREEN_OFF)) }
-    }
-
-    private fun unregisterScreenOffReceiver() {
-        screenOffReceiver?.let { receiver ->
-            appContext?.let { ctx -> runCatching { ctx.unregisterReceiver(receiver) } }
-        }
-        screenOffReceiver = null
     }
 
     private fun resolveFvSide(

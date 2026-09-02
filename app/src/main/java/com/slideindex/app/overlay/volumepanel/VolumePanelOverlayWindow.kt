@@ -44,6 +44,7 @@ import com.slideindex.app.di.AppGraphEntryPoint
 import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.ui.compose.LocalAppDependencies
 import dagger.hilt.android.EntryPointAccessors
+import com.slideindex.app.overlay.ScreenOffDismissReceiver
 import com.slideindex.app.overlay.FloatBallOverlay
 import com.slideindex.app.overlay.OverlayCompose
 import com.slideindex.app.overlay.OverlayComposeOwner
@@ -66,8 +67,7 @@ object VolumePanelOverlayWindow {
     private var composeView: ComposeView? = null
     private var owner: OverlayComposeOwner? = null
     private var panelVisibilityState: MutableTransitionState<Boolean>? = null
-    private var screenOffReceiver: BroadcastReceiver? = null
-    private var screenOffReceiverHost: Context? = null
+    private val screenOffDismissReceiver = ScreenOffDismissReceiver { dismiss() }
     private var appContext: Context? = null
     private var backHandler: OverlayViewBackHandler? = null
     private var bringAboveToken = 0
@@ -102,7 +102,7 @@ object VolumePanelOverlayWindow {
         ensureWindow(hostContext)
         ++dismissToken
         panelVisibilityState?.targetState = true
-        registerScreenOffReceiver(hostContext)
+        screenOffDismissReceiver.register(hostContext)
         OverlaySceneController.onContentPanelShown()
         scheduleBringFloatBallAbovePanels()
         composeView?.requestFocus()
@@ -117,7 +117,7 @@ object VolumePanelOverlayWindow {
         if (composeView == null) return
         val token = ++dismissToken
         panelVisibilityState?.targetState = false
-        unregisterScreenOffReceiver()
+        screenOffDismissReceiver.unregister()
         OverlaySceneController.onContentPanelHidden()
         ++bringAboveToken
         mainHandler.postDelayed({
@@ -211,25 +211,6 @@ object VolumePanelOverlayWindow {
         OverlayCompose.teardownOverlayCompose(view, dialogOwner)
         windowManager = null
         panelVisibilityState = null
-    }
-
-    private fun registerScreenOffReceiver(context: Context) {
-        if (screenOffReceiver != null) return
-        val receiver = object : BroadcastReceiver() {
-            override fun onReceive(ctx: Context?, intent: Intent?) {
-                if (intent?.action == Intent.ACTION_SCREEN_OFF) dismiss()
-            }
-        }
-        screenOffReceiver = receiver
-        screenOffReceiverHost = context
-        context.registerReceiver(receiver, IntentFilter(Intent.ACTION_SCREEN_OFF), Context.RECEIVER_NOT_EXPORTED)
-    }
-
-    private fun unregisterScreenOffReceiver() {
-        val receiver = screenOffReceiver ?: return
-        screenOffReceiverHost?.let { host -> runCatching { host.unregisterReceiver(receiver) } }
-        screenOffReceiver = null
-        screenOffReceiverHost = null
     }
 }
 

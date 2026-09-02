@@ -106,8 +106,7 @@ class HistoryFloatService : Service() {
             composeView?.let { runCatching { windowManager.removeView(it) } }
             viewAdded = false
         }
-        OverlayCompose.disposeComposeView(composeView)
-        composeOwner?.destroy()
+        OverlayCompose.teardownOverlayCompose(composeView, composeOwner)
         composeOwner = null
         composeView = null
         super.onDestroy()

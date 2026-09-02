@@ -329,11 +329,10 @@ internal class FloatingPointerWindowLifecycle(
         val wm = window.windowManager
         window.displayView?.let { view -> wm?.let { runCatching { it.removeView(view) } } }
         window.touchHost?.let { view -> wm?.let { runCatching { it.removeView(view) } } }
-        window.screenOffReceiver?.let { receiver ->
-            window.appContext?.let { ctx -> runCatching { ctx.unregisterReceiver(receiver) } }
-        }
-        OverlayCompose.disposeComposeView(window.displayView)
-        window.displayOwner?.destroy()
+        window.screenOffDismissReceiver.unregister()
+        val displayView = window.displayView
+        val displayOwner = window.displayOwner
+        OverlayCompose.teardownOverlayCompose(displayView, displayOwner)
         window.displayOwner = null
         window.displayView = null
         window.touchHost = null
@@ -343,7 +342,6 @@ internal class FloatingPointerWindowLifecycle(
         window.session = null
         window.displayLayoutParams = null
         window.touchLayoutParams = null
-        window.screenOffReceiver = null
         window.appContext = null
         window.actionExecutor = null
         window.touchCaptureUserCollapsed = false
@@ -688,13 +686,7 @@ internal class FloatingPointerWindowLifecycle(
     }
 
     private fun registerScreenOffReceiver(context: Context) {
-        val receiver = object : BroadcastReceiver() {
-            override fun onReceive(receiverContext: Context?, intent: Intent?) {
-                if (intent?.action == Intent.ACTION_SCREEN_OFF) dismiss()
-            }
-        }
-        window.screenOffReceiver = receiver
-        runCatching { context.registerReceiver(receiver, IntentFilter(Intent.ACTION_SCREEN_OFF)) }
+        window.screenOffDismissReceiver.register(context)
     }
 
     private fun buildDisplayParams(context: Context): WindowManager.LayoutParams {

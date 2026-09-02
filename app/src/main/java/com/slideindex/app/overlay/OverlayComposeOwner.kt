@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.graphics.Color
 import android.hardware.display.DisplayManager
+import android.os.Build
 import android.inputmethodservice.InputMethodService
 import android.util.Log
 import android.view.ContextThemeWrapper
@@ -85,6 +86,14 @@ object OverlayCompose {
                 createWindowContextOrNull(appContext, display, windowType)?.let { return it }
             }
         }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val appContext = context.applicationContext
+            createWindowContextOrNull(
+                appContext,
+                display,
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+            )?.let { return it }
+        }
         Log.e(TAG, "resolveUiContext: all createWindowContext attempts failed for ${context.javaClass.name}")
         return context.applicationContext
     }
@@ -146,10 +155,31 @@ object OverlayCompose {
         runCatching { view.disposeComposition() }
     }
 
-    /** 浮层拆除时统一释放 Compose composition、ViewTree owner 与 [OverlayComposeOwner]。 */
+    /**
+     * 浮层拆除时释放 [OverlayComposeOwner]。
+     * 等 [ComposeView] 从窗口 detach 后再 destroy owner，避免 layout 阶段
+     * `ViewTreeLifecycleOwner not found`；composition 由 [DisposeOnDetachedFromWindow] 释放。
+     */
     fun teardownOverlayCompose(composeView: ComposeView?, owner: OverlayComposeOwner?) {
-        disposeComposeView(composeView)
-        composeView?.let { clearViewTreeOwners(it) }
-        owner?.destroy()
+        val view = composeView
+        val dialogOwner = owner
+        if (view == null) {
+            dialogOwner?.destroy()
+            return
+        }
+        if (!view.isAttachedToWindow) {
+            dialogOwner?.destroy()
+            return
+        }
+        view.addOnAttachStateChangeListener(
+            object : View.OnAttachStateChangeListener {
+                override fun onViewAttachedToWindow(v: View) = Unit
+
+                override fun onViewDetachedFromWindow(v: View) {
+                    view.removeOnAttachStateChangeListener(this)
+                    dialogOwner?.destroy()
+                }
+            },
+        )
     }
 }

@@ -65,7 +65,6 @@ import javax.inject.Inject
 import kotlin.math.roundToInt
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 
 @AndroidEntryPoint
 class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner {
@@ -161,13 +160,13 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
                     hideWindow()
                     return START_NOT_STICKY
                 }
-                persistGeometryOnClose(blocking = true)
+                persistGeometryOnClose(blocking = false)
                 return START_STICKY
             }
             ACTION_SHOW_EXPANDED -> {
                 if (viewAdded && displayMode == ClipboardFloatDisplayMode.Chip) {
                     captureCurrentWindowPosition()
-                    persistGeometryOnClose(blocking = true)
+                    persistGeometryOnClose(blocking = false)
                 }
                 expandedRetainedWithoutIme = true
                 displayMode = ClipboardFloatDisplayMode.Expanded
@@ -236,8 +235,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
             composeView?.let { runCatching { windowManager.removeView(it) } }
             viewAdded = false
         }
-        OverlayCompose.disposeComposeView(composeView)
-        composeOwner?.destroy()
+        OverlayCompose.teardownOverlayCompose(composeView, composeOwner)
         composeOwner = null
         composeView = null
         lifecycleRegistry.currentState = Lifecycle.State.DESTROYED
@@ -290,9 +288,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
     }
 
     private fun refreshRememberPositionFromDisk() {
-        rememberPosition = runBlocking {
-            deps.settingsRepository.readFreshSnapshot().clipboardFloatPanelPinPosition
-        }
+        rememberPosition = deps.settingsRepository.readSnapshot().clipboardFloatPanelPinPosition
     }
 
     private fun syncRememberedChipPosition(x: Int, y: Int) {
@@ -335,10 +331,10 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
         val landscape = isLandscapeNow()
         if (orientationGeometryLoaded && landscape == isLandscape) return
         if (orientationGeometryLoaded) {
-            persistCurrentOrientationGeometry(isLandscape, blocking = true)
+            persistCurrentOrientationGeometry(isLandscape, blocking = false)
         }
         isLandscape = landscape
-        applyGeometryFromSnapshot(runBlocking { deps.settingsRepository.readFreshSnapshot() })
+        applyGeometryFromSnapshot(deps.settingsRepository.readSnapshot())
         orientationGeometryLoaded = true
     }
 
@@ -634,7 +630,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
 
     private fun onDragWindowEnd() {
         isDraggingWindow = false
-        persistGeometryOnClose(blocking = true)
+        persistGeometryOnClose(blocking = false)
         resetAutoCloseTimer()
     }
 
@@ -704,22 +700,18 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
                 chipFollowIme = !rememberPosition,
             )
         }
-        if (blocking) {
-            runBlocking(Dispatchers.IO) { write() }
-        } else {
-            deps.applicationScope.launch(Dispatchers.IO) { write() }
-        }
+        deps.applicationScope.launch(Dispatchers.IO) { write() }
     }
 
     private fun expandWindow() {
         captureCurrentWindowPosition()
-        persistGeometryOnClose(blocking = true)
+        persistGeometryOnClose(blocking = false)
         chipRetainedAfterManualCollapse = false
         expandedRetainedWithoutIme = false
         displayMode = ClipboardFloatDisplayMode.Expanded
         applyWindowGeometry(forceDefaultPosition = !shouldUseRememberedPanelPosition())
         captureCurrentWindowPosition()
-        persistGeometryOnClose(blocking = true)
+        persistGeometryOnClose(blocking = false)
         resetAutoCloseTimer()
     }
 
@@ -779,7 +771,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
         chipRetainedAfterManualCollapse = false
         expandedRetainedWithoutIme = false
         clearSearchState()
-        persistGeometryOnClose(blocking = true)
+        persistGeometryOnClose(blocking = false)
         if (viewAdded) {
             composeView?.let { runCatching { windowManager.removeView(it) } }
             viewAdded = false
