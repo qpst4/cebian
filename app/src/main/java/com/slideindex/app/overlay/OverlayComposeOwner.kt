@@ -1,8 +1,13 @@
 package com.slideindex.app.overlay
 
+import android.app.Activity
 import android.content.Context
 import android.graphics.Color
+import android.hardware.display.DisplayManager
+import android.inputmethodservice.InputMethodService
+import android.util.Log
 import android.view.ContextThemeWrapper
+import android.view.Display
 import android.view.View
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -40,9 +45,61 @@ class OverlayComposeOwner : LifecycleOwner, ViewModelStoreOwner, SavedStateRegis
 }
 
 object OverlayCompose {
-    /** 保留宿主 Context 的 display 关联（AccessibilityService 等），避免 WindowLayoutInfo / UI Context 崩溃。 */
-    fun themedContext(context: Context): Context =
-        ContextThemeWrapper(context, R.style.Theme_SlideIndex_Transparent)
+    private const val TAG = "OverlayCompose"
+
+    /**
+     * 为浮层 Compose 提供带主题的 UI Context。
+     * [ContextThemeWrapper] 直接包 [android.accessibilityservice.AccessibilityService] 时，
+     * androidx.window 会在 unwrap 后判定为非 UI Context 并崩溃；需先通过 [Context.createWindowContext] 转换。
+     */
+    fun themedContext(context: Context): Context {
+        val uiContext = resolveUiContext(unwrapThemeContext(context))
+        return ContextThemeWrapper(uiContext, R.style.Theme_SlideIndex_Transparent)
+    }
+
+    private fun unwrapThemeContext(context: Context): Context {
+        var current = context
+        while (current is ContextThemeWrapper) {
+            current = current.baseContext
+        }
+        return current
+    }
+
+    private fun resolveUiContext(context: Context): Context {
+        if (context is Activity || context is InputMethodService || isWindowContext(context)) {
+            return context
+        }
+        val display = resolveDisplay(context) ?: run {
+            Log.w(TAG, "resolveUiContext: no display for ${context.javaClass.name}")
+            return context
+        }
+        val windowType = OverlayWindowTypes.overlayWindowType(context)
+        return runCatching {
+            context.createWindowContext(display, windowType, null)
+        }.getOrElse { error ->
+            Log.e(TAG, "createWindowContext failed for ${context.javaClass.name}", error)
+            context
+        }
+    }
+
+    /**
+     * Android 16+ 对非视觉 Context 调用 [Context.getDisplay] 会直接抛异常；
+     * 统一通过 [DisplayManager] 回退，避免 Flyme/OPPO 等设备启动即崩。
+     */
+    private fun resolveDisplay(context: Context): Display? {
+        if (context is Activity || context is InputMethodService || isWindowContext(context)) {
+            runCatching { return context.display }.onFailure {
+                Log.w(TAG, "getDisplay failed for ${context.javaClass.name}", it)
+            }
+        }
+        val displayManager = context.applicationContext
+            .getSystemService(Context.DISPLAY_SERVICE) as? DisplayManager
+        return displayManager?.getDisplay(Display.DEFAULT_DISPLAY)
+    }
+
+    /** [android.window.WindowContext] 为 @hide，用类名判断避免重复创建。 */
+    private fun isWindowContext(context: Context): Boolean =
+        context.javaClass.name == "android.window.WindowContext"
 
     fun bindOwners(view: View, owner: OverlayComposeOwner) {
         view.setViewTreeLifecycleOwner(owner)

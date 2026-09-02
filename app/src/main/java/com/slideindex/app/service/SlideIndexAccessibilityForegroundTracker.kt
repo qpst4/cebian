@@ -41,10 +41,6 @@ internal class SlideIndexAccessibilityForegroundTracker(
             com.slideindex.app.overlay.ForegroundActivityInspectorOverlayWindow.onForegroundWindowStateChanged(packageName, className)
         }
 
-        if (com.slideindex.app.overlay.WidgetPopupOverlayWindow.isShowing &&
-            !com.slideindex.app.overlay.WidgetPopupOverlayWindow.isAddFlowActive) {
-            com.slideindex.app.overlay.WidgetPopupOverlayWindow.dismiss()
-        }
         overlayHost()?.updateForegroundPackage(packageName)
         when (val update = computeWindowStatePackageUpdate(
                 packageName = packageName,
