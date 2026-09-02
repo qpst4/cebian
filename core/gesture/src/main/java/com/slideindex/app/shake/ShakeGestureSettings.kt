@@ -24,7 +24,7 @@ data class ShakeGestureSettings(
     val lockScreenActions: Map<ShakeGestureType, GestureAction> = defaultBasicActions(),
     val independentAppShakeEnabled: Boolean = false,
     val perAppActions: Map<String, Map<ShakeGestureType, GestureAction>> = emptyMap(),
-    val globalSensitivity: Float = 3.0f,
+    val globalSensitivity: Float = ShakeSensitivityScale.DEFAULT_UI,
     val independentSensitivityEnabled: Boolean = false,
     val perDirectionSensitivity: Map<ShakeGestureType, Float> = emptyMap(),
     val vibrationFeedbackEnabled: Boolean = true,
@@ -106,6 +106,6 @@ object ShakeGestureCodec {
             val type = ShakeGestureType.fromId(entry.substring(0, index).toIntOrNull() ?: return@mapNotNull null)
                 ?: return@mapNotNull null
             val value = entry.substring(index + 1).toFloatOrNull() ?: return@mapNotNull null
-            type to value.coerceIn(1f, 10f)
+            type to ShakeSensitivityScale.clampUi(value)
         }.toMap()
 }

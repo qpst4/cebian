@@ -5,6 +5,7 @@ import com.slideindex.app.shake.FaceDownGestureCodec
 import com.slideindex.app.shake.FaceDownGestureSettings
 import com.slideindex.app.shake.ShakeGestureCodec
 import com.slideindex.app.shake.ShakeGestureType
+import com.slideindex.app.shake.ShakeSensitivityScale
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -53,9 +54,10 @@ class ShakeSettingsMutator @Inject constructor(
     suspend fun setShakeDirectionSensitivity(type: ShakeGestureType, value: Float) = editor.edit { prefs ->
         val current = SettingsSnapshotReader.readShakeGestureSettings(prefs)
         val updated = current.perDirectionSensitivity.toMutableMap().apply {
-            put(type, value.coerceIn(1f, 10f))
+            put(type, ShakeSensitivityScale.clampUi(value))
         }
         prefs[SettingsPreferenceKeys.SHAKE_SENSITIVITY_V2_MIGRATED] = true
+        prefs[SettingsPreferenceKeys.SHAKE_SENSITIVITY_V3_MIGRATED] = true
         prefs[SettingsPreferenceKeys.SHAKE_PER_DIRECTION_SENSITIVITY] = ShakeGestureCodec.encodePerDirectionSensitivity(updated)
     }
 
@@ -66,7 +68,8 @@ class ShakeSettingsMutator @Inject constructor(
 
     suspend fun setShakeGlobalSensitivity(value: Float) = editor.edit {
         it[SettingsPreferenceKeys.SHAKE_SENSITIVITY_V2_MIGRATED] = true
-        it[SettingsPreferenceKeys.SHAKE_GLOBAL_SENSITIVITY] = value.coerceIn(1f, 10f)
+        it[SettingsPreferenceKeys.SHAKE_SENSITIVITY_V3_MIGRATED] = true
+        it[SettingsPreferenceKeys.SHAKE_GLOBAL_SENSITIVITY] = ShakeSensitivityScale.clampUi(value)
     }
 
     suspend fun setShakeIndependentSensitivityEnabled(enabled: Boolean) =

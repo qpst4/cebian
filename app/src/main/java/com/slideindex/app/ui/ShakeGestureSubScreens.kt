@@ -51,6 +51,7 @@ import com.slideindex.app.R
 import com.slideindex.app.gesture.GestureAction
 
 import com.slideindex.app.shake.ShakeGestureType
+import com.slideindex.app.shake.ShakeSensitivityScale
 
 import com.slideindex.app.ui.miuix.groupedCardItems
 
@@ -180,9 +181,9 @@ fun ShakeIndependentSensitivityScreen(
 
                                 value = perDirectionSensitivity[type] ?: globalSensitivity,
 
-                                valueRange = 1f..10f,
+                                valueRange = ShakeSensitivityScale.UI_MIN..ShakeSensitivityScale.UI_MAX,
 
-                                steps = 8,
+                                steps = ShakeSensitivityScale.UI_STEPS,
 
                                 enabled = true,
 
@@ -190,13 +191,13 @@ fun ShakeIndependentSensitivityScreen(
 
                                     java.util.Locale.US,
 
-                                    "%.1f",
+                                    "%.0f",
 
                                     perDirectionSensitivity[type] ?: globalSensitivity,
 
                                 ),
 
-                                formatLabel = { String.format(java.util.Locale.US, "%.1f", it) },
+                                formatLabel = { String.format(java.util.Locale.US, "%.0f", it) },
 
                                 startLabel = stringResource(R.string.shake_gestures_sensitivity_hard),
 

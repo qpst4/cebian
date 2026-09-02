@@ -7,18 +7,18 @@ import org.junit.Test
 class ShakeGestureClassifierTest {
 
     @Test
-    fun clampSensitivity_limitsToOneThroughTen() {
+    fun clampSensitivity_limitsToOneThroughTwenty() {
         assertEquals(1f, ShakeGestureClassifier.clampSensitivity(0.2f))
-        assertEquals(10f, ShakeGestureClassifier.clampSensitivity(99f))
-        assertEquals(6f, ShakeGestureClassifier.clampSensitivity(6f))
+        assertEquals(20f, ShakeGestureClassifier.clampSensitivity(99f))
+        assertEquals(14f, ShakeGestureClassifier.clampSensitivity(14f))
     }
 
     @Test
     fun effectiveThreshold_higherValueMeansLowerThreshold() {
-        assertEquals(10f, ShakeGestureClassifier.effectiveThreshold(1f))
-        assertEquals(8f, ShakeGestureClassifier.effectiveThreshold(3f))
-        assertEquals(5f, ShakeGestureClassifier.effectiveThreshold(6f))
-        assertEquals(1f, ShakeGestureClassifier.effectiveThreshold(10f))
+        assertEquals(20f, ShakeGestureClassifier.effectiveThreshold(1f), 0.001f)
+        assertEquals(7.684f, ShakeGestureClassifier.effectiveThreshold(14f), 0.01f)
+        assertEquals(11.474f, ShakeGestureClassifier.effectiveThreshold(10f), 0.01f)
+        assertEquals(2f, ShakeGestureClassifier.effectiveThreshold(20f), 0.001f)
     }
 
     @Test
@@ -30,7 +30,7 @@ class ShakeGestureClassifierTest {
             absX = 0f,
             absY = 8f,
             absZ = 0f,
-            globalSensitivity = 6f,
+            globalSensitivity = 17f,
             independentEnabled = false,
             perDirectionSensitivity = emptyMap(),
         )
@@ -47,7 +47,7 @@ class ShakeGestureClassifierTest {
             absX = 0f,
             absY = 8f,
             absZ = 0f,
-            globalSensitivity = 6f,
+            globalSensitivity = 17f,
             independentEnabled = false,
             perDirectionSensitivity = emptyMap(),
         )
@@ -64,7 +64,7 @@ class ShakeGestureClassifierTest {
             absX = 0.5f,
             absY = 0.5f,
             absZ = 0.5f,
-            globalSensitivity = 6f,
+            globalSensitivity = 17f,
             independentEnabled = false,
             perDirectionSensitivity = emptyMap(),
         )
@@ -81,7 +81,7 @@ class ShakeGestureClassifierTest {
             absX = 0f,
             absY = 5f,
             absZ = 0f,
-            globalSensitivity = 3f,
+            globalSensitivity = ShakeSensitivityScale.DEFAULT_UI,
             independentEnabled = true,
             perDirectionSensitivity = emptyMap(),
         )
@@ -112,9 +112,9 @@ class ShakeGestureClassifierTest {
             absX = 0f,
             absY = 2.6f,
             absZ = 0f,
-            globalSensitivity = 10f,
+            globalSensitivity = 20f,
             independentEnabled = true,
-            perDirectionSensitivity = mapOf(ShakeGestureType.RIGHT_FLIP to 10f),
+            perDirectionSensitivity = mapOf(ShakeGestureType.RIGHT_FLIP to 20f),
         )
 
         assertEquals(ShakeGestureType.RIGHT_FLIP, atMax)

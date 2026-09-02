@@ -46,6 +46,7 @@ import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.shake.FaceDownGestureSettings
 import com.slideindex.app.shake.ShakeGestureSettings
 import com.slideindex.app.shake.ShakeGestureType
+import com.slideindex.app.shake.ShakeSensitivityScale
 import com.slideindex.app.ui.animationstyle.AnimationStyleColorPickerDialog
 import com.slideindex.app.ui.animationstyle.AnimationStyleColorRow
 import com.slideindex.app.ui.miuix.MiuixHubScaffold
@@ -350,11 +351,11 @@ fun ShakeGesturesScreen(
                         SettingsSliderRow(
                             title = stringResource(R.string.shake_gestures_global_sensitivity),
                             value = settings.globalSensitivity,
-                            valueRange = 1f..10f,
-                            steps = 8,
+                            valueRange = ShakeSensitivityScale.UI_MIN..ShakeSensitivityScale.UI_MAX,
+                            steps = ShakeSensitivityScale.UI_STEPS,
                             enabled = settings.enabled && !settings.independentSensitivityEnabled,
-                            label = String.format(java.util.Locale.US, "%.1f", settings.globalSensitivity),
-                            formatLabel = { String.format(java.util.Locale.US, "%.1f", it) },
+                            label = String.format(java.util.Locale.US, "%.0f", settings.globalSensitivity),
+                            formatLabel = { String.format(java.util.Locale.US, "%.0f", it) },
                             startLabel = stringResource(R.string.shake_gestures_sensitivity_hard),
                             endLabel = stringResource(R.string.shake_gestures_sensitivity_easy),
                             onValueChange = onGlobalSensitivityChange,

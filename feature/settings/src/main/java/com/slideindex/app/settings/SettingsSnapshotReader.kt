@@ -27,6 +27,7 @@ import com.slideindex.app.otp.OtpMatchRuleCodec
 import com.slideindex.app.shake.FaceDownGestureCodec
 import com.slideindex.app.shake.FaceDownGestureSettings
 import com.slideindex.app.shake.ShakeGestureCodec
+import com.slideindex.app.shake.ShakeSensitivityScale
 import com.slideindex.app.shake.ShakeGestureSettings
 import com.slideindex.app.backtap.BackTapMode
 import com.slideindex.app.backtap.BackTapSettings
@@ -586,7 +587,16 @@ internal object SettingsSnapshotReader {
     }
 
     fun readShakeGestureSettings(prefs: Preferences): ShakeGestureSettings {
-        val isMigrated = prefs[SettingsPreferenceKeys.SHAKE_SENSITIVITY_V2_MIGRATED] ?: false
+        val isV2Migrated = prefs[SettingsPreferenceKeys.SHAKE_SENSITIVITY_V2_MIGRATED] ?: false
+        val isV3Migrated = prefs[SettingsPreferenceKeys.SHAKE_SENSITIVITY_V3_MIGRATED] ?: false
+        val rawGlobal = prefs[SettingsPreferenceKeys.SHAKE_GLOBAL_SENSITIVITY]
+        val rawPerDirection = if (isV2Migrated) {
+            ShakeGestureCodec.decodePerDirectionSensitivity(
+                prefs[SettingsPreferenceKeys.SHAKE_PER_DIRECTION_SENSITIVITY] ?: emptySet(),
+            )
+        } else {
+            emptyMap()
+        }
         return ShakeGestureSettings(
             enabled = prefs[SettingsPreferenceKeys.SHAKE_GESTURES_ENABLED] ?: false,
             basicActions = ShakeGestureCodec.decodeAllActions(prefs[SettingsPreferenceKeys.SHAKE_GESTURE_ACTIONS] ?: emptySet()),
@@ -594,14 +604,22 @@ internal object SettingsSnapshotReader {
             lockScreenActions = ShakeGestureCodec.decodeAllActions(prefs[SettingsPreferenceKeys.SHAKE_LOCK_SCREEN_ACTIONS] ?: emptySet()),
             independentAppShakeEnabled = prefs[SettingsPreferenceKeys.INDEPENDENT_APP_SHAKE_ENABLED] ?: false,
             perAppActions = ShakeGestureCodec.decodePerAppActions(prefs[SettingsPreferenceKeys.SHAKE_PER_APP_ACTIONS] ?: emptySet()),
-            globalSensitivity = if (isMigrated) (prefs[SettingsPreferenceKeys.SHAKE_GLOBAL_SENSITIVITY] ?: 3.0f) else 3.0f,
-            independentSensitivityEnabled = if (isMigrated) (prefs[SettingsPreferenceKeys.SHAKE_INDEPENDENT_SENSITIVITY_ENABLED] ?: false) else false,
-            perDirectionSensitivity = if (isMigrated) {
-                ShakeGestureCodec.decodePerDirectionSensitivity(
-                    prefs[SettingsPreferenceKeys.SHAKE_PER_DIRECTION_SENSITIVITY] ?: emptySet(),
-                )
+            globalSensitivity = readShakeSensitivityUi(
+                rawUi = rawGlobal,
+                isV2Migrated = isV2Migrated,
+                isV3Migrated = isV3Migrated,
+            ),
+            independentSensitivityEnabled = if (isV2Migrated) {
+                prefs[SettingsPreferenceKeys.SHAKE_INDEPENDENT_SENSITIVITY_ENABLED] ?: false
             } else {
-                emptyMap()
+                false
+            },
+            perDirectionSensitivity = rawPerDirection.mapValues { (_, value) ->
+                readShakeSensitivityUi(
+                    rawUi = value,
+                    isV2Migrated = isV2Migrated,
+                    isV3Migrated = isV3Migrated,
+                )
             },
             vibrationFeedbackEnabled = prefs[SettingsPreferenceKeys.SHAKE_VIBRATION_FEEDBACK_ENABLED] ?: true,
             animationFeedbackEnabled = prefs[SettingsPreferenceKeys.SHAKE_ANIMATION_FEEDBACK_ENABLED] ?: false,
@@ -955,6 +973,22 @@ internal object SettingsSnapshotReader {
         com.slideindex.app.launcher.ExpandPanelSlotCodec.decode(
             prefs[SettingsPreferenceKeys.EXPAND_PANEL_SHORTCUTS],
         )
+
+    private fun readShakeSensitivityUi(
+        rawUi: Float?,
+        isV2Migrated: Boolean,
+        isV3Migrated: Boolean,
+    ): Float {
+        if (isV3Migrated) {
+            return ShakeSensitivityScale.clampUi(rawUi ?: ShakeSensitivityScale.DEFAULT_UI)
+        }
+        val legacyUi = if (isV2Migrated) {
+            rawUi ?: ShakeSensitivityScale.LEGACY_DEFAULT_UI
+        } else {
+            ShakeSensitivityScale.LEGACY_DEFAULT_UI
+        }
+        return ShakeSensitivityScale.migrateUiFromV2(legacyUi)
+    }
 
     private fun intPreference(prefs: Preferences, key: Preferences.Key<Int>, default: Int): Int {
         runCatching { prefs[key] }.getOrNull()?.let { return it }
