@@ -97,6 +97,14 @@ object RegionalPickOverlay {
         continuedGestureActive = true
     }
 
+    fun onConfigurationChanged() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { onConfigurationChanged() }
+            return
+        }
+        appContext?.let { refreshScreenMetrics(it) }
+    }
+
     fun launchFromEdge(
         context: Context,
         appSettings: AppSettings,
@@ -175,7 +183,13 @@ object RegionalPickOverlay {
     }
 
     private fun screenWidthForContext(context: Context): Float =
-        context.resources.displayMetrics.widthPixels.toFloat()
+        FloatBallScreenMetrics.bounds(context, windowManager).width
+
+    private fun refreshScreenMetrics(context: Context) {
+        val bounds = FloatBallScreenMetrics.bounds(context, windowManager)
+        screenWidth = bounds.width
+        screenHeight = bounds.height
+    }
 
     fun dismiss() {
         if (Looper.myLooper() != Looper.getMainLooper()) {
@@ -225,13 +239,14 @@ object RegionalPickOverlay {
 
     private fun ensureDisplayWindow(hostContext: Context, appSettings: AppSettings): Boolean {
         settings = appSettings
-        if (displayHost != null) return true
+        if (displayHost != null) {
+            refreshScreenMetrics(hostContext)
+            return true
+        }
 
         val wm = hostContext.getSystemService(Context.WINDOW_SERVICE) as? WindowManager ?: return false
         val overlayContext = OverlayCompose.themedContext(hostContext)
-        val dm = hostContext.resources.displayMetrics
-        screenWidth = dm.widthPixels.toFloat()
-        screenHeight = dm.heightPixels.toFloat()
+        refreshScreenMetrics(hostContext)
 
         val preview = FloatBallCursorPreviewView(overlayContext)
         val ballVisual = FloatBallDragVisualView(overlayContext)
@@ -298,6 +313,7 @@ object RegionalPickOverlay {
         rawX: Float,
         rawY: Float,
     ) {
+        appContext?.let { refreshScreenMetrics(it) }
         val currentSettings = settings ?: return
         val view = cursorPreviewView ?: return
         val density = view.resources.displayMetrics.density

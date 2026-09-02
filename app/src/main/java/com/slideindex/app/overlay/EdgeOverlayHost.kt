@@ -114,6 +114,8 @@ class EdgeOverlayHost(
     }
 
     fun onConfigurationChanged() {
+        floatBallController?.onConfigurationChanged()
+        RegionalPickOverlay.onConfigurationChanged()
         overlayManager?.relayoutTriggersForConfigurationChange()
         cornerGestureHost?.onConfigurationChanged()
         refreshOverlaySuppression()

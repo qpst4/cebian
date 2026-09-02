@@ -750,14 +750,15 @@ object FloatBallOverlay {
         val currentSettings = settingsState?.value ?: return
         if (isDragging) {
             val host = displayView ?: return
-            val bounds = FloatBallScreenMetrics.bounds(host.context, windowManager)
+            dragScreenBounds = FloatBallScreenMetrics.bounds(host.context, windowManager)
             dragSession.refreshPointerTravel(
                 settings = currentSettings,
-                screenWidth = bounds.width,
-                screenHeight = bounds.height,
+                screenWidth = dragScreenBounds!!.width,
+                screenHeight = dragScreenBounds!!.height,
             )
             updatePickAndBallFromFinger(moveBallWindow = true)
         } else {
+            dragScreenBounds = null
             recoverIdleTouchCaptureLayouts(currentSettings)
             applyAllLayouts(currentSettings)
         }
