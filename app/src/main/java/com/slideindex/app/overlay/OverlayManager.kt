@@ -228,12 +228,16 @@ class OverlayManager(
 
     fun relayoutTriggersForConfigurationChange() {
         if (!currentSettings.serviceEnabled) return
+        if (shouldSuppressTrigger()) {
+            refreshTriggerVisibilityNow()
+            return
+        }
         val screenWidth = context.resources.displayMetrics.widthPixels
         leftController?.updateSettings(currentSettings, screenWidth)
         rightController?.updateSettings(currentSettings, screenWidth)
         bottomController?.updateSettings(currentSettings, screenWidth)
         topController?.updateSettings(currentSettings, screenWidth)
-        scheduleRefreshTriggerVisibility()
+        refreshTriggerVisibilityNow()
     }
 
     fun refreshTriggerVisuals() {

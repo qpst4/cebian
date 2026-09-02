@@ -13,7 +13,6 @@ import com.slideindex.app.settings.AppSettings
 import android.util.Log
 import com.slideindex.app.overlay.corner.CornerGestureHost
 import com.slideindex.app.service.OverlayService
-import com.slideindex.app.util.ForegroundAppTracker
 import com.slideindex.app.util.OverlaySnoozeController
 import com.slideindex.app.util.PermissionHelper
 import com.slideindex.app.util.TaskManagerUtil
@@ -33,7 +32,6 @@ class EdgeOverlayHost(
     private val deps: AppDependencies,
 ) {
     private var overlayManager: OverlayManager? = null
-    private var foregroundTracker: ForegroundAppTracker? = null
     private var floatBallController: FloatBallController? = null
     private var cornerGestureHost: CornerGestureHost? = null
     private var settingsJob: Job? = null
@@ -58,15 +56,6 @@ class EdgeOverlayHost(
                 scope.launch { deps.settingsRepository.updateQuickLauncherPanelItems(panelId, items) }
             },
         )
-        if (PermissionHelper.hasUsageAccess(context)) {
-            foregroundTracker = ForegroundAppTracker(context, scope).also { tracker ->
-                scope.launch {
-                    tracker.foregroundPackage.collectLatest { packageName ->
-                        onForegroundPackageChanged(packageName)
-                    }
-                }
-            }
-        }
         scope.launch(Dispatchers.Default) {
             deps.appRepository.loadApps()
         }
@@ -114,8 +103,6 @@ class EdgeOverlayHost(
         floatBallController = null
         cornerGestureHost?.stop()
         cornerGestureHost = null
-        foregroundTracker?.stop()
-        foregroundTracker = null
         overlayManager?.destroy()
         overlayManager = null
         OverlayService.foregroundPackage = null
@@ -123,9 +110,9 @@ class EdgeOverlayHost(
     }
 
     fun onConfigurationChanged() {
-        floatBallController?.onConfigurationChanged()
-        cornerGestureHost?.onConfigurationChanged()
         overlayManager?.relayoutTriggersForConfigurationChange()
+        cornerGestureHost?.onConfigurationChanged()
+        refreshOverlaySuppression()
     }
 
     fun reloadApps() {

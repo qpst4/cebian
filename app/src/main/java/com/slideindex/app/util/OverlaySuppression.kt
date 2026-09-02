@@ -24,11 +24,15 @@ object OverlaySuppression {
         if (scope == OverlaySuppressionScope.TRIGGER) {
             if (settings.hideTriggerInLandscape && isLandscape(context)) return true
             if (settings.hideTriggerOnLauncher) {
-                val pkg = foregroundPackage ?: return false
+                val pkg = AccessibilityForegroundResolver.resolve(context)
+                    ?: foregroundPackage
+                    ?: return false
                 if (LauncherUtils.isHomePackage(context, pkg)) return true
             }
         }
-        val pkg = foregroundPackage ?: return false
+        val pkg = AccessibilityForegroundResolver.resolve(context)
+            ?: foregroundPackage
+            ?: return false
         val scopes = settings.excludedAppScopes[pkg] ?: return false
         return scopes.suppresses(scope)
     }

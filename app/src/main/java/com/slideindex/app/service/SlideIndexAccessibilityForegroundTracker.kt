@@ -5,6 +5,7 @@ import android.content.Intent
 import android.view.inputmethod.InputMethodManager
 import android.view.accessibility.AccessibilityEvent
 import com.slideindex.app.overlay.EdgeOverlayHost
+import com.slideindex.app.util.AccessibilityForegroundResolver
 
 internal class SlideIndexAccessibilityForegroundTracker(
     private val service: SlideIndexAccessibilityService,
@@ -26,12 +27,12 @@ internal class SlideIndexAccessibilityForegroundTracker(
 
     fun handleWindowStateChanged(event: AccessibilityEvent) {
         onSyncLockScreen()
-        val packageName = event.packageName?.toString()?.takeIf { it.isNotBlank() } ?: run {
-            overlayHost()?.refreshTriggerVisibility()
-            return
-        }
-        if (packageName == service.applicationContext.packageName) {
-            overlayHost()?.refreshTriggerVisibility()
+        val selfPackage = service.applicationContext.packageName
+        val resolvedPackage = AccessibilityForegroundResolver.resolveHostPackage(service)
+        val eventPackage = event.packageName?.toString()?.takeIf { it.isNotBlank() }
+        val packageName = resolvedPackage ?: eventPackage
+        if (packageName.isNullOrBlank() || packageName == selfPackage) {
+            overlayHost()?.refreshOverlaySuppression()
             return
         }
         val className = event.className?.toString()?.takeIf { it.isNotBlank() } ?: ""
@@ -67,7 +68,12 @@ internal class SlideIndexAccessibilityForegroundTracker(
 
     fun handleWindowsChanged() {
         onSyncLockScreen()
-        overlayHost()?.refreshTriggerVisibility()
+        val resolvedPackage = AccessibilityForegroundResolver.resolveHostPackage(service)
+        if (resolvedPackage != null) {
+            overlayHost()?.updateForegroundPackage(resolvedPackage)
+        } else {
+            overlayHost()?.refreshOverlaySuppression()
+        }
         if (com.slideindex.app.overlay.ForegroundActivityInspectorOverlayWindow.isShowing) {
             val rootNode = service.rootInActiveWindow
             val activePkg = rootNode?.packageName?.toString()

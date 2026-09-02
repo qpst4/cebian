@@ -473,6 +473,7 @@ class SlideIndexAccessibilityService : AccessibilityService() {
         }
 
         private const val TAG = "SlideIndexA11y"
+        private const val CONFIG_CHANGE_SUPPRESSION_RETRY_MS = 400L
         private const val SCROLL_BOTTOM_STROKE_COUNT = 10
     }
 
@@ -512,8 +513,36 @@ class SlideIndexAccessibilityService : AccessibilityService() {
         }
         lastOrientation = newOrientation
         messageReminderOrchestrator.onConfigurationChanged(this, newConfig)
+        syncForegroundPackageForOverlaySuppression()
         edgeOverlayHost?.onConfigurationChanged()
-        edgeOverlayHost?.refreshTriggerVisibility()
+        scheduleOverlaySuppressionAfterConfigurationChange()
+    }
+
+    private fun scheduleOverlaySuppressionAfterConfigurationChange() {
+        mainHandler.postDelayed({
+            syncForegroundPackageForOverlaySuppression()
+            edgeOverlayHost?.refreshOverlaySuppression()
+        }, CONFIG_CHANGE_SUPPRESSION_RETRY_MS)
+        mainHandler.postDelayed({
+            syncForegroundPackageForOverlaySuppression()
+            edgeOverlayHost?.refreshOverlaySuppression()
+        }, CONFIG_CHANGE_SUPPRESSION_RETRY_MS * 2)
+    }
+
+    private fun syncForegroundPackageForOverlaySuppression() {
+        val resolved = com.slideindex.app.util.AccessibilityForegroundResolver.resolveHostPackage(this)
+        if (resolved != null) {
+            edgeOverlayHost?.updateForegroundPackage(resolved)
+            return
+        }
+        val selfPackage = applicationContext.packageName
+        val activePkg = if (::foregroundTracker.isInitialized) {
+            foregroundTracker.currPackageName?.takeIf { it.isNotBlank() && it != selfPackage }
+        } else {
+            null
+        }
+        activePkg?.let { edgeOverlayHost?.updateForegroundPackage(it) }
+            ?: edgeOverlayHost?.refreshOverlaySuppression()
     }
 
     fun dispatchExternalGestureAction(

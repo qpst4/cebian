@@ -51,12 +51,6 @@ class FloatBallController(
         }
     }
 
-    fun onConfigurationChanged() {
-        if (FloatBallOverlay.isShowing) {
-            FloatBallOverlay.relayout()
-        }
-    }
-
     fun stop() {
         FloatBallOverlay.dismiss()
     }
