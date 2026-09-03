@@ -888,6 +888,7 @@
     <string name="universal_copy_select_all">全选</string>
     <string name="universal_copy_deselect">取消全选</string>
     <string name="universal_copy_copy">复制</string>
+    <string name="universal_copy_pick">取词</string>
     <string name="universal_copy_selected">已选 %1$d 项</string>
     <string name="universal_copy_copied">已复制 %1$d 项</string>
     <string name="universal_copy_no_text">未找到可复制文本</string>

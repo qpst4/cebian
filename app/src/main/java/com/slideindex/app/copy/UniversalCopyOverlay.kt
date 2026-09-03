@@ -31,7 +31,13 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.core.graphics.toColorInt
 import com.slideindex.app.R
+import com.slideindex.app.di.OverlayDependencyAccess
+import com.slideindex.app.overlay.FloatBallPickResult
+import com.slideindex.app.overlay.FloatBallPickResultPanel
 import com.slideindex.app.overlay.OverlayWindowTypes
+import com.slideindex.app.overlay.PickResultContentOrigin
+import com.slideindex.app.overlay.PickResultTextSource
+import com.slideindex.app.overlay.pickresult.PickResultTextMode
 import com.slideindex.app.service.SlideIndexAccessibilityService
 import java.lang.ref.WeakReference
 
@@ -42,6 +48,7 @@ object UniversalCopyOverlay {
     private var dismissRunnable: Runnable? = null
     private var hintView: WeakReference<TextView>? = null
     private var copyButton: WeakReference<TextView>? = null
+    private var pickButton: WeakReference<TextView>? = null
     private var selectAllButton: WeakReference<TextView>? = null
 
     val isShowing: Boolean get() = currentOverlay?.get() != null
@@ -67,6 +74,7 @@ object UniversalCopyOverlay {
         dismissRunnable = null
         hintView = null
         copyButton = null
+        pickButton = null
         selectAllButton = null
         val overlay = currentOverlay?.get() ?: return
         runCatching {
@@ -184,6 +192,24 @@ object UniversalCopyOverlay {
         toolbar.addView(copy, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, dp(34)).apply {
             marginEnd = dp(6)
         })
+        val pick = createToolbarButton(context, density,
+            context.getString(R.string.universal_copy_pick),
+            "#4A9A4A".toColorInt(),
+            Color.WHITE,
+        ) {
+            val selected = blocks.filter { it.selected }
+            if (selected.isNotEmpty()) {
+                val text = selected.joinToString("\n") { it.text }
+                openPickPanel(context, text)
+                dismiss()
+            }
+        }
+        pick.alpha = 0.4f
+        pick.isEnabled = false
+        pickButton = WeakReference(pick)
+        toolbar.addView(pick, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, dp(34)).apply {
+            marginEnd = dp(6)
+        })
         val close = createToolbarButton(context, density, "×", "#3A3A3A".toColorInt(), "#CCCCCC".toColorInt()) {
             dismiss()
         }
@@ -227,6 +253,10 @@ object UniversalCopyOverlay {
             alpha = if (count > 0) 1f else 0.4f
             isEnabled = count > 0
         }
+        pickButton?.get()?.apply {
+            alpha = if (count > 0) 1f else 0.4f
+            isEnabled = count > 0
+        }
         selectAllButton?.get()?.text = if (blocks.all { it.selected }) {
             currentOverlay?.get()?.context?.getString(R.string.universal_copy_deselect)
         } else {
@@ -237,6 +267,22 @@ object UniversalCopyOverlay {
     private fun copyToClipboard(context: Context, text: String) {
         val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager ?: return
         cm.setPrimaryClip(ClipData.newPlainText("Cebian", text))
+    }
+
+    private fun openPickPanel(context: Context, text: String) {
+        val hostContext = OverlayDependencyAccess.overlayHostContext() ?: context
+        FloatBallPickResultPanel.showResult(
+            context = hostContext,
+            result = FloatBallPickResult(
+                a11yText = text,
+                ocrText = null,
+                screenshot = null,
+                screenRect = null,
+                activeSource = PickResultTextSource.A11Y,
+                contentOrigin = PickResultContentOrigin.SCREEN_PICK,
+            ),
+            initialTextMode = PickResultTextMode.WORD_TAP,
+        )
     }
 
     private class TextBlocksView(

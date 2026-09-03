@@ -1356,6 +1356,7 @@
     <string name="universal_copy_select_all">Select all</string>
     <string name="universal_copy_deselect">Deselect all</string>
     <string name="universal_copy_copy">Copy</string>
+    <string name="universal_copy_pick">Pick</string>
     <string name="universal_copy_selected">%1$d selected</string>
     <string name="universal_copy_copied">Copied %1$d item(s)</string>
     <string name="universal_copy_no_text">No copyable text found</string>
