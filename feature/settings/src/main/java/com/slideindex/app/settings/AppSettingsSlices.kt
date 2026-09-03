@@ -171,6 +171,14 @@ data class FloatingPointerSettings(
         FloatingPointerEdgeActionsCodec.defaultConfig(),
 )
 
+/** 触钮手势「指尖圆环」：围绕手指圆形分布的快捷图标。 */
+data class FingertipRingSettings(
+    val slotCount: Int = FingertipRingCodec.DEFAULT_SLOT_COUNT,
+    val slotActions: List<com.slideindex.app.gesture.GestureAction> = FingertipRingCodec.defaultSlots(),
+    val orbitRadiusPx: Float = FingertipRingCodec.DEFAULT_ORBIT_RADIUS_PX,
+    val iconSizePx: Float = FingertipRingCodec.DEFAULT_ICON_SIZE_PX,
+)
+
 /** FV 风格常驻悬浮球：外观、取词、滑动阈值与翻译。 */
 data class FloatBallSettings(
     /** FV-style persistent float ball; independent from edge-gesture floating pointer. */

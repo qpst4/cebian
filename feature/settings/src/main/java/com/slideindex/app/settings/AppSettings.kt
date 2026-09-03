@@ -63,6 +63,7 @@ data class AppSettings(
     val floatingPointer: FloatingPointerSettings = FloatingPointerSettings(),
     val otp: OtpSettings = OtpSettings(),
     val cornerGestureSettings: CornerGestureSettings = CornerGestureSettings(),
+    val fingertipRing: FingertipRingSettings = FingertipRingSettings(),
     val shakeGestureSettings: ShakeGestureSettings = ShakeGestureSettings(),
     val backTapSettings: BackTapSettings = BackTapSettings(),
     val faceDownGestureSettings: FaceDownGestureSettings = FaceDownGestureSettings(),
@@ -221,6 +222,11 @@ data class AppSettings(
     val floatingPointerEdgeVisualOpacity get() = floatingPointer.floatingPointerEdgeVisualOpacity
     val floatingPointerEdgeVisualColorArgb get() = floatingPointer.floatingPointerEdgeVisualColorArgb
     val floatingPointerEdgeActionsConfig get() = floatingPointer.floatingPointerEdgeActionsConfig
+
+    val fingertipRingSlotCount get() = fingertipRing.slotCount
+    val fingertipRingSlotActions get() = fingertipRing.slotActions
+    val fingertipRingOrbitRadiusPx get() = fingertipRing.orbitRadiusPx
+    val fingertipRingIconSizePx get() = fingertipRing.iconSizePx
 
     val floatBallEnabled get() = floatBall.floatBallEnabled
     val floatBallSizeDp get() = floatBall.floatBallSizeDp

@@ -328,6 +328,13 @@ class SettingsRepository @Inject constructor(
     suspend fun setFloatingPointerRadialSlotAction(index: Int, action: GestureAction) =
         overlay.setFloatingPointerRadialSlotAction(index, action)
     suspend fun resetFloatingPointerRadialDesignDefaults() = overlay.resetFloatingPointerRadialDesignDefaults()
+
+    suspend fun setFingertipRingSlotCount(count: Int) = overlay.setFingertipRingSlotCount(count)
+    suspend fun setFingertipRingSlotAction(index: Int, action: GestureAction) =
+        overlay.setFingertipRingSlotAction(index, action)
+    suspend fun setFingertipRingOrbitRadiusPx(value: Float) = overlay.setFingertipRingOrbitRadiusPx(value)
+    suspend fun setFingertipRingIconSizePx(value: Float) = overlay.setFingertipRingIconSizePx(value)
+
     suspend fun setFloatingPointerEdgeThresholdDp(value: Float) = overlay.setFloatingPointerEdgeThresholdDp(value)
     suspend fun setFloatingPointerEdgePreviewSensitivity(value: Int) =
         overlay.setFloatingPointerEdgePreviewSensitivity(value)

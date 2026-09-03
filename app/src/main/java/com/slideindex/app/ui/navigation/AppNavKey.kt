@@ -73,6 +73,30 @@ sealed interface AppNavKey : NavKey {
         val triggerId: Int,
         val initialCommand: String = "",
     ) : AppNavKey
+    @Serializable data class HomeSideGestureFingertipRing(
+        val side: String,
+        val handleId: String,
+        val triggerId: Int,
+    ) : AppNavKey
+    @Serializable data class HomeSideGestureFingertipRingSlotActionPick(
+        val side: String,
+        val handleId: String,
+        val triggerId: Int,
+        val slotIndex: Int,
+    ) : AppNavKey
+    @Serializable data class HomeSideGestureFingertipRingShellCommand(
+        val side: String,
+        val handleId: String,
+        val triggerId: Int,
+        val slotIndex: Int,
+        val initialCommand: String = "",
+    ) : AppNavKey
+    @Serializable data class HomeSideGestureFingertipRingSwipeConfig(
+        val side: String,
+        val handleId: String,
+        val triggerId: Int,
+        val slotIndex: Int,
+    ) : AppNavKey
     @Serializable data class HomeSideGestureSlotSimulateKeyEvent(
         val side: String,
         val handleId: String,

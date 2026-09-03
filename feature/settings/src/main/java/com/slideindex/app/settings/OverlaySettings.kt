@@ -180,6 +180,7 @@ data class OverlaySettings(
     val aggregatedImageSearchEngines: List<AggregatedImageSearchEngineConfig> =
         AppSettings.defaultAggregatedImageSearchEngines(),
     val cornerGestureSettings: CornerGestureSettings = CornerGestureSettings(),
+    val fingertipRing: FingertipRingSettings = FingertipRingSettings(),
 ) {
     /** 当前底栏样式的生效模糊半径（派生，不落盘）。 */
     val bottomNavBlurRadiusDp: Float
@@ -365,6 +366,7 @@ data class OverlaySettings(
             searchPanelSectionAliases = settings.searchPanelSectionAliases,
             aggregatedImageSearchEngines = settings.aggregatedImageSearchEngines,
             cornerGestureSettings = settings.cornerGestureSettings,
+            fingertipRing = settings.fingertipRing,
         )
     }
 }

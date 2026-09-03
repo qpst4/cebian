@@ -326,6 +326,7 @@ internal object SettingsSnapshotReader {
             backTapSettings = readBackTapSettings(prefs),
             faceDownGestureSettings = readFaceDownGestureSettings(prefs),
             cornerGestureSettings = readCornerGestureSettings(prefs),
+            fingertipRing = readFingertipRingSettings(prefs),
             messageReminderSettings = readMessageReminderSettings(prefs),
             debugPerformanceMonitorEnabled = prefs[SettingsPreferenceKeys.DEBUG_PERFORMANCE_MONITOR] ?: false,
             onboardingCompleted = prefs[SettingsPreferenceKeys.ONBOARDING_COMPLETED] ?: false,
@@ -994,6 +995,22 @@ internal object SettingsSnapshotReader {
             ShakeSensitivityScale.LEGACY_DEFAULT_UI
         }
         return ShakeSensitivityScale.migrateUiFromV2(legacyUi)
+    }
+
+    fun readFingertipRingSettings(prefs: Preferences): FingertipRingSettings {
+        val slotCount = prefs[SettingsPreferenceKeys.FINGERTIP_RING_SLOT_COUNT]
+            ?: FingertipRingCodec.DEFAULT_SLOT_COUNT
+        return FingertipRingSettings(
+            slotCount = slotCount,
+            slotActions = FingertipRingCodec.decode(
+                prefs[SettingsPreferenceKeys.FINGERTIP_RING_SLOTS] ?: emptySet(),
+                slotCount,
+            ),
+            orbitRadiusPx = prefs[SettingsPreferenceKeys.FINGERTIP_RING_ORBIT_RADIUS_PX]
+                ?: FingertipRingCodec.DEFAULT_ORBIT_RADIUS_PX,
+            iconSizePx = prefs[SettingsPreferenceKeys.FINGERTIP_RING_ICON_SIZE_PX]
+                ?: FingertipRingCodec.DEFAULT_ICON_SIZE_PX,
+        )
     }
 
     private fun intPreference(prefs: Preferences, key: Preferences.Key<Int>, default: Int): Int {

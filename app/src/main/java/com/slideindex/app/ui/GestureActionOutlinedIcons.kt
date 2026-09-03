@@ -28,6 +28,7 @@ internal fun gestureActionTypeOutlinedIcon(type: GestureActionType): ImageVector
     GestureActionType.QUICK_LAUNCHER -> ThinActionIcons.Apps
     GestureActionType.HONEYCOMB_LAUNCHER -> ThinActionIcons.Hive
     GestureActionType.APP_SWITCHER -> ThinActionIcons.Apps
+    GestureActionType.FINGERTIP_RING -> ThinActionIcons.MenuOpen
     GestureActionType.APP_CAROUSEL_SWITCHER -> ThinActionIcons.AppCarouselSwitcher
     GestureActionType.HOLOGRAPHIC_LAUNCHER -> ThinActionIcons.Globe
     GestureActionType.TASK_SWITCHER -> ThinActionIcons.ViewCarousel
@@ -112,6 +113,7 @@ internal fun gestureActionTypeThinIcon(type: GestureActionType): ImageVector = w
     GestureActionType.QUICK_LAUNCHER -> ThinActionIcons.Apps
     GestureActionType.HONEYCOMB_LAUNCHER -> ThinActionIcons.Hive
     GestureActionType.APP_SWITCHER -> ThinActionIcons.Apps
+    GestureActionType.FINGERTIP_RING -> ThinActionIcons.MenuOpen
     GestureActionType.APP_CAROUSEL_SWITCHER -> ThinActionIcons.AppCarouselSwitcher
     GestureActionType.HOLOGRAPHIC_LAUNCHER -> ThinActionIcons.Globe
     GestureActionType.TASK_SWITCHER -> ThinActionIcons.ViewCarousel

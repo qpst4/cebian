@@ -123,6 +123,22 @@ internal fun GestureSession.trackContinuousGesture(
             }
         }
 
+        GestureAction.FingertipRing -> {
+            if (!sessionContinuousPick.fingertipRing) {
+                val shown = sessionCallbacks.onShowFingertipRing(
+                    continuousPick = true,
+                    rawX = rawX,
+                    rawY = rawY,
+                )
+                if (shown) {
+                    sessionContinuousPick.fingertipRing = true
+                    sessionCallbacks.hapticConfirmLaunch()
+                }
+            } else {
+                sessionCallbacks.onFingertipRingPointerMove(rawX, rawY)
+            }
+        }
+
         GestureAction.AdjustVolume -> enterAdjustMode(ContinuousAdjustController.Mode.VOLUME, rawY)
 
         GestureAction.AdjustBrightness -> enterAdjustMode(ContinuousAdjustController.Mode.BRIGHTNESS, rawY)
@@ -266,6 +282,24 @@ internal fun GestureSession.handleClassifiedGesture(
                 rawX,
                 rawY,
                 externalTracking = false,
+            )
+            val triggerMode = sessionSettings.resolvedTriggerMode(
+                sessionSide,
+                classification.trigger,
+                sessionActiveHandleId,
+            )
+            if (triggerMode != GestureTriggerMode.IMMEDIATE) {
+                endSession()
+            }
+        }
+
+        GestureAction.FingertipRing -> {
+            sessionContinuousPick.fingertipRing = false
+            sessionCallbacks.hapticConfirmLaunch()
+            sessionCallbacks.onShowFingertipRing(
+                continuousPick = false,
+                rawX = rawX,
+                rawY = rawY,
             )
             val triggerMode = sessionSettings.resolvedTriggerMode(
                 sessionSide,
@@ -460,6 +494,17 @@ internal fun GestureSession.dispatchQuickLauncherAction(
             sessionActionExecutor.execute(
                 GestureAction.AppCarouselSwitcher,
                 sessionSettings,
+                anchorRawY = rawY,
+            )
+            return true
+        }
+        GestureAction.FingertipRing -> {
+            sessionContinuousPick.fingertipRing = false
+            if (confirmHaptic) sessionCallbacks.hapticConfirmLaunch()
+            sessionActionExecutor.execute(
+                GestureAction.FingertipRing,
+                sessionSettings,
+                anchorRawX = localX,
                 anchorRawY = rawY,
             )
             return true

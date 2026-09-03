@@ -274,6 +274,34 @@ class OverlaySettingsMutator @Inject constructor(
         prefs[SettingsPreferenceKeys.FLOATING_POINTER_RADIAL_ICON_COLOR] = 0xFFFFFFFF.toInt()
     }
 
+    suspend fun setFingertipRingSlotCount(count: Int) = editor.edit { prefs ->
+        val nextCount = FingertipRingCodec.effectiveSlotCount(count)
+        val current = FingertipRingCodec.decode(
+            prefs[SettingsPreferenceKeys.FINGERTIP_RING_SLOTS] ?: emptySet(),
+            prefs[SettingsPreferenceKeys.FINGERTIP_RING_SLOT_COUNT] ?: FingertipRingCodec.DEFAULT_SLOT_COUNT,
+        )
+        prefs[SettingsPreferenceKeys.FINGERTIP_RING_SLOT_COUNT] = nextCount
+        prefs[SettingsPreferenceKeys.FINGERTIP_RING_SLOTS] = FingertipRingCodec.encode(current, nextCount)
+    }
+
+    suspend fun setFingertipRingSlotAction(index: Int, action: GestureAction) = editor.edit { prefs ->
+        val slotCount = prefs[SettingsPreferenceKeys.FINGERTIP_RING_SLOT_COUNT] ?: FingertipRingCodec.DEFAULT_SLOT_COUNT
+        val current = FingertipRingCodec.decode(prefs[SettingsPreferenceKeys.FINGERTIP_RING_SLOTS] ?: emptySet(), slotCount)
+        val updated = current.toMutableList()
+        if (index in 0 until FingertipRingCodec.effectiveSlotCount(slotCount)) {
+            updated[index] = action
+            prefs[SettingsPreferenceKeys.FINGERTIP_RING_SLOTS] = FingertipRingCodec.encode(updated, slotCount)
+        }
+    }
+
+    suspend fun setFingertipRingOrbitRadiusPx(value: Float) = editor.edit {
+        it[SettingsPreferenceKeys.FINGERTIP_RING_ORBIT_RADIUS_PX] = FingertipRingCodec.effectiveOrbitRadiusPx(value)
+    }
+
+    suspend fun setFingertipRingIconSizePx(value: Float) = editor.edit {
+        it[SettingsPreferenceKeys.FINGERTIP_RING_ICON_SIZE_PX] = FingertipRingCodec.effectiveIconSizePx(value)
+    }
+
     suspend fun resetFloatingPointerVisualDefaults() = editor.edit { prefs ->
         prefs[SettingsPreferenceKeys.FLOATING_POINTER_POINTER_SIZE] = 100f
         prefs[SettingsPreferenceKeys.FLOATING_POINTER_RING_THICKNESS] = 12f

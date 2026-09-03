@@ -31,13 +31,14 @@ import com.slideindex.app.settings.AppLaunchPolicy
 import com.slideindex.app.settings.FreeWindowMode
 import com.slideindex.app.settings.FreeWindowUiSettings
 import com.slideindex.app.settings.GestureHintStyle
-import com.slideindex.app.settings.actionFor
+import com.slideindex.app.settings.slotAction
 import com.slideindex.app.settings.activeBubbleStyle
 import com.slideindex.app.settings.activeCapsuleStyle
 import com.slideindex.app.settings.activeWaveStyle
 import com.slideindex.app.settings.defaultTriggerModeFor
 import com.slideindex.app.settings.descRes
 import com.slideindex.app.settings.displayTriggerMode
+import com.slideindex.app.settings.slotTriggerMode
 import com.slideindex.app.settings.forLandscapeEditing
 import com.slideindex.app.settings.gestureConfigSide
 import com.slideindex.app.settings.resolvedFreeWindowMode
@@ -56,7 +57,9 @@ import com.slideindex.app.ui.FreeWindowPreviewScreen
 import com.slideindex.app.ui.FreeWindowSettingsScreen
 import com.slideindex.app.ui.GestureActionPickerScreen
 import com.slideindex.app.ui.GestureAngleSettingsScreen
+import com.slideindex.app.gesture.PointerSwipeConfig
 import com.slideindex.app.ui.GestureExecuteShellCommandScreen
+import com.slideindex.app.ui.PointerSwipeConfigScreen
 import com.slideindex.app.ui.GestureSimulateKeyEventScreen
 import com.slideindex.app.ui.HiddenAppsScreen
 import com.slideindex.app.ui.LayoutSettingsScreen
@@ -66,6 +69,7 @@ import com.slideindex.app.ui.SettingRadioRow
 import com.slideindex.app.ui.SettingsRadioPickerScreen
 import com.slideindex.app.ui.ShakeGestureBlacklistScreen
 import com.slideindex.app.ui.SideGestureSettingsScreen
+import com.slideindex.app.ui.FingertipRingSettingsScreen
 import com.slideindex.app.ui.SideGestureSlotConfigScreen
 import com.slideindex.app.ui.SideGestureTriggerModePickerScreen
 import com.slideindex.app.ui.TriggerAppearanceSettingsScreen
@@ -651,6 +655,15 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
                     ),
                 )
             },
+            onOpenFingertipRingConfig = {
+                ctx.navigate(
+                    AppNavKey.HomeSideGestureFingertipRing(
+                        side = key.side,
+                        handleId = key.handleId,
+                        triggerId = key.triggerId,
+                    ),
+                )
+            },
         )
     }
 
@@ -675,10 +688,129 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
                     side,
                     trigger,
                     GestureAction.QuickLauncher(panel.id),
-                    settings.displayTriggerMode(configSide, trigger, key.handleId),
+                    settings.slotTriggerMode(configSide, trigger, key.handleId),
                     key.handleId,
                 )
                 ctx.navigateBackTo(slotConfigKey)
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.HomeSideGestureFingertipRing> { key ->
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val appSettings by viewModel.settings.collectAsStateWithLifecycle()
+        FingertipRingSettingsScreen(
+            settings = appSettings,
+            onBack = {
+                ctx.navigateBackTo(
+                    AppNavKey.HomeSideGestureSlotConfig(key.side, key.handleId, key.triggerId),
+                )
+            },
+            onSlotCountChange = viewModel::setFingertipRingSlotCount,
+            onOrbitRadiusChange = viewModel::setFingertipRingOrbitRadiusPx,
+            onIconSizeChange = viewModel::setFingertipRingIconSizePx,
+            onOpenSlotActionPick = { slotIndex ->
+                ctx.navigate(
+                    AppNavKey.HomeSideGestureFingertipRingSlotActionPick(
+                        side = key.side,
+                        handleId = key.handleId,
+                        triggerId = key.triggerId,
+                        slotIndex = slotIndex,
+                    ),
+                )
+            },
+            onOpenShellCommand = { slotIndex, command ->
+                ctx.navigate(
+                    AppNavKey.HomeSideGestureFingertipRingShellCommand(
+                        side = key.side,
+                        handleId = key.handleId,
+                        triggerId = key.triggerId,
+                        slotIndex = slotIndex,
+                        initialCommand = command,
+                    ),
+                )
+            },
+            onOpenSwipeConfig = { slotIndex ->
+                ctx.navigate(
+                    AppNavKey.HomeSideGestureFingertipRingSwipeConfig(
+                        side = key.side,
+                        handleId = key.handleId,
+                        triggerId = key.triggerId,
+                        slotIndex = slotIndex,
+                    ),
+                )
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.HomeSideGestureFingertipRingSlotActionPick> { key ->
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val appSettings by viewModel.settings.collectAsStateWithLifecycle()
+        val returnKey = AppNavKey.HomeSideGestureFingertipRing(key.side, key.handleId, key.triggerId)
+        val current = appSettings.fingertipRingSlotActions.getOrElse(key.slotIndex) { GestureAction.None }
+        GestureActionPickerScreen(
+            trigger = GestureTriggerType.SHORT_SWIPE_IN,
+            current = current,
+            onDismiss = { ctx.navigateBackTo(returnKey) },
+            onSelect = { action ->
+                if (action is GestureAction.FingertipRing) return@GestureActionPickerScreen
+                if (action is GestureAction.SimulatePointerSwipe) {
+                    ctx.navigate(
+                        AppNavKey.HomeSideGestureFingertipRingSwipeConfig(
+                            key.side, key.handleId, key.triggerId, key.slotIndex,
+                        ),
+                    )
+                } else {
+                    viewModel.setFingertipRingSlotAction(key.slotIndex, action)
+                    ctx.navigateBackTo(returnKey)
+                }
+            },
+            onOpenExecuteShellCommand = { cmd ->
+                ctx.navigate(
+                    AppNavKey.HomeSideGestureFingertipRingShellCommand(
+                        key.side, key.handleId, key.triggerId, key.slotIndex, cmd,
+                    ),
+                )
+            },
+            onOpenMyShortcuts = {},
+            onOpenPresetShortcuts = {},
+            onOpenPickApp = {},
+        )
+    }
+
+    hiltEntry<AppNavKey.HomeSideGestureFingertipRingShellCommand> { key ->
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val appSettings by viewModel.settings.collectAsStateWithLifecycle()
+        val returnKey = AppNavKey.HomeSideGestureFingertipRing(key.side, key.handleId, key.triggerId)
+        GestureExecuteShellCommandScreen(
+            initialCommand = key.initialCommand,
+            shellCommands = appSettings.shellCommands,
+            onBack = { ctx.navigateBackTo(returnKey) },
+            onConfirm = { command ->
+                viewModel.setFingertipRingSlotAction(key.slotIndex, GestureAction.ExecuteShellCommand(command))
+                ctx.navigateBackTo(returnKey)
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.HomeSideGestureFingertipRingSwipeConfig> { key ->
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val appSettings by viewModel.settings.collectAsStateWithLifecycle()
+        val returnKey = AppNavKey.HomeSideGestureFingertipRing(key.side, key.handleId, key.triggerId)
+        val current = appSettings.fingertipRingSlotActions.getOrElse(key.slotIndex) {
+            GestureAction.SimulatePointerSwipe()
+        }
+        val initial = (current as? GestureAction.SimulatePointerSwipe)?.config
+            ?: PointerSwipeConfig()
+        PointerSwipeConfigScreen(
+            initialConfig = initial,
+            onBack = { ctx.navigateBackTo(returnKey) },
+            onConfirm = { config ->
+                viewModel.setFingertipRingSlotAction(
+                    key.slotIndex,
+                    GestureAction.SimulatePointerSwipe(config),
+                )
+                ctx.navigateBackTo(returnKey)
             },
         )
     }
@@ -696,8 +828,9 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
         val configSide = settings.gestureConfigSide(side, key.handleId)
         val trigger = GestureTriggerType.fromId(key.triggerId) ?: GestureTriggerType.SHORT_SWIPE_IN
         val slotConfigKey = AppNavKey.HomeSideGestureSlotConfig(key.side, key.handleId, key.triggerId)
-        val currentAction = settings.actionFor(configSide, trigger, key.handleId)
-        val currentMode = settings.displayTriggerMode(configSide, trigger, key.handleId)
+        val currentAction = settings.slotAction(configSide, trigger, key.handleId)
+        val storedMode = settings.slotTriggerMode(configSide, trigger, key.handleId)
+        val resolvedMode = settings.displayTriggerMode(configSide, trigger, key.handleId)
         GestureActionPickerScreen(
             trigger = trigger,
             current = currentAction,
@@ -713,10 +846,10 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
                     }
                     else -> action
                 }
-                val mode = if (!currentMode.supportsAction(resolved, trigger)) {
+                val mode = if (!resolvedMode.supportsAction(resolved, trigger)) {
                     resolved.preferredTriggerMode(trigger) ?: GestureTriggerMode.ON_RELEASE
                 } else {
-                    currentMode
+                    storedMode
                 }
                 viewModel.setSlotConfig(side, trigger, resolved, mode, key.handleId)
                 ctx.navigateBackTo(slotConfigKey)
@@ -751,8 +884,9 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
         val side = key.side.toPanelSide()
         val configSide = settings.gestureConfigSide(side, key.handleId)
         val trigger = GestureTriggerType.fromId(key.triggerId) ?: GestureTriggerType.SHORT_SWIPE_IN
-        val currentAction = settings.actionFor(configSide, trigger, key.handleId)
-        val currentMode = settings.displayTriggerMode(configSide, trigger, key.handleId)
+        val currentAction = settings.slotAction(configSide, trigger, key.handleId)
+        val storedMode = settings.slotTriggerMode(configSide, trigger, key.handleId)
+        val resolvedMode = settings.displayTriggerMode(configSide, trigger, key.handleId)
         val slotConfigKey = AppNavKey.HomeSideGestureSlotConfig(key.side, key.handleId, key.triggerId)
         val returnKey = AppNavKey.HomeSideGestureSlotActionPick(key.side, key.handleId, key.triggerId)
         MyShortcutsFolderScreen(
@@ -761,10 +895,10 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
             onBrowseNewShortcut = { ctx.navigate(AppNavKey.HomeSideGestureSlotPickApp(key.side, key.handleId, key.triggerId)) },
             currentAction = currentAction,
             onSelectRadio = { action ->
-                val mode = if (!currentMode.supportsAction(action, trigger)) {
+                val mode = if (!resolvedMode.supportsAction(action, trigger)) {
                     action.preferredTriggerMode(trigger) ?: GestureTriggerMode.ON_RELEASE
                 } else {
-                    currentMode
+                    storedMode
                 }
                 viewModel.setSlotConfig(side, trigger, action, mode, key.handleId)
                 ctx.navigateBackTo(slotConfigKey)
@@ -783,18 +917,19 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
         val side = key.side.toPanelSide()
         val configSide = settings.gestureConfigSide(side, key.handleId)
         val trigger = GestureTriggerType.fromId(key.triggerId) ?: GestureTriggerType.SHORT_SWIPE_IN
-        val currentAction = settings.actionFor(configSide, trigger, key.handleId)
-        val currentMode = settings.displayTriggerMode(configSide, trigger, key.handleId)
+        val currentAction = settings.slotAction(configSide, trigger, key.handleId)
+        val storedMode = settings.slotTriggerMode(configSide, trigger, key.handleId)
+        val resolvedMode = settings.displayTriggerMode(configSide, trigger, key.handleId)
         val slotConfigKey = AppNavKey.HomeSideGestureSlotConfig(key.side, key.handleId, key.triggerId)
         val returnKey = AppNavKey.HomeSideGestureSlotActionPick(key.side, key.handleId, key.triggerId)
         PresetShortcutsFolderScreen(
             onBack = { ctx.navigateBackTo(returnKey) },
             currentAction = currentAction,
             onSelectRadio = { action ->
-                val mode = if (!currentMode.supportsAction(action, trigger)) {
+                val mode = if (!resolvedMode.supportsAction(action, trigger)) {
                     action.preferredTriggerMode(trigger) ?: GestureTriggerMode.ON_RELEASE
                 } else {
-                    currentMode
+                    storedMode
                 }
                 viewModel.setSlotConfig(side, trigger, action, mode, key.handleId)
                 ctx.navigateBackTo(slotConfigKey)
@@ -829,7 +964,8 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
         val side = key.side.toPanelSide()
         val configSide = settings.gestureConfigSide(side, key.handleId)
         val trigger = GestureTriggerType.fromId(key.triggerId) ?: GestureTriggerType.SHORT_SWIPE_IN
-        val currentMode = settings.displayTriggerMode(configSide, trigger, key.handleId)
+        val storedMode = settings.slotTriggerMode(configSide, trigger, key.handleId)
+        val resolvedMode = settings.displayTriggerMode(configSide, trigger, key.handleId)
         val slotConfigKey = AppNavKey.HomeSideGestureSlotConfig(key.side, key.handleId, key.triggerId)
         ActivityShortcutPickActivityScreen(
             packageName = key.packageName,
@@ -839,10 +975,10 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
                     "${activity.packageName}/${activity.className}",
                     activity.label,
                 )
-                val mode = if (!currentMode.supportsAction(action, trigger)) {
+                val mode = if (!resolvedMode.supportsAction(action, trigger)) {
                     action.preferredTriggerMode(trigger) ?: GestureTriggerMode.ON_RELEASE
                 } else {
-                    currentMode
+                    storedMode
                 }
                 viewModel.setSlotConfig(side, trigger, action, mode, key.handleId)
                 ctx.navigateBackTo(slotConfigKey)
@@ -862,10 +998,10 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
         val configSide = settings.gestureConfigSide(side, key.handleId)
         val trigger = GestureTriggerType.fromId(key.triggerId) ?: GestureTriggerType.SHORT_SWIPE_IN
         val slotConfigKey = AppNavKey.HomeSideGestureSlotConfig(key.side, key.handleId, key.triggerId)
-        val currentAction = settings.actionFor(configSide, trigger, key.handleId)
+        val currentAction = settings.slotAction(configSide, trigger, key.handleId)
         SideGestureTriggerModePickerScreen(
             title = ctx.activity.getString(com.slideindex.app.R.string.slot_pick_trigger_mode),
-            current = settings.displayTriggerMode(configSide, trigger, key.handleId),
+            current = settings.slotTriggerMode(configSide, trigger, key.handleId),
             action = currentAction,
             trigger = trigger,
             sideDefaultMode = settings.defaultTriggerModeFor(configSide),
@@ -896,7 +1032,7 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
         val configSide = settings.gestureConfigSide(side, key.handleId)
         val trigger = GestureTriggerType.fromId(key.triggerId) ?: GestureTriggerType.SHORT_SWIPE_IN
         val slotConfigKey = AppNavKey.HomeSideGestureSlotConfig(key.side, key.handleId, key.triggerId)
-        val currentMode = settings.displayTriggerMode(configSide, trigger, key.handleId)
+        val storedMode = settings.slotTriggerMode(configSide, trigger, key.handleId)
         GestureExecuteShellCommandScreen(
             initialCommand = key.initialCommand,
             shellCommands = settings.shellCommands,
@@ -906,7 +1042,7 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
                     side,
                     trigger,
                     GestureAction.ExecuteShellCommand(command),
-                    currentMode,
+                    storedMode,
                     key.handleId,
                 )
                 ctx.navigateBackTo(slotConfigKey)
@@ -926,7 +1062,7 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
         val configSide = settings.gestureConfigSide(side, key.handleId)
         val trigger = GestureTriggerType.fromId(key.triggerId) ?: GestureTriggerType.SHORT_SWIPE_IN
         val returnKey = AppNavKey.HomeSideGestureSlotActionPick(key.side, key.handleId, key.triggerId)
-        val currentMode = settings.displayTriggerMode(configSide, trigger, key.handleId)
+        val storedMode = settings.slotTriggerMode(configSide, trigger, key.handleId)
         GestureSimulateKeyEventScreen(
             initialAction = GestureAction.SimulateKeyEvent(
                 keyCode = key.initialKeyCode,
@@ -939,7 +1075,7 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
                     side,
                     trigger,
                     keyEventAction,
-                    currentMode,
+                    storedMode,
                     key.handleId,
                 )
                 ctx.navigateBackTo(returnKey)

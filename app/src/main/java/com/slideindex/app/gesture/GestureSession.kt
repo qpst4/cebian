@@ -37,6 +37,9 @@ class GestureSession(
         fun onShowAppSwitcher(continuousPick: Boolean, rawX: Float, rawY: Float): Boolean
         fun onAppSwitcherPointerMove(rawX: Float, rawY: Float)
         fun onAppSwitcherContinuousRelease(rawX: Float, rawY: Float)
+        fun onShowFingertipRing(continuousPick: Boolean, rawX: Float, rawY: Float): Boolean
+        fun onFingertipRingPointerMove(rawX: Float, rawY: Float)
+        fun onFingertipRingContinuousRelease(rawX: Float, rawY: Float)
         fun onShowAdjustPanel(
             mode: ContinuousAdjustController.Mode,
             fraction: Float,
@@ -90,6 +93,7 @@ class GestureSession(
         )
         longPressCheckRunnable = Runnable {
             if (!active || sessionPanelMode != OverlayPanelMode.NONE) return@Runnable
+            if (sessionContinuousPick.fingertipRingActive()) return@Runnable
             thresholdTracker.maybeHapticLongPress(lastRawX, lastRawY)
             if (!pathRecognizer.isLongPressArmed()) return@Runnable
             val classification = pathRecognizer.classifyPartial(lastRawX, lastRawY, classifyOptions()) ?: return@Runnable
@@ -230,10 +234,15 @@ class GestureSession(
         sessionContinuousPick.clearAppSwitcher()
     }
 
+    fun clearFingertipRingContinuousPick() {
+        sessionContinuousPick.clearFingertipRing()
+    }
+
     fun isContinuousPickActive(): Boolean =
         sessionContinuousPick.honeycombActive() ||
             sessionContinuousPick.appSwitcherActive() ||
             sessionContinuousPick.appCarouselSwitcherActive() ||
+            sessionContinuousPick.fingertipRingActive() ||
             sessionContinuousPick.shellActive() ||
             sessionContinuousPick.taskSwitcherActive() ||
             sessionContinuousPick.quickLauncherActive()
@@ -326,6 +335,11 @@ class GestureSession(
             return
         }
 
+        if (sessionContinuousPick.fingertipRingActive()) {
+            callbacks.onFingertipRingPointerMove(rawX, rawY)
+            return
+        }
+
         if (sessionPanelMode != OverlayPanelMode.NONE) {
             if (sessionIndexMode && indexSession.updateSelection(localX, localY)) {
                 callbacks.onRequestInvalidate()
@@ -404,6 +418,13 @@ class GestureSession(
                         rawX,
                         rawY,
                     )
+                    endSession()
+                    return
+                }
+
+                if (sessionContinuousPick.fingertipRingActive()) {
+                    sessionContinuousPick.clearFingertipRing()
+                    callbacks.onFingertipRingContinuousRelease(rawX, rawY)
                     endSession()
                     return
                 }
@@ -615,6 +636,55 @@ class GestureSession(
         thresholdTracker.maybeHapticLongPress(rawX, rawY)
         thresholdTracker.trackDistanceHaptics(rawX, rawY)
         scheduleHoverHapticIfNeeded()
+        maybeDispatchHoverGesture()
+    }
+
+    /**
+     * 短滑悬停计时结束后手指可能已静止，不会再收到 MOVE；
+     * 在悬停满足时立即按触发模式派发持续/即时动作，避免等到松手才弹出圆环等 overlay。
+     */
+    private fun maybeDispatchHoverGesture() {
+        if (!active || sessionPanelMode != OverlayPanelMode.NONE || sessionMoveTimeActionFired) return
+        if (sessionAdjustMode != null) return
+        if (sessionContinuousPick.fingertipRingActive() ||
+            sessionContinuousPick.honeycombActive() ||
+            sessionContinuousPick.appSwitcherActive() ||
+            sessionContinuousPick.appCarouselSwitcherActive()
+        ) {
+            return
+        }
+        if (!pathRecognizer.isHoverSatisfied()) return
+
+        val classification = pathRecognizer.classifyPartial(lastRawX, lastRawY, classifyOptions()) ?: return
+        if (!classification.trigger.isHoverSwipe) return
+
+        when (sessionSettings.resolvedTriggerMode(side, classification.trigger, sessionActiveHandleId)) {
+            GestureTriggerMode.CONTINUOUS -> trackContinuousGesture(
+                classification = classification,
+                rawX = lastRawX,
+                rawY = lastRawY,
+                localX = lastLocalX,
+                localY = lastLocalY,
+            )
+            GestureTriggerMode.IMMEDIATE -> {
+                if (pathRecognizer.hasMetThreshold(
+                        classification.trigger,
+                        lastRawX,
+                        lastRawY,
+                        classifyOptions(),
+                    )
+                ) {
+                    dispatchMoveTimeGesture(
+                        classification,
+                        lastRawX,
+                        lastRawY,
+                        lastLocalX,
+                        lastLocalY,
+                    )
+                }
+            }
+            GestureTriggerMode.ON_RELEASE, GestureTriggerMode.DEFAULT -> Unit
+        }
     }
 
     private fun scheduleHoverHapticIfNeeded() {

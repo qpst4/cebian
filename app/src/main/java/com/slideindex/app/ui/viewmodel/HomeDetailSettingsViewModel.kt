@@ -495,4 +495,20 @@ class HomeDetailSettingsViewModel @Inject constructor(
         val isLeft = unified || corner != "right"
         settingsRepository.setCornerSlotSubMenu(isLeft, slotIndex, config)
     }
+
+    fun setFingertipRingSlotCount(count: Int) = launchSettingsWrite {
+        settingsRepository.setFingertipRingSlotCount(count)
+    }
+
+    fun setFingertipRingSlotAction(index: Int, action: GestureAction) = launchSettingsWrite {
+        settingsRepository.setFingertipRingSlotAction(index, action)
+    }
+
+    fun setFingertipRingOrbitRadiusPx(value: Float) = launchSettingsWrite {
+        settingsRepository.setFingertipRingOrbitRadiusPx(value)
+    }
+
+    fun setFingertipRingIconSizePx(value: Float) = launchSettingsWrite {
+        settingsRepository.setFingertipRingIconSizePx(value)
+    }
 }

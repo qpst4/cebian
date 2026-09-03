@@ -152,6 +152,7 @@ class ActionExecutor(
             GestureAction.PointerGestureRecorder,
             GestureAction.PointerRealtimeGesture,
             GestureAction.OpenFloatingPointerRadialMenu,
+            GestureAction.FingertipRing,
             -> false
             GestureAction.QuickToolsOverlay ->
                 overlayPanels.showStandaloneOverlay(anchorRawY) { y ->

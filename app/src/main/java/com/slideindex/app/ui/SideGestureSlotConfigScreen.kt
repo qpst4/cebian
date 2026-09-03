@@ -34,11 +34,11 @@ import com.slideindex.app.overlay.PanelSide
 
 import com.slideindex.app.settings.AppSettings
 
-import com.slideindex.app.settings.actionFor
+import com.slideindex.app.settings.slotAction
 
 import com.slideindex.app.settings.defaultTriggerModeFor
 
-import com.slideindex.app.settings.displayTriggerMode
+import com.slideindex.app.settings.slotTriggerMode
 
 import com.slideindex.app.settings.gestureConfigSide
 
@@ -77,13 +77,15 @@ fun SideGestureSlotConfigScreen(
 
     onOpenQuickLauncherPanel: (String) -> Unit = {},
 
+    onOpenFingertipRingConfig: () -> Unit = {},
+
 ) {
 
     val configSide = settings.gestureConfigSide(side, handleId)
 
-    val selectedAction = settings.actionFor(configSide, trigger, handleId)
+    val selectedAction = settings.slotAction(configSide, trigger, handleId)
 
-    val selectedMode = settings.displayTriggerMode(configSide, trigger, handleId)
+    val selectedMode = settings.slotTriggerMode(configSide, trigger, handleId)
 
     val sideDefaultMode = settings.defaultTriggerModeFor(configSide)
 
@@ -96,6 +98,8 @@ fun SideGestureSlotConfigScreen(
     val quickLauncherSectionTitle = stringResource(R.string.quick_launcher_panel_pick_title)
 
     val shellCommandSectionTitle = stringResource(R.string.gesture_shell_command_config_title)
+
+    val fingertipRingSectionTitle = stringResource(R.string.fingertip_ring_config_section)
 
     val triggerModeSectionTitle = stringResource(R.string.slot_trigger_mode)
 
@@ -210,6 +214,66 @@ fun SideGestureSlotConfigScreen(
                                 subtitle = stringResource(R.string.quick_launcher_panel_pick_title),
 
                                 onClick = { onOpenQuickLauncherPanel(selectedAction.panelId) },
+
+                            )
+
+                        },
+
+                    )
+
+                },
+
+            )
+
+        }
+
+
+
+        if (selectedAction is GestureAction.FingertipRing) {
+
+            settingsLazySmallTitle(
+
+                key = "slot-fingertip-ring-section",
+
+                title = fingertipRingSectionTitle,
+
+                sectionTop = true,
+
+            )
+
+            groupedCardItems(
+
+                keyPrefix = "side-gesture-fingertip-ring",
+
+                items = buildList {
+
+                    add(
+
+                        settingsCardScopeItem("slot-fingertip-ring") {
+
+                            SettingNavigationRow(
+
+                                icon = { label ->
+
+                                    Icon(
+
+                                        imageVector = gestureActionImageVector(selectedAction, outlined = true),
+
+                                        contentDescription = label,
+
+                                        modifier = Modifier.size(24.dp),
+
+                                        tint = MaterialTheme.colorScheme.onSurface,
+
+                                    )
+
+                                },
+
+                                title = stringResource(R.string.fingertip_ring_config_title),
+
+                                subtitle = stringResource(R.string.fingertip_ring_config_desc),
+
+                                onClick = onOpenFingertipRingConfig,
 
                             )
 

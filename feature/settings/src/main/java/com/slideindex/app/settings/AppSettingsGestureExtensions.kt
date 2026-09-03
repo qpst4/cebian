@@ -36,16 +36,13 @@ fun AppSettings.withSlotAction(
         }
     val others = gestureRules.filterNot { it.id == slotId || it.id == existing?.id }
     if (action.type == GestureActionType.NONE) {
-        if (existing?.triggerMode == GestureTriggerMode.DEFAULT || existing?.triggerMode == null) {
-            return withGestureRules(others)
-        }
         return withGestureRules(
             others + GestureRule(
                 id = slotId,
                 side = side,
                 trigger = trigger,
                 action = GestureAction.None,
-                triggerMode = existing.triggerMode,
+                triggerMode = existing?.triggerMode ?: GestureTriggerMode.DEFAULT,
                 handleId = handleId,
             ),
         )
@@ -67,6 +64,7 @@ fun AppSettings.withSlotTriggerMode(
     trigger: GestureTriggerType,
     triggerMode: GestureTriggerMode,
     handleId: String = TriggerHandle.DEFAULT_ID,
+    explicitAction: GestureAction? = null,
 ): AppSettings {
     val slotId = GestureRule.slotId(side, trigger, handleId)
     val existing = gestureRules.firstOrNull { it.id == slotId }
@@ -76,12 +74,19 @@ fun AppSettings.withSlotTriggerMode(
             null
         }
     val others = gestureRules.filterNot { it.id == slotId || it.id == existing?.id }
-    val action = existing?.action ?: actionFor(side, trigger, handleId)
+    val action = explicitAction ?: existing?.action ?: actionFor(side, trigger, handleId)
     if (triggerMode == GestureTriggerMode.DEFAULT &&
-        (existing == null || existing.action.type == GestureActionType.NONE) &&
         action.type == GestureActionType.NONE
     ) {
-        return withGestureRules(others)
+        if (existing == null) {
+            return withGestureRules(others)
+        }
+        return withGestureRules(
+            others + existing.copy(
+                triggerMode = GestureTriggerMode.DEFAULT,
+                action = GestureAction.None,
+            ),
+        )
     }
     if (triggerMode == GestureTriggerMode.DEFAULT && existing != null &&
         existing.action.type != GestureActionType.NONE
@@ -196,13 +201,16 @@ private fun AppSettings.applySlotConfig(
     action: GestureAction,
     triggerMode: GestureTriggerMode,
     handleId: String,
-): AppSettings =
-    if (action.type == GestureActionType.NONE) {
-        withSlotAction(side, trigger, action, handleId)
-    } else {
-        withSlotAction(side, trigger, action, handleId)
-            .withSlotTriggerMode(side, trigger, triggerMode, handleId)
-    }
+): AppSettings {
+    val afterAction = withSlotAction(side, trigger, action, handleId)
+    return afterAction.withSlotTriggerMode(
+        side = side,
+        trigger = trigger,
+        triggerMode = triggerMode,
+        handleId = handleId,
+        explicitAction = action,
+    )
+}
 
 private fun AppSettings.mirrorSlotConfigToOppositeIfAligned(
     sourceSide: PanelSide,
@@ -376,6 +384,34 @@ fun AppSettings.actionFor(
 ): GestureAction {
     return effectiveRule(side, trigger, handleId)?.action ?: GestureAction.None
 }
+
+/** 仅读取已持久化的槽位动作；无自定义规则时返回 [GestureAction.None]（不回落到出厂默认）。 */
+fun AppSettings.persistedSlotRule(
+    side: PanelSide,
+    trigger: GestureTriggerType,
+    handleId: String = TriggerHandle.DEFAULT_ID,
+): GestureRule? {
+    val newSlotId = GestureRule.slotId(side, trigger, handleId)
+    return gestureRules.firstOrNull { it.id == newSlotId }
+        ?: if (handleId == TriggerHandle.DEFAULT_ID) {
+            gestureRules.firstOrNull { it.id == GestureRule.legacySlotId(side, trigger) }
+        } else {
+            null
+        }
+}
+
+fun AppSettings.slotAction(
+    side: PanelSide,
+    trigger: GestureTriggerType,
+    handleId: String = TriggerHandle.DEFAULT_ID,
+): GestureAction = persistedSlotRule(side, trigger, handleId)?.action ?: GestureAction.None
+
+/** 列表展示：有自定义规则用持久化动作，否则展示运行时有效动作。 */
+fun AppSettings.slotActionForDisplay(
+    side: PanelSide,
+    trigger: GestureTriggerType,
+    handleId: String = TriggerHandle.DEFAULT_ID,
+): GestureAction = persistedSlotRule(side, trigger, handleId)?.action ?: actionFor(side, trigger, handleId)
 
 fun AppSettings.slotTriggerMode(
     side: PanelSide,

@@ -84,6 +84,7 @@ enum class GestureActionType(val id: Int) {
     PIN_TO_SCREEN(82),
     APP_CAROUSEL_SWITCHER(83),
     FOREGROUND_ACTIVITY_INSPECTOR(84),
+    FINGERTIP_RING(85),
     ;
 
     companion object {
@@ -468,6 +469,12 @@ sealed class GestureAction {
         override val payload = ""
     }
 
+    /** 触钮手势指尖圆环：在手指位置弹出圆环槽位菜单。 */
+    data object FingertipRing : GestureAction() {
+        override val type = GestureActionType.FINGERTIP_RING
+        override val payload = ""
+    }
+
     /** 全屏 3D 球应用启动器，弹出后拖拽旋转、点击图标启动。 */
     data object HolographicLauncher : GestureAction() {
         override val type = GestureActionType.HOLOGRAPHIC_LAUNCHER
@@ -627,6 +634,7 @@ sealed class GestureAction {
             HoneycombLauncher,
             AppSwitcher,
             AppCarouselSwitcher,
+            FingertipRing,
             AdjustVolume,
             AdjustBrightness,
             FloatingPointer,
@@ -697,6 +705,7 @@ sealed class GestureAction {
                 GestureActionType.HONEYCOMB_LAUNCHER -> HoneycombLauncher
                 GestureActionType.APP_SWITCHER -> AppSwitcher
                 GestureActionType.APP_CAROUSEL_SWITCHER -> AppCarouselSwitcher
+                GestureActionType.FINGERTIP_RING -> FingertipRing
                 GestureActionType.HOLOGRAPHIC_LAUNCHER -> HolographicLauncher
                 GestureActionType.VOLUME_PANEL -> VolumePanel
                 GestureActionType.SCREEN_TRANSLATE -> ScreenTranslate
@@ -778,6 +787,7 @@ fun GestureAction.supportsContinuousTracking(trigger: GestureTriggerType): Boole
     return when (this) {
         GestureAction.AppSwitcher,
         GestureAction.AppCarouselSwitcher,
+        GestureAction.FingertipRing,
         GestureAction.HoneycombLauncher,
         is GestureAction.QuickLauncher,
         GestureAction.ShellCommandPanel,
@@ -791,7 +801,7 @@ fun GestureAction.preferredTriggerMode(trigger: GestureTriggerType): GestureTrig
         GestureAction.OpenIndex ->
             if (!trigger.isPressOrTap) GestureTriggerMode.CONTINUOUS else null
         is GestureAction.QuickLauncher, GestureAction.ShellCommandPanel, GestureAction.HoneycombLauncher,
-        GestureAction.AppSwitcher,
+        GestureAction.AppSwitcher, GestureAction.FingertipRing,
         ->
             when {
                 trigger.isLongPress -> GestureTriggerMode.CONTINUOUS
@@ -801,6 +811,7 @@ fun GestureAction.preferredTriggerMode(trigger: GestureTriggerType): GestureTrig
         GestureAction.AdjustVolume, GestureAction.AdjustBrightness ->
             if (!trigger.isPressOrTap) GestureTriggerMode.ON_RELEASE else null
         GestureAction.AppCarouselSwitcher,
+        GestureAction.FingertipRing,
         GestureAction.RegionalScreenshotPick,
         GestureAction.FloatingPointer,
         ->

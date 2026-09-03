@@ -40,6 +40,15 @@ internal class GestureSessionCallbackBridge : GestureSession.Callbacks {
         delegate.onAppSwitcherPointerMove(rawX, rawY)
     override fun onAppSwitcherContinuousRelease(rawX: Float, rawY: Float) =
         delegate.onAppSwitcherContinuousRelease(rawX, rawY)
+    override fun onShowFingertipRing(
+        continuousPick: Boolean,
+        rawX: Float,
+        rawY: Float,
+    ): Boolean = delegate.onShowFingertipRing(continuousPick, rawX, rawY)
+    override fun onFingertipRingPointerMove(rawX: Float, rawY: Float) =
+        delegate.onFingertipRingPointerMove(rawX, rawY)
+    override fun onFingertipRingContinuousRelease(rawX: Float, rawY: Float) =
+        delegate.onFingertipRingContinuousRelease(rawX, rawY)
     override fun onShowAdjustPanel(
         mode: com.slideindex.app.util.ContinuousAdjustController.Mode,
         fraction: Float,
@@ -160,6 +169,7 @@ internal class EdgeGestureSessionCoordinator(
         shellCoordinator.onSessionEnd()
         HoneycombAppPickerOverlayWindow.onGestureSessionEnd()
         AppSwitcherOverlayWindow.onGestureSessionEnd()
+        com.slideindex.app.overlay.fingertip.FingertipRingOverlayWindow.onGestureSessionEnd()
         com.slideindex.app.overlay.carousel.AppCarouselSwitcherOverlay.onGestureSessionEnd()
         layoutCoordinator.notifyOverlayLayoutIfNeeded()
         notifyPresentationTouchRequirementChanged()
@@ -246,6 +256,41 @@ internal class EdgeGestureSessionCoordinator(
             settings = settingsProvider(),
         )
         gestureSession.clearAppSwitcherContinuousPick()
+    }
+
+    override fun onShowFingertipRing(
+        continuousPick: Boolean,
+        rawX: Float,
+        rawY: Float,
+    ): Boolean {
+        gestureAnimationCoordinator.hide()
+        val settings = settingsProvider()
+        val shown = com.slideindex.app.overlay.fingertip.FingertipRingOverlayWindow.show(
+            context = view.context,
+            settings = settings,
+            anchorRawX = rawX,
+            anchorRawY = rawY,
+            externalTracking = continuousPick,
+            actionExecutor = if (continuousPick) null else actionExecutor,
+        )
+        if (shown && continuousPick) {
+            com.slideindex.app.overlay.fingertip.FingertipRingOverlayWindow.updatePointer(rawX, rawY)
+        }
+        return shown
+    }
+
+    override fun onFingertipRingPointerMove(rawX: Float, rawY: Float) {
+        com.slideindex.app.overlay.fingertip.FingertipRingOverlayWindow.updatePointer(rawX, rawY)
+    }
+
+    override fun onFingertipRingContinuousRelease(rawX: Float, rawY: Float) {
+        com.slideindex.app.overlay.fingertip.FingertipRingOverlayWindow.confirmSelection(
+            rawX = rawX,
+            rawY = rawY,
+            settings = settingsProvider(),
+            actionExecutor = actionExecutor,
+        )
+        gestureSession.clearFingertipRingContinuousPick()
     }
 
     override fun onShowAdjustPanel(
