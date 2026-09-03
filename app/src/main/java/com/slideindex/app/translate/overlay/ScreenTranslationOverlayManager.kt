@@ -26,10 +26,12 @@ import android.widget.TextView
 import android.widget.Toast
 import com.slideindex.app.R
 import com.slideindex.app.di.OverlayDependencyAccess
+import com.slideindex.app.overlay.FloatBallOcrRegions
+import com.slideindex.app.overlay.FloatBallOverlay
 import com.slideindex.app.overlay.OverlayViewBackHandler
 import com.slideindex.app.overlay.OverlayWindowTypes
 import com.slideindex.app.overlay.compositor.OverlaySceneController
-import com.slideindex.app.overlay.FloatBallOverlay
+import com.slideindex.app.service.AccessibilityTextExtractor
 import com.slideindex.app.settings.FloatBallTranslateEngine
 import com.slideindex.app.translate.TranslateDependencyAccess
 import com.slideindex.app.translate.TranslateEngine
@@ -42,6 +44,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
+import java.util.IdentityHashMap
 import kotlin.coroutines.resume
 
 class ScreenTranslationOverlayManager(
@@ -145,19 +148,24 @@ class ScreenTranslationOverlayManager(
         for (i in segments.indices) {
             val text = translated.getOrNull(i)?.trim().orEmpty()
             if (text.isEmpty() || text == segments[i].text) continue
-            val bounds = segments[i].bounds
-            val marginH = maxOf((2 * density).toInt(), bounds.width() / 30)
-            val marginV = maxOf((2 * density).toInt(), bounds.height() / 20)
-            val cover = Rect(
-                (bounds.left - marginH).coerceAtLeast(0),
-                (bounds.top - marginV).coerceAtLeast(0),
-                bounds.right + marginH,
-                bounds.bottom + marginV,
+            val textBounds = Rect(segments[i].bounds)
+            val marginH = maxOf((2 * density).toInt(), textBounds.width() / 30)
+            val marginV = maxOf((2 * density).toInt(), textBounds.height() / 20)
+            val (screenW, screenH) = FloatBallOcrRegions.accessibilityScreenSizePx(service)
+            val sampleBounds = FloatBallOcrRegions.clampToScreen(
+                Rect(
+                    textBounds.left - marginH,
+                    textBounds.top - marginV,
+                    textBounds.right + marginH,
+                    textBounds.bottom + marginV,
+                ),
+                screenW,
+                screenH,
             )
-            val bg = screenshot?.let { sampleBorderColor(it, cover) }
+            val bg = screenshot?.let { sampleBorderColor(it, sampleBounds) }
                 ?: if (darkMode == true) DARK_BG else Color.WHITE
             val fg = if (isLightColor(bg)) Color.BLACK else Color.WHITE
-            items += DisplayItem(cover, text, bg, fg, isLikelySingleLine(segments[i].text))
+            items += DisplayItem(textBounds, text, bg, fg, isLikelySingleLine(segments[i].text))
         }
         return items
     }
@@ -166,45 +174,23 @@ class ScreenTranslationOverlayManager(
         val density = service.resources.displayMetrics.density
         val minWidth = (18 * density).toInt()
         val minHeight = (10 * density).toInt()
-        val segments = mutableListOf<TextSegment>()
-        fun visit(node: AccessibilityNodeInfo) {
-            if (segments.size >= MAX_SEGMENTS) return
-            val text = node.text?.toString()?.trim()
-            if (!text.isNullOrEmpty() && text.length <= MAX_TEXT_LENGTH &&
-                node.isVisibleToUser && !node.isEditable && !isNoiseText(node, text)
-            ) {
-                val bounds = Rect()
-                node.getBoundsInScreen(bounds)
-                if (!bounds.isEmpty && bounds.width() >= minWidth && bounds.height() >= minHeight) {
-                    segments += TextSegment(bounds, text)
-                }
+        return AccessibilityTextExtractor.collectScreenTextBlocksFromRoot(root, service)
+            .asSequence()
+            .filter { it.text.length <= MAX_TEXT_LENGTH }
+            .filter { !isNoiseText(it.text) }
+            .filter {
+                val bounds = it.bounds
+                !bounds.isEmpty && bounds.width() >= minWidth && bounds.height() >= minHeight
             }
-            for (i in 0 until node.childCount) {
-                if (segments.size >= MAX_SEGMENTS) return
-                val child = node.getChild(i) ?: continue
-                visit(child)
-            }
-        }
-        visit(root)
-        val cleaned = mutableListOf<TextSegment>()
-        for (segment in segments) {
-            val contained = cleaned.any { it.bounds.contains(segment.bounds) && it.text == segment.text }
-            if (contained) continue
-            cleaned.removeAll { segment.bounds.contains(it.bounds) && it.text == segment.text }
-            cleaned += segment
-        }
-        return cleaned
+            .take(MAX_SEGMENTS)
+            .map { TextSegment(Rect(it.bounds), it.text) }
+            .toList()
     }
 
-    private fun isNoiseText(node: AccessibilityNodeInfo, text: String): Boolean {
+    private fun isNoiseText(text: String): Boolean {
         if (text.length < 2) return true
         if (text.none { it.isLetterOrDigit() }) return true
         if (text.all { it.isDigit() || it.isWhitespace() || it in ":./年月日时分秒-｜" }) return true
-        val viewId = node.viewIdResourceName?.substringAfterLast('/')?.lowercase().orEmpty()
-        if (viewId.isNotEmpty()) {
-            val noise = listOf("name", "nick", "author", "user_name", "time", "date", "count", "badge", "avatar", "index", "icon")
-            if (noise.any { viewId.contains(it) }) return true
-        }
         return false
     }
 
@@ -235,7 +221,15 @@ class ScreenTranslationOverlayManager(
         }
     }
 
-    private fun sampleBorderColor(bitmap: Bitmap, bounds: Rect): Int {
+    private fun sampleBorderColor(bitmap: Bitmap, screenBounds: Rect): Int {
+        val (screenW, screenH) = FloatBallOcrRegions.accessibilityScreenSizePx(service)
+        val bounds = FloatBallOcrRegions.mapScreenRectToBitmap(
+            screenBounds,
+            screenW,
+            screenH,
+            bitmap.width,
+            bitmap.height,
+        )
         val left = bounds.left.coerceIn(0, bitmap.width - 1)
         val top = bounds.top.coerceIn(0, bitmap.height - 1)
         val right = (bounds.right - 1).coerceIn(0, bitmap.width - 1)
@@ -271,7 +265,7 @@ class ScreenTranslationOverlayManager(
     private fun isLikelySingleLine(text: String): Boolean = !text.contains('\n') && text.length <= 12
 
     private fun showOverlay(items: List<DisplayItem>) {
-        val root = FrameLayout(service).apply {
+        val root = ScreenAlignedOverlayLayout(service).apply {
             isFocusable = true
             isFocusableInTouchMode = true
         }
@@ -287,22 +281,18 @@ class ScreenTranslationOverlayManager(
             val view = createItemView(item)
             view.isClickable = false
             view.isFocusable = false
-            val lp = FrameLayout.LayoutParams(item.bounds.width(), item.bounds.height())
-            lp.leftMargin = item.bounds.left
-            lp.topMargin = item.bounds.top
-            root.addView(view, lp)
+            root.addTranslationView(view, Rect(item.bounds))
         }
         val params = WindowManager.LayoutParams(
             WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.MATCH_PARENT,
             OverlayWindowTypes.contentPanelWindowType(service),
             WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
                 WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
             PixelFormat.TRANSLUCENT,
-        ).apply {
-            gravity = Gravity.TOP or Gravity.START
-        }
+        )
+        OverlayWindowTypes.applyFullScreen(params)
+        OverlayWindowTypes.ensureNoBrightnessOverride(params)
         backHandler = OverlayViewBackHandler(root) { dismiss() }.also { it.attach() }
         windowManager.addView(root, params)
         rootView = root
@@ -346,6 +336,37 @@ class ScreenTranslationOverlayManager(
         private const val MAX_SEGMENTS = 150
         private const val MAX_TEXT_LENGTH = 1800
         private val DARK_BG = Color.rgb(0x1e, 0x1e, 0x1e)
+    }
+}
+
+/** Positions children by screen-space [AccessibilityNodeInfo.getBoundsInScreen] rects, compensating overlay origin offset. */
+private class ScreenAlignedOverlayLayout(context: Context) : FrameLayout(context) {
+    private val locationOnScreen = IntArray(2)
+    private val childBounds = IdentityHashMap<View, Rect>()
+
+    fun addTranslationView(view: View, screenBounds: Rect) {
+        childBounds[view] = screenBounds
+        addView(view, LayoutParams(screenBounds.width(), screenBounds.height()))
+    }
+
+    override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
+        getLocationOnScreen(locationOnScreen)
+        val offsetX = locationOnScreen[0]
+        val offsetY = locationOnScreen[1]
+        for (i in 0 until childCount) {
+            val child = getChildAt(i)
+            val screenBounds = childBounds[child]
+            if (screenBounds == null) {
+                child.layout(0, 0, width, height)
+                continue
+            }
+            child.layout(
+                screenBounds.left - offsetX,
+                screenBounds.top - offsetY,
+                screenBounds.right - offsetX,
+                screenBounds.bottom - offsetY,
+            )
+        }
     }
 }
 

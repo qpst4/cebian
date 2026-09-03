@@ -32,6 +32,7 @@ object HoneycombAppPickerOverlayWindow {
     private var externalTracking = false
     /** Browse mode stays open after the edge gesture session ends. */
     private var persistAfterSessionEnd = false
+    private var forceBrowseMode = false
 
     val isShowing: Boolean get() = controller?.isVisible == true
 
@@ -41,13 +42,22 @@ object HoneycombAppPickerOverlayWindow {
         anchorRawX: Float,
         anchorRawY: Float,
         externalTracking: Boolean,
+        forceBrowseMode: Boolean = false,
         onLaunch: (QuickLauncherItem, Boolean) -> Unit,
     ): Boolean {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             var result = false
             val latch = java.util.concurrent.CountDownLatch(1)
             mainHandler.post {
-                result = show(context, settings, anchorRawX, anchorRawY, externalTracking, onLaunch)
+                result = show(
+                    context,
+                    settings,
+                    anchorRawX,
+                    anchorRawY,
+                    externalTracking,
+                    forceBrowseMode,
+                    onLaunch,
+                )
                 latch.countDown()
             }
             runCatching { latch.await(500, java.util.concurrent.TimeUnit.MILLISECONDS) }
@@ -87,7 +97,13 @@ object HoneycombAppPickerOverlayWindow {
         }
 
         val displayConfig = HoneycombDisplayConfig.from(settings)
-        val browseMode = displayConfig.honeycombMode == HoneycombDisplayConfig.MODE_BROWSE
+        val browseMode = forceBrowseMode ||
+            displayConfig.honeycombMode == HoneycombDisplayConfig.MODE_BROWSE
+        val effectiveConfig = if (forceBrowseMode) {
+            displayConfig.copy(honeycombMode = HoneycombDisplayConfig.MODE_BROWSE)
+        } else {
+            displayConfig
+        }
         val screenWidth = hostContext.resources.displayMetrics.widthPixels
         val corner = if (anchorRawX < screenWidth * 0.5f) {
             HoneycombCorner.LEFT
@@ -99,6 +115,7 @@ object HoneycombAppPickerOverlayWindow {
             controller = it
         }
         this.externalTracking = externalTracking
+        this.forceBrowseMode = forceBrowseMode
         persistAfterSessionEnd = browseMode
 
         val launchCallback = onLaunch
@@ -114,7 +131,7 @@ object HoneycombAppPickerOverlayWindow {
             corner,
             anchorRawX,
             anchorRawY,
-            displayConfig,
+            effectiveConfig,
             externalTracking,
             object : HoneycombOverlayController.Listener {
                 override fun onLaunch(target: HoneycombRuntimeTarget, selectionPressDurationMs: Long) {
@@ -176,7 +193,8 @@ object HoneycombAppPickerOverlayWindow {
             mainHandler.post { confirmSelection(rawX, rawY, actionExecutor, settings) }
             return
         }
-        val browseMode = settings.honeycombDisplay.mode == HoneycombDisplaySettings.MODE_BROWSE
+        val browseMode = forceBrowseMode ||
+            settings.honeycombDisplay.mode == HoneycombDisplaySettings.MODE_BROWSE
         updatePointer(rawX, rawY)
         controller?.externalUp(rawX, rawY, false)
         if (browseMode && externalTracking) {
@@ -211,6 +229,7 @@ object HoneycombAppPickerOverlayWindow {
         appContext = null
         externalTracking = false
         persistAfterSessionEnd = false
+        forceBrowseMode = false
         BlurredWallpaperCache.clear()
     }
 

@@ -57,6 +57,26 @@
 -dontwarn androidx.datastore.**
 
 # ---------------------------------------------------------------------------
+# WorkManager (Room WorkDatabase_Impl is reflectively constructed at startup)
+# ---------------------------------------------------------------------------
+-keep class * extends androidx.work.ListenableWorker {
+    public <init>(android.content.Context, androidx.work.WorkerParameters);
+}
+-keep class * extends androidx.work.Worker
+-keep class * extends androidx.work.InputMerger
+-keep class androidx.work.impl.** { *; }
+-keepclassmembers class androidx.work.impl.** {
+    <init>(...);
+}
+-keep class com.slideindex.app.update.UpdateCheckWorker { *; }
+-dontwarn androidx.work.**
+
+# ---------------------------------------------------------------------------
+# AndroidX App Startup (WorkManagerInitializer runs in InitializationProvider)
+# ---------------------------------------------------------------------------
+-keep class androidx.startup.** { *; }
+
+# ---------------------------------------------------------------------------
 # Shizuku
 # ---------------------------------------------------------------------------
 -keep class rikka.shizuku.** { *; }

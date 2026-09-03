@@ -19,7 +19,6 @@ import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.GestureTriggerMode
 import com.slideindex.app.gesture.GestureTriggerType
 import com.slideindex.app.gesture.InwardCompoundBranch
-import com.slideindex.app.gesture.SwipeDirectionFamily
 import com.slideindex.app.gesture.directionFamily
 import com.slideindex.app.gesture.TriggerHandleDesign
 import com.slideindex.app.gesture.preferredTriggerMode
@@ -67,8 +66,6 @@ import com.slideindex.app.ui.SettingRadioRow
 import com.slideindex.app.ui.SettingsRadioPickerScreen
 import com.slideindex.app.ui.ShakeGestureBlacklistScreen
 import com.slideindex.app.ui.SideGestureSettingsScreen
-import com.slideindex.app.ui.DirectionSwipeSettingsScreen
-import com.slideindex.app.ui.InwardSwipeSettingsScreen
 import com.slideindex.app.ui.SideGestureSlotConfigScreen
 import com.slideindex.app.ui.SideGestureTriggerModePickerScreen
 import com.slideindex.app.ui.TriggerAppearanceSettingsScreen
@@ -572,19 +569,6 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
                     ),
                 )
             },
-            onOpenDirectionFamily = { family ->
-                if (family == SwipeDirectionFamily.IN) {
-                    ctx.navigate(AppNavKey.HomeSideGestureInwardSwipe(key.side, key.handleId))
-                } else {
-                    ctx.navigate(
-                        AppNavKey.HomeSideGestureDirectionSwipe(
-                            side = key.side,
-                            handleId = key.handleId,
-                            family = family.name,
-                        ),
-                    )
-                }
-            },
             onAlignOppositeGesturesChange = { enabled, mirrorSourceSide ->
                 if (enabled && mirrorSourceSide != null) {
                     viewModel.setTriggerAlignOppositeGestures(key.handleId, mirrorSourceSide, true)
@@ -593,62 +577,6 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
                 }
             },
             onSwipeHoverDurationChange = viewModel::setSwipeHoverDurationMs,
-        )
-    }
-
-    hiltEntry<AppNavKey.HomeSideGestureInwardSwipe> { key ->
-        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
-        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
-        val landscapeEditing = TriggerSettingsLandscapeSession.active
-        val settings = gestureSettings.toMinimalAppSettings().let { base ->
-            if (landscapeEditing) base.forLandscapeEditing() else base
-        }
-        TriggerLandscapeOrientationEffect(landscapeEditing)
-        val side = key.side.toPanelSide()
-        val gesturesKey = AppNavKey.HomeSideGestures(key.side, key.handleId)
-        InwardSwipeSettingsScreen(
-            side = side,
-            handleId = key.handleId,
-            settings = settings,
-            onBack = { ctx.navigateBackTo(gesturesKey) },
-            onOpenSlotConfig = { trigger ->
-                ctx.navigate(
-                    AppNavKey.HomeSideGestureSlotConfig(
-                        side = key.side,
-                        handleId = key.handleId,
-                        triggerId = trigger.id,
-                    ),
-                )
-            },
-        )
-    }
-
-    hiltEntry<AppNavKey.HomeSideGestureDirectionSwipe> { key ->
-        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
-        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
-        val landscapeEditing = TriggerSettingsLandscapeSession.active
-        val settings = gestureSettings.toMinimalAppSettings().let { base ->
-            if (landscapeEditing) base.forLandscapeEditing() else base
-        }
-        TriggerLandscapeOrientationEffect(landscapeEditing)
-        val side = key.side.toPanelSide()
-        val family = SwipeDirectionFamily.fromName(key.family) ?: SwipeDirectionFamily.UP
-        val gesturesKey = AppNavKey.HomeSideGestures(key.side, key.handleId)
-        DirectionSwipeSettingsScreen(
-            side = side,
-            handleId = key.handleId,
-            family = family,
-            settings = settings,
-            onBack = { ctx.navigateBackTo(gesturesKey) },
-            onOpenSlotConfig = { trigger ->
-                ctx.navigate(
-                    AppNavKey.HomeSideGestureSlotConfig(
-                        side = key.side,
-                        handleId = key.handleId,
-                        triggerId = trigger.id,
-                    ),
-                )
-            },
         )
     }
 
@@ -687,17 +615,12 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
         val side = key.side.toPanelSide()
         val trigger = GestureTriggerType.fromId(key.triggerId) ?: GestureTriggerType.SHORT_SWIPE_IN
         val gesturesKey = AppNavKey.HomeSideGestures(key.side, key.handleId)
-        val returnKey = when (val family = trigger.directionFamily()) {
-            SwipeDirectionFamily.IN -> AppNavKey.HomeSideGestureInwardSwipe(key.side, key.handleId)
-            null -> gesturesKey
-            else -> AppNavKey.HomeSideGestureDirectionSwipe(key.side, key.handleId, family.name)
-        }
         SideGestureSlotConfigScreen(
             side = side,
             handleId = key.handleId,
             trigger = trigger,
             settings = settings,
-            onBack = { ctx.navigateBackTo(returnKey) },
+            onBack = { ctx.navigateBackTo(gesturesKey) },
             onOpenActionPick = {
                 ctx.navigate(
                     AppNavKey.HomeSideGestureSlotActionPick(key.side, key.handleId, key.triggerId),

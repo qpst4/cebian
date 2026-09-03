@@ -22,7 +22,6 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.util.HapticHelper
 import com.slideindex.app.util.PermissionHelper
 import com.slideindex.app.util.TaskManagerUtil
-import kotlin.math.abs
 import kotlin.math.roundToInt
 
 data class AppCarouselItem(
@@ -38,7 +37,7 @@ data class AppCarouselItem(
  * 2. 卡片行固定显示在屏幕纵向正中央；
  * 3. 手指在全屏任意位置滑动即可控制轮播，无需手指点在卡片上；
  * 4. 手指向左滑动时卡片行向右平移展现历史应用；
- * 5. 垂直偏移超过 80dp 时整体半透明淡化（0.35f），松手判定取消不启动；
+ * 5. 手指移至屏幕顶部或底部边缘区域时淡化并判定取消，松手不启动；
  * 6. 自适应 Palette 主色调 Squircle 卡片大图标 + 触感反馈。
  */
 @SuppressLint("ViewConstructor")
@@ -54,7 +53,7 @@ class AppCarouselSwitcherView @JvmOverloads constructor(
     private val cardBaseHeight = 84f * density
     private val cardSpacing = 16f * density
     private val cornerRadius = 22f * density
-    private val verticalCancelThreshold = 80f * density
+    private val verticalCancelEdgePx = 72f * density
 
     private var appSettings: AppSettings? = null
     private val items = mutableListOf<AppCarouselItem>()
@@ -203,8 +202,7 @@ class AppCarouselSwitcherView @JvmOverloads constructor(
         currentTouchX = rawX
         currentTouchY = rawY
 
-        val deltaY = abs(rawY - initialTouchY)
-        val shouldCancel = deltaY >= verticalCancelThreshold
+        val shouldCancel = isInVerticalCancelZone(rawY)
         if (shouldCancel != isVerticalCancelled) {
             isVerticalCancelled = shouldCancel
             animate().alpha(if (isVerticalCancelled) 0.35f else 1.0f).setDuration(120L).start()
@@ -392,8 +390,17 @@ class AppCarouselSwitcherView @JvmOverloads constructor(
         // 取消提示
         if (isVerticalCancelled) {
             val hintY = centerY - cardBaseHeight * 0.9f
-            canvas.drawText("松手取消切换", width / 2f, hintY, hintPaint)
+            canvas.drawText("移至屏幕顶部或底部松手取消", width / 2f, hintY, hintPaint)
         }
+    }
+
+    private fun isInVerticalCancelZone(rawY: Float): Boolean {
+        val screenH = if (height > 0) {
+            height.toFloat()
+        } else {
+            resources.displayMetrics.heightPixels.toFloat()
+        }
+        return rawY <= verticalCancelEdgePx || rawY >= screenH - verticalCancelEdgePx
     }
 
     private fun launchPackage(packageName: String) {

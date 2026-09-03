@@ -112,6 +112,7 @@ internal fun GestureSession.trackContinuousGesture(
                     sessionSettings,
                     rawX,
                     rawY,
+                    externalTracking = true,
                 )
                 if (shown) {
                     sessionContinuousPick.appCarouselSwitcher = true
@@ -231,8 +232,22 @@ internal fun GestureSession.handleClassifiedGesture(
         is GestureAction.HoneycombLauncher -> {
             sessionContinuousPick.honeycomb = false
             sessionCallbacks.hapticConfirmLaunch()
-            sessionCallbacks.onShowHoneycombLauncher(continuousPick = false, rawX, rawY)
-            endSession()
+            val triggerMode = sessionSettings.resolvedTriggerMode(
+                sessionSide,
+                classification.trigger,
+                sessionActiveHandleId,
+            )
+            val forceBrowse = triggerMode == GestureTriggerMode.ON_RELEASE ||
+                triggerMode == GestureTriggerMode.IMMEDIATE
+            sessionCallbacks.onShowHoneycombLauncher(
+                continuousPick = false,
+                rawX = rawX,
+                rawY = rawY,
+                forceBrowseMode = forceBrowse,
+            )
+            if (triggerMode != GestureTriggerMode.IMMEDIATE) {
+                endSession()
+            }
         }
 
         GestureAction.AppSwitcher -> {
@@ -242,7 +257,25 @@ internal fun GestureSession.handleClassifiedGesture(
             endSession()
         }
 
-        GestureAction.AppCarouselSwitcher -> endSession()
+        GestureAction.AppCarouselSwitcher -> {
+            sessionContinuousPick.appCarouselSwitcher = false
+            sessionCallbacks.hapticConfirmLaunch()
+            com.slideindex.app.overlay.carousel.AppCarouselSwitcherOverlay.show(
+                sessionActionExecutor.context,
+                sessionSettings,
+                rawX,
+                rawY,
+                externalTracking = false,
+            )
+            val triggerMode = sessionSettings.resolvedTriggerMode(
+                sessionSide,
+                classification.trigger,
+                sessionActiveHandleId,
+            )
+            if (triggerMode != GestureTriggerMode.IMMEDIATE) {
+                endSession()
+            }
+        }
 
         GestureAction.HolographicLauncher -> {
             sessionCallbacks.hapticConfirmLaunch()
@@ -421,7 +454,16 @@ internal fun GestureSession.dispatchQuickLauncherAction(
             )
             return true
         }
-        GestureAction.AppCarouselSwitcher -> return true
+        GestureAction.AppCarouselSwitcher -> {
+            sessionContinuousPick.appCarouselSwitcher = false
+            if (confirmHaptic) sessionCallbacks.hapticConfirmLaunch()
+            sessionActionExecutor.execute(
+                GestureAction.AppCarouselSwitcher,
+                sessionSettings,
+                anchorRawY = rawY,
+            )
+            return true
+        }
         GestureAction.AdjustVolume, GestureAction.AdjustBrightness -> {
             val mode = when (action) {
                 GestureAction.AdjustVolume -> ContinuousAdjustController.Mode.VOLUME

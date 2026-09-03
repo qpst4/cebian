@@ -26,7 +26,12 @@ class GestureSession(
         fun onLeaveOpenFingerTrackingFinished() {}
         fun onOpenShellCommandPanel(continuousPick: Boolean)
         fun onShellCommandPanelContinuousRelease()
-        fun onShowHoneycombLauncher(continuousPick: Boolean, rawX: Float, rawY: Float): Boolean
+        fun onShowHoneycombLauncher(
+            continuousPick: Boolean,
+            rawX: Float,
+            rawY: Float,
+            forceBrowseMode: Boolean = false,
+        ): Boolean
         fun onHoneycombLauncherPointerMove(rawX: Float, rawY: Float)
         fun onHoneycombLauncherContinuousRelease(rawX: Float, rawY: Float)
         fun onShowAppSwitcher(continuousPick: Boolean, rawX: Float, rawY: Float): Boolean
@@ -395,7 +400,10 @@ class GestureSession(
 
                 if (sessionContinuousPick.appCarouselSwitcherActive()) {
                     sessionContinuousPick.clearAppCarouselSwitcher()
-                    com.slideindex.app.overlay.carousel.AppCarouselSwitcherOverlay.onExternalUp(rawX, rawY, false)
+                    com.slideindex.app.overlay.carousel.AppCarouselSwitcherOverlay.confirmContinuousRelease(
+                        rawX,
+                        rawY,
+                    )
                     endSession()
                     return
                 }
@@ -511,7 +519,18 @@ class GestureSession(
                 sessionContinuousPick.appSwitcher = false
                 callbacks.onShowAppSwitcher(continuousPick = false, rawX, rawY)
             }
-            GestureAction.AppCarouselSwitcher -> Unit
+            GestureAction.AppCarouselSwitcher -> {
+                sessionCallbacks.hapticConfirmLaunch()
+                val x = rawX
+                val y = rawY
+                com.slideindex.app.overlay.carousel.AppCarouselSwitcherOverlay.show(
+                    actionExecutor.context,
+                    sessionSettings,
+                    x,
+                    y,
+                    externalTracking = false,
+                )
+            }
             GestureAction.HolographicLauncher -> {
                 callbacks.hapticConfirmLaunch()
                 actionExecutor.execute(

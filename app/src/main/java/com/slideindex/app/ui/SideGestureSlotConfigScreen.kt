@@ -87,7 +87,7 @@ fun SideGestureSlotConfigScreen(
 
     val sideDefaultMode = settings.defaultTriggerModeFor(configSide)
 
-    val screenTitle = triggerLabel(side, trigger)
+    val screenTitle = triggerSlotLabel(side, trigger)
 
 
 
@@ -677,5 +677,27 @@ fun triggerLabel(side: PanelSide, trigger: GestureTriggerType): String = stringR
     },
 
 )
+
+
+
+@Composable
+
+fun triggerSlotLabel(side: PanelSide, trigger: GestureTriggerType): String {
+    if (trigger.isPressOrTap || trigger.isHoverSwipe) {
+        return triggerLabel(side, trigger)
+    }
+    val path = triggerLabel(side, trigger)
+    if (trigger.isCompoundSwipe) {
+        val distanceLabel = stringResource(
+            if (trigger.isLongDistance) {
+                R.string.side_gestures_direction_long_slot
+            } else {
+                R.string.side_gestures_direction_short_slot
+            },
+        )
+        return stringResource(R.string.side_gestures_compound_slot_title, path, distanceLabel)
+    }
+    return path
+}
 
 

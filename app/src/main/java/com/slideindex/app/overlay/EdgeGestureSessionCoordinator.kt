@@ -25,7 +25,8 @@ internal class GestureSessionCallbackBridge : GestureSession.Callbacks {
         continuousPick: Boolean,
         rawX: Float,
         rawY: Float,
-    ): Boolean = delegate.onShowHoneycombLauncher(continuousPick, rawX, rawY)
+        forceBrowseMode: Boolean,
+    ): Boolean = delegate.onShowHoneycombLauncher(continuousPick, rawX, rawY, forceBrowseMode)
     override fun onHoneycombLauncherPointerMove(rawX: Float, rawY: Float) =
         delegate.onHoneycombLauncherPointerMove(rawX, rawY)
     override fun onHoneycombLauncherContinuousRelease(rawX: Float, rawY: Float) =
@@ -181,6 +182,7 @@ internal class EdgeGestureSessionCoordinator(
         continuousPick: Boolean,
         rawX: Float,
         rawY: Float,
+        forceBrowseMode: Boolean,
     ): Boolean {
         val settings = settingsProvider()
         return HoneycombAppPickerOverlayWindow.show(
@@ -189,6 +191,7 @@ internal class EdgeGestureSessionCoordinator(
             anchorRawX = rawX,
             anchorRawY = rawY,
             externalTracking = continuousPick,
+            forceBrowseMode = forceBrowseMode,
             onLaunch = { item, longPressArmed ->
                 actionExecutor.launchQuickItem(item, settings, longPressArmed = longPressArmed)
             },

@@ -28,17 +28,26 @@ object AppCarouselSwitcherOverlay {
 
     private var activeViewRef: WeakReference<AppCarouselSwitcherView>? = null
     private var windowManager: WindowManager? = null
+    private var externalTracking = false
+    /** 浏览模式在边滑会话结束后保持浮层。 */
+    private var persistAfterSessionEnd = false
 
     val isShowing: Boolean
         get() = activeViewRef?.get() != null
 
     @SuppressLint("RtlHardcoded")
-    fun show(context: Context, settings: AppSettings, anchorX: Float, anchorY: Float): Boolean {
+    fun show(
+        context: Context,
+        settings: AppSettings,
+        anchorX: Float,
+        anchorY: Float,
+        externalTracking: Boolean = true,
+    ): Boolean {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             var result = false
             val latch = CountDownLatch(1)
             mainHandler.post {
-                result = show(context, settings, anchorX, anchorY)
+                result = show(context, settings, anchorX, anchorY, externalTracking)
                 latch.countDown()
             }
             runCatching { latch.await(500, TimeUnit.MILLISECONDS) }
@@ -91,16 +100,32 @@ object AppCarouselSwitcherOverlay {
         return try {
             wm.addView(view, params)
             activeViewRef = WeakReference(view)
+            this.externalTracking = externalTracking
+            persistAfterSessionEnd = !externalTracking
+            if (externalTracking) {
+                view.onExternalMove(anchorX, anchorY)
+            } else {
+                enableDirectTouch()
+            }
             true
         } catch (t: Throwable) {
             Log.e(TAG, "show: addView failed", t)
-            windowManager = null
+            releaseOverlayState()
             false
         }
     }
 
     fun onExternalMove(rawX: Float, rawY: Float) {
         activeViewRef?.get()?.onExternalMove(rawX, rawY)
+    }
+
+    fun confirmContinuousRelease(rawX: Float, rawY: Float) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { confirmContinuousRelease(rawX, rawY) }
+            return
+        }
+        onExternalMove(rawX, rawY)
+        onExternalUp(rawX, rawY, false)
     }
 
     fun onExternalUp(rawX: Float, rawY: Float, cancelled: Boolean) {
@@ -111,22 +136,41 @@ object AppCarouselSwitcherOverlay {
         activeViewRef?.get()?.onExternalCancel()
     }
 
+    fun enableDirectTouch() {
+        val view = activeViewRef?.get() ?: return
+        val wm = windowManager ?: return
+        val params = view.layoutParams as? WindowManager.LayoutParams ?: return
+        params.flags = params.flags and WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE.inv()
+        runCatching { wm.updateViewLayout(view, params) }
+    }
+
     fun onGestureSessionEnd() {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             mainHandler.post { onGestureSessionEnd() }
             return
         }
+        if (persistAfterSessionEnd) return
         dismiss()
     }
 
     fun dismiss() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { dismiss() }
+            return
+        }
         val view = activeViewRef?.get()
         if (view != null && windowManager != null) {
             runCatching {
                 windowManager?.removeViewImmediate(view)
             }
         }
+        releaseOverlayState()
+    }
+
+    private fun releaseOverlayState() {
         activeViewRef = null
         windowManager = null
+        externalTracking = false
+        persistAfterSessionEnd = false
     }
 }

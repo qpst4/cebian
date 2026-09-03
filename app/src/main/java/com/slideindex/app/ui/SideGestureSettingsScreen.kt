@@ -1,18 +1,24 @@
 package com.slideindex.app.ui
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material.icons.outlined.Animation
 import androidx.compose.material.icons.outlined.Brush
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -22,10 +28,11 @@ import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.GestureTriggerType
+import com.slideindex.app.gesture.InwardCompoundBranch
 import com.slideindex.app.gesture.SwipeDirectionFamily
-import com.slideindex.app.settings.SwipeHoverDurationLimits
 import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.settings.SwipeHoverDurationLimits
 import com.slideindex.app.settings.actionFor
 import com.slideindex.app.settings.defaultTriggerModeFor
 import com.slideindex.app.settings.displayTriggerMode
@@ -35,14 +42,26 @@ import com.slideindex.app.settings.primaryTriggerHandle
 import com.slideindex.app.settings.triggerCollectionEntries
 import com.slideindex.app.settings.triggerHandle
 import com.slideindex.app.ui.miuix.CardItem
+import com.slideindex.app.ui.miuix.MiuixHintText
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import com.slideindex.app.ui.miuix.MiuixTabRowContourHost
+import com.slideindex.app.ui.miuix.MiuixTabRowWithContour
 import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.SettingSwitchRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
+import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffold
 import com.slideindex.app.ui.settings.components.SettingsSliderRow
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import kotlin.math.roundToInt
+import top.yukonga.miuix.kmp.basic.Card
+
+private enum class SideGestureDistanceTab {
+    Short,
+    Long,
+    Compound,
+}
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -56,7 +75,6 @@ fun SideGestureSettingsScreen(
     onOpenDesignSettings: () -> Unit,
     onOpenDefaultModePick: () -> Unit,
     onOpenSlotConfig: (GestureTriggerType) -> Unit,
-    onOpenDirectionFamily: (SwipeDirectionFamily) -> Unit,
     onAlignOppositeGesturesChange: (enabled: Boolean, mirrorSourceSide: PanelSide?) -> Unit = { _, _ -> },
     onSwipeHoverDurationChange: (Int) -> Unit = {},
     onPreviewStart: () -> Unit = {},
@@ -92,17 +110,17 @@ fun SideGestureSettingsScreen(
 
     val slotSide = settings.gestureConfigSide(side, handleId)
     var showMirrorDirectionDialog by remember { mutableStateOf(false) }
+    var selectedTab by remember { mutableStateOf(SideGestureDistanceTab.Short) }
     val showAlignGesturesSwitch = side.isHorizontalEdge &&
         settings.triggerHandle(PanelSide.LEFT, handleId) != null &&
         settings.triggerHandle(PanelSide.RIGHT, handleId) != null
 
-    val directionItems = sideGestureDirectionFamilyItems(
-        settings = settings,
-        slotSide = slotSide,
-        handleId = handleId,
-        side = side,
-        onOpenDirectionFamily = onOpenDirectionFamily,
-    )
+    val behaviorSectionTitle = stringResource(R.string.side_gestures_behavior_section)
+    val swipeDirectionsSectionTitle = stringResource(R.string.side_gestures_swipe_directions_section)
+    val pressTapSectionTitle = stringResource(R.string.side_gestures_press_tap)
+    val straightSectionTitle = stringResource(R.string.side_gestures_direction_straight_section)
+    val hoverSectionTitle = stringResource(R.string.side_gestures_direction_pause_section)
+    val compoundHint = stringResource(R.string.side_gestures_inward_branch_hint)
 
     val pressTapItems = sideGestureSlotCardItems(
         settings = settings,
@@ -110,17 +128,15 @@ fun SideGestureSettingsScreen(
         handleId = handleId,
         side = side,
         triggers = GestureTriggerType.pressTapEntries(),
+        titleStyle = SideGestureSlotTitleStyle.TriggerLabel,
         onOpenSlotConfig = onOpenSlotConfig,
     )
 
-    val behaviorSectionTitle = stringResource(R.string.side_gestures_behavior_section)
-    val swipeDirectionsSectionTitle = stringResource(R.string.side_gestures_swipe_directions_section)
-    val pressTapSectionTitle = stringResource(R.string.side_gestures_press_tap)
-
-    SettingsScreenScaffold(
+    SettingsLazyScreenScaffold(
         title = title,
         subtitle = subtitle,
         onBack = onBack,
+        modifier = Modifier.fillMaxSize(),
     ) {
         settingsLazySmallTitle(
             key = "section-behavior",
@@ -205,7 +221,100 @@ fun SideGestureSettingsScreen(
             title = swipeDirectionsSectionTitle,
             sectionTop = true,
         )
-        groupedCardItems("side-gesture-directions", directionItems)
+
+        item(key = "swipe-distance-tab-card") {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp)
+                    .padding(bottom = 12.dp),
+                insideMargin = PaddingValues(16.dp),
+            ) {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    MiuixTabRowWithContour(
+                        tabs = SideGestureDistanceTab.entries.map { tab ->
+                            stringResource(
+                                when (tab) {
+                                    SideGestureDistanceTab.Short -> R.string.side_gestures_tab_short_distance
+                                    SideGestureDistanceTab.Long -> R.string.side_gestures_tab_long_distance
+                                    SideGestureDistanceTab.Compound -> R.string.side_gestures_tab_compound
+                                },
+                            )
+                        },
+                        selectedTabIndex = selectedTab.ordinal,
+                        onTabSelected = { selectedTab = SideGestureDistanceTab.entries[it] },
+                        contourHost = MiuixTabRowContourHost.SurfaceContainer,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp),
+                    )
+                    when (selectedTab) {
+                        SideGestureDistanceTab.Short -> {
+                            MiuixSmallTitle(
+                                text = straightSectionTitle,
+                                insideMargin = PaddingValues(bottom = 4.dp),
+                            )
+                            RenderSideGestureSlotItems(
+                                sideGestureSlotCardItems(
+                                    settings = settings,
+                                    slotSide = slotSide,
+                                    handleId = handleId,
+                                    side = side,
+                                    triggers = SwipeDirectionFamily.orderedEntries().map { it.shortTrigger },
+                                    titleStyle = SideGestureSlotTitleStyle.SlotLabel,
+                                    onOpenSlotConfig = onOpenSlotConfig,
+                                ),
+                            )
+                            MiuixSmallTitle(
+                                text = hoverSectionTitle,
+                                insideMargin = PaddingValues(top = 8.dp, bottom = 4.dp),
+                            )
+                            RenderSideGestureSlotItems(
+                                sideGestureSlotCardItems(
+                                    settings = settings,
+                                    slotSide = slotSide,
+                                    handleId = handleId,
+                                    side = side,
+                                    triggers = SwipeDirectionFamily.orderedEntries().map { it.hoverTrigger },
+                                    titleStyle = SideGestureSlotTitleStyle.TriggerLabel,
+                                    onOpenSlotConfig = onOpenSlotConfig,
+                                ),
+                            )
+                        }
+
+                        SideGestureDistanceTab.Long -> {
+                            RenderSideGestureSlotItems(
+                                sideGestureSlotCardItems(
+                                    settings = settings,
+                                    slotSide = slotSide,
+                                    handleId = handleId,
+                                    side = side,
+                                    triggers = SwipeDirectionFamily.orderedEntries().map { it.longTrigger },
+                                    titleStyle = SideGestureSlotTitleStyle.SlotLabel,
+                                    onOpenSlotConfig = onOpenSlotConfig,
+                                ),
+                            )
+                        }
+
+                        SideGestureDistanceTab.Compound -> {
+                            MiuixHintText(
+                                text = compoundHint,
+                                modifier = Modifier.padding(bottom = 8.dp),
+                            )
+                            RenderSideGestureSlotItems(
+                                sideGestureCompoundSlotItems(
+                                    settings = settings,
+                                    slotSide = slotSide,
+                                    handleId = handleId,
+                                    side = side,
+                                    onOpenSlotConfig = onOpenSlotConfig,
+                                ),
+                            )
+                        }
+                    }
+                }
+            }
+        }
 
         settingsLazySmallTitle(
             key = "section-press-tap",
@@ -235,29 +344,61 @@ fun SideGestureSettingsScreen(
     }
 }
 
-@Composable
-private fun sideGestureDirectionFamilyItems(
+private fun sideGestureCompoundTriggers(): List<GestureTriggerType> = buildList {
+    InwardCompoundBranch.orderedEntries().forEach { branch ->
+        add(branch.shortTrigger)
+        branch.pairedLongTrigger?.let { add(it) }
+    }
+}
+
+private enum class SideGestureSlotTitleStyle {
+    SlotLabel,
+    TriggerLabel,
+}
+
+private fun sideGestureCompoundSlotItems(
     settings: AppSettings,
     slotSide: PanelSide,
     handleId: String,
     side: PanelSide,
-    onOpenDirectionFamily: (SwipeDirectionFamily) -> Unit,
+    onOpenSlotConfig: (GestureTriggerType) -> Unit,
+): List<CardItem> = sideGestureSlotCardItems(
+    settings = settings,
+    slotSide = slotSide,
+    handleId = handleId,
+    side = side,
+    triggers = sideGestureCompoundTriggers(),
+    titleStyle = SideGestureSlotTitleStyle.SlotLabel,
+    onOpenSlotConfig = onOpenSlotConfig,
+)
+
+private fun sideGestureSlotCardItems(
+    settings: AppSettings,
+    slotSide: PanelSide,
+    handleId: String,
+    side: PanelSide,
+    triggers: List<GestureTriggerType>,
+    titleStyle: SideGestureSlotTitleStyle,
+    onOpenSlotConfig: (GestureTriggerType) -> Unit,
 ): List<CardItem> = buildList {
-    SwipeDirectionFamily.orderedEntries().forEach { family ->
+    triggers.forEach { trigger ->
         add(
-            settingsCardScopeItem("direction-${family.name}") {
-                SettingNavigationRow(
-                    icon = { contentDescription ->
-                        GestureTriggerIcon(
-                            side = side,
-                            trigger = family.shortTrigger,
-                            contentDescription = contentDescription,
-                            modifier = Modifier.size(22.dp),
-                        )
+            settingsCardScopeItem("slot-${trigger.name}") {
+                val label = when (titleStyle) {
+                    SideGestureSlotTitleStyle.SlotLabel -> triggerSlotLabel(side, trigger)
+                    SideGestureSlotTitleStyle.TriggerLabel -> triggerLabel(side, trigger)
+                }
+                GestureSlotRow(
+                    side = side,
+                    trigger = trigger,
+                    label = label,
+                    action = settings.actionFor(slotSide, trigger, handleId),
+                    modeLabel = if (trigger.isHoverSwipe) {
+                        null
+                    } else {
+                        triggerModeLabel(settings.displayTriggerMode(slotSide, trigger, handleId))
                     },
-                    title = swipeDirectionFamilyTitle(side, family),
-                    subtitle = swipeDirectionFamilyEntrySubtitle(settings, slotSide, handleId, family),
-                    onClick = { onOpenDirectionFamily(family) },
+                    onClick = { onOpenSlotConfig(trigger) },
                 )
             },
         )
@@ -265,27 +406,11 @@ private fun sideGestureDirectionFamilyItems(
 }
 
 @Composable
-private fun sideGestureSlotCardItems(
-    settings: AppSettings,
-    slotSide: PanelSide,
-    handleId: String,
-    side: PanelSide,
-    triggers: List<GestureTriggerType>,
-    onOpenSlotConfig: (GestureTriggerType) -> Unit,
-): List<CardItem> = buildList {
-    triggers.forEach { trigger ->
-        add(
-            settingsCardScopeItem("slot-${trigger.name}") {
-                GestureSlotRow(
-                    side = side,
-                    trigger = trigger,
-                    label = triggerLabel(side, trigger),
-                    action = settings.actionFor(slotSide, trigger, handleId),
-                    modeLabel = triggerModeLabel(settings.displayTriggerMode(slotSide, trigger, handleId)),
-                    onClick = { onOpenSlotConfig(trigger) },
-                )
-            },
-        )
+private fun ColumnScope.RenderSideGestureSlotItems(items: List<CardItem>) {
+    items.forEach { cardItem ->
+        key(cardItem.key) {
+            cardItem.content(this)
+        }
     }
 }
 
@@ -305,7 +430,7 @@ private fun AlignOppositeGesturesMirrorDialog(
         title = stringResource(R.string.align_opposite_gestures_mirror_title),
         summary = stringResource(R.string.align_opposite_gestures_mirror_message),
     ) {
-        androidx.compose.foundation.layout.Column(
+        Column(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(12.dp),
         ) {
@@ -342,9 +467,14 @@ private fun SettingsCardScope.GestureSlotRow(
     trigger: GestureTriggerType,
     label: String,
     action: GestureAction,
-    modeLabel: String,
+    modeLabel: String?,
     onClick: () -> Unit,
 ) {
+    val subtitle = if (modeLabel == null) {
+        gestureActionSettingSubtitle(action)
+    } else {
+        listOf(gestureActionSettingSubtitle(action), modeLabel).joinToString(" · ")
+    }
     SettingNavigationRow(
         icon = { contentDescription ->
             GestureTriggerIcon(
@@ -355,7 +485,7 @@ private fun SettingsCardScope.GestureSlotRow(
             )
         },
         title = label,
-        subtitle = listOf(gestureActionSettingSubtitle(action), modeLabel).joinToString(" · "),
+        subtitle = subtitle,
         onClick = onClick,
     )
 }
