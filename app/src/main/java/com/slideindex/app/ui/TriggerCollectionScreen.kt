@@ -614,6 +614,10 @@ private fun triggerHandleActionSummary(
             val action = settings.actionFor(side, trigger, handleId)
             if (action.isEffective()) add(gestureActionLabel(action))
         }
+        GestureTriggerType.compoundGestureEntries().forEach { trigger ->
+            val action = settings.actionFor(side, trigger, handleId)
+            if (action.isEffective()) add(gestureActionLabel(action))
+        }
         GestureTriggerType.pressTapEntries().forEach { trigger ->
             val action = settings.actionFor(side, trigger, handleId)
             if (action.isEffective()) add(gestureActionLabel(action))

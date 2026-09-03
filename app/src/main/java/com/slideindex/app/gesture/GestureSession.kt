@@ -286,6 +286,7 @@ class GestureSession(
         OverlayService.captureGestureForegroundPackage()
         val stripBounds = zoneLayout.screenTriggerStripBounds(sessionActiveHandleId)
         pathRecognizer.onTouchDown(rawX, rawY, stripBounds)
+        pathRecognizer.applyCompoundGestureGate(classifyOptions())
         callbacks.scheduleDelayed(longPressCheckRunnable, SwipePathRecognizer.LONG_PRESS_MS)
         return true
     }

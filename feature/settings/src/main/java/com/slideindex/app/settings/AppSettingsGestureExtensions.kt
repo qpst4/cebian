@@ -173,6 +173,7 @@ private fun AppSettings.persistedGestureSlotCount(side: PanelSide, handleId: Str
 
 private fun sideGestureSlotTriggers(): List<GestureTriggerType> =
     GestureTriggerType.shortDistanceEntries() +
+        GestureTriggerType.compoundGestureEntries() +
         GestureTriggerType.hoverSwipeEntries() +
         GestureTriggerType.pressTapEntries() +
         GestureTriggerType.longDistanceEntries()

@@ -250,6 +250,30 @@ class SwipePathGeometryTest {
     }
 
     @Test
+    fun resolveCornerSwipeTrigger_overallStillIn_longFromSecondSegmentOnly_returnsShortInUp() {
+        val strip = RectF(0f, 0f, 20f, 2000f)
+        val trigger = SwipePathGeometry.resolveCornerSwipeTrigger(
+            side = PanelSide.LEFT,
+            stripBounds = strip,
+            inwardReachedThreshold = true,
+            currentInward = 150f,
+            shortThresholdPx = 60f,
+            longThresholdPx = 120f,
+            gestureStartX = 0f,
+            gestureStartY = 100f,
+            anchorX = 150f,
+            anchorY = 100f,
+            fingerX = 150f,
+            fingerY = 55f,
+            turnThresholdPx = 32f,
+            angle = GestureAngle.DEFAULT_LEFT,
+            longFromSecondSegmentOnly = true,
+        )
+
+        assertEquals(GestureTriggerType.SHORT_SWIPE_IN_UP, trigger)
+    }
+
+    @Test
     fun resolveCornerSwipeTrigger_secondSegmentDown_returnsShortSwipeInDown() {
         val strip = RectF(0f, 0f, 20f, 2000f)
         val trigger = SwipePathGeometry.resolveCornerSwipeTrigger(

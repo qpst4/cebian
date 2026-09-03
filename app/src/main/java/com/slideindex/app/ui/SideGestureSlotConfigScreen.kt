@@ -48,6 +48,7 @@ import com.slideindex.app.ui.miuix.groupedCardItems
 
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 
+import com.slideindex.app.ui.settings.components.settingsLazyHint
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 
 
@@ -86,6 +87,8 @@ fun SideGestureSlotConfigScreen(
 
     val sideDefaultMode = settings.defaultTriggerModeFor(configSide)
 
+    val screenTitle = triggerLabel(side, trigger)
+
 
 
     val actionSectionTitle = stringResource(R.string.slot_action_type)
@@ -100,7 +103,7 @@ fun SideGestureSlotConfigScreen(
 
     SettingsScreenScaffold(
 
-        title = triggerLabel(side, trigger),
+        title = screenTitle,
 
         onBack = onBack,
 

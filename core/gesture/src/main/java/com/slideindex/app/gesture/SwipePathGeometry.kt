@@ -132,6 +132,7 @@ internal object SwipePathGeometry {
         fingerY: Float,
         turnThresholdPx: Float,
         angle: GestureAngle,
+        longFromSecondSegmentOnly: Boolean = false,
     ): GestureTriggerType? {
         if (!inwardReachedThreshold) return null
         if (currentInward < shortThresholdPx * 0.45f) return null
@@ -145,7 +146,8 @@ internal object SwipePathGeometry {
             angle = angle,
         ) ?: return null
         // 整体轨迹仍在侧滑扇形内时，始终保持侧滑，不升级为 L 手势。
-        if (overallDirection == SwipeDirection.IN) return null
+        // 悬停组合模式已确认第一段内滑，第二段单独判向，不受整体仍偏内滑影响。
+        if (!longFromSecondSegmentOnly && overallDirection == SwipeDirection.IN) return null
         val secondSegmentDirection = resolveSwipeDirection(
             side = side,
             stripBounds = stripBounds,
@@ -176,7 +178,11 @@ internal object SwipePathGeometry {
         if (secondSegmentDistance < turnThresholdPx) return null
         val alongFromStart = alongDelta(fingerX - gestureStartX, fingerY - gestureStartY, side)
         val totalDistance = hypot(currentInward.toDouble(), alongFromStart.toDouble()).toFloat()
-        val isLong = currentInward >= longThresholdPx || totalDistance >= longThresholdPx
+        val isLong = if (longFromSecondSegmentOnly) {
+            secondSegmentDistance >= longThresholdPx
+        } else {
+            currentInward >= longThresholdPx || totalDistance >= longThresholdPx
+        }
         return when (secondSegmentDirection) {
             SwipeDirection.UP, SwipeDirection.UP_RIGHT -> {
                 if (isLong) GestureTriggerType.LONG_SWIPE_IN_UP else GestureTriggerType.SHORT_SWIPE_IN_UP

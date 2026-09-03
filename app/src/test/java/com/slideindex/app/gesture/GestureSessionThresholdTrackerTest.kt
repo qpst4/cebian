@@ -219,4 +219,44 @@ class GestureSessionThresholdTrackerTest {
 
         assertEquals(2, gestureStartCount)
     }
+
+    @Test
+    fun trackDistanceHaptics_firesCompoundSecondSegmentShortAndLongThresholds() {
+        pathRecognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        pathRecognizer.applyAngles(GestureAngles())
+        pathRecognizer.applyHoverSettings(durationMs = 250L, inwardCompoundEnabled = true)
+        pathRecognizer.applyCompoundGestureGate(
+            SwipePathRecognizer.ClassifyOptions(
+                isTriggerConfigured = { trigger ->
+                    trigger == GestureTriggerType.SHORT_SWIPE_IN_UP ||
+                        trigger == GestureTriggerType.LONG_SWIPE_IN_UP
+                },
+            ),
+        )
+        pathRecognizer.onTouchDown(0f, 100f, leftStrip)
+        pathRecognizer.onTouchMove(80f, 100f)
+        tracker.trackDistanceHaptics(80f, 100f)
+        assertEquals(1, gestureStartCount)
+
+        ShadowSystemClock.advanceBy(300L, TimeUnit.MILLISECONDS)
+        pathRecognizer.onTouchMove(80f, 100f)
+        tracker.trackDistanceHaptics(80f, 100f)
+        assertEquals(2, gestureStartCount)
+        assertEquals(0, longThresholdCount)
+
+        pathRecognizer.onTouchMove(80f, 60f)
+        tracker.trackDistanceHaptics(80f, 60f)
+        assertEquals(2, gestureStartCount)
+        assertEquals(0, longThresholdCount)
+
+        pathRecognizer.onTouchMove(80f, 20f)
+        tracker.trackDistanceHaptics(80f, 20f)
+        assertEquals(3, gestureStartCount)
+        assertEquals(0, longThresholdCount)
+
+        pathRecognizer.onTouchMove(80f, -40f)
+        tracker.trackDistanceHaptics(80f, -40f)
+        assertEquals(3, gestureStartCount)
+        assertEquals(1, longThresholdCount)
+    }
 }

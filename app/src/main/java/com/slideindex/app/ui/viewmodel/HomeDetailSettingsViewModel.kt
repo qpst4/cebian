@@ -5,6 +5,7 @@ import com.slideindex.app.R
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.GestureTriggerMode
 import com.slideindex.app.gesture.GestureTriggerType
+import com.slideindex.app.gesture.pairedLongCornerTrigger
 import com.slideindex.app.gesture.TriggerDesignPreset
 import com.slideindex.app.gesture.TriggerRectanglePresetLogic
 import com.slideindex.app.gesture.TriggerHandleDesign
@@ -206,11 +207,15 @@ class HomeDetailSettingsViewModel @Inject constructor(
     ) = launchOptimisticSettingsWrite(
         optimisticUpdate = { settings ->
             applyLandscapeOptimistic(settings) {
-                it.withSlotConfigSynced(side, trigger, action, mode, handleId)
+                var updated = it.withSlotConfigSynced(side, trigger, action, mode, handleId)
+                trigger.pairedLongCornerTrigger()?.let { longTrigger ->
+                    updated = updated.withSlotConfigSynced(side, longTrigger, action, mode, handleId)
+                }
+                updated
             }
         },
     ) {
-        settingsRepository.setSlotConfig(
+        val firstResult = settingsRepository.setSlotConfig(
             side,
             trigger,
             action,
@@ -218,6 +223,23 @@ class HomeDetailSettingsViewModel @Inject constructor(
             handleId,
             landscapeEditing(),
         )
+        if (firstResult.isFailure) {
+            firstResult
+        } else {
+            val pairedLongTrigger = trigger.pairedLongCornerTrigger()
+            if (pairedLongTrigger == null) {
+                firstResult
+            } else {
+                settingsRepository.setSlotConfig(
+                    side,
+                    pairedLongTrigger,
+                    action,
+                    mode,
+                    handleId,
+                    landscapeEditing(),
+                )
+            }
+        }
     }
 
     fun setDefaultTriggerMode(side: PanelSide, mode: GestureTriggerMode, handleId: String) =
