@@ -327,6 +327,48 @@ object AccessibilityTextExtractor {
         val score: Int,
     )
 
+    data class ScreenTextBlock(
+        val text: String,
+        val bounds: Rect,
+    )
+
+    /**
+     * Full-screen text blocks for universal copy: same traversal rules as float-ball pick
+     * ([includeNodeForPickTraversal], [nodeText], ancestor filtering), with optional package exclusion.
+     */
+    fun collectAllScreenTextBlocks(
+        service: AccessibilityService,
+        excludePackageNames: Set<String> = emptySet(),
+    ): List<ScreenTextBlock> {
+        val (screenW, screenH) = FloatBallOcrRegions.accessibilityScreenSizePx(service)
+        if (screenW <= 0 || screenH <= 0) return emptyList()
+        val screenRect = Rect(0, 0, screenW, screenH)
+        val entries = collectScreenTextEntries(service, screenRect, excludePackageNames)
+        return entriesToScreenTextBlocks(entries)
+    }
+
+    /** Text blocks from a single accessibility root (active window is a foreign app). */
+    fun collectScreenTextBlocksFromRoot(
+        root: AccessibilityNodeInfo?,
+        service: AccessibilityService,
+    ): List<ScreenTextBlock> {
+        if (root == null) return emptyList()
+        val (screenW, screenH) = FloatBallOcrRegions.accessibilityScreenSizePx(service)
+        if (screenW <= 0 || screenH <= 0) return emptyList()
+        val screenRect = Rect(0, 0, screenW, screenH)
+        val entries = ArrayList<TextEntry>()
+        val seen = LinkedHashSet<String>()
+        collectIntersectingTextsWithBoundsDedupe(
+            root,
+            screenRect,
+            entries,
+            seen,
+            ::includeNodeForPickTraversal,
+            ::nodeText,
+        )
+        return entriesToScreenTextBlocks(entries)
+    }
+
     /**
      * Full-tree preview bounds cache (FV G4 / o1.u). Built once on a background thread,
      * then hit-tested on every drag MOVE via [hitTestPreviewBounds].
@@ -987,6 +1029,115 @@ object AccessibilityTextExtractor {
                 candidate !== other &&
                     rectContains(candidate, other) &&
                     other.area < candidate.area
+            }
+        }
+    }
+
+    private fun entriesToScreenTextBlocks(entries: List<TextEntry>): List<ScreenTextBlock> {
+        val filtered = filterOutAncestorTextEntries(entries)
+        val seen = LinkedHashSet<String>()
+        val result = ArrayList<ScreenTextBlock>(filtered.size)
+        for (entry in filtered) {
+            val bounds = Rect(entry.left, entry.top, entry.right, entry.bottom)
+            if (bounds.isEmpty) continue
+            val key = "$bounds|${entry.text}"
+            if (!seen.add(key)) continue
+            result.add(ScreenTextBlock(entry.text, bounds))
+        }
+        result.sortWith(compareBy({ it.bounds.top }, { it.bounds.left }))
+        return result
+    }
+
+    private fun collectScreenTextEntries(
+        service: AccessibilityService,
+        rect: Rect,
+        excludePackageNames: Set<String>,
+    ): List<TextEntry> {
+        val entries = ArrayList<TextEntry>()
+        val seen = LinkedHashSet<String>()
+        val windowBounds = Rect()
+        val scannedRoots = HashSet<Int>()
+        fun scanRoot(root: AccessibilityNodeInfo) {
+            val token = System.identityHashCode(root)
+            if (!scannedRoots.add(token)) return
+            val packageName = root.packageName?.toString()
+            if (!packageName.isNullOrBlank() && packageName in excludePackageNames) return
+            collectIntersectingTextsWithBoundsDedupe(
+                root,
+                rect,
+                entries,
+                seen,
+                ::includeNodeForPickTraversal,
+                ::nodeText,
+            )
+        }
+        for (window in service.windows) {
+            if (shouldSkipPickWindow(window)) continue
+            window.getBoundsInScreen(windowBounds)
+            if (!Rect.intersects(windowBounds, rect)) continue
+            val root = window.root ?: continue
+            if (shouldSkipWindowRoot(root, service)) {
+                releaseNode(root)
+                continue
+            }
+            try {
+                scanRoot(root)
+            } finally {
+                releaseNode(root)
+            }
+        }
+        val active = service.rootInActiveWindow
+        if (active != null && !shouldSkipWindowRoot(active, service)) {
+            try {
+                scanRoot(active)
+            } finally {
+                releaseNode(active)
+            }
+        }
+        return entries
+    }
+
+    private fun collectIntersectingTextsWithBoundsDedupe(
+        root: AccessibilityNodeInfo,
+        rect: Rect,
+        out: MutableList<TextEntry>,
+        seen: MutableSet<String>,
+        includeNode: (AccessibilityNodeInfo) -> Boolean,
+        readNodeText: (AccessibilityNodeInfo) -> String?,
+    ) {
+        val stack = ArrayDeque<AccessibilityNodeInfo>()
+        stack.add(root)
+        val bounds = Rect()
+        while (stack.isNotEmpty()) {
+            val node = stack.removeFirst()
+            val owned = node !== root
+            try {
+                if (!includeNode(node)) continue
+                if (shouldSkipAccessibilityNode(node)) continue
+                node.getBoundsInScreen(bounds)
+                if (!Rect.intersects(bounds, rect)) continue
+                readNodeText(node)?.let { raw ->
+                    val text = raw.trim()
+                    if (text.isNotEmpty()) {
+                        val key = "${bounds.left},${bounds.top},${bounds.right},${bounds.bottom}|$text"
+                        if (seen.add(key)) {
+                            out.add(
+                                TextEntry(
+                                    text = text,
+                                    top = bounds.top,
+                                    left = bounds.left,
+                                    right = bounds.right,
+                                    bottom = bounds.bottom,
+                                ),
+                            )
+                        }
+                    }
+                }
+                for (i in 0 until node.childCount) {
+                    node.getChild(i)?.let { stack.add(it) }
+                }
+            } finally {
+                if (owned) releaseNode(node)
             }
         }
     }
