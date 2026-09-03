@@ -4,7 +4,7 @@ All notable changes to Cebian are documented in this file.
 
 ## [Unreleased]
 
-## [1.9.9.10] - 2026-09-03
+## [1.9.10] - 2026-09-03
 
 ### Added
 - **手势**：新增「指尖圆环」手势动作，支持可配置槽位数量、分布半径、图标大小与各槽动作/应用/快捷方式；三种触发模式均可使用
