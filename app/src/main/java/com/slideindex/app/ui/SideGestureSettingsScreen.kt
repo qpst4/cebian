@@ -393,11 +393,7 @@ private fun sideGestureSlotCardItems(
                     trigger = trigger,
                     label = label,
                     action = settings.actionFor(slotSide, trigger, handleId),
-                    modeLabel = if (trigger.isHoverSwipe) {
-                        null
-                    } else {
-                        triggerModeLabel(settings.displayTriggerMode(slotSide, trigger, handleId))
-                    },
+                    modeLabel = triggerModeLabel(settings.displayTriggerMode(slotSide, trigger, handleId)),
                     onClick = { onOpenSlotConfig(trigger) },
                 )
             },
