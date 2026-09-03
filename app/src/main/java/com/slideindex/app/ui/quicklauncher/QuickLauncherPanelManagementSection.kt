@@ -3,6 +3,7 @@ package com.slideindex.app.ui.quicklauncher
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -44,6 +45,7 @@ import com.slideindex.app.launcher.QuickLauncherPanelDefaults
 import com.slideindex.app.launcher.QuickLauncherPanelMutator
 import com.slideindex.app.ui.miuix.MiuixSliderRow
 import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import com.slideindex.app.ui.miuix.MiuixTabRowContourHost
 import com.slideindex.app.ui.miuix.MiuixTabRowWithContour
 import top.yukonga.miuix.kmp.basic.Card
 
@@ -129,19 +131,6 @@ fun QuickLauncherPanelManagementSection(
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         MiuixSmallTitle(stringResource(R.string.quick_launcher_panels_section))
 
-        if (panels.size > 1) {
-            MiuixTabRowWithContour(
-                tabs = panels.mapIndexed { index, panel ->
-                    panel.name.ifBlank {
-                        stringResource(R.string.quick_launcher_panel_default_name, index + 1)
-                    }
-                },
-                selectedTabIndex = safeIndex,
-                onTabSelected = onSelectedIndexChange,
-                contentHorizontalPadding = 12.dp,
-            )
-        }
-
         val displayName = currentPanel.name.ifBlank {
             stringResource(R.string.quick_launcher_panel_default_name, safeIndex + 1)
         }
@@ -150,71 +139,89 @@ fun QuickLauncherPanelManagementSection(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 12.dp),
+            insideMargin = PaddingValues(16.dp),
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 16.dp, end = 8.dp, top = 8.dp, bottom = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = displayName,
+            Column(modifier = Modifier.fillMaxWidth()) {
+                if (panels.size > 1) {
+                    MiuixTabRowWithContour(
+                        tabs = panels.mapIndexed { index, panel ->
+                            panel.name.ifBlank {
+                                stringResource(R.string.quick_launcher_panel_default_name, index + 1)
+                            }
+                        },
+                        selectedTabIndex = safeIndex,
+                        onTabSelected = onSelectedIndexChange,
+                        contourHost = MiuixTabRowContourHost.SurfaceContainer,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp),
+                    )
+                }
+                Row(
                     modifier = Modifier
-                        .weight(1f)
-                        .clickable {
-                            renameTarget = currentPanel
-                            renameText = currentPanel.name
-                        }
-                        .padding(vertical = 8.dp),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                IconButton(
-                    enabled = panels.size < QuickLauncherPanelDefaults.MAX_PANELS,
-                    onClick = {
-                        val added = QuickLauncherPanelMutator.addPanel(
-                            panels = latestPanels,
-                            defaultColumns = defaultColumns,
-                            defaultRows = defaultRows,
-                        ) ?: return@IconButton
-                        onPanelsChange(added)
-                        onSelectedIndexChange(added.lastIndex)
-                    },
+                        .fillMaxWidth()
+                        .padding(bottom = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Icon(
-                        Icons.Default.Add,
-                        contentDescription = stringResource(R.string.quick_launcher_panel_add),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    Text(
+                        text = displayName,
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable {
+                                renameTarget = currentPanel
+                                renameText = currentPanel.name
+                            }
+                            .padding(vertical = 8.dp),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
+                    IconButton(
+                        enabled = panels.size < QuickLauncherPanelDefaults.MAX_PANELS,
+                        onClick = {
+                            val added = QuickLauncherPanelMutator.addPanel(
+                                panels = latestPanels,
+                                defaultColumns = defaultColumns,
+                                defaultRows = defaultRows,
+                            ) ?: return@IconButton
+                            onPanelsChange(added)
+                            onSelectedIndexChange(added.lastIndex)
+                        },
+                    ) {
+                        Icon(
+                            Icons.Default.Add,
+                            contentDescription = stringResource(R.string.quick_launcher_panel_add),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    WindowIconDropdownMenu(entry = panelMenuEntry) {
+                        MiuixIcon(
+                            Icons.Default.MoreVert,
+                            contentDescription = renameLabel,
+                            tint = MiuixTheme.colorScheme.onBackground,
+                        )
+                    }
                 }
-                WindowIconDropdownMenu(entry = panelMenuEntry) {
-                    MiuixIcon(
-                        Icons.Default.MoreVert,
-                        contentDescription = renameLabel,
-                        tint = MiuixTheme.colorScheme.onBackground,
-                    )
-                }
+                MiuixSliderRow(
+                    title = stringResource(R.string.quick_launcher_grid_columns),
+                    value = currentPanel.columnsPerPage.toFloat(),
+                    valueRange = 2f..6f,
+                    steps = 3,
+                    enabled = true,
+                    label = stringResource(R.string.quick_launcher_grid_columns_label, currentPanel.columnsPerPage),
+                    onValueChange = { updatePanel(safeIndex, currentPanel.copy(columnsPerPage = it.toInt())) },
+                )
+                MiuixSliderRow(
+                    title = stringResource(R.string.quick_launcher_grid_rows),
+                    value = currentPanel.rowsPerPage.toFloat(),
+                    valueRange = 2f..9f,
+                    steps = 6,
+                    enabled = true,
+                    label = stringResource(R.string.quick_launcher_grid_rows_label, currentPanel.rowsPerPage),
+                    onValueChange = { updatePanel(safeIndex, currentPanel.copy(rowsPerPage = it.toInt())) },
+                )
             }
-            MiuixSliderRow(
-                title = stringResource(R.string.quick_launcher_grid_columns),
-                value = currentPanel.columnsPerPage.toFloat(),
-                valueRange = 2f..6f,
-                steps = 3,
-                enabled = true,
-                label = stringResource(R.string.quick_launcher_grid_columns_label, currentPanel.columnsPerPage),
-                onValueChange = { updatePanel(safeIndex, currentPanel.copy(columnsPerPage = it.toInt())) },
-            )
-            MiuixSliderRow(
-                title = stringResource(R.string.quick_launcher_grid_rows),
-                value = currentPanel.rowsPerPage.toFloat(),
-                valueRange = 2f..9f,
-                steps = 6,
-                enabled = true,
-                label = stringResource(R.string.quick_launcher_grid_rows_label, currentPanel.rowsPerPage),
-                onValueChange = { updatePanel(safeIndex, currentPanel.copy(rowsPerPage = it.toInt())) },
-            )
         }
     }
 
