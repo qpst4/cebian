@@ -35,11 +35,13 @@ fun MainScreen(
     notificationGranted: Boolean,
     shizukuGranted: Boolean,
     accessibilityGranted: Boolean,
+    overlayGranted: Boolean,
     batteryOptimizationExempt: Boolean,
     onRequestNotification: () -> Unit,
     onRequestShizuku: () -> Unit,
     onRequestRootAccess: () -> Unit,
     onRequestAccessibility: () -> Unit,
+    onRequestOverlay: () -> Unit,
     onRequestBatteryOptimization: () -> Unit = {},
     onGestureEnabledChange: (Boolean) -> Unit,
     onOpenPrivilegeModeSettings: () -> Unit,
@@ -76,6 +78,16 @@ fun MainScreen(
                     description = stringResource(R.string.permission_accessibility_desc),
                     grantLabel = stringResource(R.string.permission_accessibility_grant),
                     onGrant = onRequestAccessibility,
+                ),
+            )
+        }
+        if (!overlayGranted) {
+            add(
+                PendingPermissionItem(
+                    title = stringResource(R.string.permission_overlay_title),
+                    description = stringResource(R.string.onboarding_permission_overlay_short),
+                    grantLabel = stringResource(R.string.onboarding_grant_overlay),
+                    onGrant = onRequestOverlay,
                 ),
             )
         }

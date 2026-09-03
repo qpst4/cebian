@@ -2186,7 +2186,10 @@ object FloatBallPickResultPanel {
                         FloatBallTextPick.copyText(context, value)
                         showInPanelMessage(context.getString(R.string.float_ball_text_copied))
                     },
-                    onShareText = { FloatBallTextPick.shareText(context, it) },
+                    onShareText = {
+                        FloatBallTextPick.shareText(context, it)
+                        dismiss()
+                    },
                     onTranslate = { FloatBallTranslateCoordinator.translate(context, it) },
                     onRemoveSpaces = { value, removeAll ->
                         textHolder.value = if (removeAll) {
@@ -2207,6 +2210,7 @@ object FloatBallPickResultPanel {
                     onShareScreenshot = {
                         val bitmap = screenshotHolder.value ?: return@FloatBallPickResultContent
                         FloatBallTextPick.shareScreenshot(context, bitmap)
+                        dismiss()
                     },
                     onImageShareEngineClick = { engine ->
                         val bitmap = screenshotHolder.value ?: return@FloatBallPickResultContent
