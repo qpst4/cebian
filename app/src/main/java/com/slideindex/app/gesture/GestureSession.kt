@@ -26,10 +26,10 @@ class GestureSession(
         fun onLeaveOpenFingerTrackingFinished() {}
         fun onOpenShellCommandPanel(continuousPick: Boolean)
         fun onShellCommandPanelContinuousRelease()
-        fun onShowHoneycombLauncher(continuousPick: Boolean, rawX: Float, rawY: Float)
+        fun onShowHoneycombLauncher(continuousPick: Boolean, rawX: Float, rawY: Float): Boolean
         fun onHoneycombLauncherPointerMove(rawX: Float, rawY: Float)
         fun onHoneycombLauncherContinuousRelease(rawX: Float, rawY: Float)
-        fun onShowAppSwitcher(continuousPick: Boolean, rawX: Float, rawY: Float)
+        fun onShowAppSwitcher(continuousPick: Boolean, rawX: Float, rawY: Float): Boolean
         fun onAppSwitcherPointerMove(rawX: Float, rawY: Float)
         fun onAppSwitcherContinuousRelease(rawX: Float, rawY: Float)
         fun onShowAdjustPanel(
@@ -227,10 +227,11 @@ class GestureSession(
 
     fun isContinuousPickActive(): Boolean =
         sessionContinuousPick.honeycombActive() ||
-        sessionContinuousPick.appSwitcherActive() ||
-        sessionContinuousPick.shellActive() ||
-        sessionContinuousPick.taskSwitcherActive() ||
-        sessionContinuousPick.quickLauncherActive()
+            sessionContinuousPick.appSwitcherActive() ||
+            sessionContinuousPick.appCarouselSwitcherActive() ||
+            sessionContinuousPick.shellActive() ||
+            sessionContinuousPick.taskSwitcherActive() ||
+            sessionContinuousPick.quickLauncherActive()
 
     fun adjustAnchorRawY(): Float = sessionAdjustLayoutAnchorRawY
 
@@ -509,15 +510,7 @@ class GestureSession(
                 sessionContinuousPick.appSwitcher = false
                 callbacks.onShowAppSwitcher(continuousPick = false, rawX, rawY)
             }
-            GestureAction.AppCarouselSwitcher -> {
-                sessionContinuousPick.appCarouselSwitcher = false
-                com.slideindex.app.overlay.carousel.AppCarouselSwitcherOverlay.show(
-                    actionExecutor.context,
-                    sessionSettings,
-                    rawX,
-                    rawY,
-                )
-            }
+            GestureAction.AppCarouselSwitcher -> Unit
             GestureAction.HolographicLauncher -> {
                 callbacks.hapticConfirmLaunch()
                 actionExecutor.execute(

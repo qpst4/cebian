@@ -37,10 +37,10 @@ class GestureSessionThresholdTrackerTest {
                 override fun onSessionStart(mode: com.slideindex.app.overlay.OverlayPanelMode) = Unit
                 override fun onOpenShellCommandPanel(continuousPick: Boolean) = Unit
                 override fun onShellCommandPanelContinuousRelease() = Unit
-                override fun onShowHoneycombLauncher(continuousPick: Boolean, rawX: Float, rawY: Float) = Unit
+                override fun onShowHoneycombLauncher(continuousPick: Boolean, rawX: Float, rawY: Float): Boolean = true
                 override fun onHoneycombLauncherPointerMove(rawX: Float, rawY: Float) = Unit
                 override fun onHoneycombLauncherContinuousRelease(rawX: Float, rawY: Float) = Unit
-                override fun onShowAppSwitcher(continuousPick: Boolean, rawX: Float, rawY: Float) = Unit
+                override fun onShowAppSwitcher(continuousPick: Boolean, rawX: Float, rawY: Float): Boolean = true
                 override fun onAppSwitcherPointerMove(rawX: Float, rawY: Float) = Unit
                 override fun onAppSwitcherContinuousRelease(rawX: Float, rawY: Float) = Unit
                 override fun onShowAdjustPanel(
@@ -123,10 +123,10 @@ class GestureSessionThresholdTrackerTest {
                 override fun onSessionStart(mode: com.slideindex.app.overlay.OverlayPanelMode) = Unit
                 override fun onOpenShellCommandPanel(continuousPick: Boolean) = Unit
                 override fun onShellCommandPanelContinuousRelease() = Unit
-                override fun onShowHoneycombLauncher(continuousPick: Boolean, rawX: Float, rawY: Float) = Unit
+                override fun onShowHoneycombLauncher(continuousPick: Boolean, rawX: Float, rawY: Float): Boolean = true
                 override fun onHoneycombLauncherPointerMove(rawX: Float, rawY: Float) = Unit
                 override fun onHoneycombLauncherContinuousRelease(rawX: Float, rawY: Float) = Unit
-                override fun onShowAppSwitcher(continuousPick: Boolean, rawX: Float, rawY: Float) = Unit
+                override fun onShowAppSwitcher(continuousPick: Boolean, rawX: Float, rawY: Float): Boolean = true
                 override fun onAppSwitcherPointerMove(rawX: Float, rawY: Float) = Unit
                 override fun onAppSwitcherContinuousRelease(rawX: Float, rawY: Float) = Unit
                 override fun onShowAdjustPanel(
@@ -168,10 +168,10 @@ class GestureSessionThresholdTrackerTest {
                 override fun onSessionStart(mode: com.slideindex.app.overlay.OverlayPanelMode) = Unit
                 override fun onOpenShellCommandPanel(continuousPick: Boolean) = Unit
                 override fun onShellCommandPanelContinuousRelease() = Unit
-                override fun onShowHoneycombLauncher(continuousPick: Boolean, rawX: Float, rawY: Float) = Unit
+                override fun onShowHoneycombLauncher(continuousPick: Boolean, rawX: Float, rawY: Float): Boolean = true
                 override fun onHoneycombLauncherPointerMove(rawX: Float, rawY: Float) = Unit
                 override fun onHoneycombLauncherContinuousRelease(rawX: Float, rawY: Float) = Unit
-                override fun onShowAppSwitcher(continuousPick: Boolean, rawX: Float, rawY: Float) = Unit
+                override fun onShowAppSwitcher(continuousPick: Boolean, rawX: Float, rawY: Float): Boolean = true
                 override fun onAppSwitcherPointerMove(rawX: Float, rawY: Float) = Unit
                 override fun onAppSwitcherContinuousRelease(rawX: Float, rawY: Float) = Unit
                 override fun onShowAdjustPanel(

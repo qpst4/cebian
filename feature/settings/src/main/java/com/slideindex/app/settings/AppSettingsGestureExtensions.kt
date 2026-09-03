@@ -8,6 +8,7 @@ import com.slideindex.app.gesture.GestureTriggerType
 import com.slideindex.app.gesture.SideGestureDefaults
 import com.slideindex.app.gesture.TriggerHandle
 import com.slideindex.app.gesture.isEffective
+import com.slideindex.app.gesture.requiresContinuousTriggerOnly
 import com.slideindex.app.gesture.TriggerHandleDesign
 import com.slideindex.app.gesture.TriggerHandlePairEntry
 import com.slideindex.app.gesture.TriggerCollectionEntry
@@ -396,7 +397,7 @@ fun AppSettings.resolvedTriggerMode(
     handleId: String = TriggerHandle.DEFAULT_ID,
 ): GestureTriggerMode {
     val action = actionFor(side, trigger, handleId)
-    if (action is GestureAction.RegionalScreenshotPick && !trigger.isPressOrTap) {
+    if (action.requiresContinuousTriggerOnly() && !trigger.isPressOrTap) {
         return GestureTriggerMode.CONTINUOUS
     }
     val customMode = slotTriggerMode(side, trigger, handleId)

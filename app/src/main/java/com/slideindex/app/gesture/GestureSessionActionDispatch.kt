@@ -83,9 +83,11 @@ internal fun GestureSession.trackContinuousGesture(
 
         GestureAction.HoneycombLauncher -> {
             if (!sessionContinuousPick.honeycomb) {
-                sessionContinuousPick.honeycomb = true
-                sessionCallbacks.hapticConfirmLaunch()
-                sessionCallbacks.onShowHoneycombLauncher(continuousPick = true, rawX, rawY)
+                val shown = sessionCallbacks.onShowHoneycombLauncher(continuousPick = true, rawX, rawY)
+                if (shown) {
+                    sessionContinuousPick.honeycomb = true
+                    sessionCallbacks.hapticConfirmLaunch()
+                }
             } else {
                 sessionCallbacks.onHoneycombLauncherPointerMove(rawX, rawY)
             }
@@ -93,9 +95,11 @@ internal fun GestureSession.trackContinuousGesture(
 
         GestureAction.AppSwitcher -> {
             if (!sessionContinuousPick.appSwitcher) {
-                sessionContinuousPick.appSwitcher = true
-                sessionCallbacks.hapticConfirmLaunch()
-                sessionCallbacks.onShowAppSwitcher(continuousPick = true, rawX, rawY)
+                val shown = sessionCallbacks.onShowAppSwitcher(continuousPick = true, rawX, rawY)
+                if (shown) {
+                    sessionContinuousPick.appSwitcher = true
+                    sessionCallbacks.hapticConfirmLaunch()
+                }
             } else {
                 sessionCallbacks.onAppSwitcherPointerMove(rawX, rawY)
             }
@@ -238,17 +242,7 @@ internal fun GestureSession.handleClassifiedGesture(
             endSession()
         }
 
-        GestureAction.AppCarouselSwitcher -> {
-            sessionContinuousPick.appCarouselSwitcher = false
-            sessionCallbacks.hapticConfirmLaunch()
-            com.slideindex.app.overlay.carousel.AppCarouselSwitcherOverlay.show(
-                sessionActionExecutor.context,
-                sessionSettings,
-                rawX,
-                rawY,
-            )
-            endSession()
-        }
+        GestureAction.AppCarouselSwitcher -> endSession()
 
         GestureAction.HolographicLauncher -> {
             sessionCallbacks.hapticConfirmLaunch()
@@ -427,17 +421,7 @@ internal fun GestureSession.dispatchQuickLauncherAction(
             )
             return true
         }
-        GestureAction.AppCarouselSwitcher -> {
-            sessionContinuousPick.appCarouselSwitcher = false
-            if (confirmHaptic) sessionCallbacks.hapticConfirmLaunch()
-            com.slideindex.app.overlay.carousel.AppCarouselSwitcherOverlay.show(
-                sessionActionExecutor.context,
-                sessionSettings,
-                localX,
-                rawY,
-            )
-            return true
-        }
+        GestureAction.AppCarouselSwitcher -> return true
         GestureAction.AdjustVolume, GestureAction.AdjustBrightness -> {
             val mode = when (action) {
                 GestureAction.AdjustVolume -> ContinuousAdjustController.Mode.VOLUME

@@ -462,7 +462,7 @@ sealed class GestureAction {
         override val payload = ""
     }
 
-    /** 独立应用切换器：卡片轮播与自适应 Squircle 大图标，支持持续手势跟踪与垂直偏移取消。 */
+    /** 独立应用切换器：卡片轮播与自适应 Squircle 大图标，仅支持持续手势跟手与松手启动。 */
     data object AppCarouselSwitcher : GestureAction() {
         override val type = GestureActionType.APP_CAROUSEL_SWITCHER
         override val payload = ""
@@ -762,7 +762,7 @@ fun GestureAction.isCornerInnerZoneOnly(): Boolean =
 
 /** Actions that only work with [GestureTriggerMode.CONTINUOUS] (not on-release / immediate). */
 fun GestureAction.requiresContinuousTriggerOnly(): Boolean =
-    this is GestureAction.RegionalScreenshotPick
+    this is GestureAction.RegionalScreenshotPick || this is GestureAction.AppCarouselSwitcher
 
 /** [GestureAction.continuousTrackingActions] membership by action kind (not payload). */
 fun GestureAction.isContinuousTrackingKind(): Boolean =
@@ -791,7 +791,7 @@ fun GestureAction.preferredTriggerMode(trigger: GestureTriggerType): GestureTrig
         GestureAction.OpenIndex ->
             if (!trigger.isPressOrTap) GestureTriggerMode.CONTINUOUS else null
         is GestureAction.QuickLauncher, GestureAction.ShellCommandPanel, GestureAction.HoneycombLauncher,
-        GestureAction.AppSwitcher, GestureAction.AppCarouselSwitcher,
+        GestureAction.AppSwitcher,
         ->
             when {
                 trigger.isLongPress -> GestureTriggerMode.CONTINUOUS
@@ -800,7 +800,10 @@ fun GestureAction.preferredTriggerMode(trigger: GestureTriggerType): GestureTrig
             }
         GestureAction.AdjustVolume, GestureAction.AdjustBrightness ->
             if (!trigger.isPressOrTap) GestureTriggerMode.ON_RELEASE else null
-        GestureAction.RegionalScreenshotPick, GestureAction.FloatingPointer ->
+        GestureAction.AppCarouselSwitcher,
+        GestureAction.RegionalScreenshotPick,
+        GestureAction.FloatingPointer,
+        ->
             if (!trigger.isPressOrTap) GestureTriggerMode.CONTINUOUS else null
         else -> null
     }

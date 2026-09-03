@@ -25,7 +25,7 @@ internal class GestureSessionCallbackBridge : GestureSession.Callbacks {
         continuousPick: Boolean,
         rawX: Float,
         rawY: Float,
-    ) = delegate.onShowHoneycombLauncher(continuousPick, rawX, rawY)
+    ): Boolean = delegate.onShowHoneycombLauncher(continuousPick, rawX, rawY)
     override fun onHoneycombLauncherPointerMove(rawX: Float, rawY: Float) =
         delegate.onHoneycombLauncherPointerMove(rawX, rawY)
     override fun onHoneycombLauncherContinuousRelease(rawX: Float, rawY: Float) =
@@ -34,7 +34,7 @@ internal class GestureSessionCallbackBridge : GestureSession.Callbacks {
         continuousPick: Boolean,
         rawX: Float,
         rawY: Float,
-    ) = delegate.onShowAppSwitcher(continuousPick, rawX, rawY)
+    ): Boolean = delegate.onShowAppSwitcher(continuousPick, rawX, rawY)
     override fun onAppSwitcherPointerMove(rawX: Float, rawY: Float) =
         delegate.onAppSwitcherPointerMove(rawX, rawY)
     override fun onAppSwitcherContinuousRelease(rawX: Float, rawY: Float) =
@@ -181,9 +181,9 @@ internal class EdgeGestureSessionCoordinator(
         continuousPick: Boolean,
         rawX: Float,
         rawY: Float,
-    ) {
+    ): Boolean {
         val settings = settingsProvider()
-        HoneycombAppPickerOverlayWindow.show(
+        return HoneycombAppPickerOverlayWindow.show(
             context = view.context,
             settings = settings,
             anchorRawX = rawX,
@@ -213,12 +213,12 @@ internal class EdgeGestureSessionCoordinator(
         continuousPick: Boolean,
         rawX: Float,
         rawY: Float,
-    ) {
+    ): Boolean {
         if (continuousPick) {
             gestureAnimationCoordinator.hide()
         }
         val settings = settingsProvider()
-        AppSwitcherOverlayWindow.show(
+        return AppSwitcherOverlayWindow.show(
             context = view.context,
             settings = settings,
             anchorRawX = rawX,

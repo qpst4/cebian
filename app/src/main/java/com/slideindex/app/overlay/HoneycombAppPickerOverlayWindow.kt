@@ -186,13 +186,13 @@ object HoneycombAppPickerOverlayWindow {
         }
     }
 
-    /** Called when the edge gesture session ends; does not close browse-mode overlays. */
+    /** Called when the edge gesture session ends; browse-mode overlays may stay open. */
     fun onGestureSessionEnd() {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             mainHandler.post { onGestureSessionEnd() }
             return
         }
-        if (controller?.isVisible == true) return
+        if (persistAfterSessionEnd) return
         dismiss()
     }
 
