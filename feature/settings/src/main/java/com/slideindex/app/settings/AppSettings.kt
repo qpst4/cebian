@@ -270,6 +270,8 @@ data class AppSettings(
     val clipboardHistoryFloatEnabledLandscape get() = clipboard.clipboardHistoryFloatEnabledLandscape
     val clipboardHistoryFloatLockPosition get() = clipboard.clipboardHistoryFloatLockPosition
     val clipboardHistoryFloatHandleWidthDp get() = clipboard.clipboardHistoryFloatHandleWidthDp
+    val clipboardHistoryFloatHandleYPortrait get() = clipboard.clipboardHistoryFloatHandleYPortrait
+    val clipboardHistoryFloatHandleYLandscape get() = clipboard.clipboardHistoryFloatHandleYLandscape
     val clipboardFloatEnabled get() = clipboard.clipboardFloatEnabled
     val clipboardFloatShowChip get() = clipboard.clipboardFloatShowChip
     val clipboardFloatChipFollowIme get() = clipboard.clipboardFloatChipFollowIme

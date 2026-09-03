@@ -564,6 +564,9 @@ class SettingsRepository @Inject constructor(
     suspend fun setClipboardHistoryFloatHandleWidthDp(widthDp: Int) =
         overlay.setClipboardHistoryFloatHandleWidthDp(widthDp)
 
+    suspend fun setClipboardHistoryFloatHandleY(y: Int, landscape: Boolean) =
+        overlay.setClipboardHistoryFloatHandleY(y, landscape)
+
     suspend fun setClipboardFloatEnabled(enabled: Boolean) =
         overlay.setClipboardFloatEnabled(enabled)
 

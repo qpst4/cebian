@@ -272,6 +272,10 @@ data class ClipboardSettings(
     val clipboardHistoryFloatLockPosition: Boolean = true,
     /** Width of the collapsed history float handle in dp (24–50). */
     val clipboardHistoryFloatHandleWidthDp: Int = 32,
+    /** Saved handle top offset in px for portrait; [HistoryFloatHandlePosition.UNSET_POSITION] = default. */
+    val clipboardHistoryFloatHandleYPortrait: Int = HistoryFloatHandlePosition.UNSET_POSITION,
+    /** Saved handle top offset in px for landscape; [HistoryFloatHandlePosition.UNSET_POSITION] = default. */
+    val clipboardHistoryFloatHandleYLandscape: Int = HistoryFloatHandlePosition.UNSET_POSITION,
     /** Floating clipboard window for input scenarios (grid, resize, paste on tap). */
     val clipboardFloatEnabled: Boolean = false,
     /** When true, show a chip above the keyboard before expanding the full window. */

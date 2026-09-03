@@ -393,6 +393,10 @@ internal object SettingsPreferenceKeys {
         booleanPreferencesKey("clipboard_history_float_enabled_landscape")
     val CLIPBOARD_HISTORY_FLOAT_LOCK_POSITION = booleanPreferencesKey("clipboard_history_float_lock_position")
     val CLIPBOARD_HISTORY_FLOAT_HANDLE_WIDTH_DP = intPreferencesKey("clipboard_history_float_handle_width_dp")
+    val CLIPBOARD_HISTORY_FLOAT_HANDLE_Y_PORTRAIT =
+        intPreferencesKey("clipboard_history_float_handle_y_portrait")
+    val CLIPBOARD_HISTORY_FLOAT_HANDLE_Y_LANDSCAPE =
+        intPreferencesKey("clipboard_history_float_handle_y_landscape")
     val CLIPBOARD_FLOAT_ENABLED = booleanPreferencesKey("clipboard_float_enabled")
     val CLIPBOARD_FLOAT_SHOW_CHIP = booleanPreferencesKey("clipboard_float_show_chip")
     val CLIPBOARD_FLOAT_PIN_POSITION = booleanPreferencesKey("clipboard_float_pin_position")

@@ -20,14 +20,23 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.slideindex.app.di.AppDependencies
 import com.slideindex.app.overlay.OverlayCompose
 import com.slideindex.app.overlay.OverlayComposeOwner
 import com.slideindex.app.overlay.OverlayWindowTypes
 import com.slideindex.app.overlay.history.HistoryFloatContent
+import com.slideindex.app.settings.HistoryFloatHandlePosition
 import com.slideindex.app.settings.HistoryFloatHandleWidth
 import com.slideindex.app.stash.StashCoordinator
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
+import kotlin.math.roundToInt
+import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class HistoryFloatService : Service() {
+    @Inject lateinit var deps: AppDependencies
+
     private lateinit var windowManager: WindowManager
     private lateinit var mainParams: LayoutParams
     private var composeView: ComposeView? = null
@@ -41,11 +50,11 @@ class HistoryFloatService : Service() {
     private var hiddenForFullscreen = false
     private var hiddenForLandscape = false
     private val visibleDisplayFrame = Rect()
-    private val fullscreenCheckHandler = Handler(Looper.getMainLooper())
+    private val mainHandler = Handler(Looper.getMainLooper())
     private val fullscreenCheckRunnable = object : Runnable {
         override fun run() {
             updateFullscreenVisibility()
-            fullscreenCheckHandler.postDelayed(this, FULLSCREEN_CHECK_INTERVAL_MS)
+            mainHandler.postDelayed(this, FULLSCREEN_CHECK_INTERVAL_MS)
         }
     }
 
@@ -59,16 +68,13 @@ class HistoryFloatService : Service() {
         val owner = OverlayComposeOwner()
         composeOwner = owner
         composeView = OverlayCompose.createComposeView(overlayContext, owner).apply {
-            setOnApplyWindowInsetsListener { _, insets ->
-                updateFullscreenVisibility()
-                insets
-            }
             setContent {
                 HistoryFloatContent(
                     handleVisible = handleVisible,
                     handleWidth = handleWidth,
                     onOpenPanel = { openClipboardPanel() },
                     onMoveHandle = { moveHandle(it) },
+                    onMoveHandleEnd = { persistHandlePosition() },
                 )
             }
         }
@@ -101,7 +107,7 @@ class HistoryFloatService : Service() {
     }
 
     override fun onDestroy() {
-        fullscreenCheckHandler.removeCallbacks(fullscreenCheckRunnable)
+        mainHandler.removeCallbacks(fullscreenCheckRunnable)
         if (viewAdded) {
             composeView?.let { runCatching { windowManager.removeView(it) } }
             viewAdded = false
@@ -114,6 +120,10 @@ class HistoryFloatService : Service() {
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
+        if (viewAdded) {
+            applyHandlePosition()
+            composeView?.let { windowManager.updateViewLayout(it, mainParams) }
+        }
         updateLandscapeVisibility()
         updateFullscreenVisibility()
     }
@@ -129,22 +139,50 @@ class HistoryFloatService : Service() {
         mainParams.width = LayoutParams.WRAP_CONTENT
         mainParams.height = LayoutParams.WRAP_CONTENT
         mainParams.flags = BASE_WINDOW_FLAGS
-        mainParams.gravity = Gravity.END or Gravity.CENTER_VERTICAL
+        mainParams.gravity = Gravity.END or Gravity.TOP
         OverlayWindowTypes.ensureNoBrightnessOverride(mainParams)
-        setPos1P3()
+        applyHandlePosition()
         windowManager.addView(view, mainParams)
         viewAdded = true
+        view.post {
+            if (!viewAdded) return@post
+            applyHandlePosition()
+            runCatching { windowManager.updateViewLayout(view, mainParams) }
+        }
         updateLandscapeVisibility()
         updateFullscreenVisibility()
-        fullscreenCheckHandler.removeCallbacks(fullscreenCheckRunnable)
-        fullscreenCheckHandler.post(fullscreenCheckRunnable)
+        mainHandler.removeCallbacks(fullscreenCheckRunnable)
+        mainHandler.post(fullscreenCheckRunnable)
     }
 
-    private fun setPos1P3() {
-        val screenHeight = resources.displayMetrics.heightPixels
+    private fun isLandscape(): Boolean =
+        resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+
+    private fun storedHandleY(): Int {
+        val snapshot = deps.settingsRepository.readSnapshot()
+        return if (isLandscape()) {
+            snapshot.clipboardHistoryFloatHandleYLandscape
+        } else {
+            snapshot.clipboardHistoryFloatHandleYPortrait
+        }
+    }
+
+    private fun estimateHandleHeightPx(): Int {
+        val measured = composeView?.height?.takeIf { it > 0 }
+        if (measured != null) return measured
+        return (96f * resources.displayMetrics.density).roundToInt()
+    }
+
+    private fun screenHeightPx(): Int = resources.displayMetrics.heightPixels
+
+    private fun applyHandlePosition() {
+        positionY = HistoryFloatHandlePosition.resolveY(
+            storedY = storedHandleY(),
+            screenHeightPx = screenHeightPx(),
+            handleHeightPx = estimateHandleHeightPx(),
+        )
         mainParams.x = 0
-        mainParams.y = -(screenHeight / 3)
-        positionY = mainParams.y
+        mainParams.y = positionY
     }
 
     private fun moveHandle(dy: Float) {
@@ -152,10 +190,25 @@ class HistoryFloatService : Service() {
         if (lockLoc || !viewAdded) {
             return
         }
-        positionY += dy.toInt()
+        positionY = HistoryFloatHandlePosition.clampY(
+            y = positionY + dy.roundToInt(),
+            screenHeightPx = screenHeightPx(),
+            handleHeightPx = estimateHandleHeightPx(),
+        )
         mainParams.x = 0
         mainParams.y = positionY
         windowManager.updateViewLayout(view, mainParams)
+    }
+
+    private fun persistHandlePosition() {
+        if (lockLoc || !viewAdded) {
+            return
+        }
+        val landscape = isLandscape()
+        val y = positionY
+        deps.applicationScope.launch {
+            deps.settingsRepository.setClipboardHistoryFloatHandleY(y, landscape)
+        }
     }
 
     private fun openClipboardPanel() {
@@ -178,7 +231,7 @@ class HistoryFloatService : Service() {
         if (!viewAdded) {
             return
         }
-        val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        val isLandscape = isLandscape()
         val shouldHide = isLandscape && !landscapeEnabled
         if (hiddenForLandscape == shouldHide) {
             return
@@ -230,7 +283,8 @@ class HistoryFloatService : Service() {
         const val EXTRA_LANDSCAPE_ENABLED = "landscape_enabled"
 
         private const val BASE_WINDOW_FLAGS =
-            LayoutParams.FLAG_NOT_FOCUSABLE or
+            LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                LayoutParams.FLAG_NOT_FOCUSABLE or
                 LayoutParams.FLAG_NOT_TOUCH_MODAL or
                 LayoutParams.FLAG_HARDWARE_ACCELERATED
         private const val FULLSCREEN_CHECK_INTERVAL_MS = 500L

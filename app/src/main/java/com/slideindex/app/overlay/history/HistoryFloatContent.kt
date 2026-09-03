@@ -43,12 +43,14 @@ fun HistoryFloatContent(
     handleWidth: Int,
     onOpenPanel: () -> Unit,
     onMoveHandle: (Float) -> Unit,
+    onMoveHandleEnd: () -> Unit = {},
 ) {
     OverlayAwareModuleTheme {
         if (handleVisible) {
             HistoryFloatHandle(
                 onOpenPanel = onOpenPanel,
                 onMoveHandle = onMoveHandle,
+                onMoveHandleEnd = onMoveHandleEnd,
                 handleWidth = handleWidth,
             )
         }
@@ -59,6 +61,7 @@ fun HistoryFloatContent(
 private fun HistoryFloatHandle(
     onOpenPanel: () -> Unit,
     onMoveHandle: (Float) -> Unit,
+    onMoveHandleEnd: () -> Unit = {},
     handleWidth: Int = 32,
 ) {
     var active by remember { mutableStateOf(false) }
@@ -92,6 +95,7 @@ private fun HistoryFloatHandle(
                         if (totalX < -20f) {
                             onOpenPanel()
                         }
+                        onMoveHandleEnd()
                         scope.launch {
                             delay(500)
                             active = false

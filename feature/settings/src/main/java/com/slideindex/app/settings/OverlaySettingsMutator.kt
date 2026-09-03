@@ -872,6 +872,15 @@ class OverlaySettingsMutator @Inject constructor(
             HistoryFloatHandleWidth.coerce(widthDp)
     }
 
+    suspend fun setClipboardHistoryFloatHandleY(y: Int, landscape: Boolean) = editor.edit {
+        val key = if (landscape) {
+            SettingsPreferenceKeys.CLIPBOARD_HISTORY_FLOAT_HANDLE_Y_LANDSCAPE
+        } else {
+            SettingsPreferenceKeys.CLIPBOARD_HISTORY_FLOAT_HANDLE_Y_PORTRAIT
+        }
+        it[key] = y
+    }
+
     suspend fun setClipboardFloatEnabled(enabled: Boolean) = editor.edit {
         it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_ENABLED] = enabled
     }
