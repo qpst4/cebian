@@ -1,7 +1,7 @@
 {
-  "version": "1.9.9.9",
-  "versionCode": 42,
-  "apkUrl": "https://github.com/qpst4/cebian/releases/download/v1.9.9.9/cebian-1.9.9.9-lite.apk",
-  "apkSize": 24471469,
-  "notes": "## 新增\n- 首次引导：重构为 HyperOS 3 流体背景与 MIUIX 三步向导；全屏沉浸式避免冷启动闪现主页；优化权限请求时机并新增应用列表权限检测\n- 手势：新增「短滑后悬停」五向槽位与可配置停留时长、向内复合模式；定时触发悬停震动并容忍手指微抖\n- 手势：新增前台 Activity Inspector 实时 HUD 与历史面板\n- 冰箱：网格冰箱 UI（Miuix 风格网格页、管理页、Pin 桌面快捷方式）；冻结/解冻对齐雹 PM API 与 shell 路径；手势打开默认进入已冻结列表与底部悬浮窗\n- 特权模式：Root / Shizuku 二选一特权模式与双执行链路；任务管理、RAL、剪贴板监听等按模式分流\n- 剪贴板：新增标准 API 剪贴板监听模式（ClipboardManager 公开监听），无需 Root/Shizuku/悬浮窗\n- 通知滤盒：展示渠道 ID 并支持跳转系统通知设置；默认打开历史标签\n- 晃动手势：灵敏度扩至 20 档（阈值 2–20 rad/s），旧 1–10 刻度 v3 迁移保持手感\n## 修复\n- 按应用禁用：横屏下改用无障碍窗口实时识别前台包名；移除 UsageStats 轮询与横屏仅 relayout 路径，修复游戏与全屏视频中触钮/悬浮球仍显示\n- 晃动手势：独立灵敏度路径应用 effectiveThreshold 换算；修正刻度与迁移（数值越高越灵敏，默认 3.0）\n- 设置：悬浮球主开关关闭时子页面仍可进入配置\n- 首次引导：修复冷启动应用列表弹窗拦截与「去授权」跳转系统/MIUI 权限管理页\n- 诊断：诊断导出移至后台线程，避免主线程 ANR\n- ML Kit：修复翻译语言包下载崩溃；OCR 增加错误防护\n- 冰箱：修复 overlay 长按菜单崩溃；手势打开时减少首页闪屏\n## 变更\n- 架构：启动器切页动画优化；100% 纯 ViewModel UDF 架构迁移；消除 runBlocking 与阻塞 IO\n- 设置与稳定性：加固 AppSettings slices；自适应二维网格；onTrimMemory 与本地崩溃上报\n- UI 规范：Material3 Snackbar 全面迁移为 MIUIX 原生 SnackbarHost；背部双击设置页重构为统一 MIUIX 卡片规范\n- UI 细节：MiuixTabRowWithContour 浅色底槽与滑块对比度优化；搜索引擎编辑器顶栏与预设选择器简化\n- 文档：README 截图表格统一布局与列宽规范"
+  "version": "1.9.10",
+  "versionCode": 44,
+  "apkUrl": "https://github.com/qpst4/cebian/releases/download/v1.9.10/cebian-1.9.10-lite.apk",
+  "apkSize": 25108654,
+  "notes": "## 新增\n- 手势：新增「指尖圆环」手势动作，支持可配置槽位数量、分布半径、图标大小与各槽动作/应用/快捷方式；三种触发模式均可使用\n- 手势：重构侧栏手势方向设置页；重构触钮手势设置页并统一槽位文案\n- 全局复制：新增取词按钮直达分词面板；复用悬浮球取词采集逻辑\n- 维护：新增诊断与日志页面（Shizuku 用户服务 + AIDL 监听）；WorkManager 改进后台更新检查通知\n- 外部调用：新增搜索面板 deeplink 与外部调用说明页\n## 修复\n- 指尖圆环：修复槽位设为快速启动器等边缘托管面板无法触发；修复短滑悬停后持续模式不显示圆环；修复触发模式保存与「无」动作回落问题\n- 应用切换器：修复持续手势无界面；限制为仅持续触发并改进 overlay 会话清理\n- 手势：修复斜滑动画提示图标方向错误；修复复合手势震动；统一悬停槽位副标题并将全局复制按钮改为分词\n- 剪贴板：稳定贴边历史浮窗把手位置并持久化\n- 快速启动器：修复面板内全局复制与分页图标错位\n- 浮层：修复横竖屏切换后取词球位置错位；横屏全屏后边缘触钮可见不可点；关取词面板后 NPE 并恢复边缘触钮交互；取词面板显示时避免悬浮球 suppress 连带销毁面板；统一熄屏 dismiss、Compose 销毁与小组件面板稳定性；加固浮层生命周期、锁屏 dismiss 与上一应用切换；HistoryFloatService 改用 OverlayCompose 统一浮层上下文\n## 变更\n- 快速启动器：将面板 Tab 与网格设置合并到 Card 内"
 }
