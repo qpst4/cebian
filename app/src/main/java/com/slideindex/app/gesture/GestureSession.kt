@@ -425,7 +425,14 @@ class GestureSession(
                 if (sessionContinuousPick.fingertipRingActive()) {
                     sessionContinuousPick.clearFingertipRing()
                     callbacks.onFingertipRingContinuousRelease(rawX, rawY)
-                    endSession()
+                    when (sessionPanelMode) {
+                        OverlayPanelMode.QUICK_LAUNCHER,
+                        OverlayPanelMode.TASK_SWITCHER,
+                        OverlayPanelMode.SHELL_COMMANDS,
+                        -> finishLeaveOpenFingerTracking()
+                        OverlayPanelMode.INDEX -> Unit
+                        else -> endSession()
+                    }
                     return
                 }
 

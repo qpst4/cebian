@@ -161,7 +161,15 @@ object FingertipRingOverlayWindow {
         val selectionPressDurationMs = view.selectionPressDurationMs()
         val longPressArmed = view.longPressArmedForSelection()
         dismissInternal()
-        executeSlot(slot, settings, actionExecutor, selectionPressDurationMs, longPressArmed)
+        executeSlot(
+            slot = slot,
+            settings = settings,
+            actionExecutor = actionExecutor,
+            selectionPressDurationMs = selectionPressDurationMs,
+            longPressArmed = longPressArmed,
+            anchorRawX = rawX,
+            anchorRawY = rawY,
+        )
     }
 
     fun onGestureSessionEnd() {
@@ -202,6 +210,8 @@ object FingertipRingOverlayWindow {
         actionExecutor: ActionExecutor,
         selectionPressDurationMs: Long,
         longPressArmed: Boolean,
+        anchorRawX: Float,
+        anchorRawY: Float,
     ) {
         val slots = FingertipRingCodec.activeSlots(settings.fingertipRing)
         val action = slots.getOrNull(slot) ?: return
@@ -213,7 +223,13 @@ object FingertipRingOverlayWindow {
                 settings.resolveHoneycombLongPressArmed(selectionPressDurationMs.coerceAtLeast(0L))
             else -> false
         }
-        actionExecutor.execute(action, settings, longPressArmed = armed)
+        actionExecutor.execute(
+            action = action,
+            settings = settings,
+            longPressArmed = armed,
+            anchorRawX = anchorRawX,
+            anchorRawY = anchorRawY,
+        )
     }
 
     private fun dismissInternal() {
