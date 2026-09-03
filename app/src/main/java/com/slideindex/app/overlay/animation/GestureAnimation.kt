@@ -233,16 +233,12 @@ private fun CapsuleGestureAnimation(
             isReturn -> returnIcon
             else -> baseIcon
         }
-        val degree = if (trigger != null && (isCorner || isReturn)) {
-            gestureTriggerIconRotationZ(side, trigger)
-        } else {
-            animationIconInitialRotation(button.position) +
-                triggerRotationOffset(
-                    animationState.triggerDirection,
-                    button.position,
-                    animationState.swipeDirection,
-                )
-        }
+        val degree = gestureAnimationIconRotationDegrees(
+            position = button.position,
+            trigger = trigger,
+            triggerDirection = animationState.triggerDirection,
+            swipeDirection = animationState.swipeDirection,
+        )
         val iconSize = minOf(rectSize.width, rectSize.height) * animationStyle.iconScale
         val rectCenter = Offset(
             x = topLeft.x + rectSize.width / 2f,
@@ -379,16 +375,12 @@ private fun BubbleGestureAnimation(
             isReturn -> returnIcon
             else -> baseIcon
         }
-        val degree = if (trigger != null && (isCorner || isReturn)) {
-            gestureTriggerIconRotationZ(side, trigger)
-        } else {
-            animationIconInitialRotation(button.position) +
-                triggerRotationOffset(
-                    animationState.triggerDirection,
-                    button.position,
-                    animationState.swipeDirection,
-                )
-        }
+        val degree = gestureAnimationIconRotationDegrees(
+            position = button.position,
+            trigger = trigger,
+            triggerDirection = animationState.triggerDirection,
+            swipeDirection = animationState.swipeDirection,
+        )
         val iconSize = diameter * animationStyle.iconScale
         val bubbleCenter = Offset(centerX, centerY)
         rotate(degree, pivot = bubbleCenter) {
@@ -625,16 +617,12 @@ private fun WaveGestureAnimation(
             isReturn -> returnIcon
             else -> baseIcon
         }
-        val initialDegree = animationIconInitialRotation(button.position)
-        val degree = if (trigger != null && (isCorner || isReturn)) {
-            gestureTriggerIconRotationZ(side, trigger)
-        } else {
-            initialDegree + triggerRotationOffset(
-                triggerDirection,
-                button.position,
-                animationState.swipeDirection,
-            )
-        }
+        val degree = gestureAnimationIconRotationDegrees(
+            position = button.position,
+            trigger = trigger,
+            triggerDirection = triggerDirection,
+            swipeDirection = animationState.swipeDirection,
+        )
         rotate(degree, pivot = bezierBounds.center) {
             val radius = when (button.position) {
                 GestureAnimationPosition.Left, GestureAnimationPosition.Right ->
@@ -675,6 +663,19 @@ private fun WaveGestureAnimation(
 private fun lerpFloat(start: Float, stop: Float, fraction: Float): Float =
     start + (stop - start) * fraction
 
+private fun gestureAnimationIconRotationDegrees(
+    position: GestureAnimationPosition,
+    trigger: GestureTriggerType?,
+    triggerDirection: GestureAnimationTriggerDirection,
+    swipeDirection: SwipeDirection?,
+): Float {
+    if (trigger != null) {
+        return gestureTriggerIconRotationZ(position.toPanelSide(), trigger)
+    }
+    return animationIconInitialRotation(position) +
+        triggerRotationOffset(triggerDirection, position, swipeDirection)
+}
+
 private fun triggerRotationOffset(
     triggerDirection: GestureAnimationTriggerDirection,
     position: GestureAnimationPosition,
@@ -698,23 +699,49 @@ private fun triggerRotationOffset(
             }
         }
     }
-    return when (triggerDirection) {
-        Up -> when (position) {
-            GestureAnimationPosition.Left -> -45f
-            GestureAnimationPosition.Right -> 45f
+    return when (position) {
+        GestureAnimationPosition.Left -> when (swipeDirection) {
+            SwipeDirection.UP -> -90f
+            SwipeDirection.DOWN -> 90f
+            SwipeDirection.UP_RIGHT -> -45f
+            SwipeDirection.DOWN_RIGHT -> 45f
+            SwipeDirection.IN -> 0f
+            null -> leftRightTriggerRotationFallback(triggerDirection, position)
         }
-        Center, Center2, Click -> 0f
-        Down -> when (position) {
-            GestureAnimationPosition.Left -> 45f
-            GestureAnimationPosition.Right -> -45f
+        GestureAnimationPosition.Right -> when (swipeDirection) {
+            SwipeDirection.UP -> 90f
+            SwipeDirection.DOWN -> -90f
+            SwipeDirection.UP_RIGHT -> 45f
+            SwipeDirection.DOWN_RIGHT -> -45f
+            SwipeDirection.IN -> 0f
+            null -> leftRightTriggerRotationFallback(triggerDirection, position)
         }
-        Up2 -> when (position) {
-            GestureAnimationPosition.Left -> -90f
-            GestureAnimationPosition.Right -> 90f
-        }
-        Down2 -> when (position) {
-            GestureAnimationPosition.Left -> 90f
-            GestureAnimationPosition.Right -> -90f
-        }
+    }
+}
+
+private fun leftRightTriggerRotationFallback(
+    triggerDirection: GestureAnimationTriggerDirection,
+    position: GestureAnimationPosition,
+): Float = when (triggerDirection) {
+    Up -> when (position) {
+        GestureAnimationPosition.Left -> -45f
+        GestureAnimationPosition.Right -> 45f
+        else -> 0f
+    }
+    Center, Center2, Click -> 0f
+    Down -> when (position) {
+        GestureAnimationPosition.Left -> 45f
+        GestureAnimationPosition.Right -> -45f
+        else -> 0f
+    }
+    Up2 -> when (position) {
+        GestureAnimationPosition.Left -> -90f
+        GestureAnimationPosition.Right -> 90f
+        else -> 0f
+    }
+    Down2 -> when (position) {
+        GestureAnimationPosition.Left -> 90f
+        GestureAnimationPosition.Right -> -90f
+        else -> 0f
     }
 }
