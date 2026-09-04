@@ -2019,6 +2019,13 @@
     <string name="notification_restore_unsnooze_failed">无法恢复至通知栏，该通知可能已被清除</string>
     <string name="notification_filter_active_empty">通知栏暂无通知</string>
     <string name="notification_history_max_count_title">历史记录保存条数</string>
+    <string name="notification_history_group_by_app_title">按应用折叠</string>
+    <string name="notification_history_group_by_app_desc">同一应用有多条通知时默认折叠显示，点击展开</string>
+    <string name="notification_history_group_count">%1$d 条</string>
+    <string name="notification_history_group_summary">%1$d 条通知</string>
+    <string name="notification_history_group_latest_preview">最新：%1$s</string>
+    <string name="notification_history_group_tap_expand">点击展开</string>
+    <string name="notification_history_group_tap_collapse">点击收起</string>
     <string name="notification_history_max_count_value">%1$d 条</string>
     <string name="widget_panel_blur">背景模糊</string>
     <string name="widget_panel_blur_desc">Android 12+ 在面板后方显示毛玻璃效果</string>

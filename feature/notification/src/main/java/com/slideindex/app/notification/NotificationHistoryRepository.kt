@@ -127,16 +127,11 @@ class NotificationHistoryRepository @Inject constructor(
             ensureLoaded()
             mutex.withLock {
                 val current = storageItems
-                val existing = item.notificationKey?.let { key ->
-                    current.firstOrNull { it.notificationKey == key }
-                }
-                val merged = mergeCapture(existing, item)
-                val withoutDuplicate = if (merged.notificationKey.isNullOrBlank()) {
-                    current
-                } else {
-                    current.filterNot { it.notificationKey == merged.notificationKey }
-                }
-                val next = listOf(merged) + withoutDuplicate
+                val next = resolveNotificationHistoryRecord(
+                    current = current,
+                    incoming = item,
+                    mergeCapture = ::mergeCapture,
+                )
                 val maxCount = filterPreferences.readSnapshot().notificationHistoryMaxCount
                 val trimmed = next.take(maxCount)
                 publishItems(trimmed)

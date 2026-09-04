@@ -23,6 +23,7 @@ fun NotificationFilterSettingsScreen(
         listenerEnabled = listenerEnabled,
         onRequestListenerAccess = onRequestListenerAccess,
         onSetNotificationHistoryMaxCount = viewModel::setNotificationHistoryMaxCount,
+        onSetGroupHistoryByApp = viewModel::setGroupHistoryByApp,
         onRestoreAllSnoozed = viewModel::restoreAllSnoozed,
     )
     val historySectionTitle = stringResource(R.string.notification_settings_history_section)

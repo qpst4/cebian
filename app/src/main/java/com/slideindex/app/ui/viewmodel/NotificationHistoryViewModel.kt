@@ -166,6 +166,10 @@ class NotificationHistoryViewModel @Inject constructor(
         notificationFilterRepository.setRuleEnabledSuspend(id, enabled)
     }
 
+    fun setGroupHistoryByApp(enabled: Boolean) = launchRepositoryWrite {
+        notificationFilterPreferences.setGroupHistoryByApp(enabled)
+    }
+
     fun setNotificationHistoryMaxCount(count: Int) = launchRepositoryWrite {
         val prefsResult = notificationFilterPreferences.setNotificationHistoryMaxCount(count)
         if (prefsResult.isFailure) return@launchRepositoryWrite prefsResult

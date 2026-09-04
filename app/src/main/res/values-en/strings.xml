@@ -1205,6 +1205,13 @@
     <string name="notification_restore_unsnooze_failed">Could not restore to shade; the notification may have been dismissed</string>
     <string name="notification_filter_active_empty">No notifications in shade</string>
     <string name="notification_history_max_count_title">History save limit</string>
+    <string name="notification_history_group_by_app_title">Group by app</string>
+    <string name="notification_history_group_by_app_desc">Collapse when an app has multiple notifications; tap to expand</string>
+    <string name="notification_history_group_count">%1$d</string>
+    <string name="notification_history_group_summary">%1$d notifications</string>
+    <string name="notification_history_group_latest_preview">Latest: %1$s</string>
+    <string name="notification_history_group_tap_expand">Tap to expand</string>
+    <string name="notification_history_group_tap_collapse">Tap to collapse</string>
     <string name="notification_history_max_count_value">Item count: %1$d</string>
     <string name="otp_settings_title">Verification code</string>
     <string name="otp_settings_desc">Extract verification codes from notification text with keyword matching</string>

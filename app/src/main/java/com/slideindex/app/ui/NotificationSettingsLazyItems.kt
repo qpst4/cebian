@@ -18,6 +18,7 @@ import com.slideindex.app.notification.NotificationFilterPreferences
 import com.slideindex.app.notification.NotificationFilterSettings
 import com.slideindex.app.ui.miuix.CardItem
 import com.slideindex.app.ui.miuix.groupedCardItems
+import com.slideindex.app.ui.settings.components.SettingSwitchRow
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 import com.slideindex.app.ui.settings.components.settingsLazyHint
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
@@ -34,6 +35,7 @@ fun rememberNotificationSettingsLazyGroups(
     listenerEnabled: Boolean,
     onRequestListenerAccess: () -> Unit,
     onSetNotificationHistoryMaxCount: (Int) -> Unit,
+    onSetGroupHistoryByApp: (Boolean) -> Unit,
     onRestoreAllSnoozed: (Boolean) -> Int,
 ): NotificationSettingsLazyGroups {
     val context = LocalContext.current
@@ -118,6 +120,15 @@ fun rememberNotificationSettingsLazyGroups(
 
     val historyMaxCount = remember(filterSettings, formatMaxCountLabel, maxCountRange, maxCountSteps) {
         listOf(
+            settingsCardScopeItem("group-by-app") {
+                SettingSwitchRow(
+                    title = stringResource(R.string.notification_history_group_by_app_title),
+                    subtitle = stringResource(R.string.notification_history_group_by_app_desc),
+                    checked = filterSettings.groupHistoryByApp,
+                    enabled = true,
+                    onCheckedChange = onSetGroupHistoryByApp,
+                )
+            },
             settingsCardScopeItem("history-max-count") {
                 SettingsSliderRow(
                     title = stringResource(R.string.notification_history_max_count_title),

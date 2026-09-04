@@ -79,6 +79,9 @@ fun NotificationHistoryScreen(
     var uiState by remember { mutableStateOf(NotificationHistoryUiState()) }
     var pendingDeleteItem by remember { mutableStateOf<NotificationHistoryItem?>(null) }
     var showClearAllConfirm by remember { mutableStateOf(false) }
+    val filterSettings by viewModel.filterSettings.collectAsStateWithLifecycle()
+    val groupByApp = filterSettings.groupHistoryByApp
+    var expandedGroups by remember { mutableStateOf(setOf<String>()) }
     val replayOpenAppDialog by viewModel.replayOpenAppDialog.collectAsStateWithLifecycle()
     var selectedTab by remember { mutableIntStateOf(NotificationFilterTab.HISTORY.ordinal) }
     val visibleHistoryItems = uiState.classification.visibleItems
@@ -91,6 +94,18 @@ fun NotificationHistoryScreen(
     val dateFormat = remember { DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT) }
 
     val context = LocalContext.current
+    LaunchedEffect(selectedTab, searchQuery) {
+        expandedGroups = emptySet()
+    }
+
+    val toggleGroup: (String) -> Unit = { packageName ->
+        expandedGroups = if (packageName in expandedGroups) {
+            expandedGroups - packageName
+        } else {
+            expandedGroups + packageName
+        }
+    }
+
     LaunchedEffect(Unit) {
         com.slideindex.app.util.MediaSessionHelper.ensureNotificationListenerConnected(context)
         viewModel.loadApps()
@@ -243,6 +258,9 @@ fun NotificationHistoryScreen(
             NotificationFilterTab.ACTIVE -> activeNotificationsItems(
                 listenerEnabled = listenerEnabled,
                 activeNotifications = activeNotifications,
+                groupByApp = groupByApp,
+                expandedGroups = expandedGroups,
+                onToggleGroup = toggleGroup,
                 itemMeta = { item -> classification.metaFor(item) },
                 dateFormat = dateFormat,
                 viewModel = viewModel,
@@ -252,6 +270,9 @@ fun NotificationHistoryScreen(
                 items = visibleHistoryItems,
                 filteredItems = filteredHistoryItems,
                 searchQuery = searchQuery,
+                groupByApp = groupByApp,
+                expandedGroups = expandedGroups,
+                onToggleGroup = toggleGroup,
                 activeKeys = activeKeys,
                 itemMeta = { item -> classification.metaFor(item) },
                 dateFormat = dateFormat,
@@ -263,6 +284,9 @@ fun NotificationHistoryScreen(
                 hiddenItems = hiddenItems,
                 filteredItems = filteredHiddenItems,
                 searchQuery = searchQuery,
+                groupByApp = groupByApp,
+                expandedGroups = expandedGroups,
+                onToggleGroup = toggleGroup,
                 activeKeys = activeKeys,
                 itemMeta = { item -> classification.metaFor(item) },
                 dateFormat = dateFormat,
