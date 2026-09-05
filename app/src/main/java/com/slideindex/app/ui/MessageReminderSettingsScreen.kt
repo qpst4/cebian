@@ -73,8 +73,6 @@ fun MessageReminderSettingsScreen(
     onUnlockConfirmationAutoDismissSecondsChange: (Int) -> Unit,
     onOpenLastMessageOnUnlockRules: () -> Unit,
     onFloatIconEnabledChange: (Boolean) -> Unit,
-    onFloatIconSizeDpChange: (Float) -> Unit,
-    onFloatIconOpacityChange: (Float) -> Unit,
     onSideBubbleEnabledChange: (Boolean) -> Unit,
     onDanmakuEnabledChange: (Boolean) -> Unit,
     onOpenFloatIconSettings: () -> Unit,
@@ -246,50 +244,21 @@ fun MessageReminderSettingsScreen(
             items = buildList {
                 add(
                     settingsCardScopeItem("float-icon") {
-                        Column {
-                            SettingSwitchRow(
-                                title = messageStyleLabel(MessageStyle.FloatIcon),
-                                subtitle = stringResource(R.string.message_style_float_icon_desc),
-                                icon = { label ->
-                                    MessageReminderColoredIcon(
-                                        icon = Icons.Outlined.Notifications,
-                                        background = Color(0xFF42A5F5),
-                                        contentDescription = label,
-                                    )
-                                },
-                                checked = settings.floatIconEnabled,
-                                enabled = controlsEnabled,
-                                onCheckedChange = onFloatIconEnabledChange,
-                            )
-                            AnimatedVisibility(
-                                visible = settings.floatIconEnabled && controlsEnabled,
-                                enter = expandVertically(expandFrom = Alignment.Top) + fadeIn(),
-                                exit = shrinkVertically(shrinkTowards = Alignment.Top) + fadeOut(),
-                            ) {
-                                Column {
-                                    SettingsSliderRow(
-                                        title = stringResource(R.string.message_style_float_icon_size),
-                                        value = settings.floatIconSizeDp,
-                                        valueRange = 32f..64f,
-                                        steps = 31,
-                                        enabled = controlsEnabled,
-                                        label = "${settings.floatIconSizeDp.toInt()} dp",
-                                        formatLabel = { "${it.toInt()} dp" },
-                                        onValueChange = onFloatIconSizeDpChange,
-                                    )
-                                    SettingsSliderRow(
-                                        title = stringResource(R.string.message_style_float_icon_opacity),
-                                        value = settings.floatIconOpacity,
-                                        valueRange = 0f..1f,
-                                        enabled = controlsEnabled,
-                                        label = "${(settings.floatIconOpacity * 100).toInt()}%",
-                                        formatLabel = { "${(it * 100).toInt()}%" },
-                                        keyPoints = SETTINGS_SLIDER_PERCENT_KEY_POINTS_01,
-                                        onValueChange = onFloatIconOpacityChange,
-                                    )
-                                }
-                            }
-                        }
+                        SettingSwitchNavigationRow(
+                            title = messageStyleLabel(MessageStyle.FloatIcon),
+                            subtitle = stringResource(R.string.message_style_float_icon_desc),
+                            icon = { label ->
+                                MessageReminderColoredIcon(
+                                    icon = Icons.Outlined.Notifications,
+                                    background = Color(0xFF42A5F5),
+                                    contentDescription = label,
+                                )
+                            },
+                            checked = settings.floatIconEnabled,
+                            enabled = controlsEnabled,
+                            onCheckedChange = onFloatIconEnabledChange,
+                            onNavigate = onOpenFloatIconSettings,
+                        )
                     },
                 )
                 add(

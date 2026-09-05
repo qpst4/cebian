@@ -183,8 +183,6 @@ fun ShakeIndependentSensitivityScreen(
 
                                 valueRange = ShakeSensitivityScale.UI_MIN..ShakeSensitivityScale.UI_MAX,
 
-                                steps = ShakeSensitivityScale.UI_STEPS,
-
                                 enabled = true,
 
                                 label = String.format(
@@ -202,6 +200,8 @@ fun ShakeIndependentSensitivityScreen(
                                 startLabel = stringResource(R.string.shake_gestures_sensitivity_hard),
 
                                 endLabel = stringResource(R.string.shake_gestures_sensitivity_easy),
+
+                                keyPoints = ShakeSensitivityScale.UI_KEY_POINTS,
 
                                 onValueChange = { onSensitivityChange(type, it) },
 

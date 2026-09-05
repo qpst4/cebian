@@ -8,12 +8,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
+import com.slideindex.app.message.MessageOverlayCorner
 import com.slideindex.app.message.MessageSettings
 import com.slideindex.app.message.MessageStyle
 import com.slideindex.app.message.SideBubbleHorizontalEdge
-import com.slideindex.app.message.SideBubbleVerticalAnchor
 import com.slideindex.app.ui.messagestyle.danmakuSettingsCardItems
 import com.slideindex.app.ui.messagestyle.danmakuSettingsSection
+import com.slideindex.app.ui.messagestyle.floatIconPlacementSection
 import com.slideindex.app.ui.messagestyle.floatIconSettingsCardItems
 import com.slideindex.app.ui.messagestyle.floatIconSettingsSection
 import com.slideindex.app.ui.messagestyle.messageStyleLabel
@@ -39,9 +40,17 @@ fun MessageStyleDetailSettingsScreen(
     onFloatIconSizeDpChange: (Float) -> Unit,
     onAutoDismissSecondsChange: (Int) -> Unit,
     onSideHorizontalEdgeChange: (SideBubbleHorizontalEdge) -> Unit,
-    onSideVerticalAnchorChange: (SideBubbleVerticalAnchor) -> Unit,
+    onSideBubbleYFractionPreviewChange: (Float) -> Unit = {},
+    onSideBubbleYFractionPreviewCommit: () -> Unit = {},
+    onSideBubbleYFractionChange: (Float) -> Unit = {},
+    onFloatIconCornerChange: (MessageOverlayCorner) -> Unit = {},
+    onFloatIconYFractionPreviewChange: (Float) -> Unit = {},
+    onFloatIconYFractionPreviewCommit: () -> Unit = {},
+    onFloatIconYFractionChange: (Float) -> Unit = {},
     onSideFontSizeLevelChange: (Int) -> Unit,
     onDanmakuSpeedLevelChange: (Int) -> Unit,
+    onMessagePreviewChange: (MessageSettings) -> Unit = {},
+    onMessagePreviewCommit: () -> Unit = {},
 ) {
     val controlsEnabled = settings.enabled
     val subtitle = when (style) {
@@ -50,10 +59,13 @@ fun MessageStyleDetailSettingsScreen(
         MessageStyle.Danmaku -> stringResource(R.string.message_style_danmaku_desc)
     }
     val floatIconSectionTitle = stringResource(R.string.message_style_section_float_settings)
+    val floatIconPlacementTitle = stringResource(R.string.message_style_float_position)
     val sideThemeSectionTitle = stringResource(R.string.message_style_section_side_theme)
     val displaySectionTitle = stringResource(R.string.message_style_section_display)
     val fontSizeSectionTitle = stringResource(R.string.message_style_side_font_size)
+    val fontSizeHint = stringResource(R.string.message_style_side_font_size_desc)
     val placementSectionTitle = stringResource(R.string.message_style_side_position)
+    val placementHint = stringResource(R.string.message_style_side_position_hint)
     val danmakuThemeSectionTitle = stringResource(R.string.message_reminder_danmaku_theme)
     val danmakuOverlayHint = stringResource(R.string.message_style_danmaku_overlay_hint)
 
@@ -62,6 +74,8 @@ fun MessageStyleDetailSettingsScreen(
         enabled = controlsEnabled,
         onOpacityChange = onFloatIconOpacityChange,
         onFloatIconSizeDpChange = onFloatIconSizeDpChange,
+        onPreviewChange = onMessagePreviewChange,
+        onPreviewCommit = onMessagePreviewCommit,
     )
     val sideDisplayItems = primaryDisplayCardItems(
         settings = settings,
@@ -76,6 +90,8 @@ fun MessageStyleDetailSettingsScreen(
         sideMaxCount = settings.sideMaxCount,
         opacitySteps = 0,
         opacityRange = 0.1f..1f,
+        onPreviewChange = onMessagePreviewChange,
+        onPreviewCommit = onMessagePreviewCommit,
     )
     val danmakuItems = danmakuSettingsCardItems(
         settings = settings,
@@ -96,6 +112,15 @@ fun MessageStyleDetailSettingsScreen(
                     items = floatIconItems,
                     sectionTitle = floatIconSectionTitle,
                 )
+                floatIconPlacementSection(
+                    settings = settings,
+                    enabled = controlsEnabled,
+                    sectionTitle = floatIconPlacementTitle,
+                    onCornerChange = onFloatIconCornerChange,
+                    onYFractionPreviewChange = onFloatIconYFractionPreviewChange,
+                    onYFractionPreviewCommit = onFloatIconYFractionPreviewCommit,
+                    onYFractionChange = onFloatIconYFractionChange,
+                )
             }
             MessageStyle.SideBubble -> {
                 sideStyleSettingsSection(
@@ -105,6 +130,7 @@ fun MessageStyleDetailSettingsScreen(
                     themeSectionTitle = sideThemeSectionTitle,
                     displaySectionTitle = displaySectionTitle,
                     fontSizeSectionTitle = fontSizeSectionTitle,
+                    fontSizeHint = fontSizeHint,
                     onThemeIdChange = onSideThemeIdChange,
                     onFontSizeLevelChange = onSideFontSizeLevelChange,
                 )
@@ -112,8 +138,11 @@ fun MessageStyleDetailSettingsScreen(
                     settings = settings,
                     enabled = controlsEnabled,
                     sectionTitle = placementSectionTitle,
+                    positionHint = placementHint,
                     onHorizontalEdgeChange = onSideHorizontalEdgeChange,
-                    onVerticalAnchorChange = onSideVerticalAnchorChange,
+                    onYFractionPreviewChange = onSideBubbleYFractionPreviewChange,
+                    onYFractionPreviewCommit = onSideBubbleYFractionPreviewCommit,
+                    onYFractionChange = onSideBubbleYFractionChange,
                 )
             }
             MessageStyle.Danmaku -> {

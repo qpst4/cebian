@@ -3,6 +3,7 @@ package com.slideindex.app.ui.viewmodel
 import android.content.Context
 import com.slideindex.app.message.MessageAction
 import com.slideindex.app.message.MessageAppFilterRule
+import com.slideindex.app.message.MessageOverlayCorner
 import com.slideindex.app.settings.SettingsRepository
 import com.slideindex.app.ui.feedback.UserMessageBus
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -149,6 +150,18 @@ class MessageSettingsViewModel @Inject constructor(
 
     fun setMessageSideVerticalAnchor(anchor: String) = launchSettingsWrite {
         settingsRepository.setMessageSideVerticalAnchor(anchor)
+    }
+
+    fun setMessageSideBubbleYFraction(fraction: Float) = launchSettingsWrite {
+        settingsRepository.setMessageSideBubbleYFraction(fraction)
+    }
+
+    fun setMessageFloatIconCorner(corner: MessageOverlayCorner) = launchSettingsWrite {
+        settingsRepository.setMessageFloatIconCorner(corner.id)
+    }
+
+    fun setMessageFloatIconYFraction(fraction: Float) = launchSettingsWrite {
+        settingsRepository.setMessageFloatIconYFraction(fraction)
     }
 
     fun setMessageSideFontSizeLevel(level: Int) = launchSettingsWrite {

@@ -21,6 +21,8 @@ fun floatIconSettingsCardItems(
     enabled: Boolean,
     onOpacityChange: (Float) -> Unit,
     onFloatIconSizeDpChange: (Float) -> Unit,
+    onPreviewChange: (MessageSettings) -> Unit = {},
+    onPreviewCommit: () -> Unit = {},
 ): List<CardItem> = buildList {
     add(
         settingsCardScopeItem("size") {
@@ -32,7 +34,14 @@ fun floatIconSettingsCardItems(
                 enabled = enabled,
                 label = "${settings.floatIconSizeDp.toInt()} dp",
                 formatLabel = { "${it.toInt()} dp" },
-                onValueChange = onFloatIconSizeDpChange,
+                triggersLayoutPreview = true,
+                onLayoutPreviewValueChange = { sizeDp ->
+                    onPreviewChange(settings.copy(floatIconSizeDp = sizeDp))
+                },
+                onValueChange = { sizeDp ->
+                    onPreviewCommit()
+                    onFloatIconSizeDpChange(sizeDp)
+                },
             )
         },
     )
@@ -46,7 +55,14 @@ fun floatIconSettingsCardItems(
                 label = "${(settings.floatIconOpacity * 100).toInt()}%",
                 formatLabel = { "${(it * 100).toInt()}%" },
                 keyPoints = SETTINGS_SLIDER_PERCENT_KEY_POINTS_01,
-                onValueChange = onOpacityChange,
+                triggersLayoutPreview = true,
+                onLayoutPreviewValueChange = { opacity ->
+                    onPreviewChange(settings.copy(floatIconOpacity = opacity))
+                },
+                onValueChange = { opacity ->
+                    onPreviewCommit()
+                    onOpacityChange(opacity)
+                },
             )
         },
     )

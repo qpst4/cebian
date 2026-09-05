@@ -3,7 +3,10 @@ package com.slideindex.app.settings
 import com.slideindex.app.message.MessageAction
 import com.slideindex.app.message.MessageAppFilterCodec
 import com.slideindex.app.message.MessageAppFilterRule
+import com.slideindex.app.message.MessageOverlayCorner
+import com.slideindex.app.message.MessagePlacementFractions
 import com.slideindex.app.message.MessageSettingsCodec
+import com.slideindex.app.message.SideBubbleVerticalAnchor
 import com.slideindex.app.message.SideBubbleFontSize
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -31,7 +34,32 @@ class MessageSettingsMutator @Inject constructor(
         editor.edit { it[SettingsPreferenceKeys.MESSAGE_SIDE_HORIZONTAL_EDGE] = edge }
 
     suspend fun setMessageSideVerticalAnchor(anchor: String) =
-        editor.edit { it[SettingsPreferenceKeys.MESSAGE_SIDE_VERTICAL_ANCHOR] = anchor }
+        editor.edit {
+            it[SettingsPreferenceKeys.MESSAGE_SIDE_VERTICAL_ANCHOR] = anchor
+            it[SettingsPreferenceKeys.MESSAGE_SIDE_Y_FRACTION] =
+                SideBubbleVerticalAnchor.defaultYFraction(
+                    SideBubbleVerticalAnchor.fromId(anchor),
+                )
+        }
+
+    suspend fun setMessageSideBubbleYFraction(fraction: Float) =
+        editor.edit {
+            it[SettingsPreferenceKeys.MESSAGE_SIDE_Y_FRACTION] =
+                MessagePlacementFractions.coerceY(fraction)
+        }
+
+    suspend fun setMessageFloatIconCorner(corner: String) =
+        editor.edit {
+            it[SettingsPreferenceKeys.MESSAGE_FLOAT_ICON_CORNER] = corner
+            it[SettingsPreferenceKeys.MESSAGE_FLOAT_ICON_Y_FRACTION] =
+                MessageOverlayCorner.fromId(corner).defaultYFraction()
+        }
+
+    suspend fun setMessageFloatIconYFraction(fraction: Float) =
+        editor.edit {
+            it[SettingsPreferenceKeys.MESSAGE_FLOAT_ICON_Y_FRACTION] =
+                MessagePlacementFractions.coerceY(fraction)
+        }
 
     suspend fun setMessageSideFontSizeLevel(level: Int) =
         editor.edit {

@@ -193,6 +193,7 @@
     <string name="message_style_danmaku_desc">Scroll messages horizontally at screen top</string>
     <string name="message_style_danmaku_overlay_hint">Shares theme with side bubble and can be displayed alongside other styles</string>
     <string name="message_style_side_position">Bubble position</string>
+    <string name="message_style_side_position_hint">Choose left or right edge, then adjust vertical position with the slider</string>
     <string name="message_style_side_horizontal_edge">Near screen edge</string>
     <string name="message_style_side_edge_left">Left side</string>
     <string name="message_style_side_edge_right">Right side</string>

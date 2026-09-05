@@ -41,6 +41,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
+import com.slideindex.app.ui.settings.components.SETTINGS_SLIDER_PERCENT_KEY_POINTS_100
 import kotlin.math.roundToInt
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.shake.FaceDownGestureSettings
@@ -210,10 +211,10 @@ fun ShakeGesturesScreen(
                             title = stringResource(R.string.face_down_gestures_hold_duration),
                             value = faceDownSettings.holdDurationMs / 1000f,
                             valueRange = 0.5f..1.5f,
-                            steps = 9,
                             enabled = faceDownSettings.enabled,
                             label = formatFaceDownHoldDuration(faceDownSettings.holdDurationMs / 1000f),
                             formatLabel = formatFaceDownHoldDuration,
+                            keyPoints = FaceDownGestureSettings.HOLD_DURATION_KEY_POINTS_SECONDS,
                             onValueChange = { seconds ->
                                 onFaceDownHoldDurationChange((seconds * 1000f).toLong())
                             },
@@ -264,10 +265,10 @@ fun ShakeGesturesScreen(
                                 title = stringResource(R.string.face_down_gestures_audio_feedback_volume),
                                 value = faceDownSettings.audioFeedbackVolume.toFloat(),
                                 valueRange = 0f..100f,
-                                steps = 19,
                                 enabled = faceDownSettings.enabled,
                                 label = formatFaceDownAudioVolume(faceDownSettings.audioFeedbackVolume.toFloat()),
                                 formatLabel = formatFaceDownAudioVolume,
+                                keyPoints = SETTINGS_SLIDER_PERCENT_KEY_POINTS_100,
                                 onValueChange = { volume ->
                                     onFaceDownAudioFeedbackVolumeChange(volume.roundToInt())
                                 },
@@ -352,12 +353,12 @@ fun ShakeGesturesScreen(
                             title = stringResource(R.string.shake_gestures_global_sensitivity),
                             value = settings.globalSensitivity,
                             valueRange = ShakeSensitivityScale.UI_MIN..ShakeSensitivityScale.UI_MAX,
-                            steps = ShakeSensitivityScale.UI_STEPS,
                             enabled = settings.enabled && !settings.independentSensitivityEnabled,
                             label = String.format(java.util.Locale.US, "%.0f", settings.globalSensitivity),
                             formatLabel = { String.format(java.util.Locale.US, "%.0f", it) },
                             startLabel = stringResource(R.string.shake_gestures_sensitivity_hard),
                             endLabel = stringResource(R.string.shake_gestures_sensitivity_easy),
+                            keyPoints = ShakeSensitivityScale.UI_KEY_POINTS,
                             onValueChange = onGlobalSensitivityChange,
                         )
                     },

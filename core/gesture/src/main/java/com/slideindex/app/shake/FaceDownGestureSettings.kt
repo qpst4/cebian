@@ -20,6 +20,16 @@ data class FaceDownGestureSettings(
         const val MIN_AUDIO_FEEDBACK_VOLUME = 0
         const val MAX_AUDIO_FEEDBACK_VOLUME = 100
 
+        const val HOLD_DURATION_MIN_SECONDS = 0.5f
+        const val HOLD_DURATION_MAX_SECONDS = 1.5f
+        const val DEFAULT_HOLD_DURATION_SECONDS = 0.8f
+
+        /** MIUIX Custom Key Points：range 均分 4 段（5 个刻度，含两端）。 */
+        val HOLD_DURATION_KEY_POINTS_SECONDS: List<Float> = run {
+            val span = HOLD_DURATION_MAX_SECONDS - HOLD_DURATION_MIN_SECONDS
+            List(5) { index -> HOLD_DURATION_MIN_SECONDS + span * index / 4f }
+        }
+
         fun clampHoldDurationMs(value: Long): Long = value.coerceIn(500L, 1_500L)
         fun clampCooldownMs(value: Long): Long = value.coerceIn(2_000L, 10_000L)
         fun clampAudioFeedbackVolume(value: Int): Int =

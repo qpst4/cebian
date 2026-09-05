@@ -51,6 +51,8 @@ import kotlinx.coroutines.delay
 import com.slideindex.app.message.MessageAction
 import com.slideindex.app.message.MessageDisplayPlan
 import com.slideindex.app.message.NotificationData
+import com.slideindex.app.message.MessageReminderPreviewController
+import com.slideindex.app.message.MessageSettings
 import com.slideindex.app.message.SideBubbleHorizontalEdge
 import com.slideindex.app.message.SideBubbleVerticalAnchor
 import com.slideindex.app.message.effectiveSideBackgroundResId
@@ -66,7 +68,6 @@ object SideBubbleOverlayWindow {
     internal const val REPOSITION_MS = 300
     internal const val EXIT_MS = 100
     private const val MAX_PER_KEY = 3
-    private const val BOTTOM_OFFSET_DP = 72f
     const val EDGE_MARGIN_DP = 12
 
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -78,8 +79,8 @@ object SideBubbleOverlayWindow {
     private val screenOffDismissReceiver = ScreenOffDismissReceiver { dismiss() }
     private var appContext: Context? = null
     private var nextEntryId = 0L
-    private var horizontalEdge = SideBubbleHorizontalEdge.Right
-    private var verticalAnchor = SideBubbleVerticalAnchor.Middle
+    private var horizontalEdgeState = mutableStateOf(SideBubbleHorizontalEdge.Right)
+    private var sideBubbleYFraction = 0.5f
 
     val isShowing: Boolean get() = composeView != null
 
@@ -104,7 +105,7 @@ object SideBubbleOverlayWindow {
             }
 
         ensureWindow(hostContext, plan.settings)
-        updateWindowPlacement(hostContext, plan.settings)
+        applyWindowPlacement(hostContext, plan.settings)
 
         if (items.any { it.matches(plan.data) }) return
 
@@ -126,7 +127,7 @@ object SideBubbleOverlayWindow {
 
         val entry = SideBubbleEntry(
             id = ++nextEntryId,
-            plan = plan,
+            planState = mutableStateOf(plan),
             visible = mutableStateOf(true),
             entranceStarted = mutableStateOf(false),
             onAction = onAction,
@@ -182,6 +183,38 @@ object SideBubbleOverlayWindow {
             .forEach { removeEntry(it, animate = true) }
     }
 
+    fun dismissPreview() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { dismissPreview() }
+            return
+        }
+        items.filter { it.plan.data.key == MessageReminderPreviewController.PREVIEW_KEY }
+            .toList()
+            .forEach { removeEntry(it, animate = false) }
+    }
+
+    fun updatePreviewPlan(plan: MessageDisplayPlan) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { updatePreviewPlan(plan) }
+            return
+        }
+        val entry = items.firstOrNull {
+            it.plan.data.key == MessageReminderPreviewController.PREVIEW_KEY
+        } ?: return
+        entry.planState.value = plan
+    }
+
+    fun updateWindowPlacement(context: Context, settings: MessageSettings) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { updateWindowPlacement(context, settings) }
+            return
+        }
+        applyWindowPlacement(
+            hostContext = appContext ?: MessageOverlayHost.resolveHostContext(context) ?: return,
+            settings = settings,
+        )
+    }
+
     fun dismiss() {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             mainHandler.post { dismiss() }
@@ -203,7 +236,7 @@ object SideBubbleOverlayWindow {
             setContent {
                 SideBubbleStackContent(
                     items = items,
-                    horizontalEdge = horizontalEdge,
+                    horizontalEdgeState = horizontalEdgeState,
                     onAction = { entry, action -> onEntryAction(entry, action) },
                     onDismiss = { entry -> onEntryDismiss(entry) },
                     onClearAll = { dismiss() },
@@ -213,9 +246,9 @@ object SideBubbleOverlayWindow {
             }
         }
 
-        horizontalEdge = settings.sideBubbleHorizontalEdge
-        verticalAnchor = settings.sideBubbleVerticalAnchor
-        val params = buildLayoutParams(hostContext, settings)
+        horizontalEdgeState.value = settings.sideBubbleHorizontalEdge
+        sideBubbleYFraction = settings.sideBubbleYFraction
+        val params = MessageOverlayLayout.buildSideBubbleLayoutParams(hostContext, settings)
         val added = runCatching { wm.addView(view, params) }
             .onFailure { Log.e(TAG, "addView failed", it) }
             .isSuccess
@@ -232,21 +265,21 @@ object SideBubbleOverlayWindow {
         screenOffDismissReceiver.register(hostContext)
     }
 
-    private fun updateWindowPlacement(
+    private fun applyWindowPlacement(
         hostContext: Context,
         settings: com.slideindex.app.message.MessageSettings,
     ) {
-        if (settings.sideBubbleHorizontalEdge == horizontalEdge &&
-            settings.sideBubbleVerticalAnchor == verticalAnchor
+        if (settings.sideBubbleHorizontalEdge == horizontalEdgeState.value &&
+            settings.sideBubbleYFraction == sideBubbleYFraction
         ) {
             return
         }
-        horizontalEdge = settings.sideBubbleHorizontalEdge
-        verticalAnchor = settings.sideBubbleVerticalAnchor
+        horizontalEdgeState.value = settings.sideBubbleHorizontalEdge
+        sideBubbleYFraction = settings.sideBubbleYFraction
         val wm = windowManager ?: return
         val view = composeView ?: return
         if (!view.isAttachedToWindow) return
-        val params = buildLayoutParams(hostContext, settings)
+        val params = MessageOverlayLayout.buildSideBubbleLayoutParams(hostContext, settings)
         rootLayoutParams = params
         runCatching { wm.updateViewLayout(view, params) }
             .onFailure { Log.w(TAG, "updateViewLayout failed", it) }
@@ -315,6 +348,7 @@ object SideBubbleOverlayWindow {
     }
 
     private fun onEntryAction(entry: SideBubbleEntry, action: MessageAction) {
+        if (entry.plan.data.key == MessageReminderPreviewController.PREVIEW_KEY) return
         if (action.opensQuickReply) {
             cancelAutoDismiss(entry)
         }
@@ -324,44 +358,9 @@ object SideBubbleOverlayWindow {
     }
 
     private fun onEntryDismiss(entry: SideBubbleEntry) {
+        if (entry.plan.data.key == MessageReminderPreviewController.PREVIEW_KEY) return
         entry.onDismiss()
         removeEntry(entry, animate = true)
-    }
-
-    private fun buildLayoutParams(
-        context: Context,
-        settings: com.slideindex.app.message.MessageSettings,
-    ): WindowManager.LayoutParams {
-        val density = context.resources.displayMetrics.density
-        val edgeMarginPx = (EDGE_MARGIN_DP * density).toInt()
-        val horizontalGravity = when (settings.sideBubbleHorizontalEdge) {
-            SideBubbleHorizontalEdge.Left -> Gravity.START
-            SideBubbleHorizontalEdge.Right -> Gravity.END
-        }
-        val verticalGravity = when (settings.sideBubbleVerticalAnchor) {
-            SideBubbleVerticalAnchor.Bottom -> Gravity.BOTTOM
-            SideBubbleVerticalAnchor.Middle -> Gravity.CENTER_VERTICAL
-        }
-        val yOffsetPx = when (settings.sideBubbleVerticalAnchor) {
-            SideBubbleVerticalAnchor.Bottom -> (BOTTOM_OFFSET_DP * density).toInt()
-            SideBubbleVerticalAnchor.Middle -> 0
-        }
-        return WindowManager.LayoutParams(
-            WindowManager.LayoutParams.WRAP_CONTENT,
-            WindowManager.LayoutParams.WRAP_CONTENT,
-            OverlayWindowTypes.overlayWindowType(context),
-            WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-                WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
-            PixelFormat.TRANSLUCENT,
-        ).apply {
-            gravity = verticalGravity or horizontalGravity
-            x = edgeMarginPx
-            y = yOffsetPx
-            layoutInDisplayCutoutMode =
-                WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-        }
     }
 
     private fun cleanupWindow() {
@@ -386,7 +385,7 @@ private enum class SideBubbleExitDirection {
 
 private data class SideBubbleEntry(
     val id: Long,
-    val plan: MessageDisplayPlan,
+    val planState: MutableState<MessageDisplayPlan>,
     val visible: MutableState<Boolean>,
     val entranceStarted: MutableState<Boolean>,
     val onAction: (MessageAction) -> Unit,
@@ -394,6 +393,9 @@ private data class SideBubbleEntry(
     var exitDirection: SideBubbleExitDirection = SideBubbleExitDirection.Side,
     var dismissRunnable: Runnable? = null,
 ) {
+    val plan: MessageDisplayPlan
+        get() = planState.value
+
     fun matches(data: NotificationData): Boolean {
         val shown = plan.data
         return shown.key == data.key && shown.postTime == data.postTime
@@ -403,7 +405,7 @@ private data class SideBubbleEntry(
 @Composable
 private fun SideBubbleStackContent(
     items: SnapshotStateList<SideBubbleEntry>,
-    horizontalEdge: SideBubbleHorizontalEdge,
+    horizontalEdgeState: MutableState<SideBubbleHorizontalEdge>,
     onAction: (SideBubbleEntry, MessageAction) -> Unit,
     onDismiss: (SideBubbleEntry) -> Unit,
     onClearAll: () -> Unit,
@@ -412,6 +414,7 @@ private fun SideBubbleStackContent(
 ) {
     if (items.isEmpty()) return
 
+    val horizontalEdge = horizontalEdgeState.value
     val stackAlignment = when (horizontalEdge) {
         SideBubbleHorizontalEdge.Left -> Alignment.TopStart
         SideBubbleHorizontalEdge.Right -> Alignment.TopEnd
@@ -460,10 +463,11 @@ private fun SideBubbleItem(
     onClearAll: () -> Unit,
     onAutoDismissHoldChanged: (Boolean) -> Unit,
 ) {
-    val plan = entry.plan
+    val plan = entry.planState.value
     val theme = plan.sideTheme ?: return
     val settings = plan.settings
     val data = plan.data
+    val isPreview = data.key == MessageReminderPreviewController.PREVIEW_KEY
     val visible = entry.visible.value
     val entranceStarted = entry.entranceStarted.value
     val progress = remember { Animatable(0f) }
@@ -538,19 +542,22 @@ private fun SideBubbleItem(
     val fontMetrics = sideBubbleFontMetrics(settings.sideBubbleFontSizeLevel)
 
     Box(modifier = Modifier.wrapContentSize()) {
+        var rowModifier = bubbleModifier
+            .messageThemeBackground(
+                theme = theme.copy(backgroundResId = theme.effectiveSideBackgroundResId()),
+                opacity = settings.sideBubbleOpacity,
+            )
+        if (!isPreview) {
+            rowModifier = rowModifier.messageGestureActions(
+                gestureKey = entry.id,
+                settings = settings,
+                onAction = onAction,
+                onLongPressMenu = { menuExpanded = true },
+                onLongPressHaptic = { MessageGestureHaptics.longPress(view) },
+            )
+        }
         Row(
-            modifier = bubbleModifier
-                .messageThemeBackground(
-                    theme = theme.copy(backgroundResId = theme.effectiveSideBackgroundResId()),
-                    opacity = settings.sideBubbleOpacity,
-                )
-                .messageGestureActions(
-                    gestureKey = entry.id,
-                    settings = settings,
-                    onAction = onAction,
-                    onLongPressMenu = { menuExpanded = true },
-                    onLongPressHaptic = { MessageGestureHaptics.longPress(view) },
-                )
+            modifier = rowModifier
                 .padding(
                     horizontal = theme.paddingHorizontalDp.dp,
                     vertical = theme.paddingVerticalDp.dp,
@@ -597,21 +604,23 @@ private fun SideBubbleItem(
                 )
             }
         }
-        MessageOverlayContextMenu(
-            expanded = menuExpanded,
-            onDismissRequest = { menuExpanded = false },
-            onCopy = {
-                copyNotificationText(context, data)
-                menuExpanded = false
-            },
-            onClose = {
-                menuExpanded = false
-                onDismiss()
-            },
-            onClearAll = {
-                menuExpanded = false
-                onClearAll()
-            },
-        )
+        if (!isPreview) {
+            MessageOverlayContextMenu(
+                expanded = menuExpanded,
+                onDismissRequest = { menuExpanded = false },
+                onCopy = {
+                    copyNotificationText(context, data)
+                    menuExpanded = false
+                },
+                onClose = {
+                    menuExpanded = false
+                    onDismiss()
+                },
+                onClearAll = {
+                    menuExpanded = false
+                    onClearAll()
+                },
+            )
+        }
     }
 }

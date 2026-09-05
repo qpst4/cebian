@@ -15,6 +15,12 @@ object ShakeSensitivityScale {
     private const val THRESHOLD_MIN = 2f
     private const val THRESHOLD_MAX = 20f
 
+    /** MIUIX Custom Key Points：range 均分 4 段（5 个刻度，含两端）。 */
+    val UI_KEY_POINTS: List<Float> = run {
+        val span = UI_MAX - UI_MIN
+        List(5) { index -> UI_MIN + span * index / 4f }
+    }
+
     fun clampUi(value: Float): Float = value.coerceIn(UI_MIN, UI_MAX)
 
     fun effectiveThreshold(uiValue: Float): Float {

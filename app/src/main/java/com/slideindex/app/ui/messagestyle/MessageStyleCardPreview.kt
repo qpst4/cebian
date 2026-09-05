@@ -51,6 +51,8 @@ fun primaryDisplayCardItems(
     sideMaxCount: Int = 3,
     opacitySteps: Int = 7,
     opacityRange: ClosedFloatingPointRange<Float> = 0.2f..1f,
+    onPreviewChange: (MessageSettings) -> Unit = {},
+    onPreviewCommit: () -> Unit = {},
 ): List<CardItem> {
     val autoDismissOffLabel = stringResource(R.string.message_reminder_auto_dismiss_off)
     return buildList {
@@ -64,7 +66,14 @@ fun primaryDisplayCardItems(
                     enabled = enabled,
                     label = "${(opacity * 100).toInt()}%",
                     formatLabel = { "${(it * 100).toInt()}%" },
-                    onValueChange = onOpacityChange,
+                    triggersLayoutPreview = true,
+                    onLayoutPreviewValueChange = { previewOpacity ->
+                        onPreviewChange(settings.copy(sideBubbleOpacity = previewOpacity))
+                    },
+                    onValueChange = { committedOpacity ->
+                        onPreviewCommit()
+                        onOpacityChange(committedOpacity)
+                    },
                 )
             },
         )

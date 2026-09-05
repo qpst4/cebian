@@ -22,6 +22,7 @@ fun LazyListScope.sideStyleSettingsSection(
     themeSectionTitle: String,
     displaySectionTitle: String,
     fontSizeSectionTitle: String,
+    fontSizeHint: String,
     onThemeIdChange: (String) -> Unit,
     onFontSizeLevelChange: (Int) -> Unit,
 ) {
@@ -44,6 +45,7 @@ fun LazyListScope.sideStyleSettingsSection(
         settings = settings,
         enabled = enabled,
         sectionTitle = fontSizeSectionTitle,
+        fontSizeHint = fontSizeHint,
         onFontSizeLevelChange = onFontSizeLevelChange,
     )
 }

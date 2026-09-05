@@ -16,6 +16,8 @@ import com.slideindex.app.launcher.QuickLauncherItemCodec
 import com.slideindex.app.message.MessageSettings
 import com.slideindex.app.message.MessageSettingsCodec
 import com.slideindex.app.message.MessageStyle
+import com.slideindex.app.message.MessageOverlayCorner
+import com.slideindex.app.message.MessagePlacementFractions
 import com.slideindex.app.message.SideBubbleHorizontalEdge
 import com.slideindex.app.message.SideBubbleVerticalAnchor
 import com.slideindex.app.message.SideBubbleFontSize
@@ -868,6 +870,17 @@ internal object SettingsSnapshotReader {
             sideBubbleVerticalAnchor = SideBubbleVerticalAnchor.fromId(
                 prefs[SettingsPreferenceKeys.MESSAGE_SIDE_VERTICAL_ANCHOR],
             ),
+            sideBubbleYFraction = prefs[SettingsPreferenceKeys.MESSAGE_SIDE_Y_FRACTION]
+                ?: SideBubbleVerticalAnchor.defaultYFraction(
+                    SideBubbleVerticalAnchor.fromId(
+                        prefs[SettingsPreferenceKeys.MESSAGE_SIDE_VERTICAL_ANCHOR],
+                    ),
+                ),
+            floatIconCorner = MessageOverlayCorner.fromId(
+                prefs[SettingsPreferenceKeys.MESSAGE_FLOAT_ICON_CORNER],
+            ),
+            floatIconYFraction = prefs[SettingsPreferenceKeys.MESSAGE_FLOAT_ICON_Y_FRACTION]
+                ?: MessagePlacementFractions.DEFAULT_BOTTOM_Y,
             sideBubbleFontSizeLevel = SideBubbleFontSize.coerce(
                 prefs[SettingsPreferenceKeys.MESSAGE_SIDE_FONT_SIZE_LEVEL] ?: SideBubbleFontSize.NORMAL,
             ),
