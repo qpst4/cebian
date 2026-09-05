@@ -46,7 +46,9 @@ class SlideIndexAppWidgetHost(private val appContext: Context) : AppWidgetHost(a
               val pendingIntent = args[1] as? PendingIntent ?: return false
               val response = if (args.size > 2) args[2] else null
 
-              WidgetPopupOverlayWindow.dismiss()
+              if (pendingIntent.isActivity) {
+                WidgetPopupOverlayWindow.dismiss()
+              }
 
               try {
                 val getLaunchOptionsMethod = response?.javaClass?.getMethod("getLaunchOptions", View::class.java)
