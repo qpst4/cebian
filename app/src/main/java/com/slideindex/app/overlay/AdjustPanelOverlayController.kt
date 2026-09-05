@@ -344,6 +344,13 @@ internal class AdjustPanelOverlayController(
                 observer,
             )
         }
+        runCatching {
+            resolver.registerContentObserver(
+                Settings.System.getUriFor("screen_auto_brightness_adj"),
+                false,
+                observer,
+            )
+        }
         resolver.registerContentObserver(
             Settings.Secure.getUriFor(BrightnessControlHelper.UI_NIGHT_MODE_KEY),
             false,

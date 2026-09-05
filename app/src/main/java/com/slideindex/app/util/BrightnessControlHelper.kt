@@ -6,6 +6,7 @@ import android.content.res.Configuration
 import android.provider.Settings
 import android.util.Log
 import kotlin.math.abs
+import kotlin.math.roundToInt
 
 
 
@@ -43,26 +44,22 @@ object BrightnessControlHelper {
         ) == Settings.System.SCREEN_BRIGHTNESS_MODE_AUTOMATIC
     }
 
-    /** 当前亮度比例（0–1），仅读 Settings（主线程安全，勿走 shell）。 */
-    fun readBrightnessFraction(context: Context): Float {
+    /** 自动亮度开启时，滑条位置 0–1 与系统 adj（-1–1）互转。 */
+    fun adjToFraction(adj: Float): Float = ((adj + 1f) / 2f).coerceIn(0f, 1f)
+
+    fun fractionToAdj(fraction: Float): Float = (fraction.coerceIn(0f, 1f) * 2f - 1f)
+
+    fun readAutoBrightnessAdj(context: Context): Float {
         val appContext = context.applicationContext
-        val level = Settings.System.getInt(
-            appContext.contentResolver,
-            Settings.System.SCREEN_BRIGHTNESS,
-            255,
-        )
-        val intFraction = levelToFraction(appContext, level)
-        val floatVal = runCatching {
-            Settings.System.getFloat(appContext.contentResolver, "screen_brightness_float")
+        val adj = runCatching {
+            Settings.System.getFloat(appContext.contentResolver, SCREEN_AUTO_BRIGHTNESS_ADJ)
         }.getOrNull()
-        if (floatVal != null && floatVal in 0f..1f) {
-            if (abs(floatVal - intFraction) > FLOAT_INT_MISMATCH_EPSILON) {
-                return intFraction
-            }
-            return floatVal
-        }
-        return intFraction
+        return if (adj != null && adj in -1f..1f) adj else 0f
     }
+
+    /** 当前亮度比例（0–1），仅读 Settings（主线程安全，勿走 shell）。 */
+    fun readBrightnessFraction(context: Context): Float =
+        readManualBrightnessFraction(context.applicationContext)
 
     /**
      * 尽量读到系统当前亮度；有 Shizuku 时走 shell。仅限后台线程调用（勿在主线程阻塞）。
@@ -93,7 +90,26 @@ object BrightnessControlHelper {
                 }
             }
         }
-        return readBrightnessFraction(appContext)
+        return readManualBrightnessFraction(appContext)
+    }
+
+    private fun readManualBrightnessFraction(appContext: Context): Float {
+        val level = Settings.System.getInt(
+            appContext.contentResolver,
+            Settings.System.SCREEN_BRIGHTNESS,
+            255,
+        )
+        val intFraction = levelToFraction(appContext, level)
+        val floatVal = runCatching {
+            Settings.System.getFloat(appContext.contentResolver, "screen_brightness_float")
+        }.getOrNull()
+        if (floatVal != null && floatVal in 0f..1f) {
+            if (abs(floatVal - intFraction) > FLOAT_INT_MISMATCH_EPSILON) {
+                return intFraction
+            }
+            return floatVal
+        }
+        return intFraction
     }
 
     private fun levelToFraction(context: Context, level: Int): Float {
@@ -129,28 +145,131 @@ object BrightnessControlHelper {
         return if (id != 0) res.getInteger(id) else 0
     }
 
-    fun applyBrightnessFraction(context: Context, fraction: Float): Boolean {
+    /**
+     * @param duringGesture 滑动过程中为 true：仅快速写 screen_brightness，不走 shell / adj。
+     * @param commitAutoAdj 手势结束时为 true：在后台尽力同步 adj，不阻塞、不切换亮度模式。
+     */
+    fun writeBrightnessFraction(
+        context: Context,
+        fraction: Float,
+        duringGesture: Boolean = false,
+        commitAutoAdj: Boolean = false,
+    ): Boolean {
         if (!hasAccess(context)) return false
         val appContext = context.applicationContext
-        if (readAutoBrightnessEnabled(appContext)) {
-            toggleAutoBrightness(appContext)
-        }
         val clamped = fraction.coerceIn(0f, 1f)
+        val synced = writeManualBrightnessFraction(
+            context = appContext,
+            clamped = clamped,
+            logSuccess = !duringGesture,
+            allowShell = !duringGesture,
+        )
+        if (commitAutoAdj && readAutoBrightnessEnabled(appContext)) {
+            scheduleAutoBrightnessAdjCommit(appContext, clamped)
+        }
+        return synced
+    }
+
+    fun applyBrightnessFraction(context: Context, fraction: Float): Boolean =
+        writeBrightnessFraction(context, fraction, commitAutoAdj = readAutoBrightnessEnabled(context))
+
+    private fun writeManualBrightnessFraction(
+        context: Context,
+        clamped: Float,
+        logSuccess: Boolean = true,
+        allowShell: Boolean = true,
+    ): Boolean {
+        val appContext = context.applicationContext
         val max = brightnessMax(appContext)
         val min = brightnessMin(appContext)
-        val level = if (max <= min) {
+        val targetIntLevel = if (max <= min) {
             min
         } else {
-            (min + clamped * (max - min)).toInt().coerceIn(min, max)
+            (min + (max - min) * clamped).roundToInt().coerceIn(min, max)
         }
-        return runCatching {
-            Settings.System.putInt(
-                appContext.contentResolver,
-                Settings.System.SCREEN_BRIGHTNESS,
-                level,
-            )
-        }.getOrDefault(false)
+
+        var synced = false
+        val canWriteSettings = PermissionHelper.canWriteSettings(appContext) ||
+            SecureSettingsHelper.hasWriteSecureSettings(appContext)
+
+        if (canWriteSettings) {
+            synced = runCatching {
+                Settings.System.putFloat(
+                    appContext.contentResolver,
+                    "screen_brightness_float",
+                    clamped,
+                )
+            }.getOrDefault(false)
+            synced = runCatching {
+                Settings.System.putInt(
+                    appContext.contentResolver,
+                    Settings.System.SCREEN_BRIGHTNESS,
+                    targetIntLevel,
+                )
+            }.getOrDefault(false) || synced
+        }
+        if (!synced && allowShell && TaskManagerUtil.hasPermission()) {
+            synced = TaskManagerUtil.runShellCommand(
+                "settings",
+                "put",
+                "system",
+                "screen_brightness_float",
+                clamped.toString(),
+            ) || synced
+            synced = TaskManagerUtil.runShellCommand(
+                "settings",
+                "put",
+                "system",
+                "screen_brightness",
+                targetIntLevel.toString(),
+            ) || synced
+        }
+        if (synced && logSuccess) {
+            Log.d(TAG, "manual brightness set to $targetIntLevel (fraction=$clamped, max=$max)")
+        }
+        return synced
     }
+
+    private fun scheduleAutoBrightnessAdjCommit(context: Context, fraction: Float) {
+        val appContext = context.applicationContext
+        val adj = fractionToAdj(fraction)
+        brightnessAdjExecutor.execute {
+            writeAutoBrightnessAdjBestEffort(appContext, adj)
+        }
+    }
+
+    private fun writeAutoBrightnessAdjBestEffort(context: Context, adj: Float) {
+        val clamped = adj.coerceIn(-1f, 1f)
+        if (TaskManagerUtil.hasPermission() && writeAdjViaShell(clamped)) {
+            Log.d(TAG, "auto brightness adj committed via shell: $clamped")
+            return
+        }
+        val canWriteSettings = PermissionHelper.canWriteSettings(context) ||
+            SecureSettingsHelper.hasWriteSecureSettings(context)
+        if (canWriteSettings) {
+            runCatching {
+                if (Settings.System.putFloat(
+                        context.contentResolver,
+                        SCREEN_AUTO_BRIGHTNESS_ADJ,
+                        clamped,
+                    )
+                ) {
+                    Log.d(TAG, "auto brightness adj committed via Settings: $clamped")
+                }
+            }.onFailure { error ->
+                Log.w(TAG, "auto brightness adj commit failed", error)
+            }
+        }
+    }
+
+    private fun writeAdjViaShell(adj: Float): Boolean =
+        TaskManagerUtil.runShellCommand(
+            "settings",
+            "put",
+            "system",
+            SCREEN_AUTO_BRIGHTNESS_ADJ,
+            adj.toString(),
+        )
 
 
 
@@ -328,8 +447,13 @@ object BrightnessControlHelper {
 
     private const val TAG = "BrightnessControlHelper"
 
+    /** 与 AOSP BrightnessController 一致，自动亮度下用户偏移量。 */
+    private const val SCREEN_AUTO_BRIGHTNESS_ADJ = "screen_auto_brightness_adj"
+
     /** 系统快捷设置常只改 int，float 可能仍为应用上次写入的值。 */
     private const val FLOAT_INT_MISMATCH_EPSILON = 0.02f
+
+    private val brightnessAdjExecutor = java.util.concurrent.Executors.newSingleThreadExecutor()
 
 }
 

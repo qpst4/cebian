@@ -486,6 +486,13 @@ class OhoQuickToolsPanelState(
                 observer,
             )
         }
+        runCatching {
+            resolver.registerContentObserver(
+                Settings.System.getUriFor("screen_auto_brightness_adj"),
+                true,
+                observer,
+            )
+        }
     }
 
     private fun unregisterBrightnessObserver() {

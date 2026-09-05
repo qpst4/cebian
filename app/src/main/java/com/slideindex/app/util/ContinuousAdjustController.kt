@@ -1,15 +1,11 @@
 package com.slideindex.app.util
 
-import android.annotation.SuppressLint
 import android.content.Context
-import android.provider.Settings
-import android.util.Log
-import kotlin.math.roundToInt
-import java.util.concurrent.Executors
-
 import android.os.SystemClock
+import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
+import kotlin.math.abs
 
 class ContinuousAdjustController(
     private val context: Context,
@@ -26,20 +22,18 @@ class ContinuousAdjustController(
     private var anchorRawY = Float.NaN
     private var baselineFraction = 0f
     private var lastFraction = Float.NaN
-    private var lastCommittedBrightnessLevel = Int.MIN_VALUE
+    private var lastCommittedFraction = Float.NaN
     private val brightnessWriteExecutor = Executors.newSingleThreadExecutor()
     private val pendingBrightnessFraction = AtomicReference<Float?>(null)
     private val brightnessWriteRunning = AtomicBoolean(false)
     private var lastBrightnessWriteUptimeMs = 0L
-    private var manualBrightnessEnsured = false
 
     fun begin(mode: Mode, rawY: Float): Boolean {
         if (!hasAccess(mode)) return false
         if (activeMode != mode) {
             activeMode = mode
             anchorRawY = rawY
-            lastCommittedBrightnessLevel = Int.MIN_VALUE
-            manualBrightnessEnsured = false
+            lastCommittedFraction = Float.NaN
             baselineFraction = readCurrentFraction(mode)
             lastFraction = baselineFraction
         }
@@ -65,8 +59,7 @@ class ContinuousAdjustController(
         activeMode = null
         anchorRawY = Float.NaN
         lastFraction = Float.NaN
-        lastCommittedBrightnessLevel = Int.MIN_VALUE
-        manualBrightnessEnsured = false
+        lastCommittedFraction = Float.NaN
         if (mode == Mode.BRIGHTNESS && !fraction.isNaN()) {
             val commitFraction = fraction
             if (BrightnessControlHelper.hasAccess(appContext)) {
@@ -84,7 +77,7 @@ class ContinuousAdjustController(
 
     fun readCurrentFraction(mode: Mode): Float = when (mode) {
         Mode.VOLUME -> VolumeControlHelper.readFraction(appContext, VolumeControlHelper.Stream.MEDIA)
-        Mode.BRIGHTNESS -> readBrightnessFraction()
+        Mode.BRIGHTNESS -> BrightnessControlHelper.readBrightnessFraction(appContext)
     }
 
     fun clearBrightnessPreview() {
@@ -159,17 +152,18 @@ class ContinuousAdjustController(
         }
         val latest = pendingBrightnessFraction.getAndSet(null)
         if (latest == null) return
-        ensureManualBrightness()
         writeSystemBrightness(latest)
         lastBrightnessWriteUptimeMs = SystemClock.uptimeMillis()
     }
 
+    private var lastWriteWasDuringGesture = false
+
     private fun commitBrightnessImmediately(fraction: Float) {
         if (!BrightnessControlHelper.hasAccess(appContext)) return
         pendingBrightnessFraction.set(null)
-        lastCommittedBrightnessLevel = Int.MIN_VALUE
-        ensureManualBrightness()
-        writeSystemBrightness(fraction.coerceIn(0f, 1f))
+        lastCommittedFraction = Float.NaN
+        lastWriteWasDuringGesture = false
+        writeSystemBrightness(fraction.coerceIn(0f, 1f), commitAutoAdj = true)
         lastBrightnessWriteUptimeMs = SystemClock.uptimeMillis()
     }
 
@@ -183,7 +177,6 @@ class ContinuousAdjustController(
         try {
             while (true) {
                 val fraction = pendingBrightnessFraction.getAndSet(null) ?: break
-                ensureManualBrightness()
                 writeSystemBrightness(fraction)
                 lastBrightnessWriteUptimeMs = SystemClock.uptimeMillis()
                 if (pendingBrightnessFraction.get() == null) break
@@ -196,108 +189,31 @@ class ContinuousAdjustController(
         }
     }
 
-    private fun ensureManualBrightness() {
-        if (manualBrightnessEnsured) return
-        if (!BrightnessControlHelper.readAutoBrightnessEnabled(appContext)) {
-            manualBrightnessEnsured = true
+    private fun writeSystemBrightness(fraction: Float, commitAutoAdj: Boolean = false) {
+        if (!BrightnessControlHelper.hasAccess(appContext)) return
+        val clamped = fraction.coerceIn(0f, 1f)
+        if (!lastCommittedFraction.isNaN() &&
+            abs(lastCommittedFraction - clamped) < FRACTION_DEDUP_EPSILON &&
+            lastWriteWasDuringGesture == !commitAutoAdj
+        ) {
             return
         }
-        if (BrightnessControlHelper.toggleAutoBrightness(appContext) != null) {
-            manualBrightnessEnsured = true
-        }
-    }
-
-    private fun readBrightnessFraction(): Float =
-        BrightnessControlHelper.readBrightnessFraction(appContext)
-
-    private fun writeSystemBrightness(fraction: Float): Boolean {
-        if (!BrightnessControlHelper.hasAccess(appContext)) return false
-        val clamped = fraction.coerceIn(0f, 1f)
-        val max = brightnessMax()
-        val min = brightnessMin()
-        val targetIntLevel = if (max <= min) {
-            min
-        } else {
-            (min + (max - min) * clamped).roundToInt()
-        }
-        if (targetIntLevel == lastCommittedBrightnessLevel) return true
-
-        var synced = false
-        val canWriteSettings = PermissionHelper.canWriteSettings(appContext) ||
-            SecureSettingsHelper.hasWriteSecureSettings(appContext)
-
-        if (canWriteSettings) {
-            synced = runCatching {
-                Settings.System.putFloat(
-                    appContext.contentResolver,
-                    "screen_brightness_float",
-                    clamped,
-                )
-            }.getOrDefault(false)
-        }
-        if (canWriteSettings) {
-            synced = runCatching {
-                Settings.System.putInt(
-                    appContext.contentResolver,
-                    Settings.System.SCREEN_BRIGHTNESS,
-                    targetIntLevel,
-                )
-            }.getOrDefault(false) || synced
-        }
-
-        if (!synced && TaskManagerUtil.hasPermission()) {
-            synced = TaskManagerUtil.runShellCommand(
-                "settings",
-                "put",
-                "system",
-                "screen_brightness_float",
-                clamped.toString(),
-            ) || synced
-            synced = TaskManagerUtil.runShellCommand(
-                "settings",
-                "put",
-                "system",
-                "screen_brightness",
-                targetIntLevel.toString(),
-            ) || synced
-        }
-        if (synced) {
-            lastCommittedBrightnessLevel = targetIntLevel
-            Log.d(TAG, "system brightness set to $targetIntLevel (fraction=$clamped, max=$max)")
-        }
-        return synced
-    }
-
-    @SuppressLint("DiscouragedApi")
-    private fun brightnessMax(): Int {
-        val res = appContext.resources
-        val id = res.getIdentifier("config_screenBrightnessSettingMaximum", "integer", "android")
-        val configured = if (id != 0) res.getInteger(id) else 0
-        if (configured > 0) return configured
-
-        val currentLevel = Settings.System.getInt(
-            appContext.contentResolver,
-            Settings.System.SCREEN_BRIGHTNESS,
-            255,
+        val duringGesture = !commitAutoAdj
+        val synced = BrightnessControlHelper.writeBrightnessFraction(
+            appContext,
+            clamped,
+            duringGesture = duringGesture,
+            commitAutoAdj = commitAutoAdj,
         )
-        return when {
-            currentLevel > 4095 -> 65535
-            currentLevel > 2047 -> 4095
-            currentLevel > 255 -> 2047
-            else -> 255
+        if (synced) {
+            lastCommittedFraction = clamped
+            lastWriteWasDuringGesture = duringGesture
         }
-    }
-
-    @SuppressLint("DiscouragedApi")
-    private fun brightnessMin(): Int {
-        val res = appContext.resources
-        val id = res.getIdentifier("config_screenBrightnessSettingMinimum", "integer", "android")
-        return if (id != 0) res.getInteger(id) else 0
     }
 
     private companion object {
-        private const val TAG = "ContinuousAdjustController"
         private const val DRAG_SPAN_SCREEN_FRACTION = 0.5f
-        private const val BRIGHTNESS_WRITE_INTERVAL_MS = 16L
+        private const val BRIGHTNESS_WRITE_INTERVAL_MS = 32L
+        private const val FRACTION_DEDUP_EPSILON = 0.004f
     }
 }
