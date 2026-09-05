@@ -141,6 +141,9 @@ class AppRepository @Inject constructor(
     fun peekLaunchIconDrawable(packageName: String): android.graphics.drawable.Drawable? =
         launchIconCache.peekDrawable(packageName)
 
+    fun peekLaunchIconBitmap(packageName: String, sizePx: Int): android.graphics.Bitmap? =
+        launchIconCache.peekBitmap(packageName, sizePx)
+
     fun launchIconDrawable(packageName: String): android.graphics.drawable.Drawable? =
         launchIconCache.drawableFor(packageName)
 

@@ -14,6 +14,7 @@ import android.text.TextPaint
 import android.text.TextUtils
 import com.slideindex.app.activity.ActivityShortcut
 import com.slideindex.app.data.AppInfo
+import com.slideindex.app.data.AppRepository
 import com.slideindex.app.overlay.HoneycombRuntimeTarget
 import com.slideindex.app.overlay.ShellCommandBadgeRenderer
 import com.slideindex.app.overlay.ShortcutBadgeRenderer
@@ -81,6 +82,7 @@ internal object AppSwitcherRenderer {
         appsByPackage: Map<String, AppInfo>,
         activityShortcuts: List<ActivityShortcut>,
         shellCommands: List<ShellCommand>,
+        appRepository: AppRepository? = null,
     ) {
         val progress = revealProgress.coerceIn(0f, 1f)
         if (progress <= 0.01f) return
@@ -138,6 +140,8 @@ internal object AppSwitcherRenderer {
                         appsByPackage = appsByPackage,
                         activityShortcuts = activityShortcuts,
                         shellCommands = shellCommands,
+                        resolvedIcon = target.icon,
+                        appRepository = appRepository,
                     )
                     drawAppIcon(
                         canvas = canvas,
@@ -192,6 +196,8 @@ internal object AppSwitcherRenderer {
                     appsByPackage = appsByPackage,
                     activityShortcuts = activityShortcuts,
                     shellCommands = shellCommands,
+                    resolvedIcon = target.icon,
+                    appRepository = appRepository,
                 )
                 val previewBadgeInfo = drawSelectionPreview(
                     canvas = canvas,

@@ -7,7 +7,9 @@ import android.graphics.drawable.Drawable
 import android.util.LruCache
 import androidx.core.graphics.createBitmap
 import com.slideindex.app.activity.ActivityShortcut
+import com.slideindex.app.data.AppRepository
 import com.slideindex.app.launcher.QuickLauncherItem
+import com.slideindex.app.launcher.QuickLauncherItemType
 import com.slideindex.app.shell.ShellCommand
 import com.slideindex.app.util.QuickLauncherIconResolver
 
@@ -21,10 +23,41 @@ internal object AppSwitcherSlotIconBitmap {
         appsByPackage: Map<String, com.slideindex.app.data.AppInfo>,
         activityShortcuts: List<ActivityShortcut>,
         shellCommands: List<ShellCommand>,
+        resolvedIcon: Drawable? = null,
+        appRepository: AppRepository? = null,
     ): Bitmap {
         val cacheKey = "${item.type}:${item.payload}:${item.label}:$sizePx"
         cache.get(cacheKey)?.let { return it }
-        val bitmap = QuickLauncherIconResolver.iconBitmap(
+        val bitmap = resolveBitmap(
+            context = context,
+            item = item,
+            sizePx = sizePx,
+            appsByPackage = appsByPackage,
+            activityShortcuts = activityShortcuts,
+            shellCommands = shellCommands,
+            resolvedIcon = resolvedIcon,
+            appRepository = appRepository,
+        ) ?: createPlaceholderBitmap(sizePx, item.label.ifBlank { item.payload })
+        cache.put(cacheKey, bitmap)
+        return bitmap
+    }
+
+    private fun resolveBitmap(
+        context: Context,
+        item: QuickLauncherItem,
+        sizePx: Int,
+        appsByPackage: Map<String, com.slideindex.app.data.AppInfo>,
+        activityShortcuts: List<ActivityShortcut>,
+        shellCommands: List<ShellCommand>,
+        resolvedIcon: Drawable?,
+        appRepository: AppRepository?,
+    ): Bitmap? {
+        resolvedIcon?.let { return drawableToBitmap(it, sizePx) }
+        if (item.type == QuickLauncherItemType.APP && item.payload.isNotBlank() && appRepository != null) {
+            appRepository.peekLaunchIconBitmap(item.payload, sizePx)?.let { return it }
+            appRepository.peekLaunchIconDrawable(item.payload)?.let { return drawableToBitmap(it, sizePx) }
+        }
+        return QuickLauncherIconResolver.iconBitmap(
             item = item,
             appsByPackage = appsByPackage,
             size = sizePx,
@@ -32,9 +65,7 @@ internal object AppSwitcherSlotIconBitmap {
             actionIconTintArgb = android.graphics.Color.WHITE,
             activityShortcuts = activityShortcuts,
             shellCommands = shellCommands,
-        ) ?: createPlaceholderBitmap(sizePx, item.label.ifBlank { item.payload })
-        cache.put(cacheKey, bitmap)
-        return bitmap
+        )
     }
 
     private fun createPlaceholderBitmap(sizePx: Int, label: String): Bitmap {
@@ -69,8 +100,9 @@ internal object AppSwitcherSlotIconBitmap {
     private fun drawableToBitmap(drawable: Drawable, sizePx: Int): Bitmap {
         val bitmap = createBitmap(sizePx, sizePx)
         val canvas = Canvas(bitmap)
-        drawable.setBounds(0, 0, sizePx, sizePx)
-        drawable.draw(canvas)
+        val instance = drawable.constantState?.newDrawable()?.mutate() ?: drawable.mutate()
+        instance.setBounds(0, 0, sizePx, sizePx)
+        instance.draw(canvas)
         return bitmap
     }
 }

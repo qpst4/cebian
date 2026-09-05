@@ -60,6 +60,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.data.AppInfo
+import com.slideindex.app.data.AppRepository
 import com.slideindex.app.launcher.QuickLauncherItemType
 import com.slideindex.app.overlay.HoneycombRuntimeTarget
 import com.slideindex.app.overlay.OverlayComposeDialogHost
@@ -107,6 +108,7 @@ internal class AppSwitcherOverlayView(
     private var layoutScreenWidth = 0f
     private var targets: List<HoneycombRuntimeTarget?> = emptyList()
     private var appsByPackage: Map<String, AppInfo> = emptyMap()
+    private var appRepository: AppRepository? = null
 
     private var activeSide: FvAppSwitcherSide? = null
     private var screenAnchorX = 0f
@@ -143,6 +145,7 @@ internal class AppSwitcherOverlayView(
         fvLinkSlotAxes: Boolean,
         targets: List<HoneycombRuntimeTarget?>,
         appsByPackage: Map<String, AppInfo>,
+        appRepository: AppRepository?,
         side: FvAppSwitcherSide,
         anchorX: Float,
         anchorY: Float,
@@ -156,6 +159,7 @@ internal class AppSwitcherOverlayView(
         this.fvLinkSlotAxes = fvLinkSlotAxes
         this.targets = targets
         this.appsByPackage = appsByPackage
+        this.appRepository = appRepository
         this.activeSide = side
         this.screenAnchorX = anchorX
         this.screenAnchorY = anchorY
@@ -169,10 +173,12 @@ internal class AppSwitcherOverlayView(
         fvSettings: FvAppSwitcherSettings,
         targets: List<HoneycombRuntimeTarget?>,
         appsByPackage: Map<String, AppInfo>,
+        appRepository: AppRepository?,
     ) {
         this.fvSettings = fvSettings
         this.targets = targets
         this.appsByPackage = appsByPackage
+        this.appRepository = appRepository
         rebuildLayout()
         invalidate()
     }
@@ -596,6 +602,7 @@ internal class AppSwitcherOverlayView(
             appsByPackage = appsByPackage,
             activityShortcuts = settings.activityShortcuts,
             shellCommands = settings.shellCommands,
+            appRepository = appRepository,
         )
     }
 

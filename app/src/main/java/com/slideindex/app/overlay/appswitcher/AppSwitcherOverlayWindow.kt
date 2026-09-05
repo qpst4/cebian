@@ -9,6 +9,7 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import com.slideindex.app.data.AppInfo
+import com.slideindex.app.data.AppRepository
 import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.gesture.ActionExecutor
 import com.slideindex.app.launcher.QuickLauncherItem
@@ -188,6 +189,7 @@ object AppSwitcherOverlayWindow {
             settings,
             autoFill = !startingInEdit,
         )
+        hydrateTargetIcons(targets, appRepository)
 
         val edgeInsetPx = FV_EDGE_INSET_DP * density
         val anchorX = when (side) {
@@ -230,6 +232,7 @@ object AppSwitcherOverlayWindow {
             fvLinkSlotAxes = settings.fvAppSwitcherLinkSlotAxes,
             targets = targets,
             appsByPackage = appsByPackage,
+            appRepository = appRepository,
             side = side,
             anchorX = anchorX,
             anchorY = anchorY,
@@ -267,7 +270,12 @@ object AppSwitcherOverlayWindow {
                         )
                         mainHandler.post {
                             if (controller === overlayController && overlayController.isVisible()) {
-                                overlayController.refreshTargets(refreshedFv, refreshedTargets, appsByPackage)
+                                overlayController.refreshTargets(
+                                    refreshedFv,
+                                    refreshedTargets,
+                                    appsByPackage,
+                                    appRepository,
+                                )
                             }
                         }
                     }
@@ -289,7 +297,12 @@ object AppSwitcherOverlayWindow {
                         )
                         mainHandler.post {
                             if (controller === overlayController && overlayController.isVisible()) {
-                                overlayController.refreshTargets(refreshedFv, refreshedTargets, appsByPackage)
+                                overlayController.refreshTargets(
+                                    refreshedFv,
+                                    refreshedTargets,
+                                    appsByPackage,
+                                    appRepository,
+                                )
                             }
                         }
                     }
@@ -397,7 +410,7 @@ object AppSwitcherOverlayWindow {
                             appRepository,
                             settings,
                         )
-                        overlayController.refreshTargets(fvSettings, refreshedTargets, appsByPackage)
+                        overlayController.refreshTargets(fvSettings, refreshedTargets, appsByPackage, appRepository)
                     }
                 },
             )
@@ -463,7 +476,7 @@ object AppSwitcherOverlayWindow {
             )
             mainHandler.post {
                 if (controller === overlayController && overlayController.isVisible()) {
-                    overlayController.refreshTargets(fvSettings, targets, appsByPackage)
+                    overlayController.refreshTargets(fvSettings, targets, appsByPackage, appRepository)
                 }
             }
         }
@@ -496,10 +509,10 @@ object AppSwitcherOverlayWindow {
         context: Context,
         fvSettings: FvAppSwitcherSettings,
         appsByPackage: Map<String, AppInfo>,
-        appRepository: com.slideindex.app.data.AppRepository?,
+        appRepository: AppRepository?,
         settings: AppSettings,
-    ): List<com.slideindex.app.overlay.HoneycombRuntimeTarget?> =
-        resolveTargets(
+    ): List<com.slideindex.app.overlay.HoneycombRuntimeTarget?> {
+        val targets = resolveTargets(
             context = context,
             fvSettings = fvSettings,
             appsByPackage = appsByPackage,
@@ -507,6 +520,9 @@ object AppSwitcherOverlayWindow {
             settings = settings,
             autoFill = !editModeActive,
         )
+        hydrateTargetIcons(targets, appRepository)
+        return targets
+    }
 
     private fun refreshTargetsForEditMode() {
         if (Looper.myLooper() != Looper.getMainLooper()) {
@@ -533,7 +549,7 @@ object AppSwitcherOverlayWindow {
             )
             mainHandler.post {
                 if (controller === overlayController && overlayController.isVisible()) {
-                    overlayController.refreshTargets(fvSettings, refreshedTargets, appsByPackage)
+                    overlayController.refreshTargets(fvSettings, refreshedTargets, appsByPackage, appRepository)
                 }
             }
         }
@@ -543,7 +559,7 @@ object AppSwitcherOverlayWindow {
         context: Context,
         fvSettings: FvAppSwitcherSettings,
         appsByPackage: Map<String, AppInfo>,
-        appRepository: com.slideindex.app.data.AppRepository?,
+        appRepository: AppRepository?,
         settings: AppSettings,
         autoFill: Boolean = true,
     ): List<com.slideindex.app.overlay.HoneycombRuntimeTarget?> {
@@ -664,6 +680,22 @@ object AppSwitcherOverlayWindow {
             FvAppSwitcherSide.RIGHT
         } else {
             FvAppSwitcherSide.LEFT
+        }
+    }
+
+    private fun hydrateTargetIcons(
+        targets: List<com.slideindex.app.overlay.HoneycombRuntimeTarget?>,
+        appRepository: AppRepository?,
+    ) {
+        if (appRepository == null) return
+        targets.filterNotNull().forEach { target ->
+            if (target.icon != null ||
+                target.item.type != QuickLauncherItemType.APP ||
+                target.item.payload.isBlank()
+            ) {
+                return@forEach
+            }
+            target.icon = appRepository.peekLaunchIconDrawable(target.item.payload)
         }
     }
 }

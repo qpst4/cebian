@@ -9,6 +9,7 @@ import android.view.WindowInsets
 import android.view.WindowInsetsController
 import android.view.WindowManager
 import com.slideindex.app.data.AppInfo
+import com.slideindex.app.data.AppRepository
 import com.slideindex.app.overlay.HoneycombRuntimeTarget
 import com.slideindex.app.overlay.OverlayWindowTypes
 import com.slideindex.app.overlay.layout.FvAppSwitcherSide
@@ -53,6 +54,7 @@ internal class AppSwitcherOverlayController(
         fvLinkSlotAxes: Boolean,
         targets: List<HoneycombRuntimeTarget?>,
         appsByPackage: Map<String, AppInfo>,
+        appRepository: AppRepository?,
         side: FvAppSwitcherSide,
         anchorX: Float,
         anchorY: Float,
@@ -89,6 +91,7 @@ internal class AppSwitcherOverlayController(
             fvLinkSlotAxes = fvLinkSlotAxes,
             targets = targets,
             appsByPackage = appsByPackage,
+            appRepository = appRepository,
             side = side,
             anchorX = anchorX,
             anchorY = anchorY,
@@ -215,9 +218,12 @@ internal class AppSwitcherOverlayController(
         fvSettings: FvAppSwitcherSettings,
         targets: List<HoneycombRuntimeTarget?>,
         appsByPackage: Map<String, AppInfo>,
+        appRepository: AppRepository?,
     ) {
         val current = view ?: return
-        runOnViewThread(current) { current.refreshTargets(fvSettings, targets, appsByPackage) }
+        runOnViewThread(current) {
+            current.refreshTargets(fvSettings, targets, appsByPackage, appRepository)
+        }
     }
 
     fun refreshSession(

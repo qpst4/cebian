@@ -79,6 +79,12 @@ class AppLaunchIconCache @Inject constructor(
         return peekDrawable(packageName)
     }
 
+    /** Returns a warmed bitmap without loading from PackageManager. */
+    fun peekBitmap(packageName: String, sizePx: Int): Bitmap? {
+        val size = sizePx.coerceAtLeast(1)
+        return bitmapCache.get(bitmapKey(packageName, size))
+    }
+
     fun bitmapFor(packageName: String, sizePx: Int): Bitmap {
         val size = sizePx.coerceAtLeast(1)
         val key = bitmapKey(packageName, size)
