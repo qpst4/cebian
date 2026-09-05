@@ -8,6 +8,7 @@ import android.util.LruCache
 import androidx.core.graphics.createBitmap
 import com.slideindex.app.activity.ActivityShortcut
 import com.slideindex.app.activity.ManagedShortcutIconResolver
+import com.slideindex.app.data.AppRepository
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.shell.ShellCommand
 import com.slideindex.app.shell.ShellCommandIconResolver
@@ -24,15 +25,12 @@ internal object CornerSlotIconBitmap {
         tintArgb: Int,
         activityShortcuts: List<ActivityShortcut> = emptyList(),
         shellCommands: List<ShellCommand> = emptyList(),
+        appRepository: AppRepository? = null,
     ): Bitmap {
         if (action is GestureAction.LaunchApp) {
             val cacheKey = "app:${action.packageName}:$sizePx"
             appIconCache.get(cacheKey)?.let { return it }
-            val drawable = runCatching {
-                context.packageManager.getApplicationIcon(action.packageName)
-            }.getOrNull()
-            if (drawable != null) {
-                val bitmap = drawableToBitmap(drawable, sizePx)
+            resolveAppIconBitmap(action.packageName, sizePx, appRepository, context)?.let { bitmap ->
                 appIconCache.put(cacheKey, bitmap)
                 return bitmap
             }
@@ -53,11 +51,7 @@ internal object CornerSlotIconBitmap {
             if (!hostPackage.isNullOrBlank()) {
                 val cacheKey = "host:$hostPackage:$sizePx"
                 appIconCache.get(cacheKey)?.let { return it }
-                val drawable = runCatching {
-                    context.packageManager.getApplicationIcon(hostPackage)
-                }.getOrNull()
-                if (drawable != null) {
-                    val bitmap = drawableToBitmap(drawable, sizePx)
+                resolveAppIconBitmap(hostPackage, sizePx, appRepository, context)?.let { bitmap ->
                     appIconCache.put(cacheKey, bitmap)
                     return bitmap
                 }
@@ -82,6 +76,21 @@ internal object CornerSlotIconBitmap {
             withPlate = true,
             plateShape = GestureActionPlateShape.CIRCLE,
         )
+    }
+
+    private fun resolveAppIconBitmap(
+        packageName: String,
+        sizePx: Int,
+        appRepository: AppRepository?,
+        context: Context,
+    ): Bitmap? {
+        if (packageName.isBlank()) return null
+        appRepository?.peekLaunchIconBitmap(packageName, sizePx)?.let { return it }
+        appRepository?.peekLaunchIconDrawable(packageName)?.let { return drawableToBitmap(it, sizePx) }
+        val drawable = runCatching {
+            context.packageManager.getApplicationIcon(packageName)
+        }.getOrNull() ?: return null
+        return drawableToBitmap(drawable, sizePx)
     }
 
     private fun drawableToBitmap(drawable: Drawable, sizePx: Int): Bitmap {

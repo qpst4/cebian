@@ -862,6 +862,7 @@ internal class CornerGestureOverlayView(
             hintIconSizeDp = cornerSettings.selectedHintIconSizeDp,
             activityShortcuts = settings.activityShortcuts,
             shellCommands = settings.shellCommands,
+            appRepository = appRepository,
             shortcutSubMenuItems = subMenuItems,
             shortcutSubMenuLayout = if (shortcutSubMenuVisible) shortcutSubMenuLayout else null,
             highlightedShortcutIndex = highlightedShortcutIndex,

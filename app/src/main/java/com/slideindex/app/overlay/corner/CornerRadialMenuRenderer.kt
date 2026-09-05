@@ -11,6 +11,7 @@ import android.graphics.Path
 import androidx.core.graphics.withClip
 import androidx.core.graphics.withScale
 import com.slideindex.app.activity.ActivityShortcut
+import com.slideindex.app.data.AppRepository
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.SelectedHintMetrics
 import com.slideindex.app.launcher.isShellActivityShortcut
@@ -68,6 +69,7 @@ internal object CornerRadialMenuRenderer {
         revealProgress: Float,
         activityShortcuts: List<ActivityShortcut> = emptyList(),
         shellCommands: List<ShellCommand> = emptyList(),
+        appRepository: AppRepository? = null,
         hintIconSizeDp: Int = SelectedHintMetrics.DEFAULT_ICON_SIZE_DP,
         shortcutSubMenuLayout: CornerShortcutSubMenuLayout? = null,
         shortcutSubMenuItems: List<GestureAction.LaunchShortcut> = emptyList(),
@@ -149,6 +151,7 @@ internal object CornerRadialMenuRenderer {
                     iconPaint = iconPaint,
                     activityShortcuts = activityShortcuts,
                     shellCommands = shellCommands,
+                    appRepository = appRepository,
                 )
             }
         }
@@ -181,6 +184,7 @@ internal object CornerRadialMenuRenderer {
                     hintIconSizeDp = hintIconSizeDp,
                     activityShortcuts = activityShortcuts,
                     shellCommands = shellCommands,
+                    appRepository = appRepository,
                 )
             }
         }
@@ -197,6 +201,7 @@ internal object CornerRadialMenuRenderer {
                 revealProgress = shortcutSubMenuRevealProgress,
                 activityShortcuts = activityShortcuts,
                 shellCommands = shellCommands,
+                appRepository = appRepository,
             )
         }
     }
@@ -212,6 +217,7 @@ internal object CornerRadialMenuRenderer {
         revealProgress: Float,
         activityShortcuts: List<ActivityShortcut>,
         shellCommands: List<ShellCommand>,
+        appRepository: AppRepository?,
     ) {
         val menuAlpha = (255f * progress).toInt().coerceIn(0, 255)
         val reveal = revealProgress.coerceIn(0f, 1f)
@@ -287,6 +293,7 @@ internal object CornerRadialMenuRenderer {
                 tintArgb = ICON_TINT,
                 activityShortcuts = activityShortcuts,
                 shellCommands = shellCommands,
+                appRepository = appRepository,
             )
             val iconScale = iconSize / iconBitmap.width
             canvas.withScale(iconScale, iconScale, iconCenterX, iconCenterY) {
@@ -344,6 +351,7 @@ internal object CornerRadialMenuRenderer {
         hintIconSizeDp: Int,
         activityShortcuts: List<ActivityShortcut>,
         shellCommands: List<ShellCommand>,
+        appRepository: AppRepository?,
     ) {
         val label = gestureActionLabelText(context, action)
         if (label.isBlank()) return
@@ -389,12 +397,13 @@ internal object CornerRadialMenuRenderer {
         canvas.drawRoundRect(rect, boxHeight / 2f, boxHeight / 2f, pillPaint)
 
         val iconBitmap = CornerSlotIconBitmap.get(
-            context,
-            action,
-            iconSize.toInt().coerceAtLeast(16),
-            0xFFFFFFFF.toInt(),
-            activityShortcuts,
-            shellCommands,
+            context = context,
+            action = action,
+            sizePx = iconSize.toInt().coerceAtLeast(16),
+            tintArgb = 0xFFFFFFFF.toInt(),
+            activityShortcuts = activityShortcuts,
+            shellCommands = shellCommands,
+            appRepository = appRepository,
         )
         val iconLeft = left + paddingX
         val iconTop = centerY - iconSize / 2f
@@ -461,18 +470,20 @@ internal object CornerRadialMenuRenderer {
         iconPaint: Paint,
         activityShortcuts: List<ActivityShortcut>,
         shellCommands: List<ShellCommand>,
+        appRepository: AppRepository?,
     ) {
         val shadowOffset = 3f * density * progress
         canvas.drawCircle(centerX + shadowOffset, centerY + shadowOffset, radius, shadowPaint)
 
         val diameterPx = (radius * 2f).toInt().coerceAtLeast(12)
         val bitmap = CornerSlotIconBitmap.get(
-            context,
-            action,
-            diameterPx,
-            ICON_TINT,
-            activityShortcuts,
-            shellCommands,
+            context = context,
+            action = action,
+            sizePx = diameterPx,
+            tintArgb = ICON_TINT,
+            activityShortcuts = activityShortcuts,
+            shellCommands = shellCommands,
+            appRepository = appRepository,
         )
         val drawSize = radius * 2f
         val left = centerX - drawSize / 2f
