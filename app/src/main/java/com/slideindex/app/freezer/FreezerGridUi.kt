@@ -231,7 +231,29 @@ fun FreezerGridUi(
             },
             onRemoveFromList = {
                 scope.launch {
-                    settingsRepository.removeFreezerApp(app.packageName)
+                    if (FreezerListOperations.removeFromList(
+                            context = context,
+                            settingsRepository = settingsRepository,
+                            packageName = app.packageName,
+                            appRepository = appRepository,
+                        )
+                    ) {
+                        onFreezeStateRevisionBump()
+                    }
+                    dismissMenu()
+                }
+            },
+            onUnfreezeAndRemoveFromList = {
+                scope.launch {
+                    if (FreezerListOperations.unfreezeAndRemoveFromList(
+                            context = context,
+                            settingsRepository = settingsRepository,
+                            packageName = app.packageName,
+                            appRepository = appRepository,
+                        )
+                    ) {
+                        onFreezeStateRevisionBump()
+                    }
                     dismissMenu()
                 }
             },
@@ -259,6 +281,7 @@ private data class FreezerAppActionCallbacks(
     val onToggleFrozen: () -> Unit,
     val onAddToHome: () -> Unit,
     val onRemoveFromList: () -> Unit,
+    val onUnfreezeAndRemoveFromList: () -> Unit,
 )
 
 @Composable
@@ -274,26 +297,19 @@ private fun FreezerAppActionWindowMenu(
     )
     val addToHomeLabel = stringResource(R.string.freezer_action_add_to_home)
     val removeFromListLabel = stringResource(R.string.freezer_remove_from_list)
+    val unfreezeAndRemoveLabel = stringResource(R.string.freezer_unfreeze_and_remove)
     val cancelLabel = stringResource(R.string.cancel)
     val menuEntry = DropdownEntry(
-        items = listOf(
-            DropdownItem(
-                text = launchFreeWindowLabel,
-                onClick = callbacks.onLaunchFreeWindow,
-            ),
-            DropdownItem(
-                text = freezeLabel,
-                onClick = callbacks.onToggleFrozen,
-            ),
-            DropdownItem(
-                text = addToHomeLabel,
-                onClick = callbacks.onAddToHome,
-            ),
-            DropdownItem(
-                text = removeFromListLabel,
-                onClick = callbacks.onRemoveFromList,
-            ),
-        ),
+        items = buildList {
+            add(DropdownItem(text = launchFreeWindowLabel, onClick = callbacks.onLaunchFreeWindow))
+            add(DropdownItem(text = freezeLabel, onClick = callbacks.onToggleFrozen))
+            add(DropdownItem(text = addToHomeLabel, onClick = callbacks.onAddToHome))
+            if (frozen) {
+                add(DropdownItem(text = unfreezeAndRemoveLabel, onClick = callbacks.onUnfreezeAndRemoveFromList))
+            } else {
+                add(DropdownItem(text = removeFromListLabel, onClick = callbacks.onRemoveFromList))
+            }
+        },
     )
     WindowDropdownDialog(
         entry = menuEntry,
@@ -319,13 +335,18 @@ private fun FreezerAppActionOverlayMenu(
     )
     val addToHomeLabel = stringResource(R.string.freezer_action_add_to_home)
     val removeFromListLabel = stringResource(R.string.freezer_remove_from_list)
+    val unfreezeAndRemoveLabel = stringResource(R.string.freezer_unfreeze_and_remove)
     val cancelLabel = stringResource(R.string.cancel)
-    val menuItems = listOf(
-        launchFreeWindowLabel to callbacks.onLaunchFreeWindow,
-        freezeLabel to callbacks.onToggleFrozen,
-        addToHomeLabel to callbacks.onAddToHome,
-        removeFromListLabel to callbacks.onRemoveFromList,
-    )
+    val menuItems = buildList {
+        add(launchFreeWindowLabel to callbacks.onLaunchFreeWindow)
+        add(freezeLabel to callbacks.onToggleFrozen)
+        add(addToHomeLabel to callbacks.onAddToHome)
+        if (frozen) {
+            add(unfreezeAndRemoveLabel to callbacks.onUnfreezeAndRemoveFromList)
+        } else {
+            add(removeFromListLabel to callbacks.onRemoveFromList)
+        }
+    }
 
     Box(
         modifier = Modifier

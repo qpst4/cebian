@@ -22,4 +22,7 @@ object FreezerBootstrap {
             }
             .toSet()
     }
+
+    fun importablePackages(scanned: Set<String>, excluded: Set<String>): Set<String> =
+        scanned - excluded
 }

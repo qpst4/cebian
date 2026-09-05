@@ -452,12 +452,20 @@ class EdgeSettingsMutator @Inject constructor(
         val current = it[SettingsPreferenceKeys.FREEZER_APP_PACKAGES]?.toMutableSet() ?: mutableSetOf()
         current.add(packageName)
         it[SettingsPreferenceKeys.FREEZER_APP_PACKAGES] = current
+        val excluded = it[SettingsPreferenceKeys.FREEZER_BOOTSTRAP_EXCLUDED_PACKAGES]?.toMutableSet()
+            ?: mutableSetOf()
+        excluded.remove(packageName)
+        it[SettingsPreferenceKeys.FREEZER_BOOTSTRAP_EXCLUDED_PACKAGES] = excluded
     }
 
     suspend fun removeFreezerApp(packageName: String) = editor.edit {
-        val current = it[SettingsPreferenceKeys.FREEZER_APP_PACKAGES]?.toMutableSet() ?: return@edit
+        val current = it[SettingsPreferenceKeys.FREEZER_APP_PACKAGES]?.toMutableSet() ?: mutableSetOf()
         current.remove(packageName)
         it[SettingsPreferenceKeys.FREEZER_APP_PACKAGES] = current
+        val excluded = it[SettingsPreferenceKeys.FREEZER_BOOTSTRAP_EXCLUDED_PACKAGES]?.toMutableSet()
+            ?: mutableSetOf()
+        excluded.add(packageName)
+        it[SettingsPreferenceKeys.FREEZER_BOOTSTRAP_EXCLUDED_PACKAGES] = excluded
     }
 
     suspend fun setFreezerShowInLauncher(enabled: Boolean) = editor.edit {

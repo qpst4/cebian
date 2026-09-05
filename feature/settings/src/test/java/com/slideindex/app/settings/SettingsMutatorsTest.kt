@@ -245,6 +245,25 @@ class SettingsMutatorsTest {
         assertTrue(desynced.hasOppositeGestureSlotDesync())
         assertFalse(desynced.withRepairedOppositeGestureSlotsIfNeeded().hasOppositeGestureSlotDesync())
     }
+    @Test
+    fun removeFreezerApp_tracksBootstrapExclusion_andAddClearsIt() = runBlocking {
+        repository.addFreezerApp("com.example.app")
+        repository.removeFreezerApp("com.example.app")
+
+        val afterRemove = awaitSettings {
+            it.freezerAppPackages.isEmpty() &&
+                it.freezerBootstrapExcludedPackages.contains("com.example.app")
+        }
+        assertTrue(afterRemove.freezerBootstrapExcludedPackages.contains("com.example.app"))
+
+        repository.addFreezerApp("com.example.app")
+        val afterAdd = awaitSettings {
+            it.freezerAppPackages.contains("com.example.app") &&
+                !it.freezerBootstrapExcludedPackages.contains("com.example.app")
+        }
+        assertTrue(afterAdd.freezerAppPackages.contains("com.example.app"))
+        assertFalse(afterAdd.freezerBootstrapExcludedPackages.contains("com.example.app"))
+    }
 }
 
 private val testSettingsLock = Any()

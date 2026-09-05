@@ -191,6 +191,8 @@ internal object SettingsSnapshotReader {
             longPressLaunchDurationMs = prefs[SettingsPreferenceKeys.LONG_PRESS_LAUNCH_DURATION] ?: 450,
             hiddenAppPackages = prefs[SettingsPreferenceKeys.HIDDEN_APP_PACKAGES] ?: emptySet(),
             freezerAppPackages = prefs[SettingsPreferenceKeys.FREEZER_APP_PACKAGES] ?: emptySet(),
+            freezerBootstrapExcludedPackages =
+                prefs[SettingsPreferenceKeys.FREEZER_BOOTSTRAP_EXCLUDED_PACKAGES] ?: emptySet(),
             freezerShowInLauncher = prefs[SettingsPreferenceKeys.FREEZER_SHOW_IN_LAUNCHER] ?: false,
             expandPanelSlotActions = readExpandPanelSlotActions(prefs),
             previousAppExcludedPackages =

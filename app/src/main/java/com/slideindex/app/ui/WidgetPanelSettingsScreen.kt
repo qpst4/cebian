@@ -27,12 +27,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -53,16 +49,19 @@ import com.slideindex.app.widget.WidgetPanelUi
 import com.slideindex.app.widget.WidgetPanelGridLogic
 import com.slideindex.app.widget.WidgetPanelMutator
 import com.slideindex.app.widget.WidgetPanelPage
+import com.slideindex.app.ui.miuix.CardSegment
+import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
 import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.LazySettingsItem
-import com.slideindex.app.ui.settings.components.SettingSwitchRow
-import com.slideindex.app.ui.settings.components.settingsCardItems
-import com.slideindex.app.ui.settings.components.SETTINGS_SLIDER_PERCENT_KEY_POINTS_01
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
+import com.slideindex.app.ui.settings.components.SettingsCardSegmentContent
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import com.slideindex.app.ui.settings.components.SettingExpandableSwitchRow
 import com.slideindex.app.ui.settings.components.SettingsSliderRow
+import com.slideindex.app.ui.settings.components.SETTINGS_SLIDER_PERCENT_KEY_POINTS_01
+import com.slideindex.app.ui.settings.components.settingsCardItems
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 import com.slideindex.app.ui.settings.components.settingsLazyHint
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
@@ -191,10 +190,8 @@ fun WidgetPanelSettingsContent(
     )
     LazySettingsItem(key = "widget-panel-pager") {
       Column(
-        modifier = Modifier
-          .fillMaxWidth()
-          .padding(horizontal = 8.dp, vertical = 4.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(0.dp),
       ) {
         HorizontalPager(
           state = pagerState,
@@ -395,18 +392,39 @@ private fun WidgetPanelGridEditor(
     )
   }
 
+  val previewSectionTitle = stringResource(R.string.floating_pointer_preview_section)
+
   Column(
     modifier = Modifier.fillMaxWidth(),
-    verticalArrangement = Arrangement.spacedBy(16.dp),
+    verticalArrangement = Arrangement.spacedBy(0.dp),
   ) {
-    pageSettingsCard.RenderRows()
+    CardSegment(
+      isFirst = true,
+      isLast = true,
+    ) {
+      SettingsCardSegmentContent {
+        pageSettingsCard.RenderRows()
+      }
+    }
 
-    Box(
+    MiuixSmallTitle(
+      text = previewSectionTitle,
       modifier = Modifier
         .fillMaxWidth()
-        .padding(top = 8.dp),
-      contentAlignment = Alignment.TopCenter,
+        .padding(top = MiuixSmallTitleSectionTop),
+    )
+
+    CardSegment(
+      isFirst = true,
+      isLast = true,
+      outerBottomPadding = 12.dp,
     ) {
+      Box(
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(vertical = 12.dp),
+        contentAlignment = Alignment.TopCenter,
+      ) {
       val screenWidthPx = LocalWindowInfo.current.containerSize.width
       val layoutMetrics = WidgetPanelLayoutMetrics.compute(
         screenWidthPx = screenWidthPx,
@@ -501,6 +519,7 @@ private fun WidgetPanelGridEditor(
         ) {
           Icon(Icons.Default.Add, contentDescription = "Add Widget")
         }
+      }
       }
     }
   }

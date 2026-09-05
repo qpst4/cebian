@@ -1,5 +1,6 @@
 package com.slideindex.app.freezer
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import top.yukonga.miuix.kmp.basic.Text
@@ -76,6 +77,7 @@ fun FreezerPanelContent(
     val scope = rememberCoroutineScope()
     val screenTitle = title ?: stringResource(R.string.extension_freezer_title)
     val unfreezeAllLabel = stringResource(R.string.freezer_batch_unfreeze_all)
+    val importFrozenLabel = stringResource(R.string.freezer_import_frozen_apps)
 
     LaunchedEffect(settings.freezerAppPackages) {
         if (settings.freezerAppPackages.isEmpty()) {
@@ -90,19 +92,6 @@ fun FreezerPanelContent(
         isLoading = false
     }
 
-    LaunchedEffect(Unit) {
-        withContext(Dispatchers.IO) {
-            val bootstrap = FreezerBootstrap.scanDisabledLauncherPackages(context)
-            if (bootstrap.isNotEmpty()) {
-                val current = settingsRepository.readSnapshot().freezerAppPackages
-                val merged = current + bootstrap
-                if (merged != current) {
-                    settingsRepository.setFreezerAppPackages(merged)
-                }
-            }
-        }
-    }
-
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
@@ -111,6 +100,23 @@ fun FreezerPanelContent(
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    fun importFrozenApps() {
+        scope.launch {
+            val count = withContext(Dispatchers.IO) {
+                FreezerListOperations.importFrozenApps(context, settingsRepository)
+            }
+            val message = if (count > 0) {
+                context.getString(R.string.freezer_import_frozen_done, count)
+            } else {
+                context.getString(R.string.freezer_import_frozen_none)
+            }
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+            if (count > 0) {
+                freezeStateRevision++
+            }
+        }
     }
 
     val handleBack: () -> Unit = {
@@ -129,6 +135,10 @@ fun FreezerPanelContent(
 
     val overflowMenuEntry = DropdownEntry(
         items = listOf(
+            DropdownItem(
+                text = importFrozenLabel,
+                onClick = { importFrozenApps() },
+            ),
             DropdownItem(
                 text = unfreezeAllLabel,
                 onClick = {
@@ -176,6 +186,13 @@ fun FreezerPanelContent(
                         expanded = overflowMenuExpanded,
                         onDismissRequest = { overflowMenuExpanded = false },
                     ) {
+                        DropdownMenuItem(
+                            text = { Text(importFrozenLabel) },
+                            onClick = {
+                                overflowMenuExpanded = false
+                                importFrozenApps()
+                            },
+                        )
                         DropdownMenuItem(
                             text = { Text(unfreezeAllLabel) },
                             onClick = {

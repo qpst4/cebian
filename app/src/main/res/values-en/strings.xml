@@ -1424,6 +1424,9 @@
     <string name="freezer_tab_all">All</string>
     <string name="freezer_tab_frozen">Frozen</string>
     <string name="freezer_tab_active">Active</string>
+    <string name="freezer_tab_all_count">All (%1$d)</string>
+    <string name="freezer_tab_frozen_count">Frozen (%1$d)</string>
+    <string name="freezer_tab_active_count">Active (%1$d)</string>
     <string name="freezer_show_system_apps">Show system apps when adding</string>
     <string name="freezer_system_app_label">System</string>
     <string name="freezer_filter_title">Filter</string>
@@ -1437,6 +1440,12 @@
     <string name="freezer_status_frozen">Frozen</string>
     <string name="freezer_status_active">Active</string>
     <string name="freezer_remove_from_list">Remove from list</string>
+    <string name="freezer_unfreeze_and_remove">Unfreeze and remove</string>
+    <string name="freezer_remove_while_frozen">This app is still frozen. Unfreeze it first, or choose Unfreeze and remove.</string>
+    <string name="freezer_import_frozen_apps">Import frozen apps</string>
+    <string name="freezer_import_frozen_apps_desc">Scan disabled launcher apps and add them to the freezer list</string>
+    <string name="freezer_import_frozen_done">Imported %1$d apps</string>
+    <string name="freezer_import_frozen_none">No frozen apps to import</string>
     <string name="freezer_add_to_list">Add to freezer list</string>
     <string name="freezer_launch_app">Launch app</string>
     <string name="freezer_launch_failed">Unable to launch this app</string>

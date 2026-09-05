@@ -69,7 +69,6 @@ fun HolographicLauncherSettingsScreen(
     val sensitivityRange = HolographicLauncherSettings.MIN_ROTATION_SENSITIVITY..
         HolographicLauncherSettings.MAX_ROTATION_SENSITIVITY
     val sensitivitySteps = 49
-    val hapticSectionTitle = stringResource(R.string.holographic_settings_haptic)
     val hapticLabels = listOf(
         stringResource(R.string.holographic_settings_haptic_off),
         stringResource(R.string.holographic_settings_haptic_light),
@@ -131,6 +130,19 @@ fun HolographicLauncherSettingsScreen(
                             onValueChange = { value ->
                                 localSettings = localSettings.copy(rotationSensitivity = value)
                                 onRotationSensitivityChange(value)
+                            },
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("haptic") {
+                        SettingDropdownRow(
+                            title = stringResource(R.string.holographic_settings_haptic),
+                            items = hapticLabels,
+                            selectedIndex = localSettings.hapticLevel.coerceIn(0, hapticLabels.lastIndex),
+                            onSelectedIndexChange = { index ->
+                                localSettings = localSettings.copy(hapticLevel = index)
+                                onHapticLevelChange(index)
                             },
                         )
                     },
@@ -224,30 +236,6 @@ fun HolographicLauncherSettingsScreen(
                         )
                     },
                 )
-            },
-        )
-        settingsLazySmallTitle(
-            key = "section-haptic",
-            title = hapticSectionTitle,
-        )
-        groupedCardItems(
-            keyPrefix = "holographic-haptic",
-            selectableGroup = true,
-            items = buildList {
-                hapticLabels.forEachIndexed { index, label ->
-                    add(
-                        settingsCardScopeItem("haptic-$index") {
-                            SettingRadioRow(
-                                title = label,
-                                selected = localSettings.hapticLevel == index,
-                                onClick = {
-                                    localSettings = localSettings.copy(hapticLevel = index)
-                                    onHapticLevelChange(index)
-                                },
-                            )
-                        },
-                    )
-                }
             },
         )
         settingsLazySmallTitle(

@@ -937,6 +937,9 @@
     <string name="freezer_tab_all">全部</string>
     <string name="freezer_tab_frozen">已冻结</string>
     <string name="freezer_tab_active">使用中</string>
+    <string name="freezer_tab_all_count">全部 (%1$d)</string>
+    <string name="freezer_tab_frozen_count">已冻结 (%1$d)</string>
+    <string name="freezer_tab_active_count">使用中 (%1$d)</string>
     <string name="freezer_show_system_apps">添加时显示系统应用</string>
     <string name="freezer_system_app_label">系统</string>
     <string name="freezer_filter_title">筛选</string>
@@ -950,6 +953,12 @@
     <string name="freezer_status_frozen">已冻结</string>
     <string name="freezer_status_active">使用中</string>
     <string name="freezer_remove_from_list">从列表移除</string>
+    <string name="freezer_unfreeze_and_remove">解冻并移除</string>
+    <string name="freezer_remove_while_frozen">该应用仍处于冻结状态，请先解冻或选择「解冻并移除」</string>
+    <string name="freezer_import_frozen_apps">导入已冻结应用</string>
+    <string name="freezer_import_frozen_apps_desc">扫描系统中已禁用的桌面应用并加入冰箱列表</string>
+    <string name="freezer_import_frozen_done">已导入 %1$d 个应用</string>
+    <string name="freezer_import_frozen_none">没有可导入的已冻结应用</string>
     <string name="freezer_add_to_list">加入冰箱列表</string>
     <string name="freezer_launch_app">启动应用</string>
     <string name="freezer_launch_failed">无法启动该应用</string>
