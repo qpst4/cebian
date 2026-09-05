@@ -24,6 +24,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -62,6 +63,7 @@ fun FreezerPanelContent(
     overlayMode: Boolean = false,
 ) {
     val context = LocalContext.current
+    val resources = LocalResources.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val settings by settingsRepository.settings.collectAsStateWithLifecycle(
         initialValue = settingsRepository.readSnapshot(),
@@ -108,9 +110,9 @@ fun FreezerPanelContent(
                 FreezerListOperations.importFrozenApps(context, settingsRepository)
             }
             val message = if (count > 0) {
-                context.getString(R.string.freezer_import_frozen_done, count)
+                resources.getString(R.string.freezer_import_frozen_done, count)
             } else {
-                context.getString(R.string.freezer_import_frozen_none)
+                resources.getString(R.string.freezer_import_frozen_none)
             }
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
             if (count > 0) {

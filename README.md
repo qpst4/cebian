@@ -1,13 +1,13 @@
 <div align="center">
 
-<img src="art/logo.svg" width="96" alt="边栏 (Cebian)" />
+<img src="art/logo.svg" width="96" alt="Cebian" />
 
-# 📱 边栏（Cebian）
+# 📱 Cebian (Sidebar)
 
-**Android 边缘手势与全能系统增强工具**  
-*侧滑面板 · 悬浮球取词搜图 · 晃动 / 扣桌 / 背面手势 · 通知与 OTP 管理 · 悬浮指针 · 应用冻结 · 自由小窗*
+**All-in-One Android Edge Gesture & Productivity Tool**  
+*Edge Panels · Floating Ball OCR & Image Search · Shake / Desk-Flip / BackTap Gestures · Notification & OTP Manager · Floating Pointer · App Freezer · Freeform Window*
 
-**简体中文** | [English](README_en.md)
+**English** | [简体中文](README_zh.md)
 
 [![Release](https://img.shields.io/github/v/release/qpst4/cebian?style=flat-square&color=6340e6)](https://github.com/qpst4/cebian/releases)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=flat-square)](LICENSE)
@@ -21,239 +21,239 @@
 
 <br />
 
-<img src="art/screenshots/hero_showcase.webp" width="96%" alt="边栏 (Cebian) 全景预览" />
+<img src="art/screenshots/hero_showcase.webp" width="96%" alt="Cebian Full Showcase" />
 
 </div>
 
 ---
 
-**边栏（Cebian）** 是一款基于 Android 无障碍服务、Shizuku 及可选 LSPosed 框架的系统级手势与生产力增强工具。通过屏幕边缘滑动、多功能悬浮球、摇晃或敲击机身手势，轻松触发 50+ 种系统动作；深度整合本地多引擎 OCR、分词与以图搜图聚合，并在任意应用之上提供高效率的悬浮启动面板、应用冻结室、OTP 验证码提取、通知管理、自由小窗与悬浮指针控制。
+**Cebian** is a system-level gesture and productivity tool for Android built on Accessibility Services, Shizuku, and optional LSPosed integration. Easily trigger 50+ system actions via screen-edge swipes, multi-functional floating ball, device shaking, or back-tap gestures; deeply integrates local multi-engine OCR, word segmentation, and reverse image search aggregation, offering high-efficiency overlay launcher panels, app freezer, OTP verification code extraction, notification management, freeform windows, and floating pointer controls on top of any app.
 
-- **应用包名：** `com.slideindex.app`
-- **当前版本：** 1.9.10（versionCode 44）
-- **系统要求：** Android 12+（API 31+）
-- **开源协议：** [AGPL-3.0 License](LICENSE)
+- **Package Name:** `com.slideindex.app`
+- **Current Version:** 1.9.10 (versionCode 44)
+- **Requirements:** Android 12+ (API 31+)
+- **License:** [AGPL-3.0 License](LICENSE)
 
 ---
 
-## 📥 下载安装
+## 📥 Download & Installation
 
 <div align="center">
 
-[![Download Full APK](https://img.shields.io/badge/下载%20Full%20完整包-内置离线引擎-238636?style=for-the-badge&logo=android&logoColor=white)](https://github.com/qpst4/cebian/releases/latest)
-[![Download Lite APK](https://img.shields.io/badge/下载%20Lite%20轻量包-体积小巧-0969DA?style=for-the-badge&logo=android&logoColor=white)](https://github.com/qpst4/cebian/releases/latest)
+[![Download Full APK](https://img.shields.io/badge/Download%20Full%20APK-Built--in%20Offline%20Engines-238636?style=for-the-badge&logo=android&logoColor=white)](https://github.com/qpst4/cebian/releases/latest)
+[![Download Lite APK](https://img.shields.io/badge/Download%20Lite%20APK-Compact%20Size-0969DA?style=for-the-badge&logo=android&logoColor=white)](https://github.com/qpst4/cebian/releases/latest)
 
 </div>
 
-| 产物版本 | 适用场景 | 说明 |
+| Variant | Scenario | Description |
 | :--- | :--- | :--- |
-| **Full 完整包** (`cebian-*-full.apk`) | **新用户首选** | 开箱即用，已内置完整离线 OCR、Jieba 分词与离线翻译 Native 引擎 |
-| **Lite 轻量包** (`cebian-*-lite.apk`) | 追求小体积 / 在线热更新 | 仅保留核心手势与基础功能，体积更小，可按需在线下载扩展引擎 |
+| **Full Package** (`cebian-*-full.apk`) | **Recommended for new users** | Out-of-the-box experience with built-in offline OCR, Jieba segmentation, and offline translation native engines |
+| **Lite Package** (`cebian-*-lite.apk`) | Compact size / on-demand updates | Retains core gestures and fundamental features with smaller package size; download extension engines on demand |
 
 > [!TIP]
-> 两个版本的 `applicationId` 均为 `com.slideindex.app`，支持直接相互覆盖安装，配置无缝保留。
+> Both packages share the same `applicationId` (`com.slideindex.app`), allowing direct overwriting installation without losing configurations.
 
 ---
 
-## 🌟 核心特性
+## 🌟 Core Features
 
-应用底部设有四个主要模块：🏠 **首页** · 📳 **晃动** · 🔔 **通知** · 🧩 **扩展**。
+The app features four main navigation tabs: 🏠 **Home** · 📳 **Motion** · 🔔 **Notification** · 🧩 **Extensions**.
 
-### 🏠 首页 — 边缘手势、悬浮球与个性化
+### 🏠 Home — Edge Gestures, Floating Ball & Customization
 
-#### 1. 边缘手势
-- **触发与外观**：左右边缘与顶部/底部高灵敏度触发条，支持气泡、胶囊、波浪等多种动画样式与触钮震动反馈。
-- **自定义布局与横屏专属**：自由调节触发条位置、高度、粗细、角度与分段；支持为**横屏状态**独立配置专属触钮把手，游戏与观影防误触更彻底。
-- **智能防误触**：横屏隐藏、锁屏隐藏、桌面隐藏以及基于前台应用使用情况访问权限的精确按 App 排除名单与前台切换黑名单。
-- **边角轮盘**：从左下或右下角滑出扇形径向菜单，支持实时壁纸高斯模糊与手势动作分组。
-- **自由小窗深度适配**：支持 Android 原生 Freeform 自由窗口、小米 MIUI/HyperOS 小窗、魅族 Flyme 小窗等各 OEM 厂商专用小窗策略与规则。
+#### 1. Edge Gestures
+- **Triggers & Aesthetics**: Highly responsive left/right/top/bottom edge triggers, supporting bubble, capsule, wave animations, and haptic feedback.
+- **Custom Layout & Landscape Triggers**: Freely adjust trigger position, height, thickness, angle, and segments; supports **dedicated landscape trigger handles** for gaming and media viewing.
+- **Smart Anti-Mistouch**: Auto-hide in landscape/lock screen/home screen, with per-app exclusion lists and foreground switching blacklists.
+- **Corner Radial Menu**: Swipe from bottom-left or bottom-right corners to summon a radial menu with real-time Gaussian blur and action grouping.
+- **OEM Freeform Integration**: Deeply adapts to native Android Freeform, Xiaomi MIUI/HyperOS Small Window, and Meizu Flyme Small Window.
 
-#### 2. 50+ 可配置快捷手势动作
+#### 2. 50+ Configurable Gesture Actions
 
-| 动作分类 | 支持操作 |
+| Category | Actions Supported |
 | :--- | :--- |
-| **系统导航** | 返回、Home 键、多任务（系统多任务）、上一个应用、锁屏（含静音变体）、电源菜单、分屏 |
-| **截屏与视效** | 全屏截图、区域截图、全屏截图取词、区域截图取词、屏幕录制、手电筒 |
-| **OCR 与搜图** | 悬浮球取词、以图搜图聚合、即时悬浮翻译、全局屏幕复制、钉图暂存面板、二维码识别 |
-| **面板与启动** | 快速启动器、应用索引、圆环启动器（FV 风格）、蜂窝启动器、全息启动器、任务切换器（OHO 风格）、应用冻结室、扩展面板（音量/亮度快速调节）、Widget 浮窗面板 |
-| **媒体与控制** | 媒体上一曲 / 下一曲 / 播放暂停、音量调节、亮度调节、切换输入法 |
-| **工具与历史** | 悬浮指针、剪贴板历史面板、快速工具面板（OHO 风格）、暂停悬浮窗、暂停手势 |
-| **高级与扩展** | 执行 Shell 命令（Shizuku / Root）、启动指定 Activity / 快捷方式、直达特定应用、N 分钟后闹钟提醒、重新冻结 |
+| **System Navigation** | Back, Home, Recents, Previous App, Lock Screen, Power Menu, Split Screen |
+| **Screenshot & Visual** | Fullscreen Screenshot, Region Screenshot, Screenshot OCR, Region OCR, Screen Recorder, Flashlight |
+| **OCR & Image Search** | Floating Ball OCR, Reverse Image Search, Live Screen Translation, Universal Screen Copy, Pin Screenshot, QR Code Scanner |
+| **Panels & Launchers** | Quick Launcher, App Index, Circle Launcher (FV Style), Honeycomb Launcher, Holographic Launcher, Task Switcher (OHO Style), App Freezer, Expand Panel (Volume/Brightness), Widget Overlay |
+| **Media & Controls** | Previous/Next Track, Play/Pause, Volume Adjust, Brightness Adjust, Switch IME |
+| **Tools & History** | Floating Pointer, Clipboard History Panel, Quick Tools Panel (OHO Style), Pause Overlay, Pause Gestures |
+| **Advanced & Extensions** | Run Shell Commands (Shizuku / Root), Launch Activity / Shortcut, Direct App Launch, Alarm Reminder in N min, Re-freeze Apps |
 
-#### 3. 🔮 悬浮球（取词、搜图与多功能手势）
-*与「悬浮指针」独立运行，集摇杆操作与屏幕取词指针于一体。*
+#### 3. 🔮 Floating Ball (OCR, Image Search & Gestures)
+*Operates independently from the Floating Pointer, combining joystick navigation with screen OCR pointers.*
 
-- **无障碍与本地多引擎 OCR**：优先通过无障碍节点读取文字，失败自动平滑降级至本地离线 OCR 引擎（**ML Kit / Tesseract / PaddleOCR ONNX**）。
-- **取词面板**：一键搜索、翻译、点词分词（CppJieba）、全选、去空格、复制，支持区域划词与图片分享 OCR 历史记录。
-- **文字搜索聚合**：支持自定义搜索引擎列表、网格排序、搜索历史、前缀别名与深链跳转；支持从 GestureEVO / SearchEVO 独立导入。
-- **以图搜图聚合**：区域截图后呼出多引擎搜图面板（Google、Yandex、TinEye、SauceNAO、IQDB、3D-IQDB、ASCII2D、trace.moe、AnimeTrace、Copyseeker），支持并行搜索与内置 WebView 预览。
-- **钉图暂存**：将截屏内容或图文块钉在屏幕顶层，支持双指缩放、拖拽与控制条隐藏。
-- **外观与微调**：支持预设配色、自定义图片、GIF 动图与幻灯片；可自定义加号指针纵向灵敏度与取词容差。
+- **Accessibility & Offline Multi-Engine OCR**: Extracts text via accessibility nodes first, seamlessly falling back to local offline OCR (**ML Kit / Tesseract / PaddleOCR ONNX**).
+- **Text Selection Panel**: One-click search, translate, segmentation (CppJieba), select all, remove spaces, and copy; supports region clipping and shared image OCR history.
+- **Search Aggregation**: Customizable search engines, grid sorting, search history, prefix aliases, and deep links; supports importing from GestureEVO / SearchEVO.
+- **Reverse Image Search**: Summon multi-engine reverse search (Google, Yandex, TinEye, SauceNAO, IQDB, 3D-IQDB, ASCII2D, trace.moe, AnimeTrace, Copyseeker) with built-in WebView preview.
+- **Pin to Screen**: Pin screenshots or text cards as top-level floating windows with pinch-to-zoom and drag support.
+- **Appearance & Tuning**: Custom themes, images, GIFs, and slideshows; adjustable pointer sensitivity and OCR tolerance.
 
-#### 4. 主题与界面
-- **Miuix 视觉与组件体系**：主应用全面采用 Miuix UI（HyperOS 风格）设计语言，支持自适应折叠 TopAppBar、虚拟化分组卡片、平滑回弹阻尼与触觉振动反馈。
-- **动态取色（Material You）**：Android 12+ 基于 MaterialKolor 自动提取壁纸色调，生成 9 种调色风格并无缝注入 Miuix 主题。
-- **毛玻璃与性能优化**：底部导航栏与悬浮面板支持高斯模糊（Gaussian Blur）与渐进式毛玻璃（Progressive Blur）；支持关闭毛玻璃以完全消除列表滚动时的屏幕采样开销。
-
----
-
-### 📳 晃动与机身手势 — 摇一摇、扣桌与背面敲击
-
-- **六方向晃动识别**：精准区分左/右翻转、前/后翻转、左/右快速甩动；支持针对特定应用配置独立灵敏度与覆盖专属动作。
-- **扣桌静音手势**：亮屏时手机朝下平放至桌面静止，自动触发锁屏与响铃静音（支持自定义联动动作与音频反馈）。
-- **背面敲击手势（BackTap）**：基于加速度传感器的后盖敲击识别，支持双击触发 50+ 种系统动作，支持亮屏/息屏/始终触发策略、灵敏度调节与充电防误触。
-- **场景规则**：支持亮屏/锁屏激活策略、应用独立黑白名单、独立灵敏度阈值与震动动画反馈。
+#### 4. Theme & Appearance
+- **Miuix Design System**: Comprehensive adoption of Miuix UI (HyperOS style) with collapsible TopAppBar, virtualized grouped cards, overscroll damping, and haptic feedback.
+- **Material You Dynamic Coloring**: Automatically extracts wallpaper colors via MaterialKolor on Android 12+, generating 9 palette styles injected into MiuixTheme.
+- **Blur & Performance**: Bottom navigation and floating overlays support Gaussian blur and progressive blur; can be disabled to completely eliminate scroll sampling overhead.
 
 ---
 
-### 🔔 通知 — 消息提醒、历史与 OTP
+### 📳 Motion & Device Gestures — Shake, Flip & Back-Tap
 
-- **多形态消息提醒**：拦截系统通知并以灵动卡片、悬浮通知、侧边气泡或屏幕弹幕等样式悬浮展示；支持「解锁后进入最新消息」（锁屏收到消息时解锁后自动打开，支持始终允许与询问确认规则）、防打扰应用黑白名单与通知专属手势。
-- **通知历史与过滤规则**：按活跃、历史、已隐藏分类管理通知，支持多维度正则表达式与关键词自动归档/屏蔽。
-- **OTP 验证码中心**：智能识别短信与应用通知中的验证码，自动正则匹配提取、剪贴板写入与自动填充；提供成功率统计；可选 LSPosed 模块实现系统底层短信注入增强。
+- **6-Direction Shake Recognition**: Distinguishes left/right flip, forward/backward flip, and quick side shakes; supports per-app custom actions and sensitivities.
+- **Desk-Flip Mute**: Place face-down on a flat surface while screen is on to trigger lock screen and silent mode.
+- **Back-Tap Gestures (BackTap)**: Accelerometer-based back-cover double-tap recognition supporting 50+ actions, screen on/off/always trigger policies, sensitivity tuning, and charging guard.
+- **Scenario Rules**: Screen on/locked activation policies, app blacklists/whitelists, independent sensitivity thresholds, and vibration feedback.
 
 ---
 
-### 🧩 扩展 — 增强工具与备份
+### 🔔 Notification — Reminders, History & OTP
 
-| 功能模块 | 路径入口 | 核心能力说明 |
+- **Multi-Style Reminders**: Intercepts notifications with Dynamic Island cards, heads-up popups, side bubbles, or screen danmaku; supports "Open Latest Message on Unlock" (with whitelist and confirm policies).
+- **Notification History & Filtering**: Categorizes active, history, and hidden notifications with multi-dimensional regex and keyword archiving.
+- **OTP Verification Center**: Automatically detects verification codes in SMS and app notifications with regex extraction, clipboard auto-copy, and auto-fill; optional LSPosed module for system-level SMS injection.
+
+---
+
+### 🧩 Extensions — Utility Tools & Backup
+
+| Module | Navigation Entry | Core Capabilities |
 | :--- | :--- | :--- |
-| **应用索引** | 扩展 → 应用索引 | 侧滑呼出拼音首字母索引应用列表，可自由调节列数与面板透明度 |
-| **快速启动器** | 扩展 → 快速启动器 | 侧滑网格启动器，支持多面板切换、分页、文件夹拖拽合并与快捷方式库 |
-| **圆环启动器** | 手势动作「圆环启动器」 | FV 风格半圆/同心圆环布局，支持自定义层数、圆环间距、图标形状与槽位应用 |
-| **蜂窝启动器** | 扩展 → 蜂窝启动器 | 六边形蜂窝网格布局，按住向外圈滑动直达应用与快捷方式 |
-| **全息启动器** | 扩展 → 全息启动器 | 全屏 3D 空间球形启动器，拖拽旋转 3D 球体，点击图标启动应用 |
-| **任务切换器** | 手势动作「任务切换器」 | OHO 风格后台最近运行任务面板，支持滑动切换、单独关闭、一键清理全部后台任务与小窗启动 |
-| **快速工具面板** | 手势动作「快速工具面板」 | OHO 风格快捷工具面板，聚合常用系统开关、快捷操作与实用工具直达 |
-| **应用冻结室** | 扩展 → 冻结室 | 批量冻结后台顽固应用与一键解冻（依赖 Shizuku / Root），支持手势面板快捷重新冻结 |
-| **搜索面板** | 扩展 → 搜索面板 | 本地应用、联系人、文件、系统设置项与网络文字/以图搜图聚合搜索 |
-| **Activity 快捷方式** | 扩展 → Activity 快捷方式 | 系统隐藏设置、未导出 Activity 提取、App Shortcuts 快捷方式与 URI 深链 |
-| **外部调用** | 扩展 → 外部调用 | `cebian://` Deeplink 与 Intent Action，供 Tasker / MacroDroid 等搭配使用 |
-| **Shell 命令** | 扩展 → Shell 命令 | 命令面板、模板变量替换与自定义图标；依赖 Shizuku / Root 执行 |
-| **Widget 面板** | 扩展 → Widget 面板 | 将桌面小部件悬浮化绑定展示，支持可调模糊背景与快捷多选 |
-| **悬浮指针** | 扩展 → 悬浮指针 | 跟手虚拟摇杆控制环形指针，支持悬停框选、径向功能环与手势录制回放 |
-| **剪贴板历史** | 手势动作「剪贴板面板」 | 图文历史搜索、贴边浮窗与分页加载；支持 Shizuku 后台监听与 `cebian://` 外部协议 |
-| **设置备份** | 扩展 → 设置备份 | 将全量配置与资产导出为 ZIP 或一键导入；敏感数据独立加密保护 |
+| **App Index** | Extensions → App Index | Alphabetical Pinyin rail app drawer with adjustable columns and transparency |
+| **Quick Launcher** | Extensions → Quick Launcher | Grid launcher supporting multi-panel switching, pagination, folder grouping, and shortcut library |
+| **Circle Launcher** | Gesture Action "Circle Launcher" | FV-style concentric circle layout with customizable tiers, spacing, shapes, and slots |
+| **Honeycomb Launcher** | Extensions → Honeycomb Launcher | Hexagonal honeycomb grid layout with swipe-out direct launching |
+| **Holographic Launcher** | Extensions → Holographic Launcher | Fullscreen 3D holographic sphere launcher; drag to rotate and click to open |
+| **Task Switcher** | Gesture Action "Task Switcher" | OHO-style vertical running tasks panel with swipe-to-switch, kill, clear all, and freeform launch |
+| **Quick Tools Panel** | Gesture Action "Quick Tools Panel" | OHO-style quick settings panel aggregating system toggles, actions, and shortcuts |
+| **App Freezer** | Extensions → App Freezer | Batch freeze and unfreeze background apps via Shizuku / Root with quick re-freeze gesture |
+| **Search Panel** | Extensions → Search Panel | Unified search for apps, contacts, files, system settings, web queries, and reverse image search |
+| **Activity Shortcuts** | Extensions → Activity Shortcuts | Hidden system settings, non-exported activity launcher, App Shortcuts, and URI deep links |
+| **External Invocation** | Extensions → External Invocation | `cebian://` deeplinks and intent actions for Tasker, MacroDroid, and other automations |
+| **Shell Commands** | Extensions → Shell Commands | Command panels, template variable substitution, and custom icons via Shizuku / Root |
+| **Widget Panel** | Extensions → Widget Panel | Floating desktop widget host with adjustable blur background and multi-selection |
+| **Floating Pointer** | Extensions → Floating Pointer | Virtual joystick-controlled ring pointer with hover selection, radial actions, and gesture macro replay |
+| **Clipboard History** | Gesture Action "Clipboard Panel" | Rich clipboard history with search, edge floating window, and Shizuku background listener |
+| **Settings Backup** | Extensions → Settings Backup | Export and import all configurations and assets as encrypted ZIP files |
 
-#### 📸 核心界面与交互预览
+#### 📸 Key Interfaces & Interaction Preview
 
 <table>
   <tr>
-    <th width="33.33%" align="center">边角轮盘（二级快捷菜单）</th>
-    <th width="33.33%" align="center">圆环启动器（FV 风格）</th>
-    <th width="33.33%" align="center">快速启动器（网格多面板）</th>
+    <th width="33.33%" align="center">Corner Radial Menu</th>
+    <th width="33.33%" align="center">Circle Launcher (FV Style)</th>
+    <th width="33.33%" align="center">Quick Launcher (Grid)</th>
   </tr>
   <tr>
-    <td align="center"><img src="art/screenshots/01_circle_launcher_framed.webp" width="100%" alt="边角轮盘" /></td>
-    <td align="center"><img src="art/screenshots/03_honeycomb_launcher_framed.webp" width="100%" alt="圆环启动器" /></td>
-    <td align="center"><img src="art/screenshots/06_quick_launcher_framed.webp" width="100%" alt="快速启动器" /></td>
+    <td align="center"><img src="art/screenshots/01_circle_launcher_framed.webp" width="100%" alt="Corner Radial Menu" /></td>
+    <td align="center"><img src="art/screenshots/03_honeycomb_launcher_framed.webp" width="100%" alt="Circle Launcher" /></td>
+    <td align="center"><img src="art/screenshots/06_quick_launcher_framed.webp" width="100%" alt="Quick Launcher" /></td>
   </tr>
   <tr>
-    <th align="center">悬浮指针（虚拟摇杆）</th>
-    <th align="center">Shell 命令面板（Shizuku）</th>
-    <th align="center">剪贴板历史 / 暂存收纳</th>
+    <th align="center">Floating Pointer (Joystick)</th>
+    <th align="center">Shell Command Panel (Shizuku)</th>
+    <th align="center">Clipboard History / Stash</th>
   </tr>
   <tr>
-    <td align="center"><img src="art/screenshots/08_floating_pointer_framed.webp" width="100%" alt="悬浮指针" /></td>
-    <td align="center"><img src="art/screenshots/07_shell_panel_framed.webp" width="100%" alt="Shell 命令面板" /></td>
-    <td align="center"><img src="art/screenshots/10_clipboard_panel_framed.webp" width="100%" alt="剪贴板历史" /></td>
+    <td align="center"><img src="art/screenshots/08_floating_pointer_framed.webp" width="100%" alt="Floating Pointer" /></td>
+    <td align="center"><img src="art/screenshots/07_shell_panel_framed.webp" width="100%" alt="Shell Command Panel" /></td>
+    <td align="center"><img src="art/screenshots/10_clipboard_panel_framed.webp" width="100%" alt="Clipboard History" /></td>
   </tr>
   <tr>
-    <th align="center">应用索引（拼音导轨）</th>
-    <th align="center">Widget 悬浮小部件</th>
-    <th align="center">钉图暂存浮窗</th>
+    <th align="center">App Index (Pinyin Rail)</th>
+    <th align="center">Widget Floating Panel</th>
+    <th align="center">Pin Screenshot Window</th>
   </tr>
   <tr>
-    <td align="center"><img src="art/screenshots/05_app_index_framed.webp" width="100%" alt="应用索引" /></td>
-    <td align="center"><img src="art/screenshots/09_widget_panel_framed.webp" width="100%" alt="Widget 悬浮面板" /></td>
-    <td align="center"><img src="art/screenshots/11_pin_image_framed.webp" width="100%" alt="钉图暂存" /></td>
+    <td align="center"><img src="art/screenshots/05_app_index_framed.webp" width="100%" alt="App Index" /></td>
+    <td align="center"><img src="art/screenshots/09_widget_panel_framed.webp" width="100%" alt="Widget Floating Panel" /></td>
+    <td align="center"><img src="art/screenshots/11_pin_image_framed.webp" width="100%" alt="Pin Screenshot" /></td>
   </tr>
 </table>
 
 ---
 
-## 🔗 外部调用
+## 🔗 External Invocation
 
-从其他应用、Tasker、MacroDroid 或 `adb` 唤起边栏面板。应用内可在 **扩展 → 快捷操作 → 外部调用** 查看并一键复制。
+Open Cebian panels from other apps, Tasker, MacroDroid, or `adb`. In-app reference: **Extensions → Shortcuts & actions → External Invocation** (tap to copy).
 
-> **前置条件：** 搜索面板、收纳夹、剪贴板面板需已开启边栏与无障碍服务；通知滤盒需已授予通知监听权限。
+> **Prerequisites:** Search panel, stash, and clipboard require the sidebar and accessibility service. Notification hub requires notification listener access.
 
-### Deeplink（推荐）
+### Deeplinks (recommended)
 
-统一格式：`cebian://open/<path>?q=<可选关键词>`
+Format: `cebian://open/<path>?q=<optional query>`
 
-| 功能 | URI | 说明 |
+| Feature | URI | Notes |
 | :--- | :--- | :--- |
-| 通知滤盒 | `cebian://open/notification-history` | 打开通知滤盒 |
-| 通知滤盒（预填搜索） | `cebian://open/notification-history?q=关键词` | 打开并预填搜索词 |
-| 收纳夹 | `cebian://open/stash` | 打开收纳夹面板 |
-| 收纳夹（预填搜索） | `cebian://open/stash?q=关键词` | 打开并预填搜索词 |
-| 剪贴板 | `cebian://open/clipboard` | 打开剪贴板面板 |
-| 剪贴板（预填搜索） | `cebian://open/clipboard?q=关键词` | 打开并预填搜索词 |
-| 搜索面板 | `cebian://open/search-panel` | 打开搜索面板 |
-| 搜索面板（预填关键词） | `cebian://open/search-panel?q=关键词` | 打开并预填搜索词 |
+| Notification hub | `cebian://open/notification-history` | Open notification hub |
+| Notification hub (prefill) | `cebian://open/notification-history?q=keyword` | Open with search prefill |
+| Stash | `cebian://open/stash` | Open stash panel |
+| Stash (prefill) | `cebian://open/stash?q=keyword` | Open with search prefill |
+| Clipboard | `cebian://open/clipboard` | Open clipboard panel |
+| Clipboard (prefill) | `cebian://open/clipboard?q=keyword` | Open with search prefill |
+| Search panel | `cebian://open/search-panel` | Open search panel |
+| Search panel (prefill) | `cebian://open/search-panel?q=keyword` | Open with query prefill |
 
-示例：
+Examples:
 
 ```bash
-# 打开搜索面板
+# Open search panel
 adb shell am start -a android.intent.action.VIEW -d "cebian://open/search-panel"
 
-# 打开搜索面板并预填关键词
-adb shell am start -a android.intent.action.VIEW -d "cebian://open/search-panel?q=天气"
+# Open search panel with prefill
+adb shell am start -a android.intent.action.VIEW -d "cebian://open/search-panel?q=weather"
 ```
 
-### Intent Action（高级）
+### Intent actions (advanced)
 
-无 URI 对应能力、或需显式指定组件时使用。包名均为 `com.slideindex.app`。
+Use when there is no matching URI, or when you need an explicit component. Package name: `com.slideindex.app`.
 
-| 功能 | Action | 组件 | 可选 extra |
+| Feature | Action | Component | Optional extra |
 | :--- | :--- | :--- | :--- |
-| 通知滤盒 | `com.slideindex.app.action.OPEN_NOTIFICATION_HISTORY` | `.MainActivity` | —（预填搜索请用 Deeplink） |
-| 收纳夹 | `com.slideindex.app.action.OPEN_STASH_PANEL` | `.service.StashClipboardTrampolineActivity` | `q` |
-| 剪贴板 | `com.slideindex.app.action.OPEN_CLIPBOARD_PANEL` | `.service.StashClipboardTrampolineActivity` | `q` |
-| 搜索面板 | `com.slideindex.app.action.OPEN_SEARCH_PANEL` | `.service.SearchPanelTrampolineActivity` | `q` |
-| 切换手势开关 | `com.slideindex.app.action.TOGGLE_GESTURE` | `.service.ToggleGestureTrampolineActivity` | — |
-| Shell 命令面板 | `com.slideindex.app.action.OPEN_SHELL_PANEL` | `.service.ShellCommandPanelTrampolineActivity` | —（未对外导出，仅供应用内快捷方式） |
+| Notification hub | `com.slideindex.app.action.OPEN_NOTIFICATION_HISTORY` | `.MainActivity` | — (use deeplink for search prefill) |
+| Stash | `com.slideindex.app.action.OPEN_STASH_PANEL` | `.service.StashClipboardTrampolineActivity` | `q` |
+| Clipboard | `com.slideindex.app.action.OPEN_CLIPBOARD_PANEL` | `.service.StashClipboardTrampolineActivity` | `q` |
+| Search panel | `com.slideindex.app.action.OPEN_SEARCH_PANEL` | `.service.SearchPanelTrampolineActivity` | `q` |
+| Toggle gestures | `com.slideindex.app.action.TOGGLE_GESTURE` | `.service.ToggleGestureTrampolineActivity` | — |
+| Shell panel | `com.slideindex.app.action.OPEN_SHELL_PANEL` | `.service.ShellCommandPanelTrampolineActivity` | — (not exported; app shortcuts only) |
 
-示例：
+Examples:
 
 ```bash
-# 打开搜索面板并预填关键词
+# Open search panel with prefill
 adb shell am start -a com.slideindex.app.action.OPEN_SEARCH_PANEL \
   -n com.slideindex.app/.service.SearchPanelTrampolineActivity \
-  --es q "天气"
+  --es q "weather"
 
-# 切换边缘手势总开关
+# Toggle edge gesture master switch
 adb shell am start -a com.slideindex.app.action.TOGGLE_GESTURE \
   -n com.slideindex.app/.service.ToggleGestureTrampolineActivity
 ```
 
 ---
 
-## 🛠️ 技术栈
+## 🛠️ Tech Stack
 
-| 层次 | 核心技术 / 依赖组件 |
+| Layer | Core Technologies / Components |
 | :--- | :--- |
-| **核心语言** | Kotlin 2.4.0 + C++17（NDK / CMake） |
-| **UI 体系与规范** | Miuix UI (KMP 0.9.4 / HyperOS 风格) + Jetpack Compose (BOM 2026.07.01) |
-| **色彩与动效** | MaterialKolor 5.0.0（壁纸动态取色） + Haze 1.7.2（高斯模糊） |
-| **架构与 DI** | MVVM + UDF（单向数据流） + Dagger Hilt 2.60.1 |
-| **异步与状态** | Kotlin Coroutines 1.11.0 + StateFlow / SharedFlow + DataStore Preferences 1.2.1 |
-| **OCR 与 AI** | ML Kit Text Recognition 16.0.1 + Tesseract4Android 4.9.0 + PaddleOCR (ONNX Runtime 1.28.0 + OpenCV 4.12.0) |
-| **NLP 与分词** | CppJieba（JNI Native 分词引擎） + ML Kit Translate / Language ID |
-| **系统特权扩展** | Shizuku API 13.1.5 + LibSuperuser 1.1.1 + HiddenApiBypass 6.1 + LibXposed API 102.0.0 |
-| **网络与解析** | OkHttp 5.4.0 + ZXing Core 3.5.4 + kotlinx.serialization 1.11.0 + Markdown Renderer M3 |
+| **Languages** | Kotlin 2.4.0 + C++17 (NDK / CMake) |
+| **UI Framework** | Miuix UI (KMP 0.9.4 / HyperOS style) + Jetpack Compose (BOM 2026.07.01) |
+| **Color & Visuals** | MaterialKolor 5.0.0 (Dynamic Wallpaper Colors) + Haze 1.7.2 (Gaussian Blur) |
+| **Architecture & DI** | MVVM + UDF (Unidirectional Data Flow) + Dagger Hilt 2.60.1 |
+| **Async & State** | Kotlin Coroutines 1.11.0 + StateFlow / SharedFlow + DataStore Preferences 1.2.1 |
+| **OCR & AI** | ML Kit Text Recognition 16.0.1 + Tesseract4Android 4.9.0 + PaddleOCR (ONNX Runtime 1.28.0 + OpenCV 4.12.0) |
+| **NLP & Tokenization** | CppJieba (JNI Native Tokenizer) + ML Kit Translate / Language ID |
+| **Privileged Access** | Shizuku API 13.1.5 + LibSuperuser 1.1.1 + HiddenApiBypass 6.1 + LibXposed API 102.0.0 |
+| **Network & Parsing** | OkHttp 5.4.0 + ZXing Core 3.5.4 + kotlinx.serialization 1.11.0 + Markdown Renderer M3 |
 
 ---
 
-## 📐 架构设计
+## 📐 Architecture
 
-应用采用 **多模块（Multi-Module）分层架构**，遵循 **MVVM + 单向数据流（UDF）** 规范：
+The app adopts a **Multi-Module layered architecture** following **MVVM + UDF** patterns:
 
 ```
                               ┌─────────────────────────────┐
-                              │          :app (顶层装配)     │
+                              │          :app (Root)        │
                               └──────────────┬──────────────┘
                                              │
                       ┌──────────────────────┼──────────────────────┐
@@ -275,123 +275,122 @@ adb shell am start -a com.slideindex.app.action.TOGGLE_GESTURE \
                                   └───────────────────────┘
 ```
 
-1. **服务协调与 Overlay 渲染**：`SlideIndexAccessibilityService` 负责拦截全局手势与系统事件派发，悬浮层由 `OverlayLayout` 与各个独立的 WindowManager 统一管理。
-2. **多引擎动态加载机制**：OCR、翻译与分词引擎支持 Full 内置包与 Lite 轻量包模式，Native `.so` 与模型资源支持运行时按需提取解压。
-3. **系统级特权通道**：Shizuku IPC（无 Root 提权）、Root 降级执行器（LibSu）与 LSPosed 模块互补协同，实现无缝的后台剪贴板监听与进程级管控。
+1. **Service Coordination & Overlay Rendering**: `SlideIndexAccessibilityService` intercepts global gestures and dispatches system events, while overlays are managed by `OverlayLayout` and independent WindowManagers.
+2. **Dynamic Engine Loading**: OCR, translation, and segmentation engines support both Full and Lite packaging modes; native `.so` libraries and models can be extracted at runtime.
+3. **Privileged Pipelines**: Shizuku IPC (rootless privilege), Root fallback executor (LibSu), and LSPosed module collaborate to provide seamless background clipboard monitoring and process lifecycle control.
 
 ---
 
-## 📂 项目结构
+## 📂 Project Structure
 
 ```
 .
-├── app/                                 # 宿主应用：全局 DI 装配、JNI C++ 桥接与主页面
+├── app/                                 # Host Application: DI assembly, JNI C++ bridge, and main UI
 │   └── src/main/
-│       ├── cpp/                         # C++17 JNI 源码（CppJieba 分词桥接）
+│       ├── cpp/                         # C++17 JNI Sources (CppJieba bridge)
 │       └── java/com/slideindex/app/
-│           ├── activity/                # 顶层 Activity 与透明交互层
-│           ├── backtap/                 # 背面手势
-│           ├── clipboard/               # 剪贴板历史与 Shizuku 后台监听服务
-│           ├── gesture/                 # 核心手势服务与悬浮触发条
-│           ├── overlay/                 # 系统级 Overlay 窗口管理器
-│           ├── search/                  # 文字与以图搜图聚合引擎
-│           ├── shell/                   # Shell 命令执行器
-│           ├── ui/                      # Compose 界面、主题与动态色彩
-│           └── xposed/                  # LSPosed 模块入口与 Hook 逻辑
-├── core/                                # 核心基础库与引擎
-│   ├── autofill/                        # OTP 自动填充框架
-│   ├── common/                          # 基础扩展、公共模型与通用工具
-│   ├── gesture/                         # 手势识别算法与事件总线
-│   ├── monitoring/                      # 性能追踪与内存监控
-│   ├── native-engine/                   # 离线 Native 引擎包分发与解压管理
-│   ├── notification/                    # 系统通知拦截与处理
-│   ├── ocr/                             # 多引擎 OCR 调度器（ML Kit / Tesseract / ONNX）
-│   ├── overlay-layout/                  # 悬浮窗布局渲染核心
-│   └── translate/                       # 多语种即时翻译与语言检测
-├── feature/                             # 业务功能模块
-│   ├── apps/                            # 应用扫描、图标缓存与启动器
-│   ├── message/                         # 悬浮通知提醒与弹幕渲染
-│   ├── notification/                    # 通知历史归档与过滤
-│   ├── otp/                             # 验证码正则提取与统计面板
-│   ├── settings/                        # 设置项、偏好备份与 DataStore
-│   └── shake/                           # 传感器摇晃与扣桌静音算法
+│           ├── activity/                # Top-level Activities & transparent interaction layers
+│           ├── backtap/                 # Back-tap gestures
+│           ├── clipboard/               # Clipboard history & Shizuku background monitor
+│           ├── gesture/                 # Core gesture service & overlay trigger bars
+│           ├── overlay/                 # System overlay window managers
+│           ├── search/                  # Text & reverse image search aggregator
+│           ├── shell/                   # Shell command executor
+│           ├── ui/                      # Compose UI, Miuix themes, and dynamic colors
+│           └── xposed/                  # LSPosed module entry & hooks
+├── core/                                # Core modules & engines
+│   ├── autofill/                        # OTP autofill framework
+│   ├── common/                          # Extensions, shared models, and utilities
+│   ├── gesture/                         # Gesture recognition algorithms & event bus
+│   ├── monitoring/                      # Performance tracing & memory monitoring
+│   ├── native-engine/                   # Offline native engine distribution & asset extraction
+│   ├── notification/                    # Notification interception & processing
+│   ├── ocr/                             # Multi-engine OCR dispatcher (ML Kit / Tesseract / ONNX)
+│   ├── overlay-layout/                  # Overlay layout rendering core
+│   └── translate/                       # Multi-language translation & language detection
+├── feature/                             # Business feature modules
+│   ├── apps/                            # App scanner, icon caching, and launchers
+│   ├── message/                         # Heads-up notification & danmaku rendering
+│   ├── notification/                    # Notification history & archiving
+│   ├── otp/                             # Verification code extraction & statistics
+│   ├── settings/                        # Settings, preferences backup, and DataStore
+│   └── shake/                           # Sensor shake & desk-flip algorithms
 ├── vendor/
-│   └── ppocr-sdk/                       # PaddleOCR SDK 封装与 ONNX 绑定
-├── gradle/libs.versions.toml             # 统一依赖与版本管理
-└── RELEASE_NOTES.md                     # 版本更新日志
+│   └── ppocr-sdk/                       # PaddleOCR SDK binding & ONNX Runtime
+├── gradle/libs.versions.toml             # Dependency catalog
+└── RELEASE_NOTES.md                     # Release changelog
 ```
 
 ---
 
-## 🚀 编译与构建
+## 🚀 Building & Compilation
 
-### 环境要求
+### Requirements
 - **JDK 21**
-- **Android Studio**（建议 Ladybug 或更新版本）
-- **Android SDK**（API 37 `compileSdk`）与 **NDK 28+**
+- **Android Studio** (Ladybug or newer recommended)
+- **Android SDK** (API 37 `compileSdk`) & **NDK 28+**
 
-### 构建命令
+### Build Commands
 ```bash
-# 克隆仓库
+# Clone the repository
 git clone https://github.com/qpst4/cebian.git
 cd cebian
 
-# 编译 Full Debug 包（含内置离线引擎）
+# Build Full Debug APK (with built-in offline engines)
 ./gradlew assembleFullDebug
 
-# 编译 Lite Release 包（轻量包）
+# Build Lite Release APK (compact version)
 ./gradlew assembleLiteRelease
 ```
 
 ---
 
-## 💬 社区与交流
+## 💬 Community & Feedback
 
-欢迎加入社区交流群或参与讨论，提出新功能建议与 Bug 反馈：
+Welcome to join the community discussions and provide feedback or feature requests:
 
 <div align="center">
 
 [![GitHub Discussions](https://img.shields.io/badge/GitHub-Discussions-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/qpst4/cebian/discussions)
-[![GitHub Issues](https://img.shields.io/badge/GitHub-Issues%20反馈-EA4AAA?style=for-the-badge&logo=github&logoColor=white)](https://github.com/qpst4/cebian/issues)
-[![QQ Group](https://img.shields.io/badge/QQ%20交流群-点击加入-12B7F5?style=for-the-badge&logo=tencentqq&logoColor=white)](https://qm.qq.com/q/jHZTMmiZ9K)
+[![GitHub Issues](https://img.shields.io/badge/GitHub-Issues-EA4AAA?style=for-the-badge&logo=github&logoColor=white)](https://github.com/qpst4/cebian/issues)
+[![QQ Group](https://img.shields.io/badge/QQ%20Group-Join%20Now-12B7F5?style=for-the-badge&logo=tencentqq&logoColor=white)](https://qm.qq.com/q/jHZTMmiZ9K)
 
 </div>
 
 ---
 
-## 💖 赞赏与支持
+## 💖 Sponsor & Support
 
-如果您觉得「边栏（Cebian）」对您的日常使用有所帮助，欢迎赞赏请作者喝杯咖啡 ☕，您的支持是项目持续迭代与积极适配的最大动力！
+If you find **Cebian** helpful in your daily workflow, consider buying the developer a cup of coffee ☕! Your generous support is the greatest motivation for ongoing development and OEM adaptations.
 
 <div align="center">
-  <img src="art/sponsor.png" width="220" alt="微信赞赏码" />
+  <img src="art/sponsor.png" width="220" alt="WeChat Reward Code" />
 </div>
 
 ---
 
-## 📜 许可证
+## 📜 License
 
-本项目采用 [GNU Affero General Public License v3.0](LICENSE)（AGPLv3）开源。
-
----
-
-## 🤝 致谢
-
-在开发过程中参考或借鉴了以下优秀开源项目，特此鸣谢（详见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)）：
-
-- [SideGesture](https://github.com/aaronzzx/SideGesture) — 边缘手势与 overlay 架构参考
-- [EdgeGesture](https://github.com/evilgodxu/EdgeGesture) — 扩展面板、闹钟提醒、屏幕翻译、全局复制与背面手势参考
-- [EdgeX](https://github.com/oxohang/EdgeX) & [FanFreeform](https://github.com/oxohang/FanFreeform) — 蜂窝启动器与应用冻结室（Freezer）架构参考
-- [ClipboardListener](https://github.com/aa2013/ClipboardListener) & [ClipShare](https://github.com/aa2013/ClipShare) — Android 10+ 剪贴板后台监听架构
-- [Root Activity Launcher](https://github.com/zacharee/RootActivityLauncher) — 未导出 Activity 启动方案
-- [Circle To Search](https://github.com/AKS-Labs/CircleToSearch) — 以图搜图多引擎集成策略
-- [Nova Text](https://github.com/CashewTeam/BigBang_NovaText) — 悬浮球取词与点词交互思路
-- [XposedSmsCode](https://github.com/tianma8023/XposedSmsCode) — OTP 短信 Hook 与验证码提取规则
-- [Miuix](https://github.com/compose-miuix-ui/miuix) — 优美的 Material & Miuix 风格 Compose 组件库
+This project is licensed under the [GNU Affero General Public License v3.0](LICENSE) (AGPLv3).
 
 ---
 
-## 📝 更新日志
+## 🤝 Acknowledgements
 
-完整历史版本日志请参见 [RELEASE_NOTES.md](RELEASE_NOTES.md) 与 [CHANGELOG.md](CHANGELOG.md)。
+Special thanks to the following open-source projects for their architecture, inspiration, and code references (see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for details):
 
+- [SideGesture](https://github.com/aaronzzx/SideGesture) — Edge gesture and overlay architecture reference
+- [EdgeGesture](https://github.com/evilgodxu/EdgeGesture) — Expand panel, alarm reminder, screen translation, universal copy, and back-tap gesture reference
+- [EdgeX](https://github.com/oxohang/EdgeX) & [FanFreeform](https://github.com/oxohang/FanFreeform) — Honeycomb launcher and App Freezer architecture reference
+- [ClipboardListener](https://github.com/aa2013/ClipboardListener) & [ClipShare](https://github.com/aa2013/ClipShare) — Android 10+ background clipboard listening architecture
+- [Root Activity Launcher](https://github.com/zacharee/RootActivityLauncher) — Non-exported activity launching scheme
+- [Circle To Search](https://github.com/AKS-Labs/CircleToSearch) — Multi-engine reverse image search strategy
+- [Nova Text](https://github.com/CashewTeam/BigBang_NovaText) — Floating ball OCR and word selection interaction
+- [XposedSmsCode](https://github.com/tianma8023/XposedSmsCode) — OTP SMS Hook and verification code extraction rules
+- [Miuix](https://github.com/compose-miuix-ui/miuix) — Elegant Material & Miuix style Compose UI component library
+
+---
+
+## 📝 Changelog
+
+For complete release history, see [RELEASE_NOTES.md](RELEASE_NOTES.md) and [CHANGELOG.md](CHANGELOG.md).
