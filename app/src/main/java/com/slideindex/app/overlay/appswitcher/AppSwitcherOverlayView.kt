@@ -304,6 +304,8 @@ internal class AppSwitcherOverlayView(
             if (slot >= 0 && slot != lastHapticHighlightedSlot) {
                 lastHapticHighlightedSlot = slot
                 HapticHelper.appTick(this, settings)
+            } else if (slot < 0) {
+                lastHapticHighlightedSlot = -1
             }
         }
         syncSlotPressTracking(slot, eventTime)
