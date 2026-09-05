@@ -116,7 +116,7 @@ object HoneycombAppPickerOverlayWindow {
         }
         this.externalTracking = externalTracking
         this.forceBrowseMode = forceBrowseMode
-        persistAfterSessionEnd = browseMode
+        persistAfterSessionEnd = browseMode || externalTracking
 
         val launchCallback = onLaunch
         if (appRepository != null) {

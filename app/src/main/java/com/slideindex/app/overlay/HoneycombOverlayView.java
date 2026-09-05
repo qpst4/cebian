@@ -505,7 +505,7 @@ public final class HoneycombOverlayView extends View {
             confirmProgress = (Float) value.getAnimatedValue();
             invalidate();
         });
-        postDelayed(() -> dispatchLaunch(launchTarget), scaledDuration(145));
+        dispatchLaunch(launchTarget);
         animator.start();
     }
 
