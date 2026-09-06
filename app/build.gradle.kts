@@ -36,8 +36,8 @@ android {
         applicationId = "com.slideindex.app"
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = 37
-        versionCode = 47
-        versionName = "1.9.22"
+        versionCode = 48
+        versionName = "1.9.23"
 
         ndk {
             abiFilters += "arm64-v8a"
@@ -141,7 +141,7 @@ android {
         }
         jniLibs {
             excludes += setOf(
-                "**/libopencv_java4.so",
+                "**/libopencv_java5.so",
                 "**/libonnxruntime.so",
                 "**/libtesseract.so",
                 "**/libleptonica.so",
@@ -185,10 +185,10 @@ private data class NativeEnginePackSpec(
 private val nativeEnginePackSpecs = listOf(
     NativeEnginePackSpec(
         taskName = "packageOcrEnginePack",
-        zipName = "ocr-engine-arm64-v4.zip",
+        zipName = "ocr-engine-arm64-v5.zip",
         libraries = listOf(
             "libonnxruntime.so",
-            "libopencv_java4.so",
+            "libopencv_java5.so",
             "libleptonica.so",
             "libtesseract.so",
         ),

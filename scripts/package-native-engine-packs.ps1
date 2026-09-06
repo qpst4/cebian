@@ -78,9 +78,9 @@ function New-EngineZip {
 Write-Host "Building CMake jieba library..."
 & "$ProjectRoot\gradlew.bat" ":app:buildCMakeRelWithDebInfo[arm64-v8a]" | Out-Null
 
-$ocr = New-EngineZip -Name "ocr-engine-arm64-v4" -Libraries @(
+$ocr = New-EngineZip -Name "ocr-engine-arm64-v5" -Libraries @(
     @{ Name = "libonnxruntime.so"; Source = "gradle" },
-    @{ Name = "libopencv_java4.so"; Source = "gradle" },
+    @{ Name = "libopencv_java5.so"; Source = "gradle" },
     @{ Name = "libleptonica.so"; Source = "gradle" },
     @{ Name = "libtesseract.so"; Source = "gradle" }
 )
@@ -110,7 +110,7 @@ $manifestPath = Join-Path $outputDir "pack-manifest.json"
 @{
     version = 1
     packs = @(
-        @{ id = "ocr-engine"; file = "ocr-engine-arm64-v4.zip"; sha256 = $ocr.Sha256; sizeBytes = $ocr.SizeBytes },
+        @{ id = "ocr-engine"; file = "ocr-engine-arm64-v5.zip"; sha256 = $ocr.Sha256; sizeBytes = $ocr.SizeBytes },
         @{ id = "translate-engine"; file = "translate-engine-arm64-v1.zip"; sha256 = $translate.Sha256; sizeBytes = $translate.SizeBytes },
         @{ id = "segmentation-engine"; file = "segmentation-engine-arm64-v1.zip"; sha256 = $segmentation.Sha256; sizeBytes = $segmentation.SizeBytes }
     )

@@ -4,6 +4,15 @@ All notable changes to Cebian are documented in this file.
 
 ## [Unreleased]
 
+## [1.9.23] - 2026-09-06
+
+### Changed
+- **OCR 引擎包**：升级 OpenCV 至 5.0.0.1（`libopencv_java5.so`），引擎包 revision 5
+- **依赖**：`org.opencv:opencv` 4.12.0 → 5.0.0.1
+
+### Fixed
+- **PP-OCR**：适配 OpenCV 5 几何 API（`Geometry.minAreaRect` / `getPerspectiveTransform`）
+
 ## [1.9.22] - 2026-09-06
 
 ### Fixed
