@@ -326,7 +326,7 @@ The app adopts a **Multi-Module layered architecture** following **MVVM + UDF** 
 ## 🚀 Building & Compilation
 
 ### Requirements
-- **JDK 21**
+- **JDK 25**
 - **Android Studio** (Ladybug or newer recommended)
 - **Android SDK** (API 37 `compileSdk`) & **NDK 28+**
 

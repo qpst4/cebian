@@ -130,17 +130,6 @@ class MlKitTranslateModelInstaller @Inject constructor(
             }.build()
 
             val downloadTask = remoteModelManager.download(model, conditions)
-            if (downloadTask == null) {
-                trySend(
-                    TranslateDownloadState(
-                        languageCode = languageCode,
-                        phase = TranslateDownloadPhase.FAILED,
-                        errorMessage = "download_task_null",
-                    ),
-                )
-                close()
-                return@channelFlow
-            }
 
             downloadTask
                 .addOnSuccessListener {

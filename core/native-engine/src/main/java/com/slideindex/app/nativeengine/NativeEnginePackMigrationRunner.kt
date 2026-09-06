@@ -67,7 +67,6 @@ class NativeEnginePackMigrationRunner @Inject constructor(
                 noticeStore.markNoticeShown(packId, entry.packRevision)
                 null
             }
-            else -> null
         }
     }
 

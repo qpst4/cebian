@@ -324,7 +324,7 @@ object SearchPanelOverlayWindow {
         cancelBringAboveRetries()
         val frame = composeView
         val dialogOwner = owner
-        val childCompose = (frame as? FrameLayout)?.let { parent ->
+        val childCompose = frame?.let { parent ->
             (0 until parent.childCount)
                 .map { parent.getChildAt(it) }
                 .filterIsInstance<ComposeView>()

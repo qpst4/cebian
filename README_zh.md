@@ -326,7 +326,7 @@ adb shell am start -a com.slideindex.app.action.TOGGLE_GESTURE \
 ## 🚀 编译与构建
 
 ### 环境要求
-- **JDK 21**
+- **JDK 25**
 - **Android Studio**（建议 Ladybug 或更新版本）
 - **Android SDK**（API 37 `compileSdk`）与 **NDK 28+**
 
