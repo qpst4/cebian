@@ -16,6 +16,7 @@ class NativeEnginePackCoordinator @Inject constructor(
     @ApplicationContext private val context: Context,
     private val catalogProvider: NativeEnginePackCatalogProvider,
     private val repository: NativeEnginePackRepository,
+    private val migrationNoticeStore: NativeEnginePackMigrationNoticeStore,
 ) {
     private val loadMutex = Mutex()
     private val provisionMutex = Mutex()
@@ -102,13 +103,18 @@ class NativeEnginePackCoordinator @Inject constructor(
                     repository.needsPackRevisionUpgrade(packId, entry.packRevision)
                 )
             val previousRevision = manifest?.packRevision
+            val hadPendingUpgrade = migrationNoticeStore.hasPendingUpgrade(packId, entry.packRevision)
 
             ensurePackProvisioned(packId)
+
+            if (isPackInstalled(packId)) {
+                migrationNoticeStore.clearPendingUpgrade(packId)
+            }
 
             when {
                 hadOutdatedInstall && isPackInstalled(packId) ->
                     NativeEnginePackUpgradeResult.Upgraded(entry.displayVersion, previousRevision)
-                hadOutdatedInstall && !isPackInstalled(packId) ->
+                (hadOutdatedInstall || hadPendingUpgrade) && !isPackInstalled(packId) ->
                     NativeEnginePackUpgradeResult.UpgradeFailed(entry.displayVersion, entry.packRevision)
                 !hadInstalled && isPackInstalled(packId) ->
                     NativeEnginePackUpgradeResult.FreshlyProvisioned
@@ -120,17 +126,18 @@ class NativeEnginePackCoordinator @Inject constructor(
         val entry = catalogProvider.findPack(packId) ?: return
         val catalogVersion = catalogProvider.catalog.version
         provisionMutex.withLock {
-            val deletingOcrPack = packId == NativeEnginePackIds.OCR && (
-                repository.needsCatalogUpgrade(packId, catalogVersion) ||
-                    repository.needsPackRevisionUpgrade(packId, entry.packRevision)
-                )
-            if (repository.needsCatalogUpgrade(packId, catalogVersion)) {
-                if (deletingOcrPack) {
+            val needsCatalogUpgrade = repository.needsCatalogUpgrade(packId, catalogVersion)
+            val needsRevisionUpgrade = repository.needsPackRevisionUpgrade(packId, entry.packRevision)
+            val isOcrPack = packId == NativeEnginePackIds.OCR
+            if (needsCatalogUpgrade) {
+                if (isOcrPack) {
+                    migrationNoticeStore.setPendingUpgrade(packId, entry.packRevision)
                     NativeEngineRuntime.onOcrEnginePackInvalidated?.invoke()
                 }
                 repository.deletePack(packId)
-            } else if (repository.needsPackRevisionUpgrade(packId, entry.packRevision)) {
-                if (deletingOcrPack) {
+            } else if (needsRevisionUpgrade) {
+                if (isOcrPack) {
+                    migrationNoticeStore.setPendingUpgrade(packId, entry.packRevision)
                     NativeEngineRuntime.onOcrEnginePackInvalidated?.invoke()
                 }
                 repository.deletePack(packId)

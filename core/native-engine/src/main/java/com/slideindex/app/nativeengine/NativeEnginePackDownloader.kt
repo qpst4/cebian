@@ -16,6 +16,7 @@ class NativeEnginePackDownloader @Inject constructor(
     private val catalogProvider: NativeEnginePackCatalogProvider,
     private val repository: NativeEnginePackRepository,
     private val coordinator: NativeEnginePackCoordinator,
+    private val migrationNoticeStore: NativeEnginePackMigrationNoticeStore,
 ) {
     private val httpDownloader = NativeEnginePackHttpDownloader()
 
@@ -176,6 +177,9 @@ class NativeEnginePackDownloader @Inject constructor(
                 sizeBytes = entry.sizeBytes,
             ),
         )
+        if (packId == NativeEnginePackIds.OCR) {
+            migrationNoticeStore.clearMigrationState(packId)
+        }
 
         return DownloadRunResult.Success(
             NativeEnginePackDownloadState(

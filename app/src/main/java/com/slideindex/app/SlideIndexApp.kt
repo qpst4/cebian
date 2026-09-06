@@ -5,12 +5,12 @@ import android.os.Build
 import com.slideindex.app.clipboard.monitor.ClipboardMonitorStartup
 import com.slideindex.app.di.AppDependencies
 import com.slideindex.app.di.OtpAutoFillStatsInstaller
+import com.slideindex.app.di.OcrEnginePackMigrationStartup
 import com.slideindex.app.di.OcrInstalledModelStartupVerifier
 import com.slideindex.app.di.PrivilegeModeInitializer
 import com.slideindex.app.freezer.FreezerLauncherHelper
 import com.slideindex.app.di.ShizukuInitializer
 import com.slideindex.app.nativeengine.NativeEnginePackCoordinator
-import com.slideindex.app.nativeengine.NativeEnginePackIds
 import com.slideindex.app.nativeengine.NativeEngineRuntime
 import com.slideindex.app.ocr.OcrDependencyAccess
 import com.slideindex.app.segmentation.JiebaWarmUp
@@ -38,6 +38,7 @@ class SlideIndexApp : Application() {
     @Inject lateinit var otpAutoFillStatsInstaller: OtpAutoFillStatsInstaller
     @Inject lateinit var ocrInstalledModelStartupVerifier: OcrInstalledModelStartupVerifier
     @Inject lateinit var nativeEnginePackCoordinator: NativeEnginePackCoordinator
+    @Inject lateinit var ocrEnginePackMigrationStartup: OcrEnginePackMigrationStartup
     @Inject lateinit var segmentationEngineProvisioner: SegmentationEngineProvisioner
     @Inject lateinit var updatePreferencesStore: UpdatePreferencesStore
 
@@ -50,9 +51,7 @@ class SlideIndexApp : Application() {
         NativeEngineRuntime.onOcrEnginePackInvalidated = {
             OcrDependencyAccess.inferenceService(this)?.invalidateEngineBlocking()
         }
-        deps.applicationScope.launch(Dispatchers.IO) {
-            nativeEnginePackCoordinator.upgradePackIfOutdated(NativeEnginePackIds.OCR)
-        }
+        ocrEnginePackMigrationStartup.start()
         shizukuInitializer.start()
         otpAutoFillStatsInstaller.install()
         com.slideindex.app.ui.icon.AppIconTheme.ensureSelectedThemeEnabled(this)

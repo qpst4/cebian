@@ -4,6 +4,11 @@ All notable changes to Cebian are documented in this file.
 
 ## [Unreleased]
 
+## [1.9.22] - 2026-09-06
+
+### Fixed
+- **OCR 引擎包**：修复应用升级后迁移已完成却不弹提示的问题；Full 版升级成功、Lite 版需重新下载时均会提示用户
+
 ## [1.9.21] - 2026-09-06
 
 ### Fixed

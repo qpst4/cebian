@@ -3,6 +3,7 @@ package com.slideindex.app.ui.viewmodel
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.slideindex.app.di.OcrEnginePackMigrationNoticeHolder
 import com.slideindex.app.nativeengine.NativeEnginePackIds
 import com.slideindex.app.nativeengine.NativeEnginePackMigrationRunner
 import com.slideindex.app.nativeengine.OcrEnginePackMigrationNotice
@@ -20,23 +21,24 @@ import kotlinx.coroutines.launch
 class OcrEnginePackMigrationViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val migrationRunner: NativeEnginePackMigrationRunner,
+    private val noticeHolder: OcrEnginePackMigrationNoticeHolder,
     private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
     private val _notice = MutableStateFlow<OcrEnginePackMigrationNotice?>(null)
     val notice: StateFlow<OcrEnginePackMigrationNotice?> = _notice.asStateFlow()
 
-    private var checkedOnLaunch = false
-
     fun checkOnLaunch() {
-        if (checkedOnLaunch) return
-        checkedOnLaunch = true
         viewModelScope.launch {
-            _notice.value = migrationRunner.runOcrStartupMigration()
+            noticeHolder.ensureChecked(migrationRunner)
+            noticeHolder.notice.collect { pending ->
+                _notice.value = pending
+            }
         }
     }
 
     fun dismissNotice() {
         _notice.value?.let { migrationRunner.markNoticeDismissed(it) }
+        noticeHolder.clearNotice()
         _notice.value = null
     }
 
