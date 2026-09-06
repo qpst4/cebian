@@ -11,10 +11,21 @@ class NativeEnginePackMigrationNoticeStore @Inject constructor(
 ) {
     private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-    fun shouldShowNotice(packId: String, targetRevision: Int): Boolean {
-        val key = noticeKey(packId, targetRevision)
-        return !prefs.getBoolean(key, false)
-    }
+    fun wasNoticeAcknowledged(packId: String, targetRevision: Int): Boolean =
+        prefs.getBoolean(noticeKey(packId, targetRevision), false)
+
+    fun shouldShowMigrationNotice(
+        packId: String,
+        targetRevision: Int,
+        engineAtTargetRevision: Boolean,
+        hasPendingUpgrade: Boolean,
+        hasAwaitingNotice: Boolean,
+    ): Boolean = evaluateShouldShowMigrationNotice(
+        engineAtTargetRevision = engineAtTargetRevision,
+        noticeAcknowledged = wasNoticeAcknowledged(packId, targetRevision),
+        hasPendingUpgrade = hasPendingUpgrade,
+        hasAwaitingNotice = hasAwaitingNotice,
+    )
 
     fun markNoticeShown(packId: String, targetRevision: Int) {
         prefs.edit()
@@ -102,7 +113,19 @@ class NativeEnginePackMigrationNoticeStore @Inject constructor(
     private fun awaitingPreviousKey(packId: String): String =
         "awaiting_notice_${packId}_previous"
 
-    private companion object {
+    internal companion object {
         private const val PREFS_NAME = "native_engine_migration_notice"
+
+        fun evaluateShouldShowMigrationNotice(
+            engineAtTargetRevision: Boolean,
+            noticeAcknowledged: Boolean,
+            hasPendingUpgrade: Boolean,
+            hasAwaitingNotice: Boolean,
+        ): Boolean {
+            if (engineAtTargetRevision) {
+                return !noticeAcknowledged
+            }
+            return hasPendingUpgrade || hasAwaitingNotice || noticeAcknowledged
+        }
     }
 }

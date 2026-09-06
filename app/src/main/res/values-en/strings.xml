@@ -862,9 +862,9 @@
     <string name="ocr_engine_migration_success_message">The app upgraded your OCR runtime engine to %1$s to match this version. If recognition fails, reinstall it from Runtime engines.</string>
     <string name="ocr_engine_migration_download_title">OCR engine update required</string>
     <string name="ocr_engine_migration_download_message">This app version requires the %1$s engine pack for OCR. Open Runtime engines to download and install it.</string>
-    <string name="ocr_engine_migration_acknowledge">Got it</string>
+    <string name="ocr_engine_migration_acknowledge">Download</string>
     <string name="ocr_engine_migration_later">Later</string>
-    <string name="ocr_engine_migration_download_action">Open runtime engines</string>
+    <string name="ocr_engine_migration_download_action">Download</string>
     <string name="ocr_engine_migration_version_fallback">the latest version</string>
     <string name="ocr_download_wifi_only">Download on Wi-Fi only</string>
     <string name="ocr_download_wifi_only_desc">Do not start downloads on mobile data</string>

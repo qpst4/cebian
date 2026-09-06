@@ -28,11 +28,14 @@ fun OcrEnginePackMigrationHost(
                 ?: stringResource(R.string.ocr_engine_migration_version_fallback)
             MiuixConfirmDialog(
                 show = true,
-                onDismissRequest = viewModel::dismissNotice,
+                onDismissRequest = viewModel::acknowledgeNotice,
                 title = stringResource(R.string.ocr_engine_migration_success_title),
                 message = stringResource(R.string.ocr_engine_migration_success_message, versionLabel),
-                confirmText = stringResource(R.string.ocr_engine_migration_acknowledge),
-                onConfirm = viewModel::dismissNotice,
+                confirmText = stringResource(R.string.ocr_engine_migration_download_action),
+                onConfirm = {
+                    viewModel.acknowledgeNotice()
+                    onOpenNativeEnginePacks()
+                },
             )
         }
         is OcrEnginePackMigrationNotice.DownloadRequired -> {
@@ -40,12 +43,12 @@ fun OcrEnginePackMigrationHost(
                 ?: stringResource(R.string.ocr_engine_migration_version_fallback)
             MiuixConfirmDialog(
                 show = true,
-                onDismissRequest = viewModel::dismissNotice,
+                onDismissRequest = viewModel::deferNotice,
                 title = stringResource(R.string.ocr_engine_migration_download_title),
                 message = stringResource(R.string.ocr_engine_migration_download_message, versionLabel),
                 confirmText = stringResource(R.string.ocr_engine_migration_download_action),
                 onConfirm = {
-                    viewModel.dismissNotice()
+                    viewModel.deferNotice()
                     onOpenNativeEnginePacks()
                 },
                 dismissText = stringResource(R.string.ocr_engine_migration_later),

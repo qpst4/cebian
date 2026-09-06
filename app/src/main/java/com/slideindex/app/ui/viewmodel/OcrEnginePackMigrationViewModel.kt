@@ -29,8 +29,13 @@ class OcrEnginePackMigrationViewModel @Inject constructor(
         }
     }
 
-    fun dismissNotice() {
-        _notice.value?.let { migrationRunner.markNoticeDismissed(it) }
+    fun acknowledgeNotice() {
+        _notice.value?.let { migrationRunner.acknowledgeNotice(it) }
+        noticeHolder.clearNotice()
+        _notice.value = null
+    }
+
+    fun deferNotice() {
         noticeHolder.clearNotice()
         _notice.value = null
     }

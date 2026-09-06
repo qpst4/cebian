@@ -4,6 +4,15 @@ All notable changes to Cebian are documented in this file.
 
 ## [Unreleased]
 
+## [1.9.25] - 2026-09-06
+
+### Changed
+- **OCR 引擎包迁移**：弹窗主按钮改为「去下载」，确认后跳转「运行时引擎」页
+
+### Fixed
+- **OCR 引擎包迁移**：修复 Lite 用户升级后引擎缺失却不弹窗的问题（含曾点「稍后」、旧版已静默删包等场景）
+- **OCR 引擎包迁移**：「稍后」仅关闭本次提示，引擎未对齐前下次启动仍会提醒
+
 ## [1.9.24] - 2026-09-06
 
 ### Changed

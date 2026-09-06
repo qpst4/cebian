@@ -33,7 +33,7 @@ class NativeEnginePackMigrationRunner @Inject constructor(
 
         noticeStore.getAwaitingNotice(packId)?.let { awaiting ->
             if (awaiting.targetRevision == entry.packRevision &&
-                noticeStore.shouldShowNotice(packId, entry.packRevision)
+                shouldPromptMigrationNotice(packId, entry)
             ) {
                 return@withContext awaiting.toNotice(entry.displayVersion)
             }
@@ -46,14 +46,11 @@ class NativeEnginePackMigrationRunner @Inject constructor(
             is NativeEnginePackUpgradeResult.UpgradeFailed ->
                 rememberDownloadNotice(entry, result.displayVersion, result.targetRevision)
             NativeEnginePackUpgradeResult.UpToDate -> {
-                if (noticeStore.hasPendingUpgrade(packId, entry.packRevision) &&
-                    !coordinator.isPackInstalled(packId)
-                ) {
+                if (shouldPromptDownloadNotice(packId, entry)) {
                     rememberDownloadNotice(entry, entry.displayVersion, entry.packRevision)
                 } else if (
-                    coordinator.isPackInstalled(packId) &&
-                    coordinator.installedPackRevision(packId) == entry.packRevision &&
-                    noticeStore.shouldShowNotice(packId, entry.packRevision)
+                    isEngineAtTargetRevision(packId, entry) &&
+                    shouldPromptMigrationNotice(packId, entry)
                 ) {
                     rememberUpgradedNotice(
                         entry = entry,
@@ -74,16 +71,45 @@ class NativeEnginePackMigrationRunner @Inject constructor(
         }
     }
 
-    fun markNoticeDismissed(notice: OcrEnginePackMigrationNotice) {
+    fun acknowledgeNotice(notice: OcrEnginePackMigrationNotice) {
         noticeStore.markNoticeShown(NativeEnginePackIds.OCR, notice.targetRevision)
         noticeStore.clearMigrationState(NativeEnginePackIds.OCR)
     }
+
+    private fun shouldPromptMigrationNotice(
+        packId: String,
+        entry: NativeEnginePackEntry,
+    ): Boolean {
+        val awaiting = noticeStore.getAwaitingNotice(packId)
+        return noticeStore.shouldShowMigrationNotice(
+            packId = packId,
+            targetRevision = entry.packRevision,
+            engineAtTargetRevision = isEngineAtTargetRevision(packId, entry),
+            hasPendingUpgrade = noticeStore.hasPendingUpgrade(packId, entry.packRevision),
+            hasAwaitingNotice = awaiting?.targetRevision == entry.packRevision,
+        )
+    }
+
+    private fun shouldPromptDownloadNotice(
+        packId: String,
+        entry: NativeEnginePackEntry,
+    ): Boolean {
+        if (isEngineAtTargetRevision(packId, entry)) return false
+        return shouldPromptMigrationNotice(packId, entry)
+    }
+
+    private fun isEngineAtTargetRevision(
+        packId: String,
+        entry: NativeEnginePackEntry,
+    ): Boolean =
+        coordinator.isPackInstalled(packId) &&
+            coordinator.installedPackRevision(packId) == entry.packRevision
 
     private fun rememberUpgradedNotice(
         entry: NativeEnginePackEntry,
         result: NativeEnginePackUpgradeResult.Upgraded,
     ): OcrEnginePackMigrationNotice? {
-        if (!noticeStore.shouldShowNotice(NativeEnginePackIds.OCR, entry.packRevision)) {
+        if (!shouldPromptMigrationNotice(NativeEnginePackIds.OCR, entry)) {
             noticeStore.clearMigrationState(NativeEnginePackIds.OCR)
             return null
         }
@@ -106,7 +132,7 @@ class NativeEnginePackMigrationRunner @Inject constructor(
         displayVersion: String?,
         targetRevision: Int,
     ): OcrEnginePackMigrationNotice? {
-        if (!noticeStore.shouldShowNotice(NativeEnginePackIds.OCR, targetRevision)) {
+        if (!shouldPromptMigrationNotice(NativeEnginePackIds.OCR, entry)) {
             return null
         }
         val notice = OcrEnginePackMigrationNotice.DownloadRequired(
