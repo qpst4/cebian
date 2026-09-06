@@ -74,6 +74,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.slideindex.app.update.UpdateHost
 import com.slideindex.app.update.UpdateViewModel
+import com.slideindex.app.ui.OcrEnginePackMigrationHost
 import com.slideindex.app.ui.OnboardingScreen
 import com.slideindex.app.util.PermissionHelper
 import com.slideindex.app.ui.compose.LocalAppDependencies
@@ -527,6 +528,7 @@ fun MainNavHost(
                     showUpdateFromIntent = showUpdateFromIntent,
                     onShowUpdateConsumed = onShowUpdateConsumed,
                 )
+                OcrEnginePackMigrationHost()
             }
         }
     }

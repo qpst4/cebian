@@ -858,6 +858,14 @@
     <string name="native_engine_download_cancelled">Cancelled</string>
     <string name="extension_native_engine_packs_entry_title">Runtime engines</string>
     <string name="extension_native_engine_packs_entry_desc">OCR / offline translate / segmentation natives</string>
+    <string name="ocr_engine_migration_success_title">OCR engine updated</string>
+    <string name="ocr_engine_migration_success_message">The app upgraded your OCR runtime engine to %1$s to match this version. If recognition fails, reinstall it from Runtime engines.</string>
+    <string name="ocr_engine_migration_download_title">OCR engine update required</string>
+    <string name="ocr_engine_migration_download_message">This app version requires the %1$s engine pack for OCR. Download and install it to continue.</string>
+    <string name="ocr_engine_migration_acknowledge">Got it</string>
+    <string name="ocr_engine_migration_later">Later</string>
+    <string name="ocr_engine_migration_download_action">Download now</string>
+    <string name="ocr_engine_migration_version_fallback">the latest version</string>
     <string name="ocr_download_wifi_only">Download on Wi-Fi only</string>
     <string name="ocr_download_wifi_only_desc">Do not start downloads on mobile data</string>
     <string name="ocr_model_ppocrv6_tiny">PP-OCRv6 Tiny</string>
