@@ -9,11 +9,13 @@ import kotlinx.coroutines.launch
 @Singleton
 class OcrInstalledModelStartupVerifier @Inject constructor(
     private val installIntegrity: OcrInstalledModelIntegrity,
+    private val ocrStartupSmokeVerifier: OcrStartupSmokeVerifier,
     private val applicationScope: CoroutineScope,
 ) {
     fun start() {
         applicationScope.launch {
             installIntegrity.repairInstalledModels()
         }
+        ocrStartupSmokeVerifier.start()
     }
 }
