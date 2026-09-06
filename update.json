@@ -1,7 +1,7 @@
 {
-  "version": "1.9.22",
-  "versionCode": 47,
-  "apkUrl": "https://github.com/qpst4/cebian/releases/download/v1.9.22/cebian-1.9.22-lite.apk",
-  "apkSize": 25229451,
-  "notes": "## 修复\n- OCR 引擎包：修复应用升级后迁移已完成却不弹提示的问题；Full 版升级成功、Lite 版需重新下载时均会提示用户"
+  "version": "1.9.23",
+  "versionCode": 48,
+  "apkUrl": "https://github.com/qpst4/cebian/releases/download/v1.9.23/cebian-1.9.23-lite.apk",
+  "apkSize": 25229463,
+  "notes": "## 变更\n- OCR 引擎包：升级 OpenCV 至 5.0.0.1（libopencv_java5.so），引擎包 revision 5\n- 依赖：org.opencv:opencv 4.12.0 → 5.0.0.1\n## 修复\n- PP-OCR：适配 OpenCV 5 几何 API（Geometry.minAreaRect / getPerspectiveTransform）"
 }
