@@ -48,6 +48,9 @@ class GestureSessionThresholdTrackerTest {
                 override fun onShowAppSwitcher(continuousPick: Boolean, rawX: Float, rawY: Float): Boolean = true
                 override fun onAppSwitcherPointerMove(rawX: Float, rawY: Float) = Unit
                 override fun onAppSwitcherContinuousRelease(rawX: Float, rawY: Float) = Unit
+                override fun onShowFingertipRing(continuousPick: Boolean, rawX: Float, rawY: Float): Boolean = true
+                override fun onFingertipRingPointerMove(rawX: Float, rawY: Float) = Unit
+                override fun onFingertipRingContinuousRelease(rawX: Float, rawY: Float) = Unit
                 override fun onShowAdjustPanel(
                     mode: com.slideindex.app.util.ContinuousAdjustController.Mode,
                     fraction: Float,
@@ -139,6 +142,9 @@ class GestureSessionThresholdTrackerTest {
                 override fun onShowAppSwitcher(continuousPick: Boolean, rawX: Float, rawY: Float): Boolean = true
                 override fun onAppSwitcherPointerMove(rawX: Float, rawY: Float) = Unit
                 override fun onAppSwitcherContinuousRelease(rawX: Float, rawY: Float) = Unit
+                override fun onShowFingertipRing(continuousPick: Boolean, rawX: Float, rawY: Float): Boolean = true
+                override fun onFingertipRingPointerMove(rawX: Float, rawY: Float) = Unit
+                override fun onFingertipRingContinuousRelease(rawX: Float, rawY: Float) = Unit
                 override fun onShowAdjustPanel(
                     mode: com.slideindex.app.util.ContinuousAdjustController.Mode,
                     fraction: Float,
@@ -189,6 +195,9 @@ class GestureSessionThresholdTrackerTest {
                 override fun onShowAppSwitcher(continuousPick: Boolean, rawX: Float, rawY: Float): Boolean = true
                 override fun onAppSwitcherPointerMove(rawX: Float, rawY: Float) = Unit
                 override fun onAppSwitcherContinuousRelease(rawX: Float, rawY: Float) = Unit
+                override fun onShowFingertipRing(continuousPick: Boolean, rawX: Float, rawY: Float): Boolean = true
+                override fun onFingertipRingPointerMove(rawX: Float, rawY: Float) = Unit
+                override fun onFingertipRingContinuousRelease(rawX: Float, rawY: Float) = Unit
                 override fun onShowAdjustPanel(
                     mode: com.slideindex.app.util.ContinuousAdjustController.Mode,
                     fraction: Float,

@@ -45,7 +45,29 @@ object ImageUtils {
 
         newH = maxOf(MathUtils.roundHalfToEven(newH / 32.0) * 32, 32)
         newW = maxOf(MathUtils.roundHalfToEven(newW / 32.0) * 32, 32)
+
+        // OpenCV 5.0.0.1 (Issue #29794): Downsampling with scale factors just below 1.0 on ARM64
+        // (INTER_LINEAR on CV_8UC3) causes an out-of-bounds memory read and SIGSEGV.
+        // If a dimension is slightly smaller than the original ([0.85, 1.0)), round UP to the next
+        // multiple of 32 (upsampling >= 1.0) to safely bypass the bug.
+        if (newH < h && newH.toDouble() / h >= 0.85) {
+            newH = ((h + 31) / 32) * 32
+        }
+        if (newW < w && newW.toDouble() / w >= 0.85) {
+            newW = ((w + 31) / 32) * 32
+        }
+        if (maxSideLimit > 0 && maxOf(newH, newW) > maxSideLimit) {
+            newH = minOf(newH, (maxSideLimit / 32) * 32)
+            newW = minOf(newW, (maxSideLimit / 32) * 32)
+        }
+        newH = maxOf(newH, 32)
+        newW = maxOf(newW, 32)
+
         val dst = Mat()
+        if (newW == w && newH == h) {
+            src.copyTo(dst)
+            return dst
+        }
         Imgproc.resize(src, dst, Size(newW.toDouble(), newH.toDouble()), 0.0, 0.0, Imgproc.INTER_LINEAR)
         return dst
     }
