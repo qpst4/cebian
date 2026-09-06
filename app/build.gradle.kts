@@ -185,7 +185,7 @@ private data class NativeEnginePackSpec(
 private val nativeEnginePackSpecs = listOf(
     NativeEnginePackSpec(
         taskName = "packageOcrEnginePack",
-        zipName = "ocr-engine-arm64-v2.zip",
+        zipName = "ocr-engine-arm64-v4.zip",
         libraries = listOf(
             "libonnxruntime.so",
             "libopencv_java4.so",
@@ -304,6 +304,7 @@ tasks.register<CollectNativeEnginePackLibsTask>("collectNativeEnginePackLibs") {
     group = "build"
     description = "Extract arm64 native libraries from dependency AARs for engine packs."
     dependsOn("buildCMakeRelWithDebInfo[$NATIVE_ENGINE_ABI]")
+    mustRunAfter(tasks.matching { it.name.contains("CMakeDebug") })
     artifactFiles.from(nativeEnginePackArtifactFiles)
     outputDirectory.set(nativeEnginePackLibDir)
     cxxIntermediatesDir.set(layout.buildDirectory.dir("intermediates/cxx"))
@@ -388,7 +389,9 @@ tasks.register("copyBundledNativeEnginePacks") {
 }
 
 afterEvaluate {
-    tasks.matching { it.name == "mergeFullReleaseAssets" }.configureEach {
+    tasks.matching {
+        it.name == "mergeFullReleaseAssets" || it.name == "mergeFullDebugAssets"
+    }.configureEach {
         dependsOn("copyBundledNativeEnginePacks")
     }
     tasks.matching {
