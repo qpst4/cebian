@@ -1,7 +1,7 @@
 {
-  "version": "1.9.24",
-  "versionCode": 49,
-  "apkUrl": "https://github.com/qpst4/cebian/releases/download/v1.9.24/cebian-1.9.24-lite.apk",
-  "apkSize": 25229511,
-  "notes": "## 变更\n- OCR 引擎包：设置页版本展示修正为 OpenCV 5.0.0.1\n- OCR 引擎包迁移：Lite 需下载时弹窗改为跳转「运行时引擎」页，由用户手动下载\n## 修复\n- 扩展 Tab：修复「运行时引擎」入口无法打开设置页的问题"
+  "version": "1.9.25",
+  "versionCode": 50,
+  "apkUrl": "https://github.com/qpst4/cebian/releases/download/v1.9.25/cebian-1.9.25-lite.apk",
+  "apkSize": 25229379,
+  "notes": "## 变更\n- OCR 引擎包迁移：弹窗主按钮改为「去下载」，确认后跳转「运行时引擎」页\n## 修复\n- OCR 引擎包迁移：修复 Lite 用户升级后引擎缺失却不弹窗的问题（含曾点「稍后」、旧版已静默删包等场景）\n- OCR 引擎包迁移：「稍后」仅关闭本次提示，引擎未对齐前下次启动仍会提醒"
 }
