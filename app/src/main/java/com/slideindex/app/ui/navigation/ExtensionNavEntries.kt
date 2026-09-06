@@ -115,10 +115,7 @@ import com.slideindex.app.ui.ImageSearchEngineSettingsScreen
 import com.slideindex.app.ui.resolveImageSearchEngine
 import com.slideindex.app.ui.viewmodel.SearchEngineSettingsViewModel
 import com.slideindex.app.ui.TranslateModelSettingsScreen
-import com.slideindex.app.ui.NativeEnginePackSettingsScreen
 import com.slideindex.app.ui.OcrModelSettingsScreen
-import com.slideindex.app.ui.viewmodel.NativeEnginePackSettingsViewModel
-import com.slideindex.app.ui.viewmodel.OcrModelSettingsViewModel
 import com.slideindex.app.ui.viewmodel.TranslateSettingsViewModel
 import com.slideindex.app.ui.viewmodel.SettingsBackupViewModel
 import com.slideindex.app.ui.viewmodel.ShellCommandViewModel
@@ -127,6 +124,7 @@ import com.slideindex.app.ui.viewmodel.StashClipboardSettingsViewModel
 
 fun NavEntryBuilder.extensionNavEntries(ctx: MainNavContext) {
     layoutSettingsNavEntries(ctx)
+    nativeEnginePackNavEntry(ctx)
 
     hiltEntry<AppNavKey.ExtensionHub> {
         val permissions = ctx.collectPermissions()

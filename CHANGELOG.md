@@ -4,6 +4,15 @@ All notable changes to Cebian are documented in this file.
 
 ## [Unreleased]
 
+## [1.9.24] - 2026-09-06
+
+### Changed
+- **OCR 引擎包**：设置页版本展示修正为 OpenCV 5.0.0.1
+- **OCR 引擎包迁移**：Lite 需下载时弹窗改为跳转「运行时引擎」页，由用户手动下载
+
+### Fixed
+- **扩展 Tab**：修复「运行时引擎」入口无法打开设置页的问题
+
 ## [1.9.23] - 2026-09-06
 
 ### Changed

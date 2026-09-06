@@ -27,7 +27,6 @@ import com.slideindex.app.ui.GestureExecuteShellCommandScreen
 import com.slideindex.app.ui.GestureSimulateKeyEventScreen
 import com.slideindex.app.ui.ImageSearchEngineDetailScreen
 import com.slideindex.app.ui.ImageSearchEngineSettingsScreen
-import com.slideindex.app.ui.NativeEnginePackSettingsScreen
 import com.slideindex.app.ui.OcrModelSettingsScreen
 import com.slideindex.app.ui.SearchEngineEditorCategory
 import com.slideindex.app.ui.SearchEngineEditorScreen
@@ -44,7 +43,6 @@ import com.slideindex.app.ui.picker.ShareTargetPickScreen
 import com.slideindex.app.ui.resolveImageSearchEngine
 import com.slideindex.app.ui.viewmodel.ExtensionSettingsViewModel
 import com.slideindex.app.ui.viewmodel.FloatBallPickSettingsViewModel
-import com.slideindex.app.ui.viewmodel.NativeEnginePackSettingsViewModel
 import com.slideindex.app.ui.viewmodel.OcrModelSettingsViewModel
 import com.slideindex.app.ui.viewmodel.SearchEngineSettingsViewModel
 import com.slideindex.app.ui.viewmodel.ShareImageOcrHistoryViewModel
@@ -54,6 +52,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 fun NavEntryBuilder.floatBallNavEntries(ctx: MainNavContext) {
+    nativeEnginePackNavEntry(ctx)
     hiltEntry<AppNavKey.FloatBall> {
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
         val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
@@ -687,22 +686,6 @@ fun NavEntryBuilder.floatBallNavEntries(ctx: MainNavContext) {
             onDeleteLanguage = viewModel::deleteLanguage,
             onDeleteTranslateEngine = viewModel::deleteTranslateEngine,
             onOpenEngineManagement = { ctx.navigate(AppNavKey.NativeEnginePacks) },
-            onWifiOnlyChange = viewModel::setDownloadWifiOnly,
-        )
-    }
-
-    hiltEntry<AppNavKey.NativeEnginePacks> {
-        val viewModel: NativeEnginePackSettingsViewModel = hiltViewModel()
-        val settings by viewModel.settings.collectAsStateWithLifecycle()
-        val packRows by viewModel.packRows.collectAsStateWithLifecycle()
-        val downloadState by viewModel.downloadState.collectAsStateWithLifecycle()
-        NativeEnginePackSettingsScreen(
-            settings = settings,
-            packRows = packRows,
-            downloadState = downloadState,
-            onBack = { ctx.backStack.removeLastOrNull() },
-            onDownloadPack = viewModel::downloadPack,
-            onDeletePack = viewModel::deletePack,
             onWifiOnlyChange = viewModel::setDownloadWifiOnly,
         )
     }

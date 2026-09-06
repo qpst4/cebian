@@ -1431,10 +1431,10 @@
     <string name="ocr_engine_migration_success_title">OCR 引擎已更新</string>
     <string name="ocr_engine_migration_success_message">应用已自动将 OCR 运行时引擎升级至 %1$s，与当前版本匹配。若识别异常，可在「运行时引擎」中重新安装。</string>
     <string name="ocr_engine_migration_download_title">需要更新 OCR 引擎</string>
-    <string name="ocr_engine_migration_download_message">当前版本需要 %1$s 引擎包才能正常使用 OCR。请下载安装后继续。</string>
+    <string name="ocr_engine_migration_download_message">当前版本需要 %1$s 引擎包才能正常使用 OCR。请前往「运行时引擎」下载安装。</string>
     <string name="ocr_engine_migration_acknowledge">知道了</string>
     <string name="ocr_engine_migration_later">稍后</string>
-    <string name="ocr_engine_migration_download_action">立即下载</string>
+    <string name="ocr_engine_migration_download_action">前往运行时引擎</string>
     <string name="ocr_engine_migration_version_fallback">最新版本</string>
     <string name="ocr_download_wifi_only">仅 Wi-Fi 下载</string>
     <string name="ocr_download_wifi_only_desc">移动网络下不自动开始下载</string>

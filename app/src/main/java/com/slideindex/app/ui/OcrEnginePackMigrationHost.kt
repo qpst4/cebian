@@ -13,6 +13,7 @@ import com.slideindex.app.ui.viewmodel.OcrEnginePackMigrationViewModel
 
 @Composable
 fun OcrEnginePackMigrationHost(
+    onOpenNativeEnginePacks: () -> Unit,
     viewModel: OcrEnginePackMigrationViewModel = hiltViewModel(),
 ) {
     val notice by viewModel.notice.collectAsStateWithLifecycle()
@@ -43,7 +44,10 @@ fun OcrEnginePackMigrationHost(
                 title = stringResource(R.string.ocr_engine_migration_download_title),
                 message = stringResource(R.string.ocr_engine_migration_download_message, versionLabel),
                 confirmText = stringResource(R.string.ocr_engine_migration_download_action),
-                onConfirm = viewModel::downloadOcrEnginePack,
+                onConfirm = {
+                    viewModel.dismissNotice()
+                    onOpenNativeEnginePacks()
+                },
                 dismissText = stringResource(R.string.ocr_engine_migration_later),
             )
         }

@@ -528,7 +528,15 @@ fun MainNavHost(
                     showUpdateFromIntent = showUpdateFromIntent,
                     onShowUpdateConsumed = onShowUpdateConsumed,
                 )
-                OcrEnginePackMigrationHost()
+                OcrEnginePackMigrationHost(
+                    onOpenNativeEnginePacks = {
+                        savedBottomNavTab = MainBottomNavDestination.Extension.name
+                        visitedTabs.add(MainBottomNavDestination.Extension)
+                        extensionBackStack.clear()
+                        extensionBackStack.add(AppNavKey.ExtensionHub)
+                        extensionBackStack.add(AppNavKey.NativeEnginePacks)
+                    },
+                )
             }
         }
     }

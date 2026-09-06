@@ -4,7 +4,7 @@
     {
       "id": "ocr-engine",
       "packRevision": 5,
-      "displayVersion": "ONNX Runtime 1.29.0 / OpenCV 5.0.0",
+      "displayVersion": "ONNX Runtime 1.29.0 / OpenCV 5.0.0.1",
       "sizeBytes": 28775904,
       "url": "https://github.com/qpst4/cebian/releases/download/v1.9.23/ocr-engine-arm64-v5.zip",
       "mirrorUrls": [],
