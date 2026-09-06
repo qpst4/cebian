@@ -1,7 +1,7 @@
 {
-  "version": "1.9.23",
-  "versionCode": 48,
-  "apkUrl": "https://github.com/qpst4/cebian/releases/download/v1.9.23/cebian-1.9.23-lite.apk",
-  "apkSize": 25229463,
-  "notes": "## 变更\n- OCR 引擎包：升级 OpenCV 至 5.0.0.1（libopencv_java5.so），引擎包 revision 5\n- 依赖：org.opencv:opencv 4.12.0 → 5.0.0.1\n## 修复\n- PP-OCR：适配 OpenCV 5 几何 API（Geometry.minAreaRect / getPerspectiveTransform）"
+  "version": "1.9.24",
+  "versionCode": 49,
+  "apkUrl": "https://github.com/qpst4/cebian/releases/download/v1.9.24/cebian-1.9.24-lite.apk",
+  "apkSize": 25229511,
+  "notes": "## 变更\n- OCR 引擎包：设置页版本展示修正为 OpenCV 5.0.0.1\n- OCR 引擎包迁移：Lite 需下载时弹窗改为跳转「运行时引擎」页，由用户手动下载\n## 修复\n- 扩展 Tab：修复「运行时引擎」入口无法打开设置页的问题"
 }
