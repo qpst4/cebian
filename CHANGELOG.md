@@ -4,6 +4,19 @@ All notable changes to Cebian are documented in this file.
 
 ## [Unreleased]
 
+## [1.9.21] - 2026-09-06
+
+### Fixed
+- **OCR**：修复引擎包升级后 ONNX Runtime / OpenCV 加载失败导致取词空白；APK 内 ORT JNI 与引擎包 `libonnxruntime.so` 版本对齐至 1.29
+- **OCR**：引擎包 revision 变更时自动失效推理引擎并重新加载
+
+### Added
+- **OCR 引擎包**：升级至 v4（ONNX Runtime 1.29.0），启动时自动检测并迁移旧包，完成后提示用户
+- **OCR 引擎包**：GitHub Release 提供 `ocr-engine-arm64-v4.zip` 在线下载
+
+### Changed
+- **构建**：Full / FullDebug Release 资产合并内置 OCR 引擎包 zip，离线安装可直接解压
+
 ## [1.9.20] - 2026-09-05
 
 ### Added
