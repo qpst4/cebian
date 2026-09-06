@@ -11,6 +11,10 @@ object NativeEngineRuntime {
     @Volatile
     var onRequestSegmentationPack: (() -> Unit)? = null
 
+    /** OCR 引擎包被删除/重装时通知上层丢弃 PaddleOCR 会话。 */
+    @Volatile
+    var onOcrEnginePackInvalidated: (() -> Unit)? = null
+
     fun requestSegmentationPackIfNeeded() {
         onRequestSegmentationPack?.invoke()
     }

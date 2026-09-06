@@ -47,9 +47,11 @@ class NativeEnginePackCoordinator @Inject constructor(
         val entry = catalogProvider.findPack(packId) ?: return@withContext false
         loadMutex.withLock {
             runCatching {
+                val revision = repository.readManifest(packId)?.packRevision
                 NativeEnginePackLoader.loadLibraries(
                     repository.nativeLibDir(packId),
                     entry.libraries,
+                    packRevision = if (packId == NativeEnginePackIds.OCR) revision else null,
                 )
                 true
             }.getOrDefault(false)
@@ -85,11 +87,52 @@ class NativeEnginePackCoordinator @Inject constructor(
         )
     }
 
+    /**
+     * 若本地引擎包 revision/catalog 落后，则删除旧包并尝试从 APK 内置资源重装。
+     * 用于应用升级后与 Java 层 ORT 版本对齐。
+     */
+    suspend fun upgradePackIfOutdated(packId: String): NativeEnginePackUpgradeResult =
+        withContext(Dispatchers.IO) {
+            val entry = catalogProvider.findPack(packId) ?: return@withContext NativeEnginePackUpgradeResult.UpToDate
+            val catalogVersion = catalogProvider.catalog.version
+            val manifest = repository.readManifest(packId)
+            val hadInstalled = repository.isInstalled(packId)
+            val hadOutdatedInstall = hadInstalled && (
+                repository.needsCatalogUpgrade(packId, catalogVersion) ||
+                    repository.needsPackRevisionUpgrade(packId, entry.packRevision)
+                )
+            val previousRevision = manifest?.packRevision
+
+            ensurePackProvisioned(packId)
+
+            when {
+                hadOutdatedInstall && isPackInstalled(packId) ->
+                    NativeEnginePackUpgradeResult.Upgraded(entry.displayVersion, previousRevision)
+                hadOutdatedInstall && !isPackInstalled(packId) ->
+                    NativeEnginePackUpgradeResult.UpgradeFailed(entry.displayVersion, entry.packRevision)
+                !hadInstalled && isPackInstalled(packId) ->
+                    NativeEnginePackUpgradeResult.FreshlyProvisioned
+                else -> NativeEnginePackUpgradeResult.UpToDate
+            }
+        }
+
     private suspend fun ensurePackProvisioned(packId: String) {
         val entry = catalogProvider.findPack(packId) ?: return
         val catalogVersion = catalogProvider.catalog.version
         provisionMutex.withLock {
+            val deletingOcrPack = packId == NativeEnginePackIds.OCR && (
+                repository.needsCatalogUpgrade(packId, catalogVersion) ||
+                    repository.needsPackRevisionUpgrade(packId, entry.packRevision)
+                )
             if (repository.needsCatalogUpgrade(packId, catalogVersion)) {
+                if (deletingOcrPack) {
+                    NativeEngineRuntime.onOcrEnginePackInvalidated?.invoke()
+                }
+                repository.deletePack(packId)
+            } else if (repository.needsPackRevisionUpgrade(packId, entry.packRevision)) {
+                if (deletingOcrPack) {
+                    NativeEngineRuntime.onOcrEnginePackInvalidated?.invoke()
+                }
                 repository.deletePack(packId)
             }
             if (isPackInstalled(packId)) return

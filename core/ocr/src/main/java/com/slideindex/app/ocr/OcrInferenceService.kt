@@ -2,6 +2,7 @@ package com.slideindex.app.ocr
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.util.Log
 import com.paddle.ocr.EngineConfig
 import com.paddle.ocr.PaddleOCR
 import com.paddle.ocr.PaddleOCRConfig
@@ -23,6 +24,10 @@ class OcrInferenceService @Inject constructor(
     private val catalogProvider: OcrModelCatalogProvider,
     private val nativeEnginePackCoordinator: NativeEnginePackCoordinator,
 ) {
+    private companion object {
+        private const val TAG = "OcrInferenceService"
+    }
+
     private val mutex = Mutex()
     private var loadedModelId: String? = null
     private var loadedEngine: String? = null
@@ -30,13 +35,22 @@ class OcrInferenceService @Inject constructor(
     private var openCvInitialized = false
 
     suspend fun recognizeBitmap(modelId: String, bitmap: Bitmap): String? {
-        val entry = catalogProvider.findModel(modelId) ?: return null
-        if (!repository.isInstalled(modelId)) return null
+        val entry = catalogProvider.findModel(modelId) ?: run {
+            Log.w(TAG, "recognize skipped: unknown modelId=$modelId")
+            return null
+        }
+        if (!repository.isInstalled(modelId)) {
+            Log.w(TAG, "recognize skipped: model not installed modelId=$modelId")
+            return null
+        }
         return withContext(Dispatchers.Default) {
             mutex.withLock {
                 when (entry.engine) {
                     OcrEngines.PPOCR -> {
-                        if (!nativeEnginePackCoordinator.ensurePackReady(NativeEnginePackIds.OCR)) return@withLock null
+                        if (!nativeEnginePackCoordinator.ensurePackReady(NativeEnginePackIds.OCR)) {
+                            Log.w(TAG, "recognize skipped: OCR native engine pack not ready")
+                            return@withLock null
+                        }
                         recognizeWithPpOcr(modelId, bitmap)
                     }
                     OcrEngines.MLKIT_CHINESE -> {
@@ -60,36 +74,44 @@ class OcrInferenceService @Inject constructor(
 
     suspend fun release() {
         mutex.withLock {
-            paddleOcr?.release()
-            paddleOcr = null
+            val modelId = loadedModelId
+            releaseLoadedEngine()
             MlKitTextRecognizer.close()
-            TesseractTextRecognizer.close(loadedModelId)
-            loadedModelId = null
-            loadedEngine = null
+            TesseractTextRecognizer.close(modelId)
         }
     }
 
     suspend fun invalidateIfModelChanged(selectedModelId: String?) {
         mutex.withLock {
             if (loadedModelId != null && loadedModelId != selectedModelId) {
-                paddleOcr?.release()
-                paddleOcr = null
-                MlKitTextRecognizer.close()
-                TesseractTextRecognizer.close(loadedModelId)
-                loadedModelId = null
-                loadedEngine = null
+                releaseLoadedEngine()
+            }
+        }
+    }
+
+    /** OCR 引擎包升级/删除后调用，避免继续复用旧的 PaddleOCR 会话。 */
+    fun invalidateEngineBlocking() {
+        kotlinx.coroutines.runBlocking(Dispatchers.Default) {
+            mutex.withLock {
+                releaseLoadedEngine()
             }
         }
     }
 
     private suspend fun recognizeWithPpOcr(modelId: String, bitmap: Bitmap): String? {
         ensureEngine(modelId, OcrEngines.PPOCR)
-        val engine = paddleOcr ?: return null
+        val engine = paddleOcr ?: run {
+            Log.w(TAG, "recognize skipped: PaddleOCR engine not initialized modelId=$modelId")
+            return null
+        }
         val result = engine.recognize(bitmap)
-        return result.results
+        val text = result.results
             .joinToString("\n") { item -> item.text }
             .trim()
-            .takeIf { it.isNotEmpty() }
+        if (text.isEmpty()) {
+            Log.i(TAG, "recognize empty: modelId=$modelId boxes=${result.lineCount}")
+        }
+        return text.takeIf { it.isNotEmpty() }
     }
 
     private suspend fun ensureEngine(modelId: String, engine: String) {
@@ -97,6 +119,48 @@ class OcrInferenceService @Inject constructor(
             if (engine == OcrEngines.PPOCR && paddleOcr != null) return
             if (engine != OcrEngines.PPOCR) return
         }
+        releaseLoadedEngine()
+        loadedModelId = modelId
+        loadedEngine = engine
+
+        if (engine != OcrEngines.PPOCR) return
+
+        if (!ensureOpenCvReady()) {
+            loadedModelId = null
+            loadedEngine = null
+            return
+        }
+
+        val det = repository.detModelFile(modelId)
+        val rec = repository.recModelFile(modelId)
+        val config = repository.recConfigFile(modelId)
+        paddleOcr = try {
+            PaddleOCR.createFromFiles(
+                context = context,
+                config = PaddleOCRConfig(),
+                engineConfig = EngineConfig(numThreads = 4),
+                detModelFilePath = det.absolutePath,
+                recModelFilePath = rec.absolutePath,
+                recConfigFilePath = config.absolutePath,
+            )
+        } catch (error: Throwable) {
+            Log.e(TAG, "PaddleOCR init failed modelId=$modelId", error)
+            loadedModelId = null
+            loadedEngine = null
+            null
+        }
+    }
+
+    private fun ensureOpenCvReady(): Boolean {
+        if (openCvInitialized) return true
+        openCvInitialized = OpenCVUtils.init(context)
+        if (!openCvInitialized) {
+            Log.e(TAG, "OpenCV not ready; PP-OCR cannot run")
+        }
+        return openCvInitialized
+    }
+
+    private suspend fun releaseLoadedEngine() {
         paddleOcr?.release()
         paddleOcr = null
         if (loadedEngine == OcrEngines.MLKIT_CHINESE) {
@@ -105,26 +169,7 @@ class OcrInferenceService @Inject constructor(
         if (loadedEngine == OcrEngines.TESSERACT) {
             TesseractTextRecognizer.close(loadedModelId)
         }
-        loadedModelId = modelId
-        loadedEngine = engine
-
-        if (engine != OcrEngines.PPOCR) return
-
-        if (!openCvInitialized) {
-            OpenCVUtils.init(context)
-            openCvInitialized = true
-        }
-
-        val det = repository.detModelFile(modelId)
-        val rec = repository.recModelFile(modelId)
-        val config = repository.recConfigFile(modelId)
-        paddleOcr = PaddleOCR.createFromFiles(
-            context = context,
-            config = PaddleOCRConfig(),
-            engineConfig = EngineConfig(numThreads = 4),
-            detModelFilePath = det.absolutePath,
-            recModelFilePath = rec.absolutePath,
-            recConfigFilePath = config.absolutePath,
-        )
+        loadedModelId = null
+        loadedEngine = null
     }
 }

@@ -10,7 +10,9 @@ import com.slideindex.app.di.PrivilegeModeInitializer
 import com.slideindex.app.freezer.FreezerLauncherHelper
 import com.slideindex.app.di.ShizukuInitializer
 import com.slideindex.app.nativeengine.NativeEnginePackCoordinator
+import com.slideindex.app.nativeengine.NativeEnginePackIds
 import com.slideindex.app.nativeengine.NativeEngineRuntime
+import com.slideindex.app.ocr.OcrDependencyAccess
 import com.slideindex.app.segmentation.JiebaWarmUp
 import com.slideindex.app.segmentation.SegmentationEngineProvisioner
 import com.slideindex.app.service.ClipboardFloatLifecycle
@@ -45,6 +47,12 @@ class SlideIndexApp : Application() {
         HiddenApiBootstrap.install()
         NativeEngineRuntime.coordinator = nativeEnginePackCoordinator
         NativeEngineRuntime.onRequestSegmentationPack = { segmentationEngineProvisioner.requestIfNeeded() }
+        NativeEngineRuntime.onOcrEnginePackInvalidated = {
+            OcrDependencyAccess.inferenceService(this)?.invalidateEngineBlocking()
+        }
+        deps.applicationScope.launch(Dispatchers.IO) {
+            nativeEnginePackCoordinator.upgradePackIfOutdated(NativeEnginePackIds.OCR)
+        }
         shizukuInitializer.start()
         otpAutoFillStatsInstaller.install()
         com.slideindex.app.ui.icon.AppIconTheme.ensureSelectedThemeEnabled(this)

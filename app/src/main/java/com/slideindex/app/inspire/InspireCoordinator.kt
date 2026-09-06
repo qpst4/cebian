@@ -7,6 +7,9 @@ import android.graphics.Rect
 import android.os.SystemClock
 import com.slideindex.app.barcode.ZxingBarcodeScanner
 import com.slideindex.app.ocr.OcrDependencyAccess
+import com.slideindex.app.ocr.OcrEngines
+import com.slideindex.app.nativeengine.NativeEnginePackIds
+import com.slideindex.app.nativeengine.NativeEngineRuntime
 import com.slideindex.app.overlay.FloatBallOcrRegions
 import com.slideindex.app.overlay.FloatBallOverlay
 import com.slideindex.app.overlay.FloatBallPickResult
@@ -358,9 +361,17 @@ object InspireCoordinator {
         ocrFallbackEnabled: Boolean,
         ocrModelId: String,
     ): Boolean {
-        return ocrFallbackEnabled &&
-            ocrModelId.isNotBlank() &&
-            OcrDependencyAccess.modelRepository(context)?.isInstalled(ocrModelId) == true
+        if (!ocrFallbackEnabled || ocrModelId.isBlank()) return false
+        val repository = OcrDependencyAccess.modelRepository(context) ?: return false
+        if (!repository.isInstalled(ocrModelId)) return false
+        val engine = OcrDependencyAccess.catalogProvider(context)
+            ?.findModel(ocrModelId)
+            ?.engine
+        if (engine == OcrEngines.PPOCR) {
+            val coordinator = NativeEngineRuntime.coordinator
+            if (coordinator?.isPackInstalled(NativeEnginePackIds.OCR) != true) return false
+        }
+        return true
     }
 
     fun scheduleDeferredBarcodeScan(result: FloatBallPickResult) {

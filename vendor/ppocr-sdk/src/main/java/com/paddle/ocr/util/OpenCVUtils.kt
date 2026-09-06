@@ -17,9 +17,12 @@ package com.paddle.ocr.util
 import android.content.Context
 import android.util.Log
 import org.opencv.android.OpenCVLoader
+import org.opencv.core.CvType
+import org.opencv.core.Mat
 
 object OpenCVUtils {
 
+    private const val TAG = "OpenCVUtils"
     private var initialized = false
 
     @Suppress("UNUSED_PARAMETER")
@@ -27,8 +30,25 @@ object OpenCVUtils {
         if (initialized) return true
         initialized = OpenCVLoader.initLocal()
         if (!initialized) {
-            Log.e("OpenCVUtils", "Failed to initialize OpenCV")
+            // initLocal() 只从 APK jniLibs 加载；引擎包通过 System.load(path) 预加载时需探测 JNI。
+            initialized = probeNativeReady()
+            if (initialized) {
+                Log.i(TAG, "OpenCV JNI ready via externally loaded native library")
+            }
+        }
+        if (!initialized) {
+            Log.e(TAG, "Failed to initialize OpenCV")
         }
         return initialized
+    }
+
+    private fun probeNativeReady(): Boolean {
+        return try {
+            Mat(1, 1, CvType.CV_8UC1).release()
+            true
+        } catch (t: Throwable) {
+            Log.e(TAG, "OpenCV JNI probe failed", t)
+            false
+        }
     }
 }
