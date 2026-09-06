@@ -31,7 +31,7 @@ internal object WidgetCanvasLayoutGeometry {
     fun applyPageGeometry(layout: WidgetCanvasLayout, page: WidgetPanelPage) {
         layout.canvasPage = page
         layout.pageColumnCount = page.columnCount
-        layout.pageRowCount = page.rowCount
+        layout.syncDynamicRowCount()
         syncItemsFromPage(layout, page)
         layout.requestLayout()
         layout.invalidate()
@@ -55,6 +55,7 @@ internal object WidgetCanvasLayoutGeometry {
                 structureChanged = true
             }
         }
+        layout.syncDynamicRowCount()
         layout.requestLayout()
         layout.invalidate()
         if (structureChanged) {
@@ -102,7 +103,9 @@ internal object WidgetCanvasLayoutGeometry {
         val topLeftX = x - layout.dragTouchOffsetX - layout.paddingLeft
         val topLeftY = y - layout.dragTouchOffsetY - layout.paddingTop
         val newHoverX = kotlin.math.round(topLeftX / step).toInt().coerceIn(0, layout.pageColumnCount - item.spanX)
-        val newHoverY = kotlin.math.round(topLeftY / step).toInt().coerceIn(0, layout.pageRowCount - item.spanY)
+        val candidateHoverY = kotlin.math.round(topLeftY / step).toInt().coerceAtLeast(0)
+        layout.ensureBufferRowsBelow(candidateHoverY + item.spanY)
+        val newHoverY = candidateHoverY.coerceIn(0, (layout.pageRowCount - item.spanY).coerceAtLeast(0))
         if (layout.hoverCellX != newHoverX || layout.hoverCellY != newHoverY) {
             layout.hoverCellX = newHoverX
             layout.hoverCellY = newHoverY

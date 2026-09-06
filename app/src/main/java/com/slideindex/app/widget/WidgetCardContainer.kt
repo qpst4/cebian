@@ -647,12 +647,15 @@ class WidgetCardContainer(
           return true
         }
         MotionEvent.ACTION_MOVE -> {
+          val rawDy = event.rawY - startRawY
+          val rawH = (startHeightPx + rawDy).roundToInt().coerceAtLeast(step)
+          val candidateSpanYRaw = ((rawH + step - 1) / step).coerceAtLeast(1)
+          parent.ensureBufferRowsBelow(item.y + candidateSpanYRaw)
           val maxSpanX = parent.pageColumnCount - item.x
-          val maxSpanY = parent.pageRowCount - item.y
+          val maxSpanY = (parent.pageRowCount - item.y).coerceAtLeast(1)
           val maxW = maxSpanX * step
           val maxH = maxSpanY * step
           val rawDx = event.rawX - startRawX
-          val rawDy = event.rawY - startRawY
           val newW = (startWidthPx + rawDx).roundToInt().coerceIn(step, maxW)
           val newH = (startHeightPx + rawDy).roundToInt().coerceIn(step, maxH)
           val candidateSpanX = ((newW + step - 1) / step).coerceIn(1, maxSpanX)

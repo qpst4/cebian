@@ -343,21 +343,6 @@ private fun WidgetPanelGridEditor(
       },
     )
     SettingsSliderRow(
-      title = stringResource(R.string.widget_panel_rows_title, page.rowCount),
-      value = page.rowCount.toFloat(),
-      valueRange = 3f..40f,
-      steps = 36,
-      enabled = true,
-      label = page.rowCount.toString(),
-      onValueChange = { count ->
-        updatePage(
-          WidgetPanelGridLogic.fitPageToGrid(
-            latestPages[pageIndex].copy(rowCount = count.toInt()),
-          ),
-        )
-      },
-    )
-    SettingsSliderRow(
       title = stringResource(R.string.widget_panel_visible_rows_title, page.visibleRowCount),
       value = page.visibleRowCount.toFloat(),
       valueRange = 1f..40f,

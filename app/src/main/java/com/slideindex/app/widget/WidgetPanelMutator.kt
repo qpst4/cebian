@@ -21,14 +21,11 @@ object WidgetPanelMutator {
       return null
     }
     val (rawSpanX, rawSpanY) = WidgetSpanUtil.spanFromProviderInfo(info)
-    val spanX = rawSpanX.coerceAtMost(page.columnCount)
-    val spanY = rawSpanY.coerceAtMost(page.rowCount)
+    val spanX = rawSpanX.coerceIn(1, page.columnCount)
+    val spanY = rawSpanY.coerceAtLeast(1)
     val slot = WidgetPanelGridLogic.findFirstFreeSlot(page, spanX, spanY)
     if (slot == null) {
-      android.util.Log.e("WidgetPanelMutator", "addWidgetToPage failed: no free slot for span $spanX x $spanY")
-      android.os.Handler(android.os.Looper.getMainLooper()).post {
-        android.widget.Toast.makeText(context, "Failed: No free space on page", android.widget.Toast.LENGTH_LONG).show()
-      }
+      android.util.Log.e("WidgetPanelMutator", "addWidgetToPage failed: no slot for span $spanX x $spanY")
       return null
     }
     val label = WidgetPopupHost.labelFor(context, appWidgetId)
@@ -58,12 +55,7 @@ object WidgetPanelMutator {
     val spanX = 1
     val spanY = 1
     val slot = WidgetPanelGridLogic.findFirstFreeSlot(page, spanX, spanY)
-    if (slot == null) {
-      android.os.Handler(android.os.Looper.getMainLooper()).post {
-        android.widget.Toast.makeText(context, "Failed: No free space on page", android.widget.Toast.LENGTH_LONG).show()
-      }
-      return null
-    }
+      ?: return null
     val syntheticId = -kotlin.math.abs((System.currentTimeMillis() xor packageName.hashCode().toLong()).toInt())
     val item = WidgetPanelItem(
       appWidgetId = syntheticId,
@@ -95,12 +87,7 @@ object WidgetPanelMutator {
     val spanX = 1
     val spanY = 1
     val slot = WidgetPanelGridLogic.findFirstFreeSlot(page, spanX, spanY)
-    if (slot == null) {
-      android.os.Handler(android.os.Looper.getMainLooper()).post {
-        android.widget.Toast.makeText(context, "Failed: No free space on page", android.widget.Toast.LENGTH_LONG).show()
-      }
-      return null
-    }
+      ?: return null
     val syntheticId = -kotlin.math.abs((System.currentTimeMillis() xor (packageName + shortcutId).hashCode().toLong()).toInt())
     val item = WidgetPanelItem(
       appWidgetId = syntheticId,
@@ -131,12 +118,7 @@ object WidgetPanelMutator {
     val spanX = 1
     val spanY = 1
     val slot = WidgetPanelGridLogic.findFirstFreeSlot(page, spanX, spanY)
-    if (slot == null) {
-      android.os.Handler(android.os.Looper.getMainLooper()).post {
-        android.widget.Toast.makeText(context, "Failed: No free space on page", android.widget.Toast.LENGTH_LONG).show()
-      }
-      return null
-    }
+      ?: return null
     val syntheticId = -kotlin.math.abs((System.currentTimeMillis() xor actionPayload.hashCode().toLong()).toInt())
     val item = WidgetPanelItem(
       appWidgetId = syntheticId,
@@ -161,7 +143,8 @@ object WidgetPanelMutator {
     val index = pageIndex.coerceIn(0, effective.lastIndex)
     val page = effective[index]
     val updatedItems = page.items.filterNot { it.itemType == ITEM_TYPE_APP && it.packageName == packageName }
-    effective[index] = page.copy(items = updatedItems)
+    val updatedPage = page.copy(items = updatedItems)
+    effective[index] = updatedPage.copy(rowCount = WidgetPanelGridLogic.computeContentRowCount(updatedPage))
     return effective
   }
 
@@ -180,7 +163,8 @@ object WidgetPanelMutator {
         it.packageName == packageName &&
         (it.shortcutId == shortcutId || (intentUri.isNotBlank() && it.intentUri == intentUri))
     }
-    effective[index] = page.copy(items = updatedItems)
+    val updatedPage = page.copy(items = updatedItems)
+    effective[index] = updatedPage.copy(rowCount = WidgetPanelGridLogic.computeContentRowCount(updatedPage))
     return effective
   }
 
@@ -207,7 +191,7 @@ object WidgetPanelMutator {
   ): List<WidgetPanelPage> {
     val effective = WidgetPanelDefaults.effectivePages(pages).toMutableList()
     val index = pageIndex.coerceIn(0, effective.lastIndex)
-    effective[index] = page
+    effective[index] = page.copy(rowCount = WidgetPanelGridLogic.computeContentRowCount(page))
     return effective
   }
 

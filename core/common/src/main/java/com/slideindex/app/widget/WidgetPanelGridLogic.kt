@@ -1,6 +1,15 @@
 package com.slideindex.app.widget
 
 object WidgetPanelGridLogic {
+    fun computeContentRowCount(page: WidgetPanelPage): Int {
+        val maxOccupiedY = page.items.maxOfOrNull { it.y + it.spanY } ?: 0
+        return maxOf(page.visibleRowCount, maxOccupiedY)
+    }
+
+    fun computeEditRowCount(page: WidgetPanelPage, bufferRows: Int = 5): Int {
+        return computeContentRowCount(page) + bufferRows
+    }
+
     fun isAreaFree(
         page: WidgetPanelPage,
         x: Int,
@@ -8,8 +17,12 @@ object WidgetPanelGridLogic {
         spanX: Int,
         spanY: Int,
         ignoreWidgetId: Int? = null,
+        maxRowLimit: Int? = null,
     ): Boolean {
-        if (x < 0 || y < 0 || x + spanX > page.columnCount || y + spanY > page.rowCount) {
+        if (x < 0 || y < 0 || x + spanX > page.columnCount) {
+            return false
+        }
+        if (maxRowLimit != null && y + spanY > maxRowLimit) {
             return false
         }
         for (item in page.items) {
@@ -22,33 +35,40 @@ object WidgetPanelGridLogic {
     }
 
     fun findFirstFreeSlot(page: WidgetPanelPage, spanX: Int, spanY: Int): Pair<Int, Int>? {
-        for (y in 0 until page.rowCount) {
-            for (x in 0 until page.columnCount) {
+        if (spanX > page.columnCount) return null
+        val contentBottom = page.items.maxOfOrNull { it.y + it.spanY } ?: 0
+        for (y in 0 until contentBottom) {
+            for (x in 0..(page.columnCount - spanX)) {
                 if (isAreaFree(page, x, y, spanX, spanY)) return x to y
             }
         }
-        return null
+        return 0 to contentBottom
     }
 
-    fun removeItem(page: WidgetPanelPage, appWidgetId: Int): WidgetPanelPage =
-        page.copy(items = page.items.filterNot { it.appWidgetId == appWidgetId })
+    fun removeItem(page: WidgetPanelPage, appWidgetId: Int): WidgetPanelPage {
+        val without = page.items.filterNot { it.appWidgetId == appWidgetId }
+        val updated = page.copy(items = without)
+        return updated.copy(rowCount = computeContentRowCount(updated))
+    }
 
     fun upsertItem(page: WidgetPanelPage, item: WidgetPanelItem): WidgetPanelPage {
         val without = page.items.filterNot { it.appWidgetId == item.appWidgetId }
-        return page.copy(items = without + item)
+        val updated = page.copy(items = without + item)
+        return updated.copy(rowCount = computeContentRowCount(updated))
     }
 
     fun fitItemToGrid(page: WidgetPanelPage, item: WidgetPanelItem): WidgetPanelItem {
         val spanX = item.spanX.coerceIn(1, page.columnCount)
-        val spanY = item.spanY.coerceIn(1, page.rowCount)
+        val spanY = item.spanY.coerceAtLeast(1)
         val x = item.x.coerceIn(0, (page.columnCount - spanX).coerceAtLeast(0))
-        val y = item.y.coerceIn(0, (page.rowCount - spanY).coerceAtLeast(0))
+        val y = item.y.coerceAtLeast(0)
         return item.copy(x = x, y = y, spanX = spanX, spanY = spanY)
     }
 
     fun fitPageToGrid(page: WidgetPanelPage): WidgetPanelPage {
-        if (page.items.isEmpty()) return page
-        return page.copy(items = page.items.map { fitItemToGrid(page, it) })
+        if (page.items.isEmpty()) return page.copy(rowCount = computeContentRowCount(page))
+        val updated = page.copy(items = page.items.map { fitItemToGrid(page, it) })
+        return updated.copy(rowCount = computeContentRowCount(updated))
     }
 
     fun moveItemWithAutoSwapOrShift(
@@ -58,7 +78,7 @@ object WidgetPanelGridLogic {
         targetY: Int,
     ): WidgetPanelPage {
         val clampedX = targetX.coerceIn(0, (page.columnCount - targetItem.spanX).coerceAtLeast(0))
-        val clampedY = targetY.coerceIn(0, (page.rowCount - targetItem.spanY).coerceAtLeast(0))
+        val clampedY = targetY.coerceAtLeast(0)
 
         if (isAreaFree(page, clampedX, clampedY, targetItem.spanX, targetItem.spanY, targetItem.appWidgetId)) {
             return upsertItem(page, targetItem.copy(x = clampedX, y = clampedY))

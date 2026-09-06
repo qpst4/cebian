@@ -30,6 +30,7 @@ class WidgetCanvasLayout(context: Context) : ViewGroup(context) {
       }
       setWillNotDraw(!value)
       refreshEditChrome()
+      syncDynamicRowCount()
       invalidate()
     }
 
@@ -128,11 +129,35 @@ class WidgetCanvasLayout(context: Context) : ViewGroup(context) {
   internal fun superDispatchTouchEvent(event: MotionEvent): Boolean =
     super.dispatchTouchEvent(event)
 
+  fun syncDynamicRowCount() {
+    val page = canvasPage ?: return
+    val targetRows = if (editMode) {
+      WidgetPanelGridLogic.computeEditRowCount(page, EDIT_MODE_BUFFER_ROWS)
+    } else {
+      WidgetPanelGridLogic.computeContentRowCount(page)
+    }
+    if (pageRowCount != targetRows) {
+      pageRowCount = targetRows
+      requestLayout()
+      invalidate()
+    }
+  }
+
+  fun ensureBufferRowsBelow(requiredMaxY: Int) {
+    if (!editMode) return
+    val minNeededRows = requiredMaxY + EDIT_MODE_BUFFER_ROWS
+    if (minNeededRows > pageRowCount) {
+      pageRowCount = minNeededRows
+      requestLayout()
+      invalidate()
+    }
+  }
+
   fun bind(page: WidgetPanelPage, hostContext: Context) {
     canvasHostContext = hostContext
     canvasPage = page
     pageColumnCount = page.columnCount
-    pageRowCount = page.rowCount
+    syncDynamicRowCount()
     lastBindKey = WidgetCanvasLayoutGeometry.bindKeyFor(page)
 
     removeAllViews()
@@ -160,6 +185,7 @@ class WidgetCanvasLayout(context: Context) : ViewGroup(context) {
       }
     }
     canvasPage?.let { lastBindKey = WidgetCanvasLayoutGeometry.bindKeyFor(it) }
+    syncDynamicRowCount()
     requestLayout()
     invalidate()
   }
@@ -218,6 +244,7 @@ class WidgetCanvasLayout(context: Context) : ViewGroup(context) {
       child.syncItem(item)
       child.refreshWidgetLayout(force = true)
     }
+    syncDynamicRowCount()
     requestLayout()
     onPageCommitted?.invoke(updatedPage)
     onItemChanged?.invoke(item)
@@ -227,6 +254,7 @@ class WidgetCanvasLayout(context: Context) : ViewGroup(context) {
     canvasPage = updatedPage
     lastBindKey = WidgetCanvasLayoutGeometry.bindKeyFor(updatedPage)
     WidgetCanvasLayoutGeometry.syncItemsFromPage(this, updatedPage)
+    syncDynamicRowCount()
     requestLayout()
     invalidate()
     onPageCommitted?.invoke(updatedPage)
@@ -480,5 +508,6 @@ class WidgetCanvasLayout(context: Context) : ViewGroup(context) {
 
   companion object {
     const val CELL_GAP_DP = 0f
+    const val EDIT_MODE_BUFFER_ROWS = 5
   }
 }
