@@ -27,24 +27,6 @@
 
 ---
 
-### 💡 Why Cebian? (Feature Comparison)
-
-Looking for a modern, open-source alternative to **Samsung One Hand Operation+ (OHO+)**, **Quick Cursor**, or **FooView** that works across **all Android brands**? Cebian unifies the best single-handed interactions into a privacy-respecting, AGPL-3.0 powerhouse:
-
-| Feature / Capability | **Cebian** (This App) | **Samsung OHO+** | **Quick Cursor** | **FooView** |
-| :--- | :---: | :---: | :---: | :---: |
-| **Open Source & Privacy** | **AGPL-3.0 (100% Open)** | ❌ Proprietary | ❌ Proprietary | ❌ Proprietary |
-| **Device Compatibility** | **Any Android 12+ device** | ❌ Samsung Galaxy only | ✅ All devices | ✅ All devices |
-| **Pricing Model** | **Free & No Ads forever** | ✅ Free (with Samsung) | ❌ In-App Purchases (PRO) | ⚠️ Ad-supported |
-| **Edge Gestures & Multi-angle** | ✅ Full OHO+ style (multi-angle / long-swipe) | ✅ Native | ❌ | ⚠️ Float only |
-| **One-Handed Pointer (Cursor)** | ✅ Built-in reachability cursor | ❌ | ✅ Native | ❌ |
-| **Floating Ball OCR & Search** | ✅ Offline (ML Kit / Tesseract / ONNX) | ❌ | ❌ | ⚠️ Cloud-dependent |
-| **Reverse Image Search** | ✅ 10+ Multi-engine aggregator | ❌ | ❌ | ⚠️ Limited |
-| **Deep System Integration** | ✅ Shizuku + Root + LSPosed + A11y | ❌ | ⚠️ Accessibility only | ⚠️ Accessibility only |
-| **Modern UI & Fluid Haptics** | ✅ Miuix & Dynamic Blur | ⚠️ One UI only | ⚠️ Standard Material | ⚠️ Legacy UI |
-
----
-
 **Cebian** is a system-level gesture and productivity tool for Android built on Accessibility Services, Shizuku, and optional LSPosed integration. Easily trigger 50+ system actions via screen-edge swipes, multi-functional floating ball, device shaking, or back-tap gestures; deeply integrates local multi-engine OCR, word segmentation, and reverse image search aggregation, offering high-efficiency overlay launcher panels, app freezer, OTP verification code extraction, notification management, freeform windows, and floating pointer controls on top of any app.
 
 - **Package Name:** `com.slideindex.app`
@@ -246,6 +228,33 @@ adb shell am start -a com.slideindex.app.action.OPEN_SEARCH_PANEL \
 adb shell am start -a com.slideindex.app.action.TOGGLE_GESTURE \
   -n com.slideindex.app/.service.ToggleGestureTrampolineActivity
 ```
+
+---
+
+## 💡 Design Philosophy & Comparisons
+
+### Standing on the Shoulders of Giants
+Android has seen legendary tools that shaped mobile navigation and productivity:
+- **Samsung One Hand Operation+ (OHO+)** perfected multi-angle edge triggers and smooth system gestures.
+- **Quick Cursor** introduced thumb-friendly screen reachability via intuitive floating cursors.
+- **FooView (FV)** pioneered floating-ball universal OCR, search aggregation, and floating window shortcuts.
+
+### Why Cebian?
+While we deeply admire these pioneering tools, modern Android users frequently face fragmentation:
+- **Vendor Lock-in**: OHO+ is one of the most beloved gesture tools ever created, but it remains exclusive to Samsung One UI. Non-Samsung users on Pixel, Xiaomi, Motorola, Sony, etc., have long sought a genuine alternative.
+- **Open Source & Privacy-First**: Proprietary utilities often carry cloud-dependent OCR and closed ecosystems. Cebian is **100% AGPL-3.0 open-source**, bundling **offline on-device OCR (PaddleOCR ONNX / ML Kit)** that respects user privacy.
+- **Unified Navigation**: Rather than running multiple separate tools for edge gestures, single-handed pointers, and floating OCR, Cebian brings them together into a unified, coherent experience with fluid Miuix animations.
+
+| Dimension | **Cebian (This App)** | **Samsung OHO+** | **Quick Cursor** | **FooView** |
+| :--- | :---: | :---: | :---: | :---: |
+| **License & Code** | **AGPL-3.0 (100% Open Source)** | Proprietary (Closed) | Proprietary (Closed) | Proprietary (Closed) |
+| **Device Availability** | **Any Android 12+ device** | Samsung Galaxy devices only | All Android devices | All Android devices |
+| **Pricing & Ads** | **Free & No Ads forever** | Free (Bundled with One UI) | Free basic + optional PRO upgrade | Free (Proprietary) |
+| **Edge Navigation** | Full OHO+ style (Multi-angle & Hold) | Native OHO+ gestures | Edge swipe for cursor only | Edge / Floating gestures |
+| **Single-Hand Reachability** | Built-in reachability pointer | ⚠️ Virtual Touchpad (floating box mode) | Native reachability cursor | Floating ball crosshair |
+| **Screen OCR & Search** | Local offline models (ONNX / ML Kit) | N/A | N/A | Cloud & web-assisted OCR |
+| **System Privileges** | Shizuku + Root + LSPosed + A11y | Samsung system-signature privileges | Accessibility Service | Root + Accessibility Service |
+| **Visual Design** | Miuix & Real-time Gaussian Blur | One UI native style | Standard Material | Classic utility UI |
 
 ---
 
