@@ -33,7 +33,7 @@ import com.slideindex.app.gesture.SwipeDirectionFamily
 import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.SwipeHoverDurationLimits
-import com.slideindex.app.settings.slotActionForDisplay
+import com.slideindex.app.settings.slotAction
 import com.slideindex.app.settings.defaultTriggerModeFor
 import com.slideindex.app.settings.slotTriggerMode
 import com.slideindex.app.settings.gestureConfigSide
@@ -392,7 +392,7 @@ private fun sideGestureSlotCardItems(
                     side = side,
                     trigger = trigger,
                     label = label,
-                    action = settings.slotActionForDisplay(slotSide, trigger, handleId),
+                    action = settings.slotAction(slotSide, trigger, handleId),
                     modeLabel = triggerModeLabel(settings.slotTriggerMode(slotSide, trigger, handleId)),
                     onClick = { onOpenSlotConfig(trigger) },
                 )

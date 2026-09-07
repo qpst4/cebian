@@ -7,9 +7,11 @@ import com.slideindex.app.floatball.FloatBallGestureType
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.GestureActionType
 import com.slideindex.app.gesture.GestureAngleConfig
+import com.slideindex.app.gesture.GestureRule
 import com.slideindex.app.gesture.GestureRuleCodec
 import com.slideindex.app.gesture.SelectedHintMetrics
 import com.slideindex.app.gesture.GestureTriggerMode
+import com.slideindex.app.gesture.SideGestureDefaults
 import com.slideindex.app.gesture.TriggerHandle
 import com.slideindex.app.gesture.TriggerHandleCodec
 import com.slideindex.app.launcher.QuickLauncherItemCodec
@@ -112,9 +114,7 @@ internal object SettingsSnapshotReader {
             topTriggerHandlesLandscape = topHandlesLandscape,
             landscapeTriggersInitialized = prefs[SettingsPreferenceKeys.LANDSCAPE_TRIGGERS_INITIALIZED]
                 ?: hasAnyLandscapeHandleStorage(prefs),
-            gestureRulesLandscape = GestureRuleCodec.decodeAll(
-                prefs[SettingsPreferenceKeys.GESTURE_RULES_LANDSCAPE] ?: emptySet(),
-            ),
+            gestureRulesLandscape = readGestureRulesLandscape(prefs),
             leftDefaultTriggerModeLandscape = GestureTriggerMode.fromId(
                 prefs[SettingsPreferenceKeys.LEFT_DEFAULT_TRIGGER_MODE_LANDSCAPE]
                     ?: prefs[SettingsPreferenceKeys.LEFT_DEFAULT_TRIGGER_MODE]
@@ -199,7 +199,7 @@ internal object SettingsSnapshotReader {
                 prefs[SettingsPreferenceKeys.PREVIOUS_APP_EXCLUDED_PACKAGES] ?: emptySet(),
             excludedAppScopes = readExcludedAppScopes(prefs),
             excludedAppDefaultScopes = readExcludedAppDefaultScopes(prefs),
-            gestureRules = GestureRuleCodec.decodeAll(prefs[SettingsPreferenceKeys.GESTURE_RULES] ?: emptySet()),
+            gestureRules = readGestureRules(prefs),
             quickLauncherPanels = readQuickLauncherPanels(prefs),
             quickLauncherDisplay = QuickLauncherDisplaySettings.fromPreferences(prefs),
             honeycombLauncher = QuickLauncherItemCodec.decodeAll(
@@ -936,6 +936,20 @@ internal object SettingsSnapshotReader {
         val left = QuickLauncherItemCodec.decodeAll(prefs[SettingsPreferenceKeys.QUICK_LAUNCHER_LEFT] ?: emptySet())
         if (left.isNotEmpty()) return left
         return QuickLauncherItemCodec.decodeAll(prefs[SettingsPreferenceKeys.QUICK_LAUNCHER_RIGHT] ?: emptySet())
+    }
+
+    private fun readGestureRules(prefs: Preferences): List<GestureRule> {
+        val raw = prefs[SettingsPreferenceKeys.GESTURE_RULES]
+        if (raw == null || raw.isEmpty()) return SideGestureDefaults.defaultRules()
+        val decoded = GestureRuleCodec.decodeAll(raw)
+        return if (decoded.isEmpty()) SideGestureDefaults.defaultRules() else decoded
+    }
+
+    private fun readGestureRulesLandscape(prefs: Preferences): List<GestureRule> {
+        val raw = prefs[SettingsPreferenceKeys.GESTURE_RULES_LANDSCAPE]
+        if (raw == null || raw.isEmpty()) return SideGestureDefaults.defaultRules()
+        val decoded = GestureRuleCodec.decodeAll(raw)
+        return if (decoded.isEmpty()) SideGestureDefaults.defaultRules() else decoded
     }
 
     private fun readExcludedAppScopes(prefs: Preferences): Map<String, ExcludedAppScopes> {

@@ -385,33 +385,11 @@ fun AppSettings.actionFor(
     return effectiveRule(side, trigger, handleId)?.action ?: GestureAction.None
 }
 
-/** 仅读取已持久化的槽位动作；无自定义规则时返回 [GestureAction.None]（不回落到出厂默认）。 */
-fun AppSettings.persistedSlotRule(
-    side: PanelSide,
-    trigger: GestureTriggerType,
-    handleId: String = TriggerHandle.DEFAULT_ID,
-): GestureRule? {
-    val newSlotId = GestureRule.slotId(side, trigger, handleId)
-    return gestureRules.firstOrNull { it.id == newSlotId }
-        ?: if (handleId == TriggerHandle.DEFAULT_ID) {
-            gestureRules.firstOrNull { it.id == GestureRule.legacySlotId(side, trigger) }
-        } else {
-            null
-        }
-}
-
 fun AppSettings.slotAction(
     side: PanelSide,
     trigger: GestureTriggerType,
     handleId: String = TriggerHandle.DEFAULT_ID,
-): GestureAction = persistedSlotRule(side, trigger, handleId)?.action ?: GestureAction.None
-
-/** 列表展示：有自定义规则用持久化动作，否则展示运行时有效动作。 */
-fun AppSettings.slotActionForDisplay(
-    side: PanelSide,
-    trigger: GestureTriggerType,
-    handleId: String = TriggerHandle.DEFAULT_ID,
-): GestureAction = persistedSlotRule(side, trigger, handleId)?.action ?: actionFor(side, trigger, handleId)
+): GestureAction = actionFor(side, trigger, handleId)
 
 fun AppSettings.slotTriggerMode(
     side: PanelSide,

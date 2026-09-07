@@ -132,9 +132,9 @@ class SettingsMutatorsTest {
 
         repository.setShakeDirectionSensitivity(ShakeGestureType.LEFT_FLIP, 99f)
         assertEquals(
-            10f,
+            20f,
             awaitSettings {
-                it.shakeGestureSettings.perDirectionSensitivity[ShakeGestureType.LEFT_FLIP] == 10f
+                it.shakeGestureSettings.perDirectionSensitivity[ShakeGestureType.LEFT_FLIP] == 20f
             }.shakeGestureSettings.perDirectionSensitivity.getValue(ShakeGestureType.LEFT_FLIP),
         )
     }

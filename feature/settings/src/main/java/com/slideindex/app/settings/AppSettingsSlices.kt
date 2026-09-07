@@ -6,6 +6,7 @@ import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.GestureAngles
 import com.slideindex.app.gesture.GestureRule
 import com.slideindex.app.gesture.GestureTriggerMode
+import com.slideindex.app.gesture.SideGestureDefaults
 
 /**
  * [AppSettings] 按域拆出的分片。
@@ -45,7 +46,7 @@ data class EdgeTriggerSettings(
     val topTriggerHandlesLandscape: List<com.slideindex.app.gesture.TriggerHandle> = emptyList(),
     /** 横屏触钮已从竖屏完成一次性复制；为 true 后横屏布局/手势与竖屏完全独立。 */
     val landscapeTriggersInitialized: Boolean = false,
-    val gestureRulesLandscape: List<GestureRule> = emptyList(),
+    val gestureRulesLandscape: List<GestureRule> = SideGestureDefaults.defaultRules(),
     val leftDefaultTriggerModeLandscape: GestureTriggerMode = GestureTriggerMode.ON_RELEASE,
     val rightDefaultTriggerModeLandscape: GestureTriggerMode = GestureTriggerMode.ON_RELEASE,
     val bottomDefaultTriggerModeLandscape: GestureTriggerMode = GestureTriggerMode.ON_RELEASE,
@@ -81,7 +82,7 @@ data class LauncherSettings(
     val previousAppExcludedPackages: Set<String> = emptySet(),
     val excludedAppScopes: Map<String, ExcludedAppScopes> = emptyMap(),
     val excludedAppDefaultScopes: ExcludedAppScopes = ExcludedAppScopes.ALL,
-    val gestureRules: List<GestureRule> = emptyList(),
+    val gestureRules: List<GestureRule> = SideGestureDefaults.defaultRules(),
     val quickLauncherPanels: List<com.slideindex.app.launcher.QuickLauncherPanel> = emptyList(),
     val quickLauncherDisplay: QuickLauncherDisplaySettings = QuickLauncherDisplaySettings(),
     val honeycombLauncher: List<com.slideindex.app.launcher.QuickLauncherItem> = emptyList(),
