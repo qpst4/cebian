@@ -249,12 +249,12 @@ While we deeply admire these pioneering tools, modern Android users frequently f
 
 | Dimension | **Cebian (This App)** | **Samsung OHO+** | **Quick Cursor** | **FooView** |
 | :--- | :---: | :---: | :---: | :---: |
-| **Open Source & License** | ✅ **AGPL-3.0 (100% FOSS)** | 🔒 Proprietary | 🔒 Proprietary | 🔒 Proprietary |
+| **Open Source & License** | ✅ **AGPL-3.0 (100% FOSS)** | ❌ Proprietary (Closed) | ❌ Proprietary (Closed) | ❌ Proprietary (Closed) |
 | **Device Compatibility** | ✅ **Universal (Any Android 12+)** | ⚠️ Samsung Galaxy only | ✅ Universal | ✅ Universal |
 | **Pricing & Monetization** | ✅ **100% Free & No Ads forever** | ✅ Free (with One UI) | ⚠️ Free basic + PRO in-app purchases | ✅ Free (Ad/sponsor supported) |
 | **Edge Navigation Gestures** | ✅ **Full OHO+ style (Multi-angle & Hold)** | ✅ Native OHO+ gestures | ⚠️ Edge swipe for cursor only | ⚠️ Floating / Edge gestures |
 | **Single-Hand Reachability** | ✅ **Built-in reachability joystick pointer** | ⚠️ Virtual Touchpad (floating box mode) | ✅ Native reachability cursor | ⚠️ Floating ball crosshair |
-| **Screen OCR & Reverse Search** | ✅ **Local offline models (ONNX / ML Kit)** | — | — | ⚠️ Cloud & web-assisted OCR |
+| **Screen OCR & Reverse Search** | ✅ **Local offline models (ONNX / ML Kit)** | ❌ No such feature | ❌ No such feature | ⚠️ Cloud & web-assisted OCR |
 | **Deep System Privileges** | ✅ **Shizuku + Root + LSPosed + A11y** | ✅ Samsung system-signature privileges | ⚠️ Accessibility Service | ⚠️ Root + Accessibility Service |
 | **Visual Aesthetics & Haptics** | ✅ **Miuix & Real-time Gaussian Blur** | ✅ One UI native design | ⚠️ Standard Material | ⚠️ Classic utility UI |
 
