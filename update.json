@@ -1,7 +1,7 @@
 {
-  "version": "1.9.25",
-  "versionCode": 50,
-  "apkUrl": "https://github.com/qpst4/cebian/releases/download/v1.9.25/cebian-1.9.25-lite.apk",
-  "apkSize": 25229379,
-  "notes": "## 变更\n- OCR 引擎包迁移：弹窗主按钮改为「去下载」，确认后跳转「运行时引擎」页\n## 修复\n- OCR 引擎包迁移：修复 Lite 用户升级后引擎缺失却不弹窗的问题（含曾点「稍后」、旧版已静默删包等场景）\n- OCR 引擎包迁移：「稍后」仅关闭本次提示，引擎未对齐前下次启动仍会提醒"
+  "version": "1.9.30",
+  "versionCode": 51,
+  "apkUrl": "https://github.com/qpst4/cebian/releases/download/v1.9.30/cebian-1.9.30-lite.apk",
+  "apkSize": 25247787,
+  "notes": "## 新增\n- 关于与社区：「关于」界面重构社区版块，独立细分 GitHub 源码仓库直达、问题反馈与需求建议、官方 QQ 交流群\n- 快捷方式：预设快捷方式库新增拼多多「取快递」快捷方式\n- 小组件面板：取消固定行数设置，支持自适应加行与编辑模式底部留白\n## 修复\n- OCR 引擎：规避 OpenCV 5.0 ARM64 下采样潜在崩溃问题\n- 分词与滑选：优化滑选起手判定为先行内横划激活，支持行尾空白吸附与免滚动直接下滑全选\n- 手势规则：预置出厂手势规则并在无配置时自动生效，清理冗余槽位读取逻辑\n- 控件审查：校验真实 Activity 并过滤系统 View 控件防止被 FrameLayout 覆盖\n- 权限与模糊：优化壁纸模糊与手势权限审计，更新无障碍服务名称\n## 变更\n- 依赖与工具链：升级工具链至 JVM 25，同步 Kotlin 2.4.10、AGP 9.4.0 与 Compose BOM 2026.08.01\n- 开源门面：全面升级中英文 README，补充全能竞品对比矩阵与社区精美矢量行动徽章"
 }
