@@ -12,10 +12,10 @@
 [![Release](https://img.shields.io/github/v/release/qpst4/cebian?style=flat-square&color=6340e6)](https://github.com/qpst4/cebian/releases)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=flat-square)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Android%2012%2B-brightgreen?style=flat-square)](https://developer.android.com)
-[![Kotlin](https://img.shields.io/badge/Kotlin-2.4.0-purple?style=flat-square)](https://kotlinlang.org)
-[![AGP](https://img.shields.io/badge/AGP-9.3.2-blue?style=flat-square)](https://developer.android.com/build)
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.4.10-purple?style=flat-square)](https://kotlinlang.org)
+[![AGP](https://img.shields.io/badge/AGP-9.4.0-blue?style=flat-square)](https://developer.android.com/build)
 [![Gradle](https://img.shields.io/badge/Gradle-9.7.1-blue?style=flat-square)](https://gradle.org)
-[![Compose BOM](https://img.shields.io/badge/Compose%20BOM-2026.07.01-blue?style=flat-square)](https://developer.android.com/jetpack/compose)
+[![Compose BOM](https://img.shields.io/badge/Compose%20BOM-2026.08.01-blue?style=flat-square)](https://developer.android.com/jetpack/compose)
 [![minSdk](https://img.shields.io/badge/minSdk-31-orange?style=flat-square)](https://developer.android.com)
 [![targetSdk](https://img.shields.io/badge/targetSdk-37-orange?style=flat-square)](https://developer.android.com)
 
