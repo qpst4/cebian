@@ -2,7 +2,7 @@
 
 <img src="art/logo.svg" width="96" alt="Cebian" />
 
-# 📱 Cebian (Sidebar) — The Ultimate Android Gesture & One-Handed Productivity Suite
+# 📱 Cebian — The Ultimate Android Gesture & One-Handed Productivity Suite
 
 **All-in-One Open-Source Alternative to Samsung One Hand Operation+ (OHO+), Quick Cursor & FooView**  
 *Edge Panels · Reachability Floating Cursor · Floating Ball OCR & Reverse Image Search · Shake & Back-Tap Gestures · Notification & OTP Manager · App Freezer · Freeform Window · Shizuku & LSPosed*
@@ -32,7 +32,7 @@
 Easily trigger **50+ system actions** via customizable multi-angle screen-edge swipes, reachability floating pointers, multi-functional floating ball, device shaking, desk-flipping, or back-tap gestures. Deeply integrates **100% offline on-device OCR**, word segmentation (CppJieba), and reverse image search aggregation—delivering high-efficiency overlay launchers, app freezing, OTP verification code extraction, notification management, and OEM freeform windows on top of any app, completely free from ads and cloud trackers.
 
 - **Package Name:** `com.slideindex.app`
-- **Current Version:** 1.9.25 (versionCode 50)
+- **Current Version:** 1.9.30 (versionCode 51)
 - **Requirements:** Android 12+ (API 31+)
 - **License:** [AGPL-3.0 License](LICENSE)
 
