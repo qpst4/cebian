@@ -36,6 +36,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.NewReleases
 import androidx.compose.material.icons.outlined.Palette
@@ -448,13 +449,13 @@ private fun AboutContent(
                         },
                     )
                     add(
-                        settingsCardScopeItem("project-url") {
+                        settingsCardScopeItem("issues-feedback") {
                             SettingNavigationRow(
-                                icon = { label -> Icon(Icons.Outlined.Code, contentDescription = label) },
-                                title = stringResource(R.string.about_project_url_title),
-                                subtitle = stringResource(R.string.about_project_url_desc),
+                                icon = { label -> Icon(Icons.Outlined.BugReport, contentDescription = label) },
+                                title = stringResource(R.string.about_feedback_issues_title),
+                                subtitle = stringResource(R.string.about_feedback_issues_desc),
                                 onClick = {
-                                    val uri = projectUrl.toUri()
+                                    val uri = (projectUrl + "/issues").toUri()
                                     context.startActivity(Intent(Intent.ACTION_VIEW, uri))
                                 },
                             )
