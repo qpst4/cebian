@@ -1,5 +1,13 @@
 [
   {
+    "name": "取快递",
+    "package": "com.xunmeng.pinduoduo",
+    "uploader": "墨汀",
+    "introduction": "拼多多取件码/查快递",
+    "target_action_url": "pinduoduo://com.xunmeng.pinduoduo/psnl_goods_help.html?_t_module_name=assistant_pickup",
+    "evo_scheme": "searchevo://main/shortcutsAdd?name=%25E5%258F%2596%25E5%25BF%25AB%25E9%2580%2592&url=pinduoduo%253A%252F%252Fcom.xunmeng.pinduoduo%252Fpsnl_goods_help.html%253F_t_module_name%253Dassistant_pickup&pkgName=com.xunmeng.pinduoduo"
+  },
+  {
     "name": "订单",
     "package": "com.xunmeng.pinduoduo",
     "uploader": "墨汀",
