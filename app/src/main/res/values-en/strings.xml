@@ -1515,6 +1515,7 @@
     <string name="permission_notification_title">Notification permission</string>
     <string name="permission_notification_desc">Needed to keep the background service running</string>
     <string name="permission_usage_title">Usage access</string>
+    <string name="gesture_action_app_carousel_switcher_permission">Usage access is required to show recent apps</string>
     <string name="grant_permission">Grant</string>
     <string name="live_preview_hint">Drag sliders for a live preview; try gestures at the screen edge otherwise.</string>
     <string name="side_gestures_preview_hint">Drag sliders to preview trigger zones and short/long swipe thresholds.</string>

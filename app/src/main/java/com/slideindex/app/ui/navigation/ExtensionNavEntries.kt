@@ -1,11 +1,16 @@
 package com.slideindex.app.ui.navigation
 
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.yukonga.miuix.kmp.nav.core.NavEntryBuilder
 import com.slideindex.app.R
@@ -242,8 +247,21 @@ fun NavEntryBuilder.extensionNavEntries(ctx: MainNavContext) {
         val navigateToMissingPermissions by viewModel.navigateToMissingPermissions.collectAsStateWithLifecycle()
         val settings by viewModel.settings.collectAsStateWithLifecycle()
         val context = LocalContext.current
-        val missingCount = remember(settings) {
-            GestureActionPermissionAuditor.auditMissingPermissions(context, settings).size
+        var missingCount by remember {
+            mutableIntStateOf(GestureActionPermissionAuditor.auditMissingPermissions(context, settings).size)
+        }
+        val lifecycleOwner = LocalLifecycleOwner.current
+        DisposableEffect(lifecycleOwner, settings) {
+            missingCount = GestureActionPermissionAuditor.auditMissingPermissions(context, settings).size
+            val observer = LifecycleEventObserver { _, event ->
+                if (event == Lifecycle.Event.ON_RESUME) {
+                    missingCount = GestureActionPermissionAuditor.auditMissingPermissions(context, settings).size
+                }
+            }
+            lifecycleOwner.lifecycle.addObserver(observer)
+            onDispose {
+                lifecycleOwner.lifecycle.removeObserver(observer)
+            }
         }
         LaunchedEffect(navigateToMissingPermissions) {
             if (navigateToMissingPermissions) {

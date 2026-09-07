@@ -3,6 +3,7 @@ package com.slideindex.app.overlay
 import android.Manifest
 import android.app.WallpaperManager
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -14,6 +15,7 @@ import android.os.Environment
 import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.createBitmap
+import androidx.core.net.toUri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.concurrent.atomic.AtomicReference
@@ -41,17 +43,41 @@ object SystemWallpaperBlurHelper {
     )
 
     /**
-     * Android 13+ 读壁纸走 [StorageManager.checkPermissionReadImages]，
-     * 支持「所有文件访问」（MANAGE_EXTERNAL_STORAGE）或 [Manifest.permission.READ_MEDIA_IMAGES]。
+     * 读取系统壁纸需要「所有文件访问」（MANAGE_EXTERNAL_STORAGE）。
      */
     fun hasWallpaperAccessPermission(context: Context): Boolean =
-        Environment.isExternalStorageManager() || (
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.READ_MEDIA_IMAGES,
-                ) == PackageManager.PERMISSION_GRANTED
-        )
+        Environment.isExternalStorageManager()
+
+    /**
+     * 打开系统「所有文件访问权限」页面。
+     * 若 context 不是 Activity，添加 FLAG_ACTIVITY_NEW_TASK。
+     */
+    fun requestWallpaperPermission(context: Context) {
+        if (hasWallpaperAccessPermission(context)) return
+        val isActivity = context is android.app.Activity
+        fun Intent.applyContextFlags(): Intent = apply {
+            if (!isActivity) {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+        }
+
+        val appSpecificIntent = Intent(
+            android.provider.Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
+            android.net.Uri.parse("package:${context.packageName}"),
+        ).applyContextFlags()
+
+        val generalIntent = Intent(
+            android.provider.Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION,
+        ).applyContextFlags()
+
+        runCatching {
+            context.startActivity(appSpecificIntent)
+        }.onFailure {
+            runCatching {
+                context.startActivity(generalIntent)
+            }
+        }
+    }
 
     fun hasCached(width: Int, height: Int, radius: Int): Bitmap? {
         val entry = cached.get() ?: return null

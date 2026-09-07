@@ -266,7 +266,8 @@
     <string name="permission_notification_title">通知权限</string>
     <string name="permission_notification_desc">需要通知权限以保持后台服务运行</string>
     <string name="permission_usage_title">使用情况访问权限</string>
-    <string name="permission_usage_desc_excluded_apps">建议开启以更准确识别前台应用。请在列表中找到「%1$s」并允许；若开关仍为灰色，请更新到最新版本后重试，或确认系统未限制该权限。已开启无障碍服务时，部分功能仍可生效。</string>
+    <string name="permission_usage_desc_excluded_apps">无障碍服务开启时已实时接管前台应用识别，排除规则已正常生效。开启此权限可作为后台备用兜底，并在应用切换器中获取完整的最近使用应用排行。</string>
+    <string name="gesture_action_app_carousel_switcher_permission">需要使用情况访问权限以获取最近使用的应用</string>
     <string name="grant_permission">去授权</string>
     <string name="gesture_switch">手势开关</string>
     <string name="gesture_switch_hint">开启后边缘手势服务才会运行</string>
@@ -642,7 +643,7 @@
     <string name="gesture_angle_side_bottom">底部</string>
     <string name="gesture_angle_side_top">顶部</string>
     <string name="gesture_angle_live_preview_hint">拖动分界点可实时在边缘测试手势角度，点勾号才保存</string>
-    <string name="accessibility_service_name">边栏</string>
+    <string name="accessibility_service_name">#边栏👈</string>
     <string name="accessibility_service_desc">开启后才能使用边缘手势与边栏面板，并执行返回、主屏幕、多任务等系统手势；未授权 Shizuku 时也可用于边缘单击穿透。</string>
     <string name="permission_accessibility_title">边栏</string>
     <string name="permission_accessibility_desc">开启边栏后才能使用边缘手势与边栏面板；也用于返回、主屏幕、多任务等系统操作；未授权 Shizuku 时单击穿透也需要此权限。</string>

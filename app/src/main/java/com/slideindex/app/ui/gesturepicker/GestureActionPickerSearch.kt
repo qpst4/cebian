@@ -450,6 +450,10 @@ fun gestureActionPermissionHint(action: GestureAction, context: Context): String
 
 fun gestureActionPermissionHintText(context: Context, action: GestureAction): String? =
     when (action.type) {
+        GestureActionType.APP_CAROUSEL_SWITCHER -> {
+            if (PermissionHelper.hasUsageAccess(context)) return null
+            context.getString(R.string.gesture_action_app_carousel_switcher_permission)
+        }
         GestureActionType.ADJUST_VOLUME -> {
             if (PermissionHelper.hasNotificationPolicyAccess(context)) return null
             context.getString(R.string.gesture_action_adjust_volume_permission)
@@ -567,6 +571,8 @@ fun gestureActionPermissionHintText(context: Context, action: GestureAction): St
 
 fun requestPermissionForAdjustAction(context: Context, action: GestureAction) {
     when (action) {
+        GestureAction.AppCarouselSwitcher ->
+            PermissionHelper.requestUsageAccess(context)
         GestureAction.AdjustVolume, GestureAction.ToggleMute, GestureAction.ToggleDnd,
         GestureAction.LockScreenAndSilenceRing, GestureAction.LockScreenAndMuteAll,
         ->

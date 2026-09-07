@@ -3,7 +3,6 @@ package com.slideindex.app.ui
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -11,16 +10,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.slideindex.app.R
 import com.slideindex.app.overlay.SystemWallpaperBlurHelper
 import com.slideindex.app.overlay.WallpaperPermissionTrampolineActivity
 import com.slideindex.app.settings.HolographicLauncherSettings
 import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.SettingDropdownRow
-import com.slideindex.app.ui.settings.components.SettingLinkRow
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
@@ -43,24 +38,10 @@ fun HolographicLauncherSettingsScreen(
     onOpenHiddenApps: () -> Unit,
 ) {
     val context = LocalContext.current
-    val lifecycleOwner = LocalLifecycleOwner.current
     var localSettings by remember { mutableStateOf(settings) }
-    var wallpaperPermissionGranted by remember {
-        mutableStateOf(SystemWallpaperBlurHelper.hasWallpaperAccessPermission(context))
-    }
     LaunchedEffect(settings) { localSettings = settings }
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                wallpaperPermissionGranted =
-                    SystemWallpaperBlurHelper.hasWallpaperAccessPermission(context)
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
-    }
     fun ensureWallpaperPermission() {
-        WallpaperPermissionTrampolineActivity.launch(context)
+        SystemWallpaperBlurHelper.requestWallpaperPermission(context)
     }
 
     val interactionSectionTitle = stringResource(R.string.holographic_settings_section_interaction)
@@ -176,24 +157,6 @@ fun HolographicLauncherSettingsScreen(
                                     ensureWallpaperPermission()
                                 }
                             },
-                        )
-                    },
-                )
-                add(
-                    settingsCardScopeItem("wallpaper-permission") {
-                        SettingLinkRow(
-                            title = stringResource(R.string.wallpaper_blur_permission_title),
-                            subtitle = stringResource(
-                                if (wallpaperPermissionGranted) {
-                                    R.string.wallpaper_blur_permission_granted
-                                } else {
-                                    R.string.wallpaper_blur_permission_missing
-                                },
-                            ),
-                            enabled = localSettings.backgroundStyle ==
-                                HolographicLauncherSettings.BACKGROUND_WALLPAPER_BLUR &&
-                                !wallpaperPermissionGranted,
-                            onClick = { ensureWallpaperPermission() },
                         )
                     },
                 )

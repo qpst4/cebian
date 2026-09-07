@@ -48,7 +48,7 @@ fun SearchPanelPresentationLayoutSettingsScreen(
     val backgroundSectionTitle = stringResource(R.string.honeycomb_display_section_background)
 
     fun ensureWallpaperPermission() {
-        WallpaperPermissionTrampolineActivity.ensurePermission(context) { }
+        SystemWallpaperBlurHelper.requestWallpaperPermission(context)
     }
 
     SettingsScreenScaffold(

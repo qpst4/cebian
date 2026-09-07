@@ -93,9 +93,7 @@ fun SearchPanelSettingsScreen(
         mutableStateOf(SystemWallpaperBlurHelper.hasWallpaperAccessPermission(context))
     }
     fun ensureWallpaperPermission() {
-        WallpaperPermissionTrampolineActivity.ensurePermission(context) { granted ->
-            wallpaperPermissionGranted = granted
-        }
+        SystemWallpaperBlurHelper.requestWallpaperPermission(context)
     }
     val engines = remember(settings.searchEngines) {
         SearchEngineStore.textSettingsEngines(settings.searchEngines)
