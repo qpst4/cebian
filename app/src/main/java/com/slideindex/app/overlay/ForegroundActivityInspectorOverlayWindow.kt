@@ -174,6 +174,61 @@ object ForegroundActivityInspectorOverlayWindow {
     }
 
     /**
+     * 当仅通过窗口树检测到前台包名变化时调用（不包含有效的 Activity 类名）。
+     */
+    fun onForegroundPackageChangedFromWindowTree(packageName: String) {
+        if (!isShowing) return
+        if (packageName.isBlank()) return
+        val app = appContext ?: return
+        if (packageName == app.packageName) return
+        if (packageName == currentPackage) return
+
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { onForegroundPackageChangedFromWindowTree(packageName) }
+            return
+        }
+
+        currentPackage = packageName
+        currentActivity = ""
+
+        val cached = appInfoCache.get(packageName)
+        val initialLabel = cached?.first ?: packageName
+        val cachedIcon = cached?.second
+        currentLabel = initialLabel
+
+        updateInfoUI(
+            pkg = packageName,
+            cls = "",
+            label = initialLabel,
+            icon = cachedIcon,
+        )
+
+        if (cached == null) {
+            scope?.launch(Dispatchers.IO) {
+                val pm = app.packageManager
+                var resolvedLabel = packageName
+                var resolvedIcon: Drawable? = null
+                runCatching {
+                    val appInfo = pm.getApplicationInfo(packageName, 0)
+                    resolvedLabel = pm.getApplicationLabel(appInfo).toString()
+                    resolvedIcon = pm.getApplicationIcon(appInfo)
+                }
+                appInfoCache.put(packageName, Pair(resolvedLabel, resolvedIcon))
+
+                withContext(Dispatchers.Main) {
+                    if (currentPackage == packageName) {
+                        currentLabel = resolvedLabel
+                        appLabelView?.text = resolvedLabel
+                        if (resolvedIcon != null) {
+                            appIconView?.setImageDrawable(resolvedIcon)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * 无障碍服务监测到前台窗口变化时调用（实现极致响应速度与历史追踪）。
      */
     fun onForegroundWindowStateChanged(packageName: String, className: String) {
@@ -182,12 +237,22 @@ object ForegroundActivityInspectorOverlayWindow {
         val app = appContext ?: return
         if (packageName == app.packageName) return // 忽略应用自身
 
-        // 过滤输入法与弹窗
-        if (className.contains("inputmethod", ignoreCase = true) ||
-            className.startsWith("android.inputmethodservice.") ||
-            className == "android.widget.PopupWindow" ||
-            className == "android.widget.Toast"
-        ) {
+        // 1. 过滤明显的非 Activity 视图组件（如 FrameLayout、ComposeView、输入法、弹窗等）
+        if (com.slideindex.app.util.ActivityClassValidator.isIgnoredNonActivityClass(className)) {
+            // 如果包名发生变化，更新前台包名，但绝不将此类名作为 Activity
+            if (packageName != currentPackage) {
+                onForegroundPackageChangedFromWindowTree(packageName)
+            }
+            return
+        }
+
+        // 2. 校验该类名是否为应用已声明的合法 Activity
+        val isRealActivity = com.slideindex.app.util.ActivityClassValidator.isRealActivity(app, packageName, className)
+        if (!isRealActivity) {
+            // 非合法 Activity（如某些自定义 View/Dialog/Fragment 等），不作为 Activity 显示与入栈
+            if (packageName != currentPackage) {
+                onForegroundPackageChangedFromWindowTree(packageName)
+            }
             return
         }
 
@@ -196,19 +261,19 @@ object ForegroundActivityInspectorOverlayWindow {
             return
         }
 
-        // 1. 检查去重：若与最后一次完全一致则不重复入栈
+        // 3. 检查去重：若与最后一次完全一致则不重复入栈
         val isSameAsCurrent = (packageName == currentPackage && className == currentActivity)
 
         currentPackage = packageName
         currentActivity = className
 
-        // 2. 尝试从内存缓存命中应用名称与图标（0ms 瞬间响应）
+        // 4. 尝试从内存缓存命中应用名称与图标（0ms 瞬间响应）
         val cached = appInfoCache.get(packageName)
         val initialLabel = cached?.first ?: packageName
         val cachedIcon = cached?.second
         currentLabel = initialLabel
 
-        // 3. 同步即时刷新当前卡片 UI（文本 0 延迟响应）
+        // 5. 同步即时刷新当前卡片 UI（文本 0 延迟响应）
         updateInfoUI(
             pkg = packageName,
             cls = className,
@@ -216,7 +281,7 @@ object ForegroundActivityInspectorOverlayWindow {
             icon = cachedIcon,
         )
 
-        // 4. 记录到历史队列中
+        // 6. 记录到历史队列中（仅记录真实有效的 Activity）
         if (!isSameAsCurrent) {
             val record = ActivityHistoryRecord(
                 timeFormatted = timeFormat.format(Date()),
@@ -233,7 +298,7 @@ object ForegroundActivityInspectorOverlayWindow {
             }
         }
 
-        // 5. 若未命中缓存，异步在后台加载应用信息并补齐
+        // 7. 若未命中缓存，异步在后台加载应用信息并补齐
         if (cached == null) {
             scope?.launch(Dispatchers.IO) {
                 val pm = app.packageManager

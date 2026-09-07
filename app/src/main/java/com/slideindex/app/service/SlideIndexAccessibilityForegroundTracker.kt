@@ -42,7 +42,9 @@ internal class SlideIndexAccessibilityForegroundTracker(
         }
         val className = event.className?.toString()?.takeIf { it.isNotBlank() } ?: ""
         if (!isImePackageOrClass(packageName, className)) {
-            currClassName = className
+            if (com.slideindex.app.util.ActivityClassValidator.isRealActivity(service, packageName, className)) {
+                currClassName = className
+            }
             com.slideindex.app.overlay.ForegroundActivityInspectorOverlayWindow.onForegroundWindowStateChanged(packageName, className)
         }
 
@@ -78,10 +80,10 @@ internal class SlideIndexAccessibilityForegroundTracker(
         if (com.slideindex.app.overlay.ForegroundActivityInspectorOverlayWindow.isShowing) {
             val rootNode = service.rootInActiveWindow
             val activePkg = rootNode?.packageName?.toString()
-            val activeCls = rootNode?.className?.toString()
-            if (!activePkg.isNullOrBlank() && activePkg != service.applicationContext.packageName && !isImePackageOrClass(activePkg, activeCls.orEmpty())) {
-                currClassName = activeCls.orEmpty()
-                com.slideindex.app.overlay.ForegroundActivityInspectorOverlayWindow.onForegroundWindowStateChanged(activePkg, activeCls.orEmpty())
+            if (!activePkg.isNullOrBlank() && activePkg != service.applicationContext.packageName && !isImePackageOrClass(activePkg, "")) {
+                // 窗口树根节点仅代表 View 节点（DecorView/FrameLayout），绝非 Activity 类名。
+                // 仅通知包名更新，避免将 FrameLayout 误作为 Activity 覆盖当前界面。
+                com.slideindex.app.overlay.ForegroundActivityInspectorOverlayWindow.onForegroundPackageChangedFromWindowTree(activePkg)
             }
         }
     }
