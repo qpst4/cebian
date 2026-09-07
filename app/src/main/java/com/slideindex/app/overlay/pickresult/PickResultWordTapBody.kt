@@ -64,19 +64,93 @@ import kotlin.math.roundToInt
 /** Shorter than system long-press for quicker word-split feedback. */
 private const val WORD_SPLIT_LONG_PRESS_MS = 280L
 
-/** FlowRow 分组 token 数，避免单块过大影响测量�?*/
+/** FlowRow 分组 token 数，避免单块过大影响测量。 */
 private const val WORD_TAP_ROW_CHUNK_SIZE = 40
 
-/** 划选时接近上下边缘触发自动滚动的区域�?*/
+/** 划选时接近上下边缘触发自动滚动的区域。 */
 private val WORD_DRAG_EDGE_ZONE = 28.dp
 
-/** 划选边缘自动滚动每步距离�?*/
+/** 划选边缘自动滚动每步距离。 */
 private val WORD_DRAG_EDGE_SCROLL_STEP = 14.dp
 
 private data class WordTapChunk(
     val startIndex: Int,
     val tokens: List<String>,
 )
+
+private data class WordTapLine(
+    val startIndex: Int,
+    val endIndex: Int,
+    val top: Float,
+    val bottom: Float,
+    val left: Float,
+    val right: Float,
+)
+
+private fun buildWordTapLines(
+    chipBounds: Array<Rect?>,
+    tokenCount: Int,
+): List<WordTapLine> {
+    val lines = mutableListOf<WordTapLine>()
+    var lineStart = -1
+    var lineEnd = -1
+    var lineTop = Float.MAX_VALUE
+    var lineBottom = Float.MIN_VALUE
+    var lineLeft = Float.MAX_VALUE
+    var lineRight = Float.MIN_VALUE
+
+    for (i in 0 until tokenCount) {
+        val rect = chipBounds.getOrNull(i) ?: continue
+        if (lineStart == -1) {
+            lineStart = i
+            lineEnd = i
+            lineTop = rect.top
+            lineBottom = rect.bottom
+            lineLeft = rect.left
+            lineRight = rect.right
+        } else {
+            val prevRect = chipBounds[lineEnd] ?: continue
+            val isNewLine = rect.left < prevRect.left || rect.top >= prevRect.bottom - 2f
+            if (isNewLine) {
+                lines.add(
+                    WordTapLine(
+                        startIndex = lineStart,
+                        endIndex = lineEnd,
+                        top = lineTop,
+                        bottom = lineBottom,
+                        left = lineLeft,
+                        right = lineRight,
+                    ),
+                )
+                lineStart = i
+                lineEnd = i
+                lineTop = rect.top
+                lineBottom = rect.bottom
+                lineLeft = rect.left
+                lineRight = rect.right
+            } else {
+                lineEnd = i
+                lineTop = min(lineTop, rect.top)
+                lineBottom = max(lineBottom, rect.bottom)
+                lineLeft = min(lineLeft, rect.left)
+                lineRight = max(lineRight, rect.right)
+            }
+        }
+    }
+    if (lineStart != -1) {
+        lines.add(
+            WordTapLine(
+                startIndex = lineStart,
+                endIndex = lineEnd,
+                top = lineTop,
+                bottom = lineBottom,
+                left = lineLeft,
+                right = lineRight,
+            ),
+        )
+    }
+    return lines
+}
 
 private data class WordTapScrollMetrics(
     val scrollFraction: Float,
@@ -200,7 +274,7 @@ fun PickResultWordTapBody(
         return gesture.localPositionOf(container, pointerInContainer)
     }
 
-    fun indexAt(pointerInGesture: Offset): Int? {
+    fun indexAt(pointerInGesture: Offset, allowLineProjection: Boolean = false): Int? {
         val box = containerCoordinates ?: return null
         val gesture = gestureCoordinates ?: return null
         if (!box.isAttached || !gesture.isAttached) return null
@@ -216,12 +290,69 @@ fun PickResultWordTapBody(
                 bestIndex = index
             }
         }
-        return bestIndex
+        if (bestIndex != null || !allowLineProjection) return bestIndex
+
+        val lines = buildWordTapLines(chipBounds, wordTokens.size)
+        if (lines.isEmpty()) return null
+
+        if (pointerInBox.y < lines.first().top) {
+            return lines.first().startIndex
+        }
+        if (pointerInBox.y > lines.last().bottom) {
+            return lines.last().endIndex
+        }
+
+        val targetLine = if (lines.size == 1) {
+            lines.first()
+        } else {
+            var matched: WordTapLine? = null
+            for (i in lines.indices) {
+                val line = lines[i]
+                val prevBottom = if (i > 0) lines[i - 1].bottom else line.top
+                val nextTop = if (i < lines.lastIndex) lines[i + 1].top else line.bottom
+                val topBoundary = (line.top + prevBottom) / 2f
+                val bottomBoundary = (line.bottom + nextTop) / 2f
+                if (pointerInBox.y in topBoundary..bottomBoundary) {
+                    matched = line
+                    break
+                }
+            }
+            matched ?: lines.minByOrNull { line ->
+                when {
+                    pointerInBox.y < line.top -> line.top - pointerInBox.y
+                    pointerInBox.y > line.bottom -> pointerInBox.y - line.bottom
+                    else -> 0f
+                }
+            } ?: lines.last()
+        }
+
+        if (pointerInBox.x >= targetLine.right) {
+            return targetLine.endIndex
+        }
+        if (pointerInBox.x <= targetLine.left) {
+            return targetLine.startIndex
+        }
+
+        var closestIndex = targetLine.startIndex
+        var minDistance = Float.MAX_VALUE
+        for (idx in targetLine.startIndex..targetLine.endIndex) {
+            val rect = chipBounds[idx] ?: continue
+            val dist = when {
+                pointerInBox.x < rect.left -> rect.left - pointerInBox.x
+                pointerInBox.x > rect.right -> pointerInBox.x - rect.right
+                else -> 0f
+            }
+            if (dist < minDistance) {
+                minDistance = dist
+                closestIndex = idx
+            }
+        }
+        return closestIndex
     }
 
-    fun indexAtInContainer(pointerInContainer: Offset): Int? {
+    fun indexAtInContainer(pointerInContainer: Offset, allowLineProjection: Boolean = false): Int? {
         val pointerInGesture = pointerInGestureSpace(pointerInContainer) ?: return null
-        return indexAt(pointerInGesture)
+        return indexAt(pointerInGesture, allowLineProjection)
     }
 
     fun rangeIndices(anchor: Int, current: Int): Set<Int> {
@@ -245,7 +376,7 @@ fun PickResultWordTapBody(
                         requireUnconsumed = false,
                         pass = PointerEventPass.Initial,
                     )
-                    val startIndex = indexAtInContainer(down.position) ?: return@awaitEachGesture
+                    val startIndex = indexAtInContainer(down.position, allowLineProjection = false) ?: return@awaitEachGesture
 
                     val baseline = currentSelectedIndices
                     val selecting = startIndex !in baseline
@@ -293,9 +424,14 @@ fun PickResultWordTapBody(
                                         longPressJob.cancel()
                                     }
                                     verticalIntent -> {
-                                        scrollGestureStarted = true
-                                        longPressJob.cancel()
-                                        return@awaitEachGesture
+                                        if (scrollMetrics.scrollable) {
+                                            scrollGestureStarted = true
+                                            longPressJob.cancel()
+                                            return@awaitEachGesture
+                                        } else {
+                                            wordDragArmed = true
+                                            longPressJob.cancel()
+                                        }
                                     }
                                 }
                             }
@@ -312,7 +448,7 @@ fun PickResultWordTapBody(
                                     scrollStepPx = edgeScrollStepPx,
                                 )
                                 val currentIndex =
-                                    indexAtInContainer(change.position) ?: lastRangeIndex
+                                    indexAtInContainer(change.position, allowLineProjection = true) ?: lastRangeIndex
                                 lastRangeIndex = currentIndex
                                 val range = rangeIndices(startIndex, currentIndex)
                                 onSelectionChange(
