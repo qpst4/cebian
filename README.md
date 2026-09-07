@@ -27,7 +27,9 @@
 
 ---
 
-**Cebian** is a system-level gesture and productivity tool for Android built on Accessibility Services, Shizuku, and optional LSPosed integration. Easily trigger 50+ system actions via screen-edge swipes, multi-functional floating ball, device shaking, or back-tap gestures; deeply integrates local multi-engine OCR, word segmentation, and reverse image search aggregation, offering high-efficiency overlay launcher panels, app freezer, OTP verification code extraction, notification management, freeform windows, and floating pointer controls on top of any app.
+**Cebian** is a universal system-level gesture and single-handed productivity suite designed for all Android 12+ devices across all OEMs. Built on Accessibility Services with flexible multi-privilege modes (**Shizuku, Root / KernelSU / Magisk**, and optional **LSPosed** integration), it brings desktop-grade control and effortless reachability to modern large-screen phones.
+
+Easily trigger **50+ system actions** via customizable multi-angle screen-edge swipes, reachability floating pointers, multi-functional floating ball, device shaking, desk-flipping, or back-tap gestures. Deeply integrates **100% offline on-device OCR**, word segmentation (CppJieba), and reverse image search aggregation—delivering high-efficiency overlay launchers, app freezing, OTP verification code extraction, notification management, and OEM freeform windows on top of any app, completely free from ads and cloud trackers.
 
 - **Package Name:** `com.slideindex.app`
 - **Current Version:** 1.9.25 (versionCode 50)
