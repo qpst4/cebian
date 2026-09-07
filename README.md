@@ -249,14 +249,14 @@ While we deeply admire these pioneering tools, modern Android users frequently f
 
 | Dimension | **Cebian (This App)** | **Samsung OHO+** | **Quick Cursor** | **FooView** |
 | :--- | :---: | :---: | :---: | :---: |
-| **License & Code** | **AGPL-3.0 (100% Open Source)** | Proprietary (Closed) | Proprietary (Closed) | Proprietary (Closed) |
-| **Device Availability** | **Any Android 12+ device** | Samsung Galaxy devices only | All Android devices | All Android devices |
-| **Pricing & Ads** | **Free & No Ads forever** | Free (Bundled with One UI) | Free basic + optional PRO upgrade | Free (Proprietary) |
-| **Edge Navigation** | Full OHO+ style (Multi-angle & Hold) | Native OHO+ gestures | Edge swipe for cursor only | Edge / Floating gestures |
-| **Single-Hand Reachability** | Built-in reachability pointer | ⚠️ Virtual Touchpad (floating box mode) | Native reachability cursor | Floating ball crosshair |
-| **Screen OCR & Search** | Local offline models (ONNX / ML Kit) | N/A | N/A | Cloud & web-assisted OCR |
-| **System Privileges** | Shizuku + Root + LSPosed + A11y | Samsung system-signature privileges | Accessibility Service | Root + Accessibility Service |
-| **Visual Design** | Miuix & Real-time Gaussian Blur | One UI native style | Standard Material | Classic utility UI |
+| **Open Source & License** | ✅ **AGPL-3.0 (100% FOSS)** | 🔒 Proprietary | 🔒 Proprietary | 🔒 Proprietary |
+| **Device Compatibility** | ✅ **Universal (Any Android 12+)** | ⚠️ Samsung Galaxy only | ✅ Universal | ✅ Universal |
+| **Pricing & Monetization** | ✅ **100% Free & No Ads forever** | ✅ Free (with One UI) | ⚠️ Free basic + PRO in-app purchases | ✅ Free (Ad/sponsor supported) |
+| **Edge Navigation Gestures** | ✅ **Full OHO+ style (Multi-angle & Hold)** | ✅ Native OHO+ gestures | ⚠️ Edge swipe for cursor only | ⚠️ Floating / Edge gestures |
+| **Single-Hand Reachability** | ✅ **Built-in reachability joystick pointer** | ⚠️ Virtual Touchpad (floating box mode) | ✅ Native reachability cursor | ⚠️ Floating ball crosshair |
+| **Screen OCR & Reverse Search** | ✅ **Local offline models (ONNX / ML Kit)** | — | — | ⚠️ Cloud & web-assisted OCR |
+| **Deep System Privileges** | ✅ **Shizuku + Root + LSPosed + A11y** | ✅ Samsung system-signature privileges | ⚠️ Accessibility Service | ⚠️ Root + Accessibility Service |
+| **Visual Aesthetics & Haptics** | ✅ **Miuix & Real-time Gaussian Blur** | ✅ One UI native design | ⚠️ Standard Material | ⚠️ Classic utility UI |
 
 ---
 
