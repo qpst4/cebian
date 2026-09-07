@@ -382,7 +382,9 @@ cd cebian
 
 [![GitHub Discussions](https://img.shields.io/badge/GitHub-Discussions-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/qpst4/cebian/discussions)
 [![GitHub Issues](https://img.shields.io/badge/GitHub-Issues%20反馈-EA4AAA?style=for-the-badge&logo=github&logoColor=white)](https://github.com/qpst4/cebian/issues)
-[![QQ Group](https://img.shields.io/badge/QQ%20交流群-点击加入-12B7F5?style=for-the-badge&logo=tencentqq&logoColor=white)](https://qm.qq.com/q/jHZTMmiZ9K)
+[![QQ Group](art/qq_group_badge.svg)](https://qm.qq.com/q/Zx4wd2LB4G)
+
+> 官方 QQ 交流群号：**1042783385**
 
 </div>
 
