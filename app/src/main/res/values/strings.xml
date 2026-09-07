@@ -2565,6 +2565,8 @@
     <string name="update_notification_failed_content">点击重试</string>
     <string name="update_notification_permission_title">开启通知权限</string>
     <string name="update_notification_permission_rationale">开启通知后，可在后台发现新版本或下载完成时收到提醒。</string>
+    <string name="about_star_github_title">在 GitHub 为我们点赞 ⭐</string>
+    <string name="about_star_github_desc">如果喜欢 Cebian，欢迎前往 GitHub 点亮 Star 并支持开发</string>
     <string name="about_project_url_title">项目地址</string>
     <string name="about_project_url_desc">https://github.com/qpst4/cebian</string>
     <string name="about_qq_group_title">QQ 交流群</string>

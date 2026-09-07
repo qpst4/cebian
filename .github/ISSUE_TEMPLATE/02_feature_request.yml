@@ -1,0 +1,27 @@
+name: "💡 Feature Request / 功能建议"
+description: "Suggest a new idea or feature for Cebian (提出新功能或交互改进建议)"
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        非常欢迎分享你的创意和新功能想法！
+  - type: textarea
+    id: problem
+    attributes:
+      label: "Problem / 痛点场景"
+      description: "你在什么使用场景下遇到了不便？（例如：在使用特定 App 时、单手操作时等）"
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: "Proposed Solution / 建议的解决方案"
+      description: "你期望 Cebian 如何实现或改进此功能？"
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: "Alternatives Considered / 参考的其他工具或方案"
+      description: "是否有其他 App（如 OHO+、FooView、Tasker 等）实现了类似功能？"

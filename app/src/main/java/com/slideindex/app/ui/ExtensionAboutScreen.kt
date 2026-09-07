@@ -35,6 +35,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.NewReleases
 import androidx.compose.material.icons.outlined.Palette
@@ -427,6 +428,25 @@ private fun AboutContent(
             groupedCardItems(
                 keyPrefix = "about_community",
                 items = buildList {
+                    add(
+                        settingsCardScopeItem("star-github") {
+                            SettingNavigationRow(
+                                icon = { label ->
+                                    Icon(
+                                        Icons.Filled.Star,
+                                        contentDescription = label,
+                                        tint = Color(0xFFFFB800),
+                                    )
+                                },
+                                title = stringResource(R.string.about_star_github_title),
+                                subtitle = stringResource(R.string.about_star_github_desc),
+                                onClick = {
+                                    val uri = projectUrl.toUri()
+                                    context.startActivity(Intent(Intent.ACTION_VIEW, uri))
+                                },
+                            )
+                        },
+                    )
                     add(
                         settingsCardScopeItem("project-url") {
                             SettingNavigationRow(

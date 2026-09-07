@@ -1,0 +1,42 @@
+name: "🎨 Share Preset / 分享配置与规则"
+description: "Share your gesture layouts, search engines, or rule presets (分享你的手势布局、搜图引擎或规则预设)"
+labels: ["preset-sharing"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        欢迎分享你精心调教的配置！无论是某个机型的手势神仙布局，还是实用的以图搜图规则。
+  - type: input
+    id: preset_name
+    attributes:
+      label: "Preset Title / 预设标题"
+      placeholder: "例如：折叠屏大外屏专用手势 / 10套二次元搜图引擎合集"
+    validations:
+      required: true
+  - type: dropdown
+    id: preset_type
+    attributes:
+      label: "Preset Category / 预设类型"
+      options:
+        - "Edge Gestures Layout (边缘手势配置)"
+        - "Floating Pointer / Ball (悬浮指针/悬浮球配置)"
+        - "Image Search Engines (以图搜图引擎合集)"
+        - "Small Window / Freeform Rules (小窗规则)"
+        - "Comprehensive Full Backup (全量配置备份)"
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: "Description & Usage / 介绍与使用心得"
+      description: "介绍该配置的适用场景或操作习惯"
+    validations:
+      required: true
+  - type: textarea
+    id: preset_json
+    attributes:
+      label: "Preset Content / 配置内容 (JSON 或口令)"
+      description: "在 Cebian 中导出为 JSON 或备份文件内容，粘贴在下方代码块中"
+      render: json
+    validations:
+      required: true

@@ -1,0 +1,54 @@
+name: "🐛 Bug Report / 问题反馈"
+description: "Report a bug or unexpected behavior in Cebian (报告错误或异常行为)"
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢反馈问题！在提交前请先检查是否已有相同 Issue，并尽可能提供详细信息。
+  - type: input
+    id: version
+    attributes:
+      label: "App Version / 应用版本"
+      description: "例如：1.9.25 (50) Full 或 Lite"
+      placeholder: "v1.9.25"
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: "Device & Android Version / 设备型号与安卓版本"
+      description: "例如：Xiaomi 14 / HyperOS 2 / Android 15"
+      placeholder: "e.g. Pixel 8 Pro, Android 15"
+    validations:
+      required: true
+  - type: checkboxes
+    id: privileges
+    attributes:
+      label: "Privilege Mode / 使用的提权模式"
+      options:
+        - label: "Accessibility Service (基础无障碍服务)"
+        - label: "Shizuku (已激活)"
+        - label: "Root (KernelSU / Magisk / APatch)"
+        - label: "LSPosed Module (Xposed 模块已激活)"
+  - type: textarea
+    id: description
+    attributes:
+      label: "Bug Description / 问题描述"
+      description: "清晰简洁地描述遇到的错误行为与预期行为"
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: "Steps to Reproduce / 复现步骤"
+      description: "触发问题的操作步骤"
+      placeholder: |
+        1. 进入设置 ...
+        2. 触发 ... 手势
+        3. 出现 ...
+  - type: textarea
+    id: logs
+    attributes:
+      label: "Logs or Screenshots / 日志或截图"
+      description: "可在设置中导出诊断日志，或粘贴 logcat / 截图"

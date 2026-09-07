@@ -2,10 +2,10 @@
 
 <img src="art/logo.svg" width="96" alt="Cebian" />
 
-# 📱 Cebian (Sidebar)
+# 📱 Cebian (Sidebar) — The Ultimate Android Gesture & One-Handed Productivity Suite
 
-**All-in-One Android Edge Gesture & Productivity Tool**  
-*Edge Panels · Floating Ball OCR & Image Search · Shake / Desk-Flip / BackTap Gestures · Notification & OTP Manager · Floating Pointer · App Freezer · Freeform Window*
+**All-in-One Open-Source Alternative to Samsung One Hand Operation+ (OHO+), Quick Cursor & FooView**  
+*Edge Panels · Reachability Floating Cursor · Floating Ball OCR & Reverse Image Search · Shake & Back-Tap Gestures · Notification & OTP Manager · App Freezer · Freeform Window · Shizuku & LSPosed*
 
 **English** | [简体中文](README_zh.md)
 
@@ -24,6 +24,24 @@
 <img src="art/screenshots/hero_showcase.webp" width="96%" alt="Cebian Full Showcase" />
 
 </div>
+
+---
+
+### 💡 Why Cebian? (Feature Comparison)
+
+Looking for a modern, open-source alternative to **Samsung One Hand Operation+ (OHO+)**, **Quick Cursor**, or **FooView** that works across **all Android brands**? Cebian unifies the best single-handed interactions into a privacy-respecting, AGPL-3.0 powerhouse:
+
+| Feature / Capability | **Cebian** (This App) | **Samsung OHO+** | **Quick Cursor** | **FooView** |
+| :--- | :---: | :---: | :---: | :---: |
+| **Open Source & Privacy** | **AGPL-3.0 (100% Open)** | ❌ Proprietary | ❌ Proprietary | ❌ Proprietary |
+| **Device Compatibility** | **Any Android 12+ device** | ❌ Samsung Galaxy only | ✅ All devices | ✅ All devices |
+| **Pricing Model** | **Free & No Ads forever** | ✅ Free (with Samsung) | ❌ In-App Purchases (PRO) | ⚠️ Ad-supported |
+| **Edge Gestures & Multi-angle** | ✅ Full OHO+ style (multi-angle / long-swipe) | ✅ Native | ❌ | ⚠️ Float only |
+| **One-Handed Pointer (Cursor)** | ✅ Built-in reachability cursor | ❌ | ✅ Native | ❌ |
+| **Floating Ball OCR & Search** | ✅ Offline (ML Kit / Tesseract / ONNX) | ❌ | ❌ | ⚠️ Cloud-dependent |
+| **Reverse Image Search** | ✅ 10+ Multi-engine aggregator | ❌ | ❌ | ⚠️ Limited |
+| **Deep System Integration** | ✅ Shizuku + Root + LSPosed + A11y | ❌ | ⚠️ Accessibility only | ⚠️ Accessibility only |
+| **Modern UI & Fluid Haptics** | ✅ Miuix & Dynamic Blur | ⚠️ One UI only | ⚠️ Standard Material | ⚠️ Legacy UI |
 
 ---
 
