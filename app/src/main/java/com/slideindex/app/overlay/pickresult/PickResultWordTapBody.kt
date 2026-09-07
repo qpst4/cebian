@@ -424,14 +424,9 @@ fun PickResultWordTapBody(
                                         longPressJob.cancel()
                                     }
                                     verticalIntent -> {
-                                        if (scrollMetrics.scrollable) {
-                                            scrollGestureStarted = true
-                                            longPressJob.cancel()
-                                            return@awaitEachGesture
-                                        } else {
-                                            wordDragArmed = true
-                                            longPressJob.cancel()
-                                        }
+                                        scrollGestureStarted = true
+                                        longPressJob.cancel()
+                                        return@awaitEachGesture
                                     }
                                 }
                             }
