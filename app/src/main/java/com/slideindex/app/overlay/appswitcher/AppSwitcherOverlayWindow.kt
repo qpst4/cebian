@@ -247,9 +247,7 @@ object AppSwitcherOverlayWindow {
                 }
 
                 override fun onClosed() {
-                    if (persistAfterPin || overlayController.isPinned()) {
-                        return
-                    }
+                    // dismissPanel 已 clearSessionState；此处为会话真正结束，须恢复悬浮球（勿因 persistAfterPin 跳过）。
                     screenOffDismissReceiver.unregister()
                     releaseOverlayState()
                 }
