@@ -374,6 +374,14 @@ cd cebian
 
 ---
 
+## 🌍 Help Translate
+
+[![Translation status](https://hosted.weblate.org/widget/cebian/app-strings/svg-badge.svg)](https://hosted.weblate.org/engage/cebian/)
+
+Contribute **in-app UI translations** on [Weblate](https://hosted.weblate.org/engage/cebian/) — no Git required. See [CONTRIBUTING.md](CONTRIBUTING.md#translating-the-app-weblate--recommended).
+
+---
+
 ## 💬 Community & Feedback
 
 Welcome to join the community discussions and provide feedback or feature requests:

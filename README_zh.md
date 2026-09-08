@@ -374,6 +374,14 @@ cd cebian
 
 ---
 
+## 🌍 参与翻译
+
+[![翻译状态](https://hosted.weblate.org/widget/cebian/app-strings/svg-badge.svg)](https://hosted.weblate.org/engage/cebian/)
+
+在 [Weblate](https://hosted.weblate.org/engage/cebian/) 贡献 **应用界面翻译**，无需 Git。详见 [贡献指南（中文）](docs/contributing_zh.md#翻译-app-界面推荐-weblate)。
+
+---
+
 ## 💬 社区与交流
 
 欢迎加入社区交流群或参与讨论，提出新功能建议与 Bug 反馈：

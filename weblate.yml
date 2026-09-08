@@ -1,0 +1,18 @@
+# Hosted Weblate: https://hosted.weblate.org/projects/cebian/
+#
+# Primary app UI strings (largest catalog). Additional module strings live under
+# core/* and feature/* and can be added as linked components later if needed.
+#
+# Maintainer one-time setup on hosted.weblate.org:
+# 1. Create project "Cebian" (slug: cebian), link https://github.com/qpst4/cebian.git
+# 2. Import this file or add component manually with the fields below
+# 3. Set source language to Chinese (Simplified) — template is values/strings.xml
+# 4. Enable "Create pull request" / push addon; do not push directly to main
+
+component:
+  name: App strings
+  slug: app-strings
+  project: cebian
+  filemask: app/src/main/res/values-*/strings.xml
+  template: app/src/main/res/values/strings.xml
+  file_format: aresource

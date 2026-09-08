@@ -357,6 +357,14 @@ cd cebian
 
 ---
 
+## 🌍 翻訳に参加
+
+[![翻訳状況](https://hosted.weblate.org/widget/cebian/app-strings/svg-badge.svg)](https://hosted.weblate.org/engage/cebian/)
+
+[Weblate](https://hosted.weblate.org/engage/cebian/) で **アプリ UI の翻訳** に協力（Git 不要）。詳細は [貢献ガイド（日本語）](docs/contributing_ja.md#アプリ-ui-の翻訳weblate-推奨)。
+
+---
+
 ## 💬 コミュニティ
 
 <div align="center">
