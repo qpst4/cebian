@@ -291,7 +291,7 @@ private fun AboutContent(
                         ),
                     painter = painterResource(R.drawable.app_logo),
                     colorFilter = ColorFilter.tint(MiuixTheme.colorScheme.onBackground),
-                    contentDescription = "icon",
+                    contentDescription = stringResource(R.string.cd_app_icon),
                 )
             }
             Text(

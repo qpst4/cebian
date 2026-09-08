@@ -2070,6 +2070,7 @@
     <string name="widget_panel_grid_section">小组件布局</string>
     <string name="widget_panel_opacity">面板不透明度</string>
     <string name="widget_panel_add_widget">添加小组件</string>
+    <string name="widget_panel_add_widget_failed">无法添加小组件：未找到小组件信息</string>
     <string name="widget_panel_page_indicator">第 %1$d / %2$d 页</string>
     <string name="widget_picker_title">选择小部件</string>
     <string name="widget_picker_search_hint">搜索小部件…</string>

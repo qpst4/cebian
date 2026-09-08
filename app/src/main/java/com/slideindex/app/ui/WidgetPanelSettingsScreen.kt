@@ -502,7 +502,7 @@ private fun WidgetPanelGridEditor(
             .clickable { launchWidgetPicker() },
           contentAlignment = Alignment.Center,
         ) {
-          Icon(Icons.Default.Add, contentDescription = "Add Widget")
+          Icon(Icons.Default.Add, contentDescription = stringResource(R.string.widget_panel_add_widget))
         }
       }
       }

@@ -1,6 +1,7 @@
 package com.slideindex.app.widget
 
 import android.content.Context
+import com.slideindex.app.R
 
 object WidgetPanelMutator {
   fun addWidgetToPage(
@@ -16,7 +17,11 @@ object WidgetPanelMutator {
     if (info == null) {
       android.util.Log.e("WidgetPanelMutator", "addWidgetToPage failed: providerInfo is null for id $appWidgetId")
       android.os.Handler(android.os.Looper.getMainLooper()).post {
-        android.widget.Toast.makeText(context, "Failed: Widget info is null", android.widget.Toast.LENGTH_LONG).show()
+        android.widget.Toast.makeText(
+          context,
+          context.getString(R.string.widget_panel_add_widget_failed),
+          android.widget.Toast.LENGTH_LONG,
+        ).show()
       }
       return null
     }

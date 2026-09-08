@@ -3253,6 +3253,7 @@ APatch で Shell の永久 Root 権限を取り消してください。</string>
     <string name="widget_tab_apps">アプリ</string>
     <string name="widget_tab_shortcuts">ショートカット</string>
     <string name="widget_group_count">ウィジェット %1$d 件</string>
+    <string name="widget_panel_add_widget_failed">ウィジェットを追加できません：ウィジェット情報が見つかりません</string>
     <string name="cd_view_all">すべて表示</string>
     <string name="holographic_no_apps_loaded">アプリが読み込まれていません</string>
     <string name="holographic_check_settings_hint">設定を確認するか、設定ページで構成してください</string>

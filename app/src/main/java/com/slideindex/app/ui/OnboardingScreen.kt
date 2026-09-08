@@ -291,7 +291,7 @@ private fun WelcomeScreenPage(
             ) {
                 Image(
                     painter = painterResource(selectedIconTheme.iconRes),
-                    contentDescription = "App Logo",
+                    contentDescription = stringResource(R.string.cd_app_icon),
                     modifier = Modifier.fillMaxSize(),
                 )
             }
