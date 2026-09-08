@@ -3144,6 +3144,7 @@
     <string name="foreground_inspector_activity_tap_copy">ACTIVITY（タップでコピー）:</string>
     <string name="foreground_inspector_app_name">アプリ名: %1$s</string>
     <string name="foreground_inspector_package_name">パッケージ: %1$s</string>
+    <string name="foreground_inspector_activity_name">ACTIVITY: %1$s</string>
     <string name="shell_downgrade_hint">注意: root を shell に降格しました
 </string>
     <string name="shell_downgrade_failed">adb/shell に降格できません（Shizuku が Root で実行中）。

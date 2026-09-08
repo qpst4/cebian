@@ -25,6 +25,7 @@ import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.slideindex.app.R
+import com.slideindex.app.util.AppLocaleApplier
 
 class OverlayComposeOwner : LifecycleOwner, ViewModelStoreOwner, SavedStateRegistryOwner {
     private val registry = LifecycleRegistry(this)
@@ -56,7 +57,8 @@ object OverlayCompose {
      */
     fun themedContext(context: Context): Context {
         val uiContext = resolveUiContext(unwrapThemeContext(context))
-        return ContextThemeWrapper(uiContext, R.style.Theme_SlideIndex_Transparent)
+        val localizedContext = AppLocaleApplier.wrapOverlayContext(uiContext)
+        return ContextThemeWrapper(localizedContext, R.style.Theme_SlideIndex_Transparent)
     }
 
     private fun unwrapThemeContext(context: Context): Context {

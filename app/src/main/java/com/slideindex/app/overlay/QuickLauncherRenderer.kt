@@ -20,6 +20,7 @@ import com.slideindex.app.overlay.layout.visualColumn
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.QuickLauncherDisplaySettings
 import com.slideindex.app.util.AppShortcutLoader
+import com.slideindex.app.util.AppLocaleApplier
 import com.slideindex.app.util.GestureActionIconBitmap
 import com.slideindex.app.util.QuickLauncherIconResolver
 
@@ -27,6 +28,8 @@ internal class QuickLauncherRenderer(
     private val ctrl: QuickLauncherOverlayController,
 ) {
     private val host get() = ctrl.host
+
+    private fun localizedContext() = AppLocaleApplier.wrapOverlayContext(host.context)
 
     private val appLabelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textAlign = Paint.Align.CENTER
@@ -591,7 +594,7 @@ internal class QuickLauncherRenderer(
         canvas.drawRoundRect(ctrl.folderRect, folderCorner, folderCorner, cellHighlightPaint)
         cellHighlightPaint.style = Paint.Style.FILL
 
-        val title = folder.label.ifBlank { host.context.getString(R.string.quick_launcher_item_folder) }
+        val title = folder.label.ifBlank { localizedContext().getString(R.string.quick_launcher_item_folder) }
         folderTitlePaint.textSize = host.sp(14f)
         folderTitlePaint.color = Color.WHITE
         val titleX = folderLeft + host.dp(14f)
@@ -599,7 +602,7 @@ internal class QuickLauncherRenderer(
         canvas.drawText(title, titleX, titleY, folderTitlePaint)
 
         val titleW = folderTitlePaint.measureText(title)
-        val subtitle = host.context.getString(R.string.quick_launcher_folder_items_count, childCount)
+        val subtitle = localizedContext().getString(R.string.quick_launcher_folder_items_count, childCount)
         folderSubtitlePaint.textSize = host.sp(11f)
         canvas.drawText(subtitle, titleX + titleW + host.dp(8f), titleY, folderSubtitlePaint)
 
@@ -630,7 +633,12 @@ internal class QuickLauncherRenderer(
             canvas.drawRoundRect(ctrl.folderAddButtonBounds, host.dp(12f), host.dp(12f), cellHighlightPaint)
             folderButtonPaint.textSize = host.sp(11f)
             folderButtonPaint.isFakeBoldText = false
-            canvas.drawText("+ 添加", ctrl.folderAddButtonBounds.centerX(), ctrl.folderAddButtonBounds.centerY() - (folderButtonPaint.descent() + folderButtonPaint.ascent()) / 2f, folderButtonPaint)
+            canvas.drawText(
+                localizedContext().getString(R.string.quick_launcher_folder_add),
+                ctrl.folderAddButtonBounds.centerX(),
+                ctrl.folderAddButtonBounds.centerY() - (folderButtonPaint.descent() + folderButtonPaint.ascent()) / 2f,
+                folderButtonPaint,
+            )
         } else {
             ctrl.folderAddButtonBounds.setEmpty()
         }
@@ -692,7 +700,7 @@ internal class QuickLauncherRenderer(
         val children = ctrl.folderSubPanelItems
         if (children.isEmpty()) {
             if (recordCells) ctrl.folderCellBounds.clear()
-            val emptyText = host.context.getString(R.string.quick_launcher_folder_empty)
+            val emptyText = localizedContext().getString(R.string.quick_launcher_folder_empty)
             folderEmptyPaint.textSize = host.sp(12f)
             canvas.drawText(
                 emptyText,

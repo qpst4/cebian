@@ -13,7 +13,10 @@ object AppLocaleApplier {
     @Volatile
     private var lastApplied: AppUiLanguage = AppUiLanguage.SYSTEM
 
-    fun apply(context: Context, language: AppUiLanguage) {
+    fun currentLanguage(): AppUiLanguage = lastApplied
+
+    fun apply(context: Context, language: AppUiLanguage, refreshOverlays: Boolean = false) {
+        val changed = language != lastApplied
         lastApplied = language
         val tags = language.toLanguageTags()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -33,20 +36,31 @@ object AppLocaleApplier {
             }
             AppCompatDelegate.setApplicationLocales(locales)
         }
+        if (refreshOverlays && changed) {
+            com.slideindex.app.overlay.OverlayLocaleCoordinator.onApplicationLocaleChanged(context)
+        }
     }
 
     fun wrapContextIfNeeded(base: Context): Context {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             return base
         }
-        val locale = resolveLocaleForLegacy() ?: return base
+        return wrapOverlayContext(base)
+    }
+
+    /**
+     * 无障碍浮窗经 [android.content.Context.createWindowContext] 后常仍按系统语言读资源；
+     * 对非 SYSTEM 的应用内语言显式包一层 Configuration。
+     */
+    fun wrapOverlayContext(base: Context): Context {
+        val locale = resolveAppLocale() ?: return base
         val config = Configuration(base.resources.configuration)
         config.setLocale(locale)
         config.setLayoutDirection(locale)
         return base.createConfigurationContext(config)
     }
 
-    private fun resolveLocaleForLegacy(): Locale? {
+    private fun resolveAppLocale(): Locale? {
         val tags = lastApplied.toLanguageTags() ?: return null
         return Locale.forLanguageTag(tags)
     }

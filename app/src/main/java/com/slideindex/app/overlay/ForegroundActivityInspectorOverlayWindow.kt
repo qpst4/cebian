@@ -110,7 +110,7 @@ object ForegroundActivityInspectorOverlayWindow {
         if (isShowing) return
 
         val app = context.applicationContext
-        appContext = app
+        appContext = com.slideindex.app.util.AppLocaleApplier.wrapOverlayContext(app)
         val wm = app.getSystemService(Context.WINDOW_SERVICE) as? WindowManager ?: return
         windowManager = wm
         scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -710,7 +710,9 @@ object ForegroundActivityInspectorOverlayWindow {
             }
             append(context.getString(R.string.foreground_inspector_package_name, currentPackage))
             append('\n')
-            if (currentActivity.isNotBlank()) append("Activity: $currentActivity")
+            if (currentActivity.isNotBlank()) {
+                append(context.getString(R.string.foreground_inspector_activity_name, currentActivity))
+            }
         }
         copyToClipboard(context, text, context.getString(R.string.foreground_activity_inspector_all_copied))
     }

@@ -41,7 +41,7 @@ class OverlayComposeDialogHost(
 
 ) {
 
-    private val themedContext = OverlayCompose.themedContext(context)
+    private fun themedContext(): Context = OverlayCompose.themedContext(context)
 
     private val mainHandler = Handler(Looper.getMainLooper())
 
@@ -95,7 +95,7 @@ class OverlayComposeDialogHost(
 
         owner = dialogOwner
 
-        val view = OverlayCompose.createComposeView(themedContext, dialogOwner).apply {
+        val view = OverlayCompose.createComposeView(themedContext(), dialogOwner).apply {
             isFocusable = true
             isFocusableInTouchMode = true
 

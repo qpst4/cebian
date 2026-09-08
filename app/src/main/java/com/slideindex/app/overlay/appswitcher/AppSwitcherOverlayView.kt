@@ -770,7 +770,12 @@ private fun AppSwitcherAppearanceDialogContent(
                     Spacer(modifier = Modifier.height(8.dp))
                     FvAppSwitcherAppearanceChipGrid(
                         isLandscape = isLandscape,
-                        labels = listOf("1 圈(5)", "2 圈(13)", "3 圈(24)", "4 圈(38)"),
+                        labels = listOf(
+                            stringResource(R.string.fv_app_switcher_circle_1),
+                            stringResource(R.string.fv_app_switcher_circle_2),
+                            stringResource(R.string.fv_app_switcher_circle_3),
+                            stringResource(R.string.fv_app_switcher_circle_4),
+                        ),
                         selectedIndex = settingsState.circleCount - 1,
                         onSelected = { index -> update { it.copy(circleCount = index + 1) } },
                     )

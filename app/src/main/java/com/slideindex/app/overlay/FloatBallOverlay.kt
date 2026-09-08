@@ -591,6 +591,21 @@ object FloatBallOverlay {
         settingsState?.value?.let { applyAllLayouts(it) }
     }
 
+    /** 应用内语言切换后重建悬浮球窗口，使 Compose/资源使用新 Locale。 */
+    fun recreateForLocaleChange() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { recreateForLocaleChange() }
+            return
+        }
+        if (!isShowing) return
+        val hostContext = OverlayDependencyAccess.overlayHostContext() ?: return
+        val settings = settingsState?.value ?: return
+        val persistPosition = onPositionPersisted ?: return
+        val persistSide = onActiveSidePersisted ?: {}
+        dismiss()
+        showOrUpdate(hostContext, settings, persistPosition, persistSide)
+    }
+
     fun showOrUpdate(
         context: Context,
         settings: AppSettings,

@@ -3155,6 +3155,7 @@
     <string name="foreground_inspector_activity_tap_copy">ACTIVITY (点击复制):</string>
     <string name="foreground_inspector_app_name">应用名称: %1$s</string>
     <string name="foreground_inspector_package_name">包名: %1$s</string>
+    <string name="foreground_inspector_activity_name">Activity: %1$s</string>
     <string name="shell_downgrade_hint">提示:已将root降权至shell
 </string>
     <string name="shell_downgrade_failed">无法降级到 adb/shell 身份（Shizuku 当前以 Root 运行）。

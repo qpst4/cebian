@@ -174,7 +174,7 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
             },
             onAppUiLanguageChange = { language ->
                 viewModel.setAppUiLanguage(language)
-                com.slideindex.app.util.AppLocaleApplier.apply(ctx.activity, language)
+                com.slideindex.app.util.AppLocaleApplier.apply(ctx.activity, language, refreshOverlays = true)
                 ctx.activity.recreateWithoutTransition()
             },
             onDynamicColorChange = viewModel::setDynamicColorEnabled,

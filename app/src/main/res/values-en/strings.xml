@@ -3156,6 +3156,7 @@ Questions: open a GitHub Issue on the project repository.</string>
     <string name="foreground_inspector_activity_tap_copy">ACTIVITY (tap to copy):</string>
     <string name="foreground_inspector_app_name">App name: %1$s</string>
     <string name="foreground_inspector_package_name">Package: %1$s</string>
+    <string name="foreground_inspector_activity_name">Activity: %1$s</string>
     <string name="shell_downgrade_hint">Note: downgraded root to shell
 </string>
     <string name="shell_downgrade_failed">Cannot downgrade to adb/shell (Shizuku is running as Root).

@@ -169,6 +169,16 @@ object SearchPanelOverlayWindow {
         applyPanelShellPassive()
     }
 
+    /** 应用内语言切换后销毁预热窗口，下次展示时用新 Configuration 重建。 */
+    fun releaseWarmUp() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { releaseWarmUp() }
+            return
+        }
+        dismiss()
+        destroyWindow()
+    }
+
     fun restore() {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             mainHandler.post { restore() }
