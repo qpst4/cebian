@@ -1915,6 +1915,7 @@
     <string name="gesture_action_clipboard_pick_desc">Read the system clipboard and open the text pick panel</string>
     <string name="gesture_action_clipboard_pick_permission">Requires Cebian enabled</string>
     <string name="gesture_action_toggle_dnd">Toggle Do Not Disturb</string>
+    <string name="gesture_action_toggle_dnd_failed">Could not change Do Not Disturb</string>
     <string name="gesture_action_screen_record">Screen record</string>
     <string name="gesture_action_toggle_wifi">Toggle Wi鈥慒i</string>
     <string name="gesture_action_toggle_mobile_data">Toggle mobile data</string>

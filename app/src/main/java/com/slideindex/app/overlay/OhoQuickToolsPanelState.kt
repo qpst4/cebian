@@ -359,10 +359,10 @@ class OhoQuickToolsPanelState(
                     com.slideindex.app.gesture.GestureAction.LockScreen,
                 )
             OhoTile.FLASHLIGHT -> FlashlightHelper.toggle(appContext)
-            OhoTile.DO_NOT_DISTURB ->
-                VolumeControlHelper.toggleDnd(appContext)?.let {
-                    activeStates[OhoTile.DO_NOT_DISTURB] = VolumeControlHelper.isDndFilter(it)
-                }
+            OhoTile.DO_NOT_DISTURB -> {
+                VolumeControlHelper.toggleDnd(appContext)
+                activeStates[OhoTile.DO_NOT_DISTURB] = VolumeControlHelper.isDndEnabled(appContext)
+            }
             OhoTile.SCREEN_RECORD -> {
                 ScreenRecordHelper.toggle(appContext)
                 activeStates[OhoTile.SCREEN_RECORD] = ScreenRecordHelper.isRecording

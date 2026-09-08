@@ -1049,6 +1049,7 @@
     <string name="gesture_action_open_floating_pointer_radial_menu_desc">长按摇杆时打开摇杆功能环</string>
     <string name="gesture_action_open_floating_pointer_radial_menu_permission">需要开启边栏</string>
     <string name="gesture_action_toggle_dnd">勿扰模式开关</string>
+    <string name="gesture_action_toggle_dnd_failed">无法切换勿扰模式</string>
     <string name="gesture_action_screen_record">录屏</string>
     <string name="gesture_action_toggle_wifi">Wi-Fi 开关</string>
     <string name="gesture_action_toggle_mobile_data">移动数据开关</string>

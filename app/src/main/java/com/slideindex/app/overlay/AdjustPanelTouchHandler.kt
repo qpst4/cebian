@@ -1,6 +1,8 @@
 package com.slideindex.app.overlay
 
 import android.view.MotionEvent
+import android.widget.Toast
+import com.slideindex.app.R
 import com.slideindex.app.util.BrightnessControlHelper
 import com.slideindex.app.util.ContinuousAdjustController
 import com.slideindex.app.util.PermissionHelper
@@ -29,8 +31,18 @@ internal class AdjustPanelTouchHandler(
                             if (!VolumeControlHelper.hasAccess(host.context)) {
                                 PermissionHelper.requestNotificationPolicyAccess(host.context)
                             } else {
-                                host.actionExecutor().toggleDnd()?.let { state.interruptionFilter = it }
-                                host.hapticConfirmLaunch()
+                                val executor = host.actionExecutor()
+                                val changed = executor.toggleDnd() != null
+                                state.interruptionFilter = executor.readInterruptionFilter()
+                                if (changed) {
+                                    host.hapticConfirmLaunch()
+                                } else {
+                                    Toast.makeText(
+                                        host.context.applicationContext,
+                                        R.string.gesture_action_toggle_dnd_failed,
+                                        Toast.LENGTH_SHORT,
+                                    ).show()
+                                }
                             }
                             host.invalidate()
                             return true

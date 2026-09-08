@@ -4,6 +4,7 @@ import android.app.NotificationManager
 import android.content.Context
 import android.media.AudioManager
 import android.util.Log
+import com.slideindex.app.privilege.PrivilegeGateway
 import kotlin.math.roundToInt
 
 object VolumeControlHelper {
@@ -54,21 +55,71 @@ object VolumeControlHelper {
         else -> true
     }
 
+    /**
+     * Toggles system Do Not Disturb.
+     *
+     * Uses `cmd notification set_dnd` when privileged shell access is available (Flyme/OEM
+     * often ignores [NotificationManager.setInterruptionFilter]), otherwise falls back to the API.
+     *
+     * @return the current interruption filter after the attempt when the enabled state changed,
+     *         or null when access is missing, the call failed, or the system state did not change.
+     */
     fun toggleDnd(context: Context): Int? {
         if (!hasAccess(context)) return null
+        val appContext = context.applicationContext
+        if (TaskManagerUtil.hasPermission()) {
+            toggleDndViaShell(appContext)?.let { return it }
+        }
+        return toggleDndViaNotificationManager(appContext)
+    }
+
+    private fun toggleDndViaShell(context: Context): Int? {
+        val beforeEnabled = isDndEnabled(context)
+        val mode = if (beforeEnabled) "off" else "priority"
+        val result = TaskManagerUtil.runShellCommandLine(
+            command = "cmd notification set_dnd $mode",
+            useRoot = PrivilegeGateway.isRootMode(),
+        )
+        if (!result.success) {
+            Log.w(
+                TAG,
+                "toggle dnd shell failed: mode=$mode exit=${result.exitCode} output=${result.output}",
+            )
+            return null
+        }
+        return readInterruptionFilterIfChanged(context, beforeEnabled, "shell:$mode")
+    }
+
+    private fun toggleDndViaNotificationManager(context: Context): Int? {
         val manager = notificationManager(context) ?: return null
         return runCatching {
-            val next = if (isDndEnabled(context)) {
+            val beforeEnabled = isDndEnabled(context)
+            val requested = if (beforeEnabled) {
                 NotificationManager.INTERRUPTION_FILTER_ALL
             } else {
                 NotificationManager.INTERRUPTION_FILTER_PRIORITY
             }
-            manager.setInterruptionFilter(next)
-            next
+            manager.setInterruptionFilter(requested)
+            readInterruptionFilterIfChanged(context, beforeEnabled, "api:$requested")
         }.getOrElse { error ->
-            Log.w(TAG, "toggle dnd failed", error)
+            Log.w(TAG, "toggle dnd api failed", error)
             null
         }
+    }
+
+    private fun readInterruptionFilterIfChanged(
+        context: Context,
+        beforeEnabled: Boolean,
+        via: String,
+    ): Int? {
+        val after = readInterruptionFilter(context)
+        val afterEnabled = isDndFilter(after)
+        if (beforeEnabled == afterEnabled) {
+            Log.w(TAG, "toggle dnd had no effect via $via after=$after")
+            return null
+        }
+        Log.i(TAG, "toggle dnd ok via $via after=$after")
+        return after
     }
 
     fun readFraction(context: Context, stream: Stream): Float {
