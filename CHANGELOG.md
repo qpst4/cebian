@@ -4,6 +4,23 @@ All notable changes to Cebian are documented in this file.
 
 ## [Unreleased]
 
+## [1.9.45] - 2026-09-08
+
+### Added
+- **应用内语言**：补齐中/日/英字符串资源，支持应用内切换语言；浮层按应用语言读取资源
+- **OCR / VLM**：新增云端 VLM 识别提供商设置与提示词控制；Formula 预处理/分词/识别链路
+- **关于与协作**：关于页新增 Weblate 参与翻译入口；补充 Weblate 配置与 CONTRIBUTING 贡献指南
+- **文档**：新增 README 日文版
+
+### Fixed
+- **剪贴板小窗**：修复 chip/大窗 outward shadow 被窗口裁切；右下角缩放手柄改为沿圆角弧线；移除顶栏 4dp 拖拽灰条
+- **音量面板**：修复勿扰模式切换，优先使用 `cmd set_dnd`
+- **悬浮层**：圆环 pinned 关闭后恢复悬浮球显示
+- **国际化**：清理剩余硬编码 UI 文案；修复 CI lint 问题
+
+### Changed
+- **本地化**：更新日语翻译
+
 ## [1.9.30] - 2026-09-07
 
 ### Added

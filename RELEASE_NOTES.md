@@ -2,7 +2,7 @@
 
 > 完整版本历史见 [CHANGELOG.md](CHANGELOG.md)。本文档侧重**当前主线版本**的产品说明与近期亮点。
 
-**当前版本：1.9.30**（versionCode 51）
+**当前版本：1.9.45**（versionCode 52）
 
 ---
 
