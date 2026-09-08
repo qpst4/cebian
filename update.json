@@ -1,7 +1,7 @@
 {
-  "version": "1.9.30",
-  "versionCode": 51,
-  "apkUrl": "https://github.com/qpst4/cebian/releases/download/v1.9.30/cebian-1.9.30-lite.apk",
-  "apkSize": 25247787,
-  "notes": "## 新增\n- 关于与社区：「关于」界面重构社区版块，独立细分 GitHub 源码仓库直达、问题反馈与需求建议、官方 QQ 交流群\n- 快捷方式：预设快捷方式库新增拼多多「取快递」快捷方式\n- 小组件面板：取消固定行数设置，支持自适应加行与编辑模式底部留白\n## 修复\n- OCR 引擎：规避 OpenCV 5.0 ARM64 下采样潜在崩溃问题\n- 分词与滑选：优化滑选起手判定为先行内横划激活，支持行尾空白吸附与免滚动直接下滑全选\n- 手势规则：预置出厂手势规则并在无配置时自动生效，清理冗余槽位读取逻辑\n- 控件审查：校验真实 Activity 并过滤系统 View 控件防止被 FrameLayout 覆盖\n- 权限与模糊：优化壁纸模糊与手势权限审计，更新无障碍服务名称\n## 变更\n- 依赖与工具链：升级工具链至 JVM 25，同步 Kotlin 2.4.10、AGP 9.4.0 与 Compose BOM 2026.08.01\n- 开源门面：全面升级中英文 README，补充全能竞品对比矩阵与社区精美矢量行动徽章"
+  "version": "1.9.45",
+  "versionCode": 52,
+  "apkUrl": "https://github.com/qpst4/cebian/releases/download/v1.9.45/cebian-1.9.45-lite.apk",
+  "apkSize": 26305924,
+  "notes": "## 新增\n- 应用内语言：补齐中/日/英字符串资源，支持应用内切换语言；浮层按应用语言读取资源\n- OCR / VLM：新增云端 VLM 识别提供商设置与提示词控制；Formula 预处理/分词/识别链路\n- 关于与协作：关于页新增 Weblate 参与翻译入口；补充 Weblate 配置与 CONTRIBUTING 贡献指南\n- 文档：新增 README 日文版\n## 修复\n- 剪贴板小窗：修复 chip/大窗 outward shadow 被窗口裁切；右下角缩放手柄改为沿圆角弧线；移除顶栏 4dp 拖拽灰条\n- 音量面板：修复勿扰模式切换，优先使用 cmd set_dnd\n- 悬浮层：圆环 pinned 关闭后恢复悬浮球显示\n- 国际化：清理剩余硬编码 UI 文案；修复 CI lint 问题\n## 变更\n- 本地化：更新日语翻译"
 }
