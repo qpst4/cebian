@@ -1643,8 +1643,8 @@
     <string name="search_engine_editor_tab_share">共有</string>
     <string name="search_engine_type_extern_jump">アプリスキーム</string>
     <string name="search_engine_url_link_hint">URL / スキームアドレス</string>
-    <string name="search_engine_url_link_support">https://、coolmarket://、intent:// などに対応。プレースホルダーに %s または %q を使用</string>
-    <string name="search_engine_url_link_flow_desc">実行ルールとフロー:
+    <string name="search_engine_url_link_support" formatted="false">https://、coolmarket://、intent:// などに対応。プレースホルダーに %s または %q を使用</string>
+    <string name="search_engine_url_link_flow_desc" formatted="false">実行ルールとフロー:
 1. パラメータ付きジャンプ: %s を使用する場合（例: .../search?q=%s）、クエリを URL に直接置換
 2. 対象アプリ: 対象パッケージを設定すると指定アプリで強制起動。未設定時はデフォルトアプリを使用
 3. 自動入力: %s 未使用かつ自動入力オン時、起動後にアクセシビリティで検索バーに入力</string>
@@ -1702,7 +1702,7 @@
     <string name="search_panel_section_menu">検索タイプを切り替え</string>
     <string name="search_engine_type_section">起動モード</string>
     <string name="search_engine_search_link_hint">検索 URL</string>
-    <string name="search_engine_search_link_support">キーワードプレースホルダーに %s または %q を使用</string>
+    <string name="search_engine_search_link_support" formatted="false">キーワードプレースホルダーに %s または %q を使用</string>
     <string name="search_engine_optional_search_link_hint">フォールバック検索 URL（任意）</string>
     <string name="search_engine_target_package_hint">対象パッケージ（任意）</string>
     <string name="search_engine_target_activity_hint">対象アクティビティ</string>
@@ -2576,6 +2576,9 @@
     <string name="about_star_github_desc">https://github.com/qpst4/cebian · Star で開発を支援</string>
     <string name="about_feedback_issues_title">Issues と機能リクエスト</string>
     <string name="about_feedback_issues_desc">GitHub でバグ報告、機能提案、プリセット共有</string>
+    <string name="about_help_translate_title">翻訳に参加</string>
+    <string name="about_help_translate_desc">このアプリの翻訳にご協力ください</string>
+    <string name="about_weblate_url">https://hosted.weblate.org/engage/cebian/</string>
     <string name="about_qq_group_title">QQ グループ</string>
     <string name="about_qq_group_desc">1042783385</string>
     <string name="about_qq_group_url">https://qm.qq.com/q/Zx4wd2LB4G</string>

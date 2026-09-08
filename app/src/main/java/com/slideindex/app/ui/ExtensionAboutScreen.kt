@@ -38,6 +38,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.Code
+import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.NewReleases
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.Schedule
@@ -237,6 +238,7 @@ private fun AboutContent(
     )
 
     val projectUrl = stringResource(R.string.about_project_url_desc)
+    val weblateUrl = stringResource(R.string.about_weblate_url)
     val qqGroupUrl = stringResource(R.string.about_qq_group_url)
     val appInfoTitle = stringResource(R.string.about_section_app_info)
     val communityTitle = stringResource(R.string.about_section_community)
@@ -456,6 +458,19 @@ private fun AboutContent(
                                 subtitle = stringResource(R.string.about_feedback_issues_desc),
                                 onClick = {
                                     val uri = (projectUrl + "/issues").toUri()
+                                    context.startActivity(Intent(Intent.ACTION_VIEW, uri))
+                                },
+                            )
+                        },
+                    )
+                    add(
+                        settingsCardScopeItem("help-translate") {
+                            SettingNavigationRow(
+                                icon = { label -> Icon(Icons.Outlined.Language, contentDescription = label) },
+                                title = stringResource(R.string.about_help_translate_title),
+                                subtitle = stringResource(R.string.about_help_translate_desc),
+                                onClick = {
+                                    val uri = weblateUrl.toUri()
                                     context.startActivity(Intent(Intent.ACTION_VIEW, uri))
                                 },
                             )
