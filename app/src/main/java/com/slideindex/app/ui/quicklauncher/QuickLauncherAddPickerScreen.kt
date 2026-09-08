@@ -253,6 +253,7 @@ fun QuickLauncherCreateFolderScreen(
     onAddItem: (QuickLauncherItem) -> Unit,
 ) {
     val context = LocalContext.current
+    val defaultFolderName = stringResource(R.string.quick_launcher_default_folder_name)
     val appRepository = rememberAppRepository()
     var allApps by remember { mutableStateOf(appRepository.getCachedApps()) }
     val folderName = draft?.name.orEmpty()
@@ -344,8 +345,7 @@ fun QuickLauncherCreateFolderScreen(
             TextButton(
                 text = stringResource(R.string.confirm),
                 onClick = {
-                    val defaultName = context.getString(R.string.quick_launcher_default_folder_name)
-                    val finalName = folderName.trim().ifBlank { defaultName }
+                    val finalName = folderName.trim().ifBlank { defaultFolderName }
                     onConfirmCreateFolder(finalName, folderItems)
                 },
             )

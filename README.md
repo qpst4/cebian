@@ -7,7 +7,7 @@
 **All-in-One Open-Source Alternative to Samsung One Hand Operation+ (OHO+), Quick Cursor & FooView**  
 *Edge Panels · Reachability Floating Cursor · Floating Ball OCR & Reverse Image Search · Shake & Back-Tap Gestures · Notification & OTP Manager · App Freezer · Freeform Window · Shizuku & LSPosed*
 
-**English** | [简体中文](README_zh.md)
+**English** | [简体中文](README_zh.md) | [日本語](README_ja.md)
 
 [![Release](https://img.shields.io/github/v/release/qpst4/cebian?style=flat-square&color=6340e6)](https://github.com/qpst4/cebian/releases)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=flat-square)](LICENSE)

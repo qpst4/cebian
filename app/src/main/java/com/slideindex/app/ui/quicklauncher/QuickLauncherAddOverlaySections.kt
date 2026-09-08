@@ -684,7 +684,7 @@ internal fun QuickLauncherCreateFolderScreen(
     searchQuery: String = "",
     onSubScreenChange: (QuickLauncherAddSubScreen) -> Unit = {},
 ) {
-    val context = LocalContext.current
+    val defaultFolderName = stringResource(R.string.quick_launcher_default_folder_name)
     val configuredActionKeys = remember(folderItems) {
         folderItems.filter { it.type == QuickLauncherItemType.ACTION }
             .mapNotNull { QuickLauncherItemCodec.parseActionPayload(it.payload)?.let(QuickLauncherItemCodec::actionKey) }
@@ -772,8 +772,7 @@ internal fun QuickLauncherCreateFolderScreen(
         ) {
             androidx.compose.material3.Button(
                 onClick = {
-                    val defaultName = context.getString(R.string.quick_launcher_default_folder_name)
-                    val finalName = folderName.trim().ifBlank { defaultName }
+                    val finalName = folderName.trim().ifBlank { defaultFolderName }
                     onCreateFolder(finalName, folderItems)
                 },
                 modifier = Modifier.fillMaxWidth(),

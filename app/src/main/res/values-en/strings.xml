@@ -3169,9 +3169,9 @@ Start Shizuku via adb/wireless debugging instead.</string>
     <string name="shell_user_service_failed">Shizuku UserService connection failed. Restart Shizuku and retry.</string>
     <string name="shell_command_timeout">Shell command timed out (%1$d s). Retry.</string>
     <string name="shell_command_empty">Command is empty</string>
-    <string name="shell_connect_failed">Cannot connect to Shell service (expected build=%1$s).
+    <string name="shell_connect_failed">Cannot connect to Shell service (expected build=%1$d).
 Tap Restart Shell service; if it still fails, fully close Shizuku and this app, then retry.</string>
-    <string name="shell_shizuku_api_outdated">Shizuku service too old (api=%1$s). Restart Shizuku and retry.</string>
+    <string name="shell_shizuku_api_outdated">Shizuku service too old (api=%1$d). Restart Shizuku and retry.</string>
     <string name="shell_root_uid_warning">Command still runs as root (uid=0).
 adb mode should return uid=2000.
 If Shizuku was started as Root, use wireless debugging/adb instead,

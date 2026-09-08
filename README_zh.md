@@ -7,7 +7,7 @@
 **打破三星独占的 OHO+、全开源现代化 FooView、免买断单手触达指针的集大成者**  
 *边缘手势 · 单手光标触达 · 悬浮球离线取词搜图 · 摇晃/扣桌/敲击手势 · 通知与 OTP 管理 · 应用冻结 · 自由小窗 · Shizuku & LSPosed*
 
-**简体中文** | [English](README.md)
+**简体中文** | [English](README.md) | [日本語](README_ja.md)
 
 [![Release](https://img.shields.io/github/v/release/qpst4/cebian?style=flat-square&color=6340e6)](https://github.com/qpst4/cebian/releases)
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue?style=flat-square)](LICENSE)

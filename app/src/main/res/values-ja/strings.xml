@@ -3157,9 +3157,9 @@ adb/ワイヤレスデバッグで Shizuku を起動してください。</strin
     <string name="shell_user_service_failed">Shizuku UserService への接続に失敗しました。Shizuku を再起動して再試行してください。</string>
     <string name="shell_command_timeout">Shell コマンドがタイムアウトしました（%1$d 秒）。再試行してください。</string>
     <string name="shell_command_empty">コマンドが空です</string>
-    <string name="shell_connect_failed">Shell サービスに接続できません（期待 build=%1$s）。
+    <string name="shell_connect_failed">Shell サービスに接続できません（期待 build=%1$d）。
 「Shell サービスを再起動」をタップ。失敗する場合は Shizuku と本アプリを完全終了して再試行してください。</string>
-    <string name="shell_shizuku_api_outdated">Shizuku サービスのバージョンが古いです (api=%1$s)。Shizuku を再起動して再試行してください。</string>
+    <string name="shell_shizuku_api_outdated">Shizuku サービスのバージョンが古いです (api=%1$d)。Shizuku を再起動して再試行してください。</string>
     <string name="shell_root_uid_warning">コマンドは root 権限 (uid=0) で実行されています。
 adb モードでは uid=2000 である必要があります。
 Shizuku を Root で起動した場合はワイヤレスデバッグ/adb で起動するか、

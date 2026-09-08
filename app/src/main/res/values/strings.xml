@@ -3168,9 +3168,9 @@
     <string name="shell_user_service_failed">Shizuku UserService 连接失败，请重启 Shizuku 后重试</string>
     <string name="shell_command_timeout">Shell 命令超时（%1$d s），请重试</string>
     <string name="shell_command_empty">命令为空</string>
-    <string name="shell_connect_failed">无法连接 Shell 服务（期望 build=%1$s）。
+    <string name="shell_connect_failed">无法连接 Shell 服务（期望 build=%1$d）。
 请点击「重启 Shell 服务」；若仍失败，请完全关闭 Shizuku 与本应用后重试。</string>
-    <string name="shell_shizuku_api_outdated">Shizuku 服务版本过旧 (api=%1$s)，请重启 Shizuku 后重试</string>
+    <string name="shell_shizuku_api_outdated">Shizuku 服务版本过旧 (api=%1$d)，请重启 Shizuku 后重试</string>
     <string name="shell_root_uid_warning">命令仍在 root 身份下执行（uid=0）。
 adb 模式应返回 uid=2000。
 若 Shizuku 以 Root 启动，请改用无线调试/adb 方式启动 Shizuku，
