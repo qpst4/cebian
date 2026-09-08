@@ -18,6 +18,7 @@ import android.os.SystemClock
 import android.util.Log
 
 import com.slideindex.app.ocr.OcrDependencyAccess
+import com.slideindex.app.ocr.OcrRecognizeResult
 
 import com.slideindex.app.overlay.FloatBallOcrRegions
 import com.slideindex.app.overlay.RegionalScreenshotCrop
@@ -105,7 +106,7 @@ object RegionalScreenshotOcr {
 
         return try {
 
-            recognizeBitmapPublic(context, modelId, cropped)?.trim()?.takeIf { it.isNotEmpty() }
+            recognizeBitmapPublic(context, modelId, cropped).textOrNull()
 
         } finally {
 
@@ -125,11 +126,12 @@ object RegionalScreenshotOcr {
 
         bitmap: Bitmap,
 
-    ): String? {
+    ): OcrRecognizeResult {
 
-        if (modelId.isBlank()) return null
+        if (modelId.isBlank()) return OcrRecognizeResult.Failure("未选择 OCR 模型")
 
-        val service = OcrDependencyAccess.inferenceService(context) ?: return null
+        val service = OcrDependencyAccess.inferenceService(context)
+            ?: return OcrRecognizeResult.Failure("OCR 服务不可用")
 
         return try {
 
@@ -139,7 +141,7 @@ object RegionalScreenshotOcr {
 
             Log.w(TAG, "ocr failed", error)
 
-            null
+            OcrRecognizeResult.Failure("识别异常：${error.localizedMessage ?: error.message ?: "未知错误"}")
 
         }
 

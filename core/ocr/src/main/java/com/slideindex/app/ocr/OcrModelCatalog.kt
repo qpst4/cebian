@@ -34,6 +34,7 @@ object OcrEngines {
     const val PPOCR = "ppocr"
     const val MLKIT_CHINESE = "mlkit_chinese"
     const val TESSERACT = "tesseract"
+    const val VLM_FORMULA = "vlm_formula"
 }
 
 @Serializable

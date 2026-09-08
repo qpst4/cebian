@@ -785,10 +785,14 @@
     <string name="float_ball_ocr_fallback_desc">When accessibility pick fails, use a local OCR model on the screenshot</string>
     <string name="float_ball_ocr_models">OCR model manager</string>
     <string name="ocr_models_title">OCR models</string>
-    <string name="ocr_models_subtitle">All models must be downloaded before use</string>
+    <string name="ocr_models_subtitle">Manage offline OCR engines &amp; cloud vision models</string>
+    <string name="ocr_tab_local">Local (Offline)</string>
+    <string name="ocr_tab_cloud">Cloud (VLM)</string>
     <string name="ocr_models_section_available">Available models</string>
+    <string name="ocr_models_section_cloud">Vision-Language Models</string>
     <string name="ocr_models_clear_selection">Clear current selection</string>
-    <string name="ocr_models_hint">OCR engines are bundled in the APK; download models as needed. ML Kit Chinese uses Play services.</string>
+    <string name="ocr_models_hint">Offline models run locally on device without network. Download on demand. ML Kit Chinese uses Play services.</string>
+    <string name="ocr_models_cloud_hint">Cloud VLMs recognize complex formulas, handwritten layouts, and tables via API. Easily switch or add custom models.</string>
     <string name="ocr_download_step_engine">Downloading OCR engine (%1$d/%2$d)…</string>
     <string name="ocr_download_step_model">Downloading model (%1$d/%2$d)…</string>
     <string name="translate_download_step_engine">Downloading translate engine (%1$d/%2$d)…</string>

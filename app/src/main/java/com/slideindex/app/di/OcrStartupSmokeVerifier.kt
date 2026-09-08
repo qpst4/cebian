@@ -52,6 +52,7 @@ class OcrStartupSmokeVerifier @Inject constructor(
                 runCatching { inference.recognizeBitmap(modelId, bitmap) }
                     .onFailure { error -> Log.e(TAG, "smoke recognize failed modelId=$modelId", error) }
                     .getOrNull()
+                    ?.textOrNull()
             }
             if (!bitmap.isRecycled) bitmap.recycle()
             if (text.isNullOrBlank()) {

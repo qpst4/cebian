@@ -23,6 +23,7 @@ class OcrInferenceService @Inject constructor(
     private val repository: OcrModelRepository,
     private val catalogProvider: OcrModelCatalogProvider,
     private val nativeEnginePackCoordinator: NativeEnginePackCoordinator,
+    private val vlmConfigManager: com.slideindex.app.ocr.vlm.VlmOcrConfigManager,
 ) {
     private companion object {
         private const val TAG = "OcrInferenceService"
@@ -34,14 +35,14 @@ class OcrInferenceService @Inject constructor(
     private var paddleOcr: PaddleOCR? = null
     private var openCvInitialized = false
 
-    suspend fun recognizeBitmap(modelId: String, bitmap: Bitmap): String? {
+    suspend fun recognizeBitmap(modelId: String, bitmap: Bitmap): OcrRecognizeResult {
         val entry = catalogProvider.findModel(modelId) ?: run {
             Log.w(TAG, "recognize skipped: unknown modelId=$modelId")
-            return null
+            return OcrRecognizeResult.Failure("未知 OCR 模型：$modelId")
         }
         if (!repository.isInstalled(modelId)) {
             Log.w(TAG, "recognize skipped: model not installed modelId=$modelId")
-            return null
+            return OcrRecognizeResult.Failure("OCR 模型未安装")
         }
         return withContext(Dispatchers.Default) {
             mutex.withLock {
@@ -49,24 +50,42 @@ class OcrInferenceService @Inject constructor(
                     OcrEngines.PPOCR -> {
                         if (!nativeEnginePackCoordinator.ensurePackReady(NativeEnginePackIds.OCR)) {
                             Log.w(TAG, "recognize skipped: OCR native engine pack not ready")
-                            return@withLock null
+                            return@withLock OcrRecognizeResult.Failure("OCR 运行库未就绪")
                         }
                         recognizeWithPpOcr(modelId, bitmap)
                     }
                     OcrEngines.MLKIT_CHINESE -> {
                         ensureEngine(modelId, entry.engine)
-                        MlKitTextRecognizer.recognize(bitmap)
+                        val text = MlKitTextRecognizer.recognize(bitmap)?.trim().orEmpty()
+                        text.toSuccessOrEmptyFailure()
                     }
                     OcrEngines.TESSERACT -> {
-                        if (!nativeEnginePackCoordinator.ensurePackReady(NativeEnginePackIds.OCR)) return@withLock null
+                        if (!nativeEnginePackCoordinator.ensurePackReady(NativeEnginePackIds.OCR)) {
+                            return@withLock OcrRecognizeResult.Failure("OCR 运行库未就绪")
+                        }
                         ensureEngine(modelId, entry.engine)
-                        TesseractTextRecognizer.recognize(
+                        val text = TesseractTextRecognizer.recognize(
                             modelId = modelId,
                             dataRoot = repository.modelRoot(modelId),
                             bitmap = bitmap,
+                        )?.trim().orEmpty()
+                        text.toSuccessOrEmptyFailure()
+                    }
+                    OcrEngines.VLM_FORMULA -> {
+                        val apiKey = vlmConfigManager.apiKey
+                        if (apiKey.isBlank()) {
+                            Log.w(TAG, "recognize skipped: VLM API key not configured")
+                            return@withLock OcrRecognizeResult.Failure("未配置 API Key，请在 OCR 模型管理 → 云端配置")
+                        }
+                        com.slideindex.app.ocr.vlm.VlmFormulaOcrEngine.recognize(
+                            bitmap = bitmap,
+                            apiKey = apiKey,
+                            baseUrl = vlmConfigManager.baseUrl,
+                            model = vlmConfigManager.model,
+                            prompt = vlmConfigManager.prompt,
                         )
                     }
-                    else -> null
+                    else -> OcrRecognizeResult.Failure("不支持的 OCR 引擎")
                 }
             }
         }
@@ -98,11 +117,11 @@ class OcrInferenceService @Inject constructor(
         }
     }
 
-    private suspend fun recognizeWithPpOcr(modelId: String, bitmap: Bitmap): String? {
+    private suspend fun recognizeWithPpOcr(modelId: String, bitmap: Bitmap): OcrRecognizeResult {
         ensureEngine(modelId, OcrEngines.PPOCR)
         val engine = paddleOcr ?: run {
             Log.w(TAG, "recognize skipped: PaddleOCR engine not initialized modelId=$modelId")
-            return null
+            return OcrRecognizeResult.Failure("PaddleOCR 引擎未初始化")
         }
         val result = engine.recognize(bitmap)
         val text = result.results
@@ -111,7 +130,7 @@ class OcrInferenceService @Inject constructor(
         if (text.isEmpty()) {
             Log.i(TAG, "recognize empty: modelId=$modelId boxes=${result.lineCount}")
         }
-        return text.takeIf { it.isNotEmpty() }
+        return text.toSuccessOrEmptyFailure()
     }
 
     private suspend fun ensureEngine(modelId: String, engine: String) {
@@ -172,4 +191,11 @@ class OcrInferenceService @Inject constructor(
         loadedModelId = null
         loadedEngine = null
     }
+
+    private fun String.toSuccessOrEmptyFailure(): OcrRecognizeResult =
+        if (isNotBlank()) {
+            OcrRecognizeResult.Success(this)
+        } else {
+            OcrRecognizeResult.Failure("未识别到文字")
+        }
 }

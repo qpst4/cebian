@@ -417,17 +417,21 @@ object InspireCoordinator {
             try {
                 val ocrStart = SystemClock.elapsedRealtime()
                 PickPerf.mark("ocr_async_start", "model=$ocrModelId")
-                val ocrText = RegionalScreenshotOcr.recognizeBitmapPublic(
+                val ocrResult = RegionalScreenshotOcr.recognizeBitmapPublic(
                     context,
                     ocrModelId,
                     ocrCopy,
-                )?.trim()?.takeIf { it.isNotEmpty() }
-                PickPerf.markStepDuration("ocr_async_end", ocrStart, "len=${ocrText?.length ?: 0}")
+                )
+                PickPerf.markStepDuration("ocr_async_end", ocrStart, "len=${ocrResult.textOrNull()?.length ?: 0}")
                 withContext(Dispatchers.Main.immediate) {
-                    if (!ocrText.isNullOrBlank()) {
-                        FloatBallPickResultPanel.updateOcrText(ocrText, switchToOcrOnComplete)
-                    } else {
-                        FloatBallPickResultPanel.finishOcrPending()
+                    when (ocrResult) {
+                        is com.slideindex.app.ocr.OcrRecognizeResult.Success -> {
+                            FloatBallPickResultPanel.updateOcrText(ocrResult.text, switchToOcrOnComplete)
+                        }
+                        is com.slideindex.app.ocr.OcrRecognizeResult.Failure -> {
+                            FloatBallPickResultPanel.finishOcrPending()
+                            FloatBallPickResultPanel.showOcrError(context, ocrResult.reason)
+                        }
                     }
                 }
             } finally {
@@ -471,8 +475,8 @@ object InspireCoordinator {
             PickPerf.mark("ocr_start", "model=$ocrModelId")
             val recognized = screenshotHandle?.requireBitmap()?.let { bitmap ->
                 withContext(ocrDispatcher) {
-                    RegionalScreenshotOcr.recognizeBitmapPublic(context, ocrModelId, bitmap)
-                }?.trim()?.takeIf { it.isNotEmpty() }
+                    RegionalScreenshotOcr.recognizeBitmapPublic(context, ocrModelId, bitmap).textOrNull()
+                }
             }
             PickPerf.markStepDuration("ocr_end", ocrStart, "len=${recognized?.length ?: 0}")
             recognized

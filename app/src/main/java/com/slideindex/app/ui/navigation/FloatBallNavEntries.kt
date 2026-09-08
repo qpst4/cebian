@@ -34,6 +34,7 @@ import com.slideindex.app.ui.SearchEnginePreviewSortScreen
 import com.slideindex.app.ui.SearchEngineSettingsScreen
 import com.slideindex.app.ui.ShareImageOcrHistoryScreen
 import com.slideindex.app.ui.TranslateModelSettingsScreen
+import com.slideindex.app.ui.VlmOcrSettingsScreen
 import com.slideindex.app.ui.picker.ActivityShortcutPickActivityScreen
 import com.slideindex.app.ui.picker.ActivityShortcutPickAppScreen
 import com.slideindex.app.ui.picker.MyShortcutsFolderScreen
@@ -712,6 +713,25 @@ fun NavEntryBuilder.floatBallNavEntries(ctx: MainNavContext) {
             onDeleteOcrEngine = viewModel::deleteOcrEngine,
             onOpenEngineManagement = { ctx.navigate(AppNavKey.NativeEnginePacks) },
             onWifiOnlyChange = viewModel::setDownloadWifiOnly,
+            vlmConfigManager = viewModel.vlmConfigManager,
+            onNavigateToVlmSettings = { providerId -> ctx.navigate(AppNavKey.VlmOcrSettings(providerId)) },
+            onSelectProviderAndModel = viewModel::selectProviderAndModel,
+        )
+    }
+
+    hiltEntry<AppNavKey.VlmOcrSettings> { key ->
+        val viewModel: OcrModelSettingsViewModel = hiltViewModel()
+        VlmOcrSettingsScreen(
+            vlmConfigManager = viewModel.vlmConfigManager,
+            providerId = key.providerId,
+            onBack = { ctx.navigateBackTo(AppNavKey.OcrModels) },
+            onUpdateVlmConfig = { apiKey, baseUrl, model, promptEnabled, promptDraft ->
+                viewModel.updateVlmConfig(apiKey, baseUrl, model, promptEnabled, promptDraft)
+            },
+            onUpdateProviderConfig = { provider, apiKey, baseUrl, model, promptEnabled, promptDraft ->
+                viewModel.updateProviderConfig(provider, apiKey, baseUrl, model, promptEnabled, promptDraft)
+            },
+            onNotifyWarning = viewModel::showWarning,
         )
     }
 }

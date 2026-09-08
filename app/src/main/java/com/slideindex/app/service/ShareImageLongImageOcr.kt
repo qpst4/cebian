@@ -222,7 +222,7 @@ object ShareImageLongImageOcr {
                                 context,
                                 modelId,
                                 tile,
-                            )?.trim()?.takeIf { it.isNotEmpty() }
+                            ).textOrNull()
                             if (text != null) {
                                 tileTexts.add(text)
                             }

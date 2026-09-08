@@ -1356,10 +1356,14 @@
     <string name="float_ball_ocr_fallback_desc">无障碍取词失败时，使用本地 OCR 模型识别截图文字</string>
     <string name="float_ball_ocr_models">OCR 模型管理</string>
     <string name="ocr_models_title">OCR 模型</string>
-    <string name="ocr_models_subtitle">所有模型均需下载后使用</string>
+    <string name="ocr_models_subtitle">管理端侧离线引擎与云端视觉大模型</string>
+    <string name="ocr_tab_local">本地 (离线)</string>
+    <string name="ocr_tab_cloud">云端 (大模型)</string>
     <string name="ocr_models_section_available">可用模型</string>
+    <string name="ocr_models_section_cloud">云端大模型</string>
     <string name="ocr_models_clear_selection">清除当前选用</string>
-    <string name="ocr_models_hint">OCR 引擎已内置在安装包中；按需下载具体模型即可。ML Kit 中文通过 Play 服务安装。</string>
+    <string name="ocr_models_hint">离线模型无需联网即可在本地识别；按需下载具体模型即可。ML Kit 中文通过 Play 服务安装。</string>
+    <string name="ocr_models_cloud_hint">云端视觉模型通过网络调用，对复杂公式、手写排版及表格还原度极佳；支持快捷切换生效模型或自定义添加。</string>
     <string name="ocr_download_step_engine">正在下载 OCR 引擎（%1$d/%2$d）…</string>
     <string name="ocr_download_step_model">正在下载模型（%1$d/%2$d）…</string>
     <string name="translate_download_step_engine">正在下载翻译引擎（%1$d/%2$d）…</string>

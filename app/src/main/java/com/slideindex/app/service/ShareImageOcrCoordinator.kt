@@ -290,29 +290,36 @@ object ShareImageOcrCoordinator {
         if (activeSession == null) return
         scope.launch(ocrDispatcher) {
             val session = activeSession
-            val ocrText = try {
+            val (ocrText, failureReason) = try {
                 if (session == null) {
-                    null
+                    null to null
                 } else {
                     val bitmap = decodeShareImage(session.appContext, cachedUri)
                     if (bitmap == null) {
-                        null
+                        null to null
                     } else {
                         try {
-                            RegionalScreenshotOcr.recognizeBitmapPublic(
-                                session.appContext,
-                                modelId,
-                                bitmap,
-                            )?.trim()?.takeIf { it.isNotEmpty() }
+                            when (
+                                val result = RegionalScreenshotOcr.recognizeBitmapPublic(
+                                    session.appContext,
+                                    modelId,
+                                    bitmap,
+                                )
+                            ) {
+                                is com.slideindex.app.ocr.OcrRecognizeResult.Success ->
+                                    result.textOrNull() to null
+                                is com.slideindex.app.ocr.OcrRecognizeResult.Failure ->
+                                    null to result.reason
+                            }
                         } finally {
                             bitmap.recycle()
                         }
                     }
                 }
-            } catch (_: Throwable) {
-                null
+            } catch (error: Throwable) {
+                null to (error.localizedMessage ?: error.message)
             }
-            deliverOcrResult(ocrText)
+            deliverOcrResult(ocrText, failureReason)
         }
     }
 
@@ -342,7 +349,7 @@ object ShareImageOcrCoordinator {
         }
     }
 
-    private suspend fun deliverOcrResult(ocrText: String?) {
+    private suspend fun deliverOcrResult(ocrText: String?, failureReason: String? = null) {
         val session = activeSession ?: return
         val reopenAfterBackground = session.backgroundRequested
         val historyEnabled = OverlayDependencyAccess.overlayDependencies(session.appContext)
@@ -393,14 +400,18 @@ object ShareImageOcrCoordinator {
                     ).show()
                 }
             } else {
+                val message = failureReason
+                    ?: session.appContext.getString(R.string.float_ball_text_not_found)
                 if (FloatBallPickResultPanel.isShowing) {
                     FloatBallPickResultPanel.finishOcrPending()
+                    FloatBallPickResultPanel.showOcrError(session.appContext, message)
+                } else {
+                    Toast.makeText(
+                        session.appContext,
+                        message,
+                        Toast.LENGTH_SHORT,
+                    ).show()
                 }
-                Toast.makeText(
-                    session.appContext,
-                    R.string.float_ball_text_not_found,
-                    Toast.LENGTH_SHORT,
-                ).show()
             }
             endSession(session)
         }

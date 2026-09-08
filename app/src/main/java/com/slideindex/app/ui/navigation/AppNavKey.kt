@@ -369,6 +369,7 @@ sealed interface AppNavKey : NavKey {
     @Serializable data object SearchPanelSystemSettingsSearch : AppNavKey
     @Serializable data object FloatBall : AppNavKey
     @Serializable data object OcrModels : AppNavKey
+    @Serializable data class VlmOcrSettings(val providerId: String? = null) : AppNavKey
     @Serializable data object NativeEnginePacks : AppNavKey
     @Serializable data object FloatBallAppearance : AppNavKey
     @Serializable data object FloatBallStyle : AppNavKey

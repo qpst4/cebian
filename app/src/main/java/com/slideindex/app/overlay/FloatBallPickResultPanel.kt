@@ -1744,6 +1744,16 @@ object FloatBallPickResultPanel {
         PickPerf.mark("panel_ocr_pending_done", "empty=true")
     }
 
+    fun showOcrError(context: Context, message: String) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { showOcrError(context, message) }
+            return
+        }
+        ocrLoadingState?.value = false
+        val hostContext = appContext ?: context.applicationContext
+        Toast.makeText(hostContext, message, Toast.LENGTH_SHORT).show()
+    }
+
     fun requestHistoryImageOcr(context: Context) {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             mainHandler.post { requestHistoryImageOcr(context) }
@@ -1804,23 +1814,32 @@ object FloatBallPickResultPanel {
         historyOcrJob?.cancel()
         ocrLoadingState?.value = true
         historyOcrJob = historyOcrScope.launch(Dispatchers.IO) {
-            val recognized = runCatching {
+            val result = runCatching {
                 RegionalScreenshotOcr.recognizeBitmapPublic(appContext, modelId, bitmap)
-                    ?.trim()
-                    ?.takeIf { it.isNotEmpty() }
-            }.getOrNull()
+            }.getOrElse {
+                com.slideindex.app.ocr.OcrRecognizeResult.Failure(
+                    "识别异常：${it.localizedMessage ?: it.message ?: "未知错误"}",
+                )
+            }
             withContext(Dispatchers.Main.immediate) {
                 if (requestId != historyOcrRequestId) return@withContext
-                ocrLoadingState?.value = false
-                if (!recognized.isNullOrBlank()) {
-                    ocrTextsByImageIndexState?.value =
-                        (ocrTextsByImageIndexState?.value ?: emptyMap()) + (index to recognized)
-                    ocrAvailableState?.value = true
-                    ocrTextState?.value = recognized
-                    if (textSourceState?.value == PickResultTextSource.OCR) {
-                        clearTranslateState()
-                        textState?.value = recognized
-                        activeTextState?.value = recognized
+                when (result) {
+                    is com.slideindex.app.ocr.OcrRecognizeResult.Success -> {
+                        val recognized = result.text.trim()
+                        ocrLoadingState?.value = false
+                        ocrTextsByImageIndexState?.value =
+                            (ocrTextsByImageIndexState?.value ?: emptyMap()) + (index to recognized)
+                        ocrAvailableState?.value = true
+                        ocrTextState?.value = recognized
+                        if (textSourceState?.value == PickResultTextSource.OCR) {
+                            clearTranslateState()
+                            textState?.value = recognized
+                            activeTextState?.value = recognized
+                        }
+                    }
+                    is com.slideindex.app.ocr.OcrRecognizeResult.Failure -> {
+                        ocrLoadingState?.value = false
+                        showOcrError(context, result.reason)
                     }
                 }
             }

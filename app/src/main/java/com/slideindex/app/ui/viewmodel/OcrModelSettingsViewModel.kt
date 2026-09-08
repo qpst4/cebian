@@ -37,8 +37,51 @@ class OcrModelSettingsViewModel @Inject constructor(
     private val inferenceService: OcrInferenceService,
     private val nativeEnginePackCoordinator: NativeEnginePackCoordinator,
     private val nativeEnginePackCatalogProvider: NativeEnginePackCatalogProvider,
+    val vlmConfigManager: com.slideindex.app.ocr.vlm.VlmOcrConfigManager,
 ) : SettingsViewModel(settingsRepository, userMessageBus, context) {
     val catalogModels: List<OcrModelEntry> = catalogProvider.allModels()
+
+    fun updateVlmConfig(
+        apiKey: String,
+        baseUrl: String,
+        model: String,
+        promptEnabled: Boolean,
+        promptDraft: String,
+    ) {
+        vlmConfigManager.apiKey = apiKey
+        vlmConfigManager.baseUrl = baseUrl
+        vlmConfigManager.model = model
+        vlmConfigManager.setProviderPromptConfig(
+            vlmConfigManager.activeProvider,
+            promptEnabled,
+            promptDraft,
+        )
+    }
+
+    fun updateProviderConfig(
+        provider: com.slideindex.app.ocr.vlm.VlmProvider,
+        apiKey: String,
+        baseUrl: String,
+        model: String,
+        promptEnabled: Boolean,
+        promptDraft: String,
+    ) {
+        vlmConfigManager.setApiKey(provider, apiKey)
+        vlmConfigManager.setBaseUrl(provider, baseUrl)
+        vlmConfigManager.setModel(provider, model)
+        vlmConfigManager.setProviderPromptConfig(provider, promptEnabled, promptDraft)
+        vlmConfigManager.setActiveProvider(provider)
+    }
+
+    fun selectProviderAndModel(provider: com.slideindex.app.ocr.vlm.VlmProvider, modelName: String) {
+        vlmConfigManager.setActiveProvider(provider)
+        vlmConfigManager.setModel(provider, modelName)
+        selectModel("vlm-formula-qwen")
+    }
+
+    fun showWarning(message: String) {
+        userMessageBus.showError(message)
+    }
 
     val ocrEngineInstalled: Boolean
         get() = nativeEnginePackCoordinator.isPackInstalled(NativeEnginePackIds.OCR)

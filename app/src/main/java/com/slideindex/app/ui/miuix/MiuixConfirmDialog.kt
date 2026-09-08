@@ -95,6 +95,10 @@ fun MiuixFormDialog(
     confirmEnabled: Boolean = true,
     dismissText: String? = stringResource(R.string.cancel),
     dismissOnConfirm: Boolean = true,
+    secondaryConfirmText: String? = null,
+    onSecondaryConfirm: (() -> Unit)? = null,
+    secondaryConfirmEnabled: Boolean = true,
+    secondaryDismissOnConfirm: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     if (!show) return
@@ -140,6 +144,16 @@ fun MiuixFormDialog(
                             onDismissRequest()
                         }
                     },
+                    secondaryConfirmText = secondaryConfirmText,
+                    onSecondaryConfirm = onSecondaryConfirm?.let { action ->
+                        {
+                            action()
+                            if (secondaryDismissOnConfirm) {
+                                onDismissRequest()
+                            }
+                        }
+                    },
+                    secondaryConfirmEnabled = secondaryConfirmEnabled,
                 )
             } else {
                 TextButton(
@@ -200,6 +214,7 @@ private fun DialogActionsRow(
     confirmEnabled: Boolean = true,
     secondaryConfirmText: String? = null,
     onSecondaryConfirm: (() -> Unit)? = null,
+    secondaryConfirmEnabled: Boolean = true,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -209,6 +224,7 @@ private fun DialogActionsRow(
             TextButton(
                 text = secondaryConfirmText,
                 onClick = onSecondaryConfirm,
+                enabled = secondaryConfirmEnabled,
                 modifier = Modifier
                     .weight(1f)
                     .defaultMinSize(minHeight = 44.dp),
