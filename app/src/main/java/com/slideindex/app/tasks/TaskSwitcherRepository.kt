@@ -3,6 +3,7 @@ package com.slideindex.app.tasks
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import com.slideindex.app.R
 import com.slideindex.app.data.AppRepository
 import com.slideindex.app.data.AppInfo
 import com.slideindex.app.util.PinyinHelper
@@ -137,8 +138,12 @@ object TaskSwitcherRepository {
             ref.title,
         )?.let { return it }
         TaskActivityLabelResolver.resolveDisplayTitle(context, ref.identifier, null)?.let { return it }
-        if (RecentPackageResolver.isSettingsAppInfoIdentifier(ref.identifier)) return "应用信息"
-        if (RecentPackageResolver.isQuickShareIdentifier(ref.identifier)) return "快速分享"
+        if (RecentPackageResolver.isSettingsAppInfoIdentifier(ref.identifier)) {
+            return context.getString(R.string.task_switcher_app_info)
+        }
+        if (RecentPackageResolver.isQuickShareIdentifier(ref.identifier)) {
+            return context.getString(R.string.task_switcher_quick_share)
+        }
         return appInfo.label
     }
 }

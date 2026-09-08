@@ -414,7 +414,7 @@ private fun QuickLauncherAddOverlayHeader(
     searchHintResId: Int,
 ) {
     val title = when (subScreen) {
-        QuickLauncherAddSubScreen.Main -> "快速启动器 · 添加快捷项"
+        QuickLauncherAddSubScreen.Main -> stringResource(R.string.quick_launcher_add_title)
         QuickLauncherAddSubScreen.PickApp -> stringResource(R.string.activity_shortcut_pick_app_title)
         is QuickLauncherAddSubScreen.PickActivity ->
             stringResource(R.string.search_engine_pick_activity_title)
@@ -422,8 +422,8 @@ private fun QuickLauncherAddOverlayHeader(
             stringResource(R.string.gesture_shell_command_config_title)
         QuickLauncherAddSubScreen.CreateFolder ->
             stringResource(R.string.quick_launcher_create_folder)
-        QuickLauncherAddSubScreen.MyShortcuts -> "我的直达"
-        QuickLauncherAddSubScreen.PresetShortcuts -> "预设快捷方式库"
+        QuickLauncherAddSubScreen.MyShortcuts -> stringResource(R.string.quick_launcher_my_shortcuts)
+        QuickLauncherAddSubScreen.PresetShortcuts -> stringResource(R.string.quick_launcher_preset_shortcuts)
     }
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -458,7 +458,7 @@ private fun QuickLauncherAddOverlayHeader(
                 )
                 if (subScreen == QuickLauncherAddSubScreen.Main) {
                     Text(
-                        text = "可勾选多个快捷项添加到面板",
+                        text = stringResource(R.string.quick_launcher_multi_select_hint),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,

@@ -115,9 +115,10 @@ private fun SettingsCardScope.ExternalInvocationActionRow(
     entry: ExternalInvocationCatalog.ActionEntry,
     copiedMessage: String,
 ) {
+    val context = LocalContext.current
     val title = stringResource(entry.titleRes)
     val description = stringResource(entry.descriptionRes)
-    val adbCommand = ExternalInvocationCatalog.adbActionCommand(entry)
+    val adbCommand = ExternalInvocationCatalog.adbActionCommand(context, entry)
     val subtitle = buildString {
         append(description)
         append('\n')

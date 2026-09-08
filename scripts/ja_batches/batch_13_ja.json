@@ -1,0 +1,722 @@
+[
+  {
+    "name": "floating_pointer_design_crosshair_2",
+    "ja": "クロスヘア 2"
+  },
+  {
+    "name": "floating_pointer_design_crosshair_3",
+    "ja": "クロスヘア 3"
+  },
+  {
+    "name": "floating_pointer_design_crosshair_4",
+    "ja": "クロスヘア 4"
+  },
+  {
+    "name": "floating_pointer_design_crosshair_5",
+    "ja": "クロスヘア 5"
+  },
+  {
+    "name": "floating_pointer_design_crosshair_6",
+    "ja": "クロスヘア 6"
+  },
+  {
+    "name": "floating_pointer_design_crosshair_7",
+    "ja": "クロスヘア 7"
+  },
+  {
+    "name": "floating_pointer_design_crosshair_8",
+    "ja": "クロスヘア 8"
+  },
+  {
+    "name": "floating_pointer_ripple_size",
+    "ja": "リップルサイズ"
+  },
+  {
+    "name": "floating_pointer_ripple_size_value",
+    "ja": "%1$.0f dp"
+  },
+  {
+    "name": "floating_pointer_ripple_duration",
+    "ja": "リップルの表示時間"
+  },
+  {
+    "name": "floating_pointer_ripple_duration_value",
+    "ja": "%1$d ms"
+  },
+  {
+    "name": "widget_panel_blur",
+    "ja": "背景ぼかし"
+  },
+  {
+    "name": "widget_panel_blur_desc",
+    "ja": "Android 12 以降でパネル背面にすりガラス効果を適用"
+  },
+  {
+    "name": "widget_panel_grid_section",
+    "ja": "ウィジェットレイアウト"
+  },
+  {
+    "name": "widget_panel_opacity",
+    "ja": "パネルの不透明度"
+  },
+  {
+    "name": "widget_panel_add_widget",
+    "ja": "ウィジェットを追加"
+  },
+  {
+    "name": "widget_panel_page_indicator",
+    "ja": "%1$d / %2$d ページ"
+  },
+  {
+    "name": "widget_picker_title",
+    "ja": "ウィジェットを選択"
+  },
+  {
+    "name": "widget_picker_search_hint",
+    "ja": "ウィジェットを検索…"
+  },
+  {
+    "name": "widget_picker_span_size",
+    "ja": "%1$d × %2$d"
+  },
+  {
+    "name": "widget_picker_open_app_widgets",
+    "ja": "すべてのウィジェットを表示"
+  },
+  {
+    "name": "widget_panel_edit_mode",
+    "ja": "編集モード"
+  },
+  {
+    "name": "widget_panel_exit_edit",
+    "ja": "編集を終了"
+  },
+  {
+    "name": "widget_panel_edit_hint",
+    "ja": "空白部分を長押しして編集"
+  },
+  {
+    "name": "widget_loading",
+    "ja": "読み込み中…"
+  },
+  {
+    "name": "shell_panel_entry_title",
+    "ja": "シェルコマンドパネル"
+  },
+  {
+    "name": "shell_panel_entry_desc",
+    "ja": "よく使うシェルコマンドを保存してワンタップ実行"
+  },
+  {
+    "name": "shell_panel_entry_desc_count",
+    "ja": "保存済みコマンド: %1$d"
+  },
+  {
+    "name": "activity_shortcut_entry_title",
+    "ja": "アプリ内ショートカット"
+  },
+  {
+    "name": "activity_shortcut_entry_desc",
+    "ja": "アプリ内ページとアプリショートカット（WeChat クーポン/スキャナーなど）。カスタムアイコン対応"
+  },
+  {
+    "name": "activity_shortcut_entry_desc_count",
+    "ja": "保存済みショートカット: %1$d"
+  },
+  {
+    "name": "activity_shortcut_title",
+    "ja": "アプリ内ショートカット"
+  },
+  {
+    "name": "activity_shortcut_hint",
+    "ja": "ここのアイテムはジェスチャーやランチャーに割り当てできます。タップで開きます。カタログのショートカットはネイティブ/カスタムアイコンを表示。非 export の Activity には Shizuku が必要です。"
+  },
+  {
+    "name": "activity_shortcut_presets_title",
+    "ja": "おすすめ"
+  },
+  {
+    "name": "activity_shortcut_presets_desc",
+    "ja": "追加前にお試しください。追加したアイテムは「マイショートカット」に表示され、ジェスチャーに割り当てできます。"
+  },
+  {
+    "name": "activity_shortcut_mine_title",
+    "ja": "マイショートカット"
+  },
+  {
+    "name": "activity_shortcut_empty",
+    "ja": "ショートカットはまだありません"
+  },
+  {
+    "name": "activity_shortcut_add_from_presets",
+    "ja": "おすすめから追加"
+  },
+  {
+    "name": "activity_shortcut_add_from_presets_sub",
+    "ja": "WeChat などの一般的なページ"
+  },
+  {
+    "name": "activity_shortcut_browse_custom",
+    "ja": "Activity を閲覧"
+  },
+  {
+    "name": "activity_shortcut_browse_custom_sub",
+    "ja": "アプリ内の任意のページを選択"
+  },
+  {
+    "name": "activity_shortcut_add_from_shortcuts",
+    "ja": "アプリショートカットを追加"
+  },
+  {
+    "name": "activity_shortcut_add_from_shortcuts_sub",
+    "ja": "システム/アプリのショートカットから追加"
+  },
+  {
+    "name": "activity_shortcut_add_from_shell",
+    "ja": "シェルコマンドから追加"
+  },
+  {
+    "name": "activity_shortcut_add_from_shell_sub",
+    "ja": "シェルパネルの保存済みコマンドから選択"
+  },
+  {
+    "name": "activity_shortcut_pick_app_shortcut_title",
+    "ja": "ショートカットを選択"
+  },
+  {
+    "name": "activity_shortcut_change_icon",
+    "ja": "アイコンを変更"
+  },
+  {
+    "name": "activity_shortcut_reset_icon",
+    "ja": "アイコンをリセット"
+  },
+  {
+    "name": "activity_shortcut_add",
+    "ja": "ショートカットを追加"
+  },
+  {
+    "name": "activity_shortcut_pick_app_title",
+    "ja": "アプリを選択"
+  },
+  {
+    "name": "activity_shortcut_preset_add",
+    "ja": "追加"
+  },
+  {
+    "name": "activity_shortcut_preset_added",
+    "ja": "追加済み"
+  },
+  {
+    "name": "activity_shortcut_not_exported",
+    "ja": "Shizuku が必要です"
+  },
+  {
+    "name": "activity_shortcut_delete_title",
+    "ja": "ショートカットを削除"
+  },
+  {
+    "name": "activity_shortcut_delete_message",
+    "ja": "「%1$s」を削除しますか？"
+  },
+  {
+    "name": "activity_shortcut_rename",
+    "ja": "名前を変更"
+  },
+  {
+    "name": "activity_shortcut_rename_title",
+    "ja": "ショートカットの名前を変更"
+  },
+  {
+    "name": "activity_shortcut_name_hint",
+    "ja": "表示名"
+  },
+  {
+    "name": "activity_shortcut_shizuku_required",
+    "ja": "この Activity は export されていません。Shizuku が必要です。"
+  },
+  {
+    "name": "activity_shortcut_picker_section",
+    "ja": "マイショートカット"
+  },
+  {
+    "name": "activity_shortcut_browse",
+    "ja": "Activity を閲覧…"
+  },
+  {
+    "name": "activity_shortcut_browse_hint",
+    "ja": "アプリ内の任意の Activity を選択"
+  },
+  {
+    "name": "shell_panel_shizuku_label",
+    "ja": "Shizuku"
+  },
+  {
+    "name": "shell_panel_shizuku_active",
+    "ja": "有効"
+  },
+  {
+    "name": "shell_panel_shizuku_inactive",
+    "ja": "未認可"
+  },
+  {
+    "name": "shell_panel_shizuku_active_desc",
+    "ja": "シェルコマンドを実行できます"
+  },
+  {
+    "name": "shell_panel_shizuku_inactive_desc",
+    "ja": "コマンドを実行するには Shizuku を認可してください"
+  },
+  {
+    "name": "shell_panel_root_label",
+    "ja": "Root"
+  },
+  {
+    "name": "shell_panel_root_active",
+    "ja": "許可済み"
+  },
+  {
+    "name": "shell_panel_root_inactive",
+    "ja": "Root 権限なし"
+  },
+  {
+    "name": "shell_panel_root_active_desc",
+    "ja": "シェルコマンドを実行できます"
+  },
+  {
+    "name": "shell_panel_root_inactive_desc",
+    "ja": "Magisk などでこのアプリに su アクセスを許可してください"
+  },
+  {
+    "name": "shell_panel_commands_section",
+    "ja": "ショートカット"
+  },
+  {
+    "name": "shell_panel_commands_section_count",
+    "ja": "ショートカット · %1$d"
+  },
+  {
+    "name": "shell_panel_restart_success",
+    "ja": "シェルサービスを再起動しました (build=%1$d)"
+  },
+  {
+    "name": "shell_panel_restart_outdated",
+    "ja": "シェルサービスが古いです (api=%1$d)。Shizuku で更新してください"
+  },
+  {
+    "name": "shell_panel_restart_failed",
+    "ja": "シェルサービスの再起動に失敗しました。Shizuku を確認してください"
+  },
+  {
+    "name": "shell_panel_history_action",
+    "ja": "出力履歴"
+  },
+  {
+    "name": "shell_panel_empty_hint",
+    "ja": "右下の + をタップしてコマンドを追加。カードをタップで実行、長押しで編集/削除。"
+  },
+  {
+    "name": "shell_panel_add",
+    "ja": "コマンドを追加"
+  },
+  {
+    "name": "shell_panel_edit",
+    "ja": "コマンドを編集"
+  },
+  {
+    "name": "shell_panel_label_field",
+    "ja": "名前"
+  },
+  {
+    "name": "shell_panel_command_field",
+    "ja": "シェルコマンド"
+  },
+  {
+    "name": "shell_panel_edit_hint",
+    "ja": "パイプやリダイレクトも使用可能。例: dumpsys connectivity | grep wlan0"
+  },
+  {
+    "name": "shell_panel_save",
+    "ja": "保存"
+  },
+  {
+    "name": "shell_panel_cancel",
+    "ja": "キャンセル"
+  },
+  {
+    "name": "shell_panel_delete",
+    "ja": "削除"
+  },
+  {
+    "name": "shell_panel_run",
+    "ja": "実行"
+  },
+  {
+    "name": "shell_panel_execute_timeout",
+    "ja": "タイムアウトしました。Shizuku を再起動して再試行するか、コマンドが長時間ブロックしていないか確認してください。"
+  },
+  {
+    "name": "shell_panel_exit_code",
+    "ja": "終了コード: %1$d"
+  },
+  {
+    "name": "shell_panel_no_output",
+    "ja": "（出力なし）"
+  },
+  {
+    "name": "shell_panel_copy",
+    "ja": "出力をコピー"
+  },
+  {
+    "name": "shell_panel_close",
+    "ja": "閉じる"
+  },
+  {
+    "name": "shell_panel_overlay_empty",
+    "ja": "コマンドがありません — 下の「コマンドを追加」をタップ"
+  },
+  {
+    "name": "shell_panel_result_section_output",
+    "ja": "出力"
+  },
+  {
+    "name": "shell_panel_copied",
+    "ja": "クリップボードにコピーしました"
+  },
+  {
+    "name": "shell_panel_reset_icon",
+    "ja": "デフォルトに戻す"
+  },
+  {
+    "name": "shell_panel_test",
+    "ja": "テスト"
+  },
+  {
+    "name": "shell_panel_restart_shizuku",
+    "ja": "Shizuku サービスを再起動"
+  },
+  {
+    "name": "no_apps",
+    "ja": "アプリが見つかりません"
+  },
+  {
+    "name": "search_no_actions",
+    "ja": "アクションが見つかりません"
+  },
+  {
+    "name": "cancel",
+    "ja": "キャンセル"
+  },
+  {
+    "name": "screen_record_notification_saved",
+    "ja": "画面録画をギャラリーに保存しました"
+  },
+  {
+    "name": "screen_capture_channel_name",
+    "ja": "画面キャプチャ"
+  },
+  {
+    "name": "screen_capture_notification_active",
+    "ja": "画面キャプチャの準備完了"
+  },
+  {
+    "name": "screen_capture_permission_required",
+    "ja": "部分スクリーンショットには画面キャプチャの権限が必要です"
+  },
+  {
+    "name": "quick_launcher_scan_system_xml",
+    "ja": "システムのショートカットデータを読み込み中…"
+  },
+  {
+    "name": "quick_launcher_scan_dumpsys",
+    "ja": "Shizuku 経由でショートカットを取得中…"
+  },
+  {
+    "name": "quick_launcher_scan_packages",
+    "ja": "パッケージのショートカットをスキャン中 (%1$d/%2$d)…"
+  },
+  {
+    "name": "quick_launcher_scan_apps",
+    "ja": "インストール済みアプリをスキャン中 (%1$d/%2$d)…"
+  },
+  {
+    "name": "quick_launcher_scan_finalizing",
+    "ja": "ショートカット一覧を整理中…"
+  },
+  {
+    "name": "task_switcher_no_shizuku",
+    "ja": "最近のタスクを表示するには Shizuku の権限が必要です"
+  },
+  {
+    "name": "notification_history_search_no_results",
+    "ja": "一致する通知がありません"
+  },
+  {
+    "name": "widget_picker_empty",
+    "ja": "利用可能なウィジェットがありません"
+  },
+  {
+    "name": "shell_panel_title",
+    "ja": "シェルコマンドパネル"
+  },
+  {
+    "name": "cd_navigate_back",
+    "ja": "戻る"
+  },
+  {
+    "name": "cd_navigate_forward",
+    "ja": "進む"
+  },
+  {
+    "name": "cd_action_confirm",
+    "ja": "確定"
+  },
+  {
+    "name": "cd_export_settings",
+    "ja": "設定をエクスポート"
+  },
+  {
+    "name": "cd_import_settings",
+    "ja": "設定をインポート"
+  },
+  {
+    "name": "cd_notification_icon",
+    "ja": "通知アイコン"
+  },
+  {
+    "name": "cd_app_icon",
+    "ja": "アプリアイコン"
+  },
+  {
+    "name": "cd_animation_preview",
+    "ja": "アニメーションプレビュー"
+  },
+  {
+    "name": "cd_auto_brightness",
+    "ja": "自動輝度"
+  },
+  {
+    "name": "cd_media_play",
+    "ja": "再生"
+  },
+  {
+    "name": "cd_media_pause",
+    "ja": "一時停止"
+  },
+  {
+    "name": "cd_media_previous",
+    "ja": "前の曲"
+  },
+  {
+    "name": "cd_media_next",
+    "ja": "次の曲"
+  },
+  {
+    "name": "cd_widget_preview",
+    "ja": "ウィジェットプレビュー"
+  },
+  {
+    "name": "cd_shake_feedback",
+    "ja": "シェイクフィードバック"
+  },
+  {
+    "name": "cd_radial_menu_settings",
+    "ja": "ラジアルメニュー設定"
+  },
+  {
+    "name": "cd_settings",
+    "ja": "設定"
+  },
+  {
+    "name": "cd_bluetooth_toggle",
+    "ja": "Bluetooth の切り替え"
+  },
+  {
+    "name": "cd_auto_rotate_toggle",
+    "ja": "自動回転の切り替え"
+  },
+  {
+    "name": "cd_expand_section",
+    "ja": "展開"
+  },
+  {
+    "name": "cd_collapse_section",
+    "ja": "折りたたむ"
+  },
+  {
+    "name": "cd_edge_trigger_left",
+    "ja": "左エッジトリガー %1$d"
+  },
+  {
+    "name": "cd_edge_trigger_right",
+    "ja": "右エッジトリガー %1$d"
+  },
+  {
+    "name": "cd_edge_trigger_bottom",
+    "ja": "下エッジトリガー %1$d"
+  },
+  {
+    "name": "cd_edge_trigger_top",
+    "ja": "上エッジトリガー %1$d"
+  },
+  {
+    "name": "cd_edge_touch_capture_left",
+    "ja": "左エッジタッチキャプチャ %1$d"
+  },
+  {
+    "name": "cd_edge_touch_capture_right",
+    "ja": "右エッジタッチキャプチャ %1$d"
+  },
+  {
+    "name": "cd_edge_touch_capture_bottom",
+    "ja": "下エッジタッチキャプチャ %1$d"
+  },
+  {
+    "name": "cd_edge_touch_capture_top",
+    "ja": "上エッジタッチキャプチャ %1$d"
+  },
+  {
+    "name": "cd_overlay_edge_gesture_surface",
+    "ja": "エッジジェスチャサーフェス"
+  },
+  {
+    "name": "cd_overlay_panel_index",
+    "ja": "アプリインデックスパネル"
+  },
+  {
+    "name": "cd_overlay_panel_quick_launcher",
+    "ja": "クイックランチャーパネル"
+  },
+  {
+    "name": "cd_overlay_panel_task_switcher",
+    "ja": "タスク切り替えパネル"
+  },
+  {
+    "name": "cd_overlay_panel_shell_commands",
+    "ja": "シェルコマンドパネル"
+  },
+  {
+    "name": "cd_overlay_index_letter",
+    "ja": "文字 %1$s"
+  },
+  {
+    "name": "cd_overlay_launch_app",
+    "ja": "%1$s を起動"
+  },
+  {
+    "name": "cd_overlay_quick_launcher_item",
+    "ja": "%1$s"
+  },
+  {
+    "name": "cd_overlay_task_switch_row",
+    "ja": "%1$s に切り替え"
+  },
+  {
+    "name": "cd_overlay_task_switch_close",
+    "ja": "%1$s を閉じる"
+  },
+  {
+    "name": "cd_overlay_task_switch_free_window",
+    "ja": "%1$s をフリーウィンドウで開く"
+  },
+  {
+    "name": "cd_overlay_shell_command_run",
+    "ja": "コマンド %1$s を実行"
+  },
+  {
+    "name": "quick_launcher_item_shortcut",
+    "ja": "ショートカット"
+  },
+  {
+    "name": "quick_launcher_item_action",
+    "ja": "アクション"
+  },
+  {
+    "name": "quick_launcher_item_widget",
+    "ja": "ウィジェット"
+  },
+  {
+    "name": "quick_launcher_item_folder",
+    "ja": "フォルダ"
+  },
+  {
+    "name": "quick_launcher_new_folder",
+    "ja": "新しいフォルダ"
+  },
+  {
+    "name": "quick_launcher_create_folder",
+    "ja": "フォルダを作成"
+  },
+  {
+    "name": "quick_launcher_folder_name",
+    "ja": "フォルダ名"
+  },
+  {
+    "name": "quick_launcher_folder_name_hint",
+    "ja": "フォルダ名を入力"
+  },
+  {
+    "name": "quick_launcher_folder_empty",
+    "ja": "フォルダが空です。編集モードでアイテムを追加してください"
+  },
+  {
+    "name": "quick_launcher_folder_edit_title",
+    "ja": "フォルダを編集"
+  },
+  {
+    "name": "quick_launcher_folder_add_items",
+    "ja": "アイテムを追加"
+  },
+  {
+    "name": "quick_launcher_folder_delete",
+    "ja": "フォルダを削除"
+  },
+  {
+    "name": "quick_launcher_folder_rename",
+    "ja": "名前を変更"
+  },
+  {
+    "name": "quick_launcher_folder_items_count",
+    "ja": "%1$d 件"
+  },
+  {
+    "name": "quick_launcher_panel_switch",
+    "ja": "パネルを切り替え"
+  },
+  {
+    "name": "adjust_volume_ring_label",
+    "ja": "着信"
+  },
+  {
+    "name": "adjust_volume_notification_label",
+    "ja": "通知"
+  },
+  {
+    "name": "widget_panel_columns_title",
+    "ja": "列数: %1$d"
+  },
+  {
+    "name": "widget_panel_rows_title",
+    "ja": "行数: %1$d"
+  },
+  {
+    "name": "widget_panel_visible_rows_title",
+    "ja": "表示行数: %1$d"
+  },
+  {
+    "name": "widget_panel_cell_width_title",
+    "ja": "グリッドセル幅: %1$d dp"
+  },
+  {
+    "name": "widget_panel_margin_top_title",
+    "ja": "上マージン: %1$d dp"
+  },
+  {
+    "name": "weekday_short_sunday",
+    "ja": "日"
+  },
+  {
+    "name": "weekday_short_monday",
+    "ja": "月"
+  }
+]

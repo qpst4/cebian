@@ -1,8 +1,11 @@
 package com.slideindex.app.ocr.vlm
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.util.Base64
 import android.util.Log
+import com.slideindex.app.ocr.OcrRecognizeResult
+import com.slideindex.app.ocr.R
 import java.io.ByteArrayOutputStream
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.Dispatchers
@@ -19,7 +22,6 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
-import com.slideindex.app.ocr.OcrRecognizeResult
 
 /**
  * 基于标准 OpenAI 兼容协议的多模态视觉 OCR 引擎
@@ -41,35 +43,25 @@ object VlmFormulaOcrEngine {
         .writeTimeout(30, TimeUnit.SECONDS)
         .build()
 
-    val DEFAULT_SYSTEM_PROMPT: String = """你是一个专业的全能 OCR 文字与公式识别助手。请严格按照图片原样提取文字内容，遵循以下排版规则：
-
-1. 普通文本与段落：
-   - 所有的中文、普通英文单词、标点符号、日常数字（如序号、日期、时间、金额、编号等）必须直接输出为纯文本，严禁包裹任何 ${'$'} 符号。
-   - 严禁将普通的孤立英文字母、选项序号（如 A、B、C 或 (1)、(2)）、纯数字用 ${'$'} 包裹。
-
-2. 数学与科学公式：
-   - 仅当遇到真正的数学表达式（包含算术运算符号、分数、根号、求和、微积分、希腊字母或明显上下标的公式）时，才使用 LaTeX 语法。
-   - 行内公式使用单个 ${'$'} 包裹（例如 ${'$'}E = mc^2${'$'}）。
-   - 独立公式块使用 ${'$'}${'$'} 包裹（例如 ${'$'}${'$'}\frac{a}{b}${'$'}${'$'}）。
-   - 如果公式结构内部含有中文（如下标、注释等），请在 LaTeX 中使用 \text{中文} 格式包裹。
-
-3. 输出要求：
-   - 保持原始自然段落换行与阅读顺序。
-   - 直接输出提取结果，严禁输出任何开场白、解释说明或外部 markdown 代码块标记。"""
+    fun defaultSystemPrompt(context: Context): String =
+        context.getString(R.string.vlm_default_system_prompt)
 
     /**
      * 识别 Bitmap 图片
      */
     suspend fun recognize(
+        context: Context,
         bitmap: Bitmap,
         apiKey: String,
         baseUrl: String = "https://dashscope.aliyuncs.com/compatible-mode/v1",
         model: String = "qwen-vl-plus",
-        prompt: String = DEFAULT_SYSTEM_PROMPT
+        prompt: String? = null,
     ): OcrRecognizeResult = withContext(Dispatchers.IO) {
         if (apiKey.isBlank()) {
             Log.w(TAG, "recognize skipped: apiKey is empty")
-            return@withContext OcrRecognizeResult.Failure("未配置 API Key，请在 OCR 模型管理 → 云端配置")
+            return@withContext OcrRecognizeResult.Failure(
+                context.getString(R.string.ocr_error_api_key_not_configured),
+            )
         }
 
         try {
@@ -81,7 +73,8 @@ object VlmFormulaOcrEngine {
                 "$cleanBaseUrl/chat/completions"
             }
 
-            val systemPromptText = prompt.ifBlank { DEFAULT_SYSTEM_PROMPT }
+            val defaultPrompt = defaultSystemPrompt(context)
+            val systemPromptText = prompt?.trim()?.takeIf { it.isNotEmpty() } ?: defaultPrompt
 
             val requestBodyJson = buildJsonObject {
                 put("model", model.ifBlank { "qwen-vl-plus" })
@@ -96,7 +89,7 @@ object VlmFormulaOcrEngine {
                         put("content", buildJsonArray {
                             add(buildJsonObject {
                                 put("type", "text")
-                                put("text", "请严格按照系统设定的排版规则识别这张图片中的文字和公式：")
+                                put("text", context.getString(R.string.vlm_user_recognition_prompt))
                             })
                             add(buildJsonObject {
                                 put("type", "image_url")
@@ -119,8 +112,12 @@ object VlmFormulaOcrEngine {
                 if (!response.isSuccessful) {
                     val errorBody = response.body.string()
                     Log.e(TAG, "Request failed code=${response.code} body=$errorBody")
-                    val detail = errorBody.take(120).ifBlank { "无详情" }
-                    return@withContext OcrRecognizeResult.Failure("云端识别失败 (HTTP ${response.code})：$detail")
+                    val detail = errorBody.take(120).ifBlank {
+                        context.getString(R.string.vlm_error_no_details)
+                    }
+                    return@withContext OcrRecognizeResult.Failure(
+                        context.getString(R.string.vlm_error_cloud_http, response.code, detail),
+                    )
                 }
 
                 val responseStr = response.body.string()
@@ -128,7 +125,9 @@ object VlmFormulaOcrEngine {
                 val choices = rootObj["choices"]?.jsonArray
                 if (choices.isNullOrEmpty()) {
                     Log.w(TAG, "No choices in response: $responseStr")
-                    return@withContext OcrRecognizeResult.Failure("云端返回异常：未包含识别结果")
+                    return@withContext OcrRecognizeResult.Failure(
+                        context.getString(R.string.vlm_error_cloud_empty),
+                    )
                 }
 
                 val content = choices[0].jsonObject["message"]
@@ -138,14 +137,15 @@ object VlmFormulaOcrEngine {
 
                 val sanitized = content?.let { sanitizeOcrOutput(it) }
                 if (sanitized.isNullOrBlank()) {
-                    OcrRecognizeResult.Failure("未识别到文字")
+                    OcrRecognizeResult.Failure(context.getString(R.string.ocr_error_no_text_recognized))
                 } else {
                     OcrRecognizeResult.Success(sanitized)
                 }
             }
         } catch (e: Exception) {
             Log.e(TAG, "VLM formula OCR recognition error", e)
-            OcrRecognizeResult.Failure("网络或接口异常：${e.localizedMessage ?: e.message ?: "未知错误"}")
+            val message = e.localizedMessage ?: e.message ?: context.getString(R.string.vlm_error_unknown)
+            OcrRecognizeResult.Failure(context.getString(R.string.vlm_error_network, message))
         }
     }
 
@@ -173,12 +173,13 @@ object VlmFormulaOcrEngine {
      * @return Pair(isSuccess, message)
      */
     suspend fun testConnection(
+        context: Context,
         apiKey: String,
         baseUrl: String,
         model: String,
     ): Pair<Boolean, String> = withContext(Dispatchers.IO) {
         if (apiKey.isBlank()) {
-            return@withContext Pair(false, "API Key 不能为空")
+            return@withContext Pair(false, context.getString(R.string.vlm_error_api_key_empty))
         }
         try {
             val endpoint = if (baseUrl.endsWith("/")) "${baseUrl}chat/completions" else "$baseUrl/chat/completions"
@@ -201,15 +202,15 @@ object VlmFormulaOcrEngine {
 
             client.newCall(request).execute().use { response ->
                 if (response.isSuccessful) {
-                    Pair(true, "连接成功！接口鉴权正常")
+                    Pair(true, context.getString(R.string.vlm_test_success))
                 } else {
                     val code = response.code
                     val err = response.body.string().take(200)
-                    Pair(false, "连接失败(HTTP $code): $err")
+                    Pair(false, context.getString(R.string.vlm_test_failed, code, err))
                 }
             }
         } catch (e: Exception) {
-            Pair(false, "网络或地址异常: ${e.localizedMessage}")
+            Pair(false, context.getString(R.string.vlm_test_network_error, e.localizedMessage ?: ""))
         }
     }
 

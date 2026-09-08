@@ -15,6 +15,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -62,13 +63,14 @@ fun GestureSimulateKeyEventScreen(
         mutableStateOf(initialAction?.keyCode?.toString() ?: "82")
     }
     var searchQuery by remember { mutableStateOf("") }
+    val context = LocalContext.current
 
     val handleSave = {
         val finalCode = customCodeInput.toIntOrNull() ?: selectedCode
         val resolvedName = if (customName.isNotBlank()) {
             customName.trim()
         } else {
-            KeyEventPresets.findByCode(finalCode)?.labelZh ?: "KeyCode $finalCode"
+            KeyEventPresets.getDisplayName(context, finalCode)
         }
         onConfirm(
             GestureAction.SimulateKeyEvent(
@@ -79,16 +81,16 @@ fun GestureSimulateKeyEventScreen(
         )
     }
 
-    val filteredPresets = remember(searchQuery) {
+    val filteredPresets = remember(searchQuery, context) {
         val query = searchQuery.trim().lowercase()
         if (query.isEmpty()) {
             KeyEventPresets.presets
         } else {
             KeyEventPresets.presets.filter { item ->
-                item.labelZh.lowercase().contains(query) ||
+                item.label(context).lowercase().contains(query) ||
                     item.constantName.lowercase().contains(query) ||
                     item.keyCode.toString().contains(query) ||
-                    item.description.lowercase().contains(query)
+                    item.description(context).lowercase().contains(query)
             }
         }
     }
@@ -138,19 +140,20 @@ fun GestureSimulateKeyEventScreen(
         )
     }
 
-    val presetCardItemsByCategory = remember(groupedPresets, selectedCode) {
+    val presetCardItemsByCategory = remember(groupedPresets, selectedCode, context) {
         groupedPresets.mapValues { (_, items) ->
             items.map { item ->
                 CardItem(key = "preset_${item.keyCode}") {
                     val isSelected = selectedCode == item.keyCode
+                    val itemLabel = item.label(context)
                     RadioButtonPreference(
-                        title = item.labelZh,
+                        title = itemLabel,
                         summary = "${item.constantName} (${item.keyCode})",
                         selected = isSelected,
                         onClick = {
                             selectedCode = item.keyCode
                             customCodeInput = item.keyCode.toString()
-                            customName = item.labelZh
+                            customName = itemLabel
                         },
                         radioButtonLocation = RadioButtonLocation.End,
                     )
@@ -226,7 +229,7 @@ fun GestureSimulateKeyEventScreen(
                 groupedPresets.forEach { (category, items) ->
                     item(key = "cat_${category.name}") {
                         MiuixSmallTitle(
-                            text = category.titleZh,
+                            text = category.title(context),
                             modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop),
                         )
                     }
@@ -234,13 +237,13 @@ fun GestureSimulateKeyEventScreen(
                         item(key = "preset_${item.keyCode}") {
                             val isSelected = selectedCode == item.keyCode
                             RadioButtonPreference(
-                                title = item.labelZh,
-                                summary = "${item.constantName} (${item.keyCode}) - ${item.description}",
+                                title = item.label(context),
+                                summary = "${item.constantName} (${item.keyCode}) - ${item.description(context)}",
                                 selected = isSelected,
                                 onClick = {
                                     selectedCode = item.keyCode
                                     customCodeInput = item.keyCode.toString()
-                                    customName = item.labelZh
+                                    customName = item.label(context)
                                 },
                                 radioButtonLocation = RadioButtonLocation.End,
                             )
@@ -310,7 +313,7 @@ fun GestureSimulateKeyEventScreen(
                 if (items.isNotEmpty()) {
                     settingsLazySmallTitle(
                         key = "cat_title_${category.name}",
-                        title = category.titleZh,
+                        title = category.title(context),
                         sectionTop = true,
                     )
                     groupedCardItems(

@@ -22,6 +22,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -79,6 +80,10 @@ fun OcrModelSettingsScreen(
     onNavigateToVlmSettings: (providerId: String?) -> Unit = {},
     onSelectProviderAndModel: (provider: VlmProvider, model: String) -> Unit = { _, _ -> },
 ) {
+    val context = LocalContext.current
+    val defaultSystemPrompt = remember(context) {
+        VlmFormulaOcrEngine.defaultSystemPrompt(context)
+    }
     val clearSelectionText = stringResource(R.string.ocr_models_clear_selection)
     val localSectionTitle = stringResource(R.string.ocr_models_section_available)
     val localHint = stringResource(R.string.ocr_models_hint)
@@ -92,7 +97,7 @@ fun OcrModelSettingsScreen(
 
     var showPromptDialog by remember { mutableStateOf(false) }
     var editingPrompt by remember(showPromptDialog) {
-        mutableStateOf(vlmConfigManager?.commonPrompt ?: VlmFormulaOcrEngine.DEFAULT_SYSTEM_PROMPT)
+        mutableStateOf(vlmConfigManager?.commonPrompt ?: defaultSystemPrompt)
     }
 
     val tabs = listOf(
@@ -103,6 +108,8 @@ fun OcrModelSettingsScreen(
     val localModels = remember(catalogModels) {
         catalogModels.filter { it.engine != "vlm_formula" && it.id != "vlm-formula-qwen" }
     }
+
+    val cloudCommonConfigTitle = stringResource(R.string.ocr_common_config_title)
 
     SettingsScreenScaffold(
         title = stringResource(R.string.ocr_models_title),
@@ -155,7 +162,11 @@ fun OcrModelSettingsScreen(
                                             text = stringResource(R.string.native_engine_pack_ocr),
                                             style = MiuixTheme.textStyles.title4,
                                         )
-                                        val statusText = if (ocrEngineInstalled) "已就绪" else "未安装"
+                                        val statusText = if (ocrEngineInstalled) {
+                                            stringResource(R.string.ocr_engine_status_ready)
+                                        } else {
+                                            stringResource(R.string.ocr_engine_status_not_installed)
+                                        }
                                         val statusColor = if (ocrEngineInstalled) MiuixTheme.colorScheme.primary else MiuixTheme.colorScheme.error
                                         Text(
                                             text = statusText,
@@ -173,9 +184,16 @@ fun OcrModelSettingsScreen(
                                     val revisionStr = ocrEngineVersionState?.installedRevision?.let { " (v$it)" } ?: ""
                                     Text(
                                         text = if (ocrEngineInstalled) {
-                                            "底层 C++ 推理库 · ${formatMegabytes(ocrEngineSizeBytes)}$revisionStr"
+                                            stringResource(
+                                                R.string.ocr_engine_installed_summary,
+                                                formatMegabytes(ocrEngineSizeBytes),
+                                                revisionStr,
+                                            )
                                         } else {
-                                            "未安装底层运行库 (${formatMegabytes(ocrEngineSizeBytes)})，离线识别不可用"
+                                            stringResource(
+                                                R.string.ocr_engine_not_installed_summary,
+                                                formatMegabytes(ocrEngineSizeBytes),
+                                            )
                                         },
                                         style = MiuixTheme.textStyles.body2,
                                         color = MiuixTheme.colorScheme.onSurfaceSecondary,
@@ -185,7 +203,13 @@ fun OcrModelSettingsScreen(
                                     onClick = onOpenEngineManagement,
                                     colors = if (ocrEngineInstalled) ButtonDefaults.buttonColors() else ButtonDefaults.buttonColorsPrimary(),
                                 ) {
-                                    Text(if (ocrEngineInstalled) "管理" else "安装")
+                                    Text(
+                                        if (ocrEngineInstalled) {
+                                            stringResource(R.string.ocr_engine_manage)
+                                        } else {
+                                            stringResource(R.string.ocr_engine_install)
+                                        },
+                                    )
                                 }
                             }
                         }
@@ -281,16 +305,16 @@ fun OcrModelSettingsScreen(
 
             settingsLazySmallTitle(
                 key = "ocr-cloud-prompt-section",
-                title = "通用配置",
+                title = cloudCommonConfigTitle,
                 sectionTop = true,
             )
 
             // 通用提示词设置卡片
             LazySettingsItem(key = "ocr-cloud-prompt-card") {
                 val commonPromptSummary = if (vlmConfigManager?.isCommonPromptCustomized() == true) {
-                    "已自定义全局通用内容"
+                    stringResource(R.string.ocr_common_prompt_customized)
                 } else {
-                    "当前使用出厂默认"
+                    stringResource(R.string.ocr_common_prompt_default)
                 }
                 Card(
                     modifier = Modifier
@@ -302,7 +326,7 @@ fun OcrModelSettingsScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
-                                editingPrompt = vlmConfigManager?.commonPrompt ?: VlmFormulaOcrEngine.DEFAULT_SYSTEM_PROMPT
+                                editingPrompt = vlmConfigManager?.commonPrompt ?: defaultSystemPrompt
                                 showPromptDialog = true
                             },
                         verticalAlignment = Alignment.CenterVertically,
@@ -310,7 +334,7 @@ fun OcrModelSettingsScreen(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "全局通用提示词 (System Prompt)",
+                                text = stringResource(R.string.ocr_global_system_prompt),
                                 style = MiuixTheme.textStyles.title4,
                             )
                             Spacer(modifier = Modifier.height(2.dp))
@@ -322,11 +346,11 @@ fun OcrModelSettingsScreen(
                         }
                         Button(
                             onClick = {
-                                editingPrompt = vlmConfigManager?.commonPrompt ?: VlmFormulaOcrEngine.DEFAULT_SYSTEM_PROMPT
+                                editingPrompt = vlmConfigManager?.commonPrompt ?: defaultSystemPrompt
                                 showPromptDialog = true
                             },
                         ) {
-                            Text("编辑")
+                            Text(stringResource(R.string.ocr_edit))
                         }
                     }
                 }
@@ -340,19 +364,19 @@ fun OcrModelSettingsScreen(
     }
 
     if (showPromptDialog) {
-        val isDefault = editingPrompt.trim() == VlmFormulaOcrEngine.DEFAULT_SYSTEM_PROMPT.trim()
+        val isDefault = editingPrompt.trim() == defaultSystemPrompt.trim()
         MiuixFormDialog(
             show = true,
             onDismissRequest = { showPromptDialog = false },
-            title = "全局通用提示词 (System Prompt)",
-            confirmText = "保存",
+            title = stringResource(R.string.ocr_global_system_prompt),
+            confirmText = stringResource(R.string.gesture_angle_save),
             onConfirm = {
                 vlmConfigManager?.commonPrompt = editingPrompt.trim()
             },
-            dismissText = "取消",
-            secondaryConfirmText = "恢复默认",
+            dismissText = stringResource(R.string.cancel),
+            secondaryConfirmText = stringResource(R.string.ocr_restore_default),
             onSecondaryConfirm = {
-                editingPrompt = VlmFormulaOcrEngine.DEFAULT_SYSTEM_PROMPT
+                editingPrompt = defaultSystemPrompt
             },
             secondaryConfirmEnabled = !isDefault,
             secondaryDismissOnConfirm = false,
@@ -364,7 +388,7 @@ fun OcrModelSettingsScreen(
                 MiuixLabeledTextField(
                     value = editingPrompt,
                     onValueChange = { editingPrompt = it },
-                    label = "全局通用 System Prompt",
+                    label = stringResource(R.string.ocr_global_system_prompt_field),
                     singleLine = false,
                     minLines = 6,
                     maxLines = 14,
@@ -491,6 +515,7 @@ private fun OcrCloudProviderRow(
     onSelect: () -> Unit,
     onOpenSettings: () -> Unit,
 ) {
+    val context = LocalContext.current
     val rowClickableModifier = if (isConfigured) {
         Modifier.clickable { onSelect() }
     } else {
@@ -516,16 +541,16 @@ private fun OcrCloudProviderRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Text(
-                    text = provider.displayName,
+                    text = provider.displayName(context),
                     style = MiuixTheme.textStyles.title4,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f, fill = false),
                 )
                 val (badgeText, badgeColor) = when {
-                    isActive -> "使用中" to MiuixTheme.colorScheme.primary
-                    isConfigured -> "已就绪" to MiuixTheme.colorScheme.primary
-                    else -> "未配置" to MiuixTheme.colorScheme.error
+                    isActive -> stringResource(R.string.ocr_model_status_active) to MiuixTheme.colorScheme.primary
+                    isConfigured -> stringResource(R.string.ocr_engine_status_ready) to MiuixTheme.colorScheme.primary
+                    else -> stringResource(R.string.ocr_model_status_not_configured) to MiuixTheme.colorScheme.error
                 }
                 Text(
                     text = badgeText,
@@ -544,9 +569,15 @@ private fun OcrCloudProviderRow(
             Spacer(modifier = Modifier.height(2.dp))
             Text(
                 text = when {
-                    isConfigured && isCustomPromptEnabled -> "当前模型: $currentModel · 专属提示词"
-                    isConfigured -> "当前模型: $currentModel · 继承全局"
-                    else -> provider.description
+                    isConfigured && isCustomPromptEnabled -> stringResource(
+                        R.string.ocr_model_summary_custom_prompt,
+                        currentModel,
+                    )
+                    isConfigured -> stringResource(
+                        R.string.ocr_model_summary_inherit_global,
+                        currentModel,
+                    )
+                    else -> provider.description(context)
                 },
                 style = MiuixTheme.textStyles.body2,
                 color = if (isActive) MiuixTheme.colorScheme.primary else MiuixTheme.colorScheme.onSurfaceSecondary,
@@ -558,14 +589,14 @@ private fun OcrCloudProviderRow(
             Button(
                 onClick = onOpenSettings,
             ) {
-                Text("设置")
+                Text(stringResource(R.string.ocr_settings))
             }
         } else {
             Button(
                 onClick = onOpenSettings,
                 colors = ButtonDefaults.buttonColorsPrimary(),
             ) {
-                Text("配置")
+                Text(stringResource(R.string.ocr_configure))
             }
         }
     }

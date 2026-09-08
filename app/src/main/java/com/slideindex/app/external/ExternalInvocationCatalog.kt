@@ -1,5 +1,6 @@
 package com.slideindex.app.external
 
+import android.content.Context
 import android.net.Uri
 import com.slideindex.app.R
 
@@ -107,7 +108,7 @@ object ExternalInvocationCatalog {
     fun adbViewCommand(uri: String): String =
         "adb shell am start -a android.intent.action.VIEW -d \"$uri\""
 
-    fun adbActionCommand(entry: ActionEntry): String {
+    fun adbActionCommand(context: Context, entry: ActionEntry): String {
         val component = componentRelativeName(entry.componentClass)
         val builder = StringBuilder()
             .append("adb shell am start -a ")
@@ -119,7 +120,7 @@ object ExternalInvocationCatalog {
         if (entry.supportsQuery) {
             builder.append(" --es ")
                 .append(QUERY_PARAM)
-                .append(" \"关键词\"")
+                .append(context.getString(R.string.external_invocation_keyword_example))
         }
         return builder.toString()
     }

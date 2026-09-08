@@ -18,6 +18,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.animation.DecelerateInterpolator
 import androidx.core.graphics.drawable.toBitmap
+import com.slideindex.app.R
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.util.HapticHelper
 import com.slideindex.app.util.PermissionHelper
@@ -390,7 +391,7 @@ class AppCarouselSwitcherView @JvmOverloads constructor(
         // 取消提示
         if (isVerticalCancelled) {
             val hintY = centerY - cardBaseHeight * 0.9f
-            canvas.drawText("移至屏幕顶部或底部松手取消", width / 2f, hintY, hintPaint)
+            canvas.drawText(context.getString(R.string.app_carousel_cancel_hint), width / 2f, hintY, hintPaint)
         }
     }
 

@@ -1,0 +1,902 @@
+[
+  {
+    "name": "freezer_filter_title",
+    "text": "Filter",
+    "source": "en"
+  },
+  {
+    "name": "freezer_apps_section_title",
+    "text": "Apps (%1$d)",
+    "source": "en"
+  },
+  {
+    "name": "freezer_list_section_title",
+    "text": "My freezer list (%1$d)",
+    "source": "en"
+  },
+  {
+    "name": "freezer_list_empty",
+    "text": "No apps yet. Add some below.",
+    "source": "en"
+  },
+  {
+    "name": "freezer_section_add",
+    "text": "Add apps",
+    "source": "en"
+  },
+  {
+    "name": "freezer_add_all_added",
+    "text": "All apps are already in the list",
+    "source": "en"
+  },
+  {
+    "name": "freezer_batch_freeze_all",
+    "text": "Freeze all",
+    "source": "en"
+  },
+  {
+    "name": "freezer_batch_unfreeze_all",
+    "text": "Unfreeze all",
+    "source": "en"
+  },
+  {
+    "name": "freezer_status_frozen",
+    "text": "Frozen",
+    "source": "en"
+  },
+  {
+    "name": "freezer_status_active",
+    "text": "Active",
+    "source": "en"
+  },
+  {
+    "name": "freezer_remove_from_list",
+    "text": "Remove from list",
+    "source": "en"
+  },
+  {
+    "name": "freezer_unfreeze_and_remove",
+    "text": "Unfreeze and remove",
+    "source": "en"
+  },
+  {
+    "name": "freezer_remove_while_frozen",
+    "text": "This app is still frozen. Unfreeze it first, or choose Unfreeze and remove.",
+    "source": "en"
+  },
+  {
+    "name": "freezer_import_frozen_apps",
+    "text": "Import frozen apps",
+    "source": "en"
+  },
+  {
+    "name": "freezer_import_frozen_apps_desc",
+    "text": "Scan disabled launcher apps and add them to the freezer list",
+    "source": "en"
+  },
+  {
+    "name": "freezer_import_frozen_done",
+    "text": "Imported %1$d apps",
+    "source": "en"
+  },
+  {
+    "name": "freezer_import_frozen_none",
+    "text": "No frozen apps to import",
+    "source": "en"
+  },
+  {
+    "name": "freezer_add_to_list",
+    "text": "Add to freezer list",
+    "source": "en"
+  },
+  {
+    "name": "freezer_launch_app",
+    "text": "Launch app",
+    "source": "en"
+  },
+  {
+    "name": "freezer_launch_failed",
+    "text": "Unable to launch this app",
+    "source": "en"
+  },
+  {
+    "name": "freezer_shortcut_label",
+    "text": "Frozen apps",
+    "source": "en"
+  },
+  {
+    "name": "freezer_grid_search_hint",
+    "text": "Search frozen apps",
+    "source": "en"
+  },
+  {
+    "name": "freezer_manage_apps",
+    "text": "Manage apps",
+    "source": "en"
+  },
+  {
+    "name": "freezer_batch_menu",
+    "text": "Batch actions",
+    "source": "en"
+  },
+  {
+    "name": "freezer_action_freeze",
+    "text": "Freeze",
+    "source": "en"
+  },
+  {
+    "name": "freezer_action_unfreeze",
+    "text": "Unfreeze",
+    "source": "en"
+  },
+  {
+    "name": "freezer_action_add_to_home",
+    "text": "Add to home screen",
+    "source": "en"
+  },
+  {
+    "name": "freezer_show_in_launcher_title",
+    "text": "Show in launcher",
+    "source": "en"
+  },
+  {
+    "name": "freezer_show_in_launcher_desc",
+    "text": "Confirm the system dialog to add a removable home-screen shortcut (not an app icon)",
+    "source": "en"
+  },
+  {
+    "name": "freezer_pin_shortcut_unpin_hint",
+    "text": "Turned off. Long-press the Frozen apps shortcut on your home screen and choose Remove",
+    "source": "en"
+  },
+  {
+    "name": "freezer_pin_shortcut_failed",
+    "text": "Could not add shortcut; your launcher may not support pinning",
+    "source": "en"
+  },
+  {
+    "name": "freezer_legacy_icon_cleanup",
+    "text": "Duplicate 边栏 icons from the old build should clear after restarting the launcher or phone; if one remains, Uninstall on it does not remove the app",
+    "source": "en"
+  },
+  {
+    "name": "expand_panel_shortcuts_title",
+    "text": "Shortcuts",
+    "source": "en"
+  },
+  {
+    "name": "expand_panel_shortcut_add",
+    "text": "Add shortcut",
+    "source": "en"
+  },
+  {
+    "name": "expand_panel_shortcut_pick",
+    "text": "Pick app",
+    "source": "en"
+  },
+  {
+    "name": "expand_panel_edit",
+    "text": "Edit",
+    "source": "en"
+  },
+  {
+    "name": "expand_panel_done",
+    "text": "Done",
+    "source": "en"
+  },
+  {
+    "name": "expand_panel_edit_hint",
+    "text": "Editing: tap a slot to change, tap − to remove; long-press blank area to exit",
+    "source": "en"
+  },
+  {
+    "name": "expand_panel_clear_slot",
+    "text": "Clear this slot",
+    "source": "en"
+  },
+  {
+    "name": "expand_panel_editing_slot",
+    "text": "Editing slot %1$d · %2$s",
+    "source": "en"
+  },
+  {
+    "name": "expand_panel_slot_add_label",
+    "text": "Add",
+    "source": "en"
+  },
+  {
+    "name": "freezer_shizuku_granted",
+    "text": "Shizuku granted",
+    "source": "en"
+  },
+  {
+    "name": "freezer_shizuku_denied",
+    "text": "Shizuku not granted",
+    "source": "en"
+  },
+  {
+    "name": "freezer_root_available",
+    "text": "Root available",
+    "source": "en"
+  },
+  {
+    "name": "freezer_root_unavailable",
+    "text": "Root unavailable (some devices need Root to freeze apps)",
+    "source": "en"
+  },
+  {
+    "name": "xposed_module_description",
+    "text": "Cebian: OTP autofill (enable android scope)",
+    "source": "en"
+  },
+  {
+    "name": "otp_records_title",
+    "text": "Verification code records",
+    "source": "en"
+  },
+  {
+    "name": "otp_records_entry_title",
+    "text": "Verification code records",
+    "source": "en"
+  },
+  {
+    "name": "otp_records_entry_desc",
+    "text": "View extracted verification code history",
+    "source": "en"
+  },
+  {
+    "name": "otp_records_filter",
+    "text": "Filter",
+    "source": "en"
+  },
+  {
+    "name": "otp_records_sort",
+    "text": "Sort",
+    "source": "en"
+  },
+  {
+    "name": "otp_records_sort_newest",
+    "text": "Newest first",
+    "source": "en"
+  },
+  {
+    "name": "otp_records_sort_oldest",
+    "text": "Oldest first",
+    "source": "en"
+  },
+  {
+    "name": "otp_records_filter_all",
+    "text": "All apps",
+    "source": "en"
+  },
+  {
+    "name": "otp_records_filter_empty",
+    "text": "No records for the current filter",
+    "source": "en"
+  },
+  {
+    "name": "otp_records_empty_title",
+    "text": "Nothing here yet!",
+    "source": "en"
+  },
+  {
+    "name": "otp_records_empty_subtitle",
+    "text": "Wait for a new SMS to arrive, or run a configured test flow.",
+    "source": "en"
+  },
+  {
+    "name": "otp_records_open_test_flow",
+    "text": "Open SMS test",
+    "source": "en"
+  },
+  {
+    "name": "otp_records_delete_title",
+    "text": "Delete record",
+    "source": "en"
+  },
+  {
+    "name": "otp_records_delete_message",
+    "text": "Delete the record for code %1$s?",
+    "source": "en"
+  },
+  {
+    "name": "otp_records_rule_label",
+    "text": "Rule: %1$s",
+    "source": "en"
+  },
+  {
+    "name": "otp_records_test_source",
+    "text": "Test SMS",
+    "source": "en"
+  },
+  {
+    "name": "otp_record_fill_none",
+    "text": "Not auto-filled",
+    "source": "en"
+  },
+  {
+    "name": "otp_record_fill_pending",
+    "text": "Filling…",
+    "source": "en"
+  },
+  {
+    "name": "otp_record_fill_lsposed",
+    "text": "LSPosed inject",
+    "source": "en"
+  },
+  {
+    "name": "otp_record_fill_accessibility",
+    "text": "Accessibility fill",
+    "source": "en"
+  },
+  {
+    "name": "otp_record_fill_failed",
+    "text": "Fill failed",
+    "source": "en"
+  },
+  {
+    "name": "otp_records_sender_hint",
+    "text": "Long numbers starting with 1068 are SMS sender IDs, not fill statistics. See Fill statistics at the bottom of the Extensions tab.",
+    "source": "en"
+  },
+  {
+    "name": "otp_rules_tab_title",
+    "text": "Extraction rules",
+    "source": "en"
+  },
+  {
+    "name": "otp_hub_rules_hint",
+    "text": "App rules are tried first; keyword fallback runs when none match. Use the test at the bottom to verify.",
+    "source": "en"
+  },
+  {
+    "name": "otp_hub_section_more",
+    "text": "More",
+    "source": "en"
+  },
+  {
+    "name": "otp_hub_tab_rules",
+    "text": "Rules",
+    "source": "en"
+  },
+  {
+    "name": "otp_hub_tab_records",
+    "text": "Records",
+    "source": "en"
+  },
+  {
+    "name": "otp_hub_tab_extensions",
+    "text": "Extras",
+    "source": "en"
+  },
+  {
+    "name": "permission_overlay_title",
+    "text": "Display over other apps",
+    "source": "en"
+  },
+  {
+    "name": "permission_notification_title",
+    "text": "Notification permission",
+    "source": "en"
+  },
+  {
+    "name": "permission_notification_desc",
+    "text": "Needed to keep the background service running",
+    "source": "en"
+  },
+  {
+    "name": "permission_usage_title",
+    "text": "Usage access",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_app_carousel_switcher_permission",
+    "text": "Usage access is required to show recent apps",
+    "source": "en"
+  },
+  {
+    "name": "grant_permission",
+    "text": "Grant",
+    "source": "en"
+  },
+  {
+    "name": "live_preview_hint",
+    "text": "Drag sliders for a live preview; try gestures at the screen edge otherwise.",
+    "source": "en"
+  },
+  {
+    "name": "side_gestures_preview_hint",
+    "text": "Drag sliders to preview trigger zones and short/long swipe thresholds.",
+    "source": "en"
+  },
+  {
+    "name": "handle_width",
+    "text": "Handle width",
+    "source": "en"
+  },
+  {
+    "name": "handle_length",
+    "text": "Handle length",
+    "source": "en"
+  },
+  {
+    "name": "handle_length_small",
+    "text": "Top",
+    "source": "en"
+  },
+  {
+    "name": "handle_length_large",
+    "text": "Bottom",
+    "source": "en"
+  },
+  {
+    "name": "handle_span_horizontal",
+    "text": "Handle horizontal span",
+    "source": "en"
+  },
+  {
+    "name": "handle_span_horizontal_start",
+    "text": "Left",
+    "source": "en"
+  },
+  {
+    "name": "handle_span_horizontal_end",
+    "text": "Right",
+    "source": "en"
+  },
+  {
+    "name": "handle_width_small",
+    "text": "Small",
+    "source": "en"
+  },
+  {
+    "name": "handle_width_large",
+    "text": "Large",
+    "source": "en"
+  },
+  {
+    "name": "align_handles",
+    "text": "Align handles",
+    "source": "en"
+  },
+  {
+    "name": "align_handles_desc",
+    "text": "Match this group鈥檚 handles to the same position on the opposite side",
+    "source": "en"
+  },
+  {
+    "name": "align_opposite_gestures",
+    "text": "Sync gestures with opposite side",
+    "source": "en"
+  },
+  {
+    "name": "align_opposite_gestures_desc",
+    "text": "Left and right handles in this group share slot actions and trigger modes",
+    "source": "en"
+  },
+  {
+    "name": "align_opposite_gestures_mirror_title",
+    "text": "Sync gestures with opposite side",
+    "source": "en"
+  },
+  {
+    "name": "align_opposite_gestures_mirror_message",
+    "text": "Left and right will share the same gestures. Choose which side to use as the source:",
+    "source": "en"
+  },
+  {
+    "name": "align_opposite_gestures_use_this_side",
+    "text": "Use current side (%1$s)",
+    "source": "en"
+  },
+  {
+    "name": "align_opposite_gestures_use_opposite_side",
+    "text": "Use opposite side (%1$s)",
+    "source": "en"
+  },
+  {
+    "name": "side_gestures_shared_with_opposite",
+    "text": "Gesture slots are shared with the opposite handle in this group",
+    "source": "en"
+  },
+  {
+    "name": "trigger_handles_add",
+    "text": "Add handle",
+    "source": "en"
+  },
+  {
+    "name": "trigger_handles_restore_opposite",
+    "text": "Restore opposite handle",
+    "source": "en"
+  },
+  {
+    "name": "trigger_collection_title",
+    "text": "Handle sets",
+    "source": "en"
+  },
+  {
+    "name": "trigger_collection_side",
+    "text": "Side handles",
+    "source": "en"
+  },
+  {
+    "name": "trigger_side_left_item",
+    "text": "Left handles",
+    "source": "en"
+  },
+  {
+    "name": "trigger_side_right_item",
+    "text": "Right handles",
+    "source": "en"
+  },
+  {
+    "name": "trigger_pair_index",
+    "text": "Group %1$d",
+    "source": "en"
+  },
+  {
+    "name": "trigger_summary_none",
+    "text": "None",
+    "source": "en"
+  },
+  {
+    "name": "trigger_appearance_title",
+    "text": "Layout & hints",
+    "source": "en"
+  },
+  {
+    "name": "trigger_appearance_desc",
+    "text": "Handle position and swipe distance",
+    "source": "en"
+  },
+  {
+    "name": "trigger_appearance_entry",
+    "text": "Layout & hints",
+    "source": "en"
+  },
+  {
+    "name": "trigger_appearance_summary",
+    "text": "Width %1$d dp",
+    "source": "en"
+  },
+  {
+    "name": "trigger_design_reset",
+    "text": "Reset to default",
+    "source": "en"
+  },
+  {
+    "name": "trigger_design_reset_desc",
+    "text": "Reset handle design to the default style",
+    "source": "en"
+  },
+  {
+    "name": "trigger_design_align_handles",
+    "text": "Align handles",
+    "source": "en"
+  },
+  {
+    "name": "trigger_design_align_handles_desc",
+    "text": "Keep this group\\'s design in sync with the opposite side",
+    "source": "en"
+  },
+  {
+    "name": "intercept_system_back",
+    "text": "Intercept system back gesture",
+    "source": "en"
+  },
+  {
+    "name": "intercept_system_back_desc",
+    "text": "Uses a system API; may have compatibility issues",
+    "source": "en"
+  },
+  {
+    "name": "limit_intercept_length",
+    "text": "Limit max intercept length",
+    "source": "en"
+  },
+  {
+    "name": "limit_intercept_length_desc",
+    "text": "Current system API limit is 200 dp",
+    "source": "en"
+  },
+  {
+    "name": "side_gestures_handle_section",
+    "text": "Handle layout",
+    "source": "en"
+  },
+  {
+    "name": "index_height",
+    "text": "Letter index height",
+    "source": "en"
+  },
+  {
+    "name": "hide_empty_index_letters",
+    "text": "Hide empty letters",
+    "source": "en"
+  },
+  {
+    "name": "hide_empty_index_letters_desc",
+    "text": "Do not show index letters that have no apps",
+    "source": "en"
+  },
+  {
+    "name": "apps_per_row",
+    "text": "Apps per index row",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_grid_columns",
+    "text": "Quick launcher columns",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_grid_rows",
+    "text": "Quick launcher rows",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_grid_columns_label",
+    "text": "Columns: %1$d",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_grid_rows_label",
+    "text": "Rows: %1$d",
+    "source": "en"
+  },
+  {
+    "name": "panel_opacity",
+    "text": "Panel opacity",
+    "source": "en"
+  },
+  {
+    "name": "haptic_enabled",
+    "text": "Vibration",
+    "source": "en"
+  },
+  {
+    "name": "settings_predictive_back",
+    "text": "Predictive back gesture",
+    "source": "en"
+  },
+  {
+    "name": "settings_predictive_back_summary",
+    "text": "Enable predictive back animation",
+    "source": "en"
+  },
+  {
+    "name": "settings_swipe_dismiss",
+    "text": "Swipe back gesture",
+    "source": "en"
+  },
+  {
+    "name": "settings_swipe_dismiss_summary",
+    "text": "Swipe sideways anywhere on the page to go back",
+    "source": "en"
+  },
+  {
+    "name": "interaction_appearance_settings_title",
+    "text": "Interaction & appearance",
+    "source": "en"
+  },
+  {
+    "name": "interaction_appearance_settings_entry_desc",
+    "text": "Haptics, back gestures, theme, and navigation bar",
+    "source": "en"
+  },
+  {
+    "name": "settings_section_navigation_back",
+    "text": "Navigation & back",
+    "source": "en"
+  },
+  {
+    "name": "settings_section_theme_appearance",
+    "text": "Theme & appearance",
+    "source": "en"
+  },
+  {
+    "name": "settings_section_interaction_feedback",
+    "text": "Interaction feedback",
+    "source": "en"
+  },
+  {
+    "name": "haptic_strength",
+    "text": "Vibration strength",
+    "source": "en"
+  },
+  {
+    "name": "selected_hint_icon_size_value",
+    "text": "%1$d dp",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_selected_hint_icon_size",
+    "text": "Hit hint icon size",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_selected_hint_icon_size",
+    "text": "Hit hint icon size",
+    "source": "en"
+  },
+  {
+    "name": "haptic_strength_light",
+    "text": "Light",
+    "source": "en"
+  },
+  {
+    "name": "haptic_strength_medium",
+    "text": "Medium",
+    "source": "en"
+  },
+  {
+    "name": "haptic_strength_strong",
+    "text": "Strong",
+    "source": "en"
+  },
+  {
+    "name": "theme_color",
+    "text": "Theme color",
+    "source": "en"
+  },
+  {
+    "name": "theme_palette_style",
+    "text": "Palette style",
+    "source": "en"
+  },
+  {
+    "name": "theme_palette_style_desc",
+    "text": "Controls how primary, containers, and surfaces work together",
+    "source": "en"
+  },
+  {
+    "name": "theme_palette_tonal_spot",
+    "text": "Tonal spot",
+    "source": "en"
+  },
+  {
+    "name": "theme_palette_vibrant",
+    "text": "Vibrant",
+    "source": "en"
+  },
+  {
+    "name": "theme_palette_expressive",
+    "text": "Expressive",
+    "source": "en"
+  },
+  {
+    "name": "theme_palette_monochrome",
+    "text": "Monochrome",
+    "source": "en"
+  },
+  {
+    "name": "theme_palette_neutral",
+    "text": "Neutral",
+    "source": "en"
+  },
+  {
+    "name": "theme_palette_fidelity",
+    "text": "Fidelity",
+    "source": "en"
+  },
+  {
+    "name": "theme_palette_content",
+    "text": "Content",
+    "source": "en"
+  },
+  {
+    "name": "theme_palette_rainbow",
+    "text": "Rainbow",
+    "source": "en"
+  },
+  {
+    "name": "theme_palette_fruit_salad",
+    "text": "Fruit salad",
+    "source": "en"
+  },
+  {
+    "name": "theme_mode",
+    "text": "Theme mode",
+    "source": "en"
+  },
+  {
+    "name": "theme_mode_system",
+    "text": "System",
+    "source": "en"
+  },
+  {
+    "name": "theme_mode_light",
+    "text": "Light",
+    "source": "en"
+  },
+  {
+    "name": "theme_mode_dark",
+    "text": "Dark",
+    "source": "en"
+  },
+  {
+    "name": "theme_dark_background",
+    "text": "Dark background",
+    "source": "en"
+  },
+  {
+    "name": "theme_dark_background_quiet_blue",
+    "text": "Quiet blue",
+    "source": "en"
+  },
+  {
+    "name": "theme_dark_background_deep_black",
+    "text": "Deep black",
+    "source": "en"
+  },
+  {
+    "name": "theme_dark_background_amoled_black",
+    "text": "AMOLED black",
+    "source": "en"
+  },
+  {
+    "name": "theme_custom_color",
+    "text": "Custom colors",
+    "source": "en"
+  },
+  {
+    "name": "theme_custom_color_desc",
+    "text": "Generate colors from a palette style instead of the default Miuix blue",
+    "source": "en"
+  },
+  {
+    "name": "theme_seed_color",
+    "text": "Seed color",
+    "source": "en"
+  },
+  {
+    "name": "theme_seed_color_desc",
+    "text": "Tap to choose the seed color for the palette",
+    "source": "en"
+  },
+  {
+    "name": "theme_seed_color_dialog_title",
+    "text": "Custom color",
+    "source": "en"
+  },
+  {
+    "name": "theme_seed_color_reset",
+    "text": "Reset",
+    "source": "en"
+  },
+  {
+    "name": "theme_color_spec",
+    "text": "Color spec",
+    "source": "en"
+  },
+  {
+    "name": "theme_color_spec_2021",
+    "text": "Material 3 (2021)",
+    "source": "en"
+  },
+  {
+    "name": "theme_color_spec_2025",
+    "text": "Material 3 (2025)",
+    "source": "en"
+  },
+  {
+    "name": "theme_color_spec_2025_unsupported",
+    "text": "The current palette style only supports Material 3 (2021)",
+    "source": "en"
+  },
+  {
+    "name": "bottom_nav_style",
+    "text": "Bottom bar style",
+    "source": "en"
+  },
+  {
+    "name": "bottom_nav_style_classic",
+    "text": "Classic glass",
+    "source": "en"
+  },
+  {
+    "name": "bottom_nav_style_liquid_glass",
+    "text": "Liquid glass",
+    "source": "en"
+  }
+]

@@ -27,7 +27,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.slideindex.app.R
 import com.slideindex.app.ocr.vlm.VlmFormulaOcrEngine
 import com.slideindex.app.ocr.vlm.VlmOcrConfigManager
 import com.slideindex.app.ui.miuix.MiuixLabeledTextField
@@ -70,6 +73,7 @@ fun VlmOcrSettingsScreen(
     ) -> Unit)? = null,
     onNotifyWarning: ((String) -> Unit)? = null,
 ) {
+    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val targetProvider = remember(providerId) {
         com.slideindex.app.ocr.vlm.VlmProvider.fromId(providerId ?: vlmConfigManager.activeProviderId)
@@ -94,9 +98,18 @@ fun VlmOcrSettingsScreen(
     var testStatusText by remember { mutableStateOf<String?>(null) }
     var lastTestSucceeded by remember { mutableStateOf<Boolean?>(null) }
 
+    val connectionTestFailedSaved = stringResource(R.string.vlm_ocr_connection_test_failed_saved)
+    val connectionSuccessPrefix = stringResource(R.string.vlm_ocr_connection_success_prefix)
+    val testingConnectionText = stringResource(R.string.vlm_ocr_testing_connection)
+    val sectionApiTitle = stringResource(R.string.vlm_ocr_section_api)
+    val sectionModelTitle = stringResource(R.string.vlm_ocr_section_model)
+    val sectionPromptTitle = stringResource(R.string.vlm_ocr_section_prompt)
+    val customPromptHint = stringResource(R.string.vlm_ocr_custom_prompt_hint, targetProvider.displayName(context))
+    val defaultEndpointHint = stringResource(R.string.vlm_ocr_default_endpoint, targetProvider.defaultBaseUrl)
+
     val onSaveAndBack = {
         if (lastTestSucceeded == false) {
-            onNotifyWarning?.invoke("连接测试未通过，配置已保存，请检查接口设置")
+            onNotifyWarning?.invoke(connectionTestFailedSaved)
         }
         val promptDraft = customPrompt.trim()
         if (onUpdateProviderConfig != null) {
@@ -120,19 +133,23 @@ fun VlmOcrSettingsScreen(
     }
 
     SettingsScreenScaffold(
-        title = "${targetProvider.displayName} 配置",
-        subtitle = targetProvider.description,
+        title = stringResource(R.string.vlm_ocr_provider_config_title, targetProvider.displayName(context)),
+        subtitle = targetProvider.description(context),
         onBack = onSaveAndBack,
         actions = {
             IconButton(onClick = onSaveAndBack) {
                 Icon(
                     imageVector = Icons.Default.Check,
-                    contentDescription = "保存",
+                    contentDescription = stringResource(R.string.gesture_angle_save),
                 )
             }
         },
     ) {
-        settingsLazySmallTitle(key = "section-api", title = "接口连接", sectionTop = false)
+        settingsLazySmallTitle(
+            key = "section-api",
+            title = sectionApiTitle,
+            sectionTop = false,
+        )
 
         LazySettingsItem(key = "api-card") {
             Card(
@@ -143,7 +160,7 @@ fun VlmOcrSettingsScreen(
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
-                        text = targetProvider.websiteHint,
+                        text = targetProvider.websiteHint(context),
                         style = MiuixTheme.textStyles.body2,
                         color = MiuixTheme.colorScheme.onSurfaceSecondary,
                     )
@@ -155,7 +172,7 @@ fun VlmOcrSettingsScreen(
                             testStatusText = null
                             lastTestSucceeded = null
                         },
-                        label = "API Key (密钥)",
+                        label = stringResource(R.string.vlm_ocr_api_key_label),
                         singleLine = true,
                     )
 
@@ -166,7 +183,7 @@ fun VlmOcrSettingsScreen(
                             testStatusText = null
                             lastTestSucceeded = null
                         },
-                        label = "Base URL (端点地址)",
+                        label = stringResource(R.string.vlm_ocr_base_url_label),
                         singleLine = true,
                     )
                 }
@@ -175,10 +192,14 @@ fun VlmOcrSettingsScreen(
 
         settingsLazyHint(
             key = "api-hint",
-            text = "默认端点为：${targetProvider.defaultBaseUrl}",
+            text = defaultEndpointHint,
         )
 
-        settingsLazySmallTitle(key = "section-model", title = "模型选择与测试", sectionTop = true)
+        settingsLazySmallTitle(
+            key = "section-model",
+            title = sectionModelTitle,
+            sectionTop = true,
+        )
 
         LazySettingsItem(key = "model-card") {
             Card(
@@ -195,12 +216,12 @@ fun VlmOcrSettingsScreen(
                             testStatusText = null
                             lastTestSucceeded = null
                         },
-                        label = "Model 模型名称",
+                        label = stringResource(R.string.vlm_ocr_model_label),
                         singleLine = true,
                     )
 
                     Text(
-                        text = "快捷选择该服务商推荐型号：",
+                        text = stringResource(R.string.vlm_ocr_recommended_models),
                         style = MiuixTheme.textStyles.body2,
                         color = MiuixTheme.colorScheme.onSurfaceSecondary,
                     )
@@ -230,7 +251,7 @@ fun VlmOcrSettingsScreen(
 
                     if (savedCustomModels.isNotEmpty()) {
                         Text(
-                            text = "已保存的自定义型号：",
+                            text = stringResource(R.string.vlm_ocr_saved_custom_models),
                             style = MiuixTheme.textStyles.body2,
                             color = MiuixTheme.colorScheme.onSurfaceSecondary,
                         )
@@ -268,9 +289,10 @@ fun VlmOcrSettingsScreen(
                         Button(
                             onClick = {
                                 isTesting = true
-                                testStatusText = "正在测试连接..."
+                                testStatusText = testingConnectionText
                                 coroutineScope.launch {
                                     val (success, msg) = VlmFormulaOcrEngine.testConnection(
+                                        context = context,
                                         apiKey = apiKey.trim(),
                                         baseUrl = baseUrl.trim(),
                                         model = model.trim(),
@@ -286,14 +308,14 @@ fun VlmOcrSettingsScreen(
                                 CircularProgressIndicator(modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.width(6.dp))
                             }
-                            Text("测试连接")
+                            Text(stringResource(R.string.vlm_ocr_test_connection))
                         }
 
                         testStatusText?.let { status ->
                             Text(
                                 text = status,
                                 style = MiuixTheme.textStyles.body2,
-                                color = if (status.startsWith("连接成功")) {
+                                color = if (status.startsWith(connectionSuccessPrefix)) {
                                     MiuixTheme.colorScheme.primary
                                 } else {
                                     MiuixTheme.colorScheme.error
@@ -306,7 +328,11 @@ fun VlmOcrSettingsScreen(
             }
         }
 
-        settingsLazySmallTitle(key = "section-prompt", title = "识别提示词 (System Prompt)", sectionTop = true)
+        settingsLazySmallTitle(
+            key = "section-prompt",
+            title = sectionPromptTitle,
+            sectionTop = true,
+        )
 
         LazySettingsItem(key = "prompt-card") {
             Card(
@@ -316,11 +342,11 @@ fun VlmOcrSettingsScreen(
             ) {
                 Column {
                     SwitchPreference(
-                        title = "自定义专属提示词",
+                        title = stringResource(R.string.vlm_ocr_custom_prompt_title),
                         summary = if (useCustomPrompt) {
-                            "已启用专属覆盖，优先使用下方自定义内容"
+                            stringResource(R.string.vlm_ocr_custom_prompt_enabled)
                         } else {
-                            "已暂停专属覆盖，草稿仍保留在本地"
+                            stringResource(R.string.vlm_ocr_custom_prompt_disabled)
                         },
                         checked = useCustomPrompt,
                         onCheckedChange = { useCustomPrompt = it },
@@ -340,7 +366,7 @@ fun VlmOcrSettingsScreen(
                             MiuixLabeledTextField(
                                 value = customPrompt,
                                 onValueChange = { customPrompt = it },
-                                label = "专属 System Prompt",
+                                label = stringResource(R.string.vlm_ocr_custom_prompt_label),
                                 singleLine = false,
                                 minLines = 5,
                                 maxLines = 12,
@@ -352,7 +378,7 @@ fun VlmOcrSettingsScreen(
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 TextButton(
-                                    text = "载入通用模板",
+                                    text = stringResource(R.string.vlm_ocr_load_generic_template),
                                     onClick = {
                                         customPrompt = vlmConfigManager.commonPrompt
                                     },
@@ -366,7 +392,7 @@ fun VlmOcrSettingsScreen(
 
         settingsLazyHint(
             key = "prompt-hint",
-            text = "关闭开关时暂停专属覆盖；开启后可为 ${targetProvider.displayName} 独立微调。只有点击「载入通用模板」才会写入通用内容。",
+            text = customPromptHint,
         )
     }
 }

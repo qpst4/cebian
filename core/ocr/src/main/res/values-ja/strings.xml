@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="vlm_provider_dashscope_name">Alibaba Cloud 百煉（DashScope）</string>
+    <string name="vlm_provider_dashscope_desc">Qwen VL · 高速で公式・図表向きのコスパ重視</string>
+    <string name="vlm_provider_dashscope_hint">DashScope コンソールで API Key（sk- で始まる）を取得</string>
+    <string name="vlm_provider_zhipu_name">Zhipu AI（智谱）</string>
+    <string name="vlm_provider_zhipu_desc">GLM-4V · 中国語理解に強く、長文・複雑な公式に適する</string>
+    <string name="vlm_provider_zhipu_hint">智譜 AI オープンプラットフォームで API Key を取得</string>
+    <string name="vlm_provider_siliconflow_name">SiliconFlow</string>
+    <string name="vlm_provider_siliconflow_desc">SiliconFlow · オープン視覚モデルの高並列リレー</string>
+    <string name="vlm_provider_siliconflow_hint">SiliconFlow プラットフォームで API Key を取得</string>
+    <string name="vlm_provider_custom_name">カスタムエンドポイント</string>
+    <string name="vlm_provider_custom_desc">自前の OneAPI、リバースプロキシ、OpenAI 互換エンドポイント</string>
+    <string name="vlm_provider_custom_hint">標準の OpenAI /chat/completions 互換エンドポイント</string>
+
+    <string name="ocr_error_unknown_model">不明な OCR モデル: %1$s</string>
+    <string name="ocr_error_model_not_installed">OCR モデルが未インストール</string>
+    <string name="ocr_error_native_engine_not_ready">OCR ランタイムの準備ができていません</string>
+    <string name="ocr_error_api_key_not_configured">API Key が未設定です。OCR モデル管理 → クラウド設定で設定してください</string>
+    <string name="ocr_error_unsupported_engine">サポートされていない OCR エンジン</string>
+    <string name="ocr_error_no_text_recognized">文字を認識できませんでした</string>
+
+    <string name="vlm_error_cloud_http">クラウド認識に失敗 (HTTP %1$d): %2$s</string>
+    <string name="vlm_error_cloud_empty">クラウド応答が不正: 認識結果がありません</string>
+    <string name="vlm_error_network">ネットワークまたは API エラー: %1$s</string>
+    <string name="vlm_error_no_details">詳細なし</string>
+    <string name="vlm_test_success">接続成功！認証は正常です</string>
+    <string name="vlm_test_failed">接続失敗 (HTTP %1$d): %2$s</string>
+    <string name="vlm_test_network_error">ネットワークまたは URL エラー: %1$s</string>
+    <string name="vlm_error_api_key_empty">API Key を入力してください</string>
+    <string name="vlm_error_unknown">不明なエラー</string>
+    <string name="vlm_user_recognition_prompt">システムの書式ルールに従い、この画像の文字と数式を認識してください：</string>
+
+    <string name="ocr_error_paddle_not_initialized">PaddleOCR エンジンが初期化されていません</string>
+
+    <string name="vlm_default_system_prompt">あなたはテキストと数式の専門 OCR アシスタントです。画像の内容をそのまま抽出してください:\n1. インライン数式は $...$、独立した数式は $$...$$\n2. 元の改行と段落を保持\n3. 説明・接頭辞・Markdown 見出しは付けない\n4. 読めない場合は空文字を出力</string>
+</resources>

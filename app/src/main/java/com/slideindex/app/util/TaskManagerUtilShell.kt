@@ -1,8 +1,10 @@
 package com.slideindex.app.util
 
 import android.util.Log
+import com.slideindex.app.R
 import com.slideindex.app.shizuku.ITaskManagerService
 import com.slideindex.app.shizuku.ShizukuUserServiceHost
+import com.slideindex.app.shizuku.TaskManagerShellExecutor
 import com.slideindex.app.shizuku.TaskManagerUserService
 import java.util.concurrent.Callable
 import java.util.concurrent.Executors
@@ -17,24 +19,32 @@ internal object TaskManagerUtilShell {
     private const val MIN_SHELL_FORCE_ADB_API = 28
     private const val MIN_SHELL_LINE_V1_API = 16
 
+    private fun appContext() = TaskManagerUtil.applicationContext()
+
     fun runShellCommandOutput(
         hasPermission: Boolean,
         bindFreshService: (Int) -> ITaskManagerService?,
         vararg cmd: String,
     ): TaskManagerUtil.ShellCommandResult {
         if (!hasPermission) {
-            return TaskManagerUtil.ShellCommandResult(exitCode = -1, output = "无 Shizuku 权限")
+            return TaskManagerUtil.ShellCommandResult(
+                exitCode = -1,
+                output = appContext().getString(R.string.shell_no_shizuku),
+            )
         }
         val service = bindFreshService(MIN_SHELL_OUTPUT_API) ?: bindFreshService(0)
             ?: return TaskManagerUtil.ShellCommandResult(
                 exitCode = -1,
-                output = "Shizuku UserService 连接失败，请重启 Shizuku 后重试",
+                output = appContext().getString(R.string.shell_user_service_failed),
             )
         val raw = invokeBinderWithTimeout<String?>(SHELL_BINDER_TIMEOUT_MS) {
             service.runShellCommandOutput(cmd)
         } ?: return TaskManagerUtil.ShellCommandResult(
             exitCode = -1,
-            output = "Shell 命令超时（${SHELL_BINDER_TIMEOUT_MS / 1000}s），请重试",
+            output = appContext().getString(
+                R.string.shell_command_timeout,
+                SHELL_BINDER_TIMEOUT_MS / 1000,
+            ),
         )
         return parseShellResultRaw(raw)
     }
@@ -84,11 +94,17 @@ internal object TaskManagerUtilShell {
         timeoutMs: Long = SHELL_BINDER_TIMEOUT_MS,
     ): TaskManagerUtil.ShellCommandResult {
         if (!hasPermission) {
-            return TaskManagerUtil.ShellCommandResult(exitCode = -1, output = "无 Shizuku 权限")
+            return TaskManagerUtil.ShellCommandResult(
+                exitCode = -1,
+                output = appContext().getString(R.string.shell_no_shizuku),
+            )
         }
         val trimmed = command.trim()
         if (trimmed.isEmpty()) {
-            return TaskManagerUtil.ShellCommandResult(exitCode = -1, output = "命令为空")
+            return TaskManagerUtil.ShellCommandResult(
+                exitCode = -1,
+                output = appContext().getString(R.string.shell_command_empty),
+            )
         }
         val minApi = if (useRoot) MIN_SHELL_OUTPUT_API else MIN_SHELL_FORCE_ADB_API
         val service = bindFreshService(minApi)
@@ -96,8 +112,7 @@ internal object TaskManagerUtilShell {
             val clientBuild = TaskManagerUserService.API_VERSION
             return TaskManagerUtil.ShellCommandResult(
                 exitCode = -1,
-                output = "无法连接 Shell 服务（期望 build=$clientBuild）。\n" +
-                    "请点击「重启 Shell 服务」；若仍失败，请完全关闭 Shizuku 与本应用后重试。",
+                output = appContext().getString(R.string.shell_connect_failed, clientBuild),
             )
         }
         return runShellCommandLineDirect(
@@ -154,9 +169,9 @@ internal object TaskManagerUtilShell {
             return TaskManagerUtil.ShellCommandResult(
                 exitCode = -1,
                 output = if (api < MIN_SHELL_OUTPUT_API) {
-                    "Shizuku 服务版本过旧 (api=$api)，请重启 Shizuku 后重试"
+                    appContext().getString(R.string.shell_shizuku_api_outdated, api)
                 } else {
-                    "Shell 命令超时（${timeoutMs / 1000}s），请重试"
+                    appContext().getString(R.string.shell_command_timeout, timeoutMs / 1000)
                 },
             )
         }
@@ -168,15 +183,13 @@ internal object TaskManagerUtilShell {
         requireAdbIdentity: Boolean,
     ): TaskManagerUtil.ShellCommandResult {
         if (!requireAdbIdentity || result.exitCode != 0) return result
-        if (result.output.startsWith(TaskManagerUserService.SHELL_DOWNGRADE_HINT)) return result
+        val downgradeHint = TaskManagerShellExecutor.shellDowngradeHint(appContext())
+        if (result.output.startsWith(downgradeHint)) return result
         val uid = parseNumericUid(result.output)
         if (uid == 0) {
             return TaskManagerUtil.ShellCommandResult(
                 exitCode = -1,
-                output = "命令仍在 root 身份下执行（uid=0）。\n" +
-                    "adb 模式应返回 uid=2000。\n" +
-                    "若 Shizuku 以 Root 启动，请改用无线调试/adb 方式启动 Shizuku，" +
-                    "或在 APatch 中取消 Shell 的永久 Root 授权。",
+                output = appContext().getString(R.string.shell_root_uid_warning),
             )
         }
         return result
@@ -186,7 +199,7 @@ internal object TaskManagerUtilShell {
         if (raw.isNullOrBlank()) {
             return TaskManagerUtil.ShellCommandResult(
                 exitCode = -1,
-                output = "Shell 服务无响应。请完全关闭并重启 Shizuku，然后重新打开本应用",
+                output = appContext().getString(R.string.shell_no_response),
             )
         }
         return parseShellCommandOutput(raw)

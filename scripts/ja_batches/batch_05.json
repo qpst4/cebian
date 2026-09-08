@@ -1,0 +1,902 @@
+[
+  {
+    "name": "float_ball_style_picker_summary",
+    "text": "Choose how the float ball looks",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_style_pick_image",
+    "text": "Pick image",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_style_pick_slideshow",
+    "text": "Pick slideshow images",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_style_pick_gif",
+    "text": "Pick GIF",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_style_default",
+    "text": "Default",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_style_animated_plane",
+    "text": "Paper plane",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_style_animated_pulse",
+    "text": "Pulse ring",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_style_animated_orbit",
+    "text": "Orbit",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_style_custom_image",
+    "text": "Custom image",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_style_slideshow",
+    "text": "Slideshow",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_style_gif",
+    "text": "GIF",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_style_custom_image_hint",
+    "text": "Pick a custom image for the float ball",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_style_image_selected",
+    "text": "Custom image selected",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_style_gif_hint",
+    "text": "Pick a GIF for the float ball",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_pick_settings_title",
+    "text": "Text pick",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_pick_section_recognition_image",
+    "text": "Recognition & image picking",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_pick_section_panel",
+    "text": "Pick panel",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_pick_section_operation",
+    "text": "Pick operations",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_pick_section_advanced",
+    "text": "Advanced pick parameters",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_appearance_settings_summary",
+    "text": "%1$.0f dp · Opacity %2$d%%",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_pick_settings_summary",
+    "text": "Spacing %1$.0f dp · OCR %2$s",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_ocr_fallback_on",
+    "text": "On",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_ocr_fallback_off",
+    "text": "Off",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_size",
+    "text": "Ball size",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_size_value",
+    "text": "%1$.0f dp",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_pick_cross_arm",
+    "text": "Pick cross size",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_pick_cross_arm_value",
+    "text": "%1$.1f dp",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_opacity",
+    "text": "Opacity",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_pointer_speed",
+    "text": "Plus horizontal speed",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_pointer_speed_vertical",
+    "text": "Plus vertical speed",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_pick_offset",
+    "text": "Plus spacing",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_pick_text_size",
+    "text": "Pick text size",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_text_size_value",
+    "text": "%1$.0f sp",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_pick_bottom_transition",
+    "text": "Bottom transition zone",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_pick_text_first_panel",
+    "text": "Text-first pick panel",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_pick_text_first_panel_desc",
+    "text": "Show text and search engines by default; image section stays collapsed until you tap the Image row",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_pick_panel_enter_animation",
+    "text": "Pick panel enter animation",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_pick_panel_exit_animation",
+    "text": "Pick panel exit animation",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_pick_panel_animation_ms_value",
+    "text": "%1$d ms",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_pointer_slop",
+    "text": "Full-screen pointer threshold",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_hover_pause_delay",
+    "text": "Hover pause delay",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_regional_cancel_slop",
+    "text": "Screenshot cancel threshold",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_text_copied",
+    "text": "Text copied to clipboard",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_image_copied",
+    "text": "Image copied to clipboard",
+    "source": "en"
+  },
+  {
+    "name": "share_image_ocr_target_label",
+    "text": "Cebian OCR Pick",
+    "source": "en"
+  },
+  {
+    "name": "share_image_ocr_service_required",
+    "text": "Enable the Cebian accessibility service first",
+    "source": "en"
+  },
+  {
+    "name": "share_image_ocr_model_required",
+    "text": "Download and select an OCR model in Float Ball settings first",
+    "source": "en"
+  },
+  {
+    "name": "share_image_ocr_image_load_failed",
+    "text": "Could not read the shared image",
+    "source": "en"
+  },
+  {
+    "name": "share_image_ocr_background_action",
+    "text": "Run in background",
+    "source": "en"
+  },
+  {
+    "name": "share_image_ocr_background_started",
+    "text": "Recognizing in background; results will pop up when done",
+    "source": "en"
+  },
+  {
+    "name": "share_image_ocr_background_complete",
+    "text": "Recognition complete",
+    "source": "en"
+  },
+  {
+    "name": "share_image_ocr_saved_to_history",
+    "text": "Result saved to long-image history",
+    "source": "en"
+  },
+  {
+    "name": "share_image_ocr_history_enabled",
+    "text": "Save long-image OCR history",
+    "source": "en"
+  },
+  {
+    "name": "share_image_ocr_history_enabled_desc",
+    "text": "Auto-save shared long-image OCR results so you can reopen them if the panel is dismissed",
+    "source": "en"
+  },
+  {
+    "name": "share_image_ocr_history_title",
+    "text": "Long-image OCR history",
+    "source": "en"
+  },
+  {
+    "name": "share_image_ocr_history_entry_desc_empty",
+    "text": "No entries yet",
+    "source": "en"
+  },
+  {
+    "name": "share_image_ocr_history_empty",
+    "text": "No long-image OCR history yet",
+    "source": "en"
+  },
+  {
+    "name": "share_image_ocr_history_clear",
+    "text": "Clear history",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_text_not_found",
+    "text": "No text recognized",
+    "source": "en"
+  },
+  {
+    "name": "pick_from_history_empty",
+    "text": "Nothing to open in pick panel",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_ocr_fallback",
+    "text": "OCR fallback",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_ocr_fallback_desc",
+    "text": "When accessibility pick fails, use a local OCR model on the screenshot",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_ocr_models",
+    "text": "OCR model manager",
+    "source": "en"
+  },
+  {
+    "name": "ocr_models_title",
+    "text": "OCR models",
+    "source": "en"
+  },
+  {
+    "name": "ocr_models_subtitle",
+    "text": "Manage offline OCR engines & cloud vision models",
+    "source": "en"
+  },
+  {
+    "name": "ocr_tab_local",
+    "text": "Local (Offline)",
+    "source": "en"
+  },
+  {
+    "name": "ocr_tab_cloud",
+    "text": "Cloud (VLM)",
+    "source": "en"
+  },
+  {
+    "name": "ocr_models_section_available",
+    "text": "Available models",
+    "source": "en"
+  },
+  {
+    "name": "ocr_models_section_cloud",
+    "text": "Vision-Language Models",
+    "source": "en"
+  },
+  {
+    "name": "ocr_models_clear_selection",
+    "text": "Clear current selection",
+    "source": "en"
+  },
+  {
+    "name": "ocr_models_hint",
+    "text": "Offline models run locally on device without network. Download on demand. ML Kit Chinese uses Play services.",
+    "source": "en"
+  },
+  {
+    "name": "ocr_models_cloud_hint",
+    "text": "Cloud VLMs recognize complex formulas, handwritten layouts, and tables via API. Easily switch or add custom models.",
+    "source": "en"
+  },
+  {
+    "name": "ocr_download_step_engine",
+    "text": "Downloading OCR engine (%1$d/%2$d)…",
+    "source": "en"
+  },
+  {
+    "name": "ocr_download_step_model",
+    "text": "Downloading model (%1$d/%2$d)…",
+    "source": "en"
+  },
+  {
+    "name": "translate_download_step_engine",
+    "text": "Downloading translate engine (%1$d/%2$d)…",
+    "source": "en"
+  },
+  {
+    "name": "translate_download_step_language",
+    "text": "Downloading language pack (%1$d/%2$d)…",
+    "source": "en"
+  },
+  {
+    "name": "segmentation_engine_preparing",
+    "text": "Preparing segmentation engine…",
+    "source": "en"
+  },
+  {
+    "name": "native_engine_status_manage",
+    "text": "Manage",
+    "source": "en"
+  },
+  {
+    "name": "about_advanced_section_title",
+    "text": "Advanced",
+    "source": "en"
+  },
+  {
+    "name": "about_section_app_info",
+    "text": "App info",
+    "source": "en"
+  },
+  {
+    "name": "about_section_open_source",
+    "text": "Open source & licenses",
+    "source": "en"
+  },
+  {
+    "name": "about_section_community",
+    "text": "Community",
+    "source": "en"
+  },
+  {
+    "name": "about_release_notes_subtitle",
+    "text": "View release history on GitHub",
+    "source": "en"
+  },
+  {
+    "name": "about_version_format",
+    "text": "v%1$s (%2$d)",
+    "source": "en"
+  },
+  {
+    "name": "about_copyright_notice",
+    "text": "© %1$d qpst4. Licensed under GNU AGPL v3.0.",
+    "source": "en"
+  },
+  {
+    "name": "about_native_engine_packs_entry_desc",
+    "text": "Install, remove, or reinstall runtime engine packs",
+    "source": "en"
+  },
+  {
+    "name": "diagnostic_report_entry_title",
+    "text": "Diagnostics & logs",
+    "source": "en"
+  },
+  {
+    "name": "diagnostic_report_entry_subtitle",
+    "text": "Shizuku live logcat, crash history, and diagnostic export",
+    "source": "en"
+  },
+  {
+    "name": "diagnostic_log_title",
+    "text": "Diagnostics & logs",
+    "source": "en"
+  },
+  {
+    "name": "diagnostic_log_subtitle",
+    "text": "Live logcat for this app UID (Shizuku + READ_LOGS required)",
+    "source": "en"
+  },
+  {
+    "name": "diagnostic_log_tab_runtime",
+    "text": "Runtime",
+    "source": "en"
+  },
+  {
+    "name": "diagnostic_log_tab_crashes",
+    "text": "Crashes",
+    "source": "en"
+  },
+  {
+    "name": "diagnostic_log_waiting",
+    "text": "Waiting for logs…",
+    "source": "en"
+  },
+  {
+    "name": "diagnostic_log_connecting",
+    "text": "Connecting to logcat…",
+    "source": "en"
+  },
+  {
+    "name": "diagnostic_log_stream_error",
+    "text": "Logcat stream ended. Go back and retry.",
+    "source": "en"
+  },
+  {
+    "name": "diagnostic_log_permission_required",
+    "text": "Shizuku and READ_LOGS required",
+    "source": "en"
+  },
+  {
+    "name": "diagnostic_log_permission_title",
+    "text": "Privileged log access required",
+    "source": "en"
+  },
+  {
+    "name": "diagnostic_log_permission_desc",
+    "text": "Runtime logs are read via Shizuku in a privileged process. Grant Shizuku first, then READ_LOGS through Shizuku.",
+    "source": "en"
+  },
+  {
+    "name": "diagnostic_log_grant_shizuku",
+    "text": "Grant Shizuku",
+    "source": "en"
+  },
+  {
+    "name": "diagnostic_log_grant_read_logs",
+    "text": "Grant read logs",
+    "source": "en"
+  },
+  {
+    "name": "diagnostic_log_clear",
+    "text": "Clear",
+    "source": "en"
+  },
+  {
+    "name": "diagnostic_log_share",
+    "text": "Share diagnostic report",
+    "source": "en"
+  },
+  {
+    "name": "diagnostic_log_copy",
+    "text": "Copy",
+    "source": "en"
+  },
+  {
+    "name": "diagnostic_log_crash_empty",
+    "text": "(empty file)",
+    "source": "en"
+  },
+  {
+    "name": "diagnostic_log_crash_empty_list",
+    "text": "No crash reports yet",
+    "source": "en"
+  },
+  {
+    "name": "diagnostic_log_clear_runtime_title",
+    "text": "Clear runtime logs?",
+    "source": "en"
+  },
+  {
+    "name": "diagnostic_log_clear_runtime_message",
+    "text": "Clears only the on-screen buffer, not the logcat source.",
+    "source": "en"
+  },
+  {
+    "name": "diagnostic_log_clear_crash_title",
+    "text": "Clear crash history?",
+    "source": "en"
+  },
+  {
+    "name": "diagnostic_log_clear_crash_message",
+    "text": "Deletes all saved crash report files on this device. This cannot be undone.",
+    "source": "en"
+  },
+  {
+    "name": "diagnostic_report_shared",
+    "text": "Share sheet opened",
+    "source": "en"
+  },
+  {
+    "name": "diagnostic_report_copied",
+    "text": "Diagnostic report copied to clipboard",
+    "source": "en"
+  },
+  {
+    "name": "diagnostic_report_copied_truncated",
+    "text": "Share unavailable; truncated copy saved to clipboard",
+    "source": "en"
+  },
+  {
+    "name": "diagnostic_report_shared_fallback",
+    "text": "Report too large for clipboard; opened share to export the full file",
+    "source": "en"
+  },
+  {
+    "name": "diagnostic_report_export_failed",
+    "text": "Failed to export diagnostic report. Please try again.",
+    "source": "en"
+  },
+  {
+    "name": "diagnostic_report_share_chooser_title",
+    "text": "Share diagnostic log",
+    "source": "en"
+  },
+  {
+    "name": "diagnostic_report_share_subject",
+    "text": "Cebian diagnostic log",
+    "source": "en"
+  },
+  {
+    "name": "diagnostic_report_truncation_suffix",
+    "text": "\\n\\n...(truncated)...",
+    "source": "en"
+  },
+  {
+    "name": "native_engine_packs_title",
+    "text": "Runtime engines",
+    "source": "en"
+  },
+  {
+    "name": "native_engine_packs_subtitle",
+    "text": "Native libraries for OCR, offline translate, and word segmentation",
+    "source": "en"
+  },
+  {
+    "name": "native_engine_packs_section",
+    "text": "Engine packs",
+    "source": "en"
+  },
+  {
+    "name": "native_engine_packs_hint",
+    "text": "Runtime engines are bundled in the APK. This page is for clearing local download caches only (does not remove bundled libraries).",
+    "source": "en"
+  },
+  {
+    "name": "native_engine_pack_ocr",
+    "text": "OCR engine",
+    "source": "en"
+  },
+  {
+    "name": "native_engine_pack_translate",
+    "text": "Offline translate engine",
+    "source": "en"
+  },
+  {
+    "name": "native_engine_pack_segmentation",
+    "text": "Segmentation engine",
+    "source": "en"
+  },
+  {
+    "name": "native_engine_pack_size",
+    "text": "About %1$s",
+    "source": "en"
+  },
+  {
+    "name": "native_engine_pack_installed_version",
+    "text": "Installed · %1$s",
+    "source": "en"
+  },
+  {
+    "name": "native_engine_pack_latest_version",
+    "text": "Latest · %1$s",
+    "source": "en"
+  },
+  {
+    "name": "native_engine_pack_update_available",
+    "text": "Current %1$s, update to %2$s",
+    "source": "en"
+  },
+  {
+    "name": "native_engine_pack_download",
+    "text": "Download",
+    "source": "en"
+  },
+  {
+    "name": "native_engine_pack_delete",
+    "text": "Delete",
+    "source": "en"
+  },
+  {
+    "name": "native_engine_download_channel",
+    "text": "Runtime engine download",
+    "source": "en"
+  },
+  {
+    "name": "native_engine_download_title",
+    "text": "Downloading runtime engine",
+    "source": "en"
+  },
+  {
+    "name": "native_engine_download_starting",
+    "text": "Preparing…",
+    "source": "en"
+  },
+  {
+    "name": "native_engine_download_progress",
+    "text": "Downloading engine pack…",
+    "source": "en"
+  },
+  {
+    "name": "native_engine_download_verifying",
+    "text": "Verifying…",
+    "source": "en"
+  },
+  {
+    "name": "native_engine_download_extracting",
+    "text": "Extracting…",
+    "source": "en"
+  },
+  {
+    "name": "native_engine_download_done",
+    "text": "Download complete",
+    "source": "en"
+  },
+  {
+    "name": "native_engine_download_failed",
+    "text": "Download failed",
+    "source": "en"
+  },
+  {
+    "name": "native_engine_download_cancelled",
+    "text": "Cancelled",
+    "source": "en"
+  },
+  {
+    "name": "extension_native_engine_packs_entry_title",
+    "text": "Runtime engines",
+    "source": "en"
+  },
+  {
+    "name": "extension_native_engine_packs_entry_desc",
+    "text": "OCR / offline translate / segmentation natives",
+    "source": "en"
+  },
+  {
+    "name": "ocr_engine_migration_success_title",
+    "text": "OCR engine updated",
+    "source": "en"
+  },
+  {
+    "name": "ocr_engine_migration_success_message",
+    "text": "The app upgraded your OCR runtime engine to %1$s to match this version. If recognition fails, reinstall it from Runtime engines.",
+    "source": "en"
+  },
+  {
+    "name": "ocr_engine_migration_download_title",
+    "text": "OCR engine update required",
+    "source": "en"
+  },
+  {
+    "name": "ocr_engine_migration_download_message",
+    "text": "This app version requires the %1$s engine pack for OCR. Open Runtime engines to download and install it.",
+    "source": "en"
+  },
+  {
+    "name": "ocr_engine_migration_acknowledge",
+    "text": "Download",
+    "source": "en"
+  },
+  {
+    "name": "ocr_engine_migration_later",
+    "text": "Later",
+    "source": "en"
+  },
+  {
+    "name": "ocr_engine_migration_download_action",
+    "text": "Download",
+    "source": "en"
+  },
+  {
+    "name": "ocr_engine_migration_version_fallback",
+    "text": "the latest version",
+    "source": "en"
+  },
+  {
+    "name": "ocr_download_wifi_only",
+    "text": "Download on Wi-Fi only",
+    "source": "en"
+  },
+  {
+    "name": "ocr_download_wifi_only_desc",
+    "text": "Do not start downloads on mobile data",
+    "source": "en"
+  },
+  {
+    "name": "ocr_model_ppocrv6_tiny",
+    "text": "PP-OCRv6 Tiny",
+    "source": "en"
+  },
+  {
+    "name": "ocr_model_ppocrv6_tiny_desc",
+    "text": "Smallest size, for low-end devices",
+    "source": "en"
+  },
+  {
+    "name": "ocr_model_ppocrv6_small",
+    "text": "PP-OCRv6 Small",
+    "source": "en"
+  },
+  {
+    "name": "ocr_model_ppocrv6_small_desc",
+    "text": "Balanced speed and accuracy (recommended)",
+    "source": "en"
+  },
+  {
+    "name": "ocr_model_ppocrv6_medium",
+    "text": "PP-OCRv6 Medium",
+    "source": "en"
+  },
+  {
+    "name": "ocr_model_ppocrv6_medium_desc",
+    "text": "Higher accuracy, larger size and slower",
+    "source": "en"
+  },
+  {
+    "name": "ocr_model_mlkit_chinese",
+    "text": "ML Kit Chinese",
+    "source": "en"
+  },
+  {
+    "name": "ocr_model_mlkit_chinese_desc",
+    "text": "Google Play Chinese recognition; requires online download",
+    "source": "en"
+  },
+  {
+    "name": "ocr_model_tesseract_chi_sim_eng",
+    "text": "Tesseract Chinese & English",
+    "source": "en"
+  },
+  {
+    "name": "ocr_model_tesseract_chi_sim_eng_desc",
+    "text": "Offline OCR for Chinese and English",
+    "source": "en"
+  },
+  {
+    "name": "ocr_model_meta",
+    "text": "About %1$s · %2$s",
+    "source": "en"
+  },
+  {
+    "name": "ocr_model_status_selected",
+    "text": "Selected",
+    "source": "en"
+  },
+  {
+    "name": "ocr_model_status_installed",
+    "text": "Installed",
+    "source": "en"
+  },
+  {
+    "name": "ocr_model_status_downloading",
+    "text": "Downloading",
+    "source": "en"
+  },
+  {
+    "name": "ocr_model_status_not_installed",
+    "text": "Not installed",
+    "source": "en"
+  },
+  {
+    "name": "ocr_model_download",
+    "text": "Download",
+    "source": "en"
+  },
+  {
+    "name": "ocr_model_delete",
+    "text": "Delete",
+    "source": "en"
+  },
+  {
+    "name": "ocr_download_progress_bytes",
+    "text": "Downloading %1$s… %2$s / %3$s",
+    "source": "en"
+  },
+  {
+    "name": "ocr_download_progress_indeterminate",
+    "text": "Downloading %1$s… %2$s downloaded",
+    "source": "en"
+  },
+  {
+    "name": "ocr_download_verifying",
+    "text": "Verifying %1$s…",
+    "source": "en"
+  },
+  {
+    "name": "ocr_download_finalizing",
+    "text": "Installing %1$s…",
+    "source": "en"
+  },
+  {
+    "name": "ocr_download_failed",
+    "text": "Download failed: %1$s",
+    "source": "en"
+  },
+  {
+    "name": "ocr_download_cancelled",
+    "text": "Download cancelled",
+    "source": "en"
+  },
+  {
+    "name": "ocr_download_ready",
+    "text": "%1$s installed",
+    "source": "en"
+  },
+  {
+    "name": "ocr_download_notification_channel",
+    "text": "OCR model download",
+    "source": "en"
+  },
+  {
+    "name": "ocr_download_notification_title",
+    "text": "OCR model download",
+    "source": "en"
+  },
+  {
+    "name": "ocr_download_notification_starting",
+    "text": "Preparing download…",
+    "source": "en"
+  },
+  {
+    "name": "ocr_download_notification_progress",
+    "text": "Downloading… %1$s / %2$s",
+    "source": "en"
+  },
+  {
+    "name": "ocr_download_notification_progress_indeterminate",
+    "text": "Downloading… %1$s downloaded",
+    "source": "en"
+  }
+]

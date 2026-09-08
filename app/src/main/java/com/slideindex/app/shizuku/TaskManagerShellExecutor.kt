@@ -1,17 +1,23 @@
 package com.slideindex.app.shizuku
 
+import android.content.Context
 import android.os.Process
+import androidx.annotation.StringRes
+import com.slideindex.app.R
 import com.slideindex.app.privilege.PrivilegeGateway
 
 internal object TaskManagerShellExecutor {
 
-    const val SHELL_DOWNGRADE_HINT = "提示:已将root降权至shell\n"
+    @StringRes
+    val SHELL_DOWNGRADE_HINT_RES: Int = R.string.shell_downgrade_hint
     const val SHELL_COMMAND_TIMEOUT_MS = 2_500L
 
     private const val SYSTEM_SH = "/system/bin/sh"
     private const val SYSTEM_SU = "/system/bin/su"
 
     data class ShellExecResult(val exitCode: Int, val output: String)
+
+    fun shellDowngradeHint(context: Context): String = context.getString(SHELL_DOWNGRADE_HINT_RES)
 
     fun shellCommand(vararg cmd: String): Boolean =
         shellCommandWithOutput(*cmd).exitCode == 0
@@ -84,6 +90,7 @@ internal object TaskManagerShellExecutor {
                 "$su 2000 $sh -c $q",
             ),
             timeoutMs,
+            context = null,
         )
         return if (hasUsableOutput(asShell)) asShell else root
     }
@@ -97,20 +104,21 @@ internal object TaskManagerShellExecutor {
         return true
     }
 
-    fun runAsShellUser(command: String): ShellExecResult {
+    fun runAsShellUser(command: String, context: Context? = null): ShellExecResult {
         if (Process.myUid() != 0) {
             return shellCommandWithOutput(*buildPlainShellArgs(command))
         }
         val wrapper = findShellDowngradeWrapper()
             ?: return ShellExecResult(
                 exitCode = -1,
-                output = "无法降级到 adb/shell 身份（Shizuku 当前以 Root 运行）。\n" +
-                    "请改用 adb/无线调试方式启动 Shizuku。",
+                output = context?.getString(R.string.shell_downgrade_failed)
+                    ?: "Cannot downgrade to adb/shell identity.",
             )
         val result = shellCommandWithOutput(resolveShPath(), "-c", wrapper(command))
+        val hint = context?.let(::shellDowngradeHint).orEmpty()
         return ShellExecResult(
             exitCode = result.exitCode,
-            output = SHELL_DOWNGRADE_HINT + result.output,
+            output = hint + result.output,
         )
     }
 
@@ -176,8 +184,10 @@ internal object TaskManagerShellExecutor {
     private fun runFirstSuccessfulShellScript(
         scripts: List<String>,
         timeoutMs: Long = SHELL_COMMAND_TIMEOUT_MS,
+        context: Context? = null,
     ): ShellExecResult {
-        var last = ShellExecResult(-1, "su 执行失败")
+        val fallback = context?.getString(R.string.shell_su_exec_failed) ?: "su execution failed"
+        var last = ShellExecResult(-1, fallback)
         for (script in scripts) {
             val result = shellCommandWithOutput(timeoutMs, resolveShPath(), "-c", script)
             last = result

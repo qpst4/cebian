@@ -1818,7 +1818,10 @@ object FloatBallPickResultPanel {
                 RegionalScreenshotOcr.recognizeBitmapPublic(appContext, modelId, bitmap)
             }.getOrElse {
                 com.slideindex.app.ocr.OcrRecognizeResult.Failure(
-                    "识别异常：${it.localizedMessage ?: it.message ?: "未知错误"}",
+                    appContext.getString(
+                        R.string.ocr_error_recognition_failed,
+                        it.localizedMessage ?: it.message ?: appContext.getString(R.string.ocr_error_unknown),
+                    ),
                 )
             }
             withContext(Dispatchers.Main.immediate) {

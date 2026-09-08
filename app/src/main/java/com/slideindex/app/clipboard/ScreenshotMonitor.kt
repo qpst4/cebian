@@ -13,6 +13,8 @@ import androidx.core.database.getIntOrNull
 import androidx.core.database.getLongOrNull
 import androidx.core.database.getStringOrNull
 
+import com.slideindex.app.R
+
 /**
  * 监听 MediaStore 新增图片，将系统/FV 等应用保存的截图写入剪贴板历史。
  * 判定逻辑参考 OctoClip（app.octoclip）的 ScreenshotMonitor。
@@ -260,6 +262,31 @@ class ScreenshotMonitor(
         const val QUERY_ARG_LIMIT = "android:query-arg-limit"
     }
 
+    private val nameKeywords: Set<String> by lazy {
+        buildSet {
+            appContext.resources.getStringArray(R.array.screenshot_monitor_keywords).forEach { add(it.lowercase()) }
+            addAll(ENGLISH_NAME_KEYWORDS)
+        }
+    }
+
+    private fun isScreenshotCandidate(
+        displayName: String?,
+        mimeType: String?,
+        relativePath: String?,
+        dataPath: String?,
+    ): Boolean {
+        val mime = mimeType?.lowercase()
+        if (mime != null && !mime.startsWith("image/")) return false
+
+        val rel = relativePath?.lowercase().orEmpty()
+        val data = dataPath?.lowercase().orEmpty()
+        if (rel.contains("screenshots") || data.contains("/screenshots/")) {
+            return true
+        }
+        val name = (displayName ?: dataPath ?: "").lowercase()
+        return nameKeywords.any { keyword -> name.contains(keyword) }
+    }
+
     companion object {
         private const val TAG = "ScreenshotMonitor"
         private const val FRESHNESS_SEC = 120L
@@ -268,34 +295,13 @@ class ScreenshotMonitor(
         private const val PENDING_RETRY_MS = 100L
         private const val MAX_PENDING_RETRIES = 20
 
-        private val NAME_KEYWORDS = setOf(
+        private val ENGLISH_NAME_KEYWORDS = setOf(
             "screenshot",
-            "截图",
-            "截屏",
             "screen_shot",
             "screencap",
             "capture",
             "screen-shot",
-            "截圖",
         )
-
-        fun isScreenshotCandidate(
-            displayName: String?,
-            mimeType: String?,
-            relativePath: String?,
-            dataPath: String?,
-        ): Boolean {
-            val mime = mimeType?.lowercase()
-            if (mime != null && !mime.startsWith("image/")) return false
-
-            val rel = relativePath?.lowercase().orEmpty()
-            val data = dataPath?.lowercase().orEmpty()
-            if (rel.contains("screenshots") || data.contains("/screenshots/")) {
-                return true
-            }
-            val name = (displayName ?: dataPath ?: "").lowercase()
-            return NAME_KEYWORDS.any { keyword -> name.contains(keyword) }
-        }
 
         fun isRecentEnough(dateTaken: Long?, dateAdded: Long?, dateModified: Long?): Boolean {
             val nowSec = System.currentTimeMillis() / 1000

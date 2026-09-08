@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.RectF
 import android.view.MotionEvent
+import com.slideindex.app.R
 import com.slideindex.app.data.AppInfo
 import com.slideindex.app.gesture.ActionExecutor
 import com.slideindex.app.gesture.GestureSession
@@ -512,7 +513,11 @@ internal class QuickLauncherOverlayController(
         activeQuickLauncherPanel().name.ifBlank {
             val panels = QuickLauncherPanelDefaults.effectivePanels(host.settings().quickLauncherPanels)
             val idx = panels.indexOfFirst { it.id == activeQuickLauncherPanel().id }
-            if (idx >= 0) "面板 ${idx + 1}" else "快速启动器"
+            if (idx >= 0) {
+                host.context.getString(R.string.quick_launcher_panel_named, idx + 1)
+            } else {
+                host.context.getString(R.string.gesture_action_quick_launcher)
+            }
         }
 
     fun switchToNextPanel() {

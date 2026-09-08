@@ -1,0 +1,902 @@
+[
+  {
+    "name": "weekday_short_tuesday",
+    "text": "Tue",
+    "source": "en"
+  },
+  {
+    "name": "weekday_short_wednesday",
+    "text": "Wed",
+    "source": "en"
+  },
+  {
+    "name": "weekday_short_thursday",
+    "text": "Thu",
+    "source": "en"
+  },
+  {
+    "name": "weekday_short_friday",
+    "text": "Fri",
+    "source": "en"
+  },
+  {
+    "name": "weekday_short_saturday",
+    "text": "Sat",
+    "source": "en"
+  },
+  {
+    "name": "settings_backup_title",
+    "text": "Settings backup",
+    "source": "en"
+  },
+  {
+    "name": "settings_backup_subtitle",
+    "text": "Export or import app configuration for device migration",
+    "source": "en"
+  },
+  {
+    "name": "settings_backup_section_actions",
+    "text": "Backup actions",
+    "source": "en"
+  },
+  {
+    "name": "settings_backup_hint",
+    "text": "Export or import app settings. OTP, notification history, clipboard, and more are optional.",
+    "source": "en"
+  },
+  {
+    "name": "settings_backup_include_sensitive",
+    "text": "Include sensitive records and history",
+    "source": "en"
+  },
+  {
+    "name": "settings_backup_sensitive_hint",
+    "text": "Includes OTP records, notification history, clipboard, share-image OCR history, and shell output history. Stored only in your local backup file.",
+    "source": "en"
+  },
+  {
+    "name": "settings_backup_export",
+    "text": "Export settings",
+    "source": "en"
+  },
+  {
+    "name": "settings_backup_import",
+    "text": "Import settings",
+    "source": "en"
+  },
+  {
+    "name": "settings_backup_default_filename",
+    "text": "cebian-backup-%1$d.zip",
+    "source": "en"
+  },
+  {
+    "name": "settings_backup_entry_title",
+    "text": "Settings backup",
+    "source": "en"
+  },
+  {
+    "name": "settings_backup_entry_desc",
+    "text": "Export or import a ZIP backup file",
+    "source": "en"
+  },
+  {
+    "name": "settings_backup_export_success",
+    "text": "Settings exported successfully",
+    "source": "en"
+  },
+  {
+    "name": "settings_backup_export_failed",
+    "text": "Export failed. Please try again later.",
+    "source": "en"
+  },
+  {
+    "name": "settings_backup_import_failed",
+    "text": "Import failed. Please check the file format.",
+    "source": "en"
+  },
+  {
+    "name": "settings_backup_preview_title",
+    "text": "Import preview",
+    "source": "en"
+  },
+  {
+    "name": "settings_backup_preview_info",
+    "text": "Backup created on %1$s, from version %2$s.",
+    "source": "en"
+  },
+  {
+    "name": "settings_backup_preview_domains",
+    "text": "Included domains: %1$s",
+    "source": "en"
+  },
+  {
+    "name": "settings_backup_preview_sensitive",
+    "text": "Note: This backup contains sensitive data (%1$s). Import will overwrite current records.",
+    "source": "en"
+  },
+  {
+    "name": "settings_backup_preview_warning",
+    "text": "Confirm import? This operation cannot be undone.",
+    "source": "en"
+  },
+  {
+    "name": "settings_backup_preview_confirm",
+    "text": "Confirm import",
+    "source": "en"
+  },
+  {
+    "name": "settings_domain_edge",
+    "text": "Edge gestures",
+    "source": "en"
+  },
+  {
+    "name": "settings_domain_shake",
+    "text": "Shake",
+    "source": "en"
+  },
+  {
+    "name": "settings_domain_message",
+    "text": "Notification filter",
+    "source": "en"
+  },
+  {
+    "name": "settings_domain_otp",
+    "text": "Auto OTP",
+    "source": "en"
+  },
+  {
+    "name": "settings_domain_floating_pointer",
+    "text": "Floating pointer",
+    "source": "en"
+  },
+  {
+    "name": "settings_domain_widget_panel",
+    "text": "Widget panel",
+    "source": "en"
+  },
+  {
+    "name": "settings_domain_quick_launcher",
+    "text": "Quick launcher",
+    "source": "en"
+  },
+  {
+    "name": "settings_domain_free_window",
+    "text": "Free window",
+    "source": "en"
+  },
+  {
+    "name": "settings_domain_general",
+    "text": "General",
+    "source": "en"
+  },
+  {
+    "name": "settings_domain_sensitive_otp",
+    "text": "OTP records",
+    "source": "en"
+  },
+  {
+    "name": "settings_domain_sensitive_notification",
+    "text": "Notification history",
+    "source": "en"
+  },
+  {
+    "name": "settings_domain_sensitive_clipboard",
+    "text": "Clipboard history",
+    "source": "en"
+  },
+  {
+    "name": "settings_domain_sensitive_share_image_ocr",
+    "text": "Share-image OCR history",
+    "source": "en"
+  },
+  {
+    "name": "settings_domain_sensitive_shell_history",
+    "text": "Shell output history",
+    "source": "en"
+  },
+  {
+    "name": "settings_domain_sensitive_notification_filter_rules",
+    "text": "Notification filter rules",
+    "source": "en"
+  },
+  {
+    "name": "settings_domain_sensitive_notification_filter_prefs",
+    "text": "Notification filter preferences",
+    "source": "en"
+  },
+  {
+    "name": "settings_domain_sensitive_otp_stats",
+    "text": "OTP autofill stats",
+    "source": "en"
+  },
+  {
+    "name": "onboarding_skip",
+    "text": "Skip",
+    "source": "en"
+  },
+  {
+    "name": "onboarding_next",
+    "text": "Next",
+    "source": "en"
+  },
+  {
+    "name": "onboarding_get_started",
+    "text": "Get started",
+    "source": "en"
+  },
+  {
+    "name": "onboarding_progress",
+    "text": "Step %1$d of %2$d",
+    "source": "en"
+  },
+  {
+    "name": "onboarding_welcome_title",
+    "text": "Welcome to Cebian",
+    "source": "en"
+  },
+  {
+    "name": "onboarding_welcome_body",
+    "text": "Cebian enhances your phone with edge gestures, shake actions, and notification tools. A few system permissions are required next.",
+    "source": "en"
+  },
+  {
+    "name": "onboarding_overlay_title",
+    "text": "Display over other apps",
+    "source": "en"
+  },
+  {
+    "name": "onboarding_overlay_body",
+    "text": "Needed for edge triggers, side panels, and floating message reminders.",
+    "source": "en"
+  },
+  {
+    "name": "onboarding_grant_overlay",
+    "text": "Grant overlay permission",
+    "source": "en"
+  },
+  {
+    "name": "onboarding_accessibility_title",
+    "text": "Accessibility service",
+    "source": "en"
+  },
+  {
+    "name": "onboarding_accessibility_body",
+    "text": "Cebian uses an accessibility service for edge gestures, sidebar panels, and system actions (Back, Home, Recents).",
+    "source": "en"
+  },
+  {
+    "name": "onboarding_grant_accessibility",
+    "text": "Open accessibility settings",
+    "source": "en"
+  },
+  {
+    "name": "onboarding_done_title",
+    "text": "You are all set",
+    "source": "en"
+  },
+  {
+    "name": "onboarding_done_body",
+    "text": "Core permissions are configured. Tune gestures on Home or import an existing backup from Extensions.",
+    "source": "en"
+  },
+  {
+    "name": "onboarding_permission_granted",
+    "text": "Granted",
+    "source": "en"
+  },
+  {
+    "name": "onboarding_back",
+    "text": "Back",
+    "source": "en"
+  },
+  {
+    "name": "onboarding_enter_app",
+    "text": "Enter App",
+    "source": "en"
+  },
+  {
+    "name": "onboarding_disclaimer_title",
+    "text": "Disclaimer",
+    "source": "en"
+  },
+  {
+    "name": "onboarding_disclaimer_body",
+    "text": "This app and its modules are intended solely for personal device management and productivity enhancements, not for circumventing regulations, access controls, or unauthorized operations.\\n\\nPlease ensure you understand how these features work, and take responsibility for any rules, modifications, or settings enabled.",
+    "source": "en"
+  },
+  {
+    "name": "onboarding_disclaimer_agree",
+    "text": "I have read and agree to the disclaimer",
+    "source": "en"
+  },
+  {
+    "name": "onboarding_core_permissions_title",
+    "text": "Core Permissions",
+    "source": "en"
+  },
+  {
+    "name": "onboarding_core_permissions_body",
+    "text": "Cebian requires the following permissions to support edge gesture recognition, floating trigger bars, and reliable background operations. Please grant them in system settings.",
+    "source": "en"
+  },
+  {
+    "name": "onboarding_permission_overlay_short",
+    "text": "For displaying edge triggers and floating panels",
+    "source": "en"
+  },
+  {
+    "name": "onboarding_permission_accessibility_short",
+    "text": "For detecting edge gestures and triggering system actions",
+    "source": "en"
+  },
+  {
+    "name": "onboarding_permission_notification_title",
+    "text": "Notification & Service",
+    "source": "en"
+  },
+  {
+    "name": "onboarding_permission_notification_short",
+    "text": "For keeping background services alive and sending alerts",
+    "source": "en"
+  },
+  {
+    "name": "onboarding_permission_app_list_title",
+    "text": "Query Installed Apps",
+    "source": "en"
+  },
+  {
+    "name": "onboarding_permission_app_list_short",
+    "text": "For displaying and searching apps in sidebar and quick launcher",
+    "source": "en"
+  },
+  {
+    "name": "onboarding_permission_status_ready",
+    "text": "Ready",
+    "source": "en"
+  },
+  {
+    "name": "onboarding_permission_status_grant",
+    "text": "Grant",
+    "source": "en"
+  },
+  {
+    "name": "privacy_policy_title",
+    "text": "Privacy policy",
+    "source": "en"
+  },
+  {
+    "name": "privacy_policy_subtitle",
+    "text": "How data is handled and whether it is uploaded",
+    "source": "en"
+  },
+  {
+    "name": "privacy_policy_entry_title",
+    "text": "Privacy policy",
+    "source": "en"
+  },
+  {
+    "name": "privacy_policy_entry_desc",
+    "text": "Local data handling and permission purposes",
+    "source": "en"
+  },
+  {
+    "name": "privacy_policy_body",
+    "text": "Cebian is designed around on-device processing.\n\n• Notifications and OTP: read, filtered, extracted, and displayed locally only. Nothing is uploaded by default.\n• OTP records and notification history: stored in app-private storage and excluded from system backup by default; optional export in settings backup.\n• LSPosed / Shizuku: optional enhancements that you enable yourself.\n• We do not collect personally identifiable information or send this data to developer servers.\n\nForeground service (special use): OverlayService keeps edge gestures and shake detection alive with subtype overlay_sidebar\\u2014not for ads or unrelated background work.\n\nQuestions: open a GitHub Issue on the project repository.",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_stats_title",
+    "text": "Fill statistics",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_stats_screen_desc",
+    "text": "View attempt counts, success rate, and the last failure reason",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_stats_entry_empty",
+    "text": "No records yet",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_stats_overview_section",
+    "text": "Overview",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_stats_last_section",
+    "text": "Last attempt",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_stats_help_section",
+    "text": "Help",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_stats_total_attempts",
+    "text": "Total attempts",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_stats_success_count",
+    "text": "Successes",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_stats_failure_count",
+    "text": "Failures",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_stats_success_rate",
+    "text": "Success rate",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_stats_last_result",
+    "text": "Result",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_stats_last_time",
+    "text": "Time",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_stats_last_strategy",
+    "text": "Strategy",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_stats_last_reason",
+    "text": "Reason",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_stats_help_pipeline",
+    "text": "Fill order: when LSPosed system inject is enabled, it runs first. If it fails or is disabled, Cebian accessibility looks for an input field and writes the code.",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_stats_help_strategies",
+    "text": "Strategies: system inject = LSPosed hook; focused/best/group nodes = accessibility node fill.",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_stats_help_failures",
+    "text": "Common failures: timeout = no fill result in time; no editable node = no input field found; no strategy = no receiver responded.",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_strategy_system_inject",
+    "text": "LSPosed system inject",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_strategy_focused_node",
+    "text": "Accessibility · focused field",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_strategy_best_editable_node",
+    "text": "Accessibility · best editable field",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_strategy_group_nodes",
+    "text": "Accessibility · split fields",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_strategy_set_text",
+    "text": "Accessibility · set text",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_strategy_none",
+    "text": "No strategy matched",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_strategy_probe",
+    "text": "Probe",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_strategy_unknown",
+    "text": "Unknown strategy (%1$s)",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_reason_empty",
+    "text": "None",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_reason_ok",
+    "text": "Success",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_reason_timeout",
+    "text": "Timed out waiting for fill result",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_reason_no_active_window",
+    "text": "No active app window found",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_reason_no_editable_node",
+    "text": "No editable input field found",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_reason_own_package",
+    "text": "Skipped: target is this app",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_reason_action_set_text_failed",
+    "text": "Set-text action was rejected",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_reason_set_text_exception",
+    "text": "Exception while setting text",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_reason_group_strategy_not_applicable",
+    "text": "Split-field fill not applicable for this code length",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_reason_not_enough_editable_nodes",
+    "text": "Not enough split input fields",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_reason_group_set_text_failed",
+    "text": "Split-field fill failed",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_reason_manager_unresolved",
+    "text": "System InputManager unavailable",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_reason_inject_method_unresolved",
+    "text": "System inject method unavailable",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_reason_no_key_events",
+    "text": "Could not generate key events",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_reason_inject_exception",
+    "text": "System inject exception",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_reason_probe",
+    "text": "Probe response",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_reason_uid_rejected",
+    "text": "Sender UID not authorized",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_reason_inject_disabled",
+    "text": "System inject disabled in app settings",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_reason_result_code_blocked",
+    "text": "Broadcast already handled by another receiver",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_reason_invalid_request",
+    "text": "Invalid auto-fill request",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_reason_receiver_not_ready",
+    "text": "Inject receiver not ready in system_server",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_reason_unknown",
+    "text": "%1$s",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_stats_last_success",
+    "text": "Success",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_stats_last_failure",
+    "text": "Failed",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_stats_reset",
+    "text": "Reset statistics",
+    "source": "en"
+  },
+  {
+    "name": "otp_autofill_stats_empty",
+    "text": "No auto-fill attempts yet",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_template_hint",
+    "text": "Variables: {package}, {foreground_package}, {timestamp}, {datetime}",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_history_title",
+    "text": "Output history",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_history_desc",
+    "text": "Recent command output with search",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_history_entry_title",
+    "text": "Output history",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_history_entry_desc_empty",
+    "text": "No execution history yet",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_history_search_hint",
+    "text": "Search commands or output",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_history_clear",
+    "text": "Clear history",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_history_clear_confirm_title",
+    "text": "Clear output history?",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_history_clear_confirm_message",
+    "text": "This deletes all saved command output records. This cannot be undone.",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_history_empty",
+    "text": "No execution history yet",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_history_exit_code",
+    "text": "Exit code %1$d",
+    "source": "en"
+  },
+  {
+    "name": "tile_gesture_switch",
+    "text": "Cebian",
+    "source": "en"
+  },
+  {
+    "name": "shortcut_toggle_gesture",
+    "text": "Toggle gestures",
+    "source": "en"
+  },
+  {
+    "name": "shortcut_notification_hub",
+    "text": "Notification filter",
+    "source": "en"
+  },
+  {
+    "name": "shortcut_shell_panel",
+    "text": "Shell panel",
+    "source": "en"
+  },
+  {
+    "name": "shortcut_stash_panel",
+    "text": "Open stash",
+    "source": "en"
+  },
+  {
+    "name": "shortcut_clipboard_panel",
+    "text": "Open clipboard",
+    "source": "en"
+  },
+  {
+    "name": "shortcut_panel_open_failed",
+    "text": "Could not open panel. Make sure Cebian is enabled.",
+    "source": "en"
+  },
+  {
+    "name": "about_section_title",
+    "text": "About",
+    "source": "en"
+  },
+  {
+    "name": "about_release_notes_title",
+    "text": "Release notes",
+    "source": "en"
+  },
+  {
+    "name": "about_check_update_title",
+    "text": "Check for updates",
+    "source": "en"
+  },
+  {
+    "name": "about_check_update_subtitle",
+    "text": "Query latest release on GitHub",
+    "source": "en"
+  },
+  {
+    "name": "app_icon_theme_title",
+    "text": "App icon style",
+    "source": "en"
+  },
+  {
+    "name": "app_icon_theme_subtitle",
+    "text": "Tap to change app icon and about page color",
+    "source": "en"
+  },
+  {
+    "name": "app_icon_violet",
+    "text": "Tech Violet",
+    "source": "en"
+  },
+  {
+    "name": "app_icon_violet_desc",
+    "text": "Vibrant & default",
+    "source": "en"
+  },
+  {
+    "name": "app_icon_blue",
+    "text": "Ocean Blue",
+    "source": "en"
+  },
+  {
+    "name": "app_icon_blue_desc",
+    "text": "Clean & elegant",
+    "source": "en"
+  },
+  {
+    "name": "app_icon_green",
+    "text": "Cyber Green",
+    "source": "en"
+  },
+  {
+    "name": "app_icon_green_desc",
+    "text": "Fast & modern",
+    "source": "en"
+  },
+  {
+    "name": "app_icon_monet",
+    "text": "Material Monet",
+    "source": "en"
+  },
+  {
+    "name": "app_icon_monet_desc",
+    "text": "Dynamic colors matching wallpaper and system",
+    "source": "en"
+  },
+  {
+    "name": "auto_check_update_title",
+    "text": "Auto-check for updates",
+    "source": "en"
+  },
+  {
+    "name": "auto_check_update_hint",
+    "text": "Periodically check for new versions in the background and notify you",
+    "source": "en"
+  },
+  {
+    "name": "update_available_title",
+    "text": "Update available",
+    "source": "en"
+  },
+  {
+    "name": "update_version_compare",
+    "text": "%1$s → %2$s",
+    "source": "en"
+  },
+  {
+    "name": "update_now",
+    "text": "Update now",
+    "source": "en"
+  },
+  {
+    "name": "update_ignore_version",
+    "text": "Ignore this version",
+    "source": "en"
+  },
+  {
+    "name": "update_downloading_label",
+    "text": "Downloading…",
+    "source": "en"
+  },
+  {
+    "name": "update_already_latest_title",
+    "text": "Already up to date",
+    "source": "en"
+  },
+  {
+    "name": "update_install_now",
+    "text": "Install",
+    "source": "en"
+  },
+  {
+    "name": "update_move_to_background",
+    "text": "Download in background",
+    "source": "en"
+  },
+  {
+    "name": "update_download_failed_title",
+    "text": "Download failed",
+    "source": "en"
+  },
+  {
+    "name": "update_retry",
+    "text": "Retry",
+    "source": "en"
+  },
+  {
+    "name": "update_check_failed_title",
+    "text": "Update check failed",
+    "source": "en"
+  },
+  {
+    "name": "update_check_failed_message",
+    "text": "Could not fetch update info. Open GitHub to check manually.",
+    "source": "en"
+  },
+  {
+    "name": "update_check_network_failed_title",
+    "text": "Cannot reach update server",
+    "source": "en"
+  },
+  {
+    "name": "update_check_network_failed_message",
+    "text": "Check your network or try another connection, then retry. You can also open GitHub for the latest release.",
+    "source": "en"
+  },
+  {
+    "name": "update_check_rate_limited_title",
+    "text": "Too many requests",
+    "source": "en"
+  },
+  {
+    "name": "update_check_rate_limited_message",
+    "text": "GitHub API is rate-limited. Try again later or open GitHub.",
+    "source": "en"
+  },
+  {
+    "name": "update_check_no_apk_title",
+    "text": "Release in progress",
+    "source": "en"
+  },
+  {
+    "name": "update_check_no_apk_message",
+    "text": "A new version exists but the APK is not uploaded yet. Try again later.",
+    "source": "en"
+  }
+]

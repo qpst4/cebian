@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="screenshot_monitor_keywords">
+        <item>スクリーンショット</item>
+        <item>画面キャプチャ</item>
+        <item>螢幕截圖</item>
+    </string-array>
+</resources>

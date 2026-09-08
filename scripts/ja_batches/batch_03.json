@@ -1,0 +1,902 @@
+[
+  {
+    "name": "settings_section_features",
+    "text": "Features",
+    "source": "en"
+  },
+  {
+    "name": "settings_section_feedback_appearance",
+    "text": "Interaction & appearance",
+    "source": "en"
+  },
+  {
+    "name": "gesture_angle_entry_title",
+    "text": "Gesture angle",
+    "source": "en"
+  },
+  {
+    "name": "gesture_angle_entry_desc",
+    "text": "Adjust trigger angles for each direction",
+    "source": "en"
+  },
+  {
+    "name": "gesture_angle_title",
+    "text": "Gesture angle",
+    "source": "en"
+  },
+  {
+    "name": "gesture_angle_reset",
+    "text": "Reset to default",
+    "source": "en"
+  },
+  {
+    "name": "gesture_angle_save",
+    "text": "Save",
+    "source": "en"
+  },
+  {
+    "name": "gesture_angle_side_left",
+    "text": "Left",
+    "source": "en"
+  },
+  {
+    "name": "gesture_angle_side_right",
+    "text": "Right",
+    "source": "en"
+  },
+  {
+    "name": "gesture_angle_side_bottom",
+    "text": "Bottom",
+    "source": "en"
+  },
+  {
+    "name": "gesture_angle_side_top",
+    "text": "Top",
+    "source": "en"
+  },
+  {
+    "name": "gesture_angle_live_preview_hint",
+    "text": "Drag boundaries to test gesture angles on the edges live; tap the checkmark to save.",
+    "source": "en"
+  },
+  {
+    "name": "layout_settings_title",
+    "text": "App index",
+    "source": "en"
+  },
+  {
+    "name": "layout_settings_entry_title",
+    "text": "App index",
+    "source": "en"
+  },
+  {
+    "name": "layout_settings_entry_desc",
+    "text": "Adjust letter index height, columns, and panel opacity",
+    "source": "en"
+  },
+  {
+    "name": "layout_settings_entry_summary",
+    "text": "Index columns: %1$d",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_entry_desc",
+    "text": "Edit quick launcher items",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_items_section",
+    "text": "Shortcuts",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_page_indicator",
+    "text": "Page %1$d / %2$d",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_page_previous",
+    "text": "Previous page",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_page_next",
+    "text": "Next page",
+    "source": "en"
+  },
+  {
+    "name": "trigger_collection_desc",
+    "text": "Manage left, right, top, and bottom edge triggers independently",
+    "source": "en"
+  },
+  {
+    "name": "trigger_collection_long_press_remove_hint",
+    "text": "Tap a row to configure; long-press to remove",
+    "source": "en"
+  },
+  {
+    "name": "trigger_bottom_default_title",
+    "text": "Bottom handle",
+    "source": "en"
+  },
+  {
+    "name": "trigger_top_default_title",
+    "text": "Top handle",
+    "source": "en"
+  },
+  {
+    "name": "trigger_collection_bottom",
+    "text": "Bottom handles",
+    "source": "en"
+  },
+  {
+    "name": "trigger_collection_top",
+    "text": "Top handles",
+    "source": "en"
+  },
+  {
+    "name": "trigger_collection_add_bottom",
+    "text": "Add bottom handle",
+    "source": "en"
+  },
+  {
+    "name": "trigger_collection_add_top",
+    "text": "Add top handle",
+    "source": "en"
+  },
+  {
+    "name": "corner_wheel_home_title",
+    "text": "Corner wheel",
+    "source": "en"
+  },
+  {
+    "name": "corner_wheel_home_desc",
+    "text": "Radial menu from bottom-left and bottom-right corners",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_settings_title",
+    "text": "Corner wheel",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_settings_desc",
+    "text": "Swipe from the bottom-left or bottom-right corner to open a radial action menu",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_settings_hint",
+    "text": "Swipe from a corner to open the wheel, then release on an icon to run that action.",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_interaction_appearance_title",
+    "text": "Interaction & appearance",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_interaction_appearance_desc",
+    "text": "Trigger zones, wheel size, behavior, and background",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_slots_entry_desc",
+    "text": "Configure slot actions and inner-ring blank behavior",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_enabled",
+    "text": "Enable corner wheel",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_enabled_desc",
+    "text": "Bottom-corner radial menu, independent of edge handles",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_left_enabled",
+    "text": "Enable bottom-left corner",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_left_enabled_desc",
+    "text": "Bottom-left trigger zone and left radial menu",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_right_enabled",
+    "text": "Enable bottom-right corner",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_right_enabled_desc",
+    "text": "Bottom-right trigger zone and right radial menu",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_trigger_section",
+    "text": "Trigger and menu",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_zone_preview_hint",
+    "text": "While dragging the sliders below, the L-shaped trigger areas are shown at the bottom corners (shared by left and right)",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_vertical_edge_height",
+    "text": "Vertical edge height",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_vertical_edge_width",
+    "text": "Vertical edge width",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_horizontal_edge_height",
+    "text": "Horizontal edge height",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_horizontal_edge_width",
+    "text": "Horizontal edge width",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_trigger_slop",
+    "text": "Inward swipe distance",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_outer_diameter",
+    "text": "Menu outer diameter",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_inner_diameter",
+    "text": "Menu inner diameter",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_bubble_size",
+    "text": "Bubble size",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_zone_dp_value",
+    "text": "%1$d dp",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_behavior_section",
+    "text": "Behavior",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_hide_landscape",
+    "text": "Disable in landscape",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_hide_landscape_desc",
+    "text": "Hide corner trigger zones in landscape",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_landscape_prevent_false_touch",
+    "text": "Landscape false-touch guard",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_landscape_prevent_false_touch_desc",
+    "text": "Require a longer inward swipe in landscape",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_override_system_nav",
+    "text": "Override system navigation gestures",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_override_system_nav_desc",
+    "text": "Exclude system bottom navigation gestures in corner zones",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_left_slots_section",
+    "text": "Left menu slots",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_right_slots_section",
+    "text": "Right menu slots",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_slot_title",
+    "text": "Slot %1$d",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_slot_empty",
+    "text": "Not configured",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_slot_main_action",
+    "text": "Slot action",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_slot_submenu_section",
+    "text": "Shortcut sub-menu",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_slot_submenu_hint",
+    "text": "After dwell on this slot (long-press threshold + haptic), shortcut pills appear above the icon. Release on a pill to launch it.",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_slot_submenu_enabled",
+    "text": "Enable sub-menu",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_slot_submenu_enabled_desc",
+    "text": "Configure pills that fan out when dwelling on this slot",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_slot_submenu_item_title",
+    "text": "Shortcut %1$d",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_slot_submenu_remove_item",
+    "text": "Remove shortcut",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_slot_submenu_add",
+    "text": "Add shortcut",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_slot_submenu_add_desc",
+    "text": "Pick from the system shortcut list",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_slot_submenu_import",
+    "text": "Import from app",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_slot_submenu_import_desc",
+    "text": "Fill shortcuts from the slot\\'s linked app",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_slot_submenu_import_title",
+    "text": "Choose shortcuts to import",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_slot_corner_left",
+    "text": "Bottom-left radial menu",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_slot_corner_right",
+    "text": "Bottom-right radial menu",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_layer_inner",
+    "text": "Inner layer (3)",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_layer_middle",
+    "text": "Middle layer (5)",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_layer_outer",
+    "text": "Outer layer (7)",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_cancel_outside_wheel",
+    "text": "Cancel outside wheel",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_cancel_outside_wheel_desc",
+    "text": "Clear highlight when finger leaves the fan; release does nothing",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_progressive_layers",
+    "text": "Progressive layers",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_progressive_layers_desc",
+    "text": "Short swipe shows inner layer; swipe farther to reveal middle and outer",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_slot_haptic",
+    "text": "Slot haptic feedback",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_slot_haptic_desc",
+    "text": "Vibrate when the finger moves to a new slot (still respects the home “Haptic feedback” master switch)",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_show_selected_name",
+    "text": "Show hit label",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_show_selected_name_desc",
+    "text": "Show icon and name near the upper screen when a slot is highlighted (like Honeycomb)",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_background_style",
+    "text": "Wheel background",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_background_none",
+    "text": "None",
+    "source": "en"
+  },
+  {
+    "name": "action_category_navigation",
+    "text": "Navigation & System",
+    "source": "en"
+  },
+  {
+    "name": "action_category_controls",
+    "text": "Controls & Media",
+    "source": "en"
+  },
+  {
+    "name": "action_category_intelligence",
+    "text": "Screen & AI",
+    "source": "en"
+  },
+  {
+    "name": "action_category_panel",
+    "text": "Panels & Launchers",
+    "source": "en"
+  },
+  {
+    "name": "action_category_pointer",
+    "text": "Pointer & Advanced",
+    "source": "en"
+  },
+  {
+    "name": "action_category_other",
+    "text": "Other",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_launch_policy_hint",
+    "text": "Launch App and Launch Shortcut slots follow the launch policy in Free Window settings.",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_slots_section",
+    "text": "Wheel slots",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_unified_slots",
+    "text": "Shared left/right slots",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_unified_slots_desc",
+    "text": "Use the same slot layout for both bottom corners",
+    "source": "en"
+  },
+  {
+    "name": "corner_gesture_inner_zone_action",
+    "text": "Inner blank behavior",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_corner_inner_cancel",
+    "text": "Cancel",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_corner_inner_cancel_desc",
+    "text": "Dismiss the wheel on release",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_corner_inner_pin_wheel",
+    "text": "No action",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_corner_inner_pin_wheel_desc",
+    "text": "Keep the wheel open; tap a slot, outside the wheel, or the inner ring again to close",
+    "source": "en"
+  },
+  {
+    "name": "trigger_design_entry",
+    "text": "Design",
+    "source": "en"
+  },
+  {
+    "name": "trigger_design_title",
+    "text": "Trigger design",
+    "source": "en"
+  },
+  {
+    "name": "trigger_design_desc",
+    "text": "Appearance and glow effects",
+    "source": "en"
+  },
+  {
+    "name": "trigger_design_section",
+    "text": "Design",
+    "source": "en"
+  },
+  {
+    "name": "trigger_design_customize",
+    "text": "Customize",
+    "source": "en"
+  },
+  {
+    "name": "trigger_design_kind",
+    "text": "Trigger design",
+    "source": "en"
+  },
+  {
+    "name": "trigger_design_kind_hide",
+    "text": "Hide",
+    "source": "en"
+  },
+  {
+    "name": "trigger_design_kind_rectangle",
+    "text": "Configurable rectangle",
+    "source": "en"
+  },
+  {
+    "name": "trigger_design_kind_custom_image",
+    "text": "Custom image",
+    "source": "en"
+  },
+  {
+    "name": "trigger_design_custom_image_hint",
+    "text": "Custom image support is coming soon",
+    "source": "en"
+  },
+  {
+    "name": "trigger_design_preset",
+    "text": "Choose preset",
+    "source": "en"
+  },
+  {
+    "name": "trigger_design_preset_bar",
+    "text": "Bar",
+    "source": "en"
+  },
+  {
+    "name": "trigger_design_preset_line",
+    "text": "Line",
+    "source": "en"
+  },
+  {
+    "name": "trigger_design_preset_rounded_rect",
+    "text": "Rounded rectangle",
+    "source": "en"
+  },
+  {
+    "name": "trigger_design_preset_halo",
+    "text": "Glow",
+    "source": "en"
+  },
+  {
+    "name": "trigger_design_preset_line_and_halo",
+    "text": "Line & glow",
+    "source": "en"
+  },
+  {
+    "name": "trigger_design_size",
+    "text": "Size",
+    "source": "en"
+  },
+  {
+    "name": "trigger_design_background_color",
+    "text": "Background color",
+    "source": "en"
+  },
+  {
+    "name": "trigger_design_corner_radius",
+    "text": "Corner radius",
+    "source": "en"
+  },
+  {
+    "name": "trigger_design_corner_mode",
+    "text": "Corner mode",
+    "source": "en"
+  },
+  {
+    "name": "trigger_design_corner_mode_all",
+    "text": "All",
+    "source": "en"
+  },
+  {
+    "name": "trigger_design_corner_mode_outer",
+    "text": "Outer",
+    "source": "en"
+  },
+  {
+    "name": "trigger_design_border_size",
+    "text": "Border size",
+    "source": "en"
+  },
+  {
+    "name": "trigger_design_border_color",
+    "text": "Border color",
+    "source": "en"
+  },
+  {
+    "name": "trigger_design_halo_size",
+    "text": "Glow size",
+    "source": "en"
+  },
+  {
+    "name": "trigger_design_halo_color",
+    "text": "Glow color",
+    "source": "en"
+  },
+  {
+    "name": "trigger_remove_side_confirm_title",
+    "text": "Remove %1$s?",
+    "source": "en"
+  },
+  {
+    "name": "trigger_remove_side_confirm_message",
+    "text": "This removes the trigger and its gesture config on this side only.",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_floating_pointer",
+    "text": "Floating pointer",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_floating_pointer_permission",
+    "text": "Requires Cebian",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_pointer_gesture_recorder",
+    "text": "Pointer gesture recorder",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_pointer_gesture_recorder_desc",
+    "text": "Hold and slide to replay as Swipe from the pointer",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_pointer_realtime_gesture",
+    "text": "Pointer realtime gesture",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_pointer_realtime_gesture_desc",
+    "text": "Hold and slide to simulate touch in realtime from the pointer",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_require_min_sdk_36",
+    "text": "Minimum Android version required is Android 16 (SDK 36)",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_pointer_gesture_record_permission",
+    "text": "Requires Cebian",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_open_floating_pointer_radial_menu",
+    "text": "Open action ring",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_open_floating_pointer_radial_menu_desc",
+    "text": "Open the joystick action ring on long-press",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_open_floating_pointer_radial_menu_permission",
+    "text": "Requires Cebian",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_settings_title",
+    "text": "Float ball",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_entry_desc",
+    "text": "Text pick, image search, translate, and more",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_entry_summary_enabled",
+    "text": "On · %1$.0f dp · Opacity %2$d%%",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_entry_summary_disabled",
+    "text": "Off",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_enabled",
+    "text": "Show float ball",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_enabled_desc",
+    "text": "Requires accessibility service; the ball appears immediately when enabled",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_permission_required",
+    "text": "Accessibility service required",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_section_appearance",
+    "text": "Appearance",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_section_line",
+    "text": "Edge line",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_position",
+    "text": "Position",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_position_left",
+    "text": "Left",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_position_right",
+    "text": "Right",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_position_both_edges",
+    "text": "Both edges",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_position_y",
+    "text": "Vertical position",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_visible_fraction",
+    "text": "Visible amount",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_position_xy_hint",
+    "text": "The percentage shows how much of the ball stays on screen when docked",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_line_height",
+    "text": "Line height",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_line_width",
+    "text": "Trigger width",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_line_width_preview_hint",
+    "text": "Drag the trigger width slider to preview the active swipe zone along the screen edge.",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_line_opacity",
+    "text": "Line opacity",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_translation_settings_title",
+    "text": "Translate",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_translate_engine",
+    "text": "Translation engine",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_translate_engine_google",
+    "text": "Google",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_translate_engine_mlkit",
+    "text": "ML Kit",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_translate_target_lang",
+    "text": "Translate to",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_instant_translate",
+    "text": "Instant translate",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_instant_translate_desc",
+    "text": "Show translated text in an overlay when picking text in games and other apps",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_instant_translate_on",
+    "text": "Instant translate",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_instant_translate_off",
+    "text": "Web page",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_translate_mlkit_models",
+    "text": "ML Kit language packs",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_translate_mlkit_models_desc",
+    "text": "Manage offline translation language models",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_translate_mlkit_models_subtitle",
+    "text": "Choose which language packs to download. Install the required packs before using ML Kit translation.",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_translate_languages_section",
+    "text": "Language packs",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_translate_panel_title",
+    "text": "Translate",
+    "source": "en"
+  }
+]

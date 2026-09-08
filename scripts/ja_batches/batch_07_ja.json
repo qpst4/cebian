@@ -1,0 +1,722 @@
+[
+  {
+    "name": "pointer_swipe_direction_title",
+    "ja": "方向"
+  },
+  {
+    "name": "pointer_swipe_direction_left",
+    "ja": "左"
+  },
+  {
+    "name": "pointer_swipe_direction_up",
+    "ja": "上"
+  },
+  {
+    "name": "pointer_swipe_direction_right",
+    "ja": "右"
+  },
+  {
+    "name": "pointer_swipe_direction_down",
+    "ja": "下"
+  },
+  {
+    "name": "pointer_swipe_distance_title",
+    "ja": "スワイプ距離"
+  },
+  {
+    "name": "pointer_swipe_distance_short",
+    "ja": "短"
+  },
+  {
+    "name": "pointer_swipe_distance_medium",
+    "ja": "中"
+  },
+  {
+    "name": "pointer_swipe_distance_long",
+    "ja": "長"
+  },
+  {
+    "name": "pointer_swipe_duration_title",
+    "ja": "スワイプ時間"
+  },
+  {
+    "name": "pointer_swipe_duration_value",
+    "ja": "%1$d ms"
+  },
+  {
+    "name": "pointer_swipe_pointer_count_title",
+    "ja": "マルチタッチ"
+  },
+  {
+    "name": "pointer_swipe_action_summary",
+    "ja": "%1$s · 歯車をタップして設定"
+  },
+  {
+    "name": "notification_history_entry_title",
+    "ja": "通知フィルターボックス"
+  },
+  {
+    "name": "notification_history_entry_desc",
+    "ja": "ライブ通知とアーカイブを表示。非表示と再表示"
+  },
+  {
+    "name": "notification_history_entry_summary",
+    "ja": "保存済み通知: %1$d"
+  },
+  {
+    "name": "notification_history_entry_permission_needed",
+    "ja": "通知アクセスが必要です"
+  },
+  {
+    "name": "notification_history_title",
+    "ja": "通知フィルターボックス"
+  },
+  {
+    "name": "notification_history_subtitle",
+    "ja": "ライブ通知シェードと履歴を表示"
+  },
+  {
+    "name": "notification_history_empty",
+    "ja": "通知はまだありません。記録を開始するには通知アクセスを有効にしてください。"
+  },
+  {
+    "name": "notification_history_search_hint",
+    "ja": "通知を検索…"
+  },
+  {
+    "name": "notification_history_clear_all",
+    "ja": "すべて消去"
+  },
+  {
+    "name": "notification_history_delete",
+    "ja": "削除"
+  },
+  {
+    "name": "notification_history_menu_reopen",
+    "ja": "再表示"
+  },
+  {
+    "name": "notification_history_channel_id_label",
+    "ja": "チャンネル ID: %1$s"
+  },
+  {
+    "name": "notification_history_menu_copy_channel_id",
+    "ja": "チャンネル ID をコピー"
+  },
+  {
+    "name": "notification_history_menu_open_channel_settings",
+    "ja": "通知設定を開く"
+  },
+  {
+    "name": "notification_history_channel_id_copied",
+    "ja": "チャンネル ID をコピーしました: %1$s"
+  },
+  {
+    "name": "notification_history_delete_confirm_title",
+    "ja": "この通知を削除しますか？"
+  },
+  {
+    "name": "notification_history_delete_confirm_message",
+    "ja": "フィルターボックスからこの記録を削除します。元に戻せません。"
+  },
+  {
+    "name": "notification_history_clear_all_confirm_title",
+    "ja": "すべての通知を消去しますか？"
+  },
+  {
+    "name": "notification_history_clear_all_confirm_message",
+    "ja": "フィルターボックス内の保存済み通知をすべて削除します。元に戻せません。"
+  },
+  {
+    "name": "notification_history_permission_title",
+    "ja": "通知アクセスが必要です"
+  },
+  {
+    "name": "notification_history_permission_desc",
+    "ja": "通知の記録、非表示、再表示を行うには、システム設定でこのアプリの通知アクセスを有効にしてください。"
+  },
+  {
+    "name": "notification_history_permission_grant",
+    "ja": "設定を開く"
+  },
+  {
+    "name": "notification_history_reopen_failed_reason",
+    "ja": "再表示できませんでした: %1$s"
+  },
+  {
+    "name": "notification_history_recycled_title",
+    "ja": "通知は再利用されました"
+  },
+  {
+    "name": "notification_history_recycled_message",
+    "ja": "通知リンクのメモリは Android により再利用され、開けなくなりました。\\n代わりにアプリを開くことができます。"
+  },
+  {
+    "name": "notification_history_open_app",
+    "ja": "%1$s を開く"
+  },
+  {
+    "name": "notification_filter_hide",
+    "ja": "非表示"
+  },
+  {
+    "name": "notification_filter_hidden_badge",
+    "ja": "非表示"
+  },
+  {
+    "name": "notification_hidden_success",
+    "ja": "非表示にしました"
+  },
+  {
+    "name": "notification_hide_failed",
+    "ja": "この通知をシェードから非表示にできませんでした"
+  },
+  {
+    "name": "notification_hide_listener_required",
+    "ja": "先に通知アクセスを有効にしてください"
+  },
+  {
+    "name": "notification_restore_snoozed_action",
+    "ja": "非表示通知をスキャンして復元"
+  },
+  {
+    "name": "notification_restore_snoozed_desc",
+    "ja": "このアプリがシェードからスヌーズした通知を復元します。"
+  },
+  {
+    "name": "notification_restore_snoozed_result",
+    "ja": "シェードに復元: %1$d"
+  },
+  {
+    "name": "notification_restore_snoozed_empty",
+    "ja": "非表示の通知は見つかりませんでした"
+  },
+  {
+    "name": "notification_filter_active_in_shade",
+    "ja": "シェード内"
+  },
+  {
+    "name": "notification_filter_tab_active",
+    "ja": "ライブ"
+  },
+  {
+    "name": "notification_filter_tab_history",
+    "ja": "履歴"
+  },
+  {
+    "name": "notification_filter_history_hidden",
+    "ja": "非表示"
+  },
+  {
+    "name": "notification_filter_rules_action",
+    "ja": "タスクルール"
+  },
+  {
+    "name": "notification_filter_more_menu",
+    "ja": "その他"
+  },
+  {
+    "name": "notification_filter_settings_title",
+    "ja": "フィルター設定"
+  },
+  {
+    "name": "notification_rules_screen_subtitle",
+    "ja": "条件に応じて通知を自動処理"
+  },
+  {
+    "name": "otp_hub_entry_title",
+    "ja": "認証コード"
+  },
+  {
+    "name": "otp_hub_entry_desc",
+    "ja": "コードの抽出、記録、自動入力"
+  },
+  {
+    "name": "notification_filter_tab_rules",
+    "ja": "タスクルール"
+  },
+  {
+    "name": "notification_rule_section_title",
+    "ja": "タスク管理"
+  },
+  {
+    "name": "notification_rule_empty",
+    "ja": "タスクルールはまだありません"
+  },
+  {
+    "name": "notification_rule_add",
+    "ja": "タスクルールを追加"
+  },
+  {
+    "name": "notification_rule_edit",
+    "ja": "タスクルールを編集"
+  },
+  {
+    "name": "notification_rule_name",
+    "ja": "ルール名"
+  },
+  {
+    "name": "notification_rule_actions",
+    "ja": "アクション"
+  },
+  {
+    "name": "notification_rule_action_hide",
+    "ja": "通知を消去"
+  },
+  {
+    "name": "notification_rule_action_tts",
+    "ja": "読み上げ"
+  },
+  {
+    "name": "notification_rule_action_open",
+    "ja": "通知を開く"
+  },
+  {
+    "name": "notification_rule_pick_app",
+    "ja": "アプリを選択"
+  },
+  {
+    "name": "notification_rule_select_all",
+    "ja": "すべて選択"
+  },
+  {
+    "name": "notification_rule_invert_selection",
+    "ja": "反転"
+  },
+  {
+    "name": "notification_rule_selected_apps_count",
+    "ja": "選択中のアプリ: %1$d"
+  },
+  {
+    "name": "notification_rule_app_search_hint",
+    "ja": "アプリを検索"
+  },
+  {
+    "name": "notification_rule_saved",
+    "ja": "ルールを保存しました"
+  },
+  {
+    "name": "notification_rule_invalid",
+    "ja": "少なくとも 1 つのアクションを選択してください"
+  },
+  {
+    "name": "notification_rule_all_apps",
+    "ja": "すべてのアプリ"
+  },
+  {
+    "name": "notification_rule_unnamed",
+    "ja": "名前なしルール"
+  },
+  {
+    "name": "notification_rule_delete",
+    "ja": "ルールを削除"
+  },
+  {
+    "name": "notification_rule_package_summary",
+    "ja": "アプリ: %1$s"
+  },
+  {
+    "name": "notification_rule_text_summary",
+    "ja": "内容: %1$s"
+  },
+  {
+    "name": "notification_rule_section_apps",
+    "ja": "アプリ"
+  },
+  {
+    "name": "notification_rule_section_text",
+    "ja": "内容"
+  },
+  {
+    "name": "notification_rule_section_time",
+    "ja": "日時"
+  },
+  {
+    "name": "notification_rule_section_device",
+    "ja": "端末状態"
+  },
+  {
+    "name": "notification_rule_app_mode_all",
+    "ja": "すべてのアプリ"
+  },
+  {
+    "name": "notification_rule_app_mode_include",
+    "ja": "含める"
+  },
+  {
+    "name": "notification_rule_app_mode_exclude",
+    "ja": "除外"
+  },
+  {
+    "name": "notification_rule_text_mode_all",
+    "ja": "すべての内容"
+  },
+  {
+    "name": "notification_rule_text_mode_contain_any",
+    "ja": "いずれかを含む"
+  },
+  {
+    "name": "notification_rule_text_mode_not_contain_any",
+    "ja": "いずれも含まない"
+  },
+  {
+    "name": "notification_rule_text_mode_contain_all",
+    "ja": "すべて含む"
+  },
+  {
+    "name": "notification_rule_text_mode_not_contain_all",
+    "ja": "すべて含まない"
+  },
+  {
+    "name": "notification_rule_text_mode_contain_and_not",
+    "ja": "A を含み B を含まない"
+  },
+  {
+    "name": "notification_rule_text_mode_regex",
+    "ja": "正規表現"
+  },
+  {
+    "name": "notification_rule_text_mode_advanced",
+    "ja": "詳細（JSON）"
+  },
+  {
+    "name": "notification_rule_keywords_hint",
+    "ja": "キーワード（1 行に 1 つ）"
+  },
+  {
+    "name": "notification_rule_keywords_exclude_hint",
+    "ja": "除外キーワード（1 行に 1 つ）"
+  },
+  {
+    "name": "notification_rule_regex_hint",
+    "ja": "正規表現"
+  },
+  {
+    "name": "notification_rule_advanced_hint",
+    "ja": "詳細フィルター JSON"
+  },
+  {
+    "name": "notification_rule_time_start",
+    "ja": "開始（HH:mm）"
+  },
+  {
+    "name": "notification_rule_time_end",
+    "ja": "終了（HH:mm）"
+  },
+  {
+    "name": "notification_rule_time_all_day",
+    "ja": "終日"
+  },
+  {
+    "name": "notification_rule_week_days",
+    "ja": "曜日"
+  },
+  {
+    "name": "notification_rule_screen_on",
+    "ja": "画面オン"
+  },
+  {
+    "name": "notification_rule_screen_off",
+    "ja": "画面オフ"
+  },
+  {
+    "name": "notification_rule_charge_battery",
+    "ja": "バッテリー駆動"
+  },
+  {
+    "name": "notification_rule_charge_wired",
+    "ja": "有線充電"
+  },
+  {
+    "name": "notification_rule_charge_wireless",
+    "ja": "ワイヤレス充電"
+  },
+  {
+    "name": "notification_rule_channel",
+    "ja": "チャンネル ID（任意）"
+  },
+  {
+    "name": "notification_rule_action_mute",
+    "ja": "ミュート"
+  },
+  {
+    "name": "notification_rule_action_later",
+    "ja": "延期"
+  },
+  {
+    "name": "notification_rule_action_replace",
+    "ja": "内容を置換"
+  },
+  {
+    "name": "notification_rule_action_change_sound",
+    "ja": "サウンドを変更"
+  },
+  {
+    "name": "notification_rule_action_call",
+    "ja": "着信風アラート"
+  },
+  {
+    "name": "notification_rule_action_click_button",
+    "ja": "ボタンをクリック"
+  },
+  {
+    "name": "notification_rule_action_webhook",
+    "ja": "Webhook"
+  },
+  {
+    "name": "notification_rule_action_delay",
+    "ja": "遅延（ms）"
+  },
+  {
+    "name": "notification_rule_action_include_ongoing",
+    "ja": "進行中を含める"
+  },
+  {
+    "name": "notification_rule_action_button_names",
+    "ja": "ボタン名（1 行に 1 つ）"
+  },
+  {
+    "name": "notification_rule_action_replace_title",
+    "ja": "タイトルを置換"
+  },
+  {
+    "name": "notification_rule_action_replace_message",
+    "ja": "メッセージを置換"
+  },
+  {
+    "name": "notification_rule_action_sound_uri",
+    "ja": "サウンド URI（任意）"
+  },
+  {
+    "name": "notification_rule_action_later_time",
+    "ja": "延期先（HH:mm）"
+  },
+  {
+    "name": "notification_rule_action_tts_template",
+    "ja": "TTS テンプレート（{title} {text} {app}）"
+  },
+  {
+    "name": "notification_rule_action_webhook_url",
+    "ja": "Webhook URL"
+  },
+  {
+    "name": "notification_rule_action_webhook_body",
+    "ja": "リクエスト本文（任意）"
+  },
+  {
+    "name": "notification_rule_export",
+    "ja": "ルールをエクスポート"
+  },
+  {
+    "name": "notification_settings_history_section",
+    "ja": "履歴"
+  },
+  {
+    "name": "notification_settings_rules_hint",
+    "ja": "フィルター上部バーの「ルール」ボタンからタスクルールを管理します。"
+  },
+  {
+    "name": "notification_filter_hidden_empty",
+    "ja": "非表示の通知はありません"
+  },
+  {
+    "name": "notification_restore_action",
+    "ja": "復元"
+  },
+  {
+    "name": "notification_history_menu_restore",
+    "ja": "シェードに復元"
+  },
+  {
+    "name": "notification_restore_success_shade",
+    "ja": "通知シェードに復元しました"
+  },
+  {
+    "name": "notification_restore_success_rule_only",
+    "ja": "非表示ルールを削除しました。今後の一致通知は通常表示されます"
+  },
+  {
+    "name": "notification_restore_unsnooze_failed",
+    "ja": "シェードに復元できませんでした。通知が消去された可能性があります"
+  },
+  {
+    "name": "notification_filter_active_empty",
+    "ja": "シェードに通知はありません"
+  },
+  {
+    "name": "notification_history_max_count_title",
+    "ja": "履歴保存上限"
+  },
+  {
+    "name": "notification_history_group_by_app_title",
+    "ja": "アプリ別にグループ化"
+  },
+  {
+    "name": "notification_history_group_by_app_desc",
+    "ja": "アプリに複数通知がある場合は折りたたみ。タップで展開"
+  },
+  {
+    "name": "notification_history_group_count",
+    "ja": "%1$d"
+  },
+  {
+    "name": "notification_history_group_summary",
+    "ja": "%1$d 件の通知"
+  },
+  {
+    "name": "notification_history_group_latest_preview",
+    "ja": "最新: %1$s"
+  },
+  {
+    "name": "notification_history_group_tap_expand",
+    "ja": "タップして展開"
+  },
+  {
+    "name": "notification_history_group_tap_collapse",
+    "ja": "タップして折りたたむ"
+  },
+  {
+    "name": "notification_history_max_count_value",
+    "ja": "件数: %1$d"
+  },
+  {
+    "name": "otp_settings_title",
+    "ja": "認証コード"
+  },
+  {
+    "name": "otp_settings_desc",
+    "ja": "キーワード一致で通知テキストから認証コードを抽出"
+  },
+  {
+    "name": "otp_copy_to_clipboard_title",
+    "ja": "クリップボードにコピー"
+  },
+  {
+    "name": "otp_copy_to_clipboard_desc",
+    "ja": "抽出したコードを自動コピー"
+  },
+  {
+    "name": "otp_copied_to_clipboard",
+    "ja": "コードをコピーしました: %1$s"
+  },
+  {
+    "name": "otp_copy_action",
+    "ja": "コードをコピー"
+  },
+  {
+    "name": "otp_extracted_code_label",
+    "ja": "コード: %1$s"
+  },
+  {
+    "name": "otp_keywords_section",
+    "ja": "キーワード一致"
+  },
+  {
+    "name": "otp_keywords_fallback_section",
+    "ja": "キーワードフォールバック"
+  },
+  {
+    "name": "otp_keywords_fallback_hint",
+    "ja": "アプリルールが一致しない場合に使用：キーワード一致付近の 4～8 桁コードを検索"
+  },
+  {
+    "name": "otp_keywords_regex_label",
+    "ja": "キーワード正規表現"
+  },
+  {
+    "name": "otp_keywords_regex_hint",
+    "ja": "キーワード一致付近の 4～8 桁コードを検索"
+  },
+  {
+    "name": "otp_keywords_save",
+    "ja": "キーワードを保存"
+  },
+  {
+    "name": "otp_keywords_save_desc",
+    "ja": "現在の正規表現パターンを適用"
+  },
+  {
+    "name": "otp_keywords_reset",
+    "ja": "デフォルトに戻す"
+  },
+  {
+    "name": "otp_keywords_reset_desc",
+    "ja": "組み込みのデフォルトキーワードパターンを使用"
+  },
+  {
+    "name": "otp_match_rules_entry_title",
+    "ja": "認証コードルール"
+  },
+  {
+    "name": "otp_match_rules_entry_desc",
+    "ja": "公式およびカスタム抽出ルール"
+  },
+  {
+    "name": "otp_rules_list_title",
+    "ja": "認証コードルール"
+  },
+  {
+    "name": "otp_rules_refresh",
+    "ja": "更新"
+  },
+  {
+    "name": "otp_rules_add",
+    "ja": "ルールを追加"
+  },
+  {
+    "name": "otp_rules_edit",
+    "ja": "ルールを編集"
+  },
+  {
+    "name": "otp_rules_delete",
+    "ja": "削除"
+  },
+  {
+    "name": "otp_rules_official_section",
+    "ja": "公式ルール"
+  },
+  {
+    "name": "otp_rules_official_hint",
+    "ja": "smscode-rules から読み込んだ公式ルール: %1$d 件。最新を取得するには更新をタップ。"
+  },
+  {
+    "name": "otp_rules_official_empty",
+    "ja": "公式ルールはありません"
+  },
+  {
+    "name": "otp_rules_user_section",
+    "ja": "ユーザールール"
+  },
+  {
+    "name": "otp_rules_user_empty",
+    "ja": "ルールはまだありません。+ をタップして追加。"
+  },
+  {
+    "name": "otp_rules_keyword_label",
+    "ja": "キーワード: %1$s"
+  },
+  {
+    "name": "otp_rules_name_label",
+    "ja": "名前"
+  },
+  {
+    "name": "otp_rules_keyword_field_label",
+    "ja": "キーワード"
+  },
+  {
+    "name": "otp_rules_regex_label",
+    "ja": "抽出正規表現"
+  },
+  {
+    "name": "otp_rules_package_label",
+    "ja": "パッケージ名（任意）"
+  },
+  {
+    "name": "otp_rules_package_hint",
+    "ja": "空白の場合はすべてのアプリに適用"
+  },
+  {
+    "name": "otp_rules_invalid",
+    "ja": "名前、キーワード、正規表現は必須です"
+  }
+]

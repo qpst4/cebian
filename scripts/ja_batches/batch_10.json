@@ -1,0 +1,902 @@
+[
+  {
+    "name": "bottom_nav_style_floating_nav",
+    "text": "Miuix floating nav",
+    "source": "en"
+  },
+  {
+    "name": "bottom_nav_mode",
+    "text": "Bottom bar content",
+    "source": "en"
+  },
+  {
+    "name": "bottom_nav_mode_icon_and_text",
+    "text": "Icon + text",
+    "source": "en"
+  },
+  {
+    "name": "bottom_nav_mode_icon_only",
+    "text": "Icon only",
+    "source": "en"
+  },
+  {
+    "name": "settings_section_panel",
+    "text": "Index & panel",
+    "source": "en"
+  },
+  {
+    "name": "settings_section_apps",
+    "text": "Apps & launch",
+    "source": "en"
+  },
+  {
+    "name": "settings_section_launch",
+    "text": "Launch method",
+    "source": "en"
+  },
+  {
+    "name": "settings_section_free_window",
+    "text": "Freeform window",
+    "source": "en"
+  },
+  {
+    "name": "hidden_apps_entry_count",
+    "text": "Hidden apps: %1$d",
+    "source": "en"
+  },
+  {
+    "name": "search_hint",
+    "text": "Search apps…",
+    "source": "en"
+  },
+  {
+    "name": "loading",
+    "text": "Loading…",
+    "source": "en"
+  },
+  {
+    "name": "free_window_entry_title",
+    "text": "Freeform window",
+    "source": "en"
+  },
+  {
+    "name": "free_window_entry_desc",
+    "text": "Configure freeform launch mode and size",
+    "source": "en"
+  },
+  {
+    "name": "free_window_settings_title",
+    "text": "Freeform advanced settings",
+    "source": "en"
+  },
+  {
+    "name": "free_window_enabled",
+    "text": "Enable",
+    "source": "en"
+  },
+  {
+    "name": "free_window_enabled_desc",
+    "text": "When on, freeform and related launch policies are available",
+    "source": "en"
+  },
+  {
+    "name": "free_window_portrait_only_hint",
+    "text": "This app is portrait-only; freeform preview and launch use portrait sizing",
+    "source": "en"
+  },
+  {
+    "name": "free_window_launch_mode",
+    "text": "OEM freeform mode",
+    "source": "en"
+  },
+  {
+    "name": "free_window_adjust_layout",
+    "text": "Adjust freeform size & position",
+    "source": "en"
+  },
+  {
+    "name": "free_window_adjust_layout_desc",
+    "text": "Live preview and customize freeform windows",
+    "source": "en"
+  },
+  {
+    "name": "free_window_mode_dialog_title",
+    "text": "Choose launch mode",
+    "source": "en"
+  },
+  {
+    "name": "free_window_mode_hint",
+    "text": "OEMs launch freeform via ActivityOptions windowingMode with different values (Flyme 11, HyperOS 5, etc.). If it fails, enable freeform/free window in system settings.",
+    "source": "en"
+  },
+  {
+    "name": "free_window_mode_standard",
+    "text": "Freeform (standard)",
+    "source": "en"
+  },
+  {
+    "name": "free_window_mode_standard_desc",
+    "text": "Mode 5, for HyperOS and similar",
+    "source": "en"
+  },
+  {
+    "name": "free_window_mode_coloros",
+    "text": "Freeform 2 (ColorOS)",
+    "source": "en"
+  },
+  {
+    "name": "free_window_mode_coloros_desc",
+    "text": "Mode 100, for ColorOS",
+    "source": "en"
+  },
+  {
+    "name": "free_window_mode_magicos",
+    "text": "Freeform 3 (MagicOS)",
+    "source": "en"
+  },
+  {
+    "name": "free_window_mode_magicos_desc",
+    "text": "Mode 102, for MagicOS",
+    "source": "en"
+  },
+  {
+    "name": "free_window_mode_originos",
+    "text": "Freeform 4 (OriginOS)",
+    "source": "en"
+  },
+  {
+    "name": "free_window_mode_originos_desc",
+    "text": "For OriginOS and systems that support freeform sharing",
+    "source": "en"
+  },
+  {
+    "name": "free_window_mode_flyme",
+    "text": "Freeform 5 (FlymeOS)",
+    "source": "en"
+  },
+  {
+    "name": "free_window_mode_flyme_desc",
+    "text": "Mode 11, for FlymeOS",
+    "source": "en"
+  },
+  {
+    "name": "free_window_preview_title",
+    "text": "Adjust freeform size & position",
+    "source": "en"
+  },
+  {
+    "name": "free_window_preview_save",
+    "text": "Finish preview and save",
+    "source": "en"
+  },
+  {
+    "name": "free_window_portrait_preview",
+    "text": "Portrait preview",
+    "source": "en"
+  },
+  {
+    "name": "launch_policy_title",
+    "text": "Launch policy",
+    "source": "en"
+  },
+  {
+    "name": "launch_policy_always_fullscreen",
+    "text": "Always fullscreen",
+    "source": "en"
+  },
+  {
+    "name": "launch_policy_always_fullscreen_desc",
+    "text": "Open fullscreen when you release the icon",
+    "source": "en"
+  },
+  {
+    "name": "launch_policy_always_free_window",
+    "text": "Always freeform",
+    "source": "en"
+  },
+  {
+    "name": "launch_policy_always_free_window_desc",
+    "text": "Open in freeform when you release the icon",
+    "source": "en"
+  },
+  {
+    "name": "launch_policy_fullscreen_long_press_free_window",
+    "text": "Fullscreen, long-press freeform",
+    "source": "en"
+  },
+  {
+    "name": "launch_policy_fullscreen_long_press_free_window_desc",
+    "text": "Fullscreen by default; hold the icon for the set time, then release to open freeform",
+    "source": "en"
+  },
+  {
+    "name": "launch_policy_free_window_long_press_fullscreen",
+    "text": "Freeform, long-press fullscreen",
+    "source": "en"
+  },
+  {
+    "name": "launch_policy_free_window_long_press_fullscreen_desc",
+    "text": "Freeform by default; hold the icon for the set time, then release to open fullscreen",
+    "source": "en"
+  },
+  {
+    "name": "long_press_launch_duration",
+    "text": "Long-press duration",
+    "source": "en"
+  },
+  {
+    "name": "long_press_launch_duration_desc",
+    "text": "Hold an app icon this long, then release to use the alternate open method",
+    "source": "en"
+  },
+  {
+    "name": "long_press_launch_duration_value",
+    "text": "%1$d ms",
+    "source": "en"
+  },
+  {
+    "name": "hidden_apps_entry_title",
+    "text": "Hidden apps",
+    "source": "en"
+  },
+  {
+    "name": "hidden_apps_title",
+    "text": "Hidden apps",
+    "source": "en"
+  },
+  {
+    "name": "hidden_apps_section_hidden",
+    "text": "Hidden",
+    "source": "en"
+  },
+  {
+    "name": "hidden_apps_section_in_index",
+    "text": "Shown in list",
+    "source": "en"
+  },
+  {
+    "name": "hidden_apps_section_add",
+    "text": "Add to hidden",
+    "source": "en"
+  },
+  {
+    "name": "hidden_apps_empty",
+    "text": "No hidden apps",
+    "source": "en"
+  },
+  {
+    "name": "hidden_apps_all_hidden",
+    "text": "All apps are hidden",
+    "source": "en"
+  },
+  {
+    "name": "hidden_apps_hide",
+    "text": "Hide",
+    "source": "en"
+  },
+  {
+    "name": "hidden_apps_unhide",
+    "text": "Unhide",
+    "source": "en"
+  },
+  {
+    "name": "previous_app_blacklist_entry_title",
+    "text": "Previous-app blacklist",
+    "source": "en"
+  },
+  {
+    "name": "previous_app_blacklist_entry_desc",
+    "text": "Skip input methods or chosen apps when switching to the previous app",
+    "source": "en"
+  },
+  {
+    "name": "previous_app_blacklist_entry_count",
+    "text": "Skipped apps: %1$d",
+    "source": "en"
+  },
+  {
+    "name": "previous_app_blacklist_title",
+    "text": "Previous-app blacklist",
+    "source": "en"
+  },
+  {
+    "name": "previous_app_blacklist_desc",
+    "text": "Apps on this list are skipped when switching to the previous app. Input methods are always excluded automatically.",
+    "source": "en"
+  },
+  {
+    "name": "previous_app_blacklist_section_blocked",
+    "text": "Skipped",
+    "source": "en"
+  },
+  {
+    "name": "previous_app_blacklist_section_add",
+    "text": "Add app",
+    "source": "en"
+  },
+  {
+    "name": "previous_app_blacklist_empty",
+    "text": "No apps skipped",
+    "source": "en"
+  },
+  {
+    "name": "previous_app_blacklist_remove",
+    "text": "Remove",
+    "source": "en"
+  },
+  {
+    "name": "app_package_uninstalled",
+    "text": "App uninstalled",
+    "source": "en"
+  },
+  {
+    "name": "excluded_apps_entry_desc",
+    "text": "Hide triggers, corner wheel, or float ball in selected apps",
+    "source": "en"
+  },
+  {
+    "name": "excluded_apps_entry_count",
+    "text": "Disabled apps: %1$d",
+    "source": "en"
+  },
+  {
+    "name": "excluded_apps_section_excluded",
+    "text": "Disabled",
+    "source": "en"
+  },
+  {
+    "name": "excluded_apps_section_add",
+    "text": "Add app",
+    "source": "en"
+  },
+  {
+    "name": "excluded_apps_empty",
+    "text": "No excluded apps",
+    "source": "en"
+  },
+  {
+    "name": "excluded_apps_remove",
+    "text": "Remove exclusion",
+    "source": "en"
+  },
+  {
+    "name": "settings_section_gestures",
+    "text": "Shortcut gestures",
+    "source": "en"
+  },
+  {
+    "name": "side_gestures_entry_left",
+    "text": "Left handles",
+    "source": "en"
+  },
+  {
+    "name": "side_gestures_entry_right",
+    "text": "Right handles",
+    "source": "en"
+  },
+  {
+    "name": "side_gestures_entry_desc",
+    "text": "Configure swipe gestures and taps",
+    "source": "en"
+  },
+  {
+    "name": "side_gestures_left_title",
+    "text": "Left handles",
+    "source": "en"
+  },
+  {
+    "name": "side_gestures_right_title",
+    "text": "Right handles",
+    "source": "en"
+  },
+  {
+    "name": "side_gestures_bottom_title",
+    "text": "Bottom handles",
+    "source": "en"
+  },
+  {
+    "name": "side_gestures_top_title",
+    "text": "Top handles",
+    "source": "en"
+  },
+  {
+    "name": "side_gestures_short_distance",
+    "text": "Short swipe",
+    "source": "en"
+  },
+  {
+    "name": "side_gestures_tab_short_distance",
+    "text": "Short",
+    "source": "en"
+  },
+  {
+    "name": "side_gestures_tab_long_distance",
+    "text": "Long",
+    "source": "en"
+  },
+  {
+    "name": "side_gestures_tab_compound",
+    "text": "Compound",
+    "source": "en"
+  },
+  {
+    "name": "side_gestures_inward_entry_suffix",
+    "text": "incl. L & return",
+    "source": "en"
+  },
+  {
+    "name": "side_gestures_inward_swipe_subtitle",
+    "text": "Straight swipe, short-swipe hover, and compound gestures",
+    "source": "en"
+  },
+  {
+    "name": "side_gestures_inward_swipe_path_hint",
+    "text": "Short swipe, hover before the long-swipe threshold, then turn or pull back.",
+    "source": "en"
+  },
+  {
+    "name": "side_gestures_swipe_directions_section",
+    "text": "Swipe gestures",
+    "source": "en"
+  },
+  {
+    "name": "side_gestures_direction_straight_section",
+    "text": "Straight swipe",
+    "source": "en"
+  },
+  {
+    "name": "side_gestures_direction_pause_section",
+    "text": "Hover after short swipe",
+    "source": "en"
+  },
+  {
+    "name": "side_gestures_direction_after_pause_section",
+    "text": "Swipe after short-swipe hover",
+    "source": "en"
+  },
+  {
+    "name": "side_gestures_direction_pause_release",
+    "text": "Release to trigger",
+    "source": "en"
+  },
+  {
+    "name": "side_gestures_inward_hold_section",
+    "text": "Hover after short swipe",
+    "source": "en"
+  },
+  {
+    "name": "side_gestures_inward_hold_slot",
+    "text": "Hover after short swipe",
+    "source": "en"
+  },
+  {
+    "name": "side_gestures_inward_hold_hint",
+    "text": "After a short swipe, hover before the long-swipe threshold. Duration is set under Hover after short swipe on the main gesture page.",
+    "source": "en"
+  },
+  {
+    "name": "side_gestures_direction_short_slot",
+    "text": "Short swipe",
+    "source": "en"
+  },
+  {
+    "name": "side_gestures_direction_long_slot",
+    "text": "Long swipe",
+    "source": "en"
+  },
+  {
+    "name": "side_gestures_direction_swipe_subtitle",
+    "text": "Short swipe, long swipe, and hover after short swipe",
+    "source": "en"
+  },
+  {
+    "name": "side_gestures_path_pause",
+    "text": "Hover after short swipe",
+    "source": "en"
+  },
+  {
+    "name": "side_gestures_inward_branch_hint",
+    "text": "These actions require hovering after a short swipe first.",
+    "source": "en"
+  },
+  {
+    "name": "side_gestures_inward_branch_slot_title",
+    "text": "%1$s · %2$s",
+    "source": "en"
+  },
+  {
+    "name": "side_gestures_compound_slot_title",
+    "text": "%1$s · %2$s",
+    "source": "en"
+  },
+  {
+    "name": "side_gestures_inward_branch_turn_up",
+    "text": "Turn up",
+    "source": "en"
+  },
+  {
+    "name": "side_gestures_inward_branch_turn_down",
+    "text": "Turn down",
+    "source": "en"
+  },
+  {
+    "name": "side_gestures_inward_branch_return",
+    "text": "Return",
+    "source": "en"
+  },
+  {
+    "name": "side_gestures_press_tap",
+    "text": "Tap & long-press",
+    "source": "en"
+  },
+  {
+    "name": "side_gestures_long_distance",
+    "text": "Long swipe",
+    "source": "en"
+  },
+  {
+    "name": "side_gestures_hover",
+    "text": "Hover after short swipe",
+    "source": "en"
+  },
+  {
+    "name": "side_gestures_hover_duration",
+    "text": "Hover duration after short swipe",
+    "source": "en"
+  },
+  {
+    "name": "side_gestures_hover_duration_desc",
+    "text": "Keep still for this long after a short swipe to count as a hover. L-shape and return gestures also use this setting.",
+    "source": "en"
+  },
+  {
+    "name": "side_gestures_hover_duration_value",
+    "text": "%1$d ms",
+    "source": "en"
+  },
+  {
+    "name": "gesture_swipe_in_left",
+    "text": "Swipe right",
+    "source": "en"
+  },
+  {
+    "name": "gesture_swipe_in_right",
+    "text": "Swipe left",
+    "source": "en"
+  },
+  {
+    "name": "gesture_swipe_in_bottom",
+    "text": "Swipe up",
+    "source": "en"
+  },
+  {
+    "name": "gesture_swipe_in_top",
+    "text": "Swipe down",
+    "source": "en"
+  },
+  {
+    "name": "gesture_swipe_up_left_on_bottom",
+    "text": "Swipe up-left",
+    "source": "en"
+  },
+  {
+    "name": "gesture_swipe_up_left_on_top",
+    "text": "Swipe down-left",
+    "source": "en"
+  },
+  {
+    "name": "gesture_swipe_down_right_on_bottom",
+    "text": "Swipe up-right",
+    "source": "en"
+  },
+  {
+    "name": "gesture_swipe_down_right_on_top",
+    "text": "Swipe down-right",
+    "source": "en"
+  },
+  {
+    "name": "gesture_swipe_up_right_on_left",
+    "text": "Swipe up-right",
+    "source": "en"
+  },
+  {
+    "name": "gesture_swipe_up_left_on_right",
+    "text": "Swipe up-left",
+    "source": "en"
+  },
+  {
+    "name": "gesture_swipe_down_right_on_left",
+    "text": "Swipe down-right",
+    "source": "en"
+  },
+  {
+    "name": "gesture_swipe_down_left_on_right",
+    "text": "Swipe down-left",
+    "source": "en"
+  },
+  {
+    "name": "gesture_swipe_in_up_left",
+    "text": "Right hover, then up",
+    "source": "en"
+  },
+  {
+    "name": "gesture_swipe_in_down_left",
+    "text": "Right hover, then down",
+    "source": "en"
+  },
+  {
+    "name": "gesture_swipe_in_up_right",
+    "text": "Left hover, then up",
+    "source": "en"
+  },
+  {
+    "name": "gesture_swipe_in_down_right",
+    "text": "Left hover, then down",
+    "source": "en"
+  },
+  {
+    "name": "gesture_swipe_in_up_bottom",
+    "text": "Up hover, then left",
+    "source": "en"
+  },
+  {
+    "name": "gesture_swipe_in_down_bottom",
+    "text": "Up hover, then right",
+    "source": "en"
+  },
+  {
+    "name": "gesture_swipe_in_up_top",
+    "text": "Down hover, then left",
+    "source": "en"
+  },
+  {
+    "name": "gesture_swipe_in_down_top",
+    "text": "Down hover, then right",
+    "source": "en"
+  },
+  {
+    "name": "gesture_swipe_in_and_back_left",
+    "text": "Right hover, then return",
+    "source": "en"
+  },
+  {
+    "name": "gesture_swipe_in_and_back_right",
+    "text": "Left hover, then return",
+    "source": "en"
+  },
+  {
+    "name": "gesture_swipe_in_and_back_bottom",
+    "text": "Up hover, then return",
+    "source": "en"
+  },
+  {
+    "name": "gesture_swipe_in_and_back_top",
+    "text": "Down hover, then return",
+    "source": "en"
+  },
+  {
+    "name": "gesture_swipe_in_hover_left",
+    "text": "Hover right",
+    "source": "en"
+  },
+  {
+    "name": "gesture_swipe_in_hover_right",
+    "text": "Hover left",
+    "source": "en"
+  },
+  {
+    "name": "gesture_swipe_in_hover_bottom",
+    "text": "Hover after up",
+    "source": "en"
+  },
+  {
+    "name": "gesture_swipe_in_hover_top",
+    "text": "Hover after down",
+    "source": "en"
+  },
+  {
+    "name": "gesture_swipe_up_right_hover_on_left",
+    "text": "Hover after up-right",
+    "source": "en"
+  },
+  {
+    "name": "gesture_swipe_up_left_hover_on_right",
+    "text": "Hover after up-left",
+    "source": "en"
+  },
+  {
+    "name": "gesture_swipe_down_right_hover_on_left",
+    "text": "Hover after down-right",
+    "source": "en"
+  },
+  {
+    "name": "gesture_swipe_down_left_hover_on_right",
+    "text": "Hover after down-left",
+    "source": "en"
+  },
+  {
+    "name": "gesture_swipe_up_left_hover_on_bottom",
+    "text": "Hover after up-left",
+    "source": "en"
+  },
+  {
+    "name": "gesture_swipe_up_left_hover_on_top",
+    "text": "Hover after down-left",
+    "source": "en"
+  },
+  {
+    "name": "gesture_swipe_down_right_hover_on_bottom",
+    "text": "Hover after up-right",
+    "source": "en"
+  },
+  {
+    "name": "gesture_swipe_down_right_hover_on_top",
+    "text": "Hover after down-right",
+    "source": "en"
+  },
+  {
+    "name": "gesture_short_swipe_up_hover",
+    "text": "Hover after up",
+    "source": "en"
+  },
+  {
+    "name": "gesture_short_swipe_down_hover",
+    "text": "Hover after down",
+    "source": "en"
+  },
+  {
+    "name": "gesture_short_swipe_left_hover",
+    "text": "Hover after left",
+    "source": "en"
+  },
+  {
+    "name": "gesture_short_swipe_right_hover",
+    "text": "Hover after right",
+    "source": "en"
+  },
+  {
+    "name": "gesture_short_swipe_up",
+    "text": "Swipe up",
+    "source": "en"
+  },
+  {
+    "name": "gesture_short_swipe_down",
+    "text": "Swipe down",
+    "source": "en"
+  },
+  {
+    "name": "gesture_short_swipe_left",
+    "text": "Swipe left",
+    "source": "en"
+  },
+  {
+    "name": "gesture_short_swipe_right",
+    "text": "Swipe right",
+    "source": "en"
+  },
+  {
+    "name": "gesture_short_long_press",
+    "text": "Long-press",
+    "source": "en"
+  },
+  {
+    "name": "gesture_short_single_tap",
+    "text": "Tap",
+    "source": "en"
+  },
+  {
+    "name": "gesture_long_swipe_up",
+    "text": "Swipe up",
+    "source": "en"
+  },
+  {
+    "name": "gesture_long_swipe_down",
+    "text": "Swipe down",
+    "source": "en"
+  },
+  {
+    "name": "gesture_long_swipe_left",
+    "text": "Swipe left",
+    "source": "en"
+  },
+  {
+    "name": "gesture_long_swipe_right",
+    "text": "Swipe right",
+    "source": "en"
+  },
+  {
+    "name": "gesture_long_long_press",
+    "text": "Long-press",
+    "source": "en"
+  },
+  {
+    "name": "gesture_long_single_tap",
+    "text": "Tap",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_none",
+    "text": "None",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_launch_app",
+    "text": "Launch app",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_launch_app_named",
+    "text": "Launch app: %1$s",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_launch_shortcut",
+    "text": "Launch shortcut",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_launch_shortcut_named",
+    "text": "Launch shortcut: %1$s",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_quick_launcher",
+    "text": "Quick launcher",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_honeycomb_launcher",
+    "text": "Honeycomb launcher",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_app_switcher",
+    "text": "Ring launcher",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_holographic_launcher",
+    "text": "Holographic launcher",
+    "source": "en"
+  },
+  {
+    "name": "holographic_launcher_entry_title",
+    "text": "Holographic launcher",
+    "source": "en"
+  },
+  {
+    "name": "holographic_launcher_entry_desc",
+    "text": "3D sphere launcher: drag to rotate, tap to launch",
+    "source": "en"
+  },
+  {
+    "name": "holographic_launcher_entry_summary_hidden",
+    "text": "%1$d apps hidden",
+    "source": "en"
+  },
+  {
+    "name": "holographic_launcher_settings_title",
+    "text": "Holographic launcher settings",
+    "source": "en"
+  },
+  {
+    "name": "holographic_settings_section_interaction",
+    "text": "Interaction",
+    "source": "en"
+  },
+  {
+    "name": "holographic_settings_section_background",
+    "text": "Background",
+    "source": "en"
+  },
+  {
+    "name": "holographic_settings_background_style",
+    "text": "Background style",
+    "source": "en"
+  },
+  {
+    "name": "holographic_settings_section_apps",
+    "text": "Apps",
+    "source": "en"
+  }
+]

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notification_replay_no_jump_info">未捕获到跳转信息</string>
+    <string name="notification_replay_link_recycled">链接已被系统回收</string>
+</resources>

@@ -38,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
@@ -151,7 +152,7 @@ private fun UpToDateContent(
             onClick = onDismiss,
             shape = RoundedCornerShape(12.dp),
         ) {
-            Text("确定")
+            Text(stringResource(R.string.confirm))
         }
     }
 }
@@ -165,6 +166,7 @@ private fun NewUpdateContent(
     onMoveToBackground: () -> Unit,
 ) {
     val density = LocalDensity.current
+    val locale = LocalConfiguration.current.locales[0]
     val maxNotesHeight = with(density) {
         LocalWindowInfo.current.containerSize.height.toDp() * 0.36f
     }
@@ -189,7 +191,10 @@ private fun NewUpdateContent(
                     .padding(horizontal = 10.dp, vertical = 5.dp),
             ) {
                 Text(
-                    text = "当前 v${UpdateChecker.displayVersion(BuildConfig.VERSION_NAME)}",
+                    text = stringResource(
+                        R.string.update_version_current,
+                        UpdateChecker.displayVersion(BuildConfig.VERSION_NAME),
+                    ),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -207,7 +212,10 @@ private fun NewUpdateContent(
                     .padding(horizontal = 10.dp, vertical = 5.dp),
             ) {
                 Text(
-                    text = "最新 v${UpdateChecker.displayVersion(state.version)}",
+                    text = stringResource(
+                        R.string.update_version_latest,
+                        UpdateChecker.displayVersion(state.version),
+                    ),
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -277,7 +285,7 @@ private fun NewUpdateContent(
                     }
                     group.items.forEachIndexed { index, item ->
                         Text(
-                            text = "${UpdateChecker.chineseOrdinal(index + 1)}、$item",
+                            text = "${UpdateChecker.listItemPrefix(index + 1, locale)}$item",
                             color = MaterialTheme.colorScheme.onSurface,
                             style = MaterialTheme.typography.bodyMedium,
                             lineHeight = 21.sp,

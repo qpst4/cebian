@@ -149,7 +149,7 @@ data class OverlaySettings(
     val stashPanelBackgroundBlurEnabled: Boolean = false,
     val stashPanelBackgroundBlurRadiusDp: Int = AppSettings.STASH_PANEL_BLUR_RADIUS_DEFAULT_DP,
     val defaultImageViewerPackage: String? = null,
-    val searchEngines: List<SearchEngineConfig> = SearchEngineCatalog.defaultEngines(),
+    val searchEngines: List<SearchEngineConfig> = emptyList(),
     val searchEngineGridColumns: Int = 5,
     val searchEngineGridRows: Int = 2,
     val searchEngineShowLabels: Boolean = true,

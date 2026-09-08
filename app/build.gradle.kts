@@ -428,6 +428,7 @@ dependencies {
     ksp(libs.hilt.compiler)
 
     implementation(libs.core.ktx)
+    implementation("androidx.appcompat:appcompat:1.7.0")
     implementation(libs.androidx.palette)
     implementation(libs.profileinstaller)
     implementation(libs.lifecycle.runtime)

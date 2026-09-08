@@ -1,5 +1,6 @@
 package com.slideindex.app.settings
 
+import android.content.Context
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import com.slideindex.app.floatball.FloatBallGestureCodec
@@ -40,7 +41,7 @@ import com.slideindex.app.activity.ActivityShortcutCodec
 import com.slideindex.app.widget.WidgetPanelCodec
 
 internal object SettingsSnapshotReader {
-    fun read(prefs: Preferences): AppSettings {
+    fun read(prefs: Preferences, context: Context): AppSettings {
         val legacyWidth = prefs[SettingsPreferenceKeys.EDGE_TRIGGER_WIDTH] ?: 20f
         val legacyTop = prefs[SettingsPreferenceKeys.TRIGGER_TOP] ?: 0.30f
         val legacyHeight = prefs[SettingsPreferenceKeys.TRIGGER_HEIGHT] ?: 0.38f
@@ -172,6 +173,7 @@ internal object SettingsSnapshotReader {
             hideFromRecents = prefs[SettingsPreferenceKeys.HIDE_FROM_RECENTS] ?: false,
             privilegeMode = PrivilegeMode.fromStorage(prefs[SettingsPreferenceKeys.PRIVILEGE_MODE]),
             predictiveBackEnabled = prefs[SettingsPreferenceKeys.PREDICTIVE_BACK_ENABLED] ?: false,
+            appUiLanguageTag = prefs[SettingsPreferenceKeys.APP_UI_LANGUAGE_TAG] ?: "",
             swipeDismissEnabled = prefs[SettingsPreferenceKeys.SWIPE_DISMISS_ENABLED] ?: true,
             accessibilityKeepAliveEnabled = prefs[SettingsPreferenceKeys.ACCESSIBILITY_KEEP_ALIVE] ?: false,
             hideTriggerInLandscape = prefs[SettingsPreferenceKeys.HIDE_TRIGGER_LANDSCAPE] ?: false,
@@ -500,7 +502,7 @@ internal object SettingsSnapshotReader {
             ),
             defaultImageViewerPackage = prefs[SettingsPreferenceKeys.DEFAULT_IMAGE_VIEWER_PACKAGE],
             searchPanel = SearchPanelSettings(
-            searchEngines = readSearchEngines(prefs),
+            searchEngines = readSearchEngines(prefs, context),
             searchEngineGridColumns = prefs[SettingsPreferenceKeys.SEARCH_ENGINE_GRID_COLUMNS]?.coerceIn(3, 7) ?: 5,
             searchEngineGridRows = prefs[SettingsPreferenceKeys.SEARCH_ENGINE_GRID_ROWS]?.coerceIn(1, 4) ?: 2,
             searchEngineShowLabels = prefs[SettingsPreferenceKeys.SEARCH_ENGINE_SHOW_LABELS] ?: true,
@@ -584,10 +586,10 @@ internal object SettingsSnapshotReader {
         )
     }
 
-    private fun readSearchEngines(prefs: Preferences): List<SearchEngineConfig> {
+    private fun readSearchEngines(prefs: Preferences, context: Context): List<SearchEngineConfig> {
         val initialized = prefs[SettingsPreferenceKeys.SEARCH_ENGINES_INITIALIZED] ?: false
-        if (!initialized) return SearchEngineCatalog.defaultEngines()
-        return SearchEngineStore.decode(prefs[SettingsPreferenceKeys.SEARCH_ENGINES_JSON])
+        if (!initialized) return SearchEngineCatalog.defaultEngines(context)
+        return SearchEngineStore.decode(context, prefs[SettingsPreferenceKeys.SEARCH_ENGINES_JSON])
     }
 
     fun readFloatBallGestureActions(prefs: Preferences): Map<FloatBallGestureType, GestureAction> {

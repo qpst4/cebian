@@ -1,0 +1,902 @@
+[
+  {
+    "name": "message_match_field_title",
+    "text": "Title",
+    "source": "en"
+  },
+  {
+    "name": "message_match_field_content",
+    "text": "Content",
+    "source": "en"
+  },
+  {
+    "name": "message_match_field_both",
+    "text": "Title or content",
+    "source": "en"
+  },
+  {
+    "name": "message_match_type_contains",
+    "text": "Contains",
+    "source": "en"
+  },
+  {
+    "name": "message_match_type_full",
+    "text": "Exact match",
+    "source": "en"
+  },
+  {
+    "name": "message_match_type_regex",
+    "text": "Regex",
+    "source": "en"
+  },
+  {
+    "name": "message_style_title",
+    "text": "Reminder style",
+    "source": "en"
+  },
+  {
+    "name": "message_style_float_icon_desc",
+    "text": "Display app icon reminder in screen corner",
+    "source": "en"
+  },
+  {
+    "name": "message_style_side_bubble_desc",
+    "text": "Stack message bubbles on screen edge",
+    "source": "en"
+  },
+  {
+    "name": "message_style_danmaku_desc",
+    "text": "Scroll messages horizontally at screen top",
+    "source": "en"
+  },
+  {
+    "name": "message_style_danmaku_overlay_hint",
+    "text": "Shares theme with side bubble and can be displayed alongside other styles",
+    "source": "en"
+  },
+  {
+    "name": "message_style_side_position",
+    "text": "Bubble position",
+    "source": "en"
+  },
+  {
+    "name": "message_style_side_position_hint",
+    "text": "Choose left or right edge, then adjust vertical position with the slider",
+    "source": "en"
+  },
+  {
+    "name": "message_style_side_horizontal_edge",
+    "text": "Near screen edge",
+    "source": "en"
+  },
+  {
+    "name": "message_style_side_edge_left",
+    "text": "Left side",
+    "source": "en"
+  },
+  {
+    "name": "message_style_side_edge_right",
+    "text": "Right side",
+    "source": "en"
+  },
+  {
+    "name": "message_style_side_vertical_anchor",
+    "text": "Vertical position",
+    "source": "en"
+  },
+  {
+    "name": "message_style_side_anchor_middle",
+    "text": "Middle",
+    "source": "en"
+  },
+  {
+    "name": "message_style_side_anchor_bottom",
+    "text": "Bottom",
+    "source": "en"
+  },
+  {
+    "name": "message_danmaku_speed",
+    "text": "Danmaku speed",
+    "source": "en"
+  },
+  {
+    "name": "message_danmaku_speed_slow",
+    "text": "Slow",
+    "source": "en"
+  },
+  {
+    "name": "message_danmaku_speed_normal",
+    "text": "Normal",
+    "source": "en"
+  },
+  {
+    "name": "message_danmaku_speed_fast",
+    "text": "Fast",
+    "source": "en"
+  },
+  {
+    "name": "message_overlay_menu_copy",
+    "text": "Copy content",
+    "source": "en"
+  },
+  {
+    "name": "message_overlay_menu_close",
+    "text": "Close",
+    "source": "en"
+  },
+  {
+    "name": "message_overlay_menu_clear_all",
+    "text": "Clear all",
+    "source": "en"
+  },
+  {
+    "name": "message_style_side_font_size",
+    "text": "Font size",
+    "source": "en"
+  },
+  {
+    "name": "message_style_side_font_size_desc",
+    "text": "Normal is current default font size",
+    "source": "en"
+  },
+  {
+    "name": "message_style_side_font_size_small",
+    "text": "Small",
+    "source": "en"
+  },
+  {
+    "name": "message_style_side_font_size_normal",
+    "text": "Normal",
+    "source": "en"
+  },
+  {
+    "name": "message_style_side_font_size_large",
+    "text": "Large",
+    "source": "en"
+  },
+  {
+    "name": "message_style_float_icon",
+    "text": "Float icon",
+    "source": "en"
+  },
+  {
+    "name": "message_style_side_bubble",
+    "text": "Side style",
+    "source": "en"
+  },
+  {
+    "name": "message_style_danmaku",
+    "text": "Danmaku",
+    "source": "en"
+  },
+  {
+    "name": "message_style_float_icon_size",
+    "text": "Size",
+    "source": "en"
+  },
+  {
+    "name": "message_style_float_icon_opacity",
+    "text": "Float icon opacity",
+    "source": "en"
+  },
+  {
+    "name": "message_style_section_float_settings",
+    "text": "Float icon settings",
+    "source": "en"
+  },
+  {
+    "name": "message_style_section_side_theme",
+    "text": "Side theme",
+    "source": "en"
+  },
+  {
+    "name": "message_style_section_display",
+    "text": "Display",
+    "source": "en"
+  },
+  {
+    "name": "message_style_max_lines",
+    "text": "Max lines",
+    "source": "en"
+  },
+  {
+    "name": "message_style_side_count",
+    "text": "Count",
+    "source": "en"
+  },
+  {
+    "name": "message_style_side_count_option",
+    "text": "%1$d",
+    "source": "en"
+  },
+  {
+    "name": "message_action_read",
+    "text": "Read message",
+    "source": "en"
+  },
+  {
+    "name": "message_action_read_small_window",
+    "text": "Read in small window",
+    "source": "en"
+  },
+  {
+    "name": "message_action_read_small_window_desc",
+    "text": "Launch the app in a small window, then read the message",
+    "source": "en"
+  },
+  {
+    "name": "message_action_ignore",
+    "text": "Ignore",
+    "source": "en"
+  },
+  {
+    "name": "message_action_ignore_remove",
+    "text": "Ignore and remove",
+    "source": "en"
+  },
+  {
+    "name": "message_action_ignore_all",
+    "text": "Ignore all notifications",
+    "source": "en"
+  },
+  {
+    "name": "message_action_ignore_all_desc",
+    "text": "Dismiss all current reminders; notifications stay in the shade",
+    "source": "en"
+  },
+  {
+    "name": "message_action_ignore_remove_all",
+    "text": "Ignore and remove all notifications",
+    "source": "en"
+  },
+  {
+    "name": "message_action_ignore_remove_all_desc",
+    "text": "Dismiss all current reminders and remove them from the shade",
+    "source": "en"
+  },
+  {
+    "name": "message_action_ignore_same_source",
+    "text": "Ignore same source",
+    "source": "en"
+  },
+  {
+    "name": "message_action_ignore_same_source_desc",
+    "text": "Dismiss all current reminders from the same group or direct chat; notifications stay in the shade",
+    "source": "en"
+  },
+  {
+    "name": "message_action_ignore_same_source_remove",
+    "text": "Ignore and remove same source",
+    "source": "en"
+  },
+  {
+    "name": "message_action_ignore_same_source_remove_desc",
+    "text": "Dismiss all current reminders from the same group or direct chat and remove them from the shade",
+    "source": "en"
+  },
+  {
+    "name": "message_action_dnd_5min",
+    "text": "Do not disturb 5 minutes",
+    "source": "en"
+  },
+  {
+    "name": "message_action_dnd_5min_desc",
+    "text": "Hide reminders for 5 minutes",
+    "source": "en"
+  },
+  {
+    "name": "message_action_quick_reply",
+    "text": "Quick reply",
+    "source": "en"
+  },
+  {
+    "name": "message_action_quick_reply_desc",
+    "text": "Send via notification reply API; reminder stays visible (requires app support)",
+    "source": "en"
+  },
+  {
+    "name": "message_action_quick_reply_ignore",
+    "text": "Quick reply and ignore",
+    "source": "en"
+  },
+  {
+    "name": "message_action_quick_reply_ignore_desc",
+    "text": "Send reply and dismiss reminder; notification stays in the shade",
+    "source": "en"
+  },
+  {
+    "name": "message_action_quick_reply_remove",
+    "text": "Quick reply and remove",
+    "source": "en"
+  },
+  {
+    "name": "message_action_quick_reply_remove_desc",
+    "text": "Send reply, dismiss reminder, and remove from the shade",
+    "source": "en"
+  },
+  {
+    "name": "message_action_quick_reply_hint",
+    "text": "Type a reply",
+    "source": "en"
+  },
+  {
+    "name": "message_action_quick_reply_send",
+    "text": "Send",
+    "source": "en"
+  },
+  {
+    "name": "message_action_quick_reply_to",
+    "text": "Reply to %1$s",
+    "source": "en"
+  },
+  {
+    "name": "message_action_quick_reply_unavailable",
+    "text": "Quick reply is not supported for %1$s",
+    "source": "en"
+  },
+  {
+    "name": "message_action_quick_reply_failed",
+    "text": "Failed to send reply. Please try again.",
+    "source": "en"
+  },
+  {
+    "name": "message_theme_weipop_round_black",
+    "text": "Rounded dark",
+    "source": "en"
+  },
+  {
+    "name": "message_theme_weipop_round_white",
+    "text": "Rounded light",
+    "source": "en"
+  },
+  {
+    "name": "message_theme_weipop_tail3_black",
+    "text": "Pointed tail dark",
+    "source": "en"
+  },
+  {
+    "name": "message_theme_weipop_tail3_white",
+    "text": "Pointed tail light",
+    "source": "en"
+  },
+  {
+    "name": "message_theme_weipop_tail4_black",
+    "text": "Folded tail dark",
+    "source": "en"
+  },
+  {
+    "name": "message_theme_weipop_tail4_white",
+    "text": "Folded tail light",
+    "source": "en"
+  },
+  {
+    "name": "message_theme_weipop_compact_black",
+    "text": "Compact dark",
+    "source": "en"
+  },
+  {
+    "name": "message_theme_weipop_compact_white",
+    "text": "Compact light",
+    "source": "en"
+  },
+  {
+    "name": "message_theme_weipop_skin_01",
+    "text": "Candy heart",
+    "source": "en"
+  },
+  {
+    "name": "message_theme_weipop_skin_02",
+    "text": "Pixel pals",
+    "source": "en"
+  },
+  {
+    "name": "message_theme_weipop_skin_03",
+    "text": "Panda & tiger",
+    "source": "en"
+  },
+  {
+    "name": "message_theme_weipop_skin_04",
+    "text": "Lucky tiger",
+    "source": "en"
+  },
+  {
+    "name": "message_theme_weipop_skin_05",
+    "text": "New year drum",
+    "source": "en"
+  },
+  {
+    "name": "message_theme_weipop_skin_06",
+    "text": "Sweet peach",
+    "source": "en"
+  },
+  {
+    "name": "message_theme_weipop_skin_07",
+    "text": "Classical duet",
+    "source": "en"
+  },
+  {
+    "name": "message_theme_weipop_skin_08",
+    "text": "Fruity fun",
+    "source": "en"
+  },
+  {
+    "name": "message_theme_weipop_skin_09",
+    "text": "Morning sun",
+    "source": "en"
+  },
+  {
+    "name": "message_theme_weipop_skin_10",
+    "text": "Tiger sign",
+    "source": "en"
+  },
+  {
+    "name": "message_theme_weipop_skin_11",
+    "text": "Scholar style",
+    "source": "en"
+  },
+  {
+    "name": "message_theme_weipop_skin_12",
+    "text": "Office spark",
+    "source": "en"
+  },
+  {
+    "name": "message_theme_weipop_skin_13",
+    "text": "Rainbow berry",
+    "source": "en"
+  },
+  {
+    "name": "message_theme_weipop_skin_14",
+    "text": "Study girl",
+    "source": "en"
+  },
+  {
+    "name": "message_theme_weipop_skin_15",
+    "text": "Orange fox",
+    "source": "en"
+  },
+  {
+    "name": "message_theme_weipop_skin_16",
+    "text": "Ballerina",
+    "source": "en"
+  },
+  {
+    "name": "message_theme_weipop_skin_17",
+    "text": "Boba ginger cat",
+    "source": "en"
+  },
+  {
+    "name": "message_theme_weipop_skin_18",
+    "text": "Cute tiger NY",
+    "source": "en"
+  },
+  {
+    "name": "message_theme_weipop_skin_19",
+    "text": "Lucky mahjong",
+    "source": "en"
+  },
+  {
+    "name": "message_theme_weipop_skin_20",
+    "text": "Gold champion",
+    "source": "en"
+  },
+  {
+    "name": "message_theme_weipop_skin_21",
+    "text": "Fish cat",
+    "source": "en"
+  },
+  {
+    "name": "message_theme_weipop_skin_22",
+    "text": "Sun & rain",
+    "source": "en"
+  },
+  {
+    "name": "message_theme_weipop_skin_23",
+    "text": "Goldfish boy",
+    "source": "en"
+  },
+  {
+    "name": "permissions_pending_title",
+    "text": "Permissions pending",
+    "source": "en"
+  },
+  {
+    "name": "search_clear",
+    "text": "Clear search",
+    "source": "en"
+  },
+  {
+    "name": "search_actions_hint",
+    "text": "Search actions…",
+    "source": "en"
+  },
+  {
+    "name": "service_notification_title",
+    "text": "Cebian is running",
+    "source": "en"
+  },
+  {
+    "name": "service_notification_text",
+    "text": "Edge gesture service is running. Tap to open settings.",
+    "source": "en"
+  },
+  {
+    "name": "permission_usage_desc_excluded_apps",
+    "text": "Recommended for accurate foreground detection. Find \\\"%1$s\\\" in the list and allow access. If the switch stays greyed out, update to the latest version or check whether the system restricts this permission. Some features still work with accessibility enabled.",
+    "source": "en"
+  },
+  {
+    "name": "gesture_switch",
+    "text": "Gesture switch",
+    "source": "en"
+  },
+  {
+    "name": "gesture_switch_hint",
+    "text": "Edge gestures run only when this is on",
+    "source": "en"
+  },
+  {
+    "name": "battery_optimization_title",
+    "text": "Battery optimization",
+    "source": "en"
+  },
+  {
+    "name": "battery_optimization_desc",
+    "text": "Allow unrestricted background activity so the gesture service is not killed",
+    "source": "en"
+  },
+  {
+    "name": "permission_battery_optimization_grant",
+    "text": "Ignore",
+    "source": "en"
+  },
+  {
+    "name": "battery_optimization_request_failed",
+    "text": "Could not open battery optimization settings. Please whitelist this app manually in system settings.",
+    "source": "en"
+  },
+  {
+    "name": "settings_save_failed",
+    "text": "Failed to save settings. Please try again later.",
+    "source": "en"
+  },
+  {
+    "name": "auto_start_title",
+    "text": "Auto-start",
+    "source": "en"
+  },
+  {
+    "name": "auto_start_desc",
+    "text": "Works with battery optimization to improve background retention",
+    "source": "en"
+  },
+  {
+    "name": "auto_start_request_failed",
+    "text": "Please enable auto-start permission manually in system settings",
+    "source": "en"
+  },
+  {
+    "name": "app_keep_alive_title",
+    "text": "App keep-alive",
+    "source": "en"
+  },
+  {
+    "name": "app_keep_alive_desc",
+    "text": "Background keep-alive and permissions",
+    "source": "en"
+  },
+  {
+    "name": "privilege_mode_title",
+    "text": "Privileged execution",
+    "source": "en"
+  },
+  {
+    "name": "privilege_mode_desc",
+    "text": "Shell, freezer, task manager, and other extensions require this",
+    "source": "en"
+  },
+  {
+    "name": "privilege_mode_shizuku",
+    "text": "Shizuku (recommended)",
+    "source": "en"
+  },
+  {
+    "name": "privilege_mode_shizuku_desc",
+    "text": "Works without root via wireless debugging; runs silently after grant",
+    "source": "en"
+  },
+  {
+    "name": "privilege_mode_root",
+    "text": "Root",
+    "source": "en"
+  },
+  {
+    "name": "privilege_mode_root_desc",
+    "text": "No Shizuku needed; grant su access to this app in Magisk, etc.",
+    "source": "en"
+  },
+  {
+    "name": "privilege_mode_status_shizuku_ready",
+    "text": "Shizuku ready",
+    "source": "en"
+  },
+  {
+    "name": "privilege_mode_status_shizuku_missing",
+    "text": "Shizuku not running or not authorized",
+    "source": "en"
+  },
+  {
+    "name": "privilege_mode_status_root_ready",
+    "text": "Root ready",
+    "source": "en"
+  },
+  {
+    "name": "privilege_mode_status_root_missing",
+    "text": "Root not detected or su not granted",
+    "source": "en"
+  },
+  {
+    "name": "privilege_mode_status_title",
+    "text": "Current status",
+    "source": "en"
+  },
+  {
+    "name": "privilege_mode_entry_summary_shizuku_ready",
+    "text": "Shizuku · Ready",
+    "source": "en"
+  },
+  {
+    "name": "privilege_mode_entry_summary_shizuku_missing",
+    "text": "Shizuku · Not granted",
+    "source": "en"
+  },
+  {
+    "name": "privilege_mode_entry_summary_root_ready",
+    "text": "Root · Ready",
+    "source": "en"
+  },
+  {
+    "name": "privilege_mode_entry_summary_root_missing",
+    "text": "Root · Not ready",
+    "source": "en"
+  },
+  {
+    "name": "permission_root_title",
+    "text": "Root not ready",
+    "source": "en"
+  },
+  {
+    "name": "permission_root_desc",
+    "text": "Grant su to this app in Magisk or similar, or switch to Shizuku mode.",
+    "source": "en"
+  },
+  {
+    "name": "permission_root_grant",
+    "text": "Open settings",
+    "source": "en"
+  },
+  {
+    "name": "privileged_access_required_shizuku",
+    "text": "Shizuku permission required",
+    "source": "en"
+  },
+  {
+    "name": "privileged_access_required_root",
+    "text": "Root permission required",
+    "source": "en"
+  },
+  {
+    "name": "task_switcher_no_privileged_access",
+    "text": "Privileged access required to show background tasks",
+    "source": "en"
+  },
+  {
+    "name": "app_keep_alive_entry_desc",
+    "text": "Background keep-alive and permissions",
+    "source": "en"
+  },
+  {
+    "name": "app_keep_alive_entry_summary_battery",
+    "text": "Battery whitelisted",
+    "source": "en"
+  },
+  {
+    "name": "app_keep_alive_entry_summary_recents",
+    "text": "Hidden from recents",
+    "source": "en"
+  },
+  {
+    "name": "app_keep_alive_entry_summary_all",
+    "text": "Battery whitelist, hidden recents",
+    "source": "en"
+  },
+  {
+    "name": "secure_settings_title",
+    "text": "Cebian keep-alive",
+    "source": "en"
+  },
+  {
+    "name": "secure_settings_desc",
+    "text": "Automatically restore Cebian if the system disables it (requires WRITE_SECURE_SETTINGS)",
+    "source": "en"
+  },
+  {
+    "name": "secure_settings_enabled_summary",
+    "text": "Cebian keep-alive on",
+    "source": "en"
+  },
+  {
+    "name": "secure_settings_grant_success",
+    "text": "Granted via Shizuku",
+    "source": "en"
+  },
+  {
+    "name": "secure_settings_grant_failed",
+    "text": "Grant failed. Please run the ADB command manually.",
+    "source": "en"
+  },
+  {
+    "name": "secure_settings_adb_dialog_title",
+    "text": "ADB grant instructions",
+    "source": "en"
+  },
+  {
+    "name": "secure_settings_adb_dialog_message",
+    "text": "Connect via USB or wireless debugging and run this command in a terminal (re-run after reinstalling the app):\\n\\n%1$s",
+    "source": "en"
+  },
+  {
+    "name": "secure_settings_adb_copy",
+    "text": "Copy command",
+    "source": "en"
+  },
+  {
+    "name": "secure_settings_adb_copied",
+    "text": "Copied to clipboard",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_switch_input_method",
+    "text": "Switch input method",
+    "source": "en"
+  },
+  {
+    "name": "hide_from_recents_title",
+    "text": "Hide from recents",
+    "source": "en"
+  },
+  {
+    "name": "hide_from_recents_desc",
+    "text": "When enabled, this app\\'s settings screen won\\'t appear in the system recents list",
+    "source": "en"
+  },
+  {
+    "name": "permission_accessibility_title",
+    "text": "Cebian",
+    "source": "en"
+  },
+  {
+    "name": "permission_accessibility_desc",
+    "text": "Required for edge gestures and sidebar panels; also used for Back, Home, Recents, and tap passthrough without Shizuku.",
+    "source": "en"
+  },
+  {
+    "name": "permission_accessibility_grant",
+    "text": "Enable Cebian",
+    "source": "en"
+  },
+  {
+    "name": "settings_section_service",
+    "text": "Service",
+    "source": "en"
+  },
+  {
+    "name": "debug_section_title",
+    "text": "Debug",
+    "source": "en"
+  },
+  {
+    "name": "debug_performance_monitor",
+    "text": "Performance monitor",
+    "source": "en"
+  },
+  {
+    "name": "debug_performance_monitor_desc",
+    "text": "Log overlay FPS and main-thread slow messages in Logcat (Debug builds only)",
+    "source": "en"
+  },
+  {
+    "name": "hidden_apps_entry_desc",
+    "text": "Hide apps from the app index list",
+    "source": "en"
+  },
+  {
+    "name": "hidden_apps_desc",
+    "text": "Hidden apps won\\'t appear in Cebian panels, but can still be opened from the home screen and elsewhere.",
+    "source": "en"
+  },
+  {
+    "name": "excluded_apps_entry_title",
+    "text": "Per-app disable",
+    "source": "en"
+  },
+  {
+    "name": "excluded_apps_title",
+    "text": "Per-app disable",
+    "source": "en"
+  },
+  {
+    "name": "excluded_apps_desc",
+    "text": "Tap an app to adjust what is hidden. Use Add app below to pick an app and choose scopes.",
+    "source": "en"
+  },
+  {
+    "name": "excluded_apps_template_summary",
+    "text": "Will hide: %1$s",
+    "source": "en"
+  },
+  {
+    "name": "excluded_apps_template_empty",
+    "text": "Select at least one feature",
+    "source": "en"
+  },
+  {
+    "name": "excluded_apps_confirm_add_title",
+    "text": "Confirm",
+    "source": "en"
+  },
+  {
+    "name": "excluded_apps_excluded_hint",
+    "text": "Tap an app to adjust its scope",
+    "source": "en"
+  },
+  {
+    "name": "excluded_apps_scope_triggers_short",
+    "text": "Triggers",
+    "source": "en"
+  },
+  {
+    "name": "excluded_apps_scope_corner_wheel_short",
+    "text": "Wheel",
+    "source": "en"
+  },
+  {
+    "name": "excluded_apps_scope_float_ball_short",
+    "text": "Float ball",
+    "source": "en"
+  },
+  {
+    "name": "excluded_apps_scope_none",
+    "text": "Nothing disabled",
+    "source": "en"
+  },
+  {
+    "name": "excluded_apps_scope_dialog_hint",
+    "text": "Choose what to hide in this app. Keep at least one option enabled.",
+    "source": "en"
+  },
+  {
+    "name": "accessibility_service_name",
+    "text": "Cebian",
+    "source": "en"
+  },
+  {
+    "name": "accessibility_service_desc",
+    "text": "Required for edge gestures and sidebar panels, plus Back, Home, Recents, and tap passthrough without Shizuku.",
+    "source": "en"
+  },
+  {
+    "name": "side_gestures_desc",
+    "text": "Each gesture slot can be configured independently, including app index, volume/brightness sliders, quick launcher, and more.",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_open_index",
+    "text": "App index",
+    "source": "en"
+  },
+  {
+    "name": "gesture_hint_style_capsule_desc",
+    "text": "Rounded capsule expands with Cebian",
+    "source": "en"
+  }
+]

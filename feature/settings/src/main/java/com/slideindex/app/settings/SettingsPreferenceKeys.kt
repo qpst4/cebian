@@ -83,6 +83,7 @@ internal object SettingsPreferenceKeys {
     val HIDE_FROM_RECENTS = booleanPreferencesKey("hide_from_recents")
     val PRIVILEGE_MODE = stringPreferencesKey("privilege_mode")
     val PREDICTIVE_BACK_ENABLED = booleanPreferencesKey("predictive_back_enabled")
+    val APP_UI_LANGUAGE_TAG = stringPreferencesKey("app_ui_language_tag")
     val SWIPE_DISMISS_ENABLED = booleanPreferencesKey("swipe_dismiss_enabled")
     val ACCESSIBILITY_KEEP_ALIVE = booleanPreferencesKey("accessibility_keep_alive")
     val FREE_WINDOW_ENABLED = booleanPreferencesKey("free_window_enabled")

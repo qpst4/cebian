@@ -1,0 +1,902 @@
+[
+  {
+    "name": "ocr_download_notification_verifying",
+    "text": "Verifying model…",
+    "source": "en"
+  },
+  {
+    "name": "ocr_download_notification_finalizing",
+    "text": "Installing model…",
+    "source": "en"
+  },
+  {
+    "name": "ocr_download_notification_done",
+    "text": "Model download complete",
+    "source": "en"
+  },
+  {
+    "name": "ocr_download_notification_failed",
+    "text": "Model download failed",
+    "source": "en"
+  },
+  {
+    "name": "ocr_download_notification_cancelled",
+    "text": "Model download cancelled",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_recognizing",
+    "text": "Recognizing…",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_action_share",
+    "text": "Share",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_action_open_image",
+    "text": "Open with",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_action_failed",
+    "text": "Action failed",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_screenshot_saved",
+    "text": "Screenshot saved to gallery",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_pick_result_image_section",
+    "text": "Image",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_action_stash",
+    "text": "Save to stash",
+    "source": "en"
+  },
+  {
+    "name": "stash_empty",
+    "text": "No stashed items yet",
+    "source": "en"
+  },
+  {
+    "name": "stash_saved",
+    "text": "Saved to stash",
+    "source": "en"
+  },
+  {
+    "name": "stash_save_failed",
+    "text": "Failed to save to stash",
+    "source": "en"
+  },
+  {
+    "name": "stash_toggle_side",
+    "text": "Switch side",
+    "source": "en"
+  },
+  {
+    "name": "stash_action_pin",
+    "text": "Pin to screen",
+    "source": "en"
+  },
+  {
+    "name": "stash_action_open_pick",
+    "text": "Open in pick panel",
+    "source": "en"
+  },
+  {
+    "name": "stash_action_delete",
+    "text": "Delete",
+    "source": "en"
+  },
+  {
+    "name": "stash_time_just_now",
+    "text": "Just now",
+    "source": "en"
+  },
+  {
+    "name": "stash_time_minutes_ago",
+    "text": "%d min ago",
+    "source": "en"
+  },
+  {
+    "name": "stash_time_hours_ago",
+    "text": "%d hr ago",
+    "source": "en"
+  },
+  {
+    "name": "stash_drop_target_stash",
+    "text": "Stash",
+    "source": "en"
+  },
+  {
+    "name": "stash_drop_target_delete",
+    "text": "Delete",
+    "source": "en"
+  },
+  {
+    "name": "stash_drop_target_notification",
+    "text": "Notification",
+    "source": "en"
+  },
+  {
+    "name": "stash_pin_add_failed",
+    "text": "Could not create pin",
+    "source": "en"
+  },
+  {
+    "name": "stash_pin_notification_title",
+    "text": "Screen pin",
+    "source": "en"
+  },
+  {
+    "name": "stash_pin_notification_text",
+    "text": "Tap to restore screen pin",
+    "source": "en"
+  },
+  {
+    "name": "stash_pin_notification_posted",
+    "text": "Added to notification shade",
+    "source": "en"
+  },
+  {
+    "name": "stash_pin_notification_restored",
+    "text": "Screen pin restored",
+    "source": "en"
+  },
+  {
+    "name": "stash_pin_notification_restore_failed",
+    "text": "Failed to restore screen pin",
+    "source": "en"
+  },
+  {
+    "name": "stash_pin_notification_channel_name",
+    "text": "Screen pin",
+    "source": "en"
+  },
+  {
+    "name": "stash_pin_notification_channel_desc",
+    "text": "Places pinned images in the notification shade",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_image_search_panel_title",
+    "text": "Search by image",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_image_search_uploading",
+    "text": "Uploading image…",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_image_search_upload_failed",
+    "text": "Image upload failed. Check your network and try again.",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_image_search_retry",
+    "text": "Retry",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_image_search_privacy_hint",
+    "text": "Images are temporarily uploaded to a host for search.",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_image_search_refresh",
+    "text": "Refresh",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_image_search_open_browser",
+    "text": "Open in browser",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_image_search_no_engines",
+    "text": "No aggregated search engines are enabled. Turn one on in settings.",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_image_search_ascii2d_screenshot_saved",
+    "text": "Screenshot saved to gallery. Select it when uploading in ASCII2D.",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_image_search_tab_loading",
+    "text": "Searching",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_image_search_tab_ready",
+    "text": "Search complete",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_image_search_tab_failed",
+    "text": "Search failed",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_pick_source_a11y",
+    "text": "Accessibility",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_pick_source_ocr",
+    "text": "OCR",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_pick_source_barcode",
+    "text": "Scan",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_action_edit",
+    "text": "Edit",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_action_word_select",
+    "text": "Word tap",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_action_select_all",
+    "text": "Select all",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_action_deselect_all",
+    "text": "Deselect all",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_action_trim_spaces",
+    "text": "Trim spaces",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_settings_title",
+    "text": "Floating pointer",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_settings_section_appearance",
+    "text": "Appearance",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_joystick_area_section",
+    "text": "Pointer movement",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_sensitivity",
+    "text": "Pointer speed",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_preview_drag_hint",
+    "text": "Preview joystick and travel bounds on the real screen when enabled.",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_area_preview_title",
+    "text": "Travel bounds preview",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_area_preview_desc",
+    "text": "Show joystick travel bounds on the real screen",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_preview_pointer_range",
+    "text": "Pointer start",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_pointer_settings_title",
+    "text": "Pointer appearance",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_pointer_settings_summary",
+    "text": "Ring %1$d px 路 Dot %2$d px",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_joystick_settings_title",
+    "text": "Joystick appearance & behavior",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_joystick_settings_summary",
+    "text": "%1$d px diameter",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_preview_section",
+    "text": "Preview",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_ring_color",
+    "text": "Ring color",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_fill_color",
+    "text": "Fill color",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_fill_color_desc",
+    "text": "Area between the inner ring edge and center dot",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_dot_color",
+    "text": "Inner dot color",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_visual_feedback_section",
+    "text": "Haptics and visual feedback",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_click_haptic",
+    "text": "Haptic feedback",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_click_haptic_desc",
+    "text": "Vibrate when tapping",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_click_visual_feedback",
+    "text": "Visual feedback",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_click_visual_feedback_desc",
+    "text": "Show visual feedback when tapping",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_ripple_color",
+    "text": "Ripple color",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_ripple_color_desc",
+    "text": "Color of the tap ripple effect",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_trail_section",
+    "text": "Trail",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_trail_off",
+    "text": "Off",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_trail_simple",
+    "text": "Simple",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_trail_high_detail",
+    "text": "High detail",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_trail_duration",
+    "text": "Trail duration",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_trail_duration_value",
+    "text": "%1$d ms",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_trail_color",
+    "text": "Trail color",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_settings_section_other",
+    "text": "Other",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_hide_on_release",
+    "text": "Hide pointer when releasing joystick",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_hide_on_release_desc",
+    "text": "Pointer is only visible while touching the joystick",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_reset_visual",
+    "text": "Restore pointer appearance defaults",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_joystick_visual_section",
+    "text": "Visual",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_joystick_inner_color",
+    "text": "Inner color",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_joystick_outer_color",
+    "text": "Outer color",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_joystick_gradient_radius",
+    "text": "Gradient radius",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_percent_value",
+    "text": "%1$d%%",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_reset_joystick_visual",
+    "text": "Reset joystick visual settings",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_joystick_behavior_section",
+    "text": "Behavior",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_click_distance_threshold",
+    "text": "Click distance threshold",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_click_distance_threshold_desc",
+    "text": "Maximum distance the joystick can move between press and release to count as a click or long-press. Increase in shaky environments.",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_release_click_and_dismiss",
+    "text": "Click and dismiss on release",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_release_click_and_dismiss_desc",
+    "text": "When dragging out the floating pointer with a continuous edge gesture: release clicks at the pointer and closes it; the action ring is hidden during the drag (resident joystick taps unchanged)",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_hover_enter_select",
+    "text": "Hover to enter selection",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_hover_enter_select_desc",
+    "text": "During continuous edge drag-out, pause on the pointer to enter selection: release picks the element; drag further for a region screenshot",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_hide_outside_click",
+    "text": "Hide on outside tap",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_hide_outside_click_desc",
+    "text": "Hide when tapping outside the joystick",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_hide_quick_swipe",
+    "text": "Hide on quick swipe",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_hide_quick_swipe_desc",
+    "text": "Hide on a fast swipe gesture (e.g. page turn)",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_hide_idle",
+    "text": "Hide when idle",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_hide_idle_desc",
+    "text": "Hide after the joystick has been idle for a while",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_hide_idle_delay",
+    "text": "Idle hide delay",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_hide_idle_delay_value",
+    "text": "%1$d s",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_reset_joystick_behavior",
+    "text": "Restore joystick behavior defaults",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_joystick_size",
+    "text": "Joystick diameter",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_settings_section_pointer",
+    "text": "Pointer appearance",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_pointer_size",
+    "text": "Pointer diameter",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_ring_thickness",
+    "text": "Ring thickness",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_dot_diameter",
+    "text": "Inner dot size",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_size_px_value",
+    "text": "%1$d px",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_size_px_dp_value",
+    "text": "%1$d px (%2$.1f dp)",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_entry_desc",
+    "text": "Configure joystick, pointer appearance, and movement",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_entry_summary",
+    "text": "Joystick %1$dpx · Pointer %2$dpx · Speed %3$d%%",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_edge_settings_title",
+    "text": "Edge actions",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_edge_settings_summary",
+    "text": "Preview and trigger actions when the pointer is pushed past screen edges",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_edge_section_general",
+    "text": "General",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_edge_section_sides",
+    "text": "Edges",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_edge_side_summary_enabled",
+    "text": "Enabled",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_edge_side_summary_disabled",
+    "text": "Disabled",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_edge_threshold",
+    "text": "Trigger threshold",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_edge_threshold_value",
+    "text": "%1$d dp",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_edge_preview_sensitivity",
+    "text": "Preview sensitivity",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_edge_preview_glow_size",
+    "text": "Preview glow size",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_edge_preview_show_icon",
+    "text": "Show preview icon",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_edge_preview_show_icon_desc",
+    "text": "Show the action icon while approaching an edge",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_edge_visual_color",
+    "text": "Preview color",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_edge_side_top",
+    "text": "Top edge",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_edge_side_left",
+    "text": "Left edge",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_edge_side_right",
+    "text": "Right edge",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_edge_side_bottom",
+    "text": "Bottom edge",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_edge_side_enabled_desc",
+    "text": "Enable actions on this edge",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_edge_section_zones_count",
+    "text": "Zones (%1$d)",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_edge_zone_title",
+    "text": "Zone %1$d",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_edge_add_zone",
+    "text": "Add zone",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_edge_add_zone_desc",
+    "text": "Add another configurable zone on this edge",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_edge_remove_zone",
+    "text": "Remove zone",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_edge_preview_off",
+    "text": "Off",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_edge_preview_low",
+    "text": "Low",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_edge_preview_medium",
+    "text": "Medium",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_edge_preview_high",
+    "text": "High",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_edge_reset_defaults",
+    "text": "Reset edge defaults",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_edge_reset_defaults_desc",
+    "text": "Restore default edge actions and preview settings",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_radial_settings_title",
+    "text": "Joystick function ring",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_radial_tab_settings",
+    "text": "Settings",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_radial_tab_functions",
+    "text": "Functions",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_radial_tab_design",
+    "text": "Design",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_radial_always_visible",
+    "text": "Always visible",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_radial_always_visible_desc",
+    "text": "Always show joystick functions",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_radial_long_press_ms",
+    "text": "Long-press duration",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_radial_long_press_ms_value",
+    "text": "%1$d ms",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_joystick_long_press_action",
+    "text": "Long-press joystick action",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_radial_functions_section",
+    "text": "Joystick functions",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_radial_outer_size",
+    "text": "Outer ring size",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_radial_outer_color",
+    "text": "Outer ring color",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_radial_inner_size",
+    "text": "Inner ring size",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_radial_inner_color",
+    "text": "Inner ring color",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_radial_divider_thickness",
+    "text": "Divider thickness",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_radial_divider_color",
+    "text": "Divider color",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_radial_icon_size",
+    "text": "Icon size",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_radial_icon_color",
+    "text": "Icon color",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_radial_reset_design",
+    "text": "Reset design",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_radial_slot_top",
+    "text": "Top",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_radial_slot_top_right",
+    "text": "Top right",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_radial_slot_right",
+    "text": "Right",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_radial_slot_bottom_right",
+    "text": "Bottom right",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_radial_slot_bottom",
+    "text": "Bottom",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_radial_slot_bottom_left",
+    "text": "Bottom left",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_radial_slot_left",
+    "text": "Left",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_radial_slot_top_left",
+    "text": "Top left",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_pointer_swipe",
+    "text": "Swipe",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_pointer_swipe_desc",
+    "text": "Simulate a swipe at the pointer position",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_pointer_swipe_permission",
+    "text": "Requires Cebian",
+    "source": "en"
+  },
+  {
+    "name": "pointer_swipe_config_title",
+    "text": "Operation settings",
+    "source": "en"
+  },
+  {
+    "name": "pointer_swipe_config_desc",
+    "text": "Swipe from the current pointer position using the chosen direction and distance.",
+    "source": "en"
+  }
+]

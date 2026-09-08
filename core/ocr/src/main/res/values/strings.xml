@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="vlm_provider_dashscope_name">阿里云百炼</string>
+    <string name="vlm_provider_dashscope_desc">通义千问 · 速度敏捷，公式与图表高性价比首选</string>
+    <string name="vlm_provider_dashscope_hint">在阿里云百炼控制台获取 API-Key (sk- 开头)</string>
+    <string name="vlm_provider_zhipu_name">智谱清言</string>
+    <string name="vlm_provider_zhipu_desc">GLM-4V · 中文理解深入，适合长文档与复杂公式</string>
+    <string name="vlm_provider_zhipu_hint">在智谱大模型开放平台获取 API-Key</string>
+    <string name="vlm_provider_siliconflow_name">硅基流动</string>
+    <string name="vlm_provider_siliconflow_desc">SiliconFlow · 高并发开源视觉模型中继加速</string>
+    <string name="vlm_provider_siliconflow_hint">在硅基流动平台获取 API-Key</string>
+    <string name="vlm_provider_custom_name">自定义端点</string>
+    <string name="vlm_provider_custom_desc">支持自建 OneAPI、反向代理或 OpenAI 兼容端点</string>
+    <string name="vlm_provider_custom_hint">支持任意标准 OpenAI /chat/completions 兼容端点</string>
+
+    <string name="ocr_error_unknown_model">未知 OCR 模型：%1$s</string>
+    <string name="ocr_error_model_not_installed">OCR 模型未安装</string>
+    <string name="ocr_error_native_engine_not_ready">OCR 运行库未就绪</string>
+    <string name="ocr_error_api_key_not_configured">未配置 API Key，请在 OCR 模型管理 → 云端配置</string>
+    <string name="ocr_error_unsupported_engine">不支持的 OCR 引擎</string>
+    <string name="ocr_error_no_text_recognized">未识别到文字</string>
+
+    <string name="vlm_error_cloud_http">云端识别失败 (HTTP %1$d)：%2$s</string>
+    <string name="vlm_error_cloud_empty">云端返回异常：未包含识别结果</string>
+    <string name="vlm_error_network">网络或接口异常：%1$s</string>
+    <string name="vlm_error_no_details">无详情</string>
+    <string name="vlm_test_success">连接成功！接口鉴权正常</string>
+    <string name="vlm_test_failed">连接失败(HTTP %1$d): %2$s</string>
+    <string name="vlm_test_network_error">网络或地址异常: %1$s</string>
+    <string name="vlm_error_api_key_empty">API Key 不能为空</string>
+    <string name="vlm_error_unknown">未知错误</string>
+    <string name="vlm_user_recognition_prompt">请严格按照系统设定的排版规则识别这张图片中的文字和公式：</string>
+
+    <string name="ocr_error_paddle_not_initialized">PaddleOCR 引擎未初始化</string>
+
+    <string name="vlm_default_system_prompt">你是一个专业的全能 OCR 文字与公式识别助手。请严格按照图片原样提取文字内容，遵循以下排版规则：\n1. 行内公式用 $...$ 包裹，独立公式块用 $$...$$ 包裹\n2. 保留原始换行与段落结构\n3. 不要添加解释、前缀或 Markdown 标题\n4. 无法辨认时输出空字符串</string>
+</resources>

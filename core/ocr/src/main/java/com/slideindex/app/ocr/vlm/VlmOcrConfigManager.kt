@@ -2,6 +2,8 @@ package com.slideindex.app.ocr.vlm
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.annotation.StringRes
+import com.slideindex.app.ocr.R
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -11,35 +13,35 @@ import javax.inject.Singleton
  */
 enum class VlmProvider(
     val id: String,
-    val displayName: String,
-    val description: String,
+    @StringRes val displayNameRes: Int,
+    @StringRes val descriptionRes: Int,
     val defaultBaseUrl: String,
     val defaultModel: String,
     val presetModels: List<String>,
-    val websiteHint: String,
+    @StringRes val websiteHintRes: Int,
 ) {
     DASHSCOPE(
         id = "dashscope",
-        displayName = "阿里云百炼",
-        description = "通义千问 · 速度敏捷，公式与图表高性价比首选",
+        displayNameRes = R.string.vlm_provider_dashscope_name,
+        descriptionRes = R.string.vlm_provider_dashscope_desc,
         defaultBaseUrl = "https://dashscope.aliyuncs.com/compatible-mode/v1",
         defaultModel = "qwen-vl-plus",
         presetModels = listOf("qwen-vl-plus", "qwen-vl-max", "qwen-vl-ocr"),
-        websiteHint = "在阿里云百炼控制台获取 API-Key (sk- 开头)",
+        websiteHintRes = R.string.vlm_provider_dashscope_hint,
     ),
     ZHIPU(
         id = "zhipu",
-        displayName = "智谱清言",
-        description = "GLM-4V · 中文理解深入，适合长文档与复杂公式",
+        displayNameRes = R.string.vlm_provider_zhipu_name,
+        descriptionRes = R.string.vlm_provider_zhipu_desc,
         defaultBaseUrl = "https://open.bigmodel.cn/api/paas/v4/",
         defaultModel = "glm-4v-plus",
         presetModels = listOf("glm-4v-plus", "glm-4v", "glm-4v-flash"),
-        websiteHint = "在智谱大模型开放平台获取 API-Key",
+        websiteHintRes = R.string.vlm_provider_zhipu_hint,
     ),
     SILICONFLOW(
         id = "siliconflow",
-        displayName = "硅基流动",
-        description = "SiliconFlow · 高并发开源视觉模型中继加速",
+        displayNameRes = R.string.vlm_provider_siliconflow_name,
+        descriptionRes = R.string.vlm_provider_siliconflow_desc,
         defaultBaseUrl = "https://api.siliconflow.cn/v1",
         defaultModel = "Qwen/Qwen2.5-VL-72B-Instruct",
         presetModels = listOf(
@@ -48,17 +50,23 @@ enum class VlmProvider(
             "Qwen/Qwen2-VL-7B-Instruct",
             "THUDM/glm-4v-9b",
         ),
-        websiteHint = "在硅基流动平台获取 API-Key",
+        websiteHintRes = R.string.vlm_provider_siliconflow_hint,
     ),
     CUSTOM(
         id = "custom",
-        displayName = "自定义端点",
-        description = "支持自建 OneAPI、反向代理或 OpenAI 兼容端点",
+        displayNameRes = R.string.vlm_provider_custom_name,
+        descriptionRes = R.string.vlm_provider_custom_desc,
         defaultBaseUrl = "https://api.openai.com/v1",
         defaultModel = "gpt-4o",
         presetModels = listOf("gpt-4o", "gpt-4o-mini", "claude-3-5-sonnet"),
-        websiteHint = "支持任意标准 OpenAI /chat/completions 兼容端点",
+        websiteHintRes = R.string.vlm_provider_custom_hint,
     );
+
+    fun displayName(context: Context): String = context.getString(displayNameRes)
+
+    fun description(context: Context): String = context.getString(descriptionRes)
+
+    fun websiteHint(context: Context): String = context.getString(websiteHintRes)
 
     companion object {
         fun fromId(id: String): VlmProvider =
@@ -93,9 +101,10 @@ class VlmOcrConfigManager @Inject constructor(
         private const val LEGACY_KEY_API_KEY = "api_key"
         private const val LEGACY_KEY_BASE_URL = "base_url"
         private const val LEGACY_KEY_MODEL = "model"
-
-        val DEFAULT_PROMPT = VlmFormulaOcrEngine.DEFAULT_SYSTEM_PROMPT
+        private const val LEGACY_PROMPT_PREFIX = "你是一个专业的学术与数学公式 OCR 识别工具"
     }
+
+    private fun defaultPrompt(): String = VlmFormulaOcrEngine.defaultSystemPrompt(context)
 
     init {
         migrateLegacyIfNeeded()
@@ -225,7 +234,7 @@ class VlmOcrConfigManager @Inject constructor(
     }
 
     fun isCommonPromptCustomized(): Boolean =
-        commonPrompt.trim() != DEFAULT_PROMPT.trim()
+        commonPrompt.trim() != defaultPrompt().trim()
 
     fun isProviderConfigured(provider: VlmProvider): Boolean =
         getApiKey(provider).isNotBlank()
@@ -250,12 +259,12 @@ class VlmOcrConfigManager @Inject constructor(
     var commonPrompt: String
         get() {
             val stored = prefs.getString(KEY_PROMPT, null)
-            if (stored.isNullOrBlank() || stored.startsWith("你是一个专业的学术与数学公式 OCR 识别工具")) {
-                return DEFAULT_PROMPT
+            if (stored.isNullOrBlank() || stored.startsWith(LEGACY_PROMPT_PREFIX)) {
+                return defaultPrompt()
             }
             return stored
         }
-        set(value) = prefs.edit().putString(KEY_PROMPT, value.trim().ifBlank { DEFAULT_PROMPT }).apply()
+        set(value) = prefs.edit().putString(KEY_PROMPT, value.trim().ifBlank { defaultPrompt() }).apply()
 
     // --- 当前激活服务商的生效提示词（支持读写兼容） ---
     var prompt: String
@@ -265,7 +274,7 @@ class VlmOcrConfigManager @Inject constructor(
         }
 
     fun resetPromptToDefault() {
-        commonPrompt = DEFAULT_PROMPT
+        commonPrompt = defaultPrompt()
     }
 }
 

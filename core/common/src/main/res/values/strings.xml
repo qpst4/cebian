@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="activity_shortcut_coupons">优惠券</string>
+    <string name="activity_shortcut_favorites">收藏</string>
+    <string name="activity_shortcut_search">搜索</string>
+    <string name="activity_shortcut_scan">扫一扫</string>
+</resources>

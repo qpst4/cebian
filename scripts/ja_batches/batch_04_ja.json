@@ -1,0 +1,722 @@
+[
+  {
+    "name": "float_ball_translating",
+    "ja": "翻訳中…"
+  },
+  {
+    "name": "float_ball_translate_failed",
+    "ja": "翻訳に失敗しました"
+  },
+  {
+    "name": "float_ball_translate_error_model_missing",
+    "ja": "先にこの言語の ML Kit 言語パックをダウンロードしてください"
+  },
+  {
+    "name": "float_ball_translate_error_engine_missing",
+    "ja": "先にオフライン翻訳エンジンをダウンロードしてください（拡張機能 → ランタイムエンジン）"
+  },
+  {
+    "name": "float_ball_translate_error_wifi_required",
+    "ja": "言語パックのダウンロードには Wi-Fi 接続が必要です"
+  },
+  {
+    "name": "float_ball_translate_error_unsupported_language",
+    "ja": "この翻訳先言語には対応していません"
+  },
+  {
+    "name": "float_ball_translate_error_unavailable",
+    "ja": "翻訳サービスを利用できません"
+  },
+  {
+    "name": "float_ball_translate_error_network",
+    "ja": "ネットワーク接続と Google 翻訳への到達性を確認してください"
+  },
+  {
+    "name": "search_engine_settings_title",
+    "ja": "テキスト検索エンジン"
+  },
+  {
+    "name": "search_engine_settings_subtitle",
+    "ja": "選択パネルでのテキスト検索"
+  },
+  {
+    "name": "search_engine_settings_preview_mode",
+    "ja": "プレビュー並べ替えモード"
+  },
+  {
+    "name": "search_engine_settings_preview_mode_summary",
+    "ja": "選択パネルのレイアウトをプレビューし、検索エンジンをドラッグで並べ替え"
+  },
+  {
+    "name": "search_engine_preview_sort_title",
+    "ja": "プレビュー並べ替えモード"
+  },
+  {
+    "name": "search_engine_preview_sort_hint",
+    "ja": "アイコンを長押ししてドラッグで並べ替え。画面端へドラッグでページを変更。"
+  },
+  {
+    "name": "search_engine_preview_sort_empty",
+    "ja": "先に選択パネルに表示する検索エンジンを追加してください"
+  },
+  {
+    "name": "search_engine_settings_display_section",
+    "ja": "選択パネル表示"
+  },
+  {
+    "name": "search_engine_grid_columns",
+    "ja": "列数"
+  },
+  {
+    "name": "search_engine_grid_rows",
+    "ja": "行数"
+  },
+  {
+    "name": "search_engine_show_labels",
+    "ja": "アイコン名を表示"
+  },
+  {
+    "name": "search_engine_show_labels_desc",
+    "ja": "選択パネルのグリッドでアイコン下にエンジン名を表示"
+  },
+  {
+    "name": "search_engine_settings_preset_catalog",
+    "ja": "プリセットカタログ"
+  },
+  {
+    "name": "search_engine_settings_preset_catalog_subtitle",
+    "ja": "組み込み検索エンジンから追加（SNS、メディア、ツールなど）"
+  },
+  {
+    "name": "search_engine_preset_picker_title",
+    "ja": "プリセットエンジン"
+  },
+  {
+    "name": "search_engine_preset_picker_search_hint",
+    "ja": "プリセットを検索…"
+  },
+  {
+    "name": "search_engine_preset_picker_cat_all",
+    "ja": "すべて"
+  },
+  {
+    "name": "search_engine_preset_picker_cat_general",
+    "ja": "一般"
+  },
+  {
+    "name": "search_engine_preset_picker_cat_social",
+    "ja": "SNS"
+  },
+  {
+    "name": "search_engine_preset_picker_cat_video",
+    "ja": "メディア"
+  },
+  {
+    "name": "search_engine_preset_picker_cat_shopping",
+    "ja": "ショッピング"
+  },
+  {
+    "name": "search_engine_preset_picker_cat_tools",
+    "ja": "ツール"
+  },
+  {
+    "name": "search_engine_preset_added",
+    "ja": "追加済み"
+  },
+  {
+    "name": "search_engine_preset_add",
+    "ja": "追加"
+  },
+  {
+    "name": "search_engine_preset_single_added_toast",
+    "ja": "「%1$s」を追加しました"
+  },
+  {
+    "name": "search_engine_settings_import_section",
+    "ja": "他アプリからインポート"
+  },
+  {
+    "name": "search_engine_settings_import",
+    "ja": "バックアップをインポート"
+  },
+  {
+    "name": "search_engine_settings_import_subtitle",
+    "ja": "SearchEVO / GestureEVO バックアップファイルに対応"
+  },
+  {
+    "name": "search_engine_settings_list_section",
+    "ja": "テキスト検索エンジン (%1$d)"
+  },
+  {
+    "name": "search_engine_settings_empty",
+    "ja": "利用可能な検索エンジンがありません"
+  },
+  {
+    "name": "search_engine_type_direct_link",
+    "ja": "URL / スキームリンク"
+  },
+  {
+    "name": "search_engine_type_jump_activity",
+    "ja": "アクティビティへジャンプ"
+  },
+  {
+    "name": "search_engine_editor_tab_link",
+    "ja": "リンク"
+  },
+  {
+    "name": "search_engine_editor_tab_activity",
+    "ja": "アクティビティ"
+  },
+  {
+    "name": "search_engine_editor_tab_share",
+    "ja": "共有"
+  },
+  {
+    "name": "search_engine_type_extern_jump",
+    "ja": "アプリスキーム"
+  },
+  {
+    "name": "search_engine_url_link_hint",
+    "ja": "URL / スキームアドレス"
+  },
+  {
+    "name": "search_engine_url_link_support",
+    "ja": "https://、coolmarket://、intent:// などに対応。プレースホルダーに %s または %q を使用"
+  },
+  {
+    "name": "search_engine_url_link_flow_desc",
+    "ja": "実行ルールとフロー:\n1. パラメータ付きジャンプ: %s を使用する場合（例: .../search?q=%s）、クエリを URL に直接置換\n2. 対象アプリ: 対象パッケージを設定すると指定アプリで強制起動。未設定時はデフォルトアプリを使用\n3. 自動入力: %s 未使用かつ自動入力オン時、起動後にアクセシビリティで検索バーに入力"
+  },
+  {
+    "name": "search_engine_jump_activity_flow_desc",
+    "ja": "実行ルールとフロー:\n1. アクティビティ起動: 対象アプリのアクティビティを直接開く（非エクスポートのアクティビティは必要に応じて Shizuku 経由）\n2. 自動入力: 起動後（自動入力オン時）、600ms〜3000ms 以内に検索バーを探して入力・Enter"
+  },
+  {
+    "name": "search_engine_type_share",
+    "ja": "共有"
+  },
+  {
+    "name": "search_engine_type_share_image",
+    "ja": "画像を共有"
+  },
+  {
+    "name": "search_engine_import_preview_title",
+    "ja": "インポートを確認"
+  },
+  {
+    "name": "search_engine_import_preview_source",
+    "ja": "ソース: %1$s"
+  },
+  {
+    "name": "search_engine_import_preview_hint",
+    "ja": "マージは既存エンジンを保持。置換は先に一覧をクリア"
+  },
+  {
+    "name": "search_engine_import_merge",
+    "ja": "マージ"
+  },
+  {
+    "name": "search_engine_import_replace",
+    "ja": "置換"
+  },
+  {
+    "name": "search_engine_import_failed",
+    "ja": "インポート失敗: %1$s"
+  },
+  {
+    "name": "search_engine_query_empty",
+    "ja": "先に検索するテキストを選択または入力してください"
+  },
+  {
+    "name": "search_engine_accessibility_required",
+    "ja": "この機能を使うには Cebian アクセシビリティサービスを有効にしてください"
+  },
+  {
+    "name": "search_engine_shizuku_required",
+    "ja": "非エクスポートのアクティビティを起動するには Shizuku 権限が必要です"
+  },
+  {
+    "name": "search_engine_add_title",
+    "ja": "検索エンジンを追加"
+  },
+  {
+    "name": "search_engine_add_subtitle",
+    "ja": "カスタムテキスト検索エンジンを設定"
+  },
+  {
+    "name": "search_engine_edit_title",
+    "ja": "検索エンジンを編集"
+  },
+  {
+    "name": "search_engine_edit_identity_title",
+    "ja": "検索エンジン情報を編集"
+  },
+  {
+    "name": "search_engine_edit_identity_hint",
+    "ja": "タップして名前とエイリアスを編集"
+  },
+  {
+    "name": "search_engine_save",
+    "ja": "保存"
+  },
+  {
+    "name": "search_engine_saved",
+    "ja": "検索エンジンを保存しました"
+  },
+  {
+    "name": "search_engine_deleted",
+    "ja": "検索エンジンを削除しました"
+  },
+  {
+    "name": "search_engine_validation_failed",
+    "ja": "検索エンジンの設定を完了してください"
+  },
+  {
+    "name": "search_engine_delete_title",
+    "ja": "検索エンジンを削除"
+  },
+  {
+    "name": "search_engine_delete_message",
+    "ja": "%1$s を削除しますか？"
+  },
+  {
+    "name": "search_engine_delete_confirm",
+    "ja": "削除"
+  },
+  {
+    "name": "search_engine_move_up",
+    "ja": "上へ移動"
+  },
+  {
+    "name": "search_engine_move_down",
+    "ja": "下へ移動"
+  },
+  {
+    "name": "search_engine_name_hint",
+    "ja": "名前"
+  },
+  {
+    "name": "search_engine_alias_hint",
+    "ja": "エイリアス（任意）"
+  },
+  {
+    "name": "search_engine_alias_support",
+    "ja": "検索パネルで「エイリアス + スペース + クエリ」でエンジンを固定。例: g weather"
+  },
+  {
+    "name": "search_engine_alias_invalid",
+    "ja": "エイリアスにスペースは使えず、最大 16 文字です"
+  },
+  {
+    "name": "search_panel_section_alias_label",
+    "ja": "エイリアス"
+  },
+  {
+    "name": "search_panel_section_alias_hint",
+    "ja": "「エイリアス + スペース + クエリ」でこのタイプを固定。例: app WeChat"
+  },
+  {
+    "name": "search_panel_section_alias_add",
+    "ja": "エイリアスを追加"
+  },
+  {
+    "name": "search_panel_section_alias_clear",
+    "ja": "エイリアスをクリア"
+  },
+  {
+    "name": "search_panel_section_alias_add_title",
+    "ja": "「%1$s」のエイリアスを追加"
+  },
+  {
+    "name": "search_panel_section_alias_edit_title",
+    "ja": "「%1$s」のエイリアスを編集"
+  },
+  {
+    "name": "search_panel_section_alias_conflict",
+    "ja": "エイリアスは既に使用中です"
+  },
+  {
+    "name": "search_panel_section_alias_invalid",
+    "ja": "無効なエイリアス（スペース不可、最大 16 文字）"
+  },
+  {
+    "name": "search_panel_app_search_desc",
+    "ja": "検索パネルでインストール済みアプリを名前で検索"
+  },
+  {
+    "name": "search_panel_settings_search_desc",
+    "ja": "システム設定を検索して開く（システムインデックス優先、Settings マニフェストにフォールバック）"
+  },
+  {
+    "name": "search_panel_settings_search_title",
+    "ja": "システム設定検索"
+  },
+  {
+    "name": "search_panel_settings_index_title",
+    "ja": "設定インデックス"
+  },
+  {
+    "name": "search_panel_settings_index_refresh",
+    "ja": "設定インデックスを再読み込み"
+  },
+  {
+    "name": "search_panel_settings_index_loading",
+    "ja": "読み込み中…"
+  },
+  {
+    "name": "search_panel_section_all",
+    "ja": "すべて"
+  },
+  {
+    "name": "search_panel_section_apps",
+    "ja": "アプリ"
+  },
+  {
+    "name": "search_panel_section_contacts",
+    "ja": "連絡先"
+  },
+  {
+    "name": "search_panel_section_files",
+    "ja": "ファイル"
+  },
+  {
+    "name": "search_panel_section_settings",
+    "ja": "設定"
+  },
+  {
+    "name": "search_panel_section_menu",
+    "ja": "検索タイプを切り替え"
+  },
+  {
+    "name": "search_engine_type_section",
+    "ja": "起動モード"
+  },
+  {
+    "name": "search_engine_search_link_hint",
+    "ja": "検索 URL"
+  },
+  {
+    "name": "search_engine_search_link_support",
+    "ja": "キーワードプレースホルダーに %s または %q を使用"
+  },
+  {
+    "name": "search_engine_optional_search_link_hint",
+    "ja": "フォールバック検索 URL（任意）"
+  },
+  {
+    "name": "search_engine_target_package_hint",
+    "ja": "対象パッケージ（任意）"
+  },
+  {
+    "name": "search_engine_target_activity_hint",
+    "ja": "対象アクティビティ"
+  },
+  {
+    "name": "search_engine_extern_link_hint",
+    "ja": "スキーム / Intent URI"
+  },
+  {
+    "name": "search_engine_extern_package_hint",
+    "ja": "外部ジャンプパッケージ（任意）"
+  },
+  {
+    "name": "search_engine_auto_input_enter",
+    "ja": "自動入力して検索"
+  },
+  {
+    "name": "search_engine_auto_input_enter_desc",
+    "ja": "対象アプリ起動後、アクセシビリティでクエリを入力"
+  },
+  {
+    "name": "search_engine_pick_icon",
+    "ja": "アイコンを選択"
+  },
+  {
+    "name": "search_engine_pick_app_icon",
+    "ja": "アプリアイコン"
+  },
+  {
+    "name": "search_engine_pick_app_icon_title",
+    "ja": "アプリアイコンを選択"
+  },
+  {
+    "name": "search_engine_pick_app_icon_loading",
+    "ja": "アプリアイコンを保存中…"
+  },
+  {
+    "name": "search_engine_pick_app_icon_failed",
+    "ja": "アプリアイコンの読み込みに失敗しました"
+  },
+  {
+    "name": "search_engine_pick_app",
+    "ja": "アプリを選択"
+  },
+  {
+    "name": "search_engine_pick_app_title",
+    "ja": "アプリを選択"
+  },
+  {
+    "name": "search_engine_pick_activity",
+    "ja": "アクティビティを選択"
+  },
+  {
+    "name": "search_engine_pick_activity_title",
+    "ja": "アクティビティを選択"
+  },
+  {
+    "name": "search_engine_pick_activity_requires_package",
+    "ja": "先に対象パッケージを選択してください"
+  },
+  {
+    "name": "search_engine_activity_search_hint",
+    "ja": "アクティビティ名またはクラスを検索"
+  },
+  {
+    "name": "search_engine_activity_empty",
+    "ja": "アクティビティが見つかりません"
+  },
+  {
+    "name": "search_engine_activity_not_exported",
+    "ja": "非エクスポート"
+  },
+  {
+    "name": "search_engine_fetch_favicon",
+    "ja": "Web サイトアイコンを取得"
+  },
+  {
+    "name": "search_engine_fetch_favicon_loading",
+    "ja": "Web サイトアイコンを取得中…"
+  },
+  {
+    "name": "search_engine_fetch_favicon_failed",
+    "ja": "Web サイトアイコンの取得に失敗しました。検索 URL またはネットワークを確認してください。"
+  },
+  {
+    "name": "search_engine_text_icon",
+    "ja": "テキストアイコン"
+  },
+  {
+    "name": "search_engine_text_icon_title",
+    "ja": "テキストアイコンを設定"
+  },
+  {
+    "name": "search_engine_text_icon_hint",
+    "ja": "1 文字または短いテキストを入力"
+  },
+  {
+    "name": "search_engine_text_icon_support",
+    "ja": "先頭 1 文字がアイコンとして表示されます"
+  },
+  {
+    "name": "search_engine_share_type_readonly",
+    "ja": "共有エンジンは名前変更と並べ替えのみ対応"
+  },
+  {
+    "name": "search_engine_share_image_target_section",
+    "ja": "画像共有先"
+  },
+  {
+    "name": "search_engine_share_image_target_not_set",
+    "ja": "画像共有先が選択されていません"
+  },
+  {
+    "name": "search_engine_pick_share_image_target",
+    "ja": "画像共有先を選択"
+  },
+  {
+    "name": "search_engine_pick_share_image_target_title",
+    "ja": "画像共有ハンドラを選択"
+  },
+  {
+    "name": "search_engine_share_image_target_search_hint",
+    "ja": "アプリまたはアクティビティを検索"
+  },
+  {
+    "name": "search_engine_share_image_target_empty",
+    "ja": "共有画像を受け取れるアプリがありません"
+  },
+  {
+    "name": "search_engine_share_text_target_section",
+    "ja": "テキスト共有先"
+  },
+  {
+    "name": "search_engine_share_text_target_not_set",
+    "ja": "テキスト共有先が選択されていません"
+  },
+  {
+    "name": "search_engine_pick_share_text_target",
+    "ja": "テキスト共有先を選択"
+  },
+  {
+    "name": "search_engine_pick_share_text_target_title",
+    "ja": "テキスト共有ハンドラを選択"
+  },
+  {
+    "name": "search_engine_share_text_target_search_hint",
+    "ja": "アプリまたはアクティビティを検索"
+  },
+  {
+    "name": "search_engine_share_text_target_empty",
+    "ja": "共有テキストを受け取れるアプリがありません"
+  },
+  {
+    "name": "image_search_engine_settings_title",
+    "ja": "画像検索エンジン"
+  },
+  {
+    "name": "image_search_engine_settings_subtitle",
+    "ja": "画像検索とスクリーンショット共有"
+  },
+  {
+    "name": "image_search_engine_aggregated_hint",
+    "ja": "長押しでタブを並べ替え。エンジンをタップして表示とプリロード設定。"
+  },
+  {
+    "name": "image_search_engine_aggregated_empty",
+    "ja": "表示する集約エンジンがありません。下で少なくとも 1 つを有効にしてください。"
+  },
+  {
+    "name": "image_search_engine_show_in_panel",
+    "ja": "画像検索パネルに表示"
+  },
+  {
+    "name": "image_search_engine_preload_on_open",
+    "ja": "開いたときにプリロード"
+  },
+  {
+    "name": "image_search_engine_preload_on_open_desc",
+    "ja": "オフの場合、このタブに切り替えた後に検索を開始します。"
+  },
+  {
+    "name": "image_search_engine_status_hidden",
+    "ja": "非表示"
+  },
+  {
+    "name": "image_search_engine_status_visible_preload",
+    "ja": "表示 · 開いたときにプリロード"
+  },
+  {
+    "name": "image_search_engine_status_visible_on_tab",
+    "ja": "表示 · タブ切り替え時に検索"
+  },
+  {
+    "name": "image_search_engine_mode_hosted_url",
+    "ja": "ホスト URL"
+  },
+  {
+    "name": "image_search_engine_mode_direct_post",
+    "ja": "POST"
+  },
+  {
+    "name": "image_search_engine_mode_hosted_url_desc",
+    "ja": "画像をホストにアップロードし、URL で検索"
+  },
+  {
+    "name": "image_search_engine_mode_direct_post_desc",
+    "ja": "画像を検索エンジンに直接アップロード"
+  },
+  {
+    "name": "image_search_engine_share_section",
+    "ja": "アプリへ共有 (%1$d)"
+  },
+  {
+    "name": "image_search_engine_share_hint",
+    "ja": "スクリーンショットバーに表示。タップでアプリを直接開く。長押しで並べ替え。"
+  },
+  {
+    "name": "image_search_engine_add_share_target",
+    "ja": "共有先を追加"
+  },
+  {
+    "name": "image_search_engine_add_share_target_subtitle",
+    "ja": "スクリーンショット共有先を設定"
+  },
+  {
+    "name": "image_search_engine_share_empty",
+    "ja": "共有先がまだありません。Taobao や Xianyu などのアプリを追加してください。"
+  },
+  {
+    "name": "float_ball_image_search_pick_panel_transparency",
+    "ja": "画像検索中の選択カードの暗さ"
+  },
+  {
+    "name": "float_ball_appearance_settings_title",
+    "ja": "外観"
+  },
+  {
+    "name": "float_ball_gesture_settings_title",
+    "ja": "ジェスチャ"
+  },
+  {
+    "name": "float_ball_gesture_settings_summary",
+    "ja": "スワイプ、タップ、長押しアクションを設定"
+  },
+  {
+    "name": "float_ball_gesture_action_settings",
+    "ja": "アクション設定"
+  },
+  {
+    "name": "float_ball_gesture_distance_section",
+    "ja": "スワイプ距離"
+  },
+  {
+    "name": "float_ball_gesture_actions_section",
+    "ja": "ジェスチャアクション"
+  },
+  {
+    "name": "float_ball_gesture_down_swipe_distance",
+    "ja": "下スワイプ短距離（画面高さ %）"
+  },
+  {
+    "name": "float_ball_gesture_side_swipe_distance",
+    "ja": "横スワイプ短距離（画面幅 %）"
+  },
+  {
+    "name": "float_ball_gesture_up_swipe_distance",
+    "ja": "上スワイプ短距離（画面高さ %）"
+  },
+  {
+    "name": "float_ball_gesture_swipe_up_short",
+    "ja": "上スワイプ（短）"
+  },
+  {
+    "name": "float_ball_gesture_swipe_up_long",
+    "ja": "上スワイプ（長）"
+  },
+  {
+    "name": "float_ball_gesture_swipe_down_short",
+    "ja": "下スワイプ（短）"
+  },
+  {
+    "name": "float_ball_gesture_swipe_down_long",
+    "ja": "下スワイプ（長）"
+  },
+  {
+    "name": "float_ball_gesture_swipe_side_short",
+    "ja": "横スワイプ（短）"
+  },
+  {
+    "name": "float_ball_gesture_swipe_side_long",
+    "ja": "横スワイプ（長）"
+  },
+  {
+    "name": "float_ball_gesture_single_tap",
+    "ja": "シングルタップ"
+  },
+  {
+    "name": "float_ball_gesture_double_tap",
+    "ja": "ダブルタップ"
+  },
+  {
+    "name": "float_ball_gesture_long_press",
+    "ja": "長押し"
+  },
+  {
+    "name": "float_ball_section_style",
+    "ja": "スタイル"
+  },
+  {
+    "name": "float_ball_style_picker_title",
+    "ja": "フローティングボールスタイル"
+  }
+]

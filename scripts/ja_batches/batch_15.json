@@ -1,0 +1,902 @@
+[
+  {
+    "name": "update_download_failed",
+    "text": "Download failed. Please try again.",
+    "source": "en"
+  },
+  {
+    "name": "update_install_permission_hint",
+    "text": "Allow installing apps from this source first",
+    "source": "en"
+  },
+  {
+    "name": "update_view_on_github",
+    "text": "View on GitHub",
+    "source": "en"
+  },
+  {
+    "name": "update_channel_update",
+    "text": "Update alerts",
+    "source": "en"
+  },
+  {
+    "name": "update_channel_download",
+    "text": "Download progress",
+    "source": "en"
+  },
+  {
+    "name": "update_notification_new_title",
+    "text": "Update available",
+    "source": "en"
+  },
+  {
+    "name": "update_notification_new_content",
+    "text": "%1$s is available. Tap to view.",
+    "source": "en"
+  },
+  {
+    "name": "update_notification_downloading_title",
+    "text": "Downloading update",
+    "source": "en"
+  },
+  {
+    "name": "update_notification_done_title",
+    "text": "Download complete",
+    "source": "en"
+  },
+  {
+    "name": "update_notification_done_content",
+    "text": "Tap to install %1$s",
+    "source": "en"
+  },
+  {
+    "name": "update_notification_failed_title",
+    "text": "Download failed",
+    "source": "en"
+  },
+  {
+    "name": "update_notification_failed_content",
+    "text": "Tap to retry",
+    "source": "en"
+  },
+  {
+    "name": "update_notification_permission_title",
+    "text": "Enable notifications",
+    "source": "en"
+  },
+  {
+    "name": "update_notification_permission_rationale",
+    "text": "Allow notifications to get alerts when a new version is found or download completes.",
+    "source": "en"
+  },
+  {
+    "name": "about_project_url_desc",
+    "text": "https://github.com/qpst4/cebian",
+    "source": "en"
+  },
+  {
+    "name": "about_star_github_title",
+    "text": "GitHub Repository ⭐",
+    "source": "en"
+  },
+  {
+    "name": "about_star_github_desc",
+    "text": "https://github.com/qpst4/cebian · Star to support development",
+    "source": "en"
+  },
+  {
+    "name": "about_feedback_issues_title",
+    "text": "Issues & Feature Requests",
+    "source": "en"
+  },
+  {
+    "name": "about_feedback_issues_desc",
+    "text": "Report bugs, propose features, or share presets on GitHub",
+    "source": "en"
+  },
+  {
+    "name": "about_qq_group_title",
+    "text": "QQ group",
+    "source": "en"
+  },
+  {
+    "name": "about_qq_group_desc",
+    "text": "1042783385",
+    "source": "en"
+  },
+  {
+    "name": "about_qq_group_url",
+    "text": "https://qm.qq.com/q/Zx4wd2LB4G",
+    "source": "en"
+  },
+  {
+    "name": "about_open_source_license_title",
+    "text": "Open source license",
+    "source": "en"
+  },
+  {
+    "name": "about_open_source_license_desc",
+    "text": "GNU Affero GPL v3.0 (AGPLv3)",
+    "source": "en"
+  },
+  {
+    "name": "about_third_party_notices_title",
+    "text": "Third-party open source",
+    "source": "en"
+  },
+  {
+    "name": "about_third_party_notices_subtitle",
+    "text": "Acknowledgments and license notices",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_default_engine_title",
+    "text": "Default search engine",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_default_engine_none",
+    "text": "None (do not search)",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_open_link_host",
+    "text": "Open %1$s",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_entry_title",
+    "text": "Search panel",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_entry_desc",
+    "text": "Layout, default engine, candidate search and aliases",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_settings_title",
+    "text": "Search panel",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_settings_subtitle",
+    "text": "Configure search panel layout, appearance and candidates",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_settings_section_layout",
+    "text": "Presentation & layout",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_settings_section_behavior",
+    "text": "Panel behavior",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_settings_section_appearance",
+    "text": "Appearance",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_settings_section_candidates",
+    "text": "Candidate search",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_settings_section_engines",
+    "text": "Search engines",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_presentation_title",
+    "text": "Presentation",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_presentation_bottom_sheet",
+    "text": "Bottom sheet",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_presentation_fullscreen",
+    "text": "Fullscreen",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_bar_position_title",
+    "text": "Search bar position",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_bar_position_top",
+    "text": "Top",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_bar_position_bottom",
+    "text": "Bottom",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_list_order_title",
+    "text": "Candidate list order",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_list_order_top_down",
+    "text": "Top to bottom",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_list_order_bottom_up",
+    "text": "Bottom to top",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_app_display_style_title",
+    "text": "App display style",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_app_display_style_icons",
+    "text": "Icons",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_app_display_style_list",
+    "text": "List",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_expand_more_apps",
+    "text": "Show more apps",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_calculator_title",
+    "text": "Calculator",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_calculator_desc",
+    "text": "Show a result card when the query looks like a math expression",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_background_wallpaper_blur",
+    "text": "Wallpaper blur",
+    "source": "en"
+  },
+  {
+    "name": "wallpaper_blur_permission_title",
+    "text": "All files access permission",
+    "source": "en"
+  },
+  {
+    "name": "wallpaper_blur_permission_granted",
+    "text": "Granted — wallpaper blur can load the home wallpaper",
+    "source": "en"
+  },
+  {
+    "name": "wallpaper_blur_permission_missing",
+    "text": "Not granted. Tap to grant All files access to read system wallpaper",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_input_behavior_title",
+    "text": "Input field when opened",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_input_behavior_select_all",
+    "text": "Select all text",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_input_behavior_clear",
+    "text": "Clear text",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_input_behavior_keep",
+    "text": "Keep text",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_contact_search_desc",
+    "text": "Search contacts by name pinyin or phone number and dial",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_contact_permission_title",
+    "text": "Contacts permission",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_contact_permission_granted",
+    "text": "Contacts permission granted",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_contact_permission_prompt",
+    "text": "Tap to allow contacts search",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_file_search_desc",
+    "text": "Search local files and folders by name via MediaStore (requires all-files access)",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_file_search_manage_title",
+    "text": "Files and folders",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_file_search_manage_desc",
+    "text": "Manage file types and path filters in results",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_file_permission_missing",
+    "text": "Not granted — tap to open system settings",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_file_permission_prompt",
+    "text": "Tap to allow file search",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_file_open_failed",
+    "text": "Unable to open this file",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_file_type_documents",
+    "text": "Documents",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_file_type_pictures",
+    "text": "Images",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_file_type_videos",
+    "text": "Videos",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_file_type_audio",
+    "text": "Audio",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_file_type_apks",
+    "text": "APK files",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_file_type_other",
+    "text": "Other types",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_file_show_folders",
+    "text": "Folders",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_file_show_system",
+    "text": "System files",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_file_folder_filters_title",
+    "text": "Folder path filters",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_file_folder_filters_desc",
+    "text": "Search and add folders to control the scope of file and folder results.",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_file_whitelist_title",
+    "text": "Whitelist",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_file_whitelist_desc",
+    "text": "When searching, only look inside these folders",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_file_blacklist_title",
+    "text": "Blacklist",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_file_blacklist_desc",
+    "text": "Ignore these folders when searching",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_file_folder_add",
+    "text": "Add folder",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_file_folder_add_title_whitelist",
+    "text": "Add whitelist folder",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_file_folder_add_title_blacklist",
+    "text": "Add blacklist folder",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_file_folder_search_hint",
+    "text": "Search folder name",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_file_folder_remove_hint",
+    "text": "Tap to remove",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_file_folder_empty",
+    "text": "None added",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_file_folder_no_results",
+    "text": "No matching folders",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_text_engines_entry_desc",
+    "text": "Manage text search engines and pick-panel grid",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_image_engines_entry_desc",
+    "text": "Manage image search and share targets",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_expand_more_contacts",
+    "text": "Show more contacts",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_expand_more_files",
+    "text": "Show more files",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_expand_more_settings",
+    "text": "Show more settings",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_collapse",
+    "text": "Collapse",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_web_suggestions_title",
+    "text": "Web suggestions",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_web_suggestions_desc",
+    "text": "Fetch search suggestions from Google while typing",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_web_suggestions_count_title",
+    "text": "Suggestion count",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_history_capacity_title",
+    "text": "Search history limit",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_history_capacity_value",
+    "text": "%1$d",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_history_clear",
+    "text": "Clear search history",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_history_clear_confirm_title",
+    "text": "Clear search history?",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_history_clear_confirm_message",
+    "text": "All search history entries will be deleted. This cannot be undone.",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_history_hint",
+    "text": "Press Space on an empty field to show search history",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_contact_action_call",
+    "text": "Call",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_contact_action_sms",
+    "text": "Send SMS",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_contact_open_with",
+    "text": "Open with",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_file_previews_section_title",
+    "text": "Quick preview",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_file_previews_title",
+    "text": "Quick preview",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_file_previews_desc",
+    "text": "Preview images and PDFs in the panel instead of opening them directly",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_file_preview_share",
+    "text": "Share",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_file_preview_open",
+    "text": "Open",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_file_preview_unable_to_open",
+    "text": "Unable to preview %1$s",
+    "source": "en"
+  },
+  {
+    "name": "keyboard_switch_to_number",
+    "text": "Number keyboard",
+    "source": "en"
+  },
+  {
+    "name": "keyboard_switch_back",
+    "text": "Text keyboard",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_phone_call",
+    "text": "Phone call",
+    "source": "en"
+  },
+  {
+    "name": "settings_backup_section_permissions",
+    "text": "Permissions",
+    "source": "en"
+  },
+  {
+    "name": "settings_backup_diff_overwritten",
+    "text": "Will overwrite: %1$s",
+    "source": "en"
+  },
+  {
+    "name": "settings_backup_diff_new",
+    "text": "Will add: %1$s",
+    "source": "en"
+  },
+  {
+    "name": "missing_permissions_title",
+    "text": "Missing permissions",
+    "source": "en"
+  },
+  {
+    "name": "missing_permissions_subtitle",
+    "text": "Some features need Android permissions",
+    "source": "en"
+  },
+  {
+    "name": "missing_permissions_section",
+    "text": "Features missing permissions",
+    "source": "en"
+  },
+  {
+    "name": "missing_permissions_empty",
+    "text": "All configured actions have the required permissions",
+    "source": "en"
+  },
+  {
+    "name": "missing_permissions_entry_title",
+    "text": "Permissions required",
+    "source": "en"
+  },
+  {
+    "name": "missing_permissions_entry_desc_none",
+    "text": "All feature permissions are granted",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_flashlight_permission",
+    "text": "Requires camera access",
+    "source": "en"
+  },
+  {
+    "name": "system_back_conflict_title",
+    "text": "May conflict with system back gesture",
+    "source": "en"
+  },
+  {
+    "name": "system_back_conflict_desc",
+    "text": "Gesture navigation is enabled. The left edge trigger may conflict with the system back gesture. Consider enabling intercept and limiting intercept length.",
+    "source": "en"
+  },
+  {
+    "name": "system_back_conflict_apply",
+    "text": "Apply recommended settings",
+    "source": "en"
+  },
+  {
+    "name": "floating_panel_title",
+    "text": "Collection panel",
+    "source": "en"
+  },
+  {
+    "name": "stash_panel_tab",
+    "text": "Stash",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_panel_tab",
+    "text": "Clipboard",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_empty",
+    "text": "No clipboard history yet",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_search_hint",
+    "text": "Search clipboard…",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_search_empty",
+    "text": "No matching clipboard entries",
+    "source": "en"
+  },
+  {
+    "name": "stash_search_hint",
+    "text": "Search stash…",
+    "source": "en"
+  },
+  {
+    "name": "stash_search_empty",
+    "text": "No matching stash items",
+    "source": "en"
+  },
+  {
+    "name": "stash_clipboard_entry_title",
+    "text": "Stash & clipboard",
+    "source": "en"
+  },
+  {
+    "name": "stash_clipboard_entry_summary",
+    "text": "%1$s · %2$s",
+    "source": "en"
+  },
+  {
+    "name": "stash_clipboard_entry_summary_clipboard_off",
+    "text": "Clipboard monitoring off",
+    "source": "en"
+  },
+  {
+    "name": "stash_clipboard_settings_title",
+    "text": "Stash & clipboard",
+    "source": "en"
+  },
+  {
+    "name": "stash_clipboard_settings_desc",
+    "text": "Clipboard history and stash management",
+    "source": "en"
+  },
+  {
+    "name": "stash_clipboard_section_history",
+    "text": "Clipboard history",
+    "source": "en"
+  },
+  {
+    "name": "stash_clipboard_section_stash",
+    "text": "Stash",
+    "source": "en"
+  },
+  {
+    "name": "stash_clipboard_index_nav_section",
+    "text": "Clipboard & collection panel",
+    "source": "en"
+  },
+  {
+    "name": "stash_clipboard_index_stash_panel_desc",
+    "text": "Background blur and edge history float",
+    "source": "en"
+  },
+  {
+    "name": "stash_clipboard_index_clipboard_float_desc",
+    "text": "Style, click action, blacklist and more",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_history_settings_desc",
+    "text": "Clipboard history, screenshot and background monitoring",
+    "source": "en"
+  },
+  {
+    "name": "stash_panel_settings_desc",
+    "text": "Collection panel appearance and edge history float settings",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_settings_desc",
+    "text": "Floating clipboard window appearance and interaction",
+    "source": "en"
+  },
+  {
+    "name": "stash_clipboard_stash_desc",
+    "text": "Save to stash from the sidebar gesture \\\"Open stash\\\" or float-ball pick results.",
+    "source": "en"
+  },
+  {
+    "name": "stash_panel_section_appearance",
+    "text": "Collection panel",
+    "source": "en"
+  },
+  {
+    "name": "stash_panel_background_blur",
+    "text": "Background blur",
+    "source": "en"
+  },
+  {
+    "name": "stash_panel_background_blur_desc",
+    "text": "Android 12+ blurs content behind the panel; the header blurs in-panel content while scrolling",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_background_monitoring_section",
+    "text": "Background monitoring",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_background_monitoring_title",
+    "text": "Monitor copies in background",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_background_monitoring_desc",
+    "text": "Automatically record copies from other apps (via Shizuku/Root privileged listener)",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_background_monitoring_mode_title",
+    "text": "Monitoring mode",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitoring_section_modes",
+    "text": "Monitoring mode & pipeline",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitoring_strategy_follow",
+    "text": "Follow privilege mode (recommended)",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitoring_strategy_follow_desc",
+    "text": "Follows home “Privilege mode”; currently %1$s",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitoring_strategy_manual",
+    "text": "Manual monitoring pipeline",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitoring_strategy_manual_desc",
+    "text": "Pick privilege path and capture mechanism independently",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitoring_privilege_path_title",
+    "text": "Privilege path",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitoring_privilege_shizuku_hint",
+    "text": "Runs the listener backend with Shizuku-granted shell identity.",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitoring_privilege_root_hint",
+    "text": "Runs the listener backend in a su-privileged process.",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitoring_principle_title",
+    "text": "How it works",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitoring_principle_shizuku_hidden_api",
+    "text": "Binds a Shizuku UserService, launches app_process with shell identity to load the listener, and reflectively registers IClipboard.IOnPrimaryClipChangedListener. The system callbacks on clipboard changes; a foreground service keeps the host process alive.",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitoring_principle_shizuku_logcat",
+    "text": "Reads the logcat pipe asynchronously in a Shizuku privileged process (ClipboardService tag) and matches clipboard write log lines to trigger capture without reflection. READ_LOGS may still be required on some devices.",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitoring_principle_root_hidden_api",
+    "text": "Uses su to launch app_process as a root daemon, loads the listener to reflectively bind ClipboardManager, and pipes clipboard events back. Requires a foreground service.",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitoring_principle_root_logcat",
+    "text": "Uses su to read the logcat pipe asynchronously and filter ClipboardService clipboard change logs as a no-reflection fallback.",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitoring_capture_title",
+    "text": "Capture mechanism",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitoring_capture_hidden_api",
+    "text": "Hidden API",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitoring_capture_logcat",
+    "text": "System log (Logcat)",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitoring_status_section",
+    "text": "Current status",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitoring_status_running_headline",
+    "text": "%1$s · %2$s · Monitoring OK",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitoring_status_stopped_headline",
+    "text": "%1$s · %2$s · Not running",
+    "source": "en"
+  }
+]

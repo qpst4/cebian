@@ -42,7 +42,7 @@ class SettingsPreferencesEditor @Inject constructor(
 ) {
 
     val settings: Flow<AppSettings> = context.dataStore.data.map { prefs ->
-        SettingsSnapshotReader.read(prefs)
+        SettingsSnapshotReader.read(prefs, context)
     }
 
     val themeSettings: Flow<ThemeSettings> = context.dataStore.data.map { prefs ->
@@ -68,39 +68,39 @@ class SettingsPreferencesEditor @Inject constructor(
     }.distinctUntilChanged()
 
     val gestureSettings: Flow<GestureSettings> = context.dataStore.data
-        .map { prefs -> GestureSettings.from(SettingsSnapshotReader.read(prefs)) }
+        .map { prefs -> GestureSettings.from(SettingsSnapshotReader.read(prefs, context)) }
         .distinctUntilChanged()
 
     val overlaySettings: Flow<OverlaySettings> = context.dataStore.data
-        .map { prefs -> OverlaySettings.from(SettingsSnapshotReader.read(prefs)) }
+        .map { prefs -> OverlaySettings.from(SettingsSnapshotReader.read(prefs, context)) }
         .distinctUntilChanged()
 
     val homeMainSettings: Flow<HomeMainSettings> = context.dataStore.data
-        .map { prefs -> HomeMainSettings.from(SettingsSnapshotReader.read(prefs)) }
+        .map { prefs -> HomeMainSettings.from(SettingsSnapshotReader.read(prefs, context)) }
         .distinctUntilChanged()
 
     val extensionHubSettings: Flow<ExtensionHubSettings> = context.dataStore.data
-        .map { prefs -> ExtensionHubSettings.from(SettingsSnapshotReader.read(prefs)) }
+        .map { prefs -> ExtensionHubSettings.from(SettingsSnapshotReader.read(prefs, context)) }
         .distinctUntilChanged()
 
     val keepAliveUiSettings: Flow<KeepAliveUiSettings> = context.dataStore.data
-        .map { prefs -> KeepAliveUiSettings.from(SettingsSnapshotReader.read(prefs)) }
+        .map { prefs -> KeepAliveUiSettings.from(SettingsSnapshotReader.read(prefs, context)) }
         .distinctUntilChanged()
 
     val shakeUiSettings: Flow<ShakeUiSettings> = context.dataStore.data
-        .map { prefs -> ShakeUiSettings.from(SettingsSnapshotReader.read(prefs)) }
+        .map { prefs -> ShakeUiSettings.from(SettingsSnapshotReader.read(prefs, context)) }
         .distinctUntilChanged()
 
     val freeWindowUiSettings: Flow<FreeWindowUiSettings> = context.dataStore.data
-        .map { prefs -> FreeWindowUiSettings.from(SettingsSnapshotReader.read(prefs)) }
+        .map { prefs -> FreeWindowUiSettings.from(SettingsSnapshotReader.read(prefs, context)) }
         .distinctUntilChanged()
 
     val otpUiSettings: Flow<OtpUiSettings> = context.dataStore.data
-        .map { prefs -> OtpUiSettings.from(SettingsSnapshotReader.read(prefs)) }
+        .map { prefs -> OtpUiSettings.from(SettingsSnapshotReader.read(prefs, context)) }
         .distinctUntilChanged()
 
     val messageReminderSettings: Flow<MessageSettings> = context.dataStore.data
-        .map { prefs -> SettingsSnapshotReader.read(prefs).messageReminderSettings }
+        .map { prefs -> SettingsSnapshotReader.read(prefs, context).messageReminderSettings }
         .distinctUntilChanged()
 
 

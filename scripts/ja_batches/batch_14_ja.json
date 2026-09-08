@@ -1,0 +1,722 @@
+[
+  {
+    "name": "weekday_short_tuesday",
+    "ja": "火"
+  },
+  {
+    "name": "weekday_short_wednesday",
+    "ja": "水"
+  },
+  {
+    "name": "weekday_short_thursday",
+    "ja": "木"
+  },
+  {
+    "name": "weekday_short_friday",
+    "ja": "金"
+  },
+  {
+    "name": "weekday_short_saturday",
+    "ja": "土"
+  },
+  {
+    "name": "settings_backup_title",
+    "ja": "設定のバックアップ"
+  },
+  {
+    "name": "settings_backup_subtitle",
+    "ja": "端末移行用にアプリ設定をエクスポート/インポート"
+  },
+  {
+    "name": "settings_backup_section_actions",
+    "ja": "バックアップ操作"
+  },
+  {
+    "name": "settings_backup_hint",
+    "ja": "アプリ設定をエクスポートまたはインポート。OTP、通知履歴、クリップボードなどは任意です。"
+  },
+  {
+    "name": "settings_backup_include_sensitive",
+    "ja": "機密データと履歴を含める"
+  },
+  {
+    "name": "settings_backup_sensitive_hint",
+    "ja": "OTP 記録、通知履歴、クリップボード、共有画像 OCR 履歴、シェル出力履歴を含みます。ローカルのバックアップファイルにのみ保存されます。"
+  },
+  {
+    "name": "settings_backup_export",
+    "ja": "設定をエクスポート"
+  },
+  {
+    "name": "settings_backup_import",
+    "ja": "設定をインポート"
+  },
+  {
+    "name": "settings_backup_default_filename",
+    "ja": "cebian-backup-%1$d.zip"
+  },
+  {
+    "name": "settings_backup_entry_title",
+    "ja": "設定のバックアップ"
+  },
+  {
+    "name": "settings_backup_entry_desc",
+    "ja": "ZIP バックアップファイルをエクスポート/インポート"
+  },
+  {
+    "name": "settings_backup_export_success",
+    "ja": "設定をエクスポートしました"
+  },
+  {
+    "name": "settings_backup_export_failed",
+    "ja": "エクスポートに失敗しました。後でもう一度お試しください。"
+  },
+  {
+    "name": "settings_backup_import_failed",
+    "ja": "インポートに失敗しました。ファイル形式を確認してください。"
+  },
+  {
+    "name": "settings_backup_preview_title",
+    "ja": "インポートプレビュー"
+  },
+  {
+    "name": "settings_backup_preview_info",
+    "ja": "バックアップ作成日: %1$s、バージョン: %2$s"
+  },
+  {
+    "name": "settings_backup_preview_domains",
+    "ja": "含まれるドメイン: %1$s"
+  },
+  {
+    "name": "settings_backup_preview_sensitive",
+    "ja": "注意: このバックアップには機密データ (%1$s) が含まれます。インポートすると現在の記録が上書きされます。"
+  },
+  {
+    "name": "settings_backup_preview_warning",
+    "ja": "インポートしますか？この操作は元に戻せません。"
+  },
+  {
+    "name": "settings_backup_preview_confirm",
+    "ja": "インポートを確定"
+  },
+  {
+    "name": "settings_domain_edge",
+    "ja": "エッジジェスチャ"
+  },
+  {
+    "name": "settings_domain_shake",
+    "ja": "シェイク"
+  },
+  {
+    "name": "settings_domain_message",
+    "ja": "通知フィルター"
+  },
+  {
+    "name": "settings_domain_otp",
+    "ja": "OTP 自動入力"
+  },
+  {
+    "name": "settings_domain_floating_pointer",
+    "ja": "フローティングポインター"
+  },
+  {
+    "name": "settings_domain_widget_panel",
+    "ja": "ウィジェットパネル"
+  },
+  {
+    "name": "settings_domain_quick_launcher",
+    "ja": "クイックランチャー"
+  },
+  {
+    "name": "settings_domain_free_window",
+    "ja": "フリーウィンドウ"
+  },
+  {
+    "name": "settings_domain_general",
+    "ja": "一般"
+  },
+  {
+    "name": "settings_domain_sensitive_otp",
+    "ja": "OTP 記録"
+  },
+  {
+    "name": "settings_domain_sensitive_notification",
+    "ja": "通知履歴"
+  },
+  {
+    "name": "settings_domain_sensitive_clipboard",
+    "ja": "クリップボード履歴"
+  },
+  {
+    "name": "settings_domain_sensitive_share_image_ocr",
+    "ja": "共有画像 OCR 履歴"
+  },
+  {
+    "name": "settings_domain_sensitive_shell_history",
+    "ja": "シェル出力履歴"
+  },
+  {
+    "name": "settings_domain_sensitive_notification_filter_rules",
+    "ja": "通知フィルタールール"
+  },
+  {
+    "name": "settings_domain_sensitive_notification_filter_prefs",
+    "ja": "通知フィルター設定"
+  },
+  {
+    "name": "settings_domain_sensitive_otp_stats",
+    "ja": "OTP 自動入力統計"
+  },
+  {
+    "name": "onboarding_skip",
+    "ja": "スキップ"
+  },
+  {
+    "name": "onboarding_next",
+    "ja": "次へ"
+  },
+  {
+    "name": "onboarding_get_started",
+    "ja": "はじめる"
+  },
+  {
+    "name": "onboarding_progress",
+    "ja": "ステップ %1$d / %2$d"
+  },
+  {
+    "name": "onboarding_welcome_title",
+    "ja": "Cebian へようこそ"
+  },
+  {
+    "name": "onboarding_welcome_body",
+    "ja": "Cebian はエッジジェスチャ、シェイクアクション、通知ツールでスマートフォンを拡張します。次にいくつかのシステム権限が必要です。"
+  },
+  {
+    "name": "onboarding_overlay_title",
+    "ja": "他のアプリの上に表示"
+  },
+  {
+    "name": "onboarding_overlay_body",
+    "ja": "エッジトリガー、サイドパネル、フローティングメッセージリマインダーに必要です。"
+  },
+  {
+    "name": "onboarding_grant_overlay",
+    "ja": "オーバーレイ権限を付与"
+  },
+  {
+    "name": "onboarding_accessibility_title",
+    "ja": "アクセシビリティサービス"
+  },
+  {
+    "name": "onboarding_accessibility_body",
+    "ja": "Cebian はエッジジェスチャ、サイドバーパネル、システム操作（戻る、ホーム、最近）のためにアクセシビリティサービスを使用します。"
+  },
+  {
+    "name": "onboarding_grant_accessibility",
+    "ja": "アクセシビリティ設定を開く"
+  },
+  {
+    "name": "onboarding_done_title",
+    "ja": "設定が完了しました"
+  },
+  {
+    "name": "onboarding_done_body",
+    "ja": "主要な権限が設定されました。ホームでジェスチャーを調整するか、拡張機能から既存のバックアップをインポートしてください。"
+  },
+  {
+    "name": "onboarding_permission_granted",
+    "ja": "付与済み"
+  },
+  {
+    "name": "onboarding_back",
+    "ja": "戻る"
+  },
+  {
+    "name": "onboarding_enter_app",
+    "ja": "アプリに入る"
+  },
+  {
+    "name": "onboarding_disclaimer_title",
+    "ja": "免責事項"
+  },
+  {
+    "name": "onboarding_disclaimer_body",
+    "ja": "本アプリとそのモジュールは、個人端末の管理と生産性向上のみを目的としており、規制回避、アクセス制御の迂回、不正操作を目的としたものではありません。\\n\\n各機能の動作を理解したうえで、有効にしたルール、変更、設定についてはご自身の責任でご利用ください。"
+  },
+  {
+    "name": "onboarding_disclaimer_agree",
+    "ja": "免責事項を読み、同意しました"
+  },
+  {
+    "name": "onboarding_core_permissions_title",
+    "ja": "主要な権限"
+  },
+  {
+    "name": "onboarding_core_permissions_body",
+    "ja": "Cebian はエッジジェスチャ認識、フローティングトリガーバー、安定したバックグラウンド動作のために以下の権限が必要です。システム設定で付与してください。"
+  },
+  {
+    "name": "onboarding_permission_overlay_short",
+    "ja": "エッジトリガーとフローティングパネルの表示に使用"
+  },
+  {
+    "name": "onboarding_permission_accessibility_short",
+    "ja": "エッジジェスチャの検出とシステム操作の実行に使用"
+  },
+  {
+    "name": "onboarding_permission_notification_title",
+    "ja": "通知とサービス"
+  },
+  {
+    "name": "onboarding_permission_notification_short",
+    "ja": "バックグラウンドサービスの維持とアラート送信に使用"
+  },
+  {
+    "name": "onboarding_permission_app_list_title",
+    "ja": "インストール済みアプリの照会"
+  },
+  {
+    "name": "onboarding_permission_app_list_short",
+    "ja": "サイドバーとクイックランチャーでアプリの表示・検索に使用"
+  },
+  {
+    "name": "onboarding_permission_status_ready",
+    "ja": "準備完了"
+  },
+  {
+    "name": "onboarding_permission_status_grant",
+    "ja": "付与"
+  },
+  {
+    "name": "privacy_policy_title",
+    "ja": "プライバシーポリシー"
+  },
+  {
+    "name": "privacy_policy_subtitle",
+    "ja": "データの取り扱いとアップロードの有無"
+  },
+  {
+    "name": "privacy_policy_entry_title",
+    "ja": "プライバシーポリシー"
+  },
+  {
+    "name": "privacy_policy_entry_desc",
+    "ja": "ローカルデータの取り扱いと権限の目的"
+  },
+  {
+    "name": "privacy_policy_body",
+    "ja": "Cebian は端末内処理を基本としています。\n\n• 通知と OTP: 読み取り、フィルタリング、抽出、表示はすべて端末内のみ。デフォルトではアップロードしません。\n• OTP 記録と通知履歴: アプリ専用ストレージに保存し、デフォルトではシステムバックアップから除外。設定バックアップで任意エクスポート可能。\n• LSPosed / Shizuku: ご自身で有効にする任意の拡張機能。\n• 個人を特定できる情報の収集や開発者サーバーへの送信は行いません。\n\nフォアグラウンドサービス（特殊用途）: OverlayService はエッジジェスチャとシェイク検出を維持するため subtype overlay_sidebar を使用 — 広告や無関係なバックグラウンド処理ではありません。\n\nご質問: プロジェクトリポジトリで GitHub Issue を開いてください。"
+  },
+  {
+    "name": "otp_autofill_stats_title",
+    "ja": "入力統計"
+  },
+  {
+    "name": "otp_autofill_stats_screen_desc",
+    "ja": "試行回数、成功率、最後の失敗理由を表示"
+  },
+  {
+    "name": "otp_autofill_stats_entry_empty",
+    "ja": "記録はまだありません"
+  },
+  {
+    "name": "otp_autofill_stats_overview_section",
+    "ja": "概要"
+  },
+  {
+    "name": "otp_autofill_stats_last_section",
+    "ja": "最後の試行"
+  },
+  {
+    "name": "otp_autofill_stats_help_section",
+    "ja": "ヘルプ"
+  },
+  {
+    "name": "otp_autofill_stats_total_attempts",
+    "ja": "総試行回数"
+  },
+  {
+    "name": "otp_autofill_stats_success_count",
+    "ja": "成功"
+  },
+  {
+    "name": "otp_autofill_stats_failure_count",
+    "ja": "失敗"
+  },
+  {
+    "name": "otp_autofill_stats_success_rate",
+    "ja": "成功率"
+  },
+  {
+    "name": "otp_autofill_stats_last_result",
+    "ja": "結果"
+  },
+  {
+    "name": "otp_autofill_stats_last_time",
+    "ja": "時刻"
+  },
+  {
+    "name": "otp_autofill_stats_last_strategy",
+    "ja": "戦略"
+  },
+  {
+    "name": "otp_autofill_stats_last_reason",
+    "ja": "理由"
+  },
+  {
+    "name": "otp_autofill_stats_help_pipeline",
+    "ja": "入力順序: LSPosed システムインジェクトが有効な場合、最初に実行されます。失敗または無効の場合、Cebian アクセシビリティが入力欄を探してコードを書き込みます。"
+  },
+  {
+    "name": "otp_autofill_stats_help_strategies",
+    "ja": "戦略: システムインジェクト = LSPosed フック; focused/best/group nodes = アクセシビリティノード入力。"
+  },
+  {
+    "name": "otp_autofill_stats_help_failures",
+    "ja": "よくある失敗: timeout = 時間内に入力結果なし; no editable node = 入力欄が見つからない; no strategy = 受信側が応答しない。"
+  },
+  {
+    "name": "otp_autofill_strategy_system_inject",
+    "ja": "LSPosed システムインジェクト"
+  },
+  {
+    "name": "otp_autofill_strategy_focused_node",
+    "ja": "アクセシビリティ · フォーカス中のフィールド"
+  },
+  {
+    "name": "otp_autofill_strategy_best_editable_node",
+    "ja": "アクセシビリティ · 最適な編集可能フィールド"
+  },
+  {
+    "name": "otp_autofill_strategy_group_nodes",
+    "ja": "アクセシビリティ · 分割フィールド"
+  },
+  {
+    "name": "otp_autofill_strategy_set_text",
+    "ja": "アクセシビリティ · テキスト設定"
+  },
+  {
+    "name": "otp_autofill_strategy_none",
+    "ja": "一致する戦略なし"
+  },
+  {
+    "name": "otp_autofill_strategy_probe",
+    "ja": "プローブ"
+  },
+  {
+    "name": "otp_autofill_strategy_unknown",
+    "ja": "不明な戦略 (%1$s)"
+  },
+  {
+    "name": "otp_autofill_reason_empty",
+    "ja": "なし"
+  },
+  {
+    "name": "otp_autofill_reason_ok",
+    "ja": "成功"
+  },
+  {
+    "name": "otp_autofill_reason_timeout",
+    "ja": "入力結果の待機がタイムアウト"
+  },
+  {
+    "name": "otp_autofill_reason_no_active_window",
+    "ja": "アクティブなアプリウィンドウが見つかりません"
+  },
+  {
+    "name": "otp_autofill_reason_no_editable_node",
+    "ja": "編集可能な入力欄が見つかりません"
+  },
+  {
+    "name": "otp_autofill_reason_own_package",
+    "ja": "スキップ: 対象がこのアプリ"
+  },
+  {
+    "name": "otp_autofill_reason_action_set_text_failed",
+    "ja": "テキスト設定アクションが拒否されました"
+  },
+  {
+    "name": "otp_autofill_reason_set_text_exception",
+    "ja": "テキスト設定中に例外が発生"
+  },
+  {
+    "name": "otp_autofill_reason_group_strategy_not_applicable",
+    "ja": "このコード長では分割フィールド入力は適用不可"
+  },
+  {
+    "name": "otp_autofill_reason_not_enough_editable_nodes",
+    "ja": "分割入力欄が不足"
+  },
+  {
+    "name": "otp_autofill_reason_group_set_text_failed",
+    "ja": "分割フィールド入力に失敗"
+  },
+  {
+    "name": "otp_autofill_reason_manager_unresolved",
+    "ja": "システム InputManager が利用不可"
+  },
+  {
+    "name": "otp_autofill_reason_inject_method_unresolved",
+    "ja": "システムインジェクトメソッドが利用不可"
+  },
+  {
+    "name": "otp_autofill_reason_no_key_events",
+    "ja": "キーイベントを生成できません"
+  },
+  {
+    "name": "otp_autofill_reason_inject_exception",
+    "ja": "システムインジェクト例外"
+  },
+  {
+    "name": "otp_autofill_reason_probe",
+    "ja": "プローブ応答"
+  },
+  {
+    "name": "otp_autofill_reason_uid_rejected",
+    "ja": "送信元 UID が未認可"
+  },
+  {
+    "name": "otp_autofill_reason_inject_disabled",
+    "ja": "アプリ設定でシステムインジェクトが無効"
+  },
+  {
+    "name": "otp_autofill_reason_result_code_blocked",
+    "ja": "ブロードキャストは別の受信側で処理済み"
+  },
+  {
+    "name": "otp_autofill_reason_invalid_request",
+    "ja": "無効な自動入力リクエスト"
+  },
+  {
+    "name": "otp_autofill_reason_receiver_not_ready",
+    "ja": "system_server でインジェクト受信側が未準備"
+  },
+  {
+    "name": "otp_autofill_reason_unknown",
+    "ja": "%1$s"
+  },
+  {
+    "name": "otp_autofill_stats_last_success",
+    "ja": "成功"
+  },
+  {
+    "name": "otp_autofill_stats_last_failure",
+    "ja": "失敗"
+  },
+  {
+    "name": "otp_autofill_stats_reset",
+    "ja": "統計をリセット"
+  },
+  {
+    "name": "otp_autofill_stats_empty",
+    "ja": "自動入力の試行はまだありません"
+  },
+  {
+    "name": "shell_panel_template_hint",
+    "ja": "変数: {package}, {foreground_package}, {timestamp}, {datetime}"
+  },
+  {
+    "name": "shell_panel_history_title",
+    "ja": "出力履歴"
+  },
+  {
+    "name": "shell_panel_history_desc",
+    "ja": "最近のコマンド出力を検索"
+  },
+  {
+    "name": "shell_panel_history_entry_title",
+    "ja": "出力履歴"
+  },
+  {
+    "name": "shell_panel_history_entry_desc_empty",
+    "ja": "実行履歴はまだありません"
+  },
+  {
+    "name": "shell_panel_history_search_hint",
+    "ja": "コマンドまたは出力を検索"
+  },
+  {
+    "name": "shell_panel_history_clear",
+    "ja": "履歴を消去"
+  },
+  {
+    "name": "shell_panel_history_clear_confirm_title",
+    "ja": "出力履歴を消去しますか？"
+  },
+  {
+    "name": "shell_panel_history_clear_confirm_message",
+    "ja": "保存済みのすべてのコマンド出力記録が削除されます。元に戻せません。"
+  },
+  {
+    "name": "shell_panel_history_empty",
+    "ja": "実行履歴はまだありません"
+  },
+  {
+    "name": "shell_panel_history_exit_code",
+    "ja": "終了コード %1$d"
+  },
+  {
+    "name": "tile_gesture_switch",
+    "ja": "Cebian"
+  },
+  {
+    "name": "shortcut_toggle_gesture",
+    "ja": "ジェスチャーの切り替え"
+  },
+  {
+    "name": "shortcut_notification_hub",
+    "ja": "通知フィルター"
+  },
+  {
+    "name": "shortcut_shell_panel",
+    "ja": "シェルパネル"
+  },
+  {
+    "name": "shortcut_stash_panel",
+    "ja": "ストッシュを開く"
+  },
+  {
+    "name": "shortcut_clipboard_panel",
+    "ja": "クリップボードを開く"
+  },
+  {
+    "name": "shortcut_panel_open_failed",
+    "ja": "パネルを開けませんでした。Cebian が有効か確認してください。"
+  },
+  {
+    "name": "about_section_title",
+    "ja": "このアプリについて"
+  },
+  {
+    "name": "about_release_notes_title",
+    "ja": "リリースノート"
+  },
+  {
+    "name": "about_check_update_title",
+    "ja": "アップデートを確認"
+  },
+  {
+    "name": "about_check_update_subtitle",
+    "ja": "GitHub で最新リリースを確認"
+  },
+  {
+    "name": "app_icon_theme_title",
+    "ja": "アプリアイコンスタイル"
+  },
+  {
+    "name": "app_icon_theme_subtitle",
+    "ja": "タップでアプリアイコンと About ページの色を変更"
+  },
+  {
+    "name": "app_icon_violet",
+    "ja": "テックバイオレット"
+  },
+  {
+    "name": "app_icon_violet_desc",
+    "ja": "鮮やか · デフォルト"
+  },
+  {
+    "name": "app_icon_blue",
+    "ja": "オーシャンブルー"
+  },
+  {
+    "name": "app_icon_blue_desc",
+    "ja": "クリーン · エレガント"
+  },
+  {
+    "name": "app_icon_green",
+    "ja": "サイバーグリーン"
+  },
+  {
+    "name": "app_icon_green_desc",
+    "ja": "高速 · モダン"
+  },
+  {
+    "name": "app_icon_monet",
+    "ja": "Material Monet"
+  },
+  {
+    "name": "app_icon_monet_desc",
+    "ja": "壁紙とシステムに合わせたダイナミックカラー"
+  },
+  {
+    "name": "auto_check_update_title",
+    "ja": "自動アップデート確認"
+  },
+  {
+    "name": "auto_check_update_hint",
+    "ja": "バックグラウンドで定期的に新バージョンを確認し通知します"
+  },
+  {
+    "name": "update_available_title",
+    "ja": "アップデートがあります"
+  },
+  {
+    "name": "update_version_compare",
+    "ja": "%1$s → %2$s"
+  },
+  {
+    "name": "update_now",
+    "ja": "今すぐ更新"
+  },
+  {
+    "name": "update_ignore_version",
+    "ja": "このバージョンを無視"
+  },
+  {
+    "name": "update_downloading_label",
+    "ja": "ダウンロード中…"
+  },
+  {
+    "name": "update_already_latest_title",
+    "ja": "最新版です"
+  },
+  {
+    "name": "update_install_now",
+    "ja": "インストール"
+  },
+  {
+    "name": "update_move_to_background",
+    "ja": "バックグラウンドでダウンロード"
+  },
+  {
+    "name": "update_download_failed_title",
+    "ja": "ダウンロード失敗"
+  },
+  {
+    "name": "update_retry",
+    "ja": "再試行"
+  },
+  {
+    "name": "update_check_failed_title",
+    "ja": "アップデート確認失敗"
+  },
+  {
+    "name": "update_check_failed_message",
+    "ja": "アップデート情報を取得できません。GitHub で手動確認してください。"
+  },
+  {
+    "name": "update_check_network_failed_title",
+    "ja": "アップデートサーバーに接続できません"
+  },
+  {
+    "name": "update_check_network_failed_message",
+    "ja": "ネットワークを確認するか別の接続を試してから再試行してください。GitHub で最新リリースを確認することもできます。"
+  },
+  {
+    "name": "update_check_rate_limited_title",
+    "ja": "リクエストが多すぎます"
+  },
+  {
+    "name": "update_check_rate_limited_message",
+    "ja": "GitHub API のレート制限中です。後で再試行するか GitHub を開いてください。"
+  },
+  {
+    "name": "update_check_no_apk_title",
+    "ja": "リリース準備中"
+  },
+  {
+    "name": "update_check_no_apk_message",
+    "ja": "新バージョンは存在しますが APK はまだアップロードされていません。後で再試行してください。"
+  }
+]

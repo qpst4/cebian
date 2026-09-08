@@ -172,6 +172,11 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
                     ctx.activity.recreateWithoutTransition()
                 }
             },
+            onAppUiLanguageChange = { language ->
+                viewModel.setAppUiLanguage(language)
+                com.slideindex.app.util.AppLocaleApplier.apply(ctx.activity, language)
+                ctx.activity.recreateWithoutTransition()
+            },
             onDynamicColorChange = viewModel::setDynamicColorEnabled,
             onThemeColorChange = viewModel::setThemeColor,
             onThemePaletteStyleChange = viewModel::setThemePaletteStyle,

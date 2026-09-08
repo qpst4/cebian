@@ -3,6 +3,7 @@ package com.slideindex.app.data
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
+import com.slideindex.app.R
 import com.slideindex.app.util.PinyinHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -87,7 +88,7 @@ object PresetShortcutRepository {
         cachedGroups?.let { return@withContext it }
         val items = loadItems(context)
         val pm = context.applicationContext.packageManager
-        buildGroups(items, pm).also { cachedGroups = it }
+        buildGroups(items, pm, context).also { cachedGroups = it }
     }
 
     /**
@@ -98,12 +99,13 @@ object PresetShortcutRepository {
         val items = loadItems(context)
         val pm = context.applicationContext.packageManager
         val installed = installedPackages(pm)
-        buildGroups(items, pm) { pkg -> pkg.isBlank() || pkg in installed }
+        buildGroups(items, pm, context) { pkg -> pkg.isBlank() || pkg in installed }
     }
 
     private fun buildGroups(
         items: List<PresetShortcutItem>,
         pm: PackageManager,
+        context: Context,
         keep: (String) -> Boolean = { true },
     ): List<PresetShortcutAppGroup> {
         val grouped = LinkedHashMap<String, MutableList<PresetShortcutItem>>()
@@ -117,9 +119,9 @@ object PresetShortcutRepository {
                 runCatching {
                     val appInfo = pm.getApplicationInfo(pkg, 0)
                     pm.getApplicationLabel(appInfo).toString()
-                }.getOrNull()?.takeIf { it.isNotBlank() } ?: resolveFallbackLabel(pkg)
+                }.getOrNull()?.takeIf { it.isNotBlank() } ?: resolveFallbackLabel(context, pkg)
             } else {
-                "其他快捷指令"
+                context.getString(R.string.preset_shortcut_category_other)
             }
 
             val pinyinLabel = PinyinHelper.sortKey(appLabel)
@@ -197,23 +199,23 @@ object PresetShortcutRepository {
         }
     }
 
-    private fun resolveFallbackLabel(packageName: String): String {
+    private fun resolveFallbackLabel(context: Context, packageName: String): String {
         return when {
-            packageName.contains("AlipayGphone", ignoreCase = true) -> "支付宝"
-            packageName.contains("coolapk", ignoreCase = true) -> "酷安"
-            packageName.contains("tencent.mm", ignoreCase = true) -> "微信"
-            packageName.contains("sankuai.meituan", ignoreCase = true) -> "美团"
-            packageName.contains("taobao", ignoreCase = true) -> "淘宝"
-            packageName.contains("bili", ignoreCase = true) -> "哔哩哔哩"
+            packageName.contains("AlipayGphone", ignoreCase = true) -> context.getString(R.string.preset_app_alipay)
+            packageName.contains("coolapk", ignoreCase = true) -> context.getString(R.string.preset_app_coolapk)
+            packageName.contains("tencent.mm", ignoreCase = true) -> context.getString(R.string.preset_app_wechat)
+            packageName.contains("sankuai.meituan", ignoreCase = true) -> context.getString(R.string.preset_app_meituan)
+            packageName.contains("taobao", ignoreCase = true) -> context.getString(R.string.preset_app_taobao)
+            packageName.contains("bili", ignoreCase = true) -> context.getString(R.string.preset_app_bilibili)
             packageName.contains("mobileqq", ignoreCase = true) -> "QQ"
-            packageName.contains("qqmusic", ignoreCase = true) -> "QQ音乐"
-            packageName.contains("netease.cloudmusic", ignoreCase = true) -> "网易云音乐"
-            packageName.contains("unionpay", ignoreCase = true) -> "云闪付"
-            packageName.contains("android.settings", ignoreCase = true) -> "系统设置"
-            packageName.contains("miui.securitycenter", ignoreCase = true) -> "手机管家/安全中心"
-            packageName.contains("pinduoduo", ignoreCase = true) -> "拼多多"
-            packageName.contains("jd", ignoreCase = true) -> "京东"
-            packageName.contains("aweme", ignoreCase = true) -> "抖音"
+            packageName.contains("qqmusic", ignoreCase = true) -> context.getString(R.string.preset_app_qq_music)
+            packageName.contains("netease.cloudmusic", ignoreCase = true) -> context.getString(R.string.preset_app_netease_music)
+            packageName.contains("unionpay", ignoreCase = true) -> context.getString(R.string.preset_app_unionpay)
+            packageName.contains("android.settings", ignoreCase = true) -> context.getString(R.string.preset_app_system_settings)
+            packageName.contains("miui.securitycenter", ignoreCase = true) -> context.getString(R.string.preset_app_miui_security)
+            packageName.contains("pinduoduo", ignoreCase = true) -> context.getString(R.string.preset_app_pinduoduo)
+            packageName.contains("jd", ignoreCase = true) -> context.getString(R.string.preset_app_jd)
+            packageName.contains("aweme", ignoreCase = true) -> context.getString(R.string.preset_app_douyin)
             else -> packageName.substringAfterLast('.')
         }
     }

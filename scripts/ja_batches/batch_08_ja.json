@@ -1,0 +1,722 @@
+[
+  {
+    "name": "otp_test_section",
+    "ja": "抽出テスト"
+  },
+  {
+    "name": "otp_test_title",
+    "ja": "SMS テスト"
+  },
+  {
+    "name": "otp_test_desc",
+    "ja": "サンプルテキストを貼り付けて抽出をプレビュー"
+  },
+  {
+    "name": "otp_test_input_label",
+    "ja": "サンプルメッセージ"
+  },
+  {
+    "name": "otp_test_result_success",
+    "ja": "抽出: %1$s"
+  },
+  {
+    "name": "otp_test_result_failed",
+    "ja": "コードを抽出できませんでした"
+  },
+  {
+    "name": "otp_auto_input_entry_title",
+    "ja": "自動入力"
+  },
+  {
+    "name": "otp_auto_input_entry_desc",
+    "ja": "Cebian 経由でコードを自動入力"
+  },
+  {
+    "name": "otp_auto_input_title",
+    "ja": "自動入力"
+  },
+  {
+    "name": "otp_auto_input_desc",
+    "ja": "フォーカス中の入力欄にコードを自動入力"
+  },
+  {
+    "name": "otp_auto_input_enabled_title",
+    "ja": "認証コードを自動入力"
+  },
+  {
+    "name": "otp_auto_input_enabled_desc",
+    "ja": "抽出成功後にコードを入力"
+  },
+  {
+    "name": "otp_auto_confirm_title",
+    "ja": "自動確認"
+  },
+  {
+    "name": "otp_auto_confirm_desc",
+    "ja": "入力後に確認/送信ボタンのタップを試行"
+  },
+  {
+    "name": "otp_auto_input_timing_section",
+    "ja": "入力タイミング"
+  },
+  {
+    "name": "otp_auto_input_delay_title",
+    "ja": "遅延"
+  },
+  {
+    "name": "otp_auto_input_delay_zero",
+    "ja": "0 秒"
+  },
+  {
+    "name": "otp_auto_input_delay_value",
+    "ja": "%1$d ms"
+  },
+  {
+    "name": "otp_auto_input_interval_title",
+    "ja": "文字ごとの間隔"
+  },
+  {
+    "name": "otp_auto_input_interval_value",
+    "ja": "%1$d ms"
+  },
+  {
+    "name": "otp_auto_input_service_setup_title",
+    "ja": "Cebian を有効化"
+  },
+  {
+    "name": "otp_auto_input_service_setup_desc",
+    "ja": "エッジジェスチャと OTP 自動入力は Cebian サービスを共有します"
+  },
+  {
+    "name": "otp_fill_method_pipeline_inject",
+    "ja": "入力順: LSPosed システムインジェクト → Cebian SET_TEXT"
+  },
+  {
+    "name": "otp_fill_method_pipeline_a11y_only",
+    "ja": "入力方法: Cebian SET_TEXT"
+  },
+  {
+    "name": "otp_fill_method_a11y_fallback_hint",
+    "ja": "インジェクト失敗または無効時のフォールバックは Cebian SET_TEXT"
+  },
+  {
+    "name": "otp_runtime_status_section",
+    "ja": "ランタイム状態"
+  },
+  {
+    "name": "otp_runtime_status_disabled",
+    "ja": "自動入力はオフです"
+  },
+  {
+    "name": "otp_runtime_status_need_accessibility",
+    "ja": "自動入力には Cebian アクセシビリティサービスの有効化が必要です"
+  },
+  {
+    "name": "otp_runtime_status_inject_pipeline",
+    "ja": "自動入力オン: LSPosed システムインジェクト優先、フォールバックは Cebian ノード入力"
+  },
+  {
+    "name": "otp_runtime_status_a11y_only",
+    "ja": "自動入力オン: Cebian ノード入力のみ"
+  },
+  {
+    "name": "otp_runtime_status_sms_lsposed",
+    "ja": "コードソース: LSPosed SMS キャプチャ有効（通知も引き続き動作）"
+  },
+  {
+    "name": "otp_auto_fill_section",
+    "ja": "自動入力"
+  },
+  {
+    "name": "otp_lsposed_enhancements_section",
+    "ja": "LSPosed 拡張"
+  },
+  {
+    "name": "otp_lsposed_enhancements_desc",
+    "ja": "任意の追加機能。メインの自動入力スイッチの代わりにはなりません。有効時はシステムインジェクトが優先入力パスです。"
+  },
+  {
+    "name": "otp_diagnostics_section",
+    "ja": "診断"
+  },
+  {
+    "name": "otp_lsposed_inject_title",
+    "ja": "LSPosed システムインジェクト"
+  },
+  {
+    "name": "otp_lsposed_inject_desc_short",
+    "ja": "システムレベルインジェクトを優先。フォールバックは Cebian ノード入力。システムフレームワークスコープが必要"
+  },
+  {
+    "name": "otp_lsposed_sms_title",
+    "ja": "LSPosed SMS キャプチャ"
+  },
+  {
+    "name": "otp_lsposed_sms_desc_short",
+    "ja": "電話プロセスから SMS を読み取り。com.android.phone スコープが必要"
+  },
+  {
+    "name": "otp_lsposed_probe_title",
+    "ja": "LSPosed システムインジェクトをテスト"
+  },
+  {
+    "name": "otp_lsposed_probe_desc",
+    "ja": "タップして system_server にインジェクションフックが読み込まれているか確認"
+  },
+  {
+    "name": "otp_lsposed_probe_checking",
+    "ja": "確認中…"
+  },
+  {
+    "name": "otp_lsposed_probe_ready",
+    "ja": "システムインジェクションフックは準備完了"
+  },
+  {
+    "name": "otp_lsposed_probe_busy",
+    "ja": "プローブは既に実行中です"
+  },
+  {
+    "name": "otp_lsposed_probe_timeout",
+    "ja": "タイムアウト: system_server にインジェクトレシーバーが登録されていません"
+  },
+  {
+    "name": "otp_lsposed_probe_failed",
+    "ja": "システムインジェクトプローブ失敗: %1$s"
+  },
+  {
+    "name": "otp_lsposed_probe_response",
+    "ja": "応答: %1$s / %2$s"
+  },
+  {
+    "name": "gesture_action_volume_panel",
+    "ja": "展開パネル"
+  },
+  {
+    "name": "gesture_action_volume_panel_desc",
+    "ja": "明るさ、アラーム、通知、着信、メディア音量のポップアップパネル"
+  },
+  {
+    "name": "volume_panel_brightness",
+    "ja": "明るさ"
+  },
+  {
+    "name": "volume_panel_alarm",
+    "ja": "アラーム"
+  },
+  {
+    "name": "volume_panel_notification",
+    "ja": "通知"
+  },
+  {
+    "name": "volume_panel_ring",
+    "ja": "着信"
+  },
+  {
+    "name": "volume_panel_media",
+    "ja": "メディア"
+  },
+  {
+    "name": "gesture_action_screen_translate",
+    "ja": "画面翻訳"
+  },
+  {
+    "name": "gesture_action_screen_translate_desc",
+    "ja": "翻訳テキストを画面上にその場でオーバーレイ表示"
+  },
+  {
+    "name": "screen_translate_started",
+    "ja": "翻訳中…"
+  },
+  {
+    "name": "screen_translate_failed",
+    "ja": "翻訳に失敗しました"
+  },
+  {
+    "name": "screen_translate_no_text",
+    "ja": "翻訳可能なテキストが見つかりませんでした"
+  },
+  {
+    "name": "gesture_action_universal_copy",
+    "ja": "ユニバーサルコピー"
+  },
+  {
+    "name": "gesture_action_universal_copy_desc",
+    "ja": "画面上のテキストブロックを選択してコピー"
+  },
+  {
+    "name": "gesture_action_open_internet_panel",
+    "ja": "ネイティブネットワークパネル"
+  },
+  {
+    "name": "gesture_action_open_internet_panel_desc",
+    "ja": "システムネイティブの Wi-Fi とモバイルネットワークパネルを表示"
+  },
+  {
+    "name": "gesture_action_open_volume_panel",
+    "ja": "ネイティブ音量パネル"
+  },
+  {
+    "name": "gesture_action_open_volume_panel_desc",
+    "ja": "システムネイティブの音量スライダーポップアップを表示"
+  },
+  {
+    "name": "gesture_action_current_app_info",
+    "ja": "現在のアプリ情報"
+  },
+  {
+    "name": "gesture_action_current_app_info_desc",
+    "ja": "現在の前面アプリのアプリ情報設定を開く"
+  },
+  {
+    "name": "gesture_action_simulate_key_event",
+    "ja": "キーイベントをシミュレート（KeyEvent）"
+  },
+  {
+    "name": "gesture_action_simulate_key_event_named",
+    "ja": "キーをシミュレート: %1$s"
+  },
+  {
+    "name": "gesture_action_simulate_key_event_desc",
+    "ja": "システムキーイベントをシミュレート（メニュー、ナビゲーションなど。Root または Shizuku が必要）"
+  },
+  {
+    "name": "key_event_config_title",
+    "ja": "キーシミュレート設定"
+  },
+  {
+    "name": "key_event_custom_config_title",
+    "ja": "カスタムキーとパラメータ"
+  },
+  {
+    "name": "key_event_code_label",
+    "ja": "キーコード（KeyCode）"
+  },
+  {
+    "name": "key_event_name_label",
+    "ja": "キー名 / メモ"
+  },
+  {
+    "name": "key_event_long_press_title",
+    "ja": "長押しをシミュレート"
+  },
+  {
+    "name": "key_event_long_press_summary",
+    "ja": "input keyevent --longpress でキーイベントを送信"
+  },
+  {
+    "name": "key_event_permission_hint",
+    "ja": "注: キーイベントのシミュレートには Root 権限または Shizuku サービスの起動が必要です。"
+  },
+  {
+    "name": "key_event_permission_toast",
+    "ja": "キーシミュレート失敗: Root 権限を付与するか Shizuku を起動してください"
+  },
+  {
+    "name": "key_event_failed_hint",
+    "ja": "キーシミュレート失敗: %1$s"
+  },
+  {
+    "name": "one_handed_mode_not_supported_hint",
+    "ja": "片手モードを起動できません: システム設定で「片手モード」を有効にするか Shizuku 権限を付与してください"
+  },
+  {
+    "name": "current_app_info_not_found",
+    "ja": "前面アプリが検出されませんでした"
+  },
+  {
+    "name": "gesture_action_screen_off_keep_awake",
+    "ja": "疑似画面オフ（スリープ維持）"
+  },
+  {
+    "name": "gesture_action_screen_off_keep_awake_desc",
+    "ja": "最小輝度の全黒画面。端末を起動状態に保ち、焼き付きを防止。ダブルタップまたは音量キーで終了。"
+  },
+  {
+    "name": "pseudo_screen_off_hint",
+    "ja": "ダブルタップまたは音量キーで終了"
+  },
+  {
+    "name": "gesture_action_pin_to_screen",
+    "ja": "画面にピン留め"
+  },
+  {
+    "name": "gesture_action_pin_to_screen_desc",
+    "ja": "クリップボードのテキストまたは画像をドラッグ可能なフローティングメモまたはオーバーレイとしてピン留め"
+  },
+  {
+    "name": "gesture_action_app_carousel_switcher",
+    "ja": "アプリ切り替え"
+  },
+  {
+    "name": "gesture_action_app_carousel_switcher_desc",
+    "ja": "適応型スクワークルタイルのカルーセルアプリ切り替え。連続: スワイプ中に追跡、離したら起動。離したら: スワイプ終了後に起動。即時: 距離到達で起動、離した後オーバーレイで選択。"
+  },
+  {
+    "name": "gesture_action_fingertip_ring",
+    "ja": "指先リング"
+  },
+  {
+    "name": "gesture_action_fingertip_ring_desc",
+    "ja": "指の周りに円形でショートカットを表示。連続: 長押し、スライドで選択、離して実行。離したら: スワイプ方向をマップして実行。即時: 距離到達時にスワイプ方向の項目を実行。"
+  },
+  {
+    "name": "fingertip_ring_settings_title",
+    "ja": "指先リング"
+  },
+  {
+    "name": "fingertip_ring_config_section",
+    "ja": "ショートカット"
+  },
+  {
+    "name": "fingertip_ring_config_title",
+    "ja": "ショートカットを設定"
+  },
+  {
+    "name": "fingertip_ring_config_desc",
+    "ja": "各位置のアイコン数とアクションを設定"
+  },
+  {
+    "name": "fingertip_ring_layout_section",
+    "ja": "レイアウト"
+  },
+  {
+    "name": "fingertip_ring_slots_section",
+    "ja": "スロット"
+  },
+  {
+    "name": "fingertip_ring_orbit_radius",
+    "ja": "オービット半径"
+  },
+  {
+    "name": "fingertip_ring_icon_size",
+    "ja": "アイコンサイズ"
+  },
+  {
+    "name": "fingertip_ring_size_px_value",
+    "ja": "%1$d px"
+  },
+  {
+    "name": "fingertip_ring_slot_count",
+    "ja": "スロット数"
+  },
+  {
+    "name": "fingertip_ring_slot_count_value",
+    "ja": "%1$d スロット"
+  },
+  {
+    "name": "fingertip_ring_slot_title",
+    "ja": "スロット %1$d"
+  },
+  {
+    "name": "gesture_action_foreground_activity_inspector",
+    "ja": "Activity Inspector"
+  },
+  {
+    "name": "gesture_action_foreground_activity_inspector_desc",
+    "ja": "現在の前面パッケージと Activity クラス名を表示するフローティング HUD"
+  },
+  {
+    "name": "foreground_activity_inspector_title",
+    "ja": "Activity Inspector"
+  },
+  {
+    "name": "foreground_activity_inspector_pkg_copied",
+    "ja": "パッケージ名をコピーしました"
+  },
+  {
+    "name": "foreground_activity_inspector_act_copied",
+    "ja": "Activity クラスをコピーしました"
+  },
+  {
+    "name": "foreground_activity_inspector_all_copied",
+    "ja": "前面情報をコピーしました"
+  },
+  {
+    "name": "foreground_activity_inspector_waiting",
+    "ja": "ウィンドウイベントを待機中…"
+  },
+  {
+    "name": "foreground_activity_inspector_history_title",
+    "ja": "Activity 履歴"
+  },
+  {
+    "name": "foreground_activity_inspector_history_empty",
+    "ja": "Activity 履歴はまだありません"
+  },
+  {
+    "name": "foreground_activity_inspector_history_clear",
+    "ja": "消去"
+  },
+  {
+    "name": "pin_to_screen_title",
+    "ja": "画面にピン留め"
+  },
+  {
+    "name": "pin_to_screen_tab_text",
+    "ja": "テキストメモ"
+  },
+  {
+    "name": "pin_to_screen_tab_image",
+    "ja": "ピン留め画像"
+  },
+  {
+    "name": "pin_to_screen_text_hint",
+    "ja": "画面にピン留めするメモ内容を入力または貼り付け…"
+  },
+  {
+    "name": "pin_to_screen_btn_pin",
+    "ja": "画面にピン留め"
+  },
+  {
+    "name": "pin_to_screen_btn_read_clipboard",
+    "ja": "クリップボードを読み取り"
+  },
+  {
+    "name": "pin_to_screen_btn_clear",
+    "ja": "消去"
+  },
+  {
+    "name": "pin_to_screen_image_pick_gallery",
+    "ja": "ギャラリーから選択"
+  },
+  {
+    "name": "pin_to_screen_image_pick_gallery_desc",
+    "ja": "ギャラリーから画像を選んで画面上にフロート表示"
+  },
+  {
+    "name": "pin_to_screen_image_pick_screenshot",
+    "ja": "領域スクリーンショット"
+  },
+  {
+    "name": "pin_to_screen_image_pick_screenshot_desc",
+    "ja": "画面領域を選択してすぐにピン留め"
+  },
+  {
+    "name": "pin_to_screen_clipboard_empty",
+    "ja": "クリップボードは空です"
+  },
+  {
+    "name": "pin_to_screen_text_empty",
+    "ja": "メモ内容を入力または貼り付けてください"
+  },
+  {
+    "name": "universal_copy_tap_to_select",
+    "ja": "タップしてテキストを選択"
+  },
+  {
+    "name": "universal_copy_select_all",
+    "ja": "すべて選択"
+  },
+  {
+    "name": "universal_copy_deselect",
+    "ja": "選択解除"
+  },
+  {
+    "name": "universal_copy_copy",
+    "ja": "コピー"
+  },
+  {
+    "name": "universal_copy_pick",
+    "ja": "分かち書き"
+  },
+  {
+    "name": "universal_copy_selected",
+    "ja": "%1$d 件選択中"
+  },
+  {
+    "name": "universal_copy_copied",
+    "ja": "%1$d 件をコピーしました"
+  },
+  {
+    "name": "universal_copy_no_text",
+    "ja": "コピー可能なテキストが見つかりませんでした"
+  },
+  {
+    "name": "gesture_action_freezer_panel",
+    "ja": "アプリフリーザー"
+  },
+  {
+    "name": "gesture_action_freezer_panel_desc",
+    "ja": "フリーザーオーバーレイを開く"
+  },
+  {
+    "name": "gesture_action_refreeze",
+    "ja": "アプリを再フリーズ"
+  },
+  {
+    "name": "gesture_action_refreeze_desc",
+    "ja": "フリーザーリスト内で現在有効なアプリをすべて無効化"
+  },
+  {
+    "name": "gesture_action_remind",
+    "ja": "N 分後にアラーム"
+  },
+  {
+    "name": "gesture_action_remind_desc",
+    "ja": "トリガー後に時間を選択。時間になると鳴ります"
+  },
+  {
+    "name": "gesture_remind_picker_title",
+    "ja": "アラームを設定"
+  },
+  {
+    "name": "gesture_remind_picker_preset_minutes",
+    "ja": "%1$d 分"
+  },
+  {
+    "name": "gesture_remind_picker_minutes_label",
+    "ja": "時間"
+  },
+  {
+    "name": "gesture_remind_picker_minutes_value",
+    "ja": "%1$d 分"
+  },
+  {
+    "name": "gesture_remind_picker_confirm",
+    "ja": "%1$d 分後のアラームを設定"
+  },
+  {
+    "name": "gesture_remind_picker_cancel",
+    "ja": "%1$d 分のアラームをキャンセル"
+  },
+  {
+    "name": "gesture_remind_scheduled",
+    "ja": "%1$d 分後のアラームを設定しました"
+  },
+  {
+    "name": "gesture_remind_cancelled",
+    "ja": "%1$d 分のアラームをキャンセルしました"
+  },
+  {
+    "name": "gesture_remind_channel_name",
+    "ja": "遅延アラーム"
+  },
+  {
+    "name": "gesture_remind_notify_title",
+    "ja": "アラーム"
+  },
+  {
+    "name": "gesture_remind_notify_body",
+    "ja": "%1$d 分のアラーム"
+  },
+  {
+    "name": "gesture_action_remind_permission",
+    "ja": "アラーム設定にはオーバーレイ権限が必要です"
+  },
+  {
+    "name": "extension_freezer_title",
+    "ja": "アプリフリーザー"
+  },
+  {
+    "name": "extension_freezer_subtitle",
+    "ja": "フリーザーリストの管理と一括フリーズ/解除。Shizuku または Root が必要"
+  },
+  {
+    "name": "extension_back_tap_title",
+    "ja": "背面ダブルタップ（実験的、不安定な場合あり）"
+  },
+  {
+    "name": "extension_back_tap_subtitle",
+    "ja": "加速度センサーで背面ダブルタップを検出"
+  },
+  {
+    "name": "back_tap_enabled",
+    "ja": "背面ダブルタップを有効化"
+  },
+  {
+    "name": "back_tap_action",
+    "ja": "トリガーアクション"
+  },
+  {
+    "name": "back_tap_sensitivity",
+    "ja": "感度"
+  },
+  {
+    "name": "back_tap_range",
+    "ja": "ダブルタップ間隔"
+  },
+  {
+    "name": "back_tap_mode",
+    "ja": "動作モード"
+  },
+  {
+    "name": "back_tap_mode_always",
+    "ja": "常時"
+  },
+  {
+    "name": "back_tap_mode_screen_on",
+    "ja": "画面オンのみ"
+  },
+  {
+    "name": "back_tap_mode_screen_off",
+    "ja": "画面オフのみ"
+  },
+  {
+    "name": "back_tap_pause_charging",
+    "ja": "充電中は一時停止"
+  },
+  {
+    "name": "back_tap_vibration_feedback",
+    "ja": "トリガー時に振動"
+  },
+  {
+    "name": "freezer_permission_required",
+    "ja": "Shizuku または Root 権限が必要です"
+  },
+  {
+    "name": "freezer_command_failed",
+    "ja": "フリーズ失敗: %1$s"
+  },
+  {
+    "name": "freezer_freeze_failed",
+    "ja": "フリーズ失敗: %1$s"
+  },
+  {
+    "name": "freezer_unfreeze_failed",
+    "ja": "解除失敗: %1$s"
+  },
+  {
+    "name": "freezer_unfreeze_need_root",
+    "ja": "このアプリは以前システムで無効化されました。特権モードを Root に切り替えるか Shizuku に Root を付与して再試行してください。"
+  },
+  {
+    "name": "freezer_refreeze_done",
+    "ja": "%1$d 個のアプリをフリーズしました"
+  },
+  {
+    "name": "freezer_unfreeze_all_done",
+    "ja": "%1$d 個のアプリのフリーズを解除しました"
+  },
+  {
+    "name": "freezer_tab_all",
+    "ja": "すべて"
+  },
+  {
+    "name": "freezer_tab_frozen",
+    "ja": "フリーズ済み"
+  },
+  {
+    "name": "freezer_tab_active",
+    "ja": "有効"
+  },
+  {
+    "name": "freezer_tab_all_count",
+    "ja": "すべて（%1$d）"
+  },
+  {
+    "name": "freezer_tab_frozen_count",
+    "ja": "フリーズ済み（%1$d）"
+  },
+  {
+    "name": "freezer_tab_active_count",
+    "ja": "有効（%1$d）"
+  },
+  {
+    "name": "freezer_show_system_apps",
+    "ja": "追加時にシステムアプリを表示"
+  },
+  {
+    "name": "freezer_system_app_label",
+    "ja": "システム"
+  }
+]

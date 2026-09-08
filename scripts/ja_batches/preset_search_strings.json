@@ -1,0 +1,324 @@
+[
+  {
+    "presetId": "preset-google",
+    "nameKey": "preset_se_google_name",
+    "descKey": "preset_se_google_desc",
+    "zh_name": "Google",
+    "zh_desc": "谷歌全网网页与资讯搜索"
+  },
+  {
+    "presetId": "preset-baidu",
+    "nameKey": "preset_se_baidu_name",
+    "descKey": "preset_se_baidu_desc",
+    "zh_name": "百度",
+    "zh_desc": "百度网页与热点搜索"
+  },
+  {
+    "presetId": "preset-bing",
+    "nameKey": "preset_se_bing_name",
+    "descKey": "preset_se_bing_desc",
+    "zh_name": "Bing 必应",
+    "zh_desc": "微软必应搜索"
+  },
+  {
+    "presetId": "preset-quark",
+    "nameKey": "preset_se_quark_name",
+    "descKey": "preset_se_quark_desc",
+    "zh_name": "夸克搜索",
+    "zh_desc": "调用夸克 App 进行智能搜索"
+  },
+  {
+    "presetId": "preset-wechat",
+    "nameKey": "preset_se_wechat_name",
+    "descKey": "preset_se_wechat_desc",
+    "zh_name": "微信搜索",
+    "zh_desc": "跳转微信全局搜一搜界面"
+  },
+  {
+    "presetId": "preset-qq",
+    "nameKey": "preset_se_qq_name",
+    "descKey": "preset_se_qq_desc",
+    "zh_name": "QQ 搜索",
+    "zh_desc": "跳转 QQ 全局统一搜索界面"
+  },
+  {
+    "presetId": "preset-weibo",
+    "nameKey": "preset_se_weibo_name",
+    "descKey": "preset_se_weibo_desc",
+    "zh_name": "微博",
+    "zh_desc": "官方微博客户端热搜与内容搜索"
+  },
+  {
+    "presetId": "preset-weibo-see",
+    "nameKey": "preset_se_weibo_see_name",
+    "descKey": "preset_se_weibo_see_desc",
+    "zh_name": "微博 (See)",
+    "zh_desc": "第三方微博 See 客户端搜索"
+  },
+  {
+    "presetId": "preset-weibo-share",
+    "nameKey": "preset_se_weibo_share_name",
+    "descKey": "preset_se_weibo_share_desc",
+    "zh_name": "微博 (Share)",
+    "zh_desc": "第三方微博 Share 客户端搜索"
+  },
+  {
+    "presetId": "preset-zhihu",
+    "nameKey": "preset_se_zhihu_name",
+    "descKey": "preset_se_zhihu_desc",
+    "zh_name": "知乎",
+    "zh_desc": "知乎问答与专栏文章搜索"
+  },
+  {
+    "presetId": "preset-xhs",
+    "nameKey": "preset_se_xhs_name",
+    "descKey": "preset_se_xhs_desc",
+    "zh_name": "小红书",
+    "zh_desc": "小红书种草笔记与生活经验搜索"
+  },
+  {
+    "presetId": "preset-tieba",
+    "nameKey": "preset_se_tieba_name",
+    "descKey": "preset_se_tieba_desc",
+    "zh_name": "百度贴吧",
+    "zh_desc": "官方贴吧进吧与全吧帖子搜索"
+  },
+  {
+    "presetId": "preset-tieba-lite",
+    "nameKey": "preset_se_tieba_lite_name",
+    "descKey": "preset_se_tieba_lite_desc",
+    "zh_name": "贴吧 Lite",
+    "zh_desc": "第三方贴吧 Lite 极速搜索"
+  },
+  {
+    "presetId": "preset-coolapk",
+    "nameKey": "preset_se_coolapk_name",
+    "descKey": "preset_se_coolapk_desc",
+    "zh_name": "酷安",
+    "zh_desc": "酷安数码社区应用与动态搜索"
+  },
+  {
+    "presetId": "preset-coolapk-third",
+    "nameKey": "preset_se_coolapk_third_name",
+    "descKey": "preset_se_coolapk_third_desc",
+    "zh_name": "酷安 (泛酷客)",
+    "zh_desc": "第三方泛酷客客户端搜索"
+  },
+  {
+    "presetId": "preset-twitter",
+    "nameKey": "preset_se_twitter_name",
+    "descKey": "preset_se_twitter_desc",
+    "zh_name": "Twitter / X",
+    "zh_desc": "Twitter / X 全球推文搜索"
+  },
+  {
+    "presetId": "preset-telegram",
+    "nameKey": "preset_se_telegram_name",
+    "descKey": "preset_se_telegram_desc",
+    "zh_name": "Telegram",
+    "zh_desc": "Telegram 消息与频道搜索"
+  },
+  {
+    "presetId": "preset-bilibili",
+    "nameKey": "preset_se_bilibili_name",
+    "descKey": "preset_se_bilibili_desc",
+    "zh_name": "B站 (官方)",
+    "zh_desc": "哔哩哔哩视频与番剧搜索"
+  },
+  {
+    "presetId": "preset-douyin",
+    "nameKey": "preset_se_douyin_name",
+    "descKey": "preset_se_douyin_desc",
+    "zh_name": "抖音",
+    "zh_desc": "抖音短视频与直播搜索"
+  },
+  {
+    "presetId": "preset-youtube",
+    "nameKey": "preset_se_youtube_name",
+    "descKey": "preset_se_youtube_desc",
+    "zh_name": "YouTube",
+    "zh_desc": "YouTube 视频与频道搜索"
+  },
+  {
+    "presetId": "preset-netease-music",
+    "nameKey": "preset_se_netease_music_name",
+    "descKey": "preset_se_netease_music_desc",
+    "zh_name": "网易云音乐",
+    "zh_desc": "网易云音乐歌曲与歌单检索"
+  },
+  {
+    "presetId": "preset-qq-music",
+    "nameKey": "preset_se_qq_music_name",
+    "descKey": "preset_se_qq_music_desc",
+    "zh_name": "QQ 音乐",
+    "zh_desc": "QQ 音乐歌曲与歌手搜索"
+  },
+  {
+    "presetId": "preset-luna-music",
+    "nameKey": "preset_se_luna_music_name",
+    "descKey": "preset_se_luna_music_desc",
+    "zh_name": "汽水音乐",
+    "zh_desc": "抖音官方汽水音乐搜索"
+  },
+  {
+    "presetId": "preset-alipay",
+    "nameKey": "preset_se_alipay_name",
+    "descKey": "preset_se_alipay_desc",
+    "zh_name": "支付宝",
+    "zh_desc": "支付宝全局生活服务与小程序搜索"
+  },
+  {
+    "presetId": "preset-taobao",
+    "nameKey": "preset_se_taobao_name",
+    "descKey": "preset_se_taobao_desc",
+    "zh_name": "淘宝",
+    "zh_desc": "淘宝商品与比价搜索"
+  },
+  {
+    "presetId": "preset-taobao-order",
+    "nameKey": "preset_se_taobao_order_name",
+    "descKey": "preset_se_taobao_order_desc",
+    "zh_name": "淘宝订单",
+    "zh_desc": "搜索淘宝已买到的历史宝贝与订单"
+  },
+  {
+    "presetId": "preset-jd",
+    "nameKey": "preset_se_jd_name",
+    "descKey": "preset_se_jd_desc",
+    "zh_name": "京东",
+    "zh_desc": "京东商城正品商品搜索"
+  },
+  {
+    "presetId": "preset-pdd",
+    "nameKey": "preset_se_pdd_name",
+    "descKey": "preset_se_pdd_desc",
+    "zh_name": "拼多多",
+    "zh_desc": "拼多多百亿补贴与优惠商品搜索"
+  },
+  {
+    "presetId": "preset-1688",
+    "nameKey": "preset_se_1688_name",
+    "descKey": "preset_se_1688_desc",
+    "zh_name": "1688",
+    "zh_desc": "阿里巴巴 1688 源头批发货源搜索"
+  },
+  {
+    "presetId": "preset-idlefish",
+    "nameKey": "preset_se_idlefish_name",
+    "descKey": "preset_se_idlefish_desc",
+    "zh_name": "闲鱼",
+    "zh_desc": "闲鱼二手闲置与好物搜索"
+  },
+  {
+    "presetId": "preset-meituan",
+    "nameKey": "preset_se_meituan_name",
+    "descKey": "preset_se_meituan_desc",
+    "zh_name": "美团",
+    "zh_desc": "美团外卖、美食与生活团购搜索"
+  },
+  {
+    "presetId": "preset-amap",
+    "nameKey": "preset_se_amap_name",
+    "descKey": "preset_se_amap_desc",
+    "zh_name": "高德地图",
+    "zh_desc": "高德地点、路线与周边生活搜索"
+  },
+  {
+    "presetId": "preset-baidumap",
+    "nameKey": "preset_se_baidumap_name",
+    "descKey": "preset_se_baidumap_desc",
+    "zh_name": "百度地图",
+    "zh_desc": "百度地图地点与路线检索"
+  },
+  {
+    "presetId": "preset-doubao",
+    "nameKey": "preset_se_doubao_name",
+    "descKey": "preset_se_doubao_desc",
+    "zh_name": "豆包",
+    "zh_desc": "字节跳动豆包 AI 对话与智能搜索"
+  },
+  {
+    "presetId": "preset-tongyi",
+    "nameKey": "preset_se_tongyi_name",
+    "descKey": "preset_se_tongyi_desc",
+    "zh_name": "通义千问",
+    "zh_desc": "阿里通义千问大模型智能问答"
+  },
+  {
+    "presetId": "preset-xiaoai",
+    "nameKey": "preset_se_xiaoai_name",
+    "descKey": "preset_se_xiaoai_desc",
+    "zh_name": "小爱同学",
+    "zh_desc": "小米 / MIUI 小爱语音助手查词问答"
+  },
+  {
+    "presetId": "preset-eudic",
+    "nameKey": "preset_se_eudic_name",
+    "descKey": "preset_se_eudic_desc",
+    "zh_name": "欧路词典",
+    "zh_desc": "外语学习查词神器，取词直接查释义"
+  },
+  {
+    "presetId": "preset-legado",
+    "nameKey": "preset_se_legado_name",
+    "descKey": "preset_se_legado_desc",
+    "zh_name": "开源阅读 (Legado)",
+    "zh_desc": "开源阅读 App 书名与书源搜书"
+  },
+  {
+    "presetId": "preset-file-info",
+    "nameKey": "preset_se_file_info_name",
+    "descKey": "preset_se_file_info_desc",
+    "zh_name": "秒搜文件",
+    "zh_desc": "本地极速文件搜索神器"
+  },
+  {
+    "presetId": "preset-115",
+    "nameKey": "preset_se_115_name",
+    "descKey": "preset_se_115_desc",
+    "zh_name": "115 网盘",
+    "zh_desc": "115 云盘文件与资源搜索"
+  },
+  {
+    "presetId": "preset-market",
+    "nameKey": "preset_se_market_name",
+    "descKey": "preset_se_market_desc",
+    "zh_name": "应用商店",
+    "zh_desc": "小米/系统应用商店搜索"
+  },
+  {
+    "presetId": "preset-google-play",
+    "nameKey": "preset_se_google_play_name",
+    "descKey": "preset_se_google_play_desc",
+    "zh_name": "Google Play",
+    "zh_desc": "Google Play 商店官方应用与游戏检索"
+  },
+  {
+    "presetId": "preset-appshare",
+    "nameKey": "preset_se_appshare_name",
+    "descKey": "preset_se_appshare_desc",
+    "zh_name": "APP分享",
+    "zh_desc": "AppShare 应用市场搜索"
+  },
+  {
+    "presetId": "preset-github",
+    "nameKey": "preset_se_github_name",
+    "descKey": "preset_se_github_desc",
+    "zh_name": "GitHub",
+    "zh_desc": "GitHub 开源项目与代码仓库搜索"
+  },
+  {
+    "presetId": "preset-missav",
+    "nameKey": "preset_se_missav_name",
+    "descKey": "preset_se_missav_desc",
+    "zh_name": "MissAV",
+    "zh_desc": "MissAV 影视搜索"
+  },
+  {
+    "presetId": "preset-tel",
+    "nameKey": "preset_se_tel_name",
+    "descKey": "preset_se_tel_desc",
+    "zh_name": "电话拨号",
+    "zh_desc": "选中电话号码一键调起系统拨号盘"
+  }
+]

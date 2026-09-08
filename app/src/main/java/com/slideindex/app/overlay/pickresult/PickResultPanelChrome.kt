@@ -444,7 +444,7 @@ modifier = Modifier.size(18.dp)
 )
 Spacer(modifier = Modifier.width(6.dp))
 Text(
-text = "复制选中", // Hardcoding based on mockup
+text = stringResource(R.string.pick_result_copy_selection),
 style = MaterialTheme.typography.labelLarge.copy(fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold),
 color = copyTint
 )

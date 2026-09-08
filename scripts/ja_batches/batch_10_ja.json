@@ -1,0 +1,722 @@
+[
+  {
+    "name": "bottom_nav_style_floating_nav",
+    "ja": "Miuix フローティングナビ"
+  },
+  {
+    "name": "bottom_nav_mode",
+    "ja": "下部バーの表示"
+  },
+  {
+    "name": "bottom_nav_mode_icon_and_text",
+    "ja": "アイコン + テキスト"
+  },
+  {
+    "name": "bottom_nav_mode_icon_only",
+    "ja": "アイコンのみ"
+  },
+  {
+    "name": "settings_section_panel",
+    "ja": "インデックスとパネル"
+  },
+  {
+    "name": "settings_section_apps",
+    "ja": "アプリと起動"
+  },
+  {
+    "name": "settings_section_launch",
+    "ja": "起動方法"
+  },
+  {
+    "name": "settings_section_free_window",
+    "ja": "フリーフォームウィンドウ"
+  },
+  {
+    "name": "hidden_apps_entry_count",
+    "ja": "非表示アプリ：%1$d"
+  },
+  {
+    "name": "search_hint",
+    "ja": "アプリを検索…"
+  },
+  {
+    "name": "loading",
+    "ja": "読み込み中…"
+  },
+  {
+    "name": "free_window_entry_title",
+    "ja": "フリーフォームウィンドウ"
+  },
+  {
+    "name": "free_window_entry_desc",
+    "ja": "フリーフォーム起動モードとサイズを設定"
+  },
+  {
+    "name": "free_window_settings_title",
+    "ja": "フリーフォーム詳細設定"
+  },
+  {
+    "name": "free_window_enabled",
+    "ja": "有効にする"
+  },
+  {
+    "name": "free_window_enabled_desc",
+    "ja": "オンにすると、フリーフォームおよび関連する起動ポリシーが利用可能になります"
+  },
+  {
+    "name": "free_window_portrait_only_hint",
+    "ja": "このアプリは縦向きのみです。フリーフォームのプレビューと起動は縦向きサイズを使用します"
+  },
+  {
+    "name": "free_window_launch_mode",
+    "ja": "OEM フリーフォームモード"
+  },
+  {
+    "name": "free_window_adjust_layout",
+    "ja": "フリーフォームのサイズと位置を調整"
+  },
+  {
+    "name": "free_window_adjust_layout_desc",
+    "ja": "フリーフォームウィンドウをライブプレビューしてカスタマイズ"
+  },
+  {
+    "name": "free_window_mode_dialog_title",
+    "ja": "起動モードを選択"
+  },
+  {
+    "name": "free_window_mode_hint",
+    "ja": "OEM は ActivityOptions の windowingMode に異なる値を使ってフリーフォームを起動します（Flyme 11、HyperOS 5 など）。失敗する場合は、システム設定でフリーフォーム/フリーウィンドウを有効にしてください。"
+  },
+  {
+    "name": "free_window_mode_standard",
+    "ja": "フリーフォーム（標準）"
+  },
+  {
+    "name": "free_window_mode_standard_desc",
+    "ja": "モード 5、HyperOS など向け"
+  },
+  {
+    "name": "free_window_mode_coloros",
+    "ja": "フリーフォーム 2（ColorOS）"
+  },
+  {
+    "name": "free_window_mode_coloros_desc",
+    "ja": "モード 100、ColorOS 向け"
+  },
+  {
+    "name": "free_window_mode_magicos",
+    "ja": "フリーフォーム 3（MagicOS）"
+  },
+  {
+    "name": "free_window_mode_magicos_desc",
+    "ja": "モード 102、MagicOS 向け"
+  },
+  {
+    "name": "free_window_mode_originos",
+    "ja": "フリーフォーム 4（OriginOS）"
+  },
+  {
+    "name": "free_window_mode_originos_desc",
+    "ja": "OriginOS およびフリーフォーム共有に対応したシステム向け"
+  },
+  {
+    "name": "free_window_mode_flyme",
+    "ja": "フリーフォーム 5（FlymeOS）"
+  },
+  {
+    "name": "free_window_mode_flyme_desc",
+    "ja": "モード 11、FlymeOS 向け"
+  },
+  {
+    "name": "free_window_preview_title",
+    "ja": "フリーフォームのサイズと位置を調整"
+  },
+  {
+    "name": "free_window_preview_save",
+    "ja": "プレビューを終了して保存"
+  },
+  {
+    "name": "free_window_portrait_preview",
+    "ja": "縦向きプレビュー"
+  },
+  {
+    "name": "launch_policy_title",
+    "ja": "起動ポリシー"
+  },
+  {
+    "name": "launch_policy_always_fullscreen",
+    "ja": "常に全画面"
+  },
+  {
+    "name": "launch_policy_always_fullscreen_desc",
+    "ja": "アイコンを離すと全画面で開きます"
+  },
+  {
+    "name": "launch_policy_always_free_window",
+    "ja": "常にフリーフォーム"
+  },
+  {
+    "name": "launch_policy_always_free_window_desc",
+    "ja": "アイコンを離すとフリーフォームで開きます"
+  },
+  {
+    "name": "launch_policy_fullscreen_long_press_free_window",
+    "ja": "全画面、長押しでフリーフォーム"
+  },
+  {
+    "name": "launch_policy_fullscreen_long_press_free_window_desc",
+    "ja": "デフォルトは全画面。設定時間だけアイコンを長押ししてから離すとフリーフォームで開きます"
+  },
+  {
+    "name": "launch_policy_free_window_long_press_fullscreen",
+    "ja": "フリーフォーム、長押しで全画面"
+  },
+  {
+    "name": "launch_policy_free_window_long_press_fullscreen_desc",
+    "ja": "デフォルトはフリーフォーム。設定時間だけアイコンを長押ししてから離すと全画面で開きます"
+  },
+  {
+    "name": "long_press_launch_duration",
+    "ja": "長押し時間"
+  },
+  {
+    "name": "long_press_launch_duration_desc",
+    "ja": "アプリアイコンをこの時間長押ししてから離すと、別の起動方法が使われます"
+  },
+  {
+    "name": "long_press_launch_duration_value",
+    "ja": "%1$d ms"
+  },
+  {
+    "name": "hidden_apps_entry_title",
+    "ja": "非表示アプリ"
+  },
+  {
+    "name": "hidden_apps_title",
+    "ja": "非表示アプリ"
+  },
+  {
+    "name": "hidden_apps_section_hidden",
+    "ja": "非表示"
+  },
+  {
+    "name": "hidden_apps_section_in_index",
+    "ja": "リストに表示"
+  },
+  {
+    "name": "hidden_apps_section_add",
+    "ja": "非表示に追加"
+  },
+  {
+    "name": "hidden_apps_empty",
+    "ja": "非表示アプリはありません"
+  },
+  {
+    "name": "hidden_apps_all_hidden",
+    "ja": "すべてのアプリが非表示です"
+  },
+  {
+    "name": "hidden_apps_hide",
+    "ja": "非表示"
+  },
+  {
+    "name": "hidden_apps_unhide",
+    "ja": "表示"
+  },
+  {
+    "name": "previous_app_blacklist_entry_title",
+    "ja": "前のアプリ切替の除外リスト"
+  },
+  {
+    "name": "previous_app_blacklist_entry_desc",
+    "ja": "前のアプリに切り替える際、入力方法や指定アプリをスキップ"
+  },
+  {
+    "name": "previous_app_blacklist_entry_count",
+    "ja": "スキップするアプリ：%1$d"
+  },
+  {
+    "name": "previous_app_blacklist_title",
+    "ja": "前のアプリ切替の除外リスト"
+  },
+  {
+    "name": "previous_app_blacklist_desc",
+    "ja": "このリストのアプリは前のアプリへの切り替え時にスキップされます。入力方法は常に自動で除外されます。"
+  },
+  {
+    "name": "previous_app_blacklist_section_blocked",
+    "ja": "スキップ"
+  },
+  {
+    "name": "previous_app_blacklist_section_add",
+    "ja": "アプリを追加"
+  },
+  {
+    "name": "previous_app_blacklist_empty",
+    "ja": "スキップするアプリはありません"
+  },
+  {
+    "name": "previous_app_blacklist_remove",
+    "ja": "削除"
+  },
+  {
+    "name": "app_package_uninstalled",
+    "ja": "アプリがアンインストールされました"
+  },
+  {
+    "name": "excluded_apps_entry_desc",
+    "ja": "選択したアプリでトリガー、コーナーホイール、フローティングボールを非表示"
+  },
+  {
+    "name": "excluded_apps_entry_count",
+    "ja": "無効化したアプリ：%1$d"
+  },
+  {
+    "name": "excluded_apps_section_excluded",
+    "ja": "無効"
+  },
+  {
+    "name": "excluded_apps_section_add",
+    "ja": "アプリを追加"
+  },
+  {
+    "name": "excluded_apps_empty",
+    "ja": "除外アプリはありません"
+  },
+  {
+    "name": "excluded_apps_remove",
+    "ja": "除外を解除"
+  },
+  {
+    "name": "settings_section_gestures",
+    "ja": "ショートカットジェスチャー"
+  },
+  {
+    "name": "side_gestures_entry_left",
+    "ja": "左ハンドル"
+  },
+  {
+    "name": "side_gestures_entry_right",
+    "ja": "右ハンドル"
+  },
+  {
+    "name": "side_gestures_entry_desc",
+    "ja": "スワイプジェスチャーとタップを設定"
+  },
+  {
+    "name": "side_gestures_left_title",
+    "ja": "左ハンドル"
+  },
+  {
+    "name": "side_gestures_right_title",
+    "ja": "右ハンドル"
+  },
+  {
+    "name": "side_gestures_bottom_title",
+    "ja": "下ハンドル"
+  },
+  {
+    "name": "side_gestures_top_title",
+    "ja": "上ハンドル"
+  },
+  {
+    "name": "side_gestures_short_distance",
+    "ja": "短スワイプ"
+  },
+  {
+    "name": "side_gestures_tab_short_distance",
+    "ja": "短"
+  },
+  {
+    "name": "side_gestures_tab_long_distance",
+    "ja": "長"
+  },
+  {
+    "name": "side_gestures_tab_compound",
+    "ja": "複合"
+  },
+  {
+    "name": "side_gestures_inward_entry_suffix",
+    "ja": "L字・戻り含む"
+  },
+  {
+    "name": "side_gestures_inward_swipe_subtitle",
+    "ja": "直線スワイプ、短スワイプホバー、複合ジェスチャー"
+  },
+  {
+    "name": "side_gestures_inward_swipe_path_hint",
+    "ja": "短スワイプ後、長スワイプのしきい値前でホバーし、方向転換または引き戻します。"
+  },
+  {
+    "name": "side_gestures_swipe_directions_section",
+    "ja": "スワイプジェスチャー"
+  },
+  {
+    "name": "side_gestures_direction_straight_section",
+    "ja": "直線スワイプ"
+  },
+  {
+    "name": "side_gestures_direction_pause_section",
+    "ja": "短スワイプ後のホバー"
+  },
+  {
+    "name": "side_gestures_direction_after_pause_section",
+    "ja": "短スワイプホバー後のスワイプ"
+  },
+  {
+    "name": "side_gestures_direction_pause_release",
+    "ja": "離してトリガー"
+  },
+  {
+    "name": "side_gestures_inward_hold_section",
+    "ja": "短スワイプ後のホバー"
+  },
+  {
+    "name": "side_gestures_inward_hold_slot",
+    "ja": "短スワイプ後のホバー"
+  },
+  {
+    "name": "side_gestures_inward_hold_hint",
+    "ja": "短スワイプ後、長スワイプのしきい値前でホバーします。時間はメインのジェスチャーページの「短スワイプ後のホバー」で設定します。"
+  },
+  {
+    "name": "side_gestures_direction_short_slot",
+    "ja": "短スワイプ"
+  },
+  {
+    "name": "side_gestures_direction_long_slot",
+    "ja": "長スワイプ"
+  },
+  {
+    "name": "side_gestures_direction_swipe_subtitle",
+    "ja": "短スワイプ、長スワイプ、短スワイプ後のホバー"
+  },
+  {
+    "name": "side_gestures_path_pause",
+    "ja": "短スワイプ後のホバー"
+  },
+  {
+    "name": "side_gestures_inward_branch_hint",
+    "ja": "これらの操作には、先に短スワイプ後のホバーが必要です。"
+  },
+  {
+    "name": "side_gestures_inward_branch_slot_title",
+    "ja": "%1$s · %2$s"
+  },
+  {
+    "name": "side_gestures_compound_slot_title",
+    "ja": "%1$s · %2$s"
+  },
+  {
+    "name": "side_gestures_inward_branch_turn_up",
+    "ja": "上に曲がる"
+  },
+  {
+    "name": "side_gestures_inward_branch_turn_down",
+    "ja": "下に曲がる"
+  },
+  {
+    "name": "side_gestures_inward_branch_return",
+    "ja": "戻る"
+  },
+  {
+    "name": "side_gestures_press_tap",
+    "ja": "タップと長押し"
+  },
+  {
+    "name": "side_gestures_long_distance",
+    "ja": "長スワイプ"
+  },
+  {
+    "name": "side_gestures_hover",
+    "ja": "短スワイプ後のホバー"
+  },
+  {
+    "name": "side_gestures_hover_duration",
+    "ja": "短スワイプ後のホバー時間"
+  },
+  {
+    "name": "side_gestures_hover_duration_desc",
+    "ja": "短スワイプ後、この時間静止するとホバーとみなされます。L字および戻りジェスチャーにもこの設定が使われます。"
+  },
+  {
+    "name": "side_gestures_hover_duration_value",
+    "ja": "%1$d ms"
+  },
+  {
+    "name": "gesture_swipe_in_left",
+    "ja": "右にスワイプ"
+  },
+  {
+    "name": "gesture_swipe_in_right",
+    "ja": "左にスワイプ"
+  },
+  {
+    "name": "gesture_swipe_in_bottom",
+    "ja": "上にスワイプ"
+  },
+  {
+    "name": "gesture_swipe_in_top",
+    "ja": "下にスワイプ"
+  },
+  {
+    "name": "gesture_swipe_up_left_on_bottom",
+    "ja": "左上にスワイプ"
+  },
+  {
+    "name": "gesture_swipe_up_left_on_top",
+    "ja": "左下にスワイプ"
+  },
+  {
+    "name": "gesture_swipe_down_right_on_bottom",
+    "ja": "右上にスワイプ"
+  },
+  {
+    "name": "gesture_swipe_down_right_on_top",
+    "ja": "右下にスワイプ"
+  },
+  {
+    "name": "gesture_swipe_up_right_on_left",
+    "ja": "右上にスワイプ"
+  },
+  {
+    "name": "gesture_swipe_up_left_on_right",
+    "ja": "左上にスワイプ"
+  },
+  {
+    "name": "gesture_swipe_down_right_on_left",
+    "ja": "右下にスワイプ"
+  },
+  {
+    "name": "gesture_swipe_down_left_on_right",
+    "ja": "左下にスワイプ"
+  },
+  {
+    "name": "gesture_swipe_in_up_left",
+    "ja": "右ホバー後、上へ"
+  },
+  {
+    "name": "gesture_swipe_in_down_left",
+    "ja": "右ホバー後、下へ"
+  },
+  {
+    "name": "gesture_swipe_in_up_right",
+    "ja": "左ホバー後、上へ"
+  },
+  {
+    "name": "gesture_swipe_in_down_right",
+    "ja": "左ホバー後、下へ"
+  },
+  {
+    "name": "gesture_swipe_in_up_bottom",
+    "ja": "上ホバー後、左へ"
+  },
+  {
+    "name": "gesture_swipe_in_down_bottom",
+    "ja": "上ホバー後、右へ"
+  },
+  {
+    "name": "gesture_swipe_in_up_top",
+    "ja": "下ホバー後、左へ"
+  },
+  {
+    "name": "gesture_swipe_in_down_top",
+    "ja": "下ホバー後、右へ"
+  },
+  {
+    "name": "gesture_swipe_in_and_back_left",
+    "ja": "右ホバー後、戻る"
+  },
+  {
+    "name": "gesture_swipe_in_and_back_right",
+    "ja": "左ホバー後、戻る"
+  },
+  {
+    "name": "gesture_swipe_in_and_back_bottom",
+    "ja": "上ホバー後、戻る"
+  },
+  {
+    "name": "gesture_swipe_in_and_back_top",
+    "ja": "下ホバー後、戻る"
+  },
+  {
+    "name": "gesture_swipe_in_hover_left",
+    "ja": "右にホバー"
+  },
+  {
+    "name": "gesture_swipe_in_hover_right",
+    "ja": "左にホバー"
+  },
+  {
+    "name": "gesture_swipe_in_hover_bottom",
+    "ja": "上スワイプ後にホバー"
+  },
+  {
+    "name": "gesture_swipe_in_hover_top",
+    "ja": "下スワイプ後にホバー"
+  },
+  {
+    "name": "gesture_swipe_up_right_hover_on_left",
+    "ja": "右上スワイプ後にホバー"
+  },
+  {
+    "name": "gesture_swipe_up_left_hover_on_right",
+    "ja": "左上スワイプ後にホバー"
+  },
+  {
+    "name": "gesture_swipe_down_right_hover_on_left",
+    "ja": "右下スワイプ後にホバー"
+  },
+  {
+    "name": "gesture_swipe_down_left_hover_on_right",
+    "ja": "左下スワイプ後にホバー"
+  },
+  {
+    "name": "gesture_swipe_up_left_hover_on_bottom",
+    "ja": "左上スワイプ後にホバー"
+  },
+  {
+    "name": "gesture_swipe_up_left_hover_on_top",
+    "ja": "左下スワイプ後にホバー"
+  },
+  {
+    "name": "gesture_swipe_down_right_hover_on_bottom",
+    "ja": "右上スワイプ後にホバー"
+  },
+  {
+    "name": "gesture_swipe_down_right_hover_on_top",
+    "ja": "右下スワイプ後にホバー"
+  },
+  {
+    "name": "gesture_short_swipe_up_hover",
+    "ja": "上スワイプ後にホバー"
+  },
+  {
+    "name": "gesture_short_swipe_down_hover",
+    "ja": "下スワイプ後にホバー"
+  },
+  {
+    "name": "gesture_short_swipe_left_hover",
+    "ja": "左スワイプ後にホバー"
+  },
+  {
+    "name": "gesture_short_swipe_right_hover",
+    "ja": "右スワイプ後にホバー"
+  },
+  {
+    "name": "gesture_short_swipe_up",
+    "ja": "上にスワイプ"
+  },
+  {
+    "name": "gesture_short_swipe_down",
+    "ja": "下にスワイプ"
+  },
+  {
+    "name": "gesture_short_swipe_left",
+    "ja": "左にスワイプ"
+  },
+  {
+    "name": "gesture_short_swipe_right",
+    "ja": "右にスワイプ"
+  },
+  {
+    "name": "gesture_short_long_press",
+    "ja": "長押し"
+  },
+  {
+    "name": "gesture_short_single_tap",
+    "ja": "タップ"
+  },
+  {
+    "name": "gesture_long_swipe_up",
+    "ja": "上にスワイプ"
+  },
+  {
+    "name": "gesture_long_swipe_down",
+    "ja": "下にスワイプ"
+  },
+  {
+    "name": "gesture_long_swipe_left",
+    "ja": "左にスワイプ"
+  },
+  {
+    "name": "gesture_long_swipe_right",
+    "ja": "右にスワイプ"
+  },
+  {
+    "name": "gesture_long_long_press",
+    "ja": "長押し"
+  },
+  {
+    "name": "gesture_long_single_tap",
+    "ja": "タップ"
+  },
+  {
+    "name": "gesture_action_none",
+    "ja": "なし"
+  },
+  {
+    "name": "gesture_action_launch_app",
+    "ja": "アプリを起動"
+  },
+  {
+    "name": "gesture_action_launch_app_named",
+    "ja": "アプリを起動：%1$s"
+  },
+  {
+    "name": "gesture_action_launch_shortcut",
+    "ja": "ショートカットを起動"
+  },
+  {
+    "name": "gesture_action_launch_shortcut_named",
+    "ja": "ショートカットを起動：%1$s"
+  },
+  {
+    "name": "gesture_action_quick_launcher",
+    "ja": "クイックランチャー"
+  },
+  {
+    "name": "gesture_action_honeycomb_launcher",
+    "ja": "ハニカムランチャー"
+  },
+  {
+    "name": "gesture_action_app_switcher",
+    "ja": "リングランチャー"
+  },
+  {
+    "name": "gesture_action_holographic_launcher",
+    "ja": "ホログラフィックランチャー"
+  },
+  {
+    "name": "holographic_launcher_entry_title",
+    "ja": "ホログラフィックランチャー"
+  },
+  {
+    "name": "holographic_launcher_entry_desc",
+    "ja": "3D 球体ランチャー：ドラッグで回転、タップで起動"
+  },
+  {
+    "name": "holographic_launcher_entry_summary_hidden",
+    "ja": "%1$d 件のアプリを非表示"
+  },
+  {
+    "name": "holographic_launcher_settings_title",
+    "ja": "ホログラフィックランチャー設定"
+  },
+  {
+    "name": "holographic_settings_section_interaction",
+    "ja": "操作"
+  },
+  {
+    "name": "holographic_settings_section_background",
+    "ja": "背景"
+  },
+  {
+    "name": "holographic_settings_background_style",
+    "ja": "背景スタイル"
+  },
+  {
+    "name": "holographic_settings_section_apps",
+    "ja": "アプリ"
+  }
+]

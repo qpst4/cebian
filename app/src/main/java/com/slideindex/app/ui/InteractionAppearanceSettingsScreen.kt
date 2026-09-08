@@ -19,6 +19,7 @@ import com.slideindex.app.ui.miuix.MiuixListScaffold
 import com.slideindex.app.ui.miuix.MiuixSmallTitle
 import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
 import com.slideindex.app.ui.miuix.groupedCardItems
+import com.slideindex.app.ui.miuix.appLanguageSettingsCardItems
 import com.slideindex.app.ui.miuix.themeAppearanceSettingsCardItems
 import com.slideindex.app.ui.settings.components.SettingExpandableSwitchRow
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
@@ -48,6 +49,7 @@ fun InteractionAppearanceSettingsScreen(
     onBottomNavGlassEnabledChange: (Boolean) -> Unit,
     onBottomNavBlurRadiusChange: (Float) -> Unit,
     onTopAppBarBlurStyleChange: (TopAppBarBlurStyle) -> Unit,
+    onAppUiLanguageChange: (com.slideindex.app.settings.AppUiLanguage) -> Unit,
     onBottomNavBlurPreviewChange: (Float) -> Unit = {},
     onBottomNavBlurPreviewStop: () -> Unit = {},
 ) {
@@ -94,10 +96,28 @@ fun InteractionAppearanceSettingsScreen(
         onBottomNavBlurPreviewStop = onBottomNavBlurPreviewStop,
     )
 
+    val languageItems = appLanguageSettingsCardItems(
+        appUiLanguageTag = settings.appUiLanguageTag,
+        onAppUiLanguageChange = onAppUiLanguageChange,
+    )
+
     MiuixListScaffold(
         title = stringResource(R.string.interaction_appearance_settings_title),
         navigationIcon = { MiuixBackNavigationIcon(onBack) },
     ) {
+        item(key = "general_section") {
+            MiuixSmallTitle(
+                text = stringResource(R.string.settings_section_general),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = MiuixSmallTitleSectionTop),
+            )
+        }
+        groupedCardItems(
+            keyPrefix = "interaction_appearance_general",
+            items = languageItems,
+        )
+
         item(key = "theme_section") {
             MiuixSmallTitle(
                 text = stringResource(R.string.settings_section_theme_appearance),

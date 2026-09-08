@@ -8,6 +8,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import com.slideindex.app.settings.AppColorSpec
 import com.slideindex.app.settings.AppThemeMode
+import com.slideindex.app.settings.AppUiLanguage
 import com.slideindex.app.settings.BottomNavBlurDefaults
 import com.slideindex.app.settings.BottomNavMode
 import com.slideindex.app.settings.BottomNavStyle
@@ -121,6 +122,10 @@ class HomeViewModel @AssistedInject constructor(
 
     fun setPredictiveBackEnabled(enabled: Boolean) = launchSettingsWrite {
         settingsRepository.setPredictiveBackEnabled(enabled)
+    }
+
+    fun setAppUiLanguage(language: AppUiLanguage) = launchSettingsWrite {
+        settingsRepository.setAppUiLanguage(language)
     }
 
     fun setSwipeDismissEnabled(enabled: Boolean) = launchSettingsWrite {

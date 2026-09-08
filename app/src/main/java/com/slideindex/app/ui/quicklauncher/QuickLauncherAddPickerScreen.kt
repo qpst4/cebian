@@ -344,7 +344,7 @@ fun QuickLauncherCreateFolderScreen(
             TextButton(
                 text = stringResource(R.string.confirm),
                 onClick = {
-                    val defaultName = "文件夹"
+                    val defaultName = context.getString(R.string.quick_launcher_default_folder_name)
                     val finalName = folderName.trim().ifBlank { defaultName }
                     onConfirmCreateFolder(finalName, folderItems)
                 },

@@ -1,0 +1,722 @@
+[
+  {
+    "name": "message_match_field_title",
+    "ja": "タイトル"
+  },
+  {
+    "name": "message_match_field_content",
+    "ja": "内容"
+  },
+  {
+    "name": "message_match_field_both",
+    "ja": "タイトルまたは内容"
+  },
+  {
+    "name": "message_match_type_contains",
+    "ja": "含む"
+  },
+  {
+    "name": "message_match_type_full",
+    "ja": "完全一致"
+  },
+  {
+    "name": "message_match_type_regex",
+    "ja": "正規表現"
+  },
+  {
+    "name": "message_style_title",
+    "ja": "リマインダースタイル"
+  },
+  {
+    "name": "message_style_float_icon_desc",
+    "ja": "画面隅にアプリアイコンリマインダーを表示"
+  },
+  {
+    "name": "message_style_side_bubble_desc",
+    "ja": "画面端にメッセージバブルを積み重ねて表示"
+  },
+  {
+    "name": "message_style_danmaku_desc",
+    "ja": "画面上部でメッセージを横スクロール表示"
+  },
+  {
+    "name": "message_style_danmaku_overlay_hint",
+    "ja": "サイドバブルとテーマを共有し、他スタイルと同時表示できます"
+  },
+  {
+    "name": "message_style_side_position",
+    "ja": "バブルの位置"
+  },
+  {
+    "name": "message_style_side_position_hint",
+    "ja": "左右の端を選び、スライダーで縦位置を調整"
+  },
+  {
+    "name": "message_style_side_horizontal_edge",
+    "ja": "画面端付近"
+  },
+  {
+    "name": "message_style_side_edge_left",
+    "ja": "左側"
+  },
+  {
+    "name": "message_style_side_edge_right",
+    "ja": "右側"
+  },
+  {
+    "name": "message_style_side_vertical_anchor",
+    "ja": "縦位置"
+  },
+  {
+    "name": "message_style_side_anchor_middle",
+    "ja": "中央"
+  },
+  {
+    "name": "message_style_side_anchor_bottom",
+    "ja": "下部"
+  },
+  {
+    "name": "message_danmaku_speed",
+    "ja": "弾幕の速度"
+  },
+  {
+    "name": "message_danmaku_speed_slow",
+    "ja": "遅い"
+  },
+  {
+    "name": "message_danmaku_speed_normal",
+    "ja": "標準"
+  },
+  {
+    "name": "message_danmaku_speed_fast",
+    "ja": "速い"
+  },
+  {
+    "name": "message_overlay_menu_copy",
+    "ja": "内容をコピー"
+  },
+  {
+    "name": "message_overlay_menu_close",
+    "ja": "閉じる"
+  },
+  {
+    "name": "message_overlay_menu_clear_all",
+    "ja": "すべてクリア"
+  },
+  {
+    "name": "message_style_side_font_size",
+    "ja": "フォントサイズ"
+  },
+  {
+    "name": "message_style_side_font_size_desc",
+    "ja": "標準は現在のデフォルトフォントサイズです"
+  },
+  {
+    "name": "message_style_side_font_size_small",
+    "ja": "小"
+  },
+  {
+    "name": "message_style_side_font_size_normal",
+    "ja": "標準"
+  },
+  {
+    "name": "message_style_side_font_size_large",
+    "ja": "大"
+  },
+  {
+    "name": "message_style_float_icon",
+    "ja": "フロートアイコン"
+  },
+  {
+    "name": "message_style_side_bubble",
+    "ja": "サイドスタイル"
+  },
+  {
+    "name": "message_style_danmaku",
+    "ja": "弾幕"
+  },
+  {
+    "name": "message_style_float_icon_size",
+    "ja": "サイズ"
+  },
+  {
+    "name": "message_style_float_icon_opacity",
+    "ja": "フロートアイコンの不透明度"
+  },
+  {
+    "name": "message_style_section_float_settings",
+    "ja": "フロートアイコン設定"
+  },
+  {
+    "name": "message_style_section_side_theme",
+    "ja": "サイドテーマ"
+  },
+  {
+    "name": "message_style_section_display",
+    "ja": "表示"
+  },
+  {
+    "name": "message_style_max_lines",
+    "ja": "最大行数"
+  },
+  {
+    "name": "message_style_side_count",
+    "ja": "件数"
+  },
+  {
+    "name": "message_style_side_count_option",
+    "ja": "%1$d"
+  },
+  {
+    "name": "message_action_read",
+    "ja": "メッセージを読む"
+  },
+  {
+    "name": "message_action_read_small_window",
+    "ja": "小ウィンドウで読む"
+  },
+  {
+    "name": "message_action_read_small_window_desc",
+    "ja": "小ウィンドウでアプリを起動してからメッセージを読みます"
+  },
+  {
+    "name": "message_action_ignore",
+    "ja": "無視"
+  },
+  {
+    "name": "message_action_ignore_remove",
+    "ja": "無視して削除"
+  },
+  {
+    "name": "message_action_ignore_all",
+    "ja": "すべての通知を無視"
+  },
+  {
+    "name": "message_action_ignore_all_desc",
+    "ja": "現在のリマインダーをすべて非表示。通知はシェードに残ります"
+  },
+  {
+    "name": "message_action_ignore_remove_all",
+    "ja": "すべての通知を無視して削除"
+  },
+  {
+    "name": "message_action_ignore_remove_all_desc",
+    "ja": "現在のリマインダーをすべて非表示にし、シェードからも削除"
+  },
+  {
+    "name": "message_action_ignore_same_source",
+    "ja": "同じ送信元を無視"
+  },
+  {
+    "name": "message_action_ignore_same_source_desc",
+    "ja": "同じグループまたは DM からのリマインダーをすべて非表示。通知はシェードに残ります"
+  },
+  {
+    "name": "message_action_ignore_same_source_remove",
+    "ja": "同じ送信元を無視して削除"
+  },
+  {
+    "name": "message_action_ignore_same_source_remove_desc",
+    "ja": "同じグループまたは DM からのリマインダーをすべて非表示にし、シェードからも削除"
+  },
+  {
+    "name": "message_action_dnd_5min",
+    "ja": "5 分間おやすみモード"
+  },
+  {
+    "name": "message_action_dnd_5min_desc",
+    "ja": "5 分間リマインダーを非表示"
+  },
+  {
+    "name": "message_action_quick_reply",
+    "ja": "クイック返信"
+  },
+  {
+    "name": "message_action_quick_reply_desc",
+    "ja": "通知返信 API で送信。リマインダーは表示されたまま（アプリ対応が必要）"
+  },
+  {
+    "name": "message_action_quick_reply_ignore",
+    "ja": "クイック返信して無視"
+  },
+  {
+    "name": "message_action_quick_reply_ignore_desc",
+    "ja": "返信を送信してリマインダーを非表示。通知はシェードに残ります"
+  },
+  {
+    "name": "message_action_quick_reply_remove",
+    "ja": "クイック返信して削除"
+  },
+  {
+    "name": "message_action_quick_reply_remove_desc",
+    "ja": "返信を送信し、リマインダーを非表示にしてシェードからも削除"
+  },
+  {
+    "name": "message_action_quick_reply_hint",
+    "ja": "返信を入力"
+  },
+  {
+    "name": "message_action_quick_reply_send",
+    "ja": "送信"
+  },
+  {
+    "name": "message_action_quick_reply_to",
+    "ja": "%1$s に返信"
+  },
+  {
+    "name": "message_action_quick_reply_unavailable",
+    "ja": "%1$s ではクイック返信に対応していません"
+  },
+  {
+    "name": "message_action_quick_reply_failed",
+    "ja": "返信の送信に失敗しました。もう一度お試しください。"
+  },
+  {
+    "name": "message_theme_weipop_round_black",
+    "ja": "角丸ダーク"
+  },
+  {
+    "name": "message_theme_weipop_round_white",
+    "ja": "角丸ライト"
+  },
+  {
+    "name": "message_theme_weipop_tail3_black",
+    "ja": "尖ったしっぽ ダーク"
+  },
+  {
+    "name": "message_theme_weipop_tail3_white",
+    "ja": "尖ったしっぽ ライト"
+  },
+  {
+    "name": "message_theme_weipop_tail4_black",
+    "ja": "折れたしっぽ ダーク"
+  },
+  {
+    "name": "message_theme_weipop_tail4_white",
+    "ja": "折れたしっぽ ライト"
+  },
+  {
+    "name": "message_theme_weipop_compact_black",
+    "ja": "コンパクト ダーク"
+  },
+  {
+    "name": "message_theme_weipop_compact_white",
+    "ja": "コンパクト ライト"
+  },
+  {
+    "name": "message_theme_weipop_skin_01",
+    "ja": "キャンディハート"
+  },
+  {
+    "name": "message_theme_weipop_skin_02",
+    "ja": "ピクセル仲間"
+  },
+  {
+    "name": "message_theme_weipop_skin_03",
+    "ja": "パンダとトラ"
+  },
+  {
+    "name": "message_theme_weipop_skin_04",
+    "ja": "ラッキートラ"
+  },
+  {
+    "name": "message_theme_weipop_skin_05",
+    "ja": "新年の太鼓"
+  },
+  {
+    "name": "message_theme_weipop_skin_06",
+    "ja": "スイートピーチ"
+  },
+  {
+    "name": "message_theme_weipop_skin_07",
+    "ja": "クラシックデュエット"
+  },
+  {
+    "name": "message_theme_weipop_skin_08",
+    "ja": "フルーティファン"
+  },
+  {
+    "name": "message_theme_weipop_skin_09",
+    "ja": "モーニングサン"
+  },
+  {
+    "name": "message_theme_weipop_skin_10",
+    "ja": "トラの看板"
+  },
+  {
+    "name": "message_theme_weipop_skin_11",
+    "ja": "学者スタイル"
+  },
+  {
+    "name": "message_theme_weipop_skin_12",
+    "ja": "オフィススパーク"
+  },
+  {
+    "name": "message_theme_weipop_skin_13",
+    "ja": "レインボーベリー"
+  },
+  {
+    "name": "message_theme_weipop_skin_14",
+    "ja": "勉強する女の子"
+  },
+  {
+    "name": "message_theme_weipop_skin_15",
+    "ja": "オレンジキツネ"
+  },
+  {
+    "name": "message_theme_weipop_skin_16",
+    "ja": "バレリーナ"
+  },
+  {
+    "name": "message_theme_weipop_skin_17",
+    "ja": "タピオカジンジャーキャット"
+  },
+  {
+    "name": "message_theme_weipop_skin_18",
+    "ja": "かわいいトラ NY"
+  },
+  {
+    "name": "message_theme_weipop_skin_19",
+    "ja": "ラッキーマージャン"
+  },
+  {
+    "name": "message_theme_weipop_skin_20",
+    "ja": "ゴールドチャンピオン"
+  },
+  {
+    "name": "message_theme_weipop_skin_21",
+    "ja": "魚と猫"
+  },
+  {
+    "name": "message_theme_weipop_skin_22",
+    "ja": "晴れと雨"
+  },
+  {
+    "name": "message_theme_weipop_skin_23",
+    "ja": "金魚少年"
+  },
+  {
+    "name": "permissions_pending_title",
+    "ja": "権限が未設定です"
+  },
+  {
+    "name": "search_clear",
+    "ja": "検索をクリア"
+  },
+  {
+    "name": "search_actions_hint",
+    "ja": "アクションを検索…"
+  },
+  {
+    "name": "service_notification_title",
+    "ja": "Cebian 実行中"
+  },
+  {
+    "name": "service_notification_text",
+    "ja": "エッジジェスチャサービスが実行中です。タップして設定を開きます。"
+  },
+  {
+    "name": "permission_usage_desc_excluded_apps",
+    "ja": "正確な前面アプリ検出に推奨されます。一覧で「%1$s」を見つけてアクセスを許可してください。スイッチがグレーのままの場合は最新版に更新するか、システムがこの権限を制限していないか確認してください。アクセシビリティを有効にすれば一部機能は引き続き動作します。"
+  },
+  {
+    "name": "gesture_switch",
+    "ja": "ジェスチャスイッチ"
+  },
+  {
+    "name": "gesture_switch_hint",
+    "ja": "エッジジェスチャはこれがオンのときのみ動作します"
+  },
+  {
+    "name": "battery_optimization_title",
+    "ja": "バッテリー最適化"
+  },
+  {
+    "name": "battery_optimization_desc",
+    "ja": "バックグラウンド制限なしを許可し、ジェスチャサービスが終了されないようにします"
+  },
+  {
+    "name": "permission_battery_optimization_grant",
+    "ja": "無視"
+  },
+  {
+    "name": "battery_optimization_request_failed",
+    "ja": "バッテリー最適化設定を開けませんでした。システム設定で手動でこのアプリをホワイトリストに追加してください。"
+  },
+  {
+    "name": "settings_save_failed",
+    "ja": "設定の保存に失敗しました。後でもう一度お試しください。"
+  },
+  {
+    "name": "auto_start_title",
+    "ja": "自動起動"
+  },
+  {
+    "name": "auto_start_desc",
+    "ja": "バッテリー最適化と併用してバックグラウンド維持を改善"
+  },
+  {
+    "name": "auto_start_request_failed",
+    "ja": "システム設定で自動起動権限を手動で有効にしてください"
+  },
+  {
+    "name": "app_keep_alive_title",
+    "ja": "アプリ常駐"
+  },
+  {
+    "name": "app_keep_alive_desc",
+    "ja": "バックグラウンド常駐と権限"
+  },
+  {
+    "name": "privilege_mode_title",
+    "ja": "特権実行"
+  },
+  {
+    "name": "privilege_mode_desc",
+    "ja": "Shell、フリーザー、タスクマネージャーなどの拡張機能に必要です"
+  },
+  {
+    "name": "privilege_mode_shizuku",
+    "ja": "Shizuku（推奨）"
+  },
+  {
+    "name": "privilege_mode_shizuku_desc",
+    "ja": "ルート不要、ワイヤレスデバッグ経由。許可後は静かに動作"
+  },
+  {
+    "name": "privilege_mode_root",
+    "ja": "Root"
+  },
+  {
+    "name": "privilege_mode_root_desc",
+    "ja": "Shizuku 不要。Magisk などでこのアプリに su アクセスを許可"
+  },
+  {
+    "name": "privilege_mode_status_shizuku_ready",
+    "ja": "Shizuku 準備完了"
+  },
+  {
+    "name": "privilege_mode_status_shizuku_missing",
+    "ja": "Shizuku が実行されていないか未承認"
+  },
+  {
+    "name": "privilege_mode_status_root_ready",
+    "ja": "Root 準備完了"
+  },
+  {
+    "name": "privilege_mode_status_root_missing",
+    "ja": "Root が検出されないか su 未許可"
+  },
+  {
+    "name": "privilege_mode_status_title",
+    "ja": "現在の状態"
+  },
+  {
+    "name": "privilege_mode_entry_summary_shizuku_ready",
+    "ja": "Shizuku · 準備完了"
+  },
+  {
+    "name": "privilege_mode_entry_summary_shizuku_missing",
+    "ja": "Shizuku · 未許可"
+  },
+  {
+    "name": "privilege_mode_entry_summary_root_ready",
+    "ja": "Root · 準備完了"
+  },
+  {
+    "name": "privilege_mode_entry_summary_root_missing",
+    "ja": "Root · 未準備"
+  },
+  {
+    "name": "permission_root_title",
+    "ja": "Root 未準備"
+  },
+  {
+    "name": "permission_root_desc",
+    "ja": "Magisk などでこのアプリに su を許可するか、Shizuku モードに切り替えてください。"
+  },
+  {
+    "name": "permission_root_grant",
+    "ja": "設定を開く"
+  },
+  {
+    "name": "privileged_access_required_shizuku",
+    "ja": "Shizuku 権限が必要です"
+  },
+  {
+    "name": "privileged_access_required_root",
+    "ja": "Root 権限が必要です"
+  },
+  {
+    "name": "task_switcher_no_privileged_access",
+    "ja": "バックグラウンドタスクを表示するには特権アクセスが必要です"
+  },
+  {
+    "name": "app_keep_alive_entry_desc",
+    "ja": "バックグラウンド常駐と権限"
+  },
+  {
+    "name": "app_keep_alive_entry_summary_battery",
+    "ja": "バッテリーホワイトリスト済み"
+  },
+  {
+    "name": "app_keep_alive_entry_summary_recents",
+    "ja": "最近使ったアプリから非表示"
+  },
+  {
+    "name": "app_keep_alive_entry_summary_all",
+    "ja": "バッテリーホワイトリスト、最近使ったアプリ非表示"
+  },
+  {
+    "name": "secure_settings_title",
+    "ja": "Cebian 常駐"
+  },
+  {
+    "name": "secure_settings_desc",
+    "ja": "システムが Cebian を無効化した場合に自動復元（WRITE_SECURE_SETTINGS が必要）"
+  },
+  {
+    "name": "secure_settings_enabled_summary",
+    "ja": "Cebian 常駐オン"
+  },
+  {
+    "name": "secure_settings_grant_success",
+    "ja": "Shizuku 経由で許可しました"
+  },
+  {
+    "name": "secure_settings_grant_failed",
+    "ja": "許可に失敗しました。ADB コマンドを手動で実行してください。"
+  },
+  {
+    "name": "secure_settings_adb_dialog_title",
+    "ja": "ADB 許可手順"
+  },
+  {
+    "name": "secure_settings_adb_dialog_message",
+    "ja": "USB またはワイヤレスデバッグで接続し、ターミナルで次のコマンドを実行してください（アプリ再インストール後は再実行）:\n\n%1$s"
+  },
+  {
+    "name": "secure_settings_adb_copy",
+    "ja": "コマンドをコピー"
+  },
+  {
+    "name": "secure_settings_adb_copied",
+    "ja": "クリップボードにコピーしました"
+  },
+  {
+    "name": "gesture_action_switch_input_method",
+    "ja": "入力方式を切り替え"
+  },
+  {
+    "name": "hide_from_recents_title",
+    "ja": "最近使ったアプリから非表示"
+  },
+  {
+    "name": "hide_from_recents_desc",
+    "ja": "有効にすると、このアプリの設定画面はシステムの最近使ったアプリ一覧に表示されません"
+  },
+  {
+    "name": "permission_accessibility_title",
+    "ja": "Cebian"
+  },
+  {
+    "name": "permission_accessibility_desc",
+    "ja": "エッジジェスチャとサイドバーパネルに必要。Shizuku なしで戻る、ホーム、最近使ったアプリ、タップ透過にも使用します。"
+  },
+  {
+    "name": "permission_accessibility_grant",
+    "ja": "Cebian を有効化"
+  },
+  {
+    "name": "settings_section_service",
+    "ja": "サービス"
+  },
+  {
+    "name": "debug_section_title",
+    "ja": "デバッグ"
+  },
+  {
+    "name": "debug_performance_monitor",
+    "ja": "パフォーマンスモニター"
+  },
+  {
+    "name": "debug_performance_monitor_desc",
+    "ja": "Logcat にオーバーレイ FPS とメインスレッドの遅延メッセージを記録（Debug ビルドのみ）"
+  },
+  {
+    "name": "hidden_apps_entry_desc",
+    "ja": "アプリインデックス一覧からアプリを非表示"
+  },
+  {
+    "name": "hidden_apps_desc",
+    "ja": "非表示のアプリは Cebian パネルに表示されませんが、ホーム画面などからは開けます。"
+  },
+  {
+    "name": "excluded_apps_entry_title",
+    "ja": "アプリ別無効化"
+  },
+  {
+    "name": "excluded_apps_title",
+    "ja": "アプリ別無効化"
+  },
+  {
+    "name": "excluded_apps_desc",
+    "ja": "アプリをタップして非表示項目を調整。下の「アプリを追加」でアプリを選びスコープを指定。"
+  },
+  {
+    "name": "excluded_apps_template_summary",
+    "ja": "非表示: %1$s"
+  },
+  {
+    "name": "excluded_apps_template_empty",
+    "ja": "機能を 1 つ以上選択してください"
+  },
+  {
+    "name": "excluded_apps_confirm_add_title",
+    "ja": "確認"
+  },
+  {
+    "name": "excluded_apps_excluded_hint",
+    "ja": "アプリをタップしてスコープを調整"
+  },
+  {
+    "name": "excluded_apps_scope_triggers_short",
+    "ja": "トリガー"
+  },
+  {
+    "name": "excluded_apps_scope_corner_wheel_short",
+    "ja": "ホイール"
+  },
+  {
+    "name": "excluded_apps_scope_float_ball_short",
+    "ja": "フローティングボール"
+  },
+  {
+    "name": "excluded_apps_scope_none",
+    "ja": "無効化なし"
+  },
+  {
+    "name": "excluded_apps_scope_dialog_hint",
+    "ja": "このアプリで非表示にする項目を選択。少なくとも 1 つは有効にしてください。"
+  },
+  {
+    "name": "accessibility_service_name",
+    "ja": "Cebian"
+  },
+  {
+    "name": "accessibility_service_desc",
+    "ja": "エッジジェスチャとサイドバーパネルに必要。Shizuku なしで戻る、ホーム、最近使ったアプリ、タップ透過にも使用します。"
+  },
+  {
+    "name": "side_gestures_desc",
+    "ja": "各ジェスチャスロットを独立設定可能。アプリインデックス、音量/明るさスライダー、クイックランチャーなど。"
+  },
+  {
+    "name": "gesture_action_open_index",
+    "ja": "アプリインデックス"
+  },
+  {
+    "name": "gesture_hint_style_capsule_desc",
+    "ja": "Cebian とともに拡大する角丸カプセル"
+  }
+]

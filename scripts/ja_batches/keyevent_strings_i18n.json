@@ -1,0 +1,2592 @@
+{
+  "entries": [
+    {
+      "name": "keyevent_category_system",
+      "zh": "系统控制",
+      "kind": "category",
+      "en": "System Control",
+      "ja": "システム制御"
+    },
+    {
+      "name": "keyevent_category_media",
+      "zh": "媒体与声音",
+      "kind": "category",
+      "en": "Media & Sound",
+      "ja": "メディアとサウンド"
+    },
+    {
+      "name": "keyevent_category_navigation",
+      "zh": "方向与网页导航",
+      "kind": "category",
+      "en": "Navigation & Web",
+      "ja": "方向キーとWebナビゲーション"
+    },
+    {
+      "name": "keyevent_category_input_edit",
+      "zh": "输入与文本编辑",
+      "kind": "category",
+      "en": "Input & Text Editing",
+      "ja": "入力とテキスト編集"
+    },
+    {
+      "name": "keyevent_category_hardware",
+      "zh": "硬件与快捷应用",
+      "kind": "category",
+      "en": "Hardware & Quick Apps",
+      "ja": "ハードウェアとクイックアプリ"
+    },
+    {
+      "name": "keyevent_category_tv_remote",
+      "zh": "电视与智能遥控",
+      "kind": "category",
+      "en": "TV & Smart Remote",
+      "ja": "テレビとスマートリモコン"
+    },
+    {
+      "name": "keyevent_category_gamepad",
+      "zh": "游戏与手柄按键",
+      "kind": "category",
+      "en": "Gamepad Buttons",
+      "ja": "ゲームとゲームパッドボタン"
+    },
+    {
+      "name": "keyevent_category_function_keys",
+      "zh": "功能键 (F1-F12)",
+      "kind": "category",
+      "en": "Function Keys (F1-F12)",
+      "ja": "ファンクションキー (F1-F12)"
+    },
+    {
+      "name": "keyevent_label_keycode_menu",
+      "zh": "菜单键 (Menu)",
+      "kind": "label",
+      "constant": "KEYCODE_MENU",
+      "en": "Menu Key (Menu)",
+      "ja": "メニューキー (Menu)"
+    },
+    {
+      "name": "keyevent_desc_keycode_menu",
+      "zh": "打开当前前台应用的选项菜单 (Option Menu)",
+      "kind": "desc",
+      "constant": "KEYCODE_MENU",
+      "en": "Open the options menu of the current foreground app (Option Menu)",
+      "ja": "現在の前面アプリのオプションメニューを開く (Option Menu)"
+    },
+    {
+      "name": "keyevent_label_keycode_app_switch",
+      "zh": "多任务 / 最近应用",
+      "kind": "label",
+      "constant": "KEYCODE_APP_SWITCH",
+      "en": "Recents / Recent Apps",
+      "ja": "マルチタスク / 最近使ったアプリ"
+    },
+    {
+      "name": "keyevent_desc_keycode_app_switch",
+      "zh": "呼出系统任务切换器",
+      "kind": "desc",
+      "constant": "KEYCODE_APP_SWITCH",
+      "en": "Open the system task switcher",
+      "ja": "システムのタスク切り替え画面を表示する"
+    },
+    {
+      "name": "keyevent_label_keycode_home",
+      "zh": "主屏幕 (Home)",
+      "kind": "label",
+      "constant": "KEYCODE_HOME",
+      "en": "Home Screen (Home)",
+      "ja": "ホーム画面 (Home)"
+    },
+    {
+      "name": "keyevent_desc_keycode_home",
+      "zh": "回到系统桌面",
+      "kind": "desc",
+      "constant": "KEYCODE_HOME",
+      "en": "Return to the system home screen",
+      "ja": "システムのホーム画面に戻る"
+    },
+    {
+      "name": "keyevent_label_keycode_back",
+      "zh": "返回键 / 历史后退 (Back)",
+      "kind": "label",
+      "constant": "KEYCODE_BACK",
+      "en": "Back Key / History Back (Back)",
+      "ja": "戻るキー / 履歴を戻る (Back)"
+    },
+    {
+      "name": "keyevent_desc_keycode_back",
+      "zh": "系统返回上一层 / 历史栈后退 (Complement of KEYCODE_FORWARD)",
+      "kind": "desc",
+      "constant": "KEYCODE_BACK",
+      "en": "Go back one system level / history stack back (Complement of KEYCODE_FORWARD)",
+      "ja": "システムで前の階層に戻る / 履歴スタックを戻る (Complement of KEYCODE_FORWARD)"
+    },
+    {
+      "name": "keyevent_label_keycode_power",
+      "zh": "电源键 (Power)",
+      "kind": "label",
+      "constant": "KEYCODE_POWER",
+      "en": "Power Key (Power)",
+      "ja": "電源キー (Power)"
+    },
+    {
+      "name": "keyevent_desc_keycode_power",
+      "zh": "系统电源开关",
+      "kind": "desc",
+      "constant": "KEYCODE_POWER",
+      "en": "System power on/off",
+      "ja": "システムの電源オン/オフ"
+    },
+    {
+      "name": "keyevent_label_keycode_sleep",
+      "zh": "屏幕休眠",
+      "kind": "label",
+      "constant": "KEYCODE_SLEEP",
+      "en": "Screen Sleep",
+      "ja": "画面スリープ"
+    },
+    {
+      "name": "keyevent_desc_keycode_sleep",
+      "zh": "让设备屏幕进入睡眠休眠状态",
+      "kind": "desc",
+      "constant": "KEYCODE_SLEEP",
+      "en": "Put the device screen into sleep mode",
+      "ja": "デバイスの画面をスリープ状態にする"
+    },
+    {
+      "name": "keyevent_label_keycode_wakeup",
+      "zh": "唤醒屏幕",
+      "kind": "label",
+      "constant": "KEYCODE_WAKEUP",
+      "en": "Wake Screen",
+      "ja": "画面を起こす"
+    },
+    {
+      "name": "keyevent_desc_keycode_wakeup",
+      "zh": "点亮并唤醒休眠中的屏幕",
+      "kind": "desc",
+      "constant": "KEYCODE_WAKEUP",
+      "en": "Turn on and wake the sleeping screen",
+      "ja": "スリープ中の画面を点灯して起こす"
+    },
+    {
+      "name": "keyevent_label_keycode_soft_sleep",
+      "zh": "软休眠 / 锁屏",
+      "kind": "label",
+      "constant": "KEYCODE_SOFT_SLEEP",
+      "en": "Soft Sleep / Lock Screen",
+      "ja": "ソフトスリープ / 画面ロック"
+    },
+    {
+      "name": "keyevent_desc_keycode_soft_sleep",
+      "zh": "锁定屏幕进入待机",
+      "kind": "desc",
+      "constant": "KEYCODE_SOFT_SLEEP",
+      "en": "Lock the screen and enter standby",
+      "ja": "画面をロックして待機状態にする"
+    },
+    {
+      "name": "keyevent_label_keycode_notification",
+      "zh": "通知面板",
+      "kind": "label",
+      "constant": "KEYCODE_NOTIFICATION",
+      "en": "Notification Panel",
+      "ja": "通知パネル"
+    },
+    {
+      "name": "keyevent_desc_keycode_notification",
+      "zh": "下拉展开系统通知面板",
+      "kind": "desc",
+      "constant": "KEYCODE_NOTIFICATION",
+      "en": "Pull down to expand the system notification panel",
+      "ja": "システムの通知パネルを下に展開する"
+    },
+    {
+      "name": "keyevent_label_keycode_settings",
+      "zh": "系统设置",
+      "kind": "label",
+      "constant": "KEYCODE_SETTINGS",
+      "en": "System Settings",
+      "ja": "システム設定"
+    },
+    {
+      "name": "keyevent_desc_keycode_settings",
+      "zh": "打开系统主设置页面",
+      "kind": "desc",
+      "constant": "KEYCODE_SETTINGS",
+      "en": "Open the main system settings page",
+      "ja": "システムのメイン設定画面を開く"
+    },
+    {
+      "name": "keyevent_label_keycode_search",
+      "zh": "搜索键",
+      "kind": "label",
+      "constant": "KEYCODE_SEARCH",
+      "en": "Search Key",
+      "ja": "検索キー"
+    },
+    {
+      "name": "keyevent_desc_keycode_search",
+      "zh": "触发全局搜索或应用内搜索",
+      "kind": "desc",
+      "constant": "KEYCODE_SEARCH",
+      "en": "Trigger global search or in-app search",
+      "ja": "グローバル検索またはアプリ内検索を起動する"
+    },
+    {
+      "name": "keyevent_label_keycode_voice_assist",
+      "zh": "语音助手",
+      "kind": "label",
+      "constant": "KEYCODE_VOICE_ASSIST",
+      "en": "Voice Assistant",
+      "ja": "音声アシスタント"
+    },
+    {
+      "name": "keyevent_desc_keycode_voice_assist",
+      "zh": "唤醒系统语音助理",
+      "kind": "desc",
+      "constant": "KEYCODE_VOICE_ASSIST",
+      "en": "Wake the system voice assistant",
+      "ja": "システムの音声アシスタントを起動する"
+    },
+    {
+      "name": "keyevent_label_keycode_sysrq",
+      "zh": "系统截屏 (SysRq / PrintScreen)",
+      "kind": "label",
+      "constant": "KEYCODE_SYSRQ",
+      "en": "System Screenshot (SysRq / PrintScreen)",
+      "ja": "システムスクリーンショット (SysRq / PrintScreen)"
+    },
+    {
+      "name": "keyevent_desc_keycode_sysrq",
+      "zh": "触发系统原生截屏",
+      "kind": "desc",
+      "constant": "KEYCODE_SYSRQ",
+      "en": "Trigger a native system screenshot",
+      "ja": "システム標準のスクリーンショットを実行する"
+    },
+    {
+      "name": "keyevent_label_keycode_all_apps",
+      "zh": "所有应用抽屉",
+      "kind": "label",
+      "constant": "KEYCODE_ALL_APPS",
+      "en": "All Apps Drawer",
+      "ja": "すべてのアプリドロワー"
+    },
+    {
+      "name": "keyevent_desc_keycode_all_apps",
+      "zh": "打开系统应用抽屉列表",
+      "kind": "desc",
+      "constant": "KEYCODE_ALL_APPS",
+      "en": "Open the system app drawer list",
+      "ja": "システムのアプリドロワー一覧を開く"
+    },
+    {
+      "name": "keyevent_label_keycode_window",
+      "zh": "画中画 / 窗口模式",
+      "kind": "label",
+      "constant": "KEYCODE_WINDOW",
+      "en": "Picture-in-Picture / Window Mode",
+      "ja": "ピクチャーインピクチャー / ウィンドウモード"
+    },
+    {
+      "name": "keyevent_desc_keycode_window",
+      "zh": "切换窗口显示模式",
+      "kind": "desc",
+      "constant": "KEYCODE_WINDOW",
+      "en": "Switch window display mode",
+      "ja": "ウィンドウ表示モードを切り替える"
+    },
+    {
+      "name": "keyevent_label_keycode_volume_up",
+      "zh": "音量增大 (+)",
+      "kind": "label",
+      "constant": "KEYCODE_VOLUME_UP",
+      "en": "Volume Up (+)",
+      "ja": "音量を上げる (+)"
+    },
+    {
+      "name": "keyevent_desc_keycode_volume_up",
+      "zh": "增加系统音量",
+      "kind": "desc",
+      "constant": "KEYCODE_VOLUME_UP",
+      "en": "Increase system volume",
+      "ja": "システム音量を上げる"
+    },
+    {
+      "name": "keyevent_label_keycode_volume_down",
+      "zh": "音量减小 (-)",
+      "kind": "label",
+      "constant": "KEYCODE_VOLUME_DOWN",
+      "en": "Volume Down (-)",
+      "ja": "音量を下げる (-)"
+    },
+    {
+      "name": "keyevent_desc_keycode_volume_down",
+      "zh": "降低系统音量",
+      "kind": "desc",
+      "constant": "KEYCODE_VOLUME_DOWN",
+      "en": "Decrease system volume",
+      "ja": "システム音量を下げる"
+    },
+    {
+      "name": "keyevent_label_keycode_volume_mute",
+      "zh": "静音切换",
+      "kind": "label",
+      "constant": "KEYCODE_VOLUME_MUTE",
+      "en": "Mute Toggle",
+      "ja": "ミュート切り替え"
+    },
+    {
+      "name": "keyevent_desc_keycode_volume_mute",
+      "zh": "开启或关闭系统静音",
+      "kind": "desc",
+      "constant": "KEYCODE_VOLUME_MUTE",
+      "en": "Turn system mute on or off",
+      "ja": "システムのミュートをオン/オフする"
+    },
+    {
+      "name": "keyevent_label_keycode_mute",
+      "zh": "麦克风/媒体静音",
+      "kind": "label",
+      "constant": "KEYCODE_MUTE",
+      "en": "Microphone / Media Mute",
+      "ja": "マイク/メディアミュート"
+    },
+    {
+      "name": "keyevent_desc_keycode_mute",
+      "zh": "麦克风静音或媒体静音",
+      "kind": "desc",
+      "constant": "KEYCODE_MUTE",
+      "en": "Mute microphone or media audio",
+      "ja": "マイクまたはメディア音声をミュートする"
+    },
+    {
+      "name": "keyevent_label_keycode_media_play_pause",
+      "zh": "播放 / 暂停",
+      "kind": "label",
+      "constant": "KEYCODE_MEDIA_PLAY_PAUSE",
+      "en": "Play / Pause",
+      "ja": "再生 / 一時停止"
+    },
+    {
+      "name": "keyevent_desc_keycode_media_play_pause",
+      "zh": "切换当前媒体播放/暂停状态",
+      "kind": "desc",
+      "constant": "KEYCODE_MEDIA_PLAY_PAUSE",
+      "en": "Toggle current media play/pause state",
+      "ja": "現在のメディアの再生/一時停止を切り替える"
+    },
+    {
+      "name": "keyevent_label_keycode_media_play",
+      "zh": "播放",
+      "kind": "label",
+      "constant": "KEYCODE_MEDIA_PLAY",
+      "en": "Play",
+      "ja": "再生"
+    },
+    {
+      "name": "keyevent_desc_keycode_media_play",
+      "zh": "开始播放媒体",
+      "kind": "desc",
+      "constant": "KEYCODE_MEDIA_PLAY",
+      "en": "Start media playback",
+      "ja": "メディアの再生を開始する"
+    },
+    {
+      "name": "keyevent_label_keycode_media_pause",
+      "zh": "暂停",
+      "kind": "label",
+      "constant": "KEYCODE_MEDIA_PAUSE",
+      "en": "Pause",
+      "ja": "一時停止"
+    },
+    {
+      "name": "keyevent_desc_keycode_media_pause",
+      "zh": "暂停当前播放",
+      "kind": "desc",
+      "constant": "KEYCODE_MEDIA_PAUSE",
+      "en": "Pause current playback",
+      "ja": "現在の再生を一時停止する"
+    },
+    {
+      "name": "keyevent_label_keycode_media_next",
+      "zh": "下一曲",
+      "kind": "label",
+      "constant": "KEYCODE_MEDIA_NEXT",
+      "en": "Next Track",
+      "ja": "次の曲"
+    },
+    {
+      "name": "keyevent_desc_keycode_media_next",
+      "zh": "切换下一首歌曲或视频",
+      "kind": "desc",
+      "constant": "KEYCODE_MEDIA_NEXT",
+      "en": "Skip to the next song or video",
+      "ja": "次の曲または動画に切り替える"
+    },
+    {
+      "name": "keyevent_label_keycode_media_previous",
+      "zh": "上一曲",
+      "kind": "label",
+      "constant": "KEYCODE_MEDIA_PREVIOUS",
+      "en": "Previous Track",
+      "ja": "前の曲"
+    },
+    {
+      "name": "keyevent_desc_keycode_media_previous",
+      "zh": "切换上一首歌曲或视频",
+      "kind": "desc",
+      "constant": "KEYCODE_MEDIA_PREVIOUS",
+      "en": "Skip to the previous song or video",
+      "ja": "前の曲または動画に切り替える"
+    },
+    {
+      "name": "keyevent_label_keycode_media_fast_forward",
+      "zh": "快进",
+      "kind": "label",
+      "constant": "KEYCODE_MEDIA_FAST_FORWARD",
+      "en": "Fast Forward",
+      "ja": "早送り"
+    },
+    {
+      "name": "keyevent_desc_keycode_media_fast_forward",
+      "zh": "媒体播放快进",
+      "kind": "desc",
+      "constant": "KEYCODE_MEDIA_FAST_FORWARD",
+      "en": "Fast-forward media playback",
+      "ja": "メディア再生を早送りする"
+    },
+    {
+      "name": "keyevent_label_keycode_media_rewind",
+      "zh": "快退",
+      "kind": "label",
+      "constant": "KEYCODE_MEDIA_REWIND",
+      "en": "Rewind",
+      "ja": "巻き戻し"
+    },
+    {
+      "name": "keyevent_desc_keycode_media_rewind",
+      "zh": "媒体播放快退",
+      "kind": "desc",
+      "constant": "KEYCODE_MEDIA_REWIND",
+      "en": "Rewind media playback",
+      "ja": "メディア再生を巻き戻す"
+    },
+    {
+      "name": "keyevent_label_keycode_media_stop",
+      "zh": "停止播放",
+      "kind": "label",
+      "constant": "KEYCODE_MEDIA_STOP",
+      "en": "Stop Playback",
+      "ja": "再生停止"
+    },
+    {
+      "name": "keyevent_desc_keycode_media_stop",
+      "zh": "停止当前媒体播放",
+      "kind": "desc",
+      "constant": "KEYCODE_MEDIA_STOP",
+      "en": "Stop current media playback",
+      "ja": "現在のメディア再生を停止する"
+    },
+    {
+      "name": "keyevent_label_keycode_media_audio_track",
+      "zh": "切换音轨",
+      "kind": "label",
+      "constant": "KEYCODE_MEDIA_AUDIO_TRACK",
+      "en": "Switch Audio Track",
+      "ja": "音声トラック切り替え"
+    },
+    {
+      "name": "keyevent_desc_keycode_media_audio_track",
+      "zh": "切换视频或多媒体音轨",
+      "kind": "desc",
+      "constant": "KEYCODE_MEDIA_AUDIO_TRACK",
+      "en": "Switch video or multimedia audio track",
+      "ja": "動画またはマルチメディアの音声トラックを切り替える"
+    },
+    {
+      "name": "keyevent_label_keycode_media_eject",
+      "zh": "弹出介质 (Eject)",
+      "kind": "label",
+      "constant": "KEYCODE_MEDIA_EJECT",
+      "en": "Eject Media (Eject)",
+      "ja": "メディア取り出し (Eject)"
+    },
+    {
+      "name": "keyevent_desc_keycode_media_eject",
+      "zh": "弹出光驱或存储介质",
+      "kind": "desc",
+      "constant": "KEYCODE_MEDIA_EJECT",
+      "en": "Eject optical drive or storage media",
+      "ja": "光学ドライブまたはストレージメディアを取り出す"
+    },
+    {
+      "name": "keyevent_label_keycode_media_record",
+      "zh": "录音 / 录制",
+      "kind": "label",
+      "constant": "KEYCODE_MEDIA_RECORD",
+      "en": "Record / Capture",
+      "ja": "録音 / 録画"
+    },
+    {
+      "name": "keyevent_desc_keycode_media_record",
+      "zh": "触发多媒体录制",
+      "kind": "desc",
+      "constant": "KEYCODE_MEDIA_RECORD",
+      "en": "Trigger multimedia recording",
+      "ja": "マルチメディアの録画/録音を開始する"
+    },
+    {
+      "name": "keyevent_label_keycode_headsethook",
+      "zh": "耳机线控键 (Hook)",
+      "kind": "label",
+      "constant": "KEYCODE_HEADSETHOOK",
+      "en": "Headset Hook Key (Hook)",
+      "ja": "ヘッドセットフックキー (Hook)"
+    },
+    {
+      "name": "keyevent_desc_keycode_headsethook",
+      "zh": "模拟耳机线控按键（接听/挂断/播控）",
+      "kind": "desc",
+      "constant": "KEYCODE_HEADSETHOOK",
+      "en": "Simulate headset inline button (answer/hang up/playback control)",
+      "ja": "ヘッドセットのインラインボタンを模倣する（応答/切断/再生操作）"
+    },
+    {
+      "name": "keyevent_label_keycode_back",
+      "zh": "历史后退 / 返回 (Back)",
+      "kind": "label",
+      "constant": "KEYCODE_BACK",
+      "en": "History Back / Back (Back)",
+      "ja": "履歴を戻る / 戻る (Back)"
+    },
+    {
+      "name": "keyevent_desc_keycode_back",
+      "zh": "浏览器历史后退 / 返回上一层 (Complement of KEYCODE_FORWARD)",
+      "kind": "desc",
+      "constant": "KEYCODE_BACK",
+      "en": "Go back in browser history / return to previous level (Complement of KEYCODE_FORWARD)",
+      "ja": "ブラウザ履歴を戻る / 前の階層に戻る (Complement of KEYCODE_FORWARD)"
+    },
+    {
+      "name": "keyevent_label_keycode_forward",
+      "zh": "历史前进 (Forward)",
+      "kind": "label",
+      "constant": "KEYCODE_FORWARD",
+      "en": "History Forward (Forward)",
+      "ja": "履歴を進む (Forward)"
+    },
+    {
+      "name": "keyevent_desc_keycode_forward",
+      "zh": "浏览器或历史栈前进到下一页 (Complement of KEYCODE_BACK)",
+      "kind": "desc",
+      "constant": "KEYCODE_FORWARD",
+      "en": "Go forward in browser or history stack to the next page (Complement of KEYCODE_BACK)",
+      "ja": "ブラウザまたは履歴スタックで次のページに進む (Complement of KEYCODE_BACK)"
+    },
+    {
+      "name": "keyevent_label_keycode_refresh",
+      "zh": "刷新页面 (Refresh / F5)",
+      "kind": "label",
+      "constant": "KEYCODE_REFRESH",
+      "en": "Refresh Page (Refresh / F5)",
+      "ja": "ページを更新 (Refresh / F5)"
+    },
+    {
+      "name": "keyevent_desc_keycode_refresh",
+      "zh": "刷新当前网页或视图",
+      "kind": "desc",
+      "constant": "KEYCODE_REFRESH",
+      "en": "Refresh the current webpage or view",
+      "ja": "現在のWebページまたはビューを更新する"
+    },
+    {
+      "name": "keyevent_label_keycode_bookmark",
+      "zh": "打开书签",
+      "kind": "label",
+      "constant": "KEYCODE_BOOKMARK",
+      "en": "Open Bookmarks",
+      "ja": "ブックマークを開く"
+    },
+    {
+      "name": "keyevent_desc_keycode_bookmark",
+      "zh": "打开浏览器收藏书签",
+      "kind": "desc",
+      "constant": "KEYCODE_BOOKMARK",
+      "en": "Open browser bookmarks",
+      "ja": "ブラウザのブックマークを開く"
+    },
+    {
+      "name": "keyevent_label_keycode_zoom_in",
+      "zh": "放大视图 (Zoom In)",
+      "kind": "label",
+      "constant": "KEYCODE_ZOOM_IN",
+      "en": "Zoom In",
+      "ja": "拡大 (Zoom In)"
+    },
+    {
+      "name": "keyevent_desc_keycode_zoom_in",
+      "zh": "页面或视图内容放大",
+      "kind": "desc",
+      "constant": "KEYCODE_ZOOM_IN",
+      "en": "Zoom in page or view content",
+      "ja": "ページまたはビューの内容を拡大する"
+    },
+    {
+      "name": "keyevent_label_keycode_zoom_out",
+      "zh": "缩小视图 (Zoom Out)",
+      "kind": "label",
+      "constant": "KEYCODE_ZOOM_OUT",
+      "en": "Zoom Out",
+      "ja": "縮小 (Zoom Out)"
+    },
+    {
+      "name": "keyevent_desc_keycode_zoom_out",
+      "zh": "页面或视图内容缩小",
+      "kind": "desc",
+      "constant": "KEYCODE_ZOOM_OUT",
+      "en": "Zoom out page or view content",
+      "ja": "ページまたはビューの内容を縮小する"
+    },
+    {
+      "name": "keyevent_label_keycode_dpad_up",
+      "zh": "方向键：上 (Up)",
+      "kind": "label",
+      "constant": "KEYCODE_DPAD_UP",
+      "en": "D-Pad: Up (Up)",
+      "ja": "方向キー：上 (Up)"
+    },
+    {
+      "name": "keyevent_desc_keycode_dpad_up",
+      "zh": "向上移动焦点或光标",
+      "kind": "desc",
+      "constant": "KEYCODE_DPAD_UP",
+      "en": "Move focus or cursor up",
+      "ja": "フォーカスまたはカーソルを上に移動する"
+    },
+    {
+      "name": "keyevent_label_keycode_dpad_down",
+      "zh": "方向键：下 (Down)",
+      "kind": "label",
+      "constant": "KEYCODE_DPAD_DOWN",
+      "en": "D-Pad: Down (Down)",
+      "ja": "方向キー：下 (Down)"
+    },
+    {
+      "name": "keyevent_desc_keycode_dpad_down",
+      "zh": "向下移动焦点或光标",
+      "kind": "desc",
+      "constant": "KEYCODE_DPAD_DOWN",
+      "en": "Move focus or cursor down",
+      "ja": "フォーカスまたはカーソルを下に移動する"
+    },
+    {
+      "name": "keyevent_label_keycode_dpad_left",
+      "zh": "方向键：左 (Left)",
+      "kind": "label",
+      "constant": "KEYCODE_DPAD_LEFT",
+      "en": "D-Pad: Left (Left)",
+      "ja": "方向キー：左 (Left)"
+    },
+    {
+      "name": "keyevent_desc_keycode_dpad_left",
+      "zh": "向左移动焦点或光标",
+      "kind": "desc",
+      "constant": "KEYCODE_DPAD_LEFT",
+      "en": "Move focus or cursor left",
+      "ja": "フォーカスまたはカーソルを左に移動する"
+    },
+    {
+      "name": "keyevent_label_keycode_dpad_right",
+      "zh": "方向键：右 (Right)",
+      "kind": "label",
+      "constant": "KEYCODE_DPAD_RIGHT",
+      "en": "D-Pad: Right (Right)",
+      "ja": "方向キー：右 (Right)"
+    },
+    {
+      "name": "keyevent_desc_keycode_dpad_right",
+      "zh": "向右移动焦点或光标",
+      "kind": "desc",
+      "constant": "KEYCODE_DPAD_RIGHT",
+      "en": "Move focus or cursor right",
+      "ja": "フォーカスまたはカーソルを右に移動する"
+    },
+    {
+      "name": "keyevent_label_keycode_dpad_center",
+      "zh": "居中确认 (DPad Center)",
+      "kind": "label",
+      "constant": "KEYCODE_DPAD_CENTER",
+      "en": "Center Confirm (DPad Center)",
+      "ja": "中央確定 (DPad Center)"
+    },
+    {
+      "name": "keyevent_desc_keycode_dpad_center",
+      "zh": "确定 / 点击当前焦点项",
+      "kind": "desc",
+      "constant": "KEYCODE_DPAD_CENTER",
+      "en": "Confirm / click the current focused item",
+      "ja": "確定 / 現在のフォーカス項目をクリックする"
+    },
+    {
+      "name": "keyevent_label_keycode_page_up",
+      "zh": "向上翻页 (Page Up)",
+      "kind": "label",
+      "constant": "KEYCODE_PAGE_UP",
+      "en": "Page Up (Page Up)",
+      "ja": "ページアップ (Page Up)"
+    },
+    {
+      "name": "keyevent_desc_keycode_page_up",
+      "zh": "屏幕或列表向上翻一页",
+      "kind": "desc",
+      "constant": "KEYCODE_PAGE_UP",
+      "en": "Scroll up one page on screen or list",
+      "ja": "画面またはリストを1ページ上にスクロールする"
+    },
+    {
+      "name": "keyevent_label_keycode_page_down",
+      "zh": "向下翻页 (Page Down)",
+      "kind": "label",
+      "constant": "KEYCODE_PAGE_DOWN",
+      "en": "Page Down (Page Down)",
+      "ja": "ページダウン (Page Down)"
+    },
+    {
+      "name": "keyevent_desc_keycode_page_down",
+      "zh": "屏幕或列表向下翻一页",
+      "kind": "desc",
+      "constant": "KEYCODE_PAGE_DOWN",
+      "en": "Scroll down one page on screen or list",
+      "ja": "画面またはリストを1ページ下にスクロールする"
+    },
+    {
+      "name": "keyevent_label_keycode_move_home",
+      "zh": "跳至顶部 / 行首 (Move Home)",
+      "kind": "label",
+      "constant": "KEYCODE_MOVE_HOME",
+      "en": "Jump to Top / Line Start (Move Home)",
+      "ja": "先頭へ移動 / 行頭 (Move Home)"
+    },
+    {
+      "name": "keyevent_desc_keycode_move_home",
+      "zh": "光标或视图跳至最顶端/最前端",
+      "kind": "desc",
+      "constant": "KEYCODE_MOVE_HOME",
+      "en": "Jump cursor or view to the very top/front",
+      "ja": "カーソルまたはビューを最上部/先頭に移動する"
+    },
+    {
+      "name": "keyevent_label_keycode_move_end",
+      "zh": "跳至底部 / 行尾 (Move End)",
+      "kind": "label",
+      "constant": "KEYCODE_MOVE_END",
+      "en": "Jump to Bottom / Line End (Move End)",
+      "ja": "末尾へ移動 / 行末 (Move End)"
+    },
+    {
+      "name": "keyevent_desc_keycode_move_end",
+      "zh": "光标或视图跳至最底端/末尾",
+      "kind": "desc",
+      "constant": "KEYCODE_MOVE_END",
+      "en": "Jump cursor or view to the very bottom/end",
+      "ja": "カーソルまたはビューを最下部/末尾に移動する"
+    },
+    {
+      "name": "keyevent_label_keycode_enter",
+      "zh": "回车确认 (Enter)",
+      "kind": "label",
+      "constant": "KEYCODE_ENTER",
+      "en": "Enter (Enter)",
+      "ja": "Enter (Enter)"
+    },
+    {
+      "name": "keyevent_desc_keycode_enter",
+      "zh": "换行或确认发送",
+      "kind": "desc",
+      "constant": "KEYCODE_ENTER",
+      "en": "New line or confirm/send",
+      "ja": "改行または確定/送信する"
+    },
+    {
+      "name": "keyevent_label_keycode_numpad_enter",
+      "zh": "小键盘回车 (Numpad Enter)",
+      "kind": "label",
+      "constant": "KEYCODE_NUMPAD_ENTER",
+      "en": "Numpad Enter (Numpad Enter)",
+      "ja": "テンキー Enter (Numpad Enter)"
+    },
+    {
+      "name": "keyevent_desc_keycode_numpad_enter",
+      "zh": "数字键盘确认",
+      "kind": "desc",
+      "constant": "KEYCODE_NUMPAD_ENTER",
+      "en": "Confirm from numeric keypad",
+      "ja": "テンキーで確定する"
+    },
+    {
+      "name": "keyevent_label_keycode_tab",
+      "zh": "制表键 (Tab)",
+      "kind": "label",
+      "constant": "KEYCODE_TAB",
+      "en": "Tab Key (Tab)",
+      "ja": "Tabキー (Tab)"
+    },
+    {
+      "name": "keyevent_desc_keycode_tab",
+      "zh": "跳转到下一个输入框或焦点",
+      "kind": "desc",
+      "constant": "KEYCODE_TAB",
+      "en": "Jump to the next input field or focus",
+      "ja": "次の入力欄またはフォーカスに移動する"
+    },
+    {
+      "name": "keyevent_label_keycode_space",
+      "zh": "空格键 (Space)",
+      "kind": "label",
+      "constant": "KEYCODE_SPACE",
+      "en": "Space Key (Space)",
+      "ja": "スペースキー (Space)"
+    },
+    {
+      "name": "keyevent_desc_keycode_space",
+      "zh": "输入空格",
+      "kind": "desc",
+      "constant": "KEYCODE_SPACE",
+      "en": "Insert a space",
+      "ja": "スペースを入力する"
+    },
+    {
+      "name": "keyevent_label_keycode_del",
+      "zh": "退格删除 (Backspace)",
+      "kind": "label",
+      "constant": "KEYCODE_DEL",
+      "en": "Backspace (Backspace)",
+      "ja": "Backspace (Backspace)"
+    },
+    {
+      "name": "keyevent_desc_keycode_del",
+      "zh": "向前删除一个字符",
+      "kind": "desc",
+      "constant": "KEYCODE_DEL",
+      "en": "Delete one character backward",
+      "ja": "1文字を前方向に削除する"
+    },
+    {
+      "name": "keyevent_label_keycode_forward_del",
+      "zh": "前进删除 (Delete)",
+      "kind": "label",
+      "constant": "KEYCODE_FORWARD_DEL",
+      "en": "Forward Delete (Delete)",
+      "ja": "Delete (Delete)"
+    },
+    {
+      "name": "keyevent_desc_keycode_forward_del",
+      "zh": "向后删除一个字符",
+      "kind": "desc",
+      "constant": "KEYCODE_FORWARD_DEL",
+      "en": "Delete one character forward",
+      "ja": "1文字を後方向に削除する"
+    },
+    {
+      "name": "keyevent_label_keycode_clear",
+      "zh": "清空 (Clear)",
+      "kind": "label",
+      "constant": "KEYCODE_CLEAR",
+      "en": "Clear (Clear)",
+      "ja": "クリア (Clear)"
+    },
+    {
+      "name": "keyevent_desc_keycode_clear",
+      "zh": "清除当前输入内容",
+      "kind": "desc",
+      "constant": "KEYCODE_CLEAR",
+      "en": "Clear current input content",
+      "ja": "現在の入力内容をクリアする"
+    },
+    {
+      "name": "keyevent_label_keycode_insert",
+      "zh": "插入模式 (Insert)",
+      "kind": "label",
+      "constant": "KEYCODE_INSERT",
+      "en": "Insert Mode (Insert)",
+      "ja": "挿入モード (Insert)"
+    },
+    {
+      "name": "keyevent_desc_keycode_insert",
+      "zh": "切换文本插入/覆盖模式",
+      "kind": "desc",
+      "constant": "KEYCODE_INSERT",
+      "en": "Toggle text insert/overwrite mode",
+      "ja": "テキストの挿入/上書きモードを切り替える"
+    },
+    {
+      "name": "keyevent_label_keycode_caps_lock",
+      "zh": "大写锁定 (Caps Lock)",
+      "kind": "label",
+      "constant": "KEYCODE_CAPS_LOCK",
+      "en": "Caps Lock (Caps Lock)",
+      "ja": "Caps Lock (Caps Lock)"
+    },
+    {
+      "name": "keyevent_desc_keycode_caps_lock",
+      "zh": "切换大小写锁定",
+      "kind": "desc",
+      "constant": "KEYCODE_CAPS_LOCK",
+      "en": "Toggle caps lock",
+      "ja": "Caps Lockを切り替える"
+    },
+    {
+      "name": "keyevent_label_keycode_scroll_lock",
+      "zh": "滚动锁定 (Scroll Lock)",
+      "kind": "label",
+      "constant": "KEYCODE_SCROLL_LOCK",
+      "en": "Scroll Lock (Scroll Lock)",
+      "ja": "Scroll Lock (Scroll Lock)"
+    },
+    {
+      "name": "keyevent_desc_keycode_scroll_lock",
+      "zh": "切换滚动锁定状态",
+      "kind": "desc",
+      "constant": "KEYCODE_SCROLL_LOCK",
+      "en": "Toggle scroll lock state",
+      "ja": "Scroll Lockの状態を切り替える"
+    },
+    {
+      "name": "keyevent_label_keycode_num_lock",
+      "zh": "数字键盘锁 (Num Lock)",
+      "kind": "label",
+      "constant": "KEYCODE_NUM_LOCK",
+      "en": "Num Lock (Num Lock)",
+      "ja": "Num Lock (Num Lock)"
+    },
+    {
+      "name": "keyevent_desc_keycode_num_lock",
+      "zh": "切换小键盘数字模式",
+      "kind": "desc",
+      "constant": "KEYCODE_NUM_LOCK",
+      "en": "Toggle numeric keypad mode",
+      "ja": "テンキーの数字モードを切り替える"
+    },
+    {
+      "name": "keyevent_label_keycode_language_switch",
+      "zh": "切换输入法语言",
+      "kind": "label",
+      "constant": "KEYCODE_LANGUAGE_SWITCH",
+      "en": "Switch Input Language",
+      "ja": "入力言語を切り替え"
+    },
+    {
+      "name": "keyevent_desc_keycode_language_switch",
+      "zh": "切换键盘输入语言",
+      "kind": "desc",
+      "constant": "KEYCODE_LANGUAGE_SWITCH",
+      "en": "Switch keyboard input language",
+      "ja": "キーボードの入力言語を切り替える"
+    },
+    {
+      "name": "keyevent_label_keycode_escape",
+      "zh": "退出键 (Esc)",
+      "kind": "label",
+      "constant": "KEYCODE_ESCAPE",
+      "en": "Escape (Esc)",
+      "ja": "Esc (Esc)"
+    },
+    {
+      "name": "keyevent_desc_keycode_escape",
+      "zh": "退出当前模式或弹窗",
+      "kind": "desc",
+      "constant": "KEYCODE_ESCAPE",
+      "en": "Exit current mode or dialog",
+      "ja": "現在のモードまたはダイアログを終了する"
+    },
+    {
+      "name": "keyevent_label_keycode_camera",
+      "zh": "相机快门 (Camera)",
+      "kind": "label",
+      "constant": "KEYCODE_CAMERA",
+      "en": "Camera Shutter (Camera)",
+      "ja": "カメラシャッター (Camera)"
+    },
+    {
+      "name": "keyevent_desc_keycode_camera",
+      "zh": "打开相机或拍摄照片",
+      "kind": "desc",
+      "constant": "KEYCODE_CAMERA",
+      "en": "Open camera or take a photo",
+      "ja": "カメラを開くまたは写真を撮る"
+    },
+    {
+      "name": "keyevent_label_keycode_focus",
+      "zh": "相机对焦 (Focus)",
+      "kind": "label",
+      "constant": "KEYCODE_FOCUS",
+      "en": "Camera Focus (Focus)",
+      "ja": "カメラフォーカス (Focus)"
+    },
+    {
+      "name": "keyevent_desc_keycode_focus",
+      "zh": "相机半按对焦",
+      "kind": "desc",
+      "constant": "KEYCODE_FOCUS",
+      "en": "Half-press camera focus",
+      "ja": "カメラの半押しフォーカス"
+    },
+    {
+      "name": "keyevent_label_keycode_call",
+      "zh": "拨号 / 接听电话 (Call)",
+      "kind": "label",
+      "constant": "KEYCODE_CALL",
+      "en": "Dial / Answer Call (Call)",
+      "ja": "発信 / 着信応答 (Call)"
+    },
+    {
+      "name": "keyevent_desc_keycode_call",
+      "zh": "打开拨号盘或接听来电",
+      "kind": "desc",
+      "constant": "KEYCODE_CALL",
+      "en": "Open dialer or answer incoming call",
+      "ja": "ダイヤラーを開くまたは着信に応答する"
+    },
+    {
+      "name": "keyevent_label_keycode_endcall",
+      "zh": "挂断电话 (End Call)",
+      "kind": "label",
+      "constant": "KEYCODE_ENDCALL",
+      "en": "End Call (End Call)",
+      "ja": "通話終了 (End Call)"
+    },
+    {
+      "name": "keyevent_desc_keycode_endcall",
+      "zh": "挂断当前通话",
+      "kind": "desc",
+      "constant": "KEYCODE_ENDCALL",
+      "en": "Hang up the current call",
+      "ja": "現在の通話を終了する"
+    },
+    {
+      "name": "keyevent_label_keycode_brightness_up",
+      "zh": "屏幕亮度增大 (+)",
+      "kind": "label",
+      "constant": "KEYCODE_BRIGHTNESS_UP",
+      "en": "Brightness Up (+)",
+      "ja": "画面の明るさを上げる (+)"
+    },
+    {
+      "name": "keyevent_desc_keycode_brightness_up",
+      "zh": "调高屏幕显示亮度",
+      "kind": "desc",
+      "constant": "KEYCODE_BRIGHTNESS_UP",
+      "en": "Increase screen brightness",
+      "ja": "画面の明るさを上げる"
+    },
+    {
+      "name": "keyevent_label_keycode_brightness_down",
+      "zh": "屏幕亮度减小 (-)",
+      "kind": "label",
+      "constant": "KEYCODE_BRIGHTNESS_DOWN",
+      "en": "Brightness Down (-)",
+      "ja": "画面の明るさを下げる (-)"
+    },
+    {
+      "name": "keyevent_desc_keycode_brightness_down",
+      "zh": "调低屏幕显示亮度",
+      "kind": "desc",
+      "constant": "KEYCODE_BRIGHTNESS_DOWN",
+      "en": "Decrease screen brightness",
+      "ja": "画面の明るさを下げる"
+    },
+    {
+      "name": "keyevent_label_keycode_calculator",
+      "zh": "打开计算器",
+      "kind": "label",
+      "constant": "KEYCODE_CALCULATOR",
+      "en": "Open Calculator",
+      "ja": "電卓を開く"
+    },
+    {
+      "name": "keyevent_desc_keycode_calculator",
+      "zh": "启动系统计算器应用",
+      "kind": "desc",
+      "constant": "KEYCODE_CALCULATOR",
+      "en": "Launch the system calculator app",
+      "ja": "システムの電卓アプリを起動する"
+    },
+    {
+      "name": "keyevent_label_keycode_calendar",
+      "zh": "打开日历",
+      "kind": "label",
+      "constant": "KEYCODE_CALENDAR",
+      "en": "Open Calendar",
+      "ja": "カレンダーを開く"
+    },
+    {
+      "name": "keyevent_desc_keycode_calendar",
+      "zh": "启动系统日历应用",
+      "kind": "desc",
+      "constant": "KEYCODE_CALENDAR",
+      "en": "Launch the system calendar app",
+      "ja": "システムのカレンダーアプリを起動する"
+    },
+    {
+      "name": "keyevent_label_keycode_music",
+      "zh": "打开音乐",
+      "kind": "label",
+      "constant": "KEYCODE_MUSIC",
+      "en": "Open Music",
+      "ja": "ミュージックを開く"
+    },
+    {
+      "name": "keyevent_desc_keycode_music",
+      "zh": "启动系统音乐播放器",
+      "kind": "desc",
+      "constant": "KEYCODE_MUSIC",
+      "en": "Launch the system music player",
+      "ja": "システムのミュージックプレーヤーを起動する"
+    },
+    {
+      "name": "keyevent_label_keycode_envelope",
+      "zh": "打开邮件",
+      "kind": "label",
+      "constant": "KEYCODE_ENVELOPE",
+      "en": "Open Email",
+      "ja": "メールを開く"
+    },
+    {
+      "name": "keyevent_desc_keycode_envelope",
+      "zh": "启动系统电子邮件应用",
+      "kind": "desc",
+      "constant": "KEYCODE_ENVELOPE",
+      "en": "Launch the system email app",
+      "ja": "システムのメールアプリを起動する"
+    },
+    {
+      "name": "keyevent_label_keycode_contacts",
+      "zh": "打开联系人",
+      "kind": "label",
+      "constant": "KEYCODE_CONTACTS",
+      "en": "Open Contacts",
+      "ja": "連絡先を開く"
+    },
+    {
+      "name": "keyevent_desc_keycode_contacts",
+      "zh": "启动系统通讯录",
+      "kind": "desc",
+      "constant": "KEYCODE_CONTACTS",
+      "en": "Launch the system contacts app",
+      "ja": "システムの連絡先アプリを起動する"
+    },
+    {
+      "name": "keyevent_label_keycode_explorer",
+      "zh": "打开浏览器",
+      "kind": "label",
+      "constant": "KEYCODE_EXPLORER",
+      "en": "Open Browser",
+      "ja": "ブラウザを開く"
+    },
+    {
+      "name": "keyevent_desc_keycode_explorer",
+      "zh": "启动默认网络浏览器",
+      "kind": "desc",
+      "constant": "KEYCODE_EXPLORER",
+      "en": "Launch the default web browser",
+      "ja": "デフォルトのWebブラウザを起動する"
+    },
+    {
+      "name": "keyevent_label_keycode_help",
+      "zh": "帮助 (Help)",
+      "kind": "label",
+      "constant": "KEYCODE_HELP",
+      "en": "Help (Help)",
+      "ja": "ヘルプ (Help)"
+    },
+    {
+      "name": "keyevent_desc_keycode_help",
+      "zh": "打开应用或系统帮助",
+      "kind": "desc",
+      "constant": "KEYCODE_HELP",
+      "en": "Open app or system help",
+      "ja": "アプリまたはシステムのヘルプを開く"
+    },
+    {
+      "name": "keyevent_label_keycode_tv_power",
+      "zh": "电视电源 (TV Power)",
+      "kind": "label",
+      "constant": "KEYCODE_TV_POWER",
+      "en": "TV Power (TV Power)",
+      "ja": "テレビ電源 (TV Power)"
+    },
+    {
+      "name": "keyevent_desc_keycode_tv_power",
+      "zh": "电视电源开关控制",
+      "kind": "desc",
+      "constant": "KEYCODE_TV_POWER",
+      "en": "Control TV power on/off",
+      "ja": "テレビの電源オン/オフを制御する"
+    },
+    {
+      "name": "keyevent_label_keycode_tv_input",
+      "zh": "电视信号源 (TV Input)",
+      "kind": "label",
+      "constant": "KEYCODE_TV_INPUT",
+      "en": "TV Input (TV Input)",
+      "ja": "テレビ入力 (TV Input)"
+    },
+    {
+      "name": "keyevent_desc_keycode_tv_input",
+      "zh": "切换电视 HDMI/AV 信号源",
+      "kind": "desc",
+      "constant": "KEYCODE_TV_INPUT",
+      "en": "Switch TV HDMI/AV input source",
+      "ja": "テレビのHDMI/AV入力ソースを切り替える"
+    },
+    {
+      "name": "keyevent_label_keycode_channel_up",
+      "zh": "频道 + (Channel Up)",
+      "kind": "label",
+      "constant": "KEYCODE_CHANNEL_UP",
+      "en": "Channel Up (Channel Up)",
+      "ja": "チャンネル + (Channel Up)"
+    },
+    {
+      "name": "keyevent_desc_keycode_channel_up",
+      "zh": "电视/机顶盒电视频道增加",
+      "kind": "desc",
+      "constant": "KEYCODE_CHANNEL_UP",
+      "en": "Increase TV/set-top box channel",
+      "ja": "テレビ/セットトップボックスのチャンネルを上げる"
+    },
+    {
+      "name": "keyevent_label_keycode_channel_down",
+      "zh": "频道 - (Channel Down)",
+      "kind": "label",
+      "constant": "KEYCODE_CHANNEL_DOWN",
+      "en": "Channel Down (Channel Down)",
+      "ja": "チャンネル - (Channel Down)"
+    },
+    {
+      "name": "keyevent_desc_keycode_channel_down",
+      "zh": "电视/机顶盒电视频道减少",
+      "kind": "desc",
+      "constant": "KEYCODE_CHANNEL_DOWN",
+      "en": "Decrease TV/set-top box channel",
+      "ja": "テレビ/セットトップボックスのチャンネルを下げる"
+    },
+    {
+      "name": "keyevent_label_keycode_last_channel",
+      "zh": "上一频道 (Last Channel)",
+      "kind": "label",
+      "constant": "KEYCODE_LAST_CHANNEL",
+      "en": "Last Channel (Last Channel)",
+      "ja": "前のチャンネル (Last Channel)"
+    },
+    {
+      "name": "keyevent_desc_keycode_last_channel",
+      "zh": "切换回到上一个观看的频道",
+      "kind": "desc",
+      "constant": "KEYCODE_LAST_CHANNEL",
+      "en": "Switch back to the previously watched channel",
+      "ja": "前に視聴していたチャンネルに戻る"
+    },
+    {
+      "name": "keyevent_label_keycode_guide",
+      "zh": "节目指南 (EPG / Guide)",
+      "kind": "label",
+      "constant": "KEYCODE_GUIDE",
+      "en": "Program Guide (EPG / Guide)",
+      "ja": "番組ガイド (EPG / Guide)"
+    },
+    {
+      "name": "keyevent_desc_keycode_guide",
+      "zh": "打开电视节目指南",
+      "kind": "desc",
+      "constant": "KEYCODE_GUIDE",
+      "en": "Open the TV program guide",
+      "ja": "テレビの番組ガイドを開く"
+    },
+    {
+      "name": "keyevent_label_keycode_info",
+      "zh": "节目信息 (Info)",
+      "kind": "label",
+      "constant": "KEYCODE_INFO",
+      "en": "Program Info (Info)",
+      "ja": "番組情報 (Info)"
+    },
+    {
+      "name": "keyevent_desc_keycode_info",
+      "zh": "查看当前播放内容详细信息",
+      "kind": "desc",
+      "constant": "KEYCODE_INFO",
+      "en": "View detailed info about current content",
+      "ja": "現在再生中のコンテンツの詳細情報を表示する"
+    },
+    {
+      "name": "keyevent_label_keycode_prog_red",
+      "zh": "遥控红键 (Red)",
+      "kind": "label",
+      "constant": "KEYCODE_PROG_RED",
+      "en": "Remote Red Key (Red)",
+      "ja": "リモコン赤キー (Red)"
+    },
+    {
+      "name": "keyevent_desc_keycode_prog_red",
+      "zh": "遥控器红色快捷按键",
+      "kind": "desc",
+      "constant": "KEYCODE_PROG_RED",
+      "en": "Remote control red shortcut button",
+      "ja": "リモコンの赤色ショートカットボタン"
+    },
+    {
+      "name": "keyevent_label_keycode_prog_green",
+      "zh": "遥控绿键 (Green)",
+      "kind": "label",
+      "constant": "KEYCODE_PROG_GREEN",
+      "en": "Remote Green Key (Green)",
+      "ja": "リモコン緑キー (Green)"
+    },
+    {
+      "name": "keyevent_desc_keycode_prog_green",
+      "zh": "遥控器绿色快捷按键",
+      "kind": "desc",
+      "constant": "KEYCODE_PROG_GREEN",
+      "en": "Remote control green shortcut button",
+      "ja": "リモコンの緑色ショートカットボタン"
+    },
+    {
+      "name": "keyevent_label_keycode_prog_yellow",
+      "zh": "遥控黄键 (Yellow)",
+      "kind": "label",
+      "constant": "KEYCODE_PROG_YELLOW",
+      "en": "Remote Yellow Key (Yellow)",
+      "ja": "リモコン黄キー (Yellow)"
+    },
+    {
+      "name": "keyevent_desc_keycode_prog_yellow",
+      "zh": "遥控器黄色快捷按键",
+      "kind": "desc",
+      "constant": "KEYCODE_PROG_YELLOW",
+      "en": "Remote control yellow shortcut button",
+      "ja": "リモコンの黄色ショートカットボタン"
+    },
+    {
+      "name": "keyevent_label_keycode_prog_blue",
+      "zh": "遥控蓝键 (Blue)",
+      "kind": "label",
+      "constant": "KEYCODE_PROG_BLUE",
+      "en": "Remote Blue Key (Blue)",
+      "ja": "リモコン青キー (Blue)"
+    },
+    {
+      "name": "keyevent_desc_keycode_prog_blue",
+      "zh": "遥控器蓝色快捷按键",
+      "kind": "desc",
+      "constant": "KEYCODE_PROG_BLUE",
+      "en": "Remote control blue shortcut button",
+      "ja": "リモコンの青色ショートカットボタン"
+    },
+    {
+      "name": "keyevent_label_keycode_button_a",
+      "zh": "手柄 A 键",
+      "kind": "label",
+      "constant": "KEYCODE_BUTTON_A",
+      "en": "Gamepad A Button",
+      "ja": "ゲームパッド A ボタン"
+    },
+    {
+      "name": "keyevent_desc_keycode_button_a",
+      "zh": "游戏手柄 A 确认键",
+      "kind": "desc",
+      "constant": "KEYCODE_BUTTON_A",
+      "en": "Gamepad A confirm button",
+      "ja": "ゲームパッドのA確認ボタン"
+    },
+    {
+      "name": "keyevent_label_keycode_button_b",
+      "zh": "手柄 B 键",
+      "kind": "label",
+      "constant": "KEYCODE_BUTTON_B",
+      "en": "Gamepad B Button",
+      "ja": "ゲームパッド B ボタン"
+    },
+    {
+      "name": "keyevent_desc_keycode_button_b",
+      "zh": "游戏手柄 B 取消/后退键",
+      "kind": "desc",
+      "constant": "KEYCODE_BUTTON_B",
+      "en": "Gamepad B cancel/back button",
+      "ja": "ゲームパッドのBキャンセル/戻るボタン"
+    },
+    {
+      "name": "keyevent_label_keycode_button_x",
+      "zh": "手柄 X 键",
+      "kind": "label",
+      "constant": "KEYCODE_BUTTON_X",
+      "en": "Gamepad X Button",
+      "ja": "ゲームパッド X ボタン"
+    },
+    {
+      "name": "keyevent_desc_keycode_button_x",
+      "zh": "游戏手柄 X 功能按键",
+      "kind": "desc",
+      "constant": "KEYCODE_BUTTON_X",
+      "en": "Gamepad X function button",
+      "ja": "ゲームパッドのX機能ボタン"
+    },
+    {
+      "name": "keyevent_label_keycode_button_y",
+      "zh": "手柄 Y 键",
+      "kind": "label",
+      "constant": "KEYCODE_BUTTON_Y",
+      "en": "Gamepad Y Button",
+      "ja": "ゲームパッド Y ボタン"
+    },
+    {
+      "name": "keyevent_desc_keycode_button_y",
+      "zh": "游戏手柄 Y 功能按键",
+      "kind": "desc",
+      "constant": "KEYCODE_BUTTON_Y",
+      "en": "Gamepad Y function button",
+      "ja": "ゲームパッドのY機能ボタン"
+    },
+    {
+      "name": "keyevent_label_keycode_button_c",
+      "zh": "手柄 C 键",
+      "kind": "label",
+      "constant": "KEYCODE_BUTTON_C",
+      "en": "Gamepad C Button",
+      "ja": "ゲームパッド C ボタン"
+    },
+    {
+      "name": "keyevent_desc_keycode_button_c",
+      "zh": "六键手柄 C 按键",
+      "kind": "desc",
+      "constant": "KEYCODE_BUTTON_C",
+      "en": "Six-button gamepad C button",
+      "ja": "6ボタンゲームパッドのCボタン"
+    },
+    {
+      "name": "keyevent_label_keycode_button_z",
+      "zh": "手柄 Z 键",
+      "kind": "label",
+      "constant": "KEYCODE_BUTTON_Z",
+      "en": "Gamepad Z Button",
+      "ja": "ゲームパッド Z ボタン"
+    },
+    {
+      "name": "keyevent_desc_keycode_button_z",
+      "zh": "六键手柄 Z 按键",
+      "kind": "desc",
+      "constant": "KEYCODE_BUTTON_Z",
+      "en": "Six-button gamepad Z button",
+      "ja": "6ボタンゲームパッドのZボタン"
+    },
+    {
+      "name": "keyevent_label_keycode_button_l1",
+      "zh": "手柄 L1 键",
+      "kind": "label",
+      "constant": "KEYCODE_BUTTON_L1",
+      "en": "Gamepad L1 Button",
+      "ja": "ゲームパッド L1 ボタン"
+    },
+    {
+      "name": "keyevent_desc_keycode_button_l1",
+      "zh": "游戏手柄左肩键 L1 (LB)",
+      "kind": "desc",
+      "constant": "KEYCODE_BUTTON_L1",
+      "en": "Gamepad left shoulder button L1 (LB)",
+      "ja": "ゲームパッド左ショルダーボタン L1 (LB)"
+    },
+    {
+      "name": "keyevent_label_keycode_button_r1",
+      "zh": "手柄 R1 键",
+      "kind": "label",
+      "constant": "KEYCODE_BUTTON_R1",
+      "en": "Gamepad R1 Button",
+      "ja": "ゲームパッド R1 ボタン"
+    },
+    {
+      "name": "keyevent_desc_keycode_button_r1",
+      "zh": "游戏手柄右肩键 R1 (RB)",
+      "kind": "desc",
+      "constant": "KEYCODE_BUTTON_R1",
+      "en": "Gamepad right shoulder button R1 (RB)",
+      "ja": "ゲームパッド右ショルダーボタン R1 (RB)"
+    },
+    {
+      "name": "keyevent_label_keycode_button_l2",
+      "zh": "手柄 L2 键",
+      "kind": "label",
+      "constant": "KEYCODE_BUTTON_L2",
+      "en": "Gamepad L2 Button",
+      "ja": "ゲームパッド L2 ボタン"
+    },
+    {
+      "name": "keyevent_desc_keycode_button_l2",
+      "zh": "游戏手柄左扳机键 L2 (LT)",
+      "kind": "desc",
+      "constant": "KEYCODE_BUTTON_L2",
+      "en": "Gamepad left trigger button L2 (LT)",
+      "ja": "ゲームパッド左トリガーボタン L2 (LT)"
+    },
+    {
+      "name": "keyevent_label_keycode_button_r2",
+      "zh": "手柄 R2 键",
+      "kind": "label",
+      "constant": "KEYCODE_BUTTON_R2",
+      "en": "Gamepad R2 Button",
+      "ja": "ゲームパッド R2 ボタン"
+    },
+    {
+      "name": "keyevent_desc_keycode_button_r2",
+      "zh": "游戏手柄右扳机键 R2 (RT)",
+      "kind": "desc",
+      "constant": "KEYCODE_BUTTON_R2",
+      "en": "Gamepad right trigger button R2 (RT)",
+      "ja": "ゲームパッド右トリガーボタン R2 (RT)"
+    },
+    {
+      "name": "keyevent_label_keycode_button_thumbl",
+      "zh": "左摇杆下压 (L3)",
+      "kind": "label",
+      "constant": "KEYCODE_BUTTON_THUMBL",
+      "en": "Left Stick Press (L3)",
+      "ja": "左スティック押し込み (L3)"
+    },
+    {
+      "name": "keyevent_desc_keycode_button_thumbl",
+      "zh": "游戏手柄左摇杆垂直下压按键 (L3)",
+      "kind": "desc",
+      "constant": "KEYCODE_BUTTON_THUMBL",
+      "en": "Gamepad left stick press button (L3)",
+      "ja": "ゲームパッド左スティック押し込みボタン (L3)"
+    },
+    {
+      "name": "keyevent_label_keycode_button_thumbr",
+      "zh": "右摇杆下压 (R3)",
+      "kind": "label",
+      "constant": "KEYCODE_BUTTON_THUMBR",
+      "en": "Right Stick Press (R3)",
+      "ja": "右スティック押し込み (R3)"
+    },
+    {
+      "name": "keyevent_desc_keycode_button_thumbr",
+      "zh": "游戏手柄右摇杆垂直下压按键 (R3)",
+      "kind": "desc",
+      "constant": "KEYCODE_BUTTON_THUMBR",
+      "en": "Gamepad right stick press button (R3)",
+      "ja": "ゲームパッド右スティック押し込みボタン (R3)"
+    },
+    {
+      "name": "keyevent_label_keycode_button_start",
+      "zh": "手柄 Start 键",
+      "kind": "label",
+      "constant": "KEYCODE_BUTTON_START",
+      "en": "Gamepad Start Button",
+      "ja": "ゲームパッド Start ボタン"
+    },
+    {
+      "name": "keyevent_desc_keycode_button_start",
+      "zh": "游戏手柄 Start 开始/暂停键",
+      "kind": "desc",
+      "constant": "KEYCODE_BUTTON_START",
+      "en": "Gamepad Start begin/pause button",
+      "ja": "ゲームパッドのStart開始/一時停止ボタン"
+    },
+    {
+      "name": "keyevent_label_keycode_button_select",
+      "zh": "手柄 Select 键",
+      "kind": "label",
+      "constant": "KEYCODE_BUTTON_SELECT",
+      "en": "Gamepad Select Button",
+      "ja": "ゲームパッド Select ボタン"
+    },
+    {
+      "name": "keyevent_desc_keycode_button_select",
+      "zh": "游戏手柄 Select / Back 选择键",
+      "kind": "desc",
+      "constant": "KEYCODE_BUTTON_SELECT",
+      "en": "Gamepad Select / Back button",
+      "ja": "ゲームパッドのSelect / Back ボタン"
+    },
+    {
+      "name": "keyevent_label_keycode_button_mode",
+      "zh": "手柄 Mode 键 (Guide)",
+      "kind": "label",
+      "constant": "KEYCODE_BUTTON_MODE",
+      "en": "Gamepad Mode Key (Guide)",
+      "ja": "ゲームパッド Mode キー (Guide)"
+    },
+    {
+      "name": "keyevent_desc_keycode_button_mode",
+      "zh": "游戏手柄中间西瓜键 / Mode 模式键",
+      "kind": "desc",
+      "constant": "KEYCODE_BUTTON_MODE",
+      "en": "Gamepad center Guide / Mode button",
+      "ja": "ゲームパッド中央のGuide / Mode ボタン"
+    },
+    {
+      "name": "keyevent_label_keycode_f1",
+      "zh": "F1 功能键",
+      "kind": "label",
+      "constant": "KEYCODE_F1",
+      "en": "F1 Function Key",
+      "ja": "F1 ファンクションキー"
+    },
+    {
+      "name": "keyevent_desc_keycode_f1",
+      "zh": "键盘标准 F1 功能键",
+      "kind": "desc",
+      "constant": "KEYCODE_F1",
+      "en": "Standard keyboard F1 function key",
+      "ja": "キーボード標準のF1ファンクションキー"
+    },
+    {
+      "name": "keyevent_label_keycode_f2",
+      "zh": "F2 功能键",
+      "kind": "label",
+      "constant": "KEYCODE_F2",
+      "en": "F2 Function Key",
+      "ja": "F2 ファンクションキー"
+    },
+    {
+      "name": "keyevent_desc_keycode_f2",
+      "zh": "键盘标准 F2 功能键 (重命名等)",
+      "kind": "desc",
+      "constant": "KEYCODE_F2",
+      "en": "Standard keyboard F2 function key (rename, etc.)",
+      "ja": "キーボード標準のF2ファンクションキー（名前の変更など）"
+    },
+    {
+      "name": "keyevent_label_keycode_f3",
+      "zh": "F3 功能键",
+      "kind": "label",
+      "constant": "KEYCODE_F3",
+      "en": "F3 Function Key",
+      "ja": "F3 ファンクションキー"
+    },
+    {
+      "name": "keyevent_desc_keycode_f3",
+      "zh": "键盘标准 F3 功能键 (查找下一个等)",
+      "kind": "desc",
+      "constant": "KEYCODE_F3",
+      "en": "Standard keyboard F3 function key (find next, etc.)",
+      "ja": "キーボード標準のF3ファンクションキー（次を検索など）"
+    },
+    {
+      "name": "keyevent_label_keycode_f4",
+      "zh": "F4 功能键",
+      "kind": "label",
+      "constant": "KEYCODE_F4",
+      "en": "F4 Function Key",
+      "ja": "F4 ファンクションキー"
+    },
+    {
+      "name": "keyevent_desc_keycode_f4",
+      "zh": "键盘标准 F4 功能键",
+      "kind": "desc",
+      "constant": "KEYCODE_F4",
+      "en": "Standard keyboard F4 function key",
+      "ja": "キーボード標準のF4ファンクションキー"
+    },
+    {
+      "name": "keyevent_label_keycode_f5",
+      "zh": "F5 功能键 (刷新)",
+      "kind": "label",
+      "constant": "KEYCODE_F5",
+      "en": "F5 Function Key (Refresh)",
+      "ja": "F5 ファンクションキー (Refresh)"
+    },
+    {
+      "name": "keyevent_desc_keycode_f5",
+      "zh": "键盘标准 F5 功能键 (刷新)",
+      "kind": "desc",
+      "constant": "KEYCODE_F5",
+      "en": "Standard keyboard F5 function key (refresh)",
+      "ja": "キーボード標準のF5ファンクションキー (Refresh)"
+    },
+    {
+      "name": "keyevent_label_keycode_f6",
+      "zh": "F6 功能键",
+      "kind": "label",
+      "constant": "KEYCODE_F6",
+      "en": "F6 Function Key",
+      "ja": "F6 ファンクションキー"
+    },
+    {
+      "name": "keyevent_desc_keycode_f6",
+      "zh": "键盘标准 F6 功能键",
+      "kind": "desc",
+      "constant": "KEYCODE_F6",
+      "en": "Standard keyboard F6 function key",
+      "ja": "キーボード標準のF6ファンクションキー"
+    },
+    {
+      "name": "keyevent_label_keycode_f7",
+      "zh": "F7 功能键",
+      "kind": "label",
+      "constant": "KEYCODE_F7",
+      "en": "F7 Function Key",
+      "ja": "F7 ファンクションキー"
+    },
+    {
+      "name": "keyevent_desc_keycode_f7",
+      "zh": "键盘标准 F7 功能键",
+      "kind": "desc",
+      "constant": "KEYCODE_F7",
+      "en": "Standard keyboard F7 function key",
+      "ja": "キーボード標準のF7ファンクションキー"
+    },
+    {
+      "name": "keyevent_label_keycode_f8",
+      "zh": "F8 功能键",
+      "kind": "label",
+      "constant": "KEYCODE_F8",
+      "en": "F8 Function Key",
+      "ja": "F8 ファンクションキー"
+    },
+    {
+      "name": "keyevent_desc_keycode_f8",
+      "zh": "键盘标准 F8 功能键",
+      "kind": "desc",
+      "constant": "KEYCODE_F8",
+      "en": "Standard keyboard F8 function key",
+      "ja": "キーボード標準のF8ファンクションキー"
+    },
+    {
+      "name": "keyevent_label_keycode_f9",
+      "zh": "F9 功能键",
+      "kind": "label",
+      "constant": "KEYCODE_F9",
+      "en": "F9 Function Key",
+      "ja": "F9 ファンクションキー"
+    },
+    {
+      "name": "keyevent_desc_keycode_f9",
+      "zh": "键盘标准 F9 功能键",
+      "kind": "desc",
+      "constant": "KEYCODE_F9",
+      "en": "Standard keyboard F9 function key",
+      "ja": "キーボード標準のF9ファンクションキー"
+    },
+    {
+      "name": "keyevent_label_keycode_f10",
+      "zh": "F10 功能键",
+      "kind": "label",
+      "constant": "KEYCODE_F10",
+      "en": "F10 Function Key",
+      "ja": "F10 ファンクションキー"
+    },
+    {
+      "name": "keyevent_desc_keycode_f10",
+      "zh": "键盘标准 F10 功能键",
+      "kind": "desc",
+      "constant": "KEYCODE_F10",
+      "en": "Standard keyboard F10 function key",
+      "ja": "キーボード標準のF10ファンクションキー"
+    },
+    {
+      "name": "keyevent_label_keycode_f11",
+      "zh": "F11 功能键 (全屏)",
+      "kind": "label",
+      "constant": "KEYCODE_F11",
+      "en": "F11 Function Key (Fullscreen)",
+      "ja": "F11 ファンクションキー (Fullscreen)"
+    },
+    {
+      "name": "keyevent_desc_keycode_f11",
+      "zh": "键盘标准 F11 功能键 (全屏切换)",
+      "kind": "desc",
+      "constant": "KEYCODE_F11",
+      "en": "Standard keyboard F11 function key (toggle fullscreen)",
+      "ja": "キーボード標準のF11ファンクションキー (Fullscreen切り替え)"
+    },
+    {
+      "name": "keyevent_label_keycode_f12",
+      "zh": "F12 功能键 (开发者工具)",
+      "kind": "label",
+      "constant": "KEYCODE_F12",
+      "en": "F12 Function Key (Developer Tools)",
+      "ja": "F12 ファンクションキー (Developer Tools)"
+    },
+    {
+      "name": "keyevent_desc_keycode_f12",
+      "zh": "键盘标准 F12 功能键 (开发者工具/另存为)",
+      "kind": "desc",
+      "constant": "KEYCODE_F12",
+      "en": "Standard keyboard F12 function key (developer tools / save as)",
+      "ja": "キーボード標準のF12ファンクションキー (Developer Tools / 名前を付けて保存)"
+    }
+  ],
+  "items": [
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_MENU",
+      "constantName": "KEYCODE_MENU",
+      "category": "SYSTEM",
+      "labelRes": "keyevent_label_keycode_menu",
+      "descRes": "keyevent_desc_keycode_menu"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_APP_SWITCH",
+      "constantName": "KEYCODE_APP_SWITCH",
+      "category": "SYSTEM",
+      "labelRes": "keyevent_label_keycode_app_switch",
+      "descRes": "keyevent_desc_keycode_app_switch"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_HOME",
+      "constantName": "KEYCODE_HOME",
+      "category": "SYSTEM",
+      "labelRes": "keyevent_label_keycode_home",
+      "descRes": "keyevent_desc_keycode_home"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_BACK",
+      "constantName": "KEYCODE_BACK",
+      "category": "SYSTEM",
+      "labelRes": "keyevent_label_keycode_back",
+      "descRes": "keyevent_desc_keycode_back"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_POWER",
+      "constantName": "KEYCODE_POWER",
+      "category": "SYSTEM",
+      "labelRes": "keyevent_label_keycode_power",
+      "descRes": "keyevent_desc_keycode_power"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_SLEEP",
+      "constantName": "KEYCODE_SLEEP",
+      "category": "SYSTEM",
+      "labelRes": "keyevent_label_keycode_sleep",
+      "descRes": "keyevent_desc_keycode_sleep"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_WAKEUP",
+      "constantName": "KEYCODE_WAKEUP",
+      "category": "SYSTEM",
+      "labelRes": "keyevent_label_keycode_wakeup",
+      "descRes": "keyevent_desc_keycode_wakeup"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_SOFT_SLEEP",
+      "constantName": "KEYCODE_SOFT_SLEEP",
+      "category": "SYSTEM",
+      "labelRes": "keyevent_label_keycode_soft_sleep",
+      "descRes": "keyevent_desc_keycode_soft_sleep"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_NOTIFICATION",
+      "constantName": "KEYCODE_NOTIFICATION",
+      "category": "SYSTEM",
+      "labelRes": "keyevent_label_keycode_notification",
+      "descRes": "keyevent_desc_keycode_notification"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_SETTINGS",
+      "constantName": "KEYCODE_SETTINGS",
+      "category": "SYSTEM",
+      "labelRes": "keyevent_label_keycode_settings",
+      "descRes": "keyevent_desc_keycode_settings"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_SEARCH",
+      "constantName": "KEYCODE_SEARCH",
+      "category": "SYSTEM",
+      "labelRes": "keyevent_label_keycode_search",
+      "descRes": "keyevent_desc_keycode_search"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_VOICE_ASSIST",
+      "constantName": "KEYCODE_VOICE_ASSIST",
+      "category": "SYSTEM",
+      "labelRes": "keyevent_label_keycode_voice_assist",
+      "descRes": "keyevent_desc_keycode_voice_assist"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_SYSRQ",
+      "constantName": "KEYCODE_SYSRQ",
+      "category": "SYSTEM",
+      "labelRes": "keyevent_label_keycode_sysrq",
+      "descRes": "keyevent_desc_keycode_sysrq"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_ALL_APPS",
+      "constantName": "KEYCODE_ALL_APPS",
+      "category": "SYSTEM",
+      "labelRes": "keyevent_label_keycode_all_apps",
+      "descRes": "keyevent_desc_keycode_all_apps"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_WINDOW",
+      "constantName": "KEYCODE_WINDOW",
+      "category": "SYSTEM",
+      "labelRes": "keyevent_label_keycode_window",
+      "descRes": "keyevent_desc_keycode_window"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_VOLUME_UP",
+      "constantName": "KEYCODE_VOLUME_UP",
+      "category": "MEDIA",
+      "labelRes": "keyevent_label_keycode_volume_up",
+      "descRes": "keyevent_desc_keycode_volume_up"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_VOLUME_DOWN",
+      "constantName": "KEYCODE_VOLUME_DOWN",
+      "category": "MEDIA",
+      "labelRes": "keyevent_label_keycode_volume_down",
+      "descRes": "keyevent_desc_keycode_volume_down"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_VOLUME_MUTE",
+      "constantName": "KEYCODE_VOLUME_MUTE",
+      "category": "MEDIA",
+      "labelRes": "keyevent_label_keycode_volume_mute",
+      "descRes": "keyevent_desc_keycode_volume_mute"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_MUTE",
+      "constantName": "KEYCODE_MUTE",
+      "category": "MEDIA",
+      "labelRes": "keyevent_label_keycode_mute",
+      "descRes": "keyevent_desc_keycode_mute"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE",
+      "constantName": "KEYCODE_MEDIA_PLAY_PAUSE",
+      "category": "MEDIA",
+      "labelRes": "keyevent_label_keycode_media_play_pause",
+      "descRes": "keyevent_desc_keycode_media_play_pause"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_MEDIA_PLAY",
+      "constantName": "KEYCODE_MEDIA_PLAY",
+      "category": "MEDIA",
+      "labelRes": "keyevent_label_keycode_media_play",
+      "descRes": "keyevent_desc_keycode_media_play"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_MEDIA_PAUSE",
+      "constantName": "KEYCODE_MEDIA_PAUSE",
+      "category": "MEDIA",
+      "labelRes": "keyevent_label_keycode_media_pause",
+      "descRes": "keyevent_desc_keycode_media_pause"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_MEDIA_NEXT",
+      "constantName": "KEYCODE_MEDIA_NEXT",
+      "category": "MEDIA",
+      "labelRes": "keyevent_label_keycode_media_next",
+      "descRes": "keyevent_desc_keycode_media_next"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_MEDIA_PREVIOUS",
+      "constantName": "KEYCODE_MEDIA_PREVIOUS",
+      "category": "MEDIA",
+      "labelRes": "keyevent_label_keycode_media_previous",
+      "descRes": "keyevent_desc_keycode_media_previous"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_MEDIA_FAST_FORWARD",
+      "constantName": "KEYCODE_MEDIA_FAST_FORWARD",
+      "category": "MEDIA",
+      "labelRes": "keyevent_label_keycode_media_fast_forward",
+      "descRes": "keyevent_desc_keycode_media_fast_forward"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_MEDIA_REWIND",
+      "constantName": "KEYCODE_MEDIA_REWIND",
+      "category": "MEDIA",
+      "labelRes": "keyevent_label_keycode_media_rewind",
+      "descRes": "keyevent_desc_keycode_media_rewind"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_MEDIA_STOP",
+      "constantName": "KEYCODE_MEDIA_STOP",
+      "category": "MEDIA",
+      "labelRes": "keyevent_label_keycode_media_stop",
+      "descRes": "keyevent_desc_keycode_media_stop"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_MEDIA_AUDIO_TRACK",
+      "constantName": "KEYCODE_MEDIA_AUDIO_TRACK",
+      "category": "MEDIA",
+      "labelRes": "keyevent_label_keycode_media_audio_track",
+      "descRes": "keyevent_desc_keycode_media_audio_track"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_MEDIA_EJECT",
+      "constantName": "KEYCODE_MEDIA_EJECT",
+      "category": "MEDIA",
+      "labelRes": "keyevent_label_keycode_media_eject",
+      "descRes": "keyevent_desc_keycode_media_eject"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_MEDIA_RECORD",
+      "constantName": "KEYCODE_MEDIA_RECORD",
+      "category": "MEDIA",
+      "labelRes": "keyevent_label_keycode_media_record",
+      "descRes": "keyevent_desc_keycode_media_record"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_HEADSETHOOK",
+      "constantName": "KEYCODE_HEADSETHOOK",
+      "category": "MEDIA",
+      "labelRes": "keyevent_label_keycode_headsethook",
+      "descRes": "keyevent_desc_keycode_headsethook"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_BACK",
+      "constantName": "KEYCODE_BACK",
+      "category": "NAVIGATION",
+      "labelRes": "keyevent_label_keycode_back",
+      "descRes": "keyevent_desc_keycode_back"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_FORWARD",
+      "constantName": "KEYCODE_FORWARD",
+      "category": "NAVIGATION",
+      "labelRes": "keyevent_label_keycode_forward",
+      "descRes": "keyevent_desc_keycode_forward"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_REFRESH",
+      "constantName": "KEYCODE_REFRESH",
+      "category": "NAVIGATION",
+      "labelRes": "keyevent_label_keycode_refresh",
+      "descRes": "keyevent_desc_keycode_refresh"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_BOOKMARK",
+      "constantName": "KEYCODE_BOOKMARK",
+      "category": "NAVIGATION",
+      "labelRes": "keyevent_label_keycode_bookmark",
+      "descRes": "keyevent_desc_keycode_bookmark"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_ZOOM_IN",
+      "constantName": "KEYCODE_ZOOM_IN",
+      "category": "NAVIGATION",
+      "labelRes": "keyevent_label_keycode_zoom_in",
+      "descRes": "keyevent_desc_keycode_zoom_in"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_ZOOM_OUT",
+      "constantName": "KEYCODE_ZOOM_OUT",
+      "category": "NAVIGATION",
+      "labelRes": "keyevent_label_keycode_zoom_out",
+      "descRes": "keyevent_desc_keycode_zoom_out"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_DPAD_UP",
+      "constantName": "KEYCODE_DPAD_UP",
+      "category": "NAVIGATION",
+      "labelRes": "keyevent_label_keycode_dpad_up",
+      "descRes": "keyevent_desc_keycode_dpad_up"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_DPAD_DOWN",
+      "constantName": "KEYCODE_DPAD_DOWN",
+      "category": "NAVIGATION",
+      "labelRes": "keyevent_label_keycode_dpad_down",
+      "descRes": "keyevent_desc_keycode_dpad_down"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_DPAD_LEFT",
+      "constantName": "KEYCODE_DPAD_LEFT",
+      "category": "NAVIGATION",
+      "labelRes": "keyevent_label_keycode_dpad_left",
+      "descRes": "keyevent_desc_keycode_dpad_left"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_DPAD_RIGHT",
+      "constantName": "KEYCODE_DPAD_RIGHT",
+      "category": "NAVIGATION",
+      "labelRes": "keyevent_label_keycode_dpad_right",
+      "descRes": "keyevent_desc_keycode_dpad_right"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_DPAD_CENTER",
+      "constantName": "KEYCODE_DPAD_CENTER",
+      "category": "NAVIGATION",
+      "labelRes": "keyevent_label_keycode_dpad_center",
+      "descRes": "keyevent_desc_keycode_dpad_center"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_PAGE_UP",
+      "constantName": "KEYCODE_PAGE_UP",
+      "category": "NAVIGATION",
+      "labelRes": "keyevent_label_keycode_page_up",
+      "descRes": "keyevent_desc_keycode_page_up"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_PAGE_DOWN",
+      "constantName": "KEYCODE_PAGE_DOWN",
+      "category": "NAVIGATION",
+      "labelRes": "keyevent_label_keycode_page_down",
+      "descRes": "keyevent_desc_keycode_page_down"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_MOVE_HOME",
+      "constantName": "KEYCODE_MOVE_HOME",
+      "category": "NAVIGATION",
+      "labelRes": "keyevent_label_keycode_move_home",
+      "descRes": "keyevent_desc_keycode_move_home"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_MOVE_END",
+      "constantName": "KEYCODE_MOVE_END",
+      "category": "NAVIGATION",
+      "labelRes": "keyevent_label_keycode_move_end",
+      "descRes": "keyevent_desc_keycode_move_end"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_ENTER",
+      "constantName": "KEYCODE_ENTER",
+      "category": "INPUT_EDIT",
+      "labelRes": "keyevent_label_keycode_enter",
+      "descRes": "keyevent_desc_keycode_enter"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_NUMPAD_ENTER",
+      "constantName": "KEYCODE_NUMPAD_ENTER",
+      "category": "INPUT_EDIT",
+      "labelRes": "keyevent_label_keycode_numpad_enter",
+      "descRes": "keyevent_desc_keycode_numpad_enter"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_TAB",
+      "constantName": "KEYCODE_TAB",
+      "category": "INPUT_EDIT",
+      "labelRes": "keyevent_label_keycode_tab",
+      "descRes": "keyevent_desc_keycode_tab"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_SPACE",
+      "constantName": "KEYCODE_SPACE",
+      "category": "INPUT_EDIT",
+      "labelRes": "keyevent_label_keycode_space",
+      "descRes": "keyevent_desc_keycode_space"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_DEL",
+      "constantName": "KEYCODE_DEL",
+      "category": "INPUT_EDIT",
+      "labelRes": "keyevent_label_keycode_del",
+      "descRes": "keyevent_desc_keycode_del"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_FORWARD_DEL",
+      "constantName": "KEYCODE_FORWARD_DEL",
+      "category": "INPUT_EDIT",
+      "labelRes": "keyevent_label_keycode_forward_del",
+      "descRes": "keyevent_desc_keycode_forward_del"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_CLEAR",
+      "constantName": "KEYCODE_CLEAR",
+      "category": "INPUT_EDIT",
+      "labelRes": "keyevent_label_keycode_clear",
+      "descRes": "keyevent_desc_keycode_clear"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_INSERT",
+      "constantName": "KEYCODE_INSERT",
+      "category": "INPUT_EDIT",
+      "labelRes": "keyevent_label_keycode_insert",
+      "descRes": "keyevent_desc_keycode_insert"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_CAPS_LOCK",
+      "constantName": "KEYCODE_CAPS_LOCK",
+      "category": "INPUT_EDIT",
+      "labelRes": "keyevent_label_keycode_caps_lock",
+      "descRes": "keyevent_desc_keycode_caps_lock"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_SCROLL_LOCK",
+      "constantName": "KEYCODE_SCROLL_LOCK",
+      "category": "INPUT_EDIT",
+      "labelRes": "keyevent_label_keycode_scroll_lock",
+      "descRes": "keyevent_desc_keycode_scroll_lock"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_NUM_LOCK",
+      "constantName": "KEYCODE_NUM_LOCK",
+      "category": "INPUT_EDIT",
+      "labelRes": "keyevent_label_keycode_num_lock",
+      "descRes": "keyevent_desc_keycode_num_lock"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_LANGUAGE_SWITCH",
+      "constantName": "KEYCODE_LANGUAGE_SWITCH",
+      "category": "INPUT_EDIT",
+      "labelRes": "keyevent_label_keycode_language_switch",
+      "descRes": "keyevent_desc_keycode_language_switch"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_ESCAPE",
+      "constantName": "KEYCODE_ESCAPE",
+      "category": "INPUT_EDIT",
+      "labelRes": "keyevent_label_keycode_escape",
+      "descRes": "keyevent_desc_keycode_escape"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_CAMERA",
+      "constantName": "KEYCODE_CAMERA",
+      "category": "HARDWARE",
+      "labelRes": "keyevent_label_keycode_camera",
+      "descRes": "keyevent_desc_keycode_camera"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_FOCUS",
+      "constantName": "KEYCODE_FOCUS",
+      "category": "HARDWARE",
+      "labelRes": "keyevent_label_keycode_focus",
+      "descRes": "keyevent_desc_keycode_focus"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_CALL",
+      "constantName": "KEYCODE_CALL",
+      "category": "HARDWARE",
+      "labelRes": "keyevent_label_keycode_call",
+      "descRes": "keyevent_desc_keycode_call"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_ENDCALL",
+      "constantName": "KEYCODE_ENDCALL",
+      "category": "HARDWARE",
+      "labelRes": "keyevent_label_keycode_endcall",
+      "descRes": "keyevent_desc_keycode_endcall"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_BRIGHTNESS_UP",
+      "constantName": "KEYCODE_BRIGHTNESS_UP",
+      "category": "HARDWARE",
+      "labelRes": "keyevent_label_keycode_brightness_up",
+      "descRes": "keyevent_desc_keycode_brightness_up"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_BRIGHTNESS_DOWN",
+      "constantName": "KEYCODE_BRIGHTNESS_DOWN",
+      "category": "HARDWARE",
+      "labelRes": "keyevent_label_keycode_brightness_down",
+      "descRes": "keyevent_desc_keycode_brightness_down"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_CALCULATOR",
+      "constantName": "KEYCODE_CALCULATOR",
+      "category": "HARDWARE",
+      "labelRes": "keyevent_label_keycode_calculator",
+      "descRes": "keyevent_desc_keycode_calculator"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_CALENDAR",
+      "constantName": "KEYCODE_CALENDAR",
+      "category": "HARDWARE",
+      "labelRes": "keyevent_label_keycode_calendar",
+      "descRes": "keyevent_desc_keycode_calendar"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_MUSIC",
+      "constantName": "KEYCODE_MUSIC",
+      "category": "HARDWARE",
+      "labelRes": "keyevent_label_keycode_music",
+      "descRes": "keyevent_desc_keycode_music"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_ENVELOPE",
+      "constantName": "KEYCODE_ENVELOPE",
+      "category": "HARDWARE",
+      "labelRes": "keyevent_label_keycode_envelope",
+      "descRes": "keyevent_desc_keycode_envelope"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_CONTACTS",
+      "constantName": "KEYCODE_CONTACTS",
+      "category": "HARDWARE",
+      "labelRes": "keyevent_label_keycode_contacts",
+      "descRes": "keyevent_desc_keycode_contacts"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_EXPLORER",
+      "constantName": "KEYCODE_EXPLORER",
+      "category": "HARDWARE",
+      "labelRes": "keyevent_label_keycode_explorer",
+      "descRes": "keyevent_desc_keycode_explorer"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_HELP",
+      "constantName": "KEYCODE_HELP",
+      "category": "HARDWARE",
+      "labelRes": "keyevent_label_keycode_help",
+      "descRes": "keyevent_desc_keycode_help"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_TV_POWER",
+      "constantName": "KEYCODE_TV_POWER",
+      "category": "TV_REMOTE",
+      "labelRes": "keyevent_label_keycode_tv_power",
+      "descRes": "keyevent_desc_keycode_tv_power"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_TV_INPUT",
+      "constantName": "KEYCODE_TV_INPUT",
+      "category": "TV_REMOTE",
+      "labelRes": "keyevent_label_keycode_tv_input",
+      "descRes": "keyevent_desc_keycode_tv_input"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_CHANNEL_UP",
+      "constantName": "KEYCODE_CHANNEL_UP",
+      "category": "TV_REMOTE",
+      "labelRes": "keyevent_label_keycode_channel_up",
+      "descRes": "keyevent_desc_keycode_channel_up"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_CHANNEL_DOWN",
+      "constantName": "KEYCODE_CHANNEL_DOWN",
+      "category": "TV_REMOTE",
+      "labelRes": "keyevent_label_keycode_channel_down",
+      "descRes": "keyevent_desc_keycode_channel_down"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_LAST_CHANNEL",
+      "constantName": "KEYCODE_LAST_CHANNEL",
+      "category": "TV_REMOTE",
+      "labelRes": "keyevent_label_keycode_last_channel",
+      "descRes": "keyevent_desc_keycode_last_channel"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_GUIDE",
+      "constantName": "KEYCODE_GUIDE",
+      "category": "TV_REMOTE",
+      "labelRes": "keyevent_label_keycode_guide",
+      "descRes": "keyevent_desc_keycode_guide"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_INFO",
+      "constantName": "KEYCODE_INFO",
+      "category": "TV_REMOTE",
+      "labelRes": "keyevent_label_keycode_info",
+      "descRes": "keyevent_desc_keycode_info"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_PROG_RED",
+      "constantName": "KEYCODE_PROG_RED",
+      "category": "TV_REMOTE",
+      "labelRes": "keyevent_label_keycode_prog_red",
+      "descRes": "keyevent_desc_keycode_prog_red"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_PROG_GREEN",
+      "constantName": "KEYCODE_PROG_GREEN",
+      "category": "TV_REMOTE",
+      "labelRes": "keyevent_label_keycode_prog_green",
+      "descRes": "keyevent_desc_keycode_prog_green"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_PROG_YELLOW",
+      "constantName": "KEYCODE_PROG_YELLOW",
+      "category": "TV_REMOTE",
+      "labelRes": "keyevent_label_keycode_prog_yellow",
+      "descRes": "keyevent_desc_keycode_prog_yellow"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_PROG_BLUE",
+      "constantName": "KEYCODE_PROG_BLUE",
+      "category": "TV_REMOTE",
+      "labelRes": "keyevent_label_keycode_prog_blue",
+      "descRes": "keyevent_desc_keycode_prog_blue"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_BUTTON_A",
+      "constantName": "KEYCODE_BUTTON_A",
+      "category": "GAMEPAD",
+      "labelRes": "keyevent_label_keycode_button_a",
+      "descRes": "keyevent_desc_keycode_button_a"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_BUTTON_B",
+      "constantName": "KEYCODE_BUTTON_B",
+      "category": "GAMEPAD",
+      "labelRes": "keyevent_label_keycode_button_b",
+      "descRes": "keyevent_desc_keycode_button_b"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_BUTTON_X",
+      "constantName": "KEYCODE_BUTTON_X",
+      "category": "GAMEPAD",
+      "labelRes": "keyevent_label_keycode_button_x",
+      "descRes": "keyevent_desc_keycode_button_x"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_BUTTON_Y",
+      "constantName": "KEYCODE_BUTTON_Y",
+      "category": "GAMEPAD",
+      "labelRes": "keyevent_label_keycode_button_y",
+      "descRes": "keyevent_desc_keycode_button_y"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_BUTTON_C",
+      "constantName": "KEYCODE_BUTTON_C",
+      "category": "GAMEPAD",
+      "labelRes": "keyevent_label_keycode_button_c",
+      "descRes": "keyevent_desc_keycode_button_c"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_BUTTON_Z",
+      "constantName": "KEYCODE_BUTTON_Z",
+      "category": "GAMEPAD",
+      "labelRes": "keyevent_label_keycode_button_z",
+      "descRes": "keyevent_desc_keycode_button_z"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_BUTTON_L1",
+      "constantName": "KEYCODE_BUTTON_L1",
+      "category": "GAMEPAD",
+      "labelRes": "keyevent_label_keycode_button_l1",
+      "descRes": "keyevent_desc_keycode_button_l1"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_BUTTON_R1",
+      "constantName": "KEYCODE_BUTTON_R1",
+      "category": "GAMEPAD",
+      "labelRes": "keyevent_label_keycode_button_r1",
+      "descRes": "keyevent_desc_keycode_button_r1"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_BUTTON_L2",
+      "constantName": "KEYCODE_BUTTON_L2",
+      "category": "GAMEPAD",
+      "labelRes": "keyevent_label_keycode_button_l2",
+      "descRes": "keyevent_desc_keycode_button_l2"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_BUTTON_R2",
+      "constantName": "KEYCODE_BUTTON_R2",
+      "category": "GAMEPAD",
+      "labelRes": "keyevent_label_keycode_button_r2",
+      "descRes": "keyevent_desc_keycode_button_r2"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_BUTTON_THUMBL",
+      "constantName": "KEYCODE_BUTTON_THUMBL",
+      "category": "GAMEPAD",
+      "labelRes": "keyevent_label_keycode_button_thumbl",
+      "descRes": "keyevent_desc_keycode_button_thumbl"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_BUTTON_THUMBR",
+      "constantName": "KEYCODE_BUTTON_THUMBR",
+      "category": "GAMEPAD",
+      "labelRes": "keyevent_label_keycode_button_thumbr",
+      "descRes": "keyevent_desc_keycode_button_thumbr"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_BUTTON_START",
+      "constantName": "KEYCODE_BUTTON_START",
+      "category": "GAMEPAD",
+      "labelRes": "keyevent_label_keycode_button_start",
+      "descRes": "keyevent_desc_keycode_button_start"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_BUTTON_SELECT",
+      "constantName": "KEYCODE_BUTTON_SELECT",
+      "category": "GAMEPAD",
+      "labelRes": "keyevent_label_keycode_button_select",
+      "descRes": "keyevent_desc_keycode_button_select"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_BUTTON_MODE",
+      "constantName": "KEYCODE_BUTTON_MODE",
+      "category": "GAMEPAD",
+      "labelRes": "keyevent_label_keycode_button_mode",
+      "descRes": "keyevent_desc_keycode_button_mode"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_F1",
+      "constantName": "KEYCODE_F1",
+      "category": "FUNCTION_KEYS",
+      "labelRes": "keyevent_label_keycode_f1",
+      "descRes": "keyevent_desc_keycode_f1"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_F2",
+      "constantName": "KEYCODE_F2",
+      "category": "FUNCTION_KEYS",
+      "labelRes": "keyevent_label_keycode_f2",
+      "descRes": "keyevent_desc_keycode_f2"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_F3",
+      "constantName": "KEYCODE_F3",
+      "category": "FUNCTION_KEYS",
+      "labelRes": "keyevent_label_keycode_f3",
+      "descRes": "keyevent_desc_keycode_f3"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_F4",
+      "constantName": "KEYCODE_F4",
+      "category": "FUNCTION_KEYS",
+      "labelRes": "keyevent_label_keycode_f4",
+      "descRes": "keyevent_desc_keycode_f4"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_F5",
+      "constantName": "KEYCODE_F5",
+      "category": "FUNCTION_KEYS",
+      "labelRes": "keyevent_label_keycode_f5",
+      "descRes": "keyevent_desc_keycode_f5"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_F6",
+      "constantName": "KEYCODE_F6",
+      "category": "FUNCTION_KEYS",
+      "labelRes": "keyevent_label_keycode_f6",
+      "descRes": "keyevent_desc_keycode_f6"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_F7",
+      "constantName": "KEYCODE_F7",
+      "category": "FUNCTION_KEYS",
+      "labelRes": "keyevent_label_keycode_f7",
+      "descRes": "keyevent_desc_keycode_f7"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_F8",
+      "constantName": "KEYCODE_F8",
+      "category": "FUNCTION_KEYS",
+      "labelRes": "keyevent_label_keycode_f8",
+      "descRes": "keyevent_desc_keycode_f8"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_F9",
+      "constantName": "KEYCODE_F9",
+      "category": "FUNCTION_KEYS",
+      "labelRes": "keyevent_label_keycode_f9",
+      "descRes": "keyevent_desc_keycode_f9"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_F10",
+      "constantName": "KEYCODE_F10",
+      "category": "FUNCTION_KEYS",
+      "labelRes": "keyevent_label_keycode_f10",
+      "descRes": "keyevent_desc_keycode_f10"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_F11",
+      "constantName": "KEYCODE_F11",
+      "category": "FUNCTION_KEYS",
+      "labelRes": "keyevent_label_keycode_f11",
+      "descRes": "keyevent_desc_keycode_f11"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_F12",
+      "constantName": "KEYCODE_F12",
+      "category": "FUNCTION_KEYS",
+      "labelRes": "keyevent_label_keycode_f12",
+      "descRes": "keyevent_desc_keycode_f12"
+    }
+  ]
+}

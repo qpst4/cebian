@@ -6,6 +6,7 @@ import java.net.URL
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import java.util.Locale
 
 /** One section of in-app update notes: an optional title (e.g. 新增 / 变更 / 修复) plus items. */
 data class UpdateNotesGroup(
@@ -141,7 +142,7 @@ object UpdateChecker {
 
     /** Renders notes as plain text: grouped notes keep their titles and restart numbering per
      * group; legacy flat notes render as a single numbered list. */
-    fun formatNotesForDisplay(notes: String): String {
+    fun formatNotesForDisplay(notes: String, locale: Locale = Locale.getDefault()): String {
         if (notes.isBlank()) return notes
         val builder = StringBuilder()
         parseUpdateNotes(notes).forEachIndexed { groupIndex, group ->
@@ -152,10 +153,17 @@ object UpdateChecker {
             }
             group.items.forEachIndexed { index, item ->
                 if (index > 0) builder.append('\n')
-                builder.append(chineseOrdinal(index + 1)).append('、').append(item)
+                builder.append(listItemPrefix(index + 1, locale)).append(item)
             }
         }
         return builder.toString()
+    }
+
+    fun listItemPrefix(number: Int, locale: Locale = Locale.getDefault()): String {
+        if (locale.language == "zh") {
+            return chineseOrdinal(number) + "、"
+        }
+        return "$number. "
     }
 
     internal fun chineseOrdinal(number: Int): String {

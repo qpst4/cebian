@@ -580,8 +580,8 @@ class NotificationHistoryRepository @Inject constructor(
                 item.intentParcelBase64.isNullOrBlank() &&
                 item.extrasBase64.isNullOrBlank() &&
                 item.notificationKey?.let { NotificationSbnCache.find(it, item.postedAtMs) } == null ->
-                "未捕获到跳转信息"
-            else -> "链接已被系统回收"
+                appContext.getString(com.slideindex.app.feature.notification.R.string.notification_replay_no_jump_info)
+            else -> appContext.getString(com.slideindex.app.feature.notification.R.string.notification_replay_link_recycled)
         }
     }
 

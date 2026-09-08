@@ -307,14 +307,14 @@ fun ActivityShortcutPresetsScreen(
                 outerTopPadding = MiuixSmallTitleSectionTop,
                 items = presets.map { preset ->
                     val saved = localShortcuts.any {
-                        it.identityKey() == preset.toShortcut().identityKey()
+                        it.identityKey() == preset.toShortcut(context).identityKey()
                     }
                     CardItem("${preset.packageName}/${preset.activityClassName}") {
                         ActivityShortcutPresetRowContent(
                             preset = preset,
                             saved = saved,
-                            onLaunch = { launchShortcut(preset.toShortcut()) },
-                            onAdd = { addShortcut(preset.toShortcut()) },
+                            onLaunch = { launchShortcut(preset.toShortcut(context)) },
+                            onAdd = { addShortcut(preset.toShortcut(context)) },
                         )
                     }
                 },
@@ -392,10 +392,11 @@ private fun ActivityShortcutPresetRowContent(
     val appLabel = remember(preset.packageName) {
         resolveAppLabel(context, preset.packageName)
     }
+    val presetLabel = preset.label(context)
     val title = if (appLabel.isNotBlank()) {
-        "$appLabel·${preset.label}"
+        "$appLabel·$presetLabel"
     } else {
-        preset.label
+        presetLabel
     }
     BasicComponent(
         modifier = Modifier.fillMaxWidth(),

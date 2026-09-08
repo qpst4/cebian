@@ -380,8 +380,8 @@ fun WidgetPickerScreen(
           MiuixTabRowWithContour(
             tabs = listOf(
               stringResource(R.string.widget_picker_title),
-              "应用程序",
-              "快捷方式",
+              stringResource(R.string.widget_tab_apps),
+              stringResource(R.string.widget_tab_shortcuts),
             ),
             selectedTabIndex = selectedTab,
             onTabSelected = { selectedTab = it },
@@ -631,7 +631,7 @@ private fun WidgetAppGroupSection(
           color = MaterialTheme.colorScheme.onSurface,
         )
         Text(
-          text = "${group.widgets.size} 个小组件",
+          text = stringResource(R.string.widget_group_count, group.widgets.size),
           style = MaterialTheme.typography.bodySmall,
           color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -639,7 +639,7 @@ private fun WidgetAppGroupSection(
 
       Icon(
         imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-        contentDescription = "查看全部",
+        contentDescription = stringResource(R.string.cd_view_all),
         modifier = Modifier.size(20.dp),
         tint = MaterialTheme.colorScheme.onSurfaceVariant,
       )
@@ -749,7 +749,7 @@ private fun WidgetAppDetailScreen(
 
   SettingsScreenScaffold(
     title = group.appLabel,
-    subtitle = "${group.widgets.size} 个小组件",
+    subtitle = stringResource(R.string.widget_group_count, group.widgets.size),
     onBack = onBack,
     enableBackHandler = enableBackHandler,
     overlayMode = overlayMode,

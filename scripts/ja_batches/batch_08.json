@@ -1,0 +1,902 @@
+[
+  {
+    "name": "otp_test_section",
+    "text": "Extraction test",
+    "source": "en"
+  },
+  {
+    "name": "otp_test_title",
+    "text": "SMS test",
+    "source": "en"
+  },
+  {
+    "name": "otp_test_desc",
+    "text": "Paste sample text to preview extraction",
+    "source": "en"
+  },
+  {
+    "name": "otp_test_input_label",
+    "text": "Sample message",
+    "source": "en"
+  },
+  {
+    "name": "otp_test_result_success",
+    "text": "Extracted: %1$s",
+    "source": "en"
+  },
+  {
+    "name": "otp_test_result_failed",
+    "text": "No code extracted",
+    "source": "en"
+  },
+  {
+    "name": "otp_auto_input_entry_title",
+    "text": "Auto-input",
+    "source": "en"
+  },
+  {
+    "name": "otp_auto_input_entry_desc",
+    "text": "Auto-fill codes via Cebian",
+    "source": "en"
+  },
+  {
+    "name": "otp_auto_input_title",
+    "text": "Auto-input",
+    "source": "en"
+  },
+  {
+    "name": "otp_auto_input_desc",
+    "text": "Automatically fill the code into the focused input field",
+    "source": "en"
+  },
+  {
+    "name": "otp_auto_input_enabled_title",
+    "text": "Auto-input verification code",
+    "source": "en"
+  },
+  {
+    "name": "otp_auto_input_enabled_desc",
+    "text": "Fill the code after extraction succeeds",
+    "source": "en"
+  },
+  {
+    "name": "otp_auto_confirm_title",
+    "text": "Auto-confirm",
+    "source": "en"
+  },
+  {
+    "name": "otp_auto_confirm_desc",
+    "text": "Try to tap confirm/submit after filling",
+    "source": "en"
+  },
+  {
+    "name": "otp_auto_input_timing_section",
+    "text": "Input timing",
+    "source": "en"
+  },
+  {
+    "name": "otp_auto_input_delay_title",
+    "text": "Delay",
+    "source": "en"
+  },
+  {
+    "name": "otp_auto_input_delay_zero",
+    "text": "0 s",
+    "source": "en"
+  },
+  {
+    "name": "otp_auto_input_delay_value",
+    "text": "%1$d ms",
+    "source": "en"
+  },
+  {
+    "name": "otp_auto_input_interval_title",
+    "text": "Per-character interval",
+    "source": "en"
+  },
+  {
+    "name": "otp_auto_input_interval_value",
+    "text": "%1$d ms",
+    "source": "en"
+  },
+  {
+    "name": "otp_auto_input_service_setup_title",
+    "text": "Enable Cebian",
+    "source": "en"
+  },
+  {
+    "name": "otp_auto_input_service_setup_desc",
+    "text": "Edge gestures and OTP auto-fill share the Cebian service",
+    "source": "en"
+  },
+  {
+    "name": "otp_fill_method_pipeline_inject",
+    "text": "Fill order: LSPosed system inject → Cebian SET_TEXT",
+    "source": "en"
+  },
+  {
+    "name": "otp_fill_method_pipeline_a11y_only",
+    "text": "Fill method: Cebian SET_TEXT",
+    "source": "en"
+  },
+  {
+    "name": "otp_fill_method_a11y_fallback_hint",
+    "text": "Cebian SET_TEXT is the fallback when inject fails or is disabled",
+    "source": "en"
+  },
+  {
+    "name": "otp_runtime_status_section",
+    "text": "Runtime status",
+    "source": "en"
+  },
+  {
+    "name": "otp_runtime_status_disabled",
+    "text": "Auto-fill is off",
+    "source": "en"
+  },
+  {
+    "name": "otp_runtime_status_need_accessibility",
+    "text": "Enable the Cebian accessibility service to auto-fill",
+    "source": "en"
+  },
+  {
+    "name": "otp_runtime_status_inject_pipeline",
+    "text": "Auto-fill on: LSPosed system inject first, then Cebian node fill as fallback",
+    "source": "en"
+  },
+  {
+    "name": "otp_runtime_status_a11y_only",
+    "text": "Auto-fill on: Cebian node fill only",
+    "source": "en"
+  },
+  {
+    "name": "otp_runtime_status_sms_lsposed",
+    "text": "Code source: LSPosed SMS capture enabled (notifications still work)",
+    "source": "en"
+  },
+  {
+    "name": "otp_auto_fill_section",
+    "text": "Auto-fill",
+    "source": "en"
+  },
+  {
+    "name": "otp_lsposed_enhancements_section",
+    "text": "LSPosed enhancements",
+    "source": "en"
+  },
+  {
+    "name": "otp_lsposed_enhancements_desc",
+    "text": "Optional extras. They do not replace the main auto-fill switch. System inject is the preferred fill path when enabled.",
+    "source": "en"
+  },
+  {
+    "name": "otp_diagnostics_section",
+    "text": "Diagnostics",
+    "source": "en"
+  },
+  {
+    "name": "otp_lsposed_inject_title",
+    "text": "LSPosed system inject",
+    "source": "en"
+  },
+  {
+    "name": "otp_lsposed_inject_desc_short",
+    "text": "Prefer system-level inject; falls back to Cebian node fill. Requires system framework scope",
+    "source": "en"
+  },
+  {
+    "name": "otp_lsposed_sms_title",
+    "text": "LSPosed SMS capture",
+    "source": "en"
+  },
+  {
+    "name": "otp_lsposed_sms_desc_short",
+    "text": "Read SMS from the phone process; requires com.android.phone scope",
+    "source": "en"
+  },
+  {
+    "name": "otp_lsposed_probe_title",
+    "text": "Test LSPosed system inject",
+    "source": "en"
+  },
+  {
+    "name": "otp_lsposed_probe_desc",
+    "text": "Tap to check whether the inject hook is loaded in system_server",
+    "source": "en"
+  },
+  {
+    "name": "otp_lsposed_probe_checking",
+    "text": "Checking…",
+    "source": "en"
+  },
+  {
+    "name": "otp_lsposed_probe_ready",
+    "text": "System inject hook is ready",
+    "source": "en"
+  },
+  {
+    "name": "otp_lsposed_probe_busy",
+    "text": "Probe already running",
+    "source": "en"
+  },
+  {
+    "name": "otp_lsposed_probe_timeout",
+    "text": "Timed out: inject receiver not registered in system_server",
+    "source": "en"
+  },
+  {
+    "name": "otp_lsposed_probe_failed",
+    "text": "System inject probe failed: %1$s",
+    "source": "en"
+  },
+  {
+    "name": "otp_lsposed_probe_response",
+    "text": "Response: %1$s / %2$s",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_volume_panel",
+    "text": "Expansion panel",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_volume_panel_desc",
+    "text": "Popup panel for brightness, alarm, notification, ring and media volume",
+    "source": "en"
+  },
+  {
+    "name": "volume_panel_brightness",
+    "text": "Brightness",
+    "source": "en"
+  },
+  {
+    "name": "volume_panel_alarm",
+    "text": "Alarm",
+    "source": "en"
+  },
+  {
+    "name": "volume_panel_notification",
+    "text": "Notification",
+    "source": "en"
+  },
+  {
+    "name": "volume_panel_ring",
+    "text": "Ring",
+    "source": "en"
+  },
+  {
+    "name": "volume_panel_media",
+    "text": "Media",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_screen_translate",
+    "text": "Screen translate",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_screen_translate_desc",
+    "text": "Overlay translated text on screen in place",
+    "source": "en"
+  },
+  {
+    "name": "screen_translate_started",
+    "text": "Translating…",
+    "source": "en"
+  },
+  {
+    "name": "screen_translate_failed",
+    "text": "Translation failed",
+    "source": "en"
+  },
+  {
+    "name": "screen_translate_no_text",
+    "text": "No translatable text found",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_universal_copy",
+    "text": "Universal copy",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_universal_copy_desc",
+    "text": "Select text blocks on screen and copy",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_open_internet_panel",
+    "text": "Native internet panel",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_open_internet_panel_desc",
+    "text": "Show system native Wi-Fi & mobile network panel",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_open_volume_panel",
+    "text": "Native volume panel",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_open_volume_panel_desc",
+    "text": "Show system native volume slider popup",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_current_app_info",
+    "text": "Current app info",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_current_app_info_desc",
+    "text": "Open App Info settings for the current foreground app",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_simulate_key_event",
+    "text": "Simulate key event (KeyEvent)",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_simulate_key_event_named",
+    "text": "Simulate key: %1$s",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_simulate_key_event_desc",
+    "text": "Simulate system key events (Menu, navigation, etc., requires Root or Shizuku)",
+    "source": "en"
+  },
+  {
+    "name": "key_event_config_title",
+    "text": "Simulate key settings",
+    "source": "en"
+  },
+  {
+    "name": "key_event_custom_config_title",
+    "text": "Custom key & parameters",
+    "source": "en"
+  },
+  {
+    "name": "key_event_code_label",
+    "text": "Key code (KeyCode)",
+    "source": "en"
+  },
+  {
+    "name": "key_event_name_label",
+    "text": "Key name / note",
+    "source": "en"
+  },
+  {
+    "name": "key_event_long_press_title",
+    "text": "Simulate long press",
+    "source": "en"
+  },
+  {
+    "name": "key_event_long_press_summary",
+    "text": "Use input keyevent --longpress to dispatch key event",
+    "source": "en"
+  },
+  {
+    "name": "key_event_permission_hint",
+    "text": "Note: Simulating key events requires Root permissions or active Shizuku service.",
+    "source": "en"
+  },
+  {
+    "name": "key_event_permission_toast",
+    "text": "Simulate key failed: ensure Root permission is granted or Shizuku is running",
+    "source": "en"
+  },
+  {
+    "name": "key_event_failed_hint",
+    "text": "Simulate key failed: %1$s",
+    "source": "en"
+  },
+  {
+    "name": "one_handed_mode_not_supported_hint",
+    "text": "One-handed mode not triggered: enable \\\"One-handed mode\\\" in system settings or grant Shizuku permission",
+    "source": "en"
+  },
+  {
+    "name": "current_app_info_not_found",
+    "text": "No foreground app detected",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_screen_off_keep_awake",
+    "text": "Pseudo Screen Off (Keep Awake)",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_screen_off_keep_awake_desc",
+    "text": "Full black screen with minimum brightness, keeps device awake and prevents burn-in. Double tap or press volume key to exit.",
+    "source": "en"
+  },
+  {
+    "name": "pseudo_screen_off_hint",
+    "text": "Double tap or press volume key to exit",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_pin_to_screen",
+    "text": "Pin to screen",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_pin_to_screen_desc",
+    "text": "Pin clipboard text or image as a draggable floating note or overlay",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_app_carousel_switcher",
+    "text": "App switcher",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_app_carousel_switcher_desc",
+    "text": "Swipe carousel app switcher with adaptive squircle tiles. Continuous: track while swiping, launch on release. On release: open after the swipe ends. Immediate: open at distance, then pick on the overlay after you lift your finger.",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_fingertip_ring",
+    "text": "Fingertip ring",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_fingertip_ring_desc",
+    "text": "Show shortcuts in a circle around your finger. Continuous: hold, slide to pick, release to run. On release: map swipe direction and run. Immediate: run the item in the swipe direction once distance is reached.",
+    "source": "en"
+  },
+  {
+    "name": "fingertip_ring_settings_title",
+    "text": "Fingertip ring",
+    "source": "en"
+  },
+  {
+    "name": "fingertip_ring_config_section",
+    "text": "Shortcuts",
+    "source": "en"
+  },
+  {
+    "name": "fingertip_ring_config_title",
+    "text": "Configure shortcuts",
+    "source": "en"
+  },
+  {
+    "name": "fingertip_ring_config_desc",
+    "text": "Set icon count and action for each position",
+    "source": "en"
+  },
+  {
+    "name": "fingertip_ring_layout_section",
+    "text": "Layout",
+    "source": "en"
+  },
+  {
+    "name": "fingertip_ring_slots_section",
+    "text": "Slots",
+    "source": "en"
+  },
+  {
+    "name": "fingertip_ring_orbit_radius",
+    "text": "Orbit radius",
+    "source": "en"
+  },
+  {
+    "name": "fingertip_ring_icon_size",
+    "text": "Icon size",
+    "source": "en"
+  },
+  {
+    "name": "fingertip_ring_size_px_value",
+    "text": "%1$d px",
+    "source": "en"
+  },
+  {
+    "name": "fingertip_ring_slot_count",
+    "text": "Slot count",
+    "source": "en"
+  },
+  {
+    "name": "fingertip_ring_slot_count_value",
+    "text": "%1$d slots",
+    "source": "en"
+  },
+  {
+    "name": "fingertip_ring_slot_title",
+    "text": "Slot %1$d",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_foreground_activity_inspector",
+    "text": "Activity Inspector",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_foreground_activity_inspector_desc",
+    "text": "Floating HUD displaying current foreground package and Activity class name",
+    "source": "en"
+  },
+  {
+    "name": "foreground_activity_inspector_title",
+    "text": "Activity Inspector",
+    "source": "en"
+  },
+  {
+    "name": "foreground_activity_inspector_pkg_copied",
+    "text": "Package name copied",
+    "source": "en"
+  },
+  {
+    "name": "foreground_activity_inspector_act_copied",
+    "text": "Activity class copied",
+    "source": "en"
+  },
+  {
+    "name": "foreground_activity_inspector_all_copied",
+    "text": "Foreground info copied",
+    "source": "en"
+  },
+  {
+    "name": "foreground_activity_inspector_waiting",
+    "text": "Waiting for window events…",
+    "source": "en"
+  },
+  {
+    "name": "foreground_activity_inspector_history_title",
+    "text": "Activity History",
+    "source": "en"
+  },
+  {
+    "name": "foreground_activity_inspector_history_empty",
+    "text": "No activity history yet",
+    "source": "en"
+  },
+  {
+    "name": "foreground_activity_inspector_history_clear",
+    "text": "Clear",
+    "source": "en"
+  },
+  {
+    "name": "pin_to_screen_title",
+    "text": "Pin to screen",
+    "source": "en"
+  },
+  {
+    "name": "pin_to_screen_tab_text",
+    "text": "Text Note",
+    "source": "en"
+  },
+  {
+    "name": "pin_to_screen_tab_image",
+    "text": "Pinned Image",
+    "source": "en"
+  },
+  {
+    "name": "pin_to_screen_text_hint",
+    "text": "Enter or paste note content to pin on screen…",
+    "source": "en"
+  },
+  {
+    "name": "pin_to_screen_btn_pin",
+    "text": "Pin on screen",
+    "source": "en"
+  },
+  {
+    "name": "pin_to_screen_btn_read_clipboard",
+    "text": "Read clipboard",
+    "source": "en"
+  },
+  {
+    "name": "pin_to_screen_btn_clear",
+    "text": "Clear",
+    "source": "en"
+  },
+  {
+    "name": "pin_to_screen_image_pick_gallery",
+    "text": "Pick from Gallery",
+    "source": "en"
+  },
+  {
+    "name": "pin_to_screen_image_pick_gallery_desc",
+    "text": "Select an image from gallery to float on screen",
+    "source": "en"
+  },
+  {
+    "name": "pin_to_screen_image_pick_screenshot",
+    "text": "Regional screenshot",
+    "source": "en"
+  },
+  {
+    "name": "pin_to_screen_image_pick_screenshot_desc",
+    "text": "Select a screen region to pin immediately",
+    "source": "en"
+  },
+  {
+    "name": "pin_to_screen_clipboard_empty",
+    "text": "Clipboard is empty",
+    "source": "en"
+  },
+  {
+    "name": "pin_to_screen_text_empty",
+    "text": "Please enter or paste note content",
+    "source": "en"
+  },
+  {
+    "name": "universal_copy_tap_to_select",
+    "text": "Tap to select text",
+    "source": "en"
+  },
+  {
+    "name": "universal_copy_select_all",
+    "text": "Select all",
+    "source": "en"
+  },
+  {
+    "name": "universal_copy_deselect",
+    "text": "Deselect all",
+    "source": "en"
+  },
+  {
+    "name": "universal_copy_copy",
+    "text": "Copy",
+    "source": "en"
+  },
+  {
+    "name": "universal_copy_pick",
+    "text": "Segment",
+    "source": "en"
+  },
+  {
+    "name": "universal_copy_selected",
+    "text": "%1$d selected",
+    "source": "en"
+  },
+  {
+    "name": "universal_copy_copied",
+    "text": "Copied %1$d item(s)",
+    "source": "en"
+  },
+  {
+    "name": "universal_copy_no_text",
+    "text": "No copyable text found",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_freezer_panel",
+    "text": "App freezer",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_freezer_panel_desc",
+    "text": "Open freezer overlay",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_refreeze",
+    "text": "Re-freeze apps",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_refreeze_desc",
+    "text": "Disable all apps in freezer list that are currently enabled",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_remind",
+    "text": "Alarm reminder in N min",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_remind_desc",
+    "text": "Pick a duration after trigger; rings when time is up",
+    "source": "en"
+  },
+  {
+    "name": "gesture_remind_picker_title",
+    "text": "Set alarm",
+    "source": "en"
+  },
+  {
+    "name": "gesture_remind_picker_preset_minutes",
+    "text": "%1$d min",
+    "source": "en"
+  },
+  {
+    "name": "gesture_remind_picker_minutes_label",
+    "text": "Duration",
+    "source": "en"
+  },
+  {
+    "name": "gesture_remind_picker_minutes_value",
+    "text": "%1$d min",
+    "source": "en"
+  },
+  {
+    "name": "gesture_remind_picker_confirm",
+    "text": "Set alarm for %1$d min",
+    "source": "en"
+  },
+  {
+    "name": "gesture_remind_picker_cancel",
+    "text": "Cancel %1$d-min alarm",
+    "source": "en"
+  },
+  {
+    "name": "gesture_remind_scheduled",
+    "text": "Alarm set for %1$d min",
+    "source": "en"
+  },
+  {
+    "name": "gesture_remind_cancelled",
+    "text": "%1$d-min alarm cancelled",
+    "source": "en"
+  },
+  {
+    "name": "gesture_remind_channel_name",
+    "text": "Delayed alarm",
+    "source": "en"
+  },
+  {
+    "name": "gesture_remind_notify_title",
+    "text": "Alarm",
+    "source": "en"
+  },
+  {
+    "name": "gesture_remind_notify_body",
+    "text": "Your %1$d-minute alarm",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_remind_permission",
+    "text": "Overlay permission is required to set alarms",
+    "source": "en"
+  },
+  {
+    "name": "extension_freezer_title",
+    "text": "App freezer",
+    "source": "en"
+  },
+  {
+    "name": "extension_freezer_subtitle",
+    "text": "Manage freezer list and batch freeze/unfreeze; requires Shizuku or Root",
+    "source": "en"
+  },
+  {
+    "name": "extension_back_tap_title",
+    "text": "Back double-tap (experimental, may be unreliable)",
+    "source": "en"
+  },
+  {
+    "name": "extension_back_tap_subtitle",
+    "text": "Detect back-of-phone double taps via accelerometer",
+    "source": "en"
+  },
+  {
+    "name": "back_tap_enabled",
+    "text": "Enable back double-tap",
+    "source": "en"
+  },
+  {
+    "name": "back_tap_action",
+    "text": "Trigger action",
+    "source": "en"
+  },
+  {
+    "name": "back_tap_sensitivity",
+    "text": "Sensitivity",
+    "source": "en"
+  },
+  {
+    "name": "back_tap_range",
+    "text": "Double-tap interval",
+    "source": "en"
+  },
+  {
+    "name": "back_tap_mode",
+    "text": "Work mode",
+    "source": "en"
+  },
+  {
+    "name": "back_tap_mode_always",
+    "text": "Always",
+    "source": "en"
+  },
+  {
+    "name": "back_tap_mode_screen_on",
+    "text": "Screen on only",
+    "source": "en"
+  },
+  {
+    "name": "back_tap_mode_screen_off",
+    "text": "Screen off only",
+    "source": "en"
+  },
+  {
+    "name": "back_tap_pause_charging",
+    "text": "Pause while charging",
+    "source": "en"
+  },
+  {
+    "name": "back_tap_vibration_feedback",
+    "text": "Vibrate on trigger",
+    "source": "en"
+  },
+  {
+    "name": "freezer_permission_required",
+    "text": "Shizuku or Root permission required",
+    "source": "en"
+  },
+  {
+    "name": "freezer_command_failed",
+    "text": "Freeze failed: %1$s",
+    "source": "en"
+  },
+  {
+    "name": "freezer_freeze_failed",
+    "text": "Freeze failed: %1$s",
+    "source": "en"
+  },
+  {
+    "name": "freezer_unfreeze_failed",
+    "text": "Unfreeze failed: %1$s",
+    "source": "en"
+  },
+  {
+    "name": "freezer_unfreeze_need_root",
+    "text": "This app was system-disabled earlier. Switch privilege mode to Root, or grant Shizuku root, then try again.",
+    "source": "en"
+  },
+  {
+    "name": "freezer_refreeze_done",
+    "text": "Froze %1$d apps",
+    "source": "en"
+  },
+  {
+    "name": "freezer_unfreeze_all_done",
+    "text": "Unfroze %1$d apps",
+    "source": "en"
+  },
+  {
+    "name": "freezer_tab_all",
+    "text": "All",
+    "source": "en"
+  },
+  {
+    "name": "freezer_tab_frozen",
+    "text": "Frozen",
+    "source": "en"
+  },
+  {
+    "name": "freezer_tab_active",
+    "text": "Active",
+    "source": "en"
+  },
+  {
+    "name": "freezer_tab_all_count",
+    "text": "All (%1$d)",
+    "source": "en"
+  },
+  {
+    "name": "freezer_tab_frozen_count",
+    "text": "Frozen (%1$d)",
+    "source": "en"
+  },
+  {
+    "name": "freezer_tab_active_count",
+    "text": "Active (%1$d)",
+    "source": "en"
+  },
+  {
+    "name": "freezer_show_system_apps",
+    "text": "Show system apps when adding",
+    "source": "en"
+  },
+  {
+    "name": "freezer_system_app_label",
+    "text": "System",
+    "source": "en"
+  }
+]

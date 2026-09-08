@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="screenshot_monitor_keywords">
+        <item>截图</item>
+        <item>截屏</item>
+        <item>截圖</item>
+    </string-array>
+</resources>

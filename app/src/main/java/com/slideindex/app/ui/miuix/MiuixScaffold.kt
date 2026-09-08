@@ -28,6 +28,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.slideindex.app.R
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Dp
@@ -286,7 +288,7 @@ fun MiuixBackNavigationIcon(onBack: () -> Unit) {
     IconButton(onClick = onBack) {
         Icon(
             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-            contentDescription = "返回",
+            contentDescription = stringResource(R.string.cd_navigate_back),
             tint = MiuixTheme.colorScheme.onBackground,
         )
     }

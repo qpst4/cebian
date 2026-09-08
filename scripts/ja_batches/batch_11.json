@@ -1,0 +1,902 @@
+[
+  {
+    "name": "holographic_settings_timeout",
+    "text": "Auto-close when idle",
+    "source": "en"
+  },
+  {
+    "name": "holographic_settings_timeout_value",
+    "text": "%1$d s",
+    "source": "en"
+  },
+  {
+    "name": "holographic_settings_sensitivity",
+    "text": "Rotation sensitivity",
+    "source": "en"
+  },
+  {
+    "name": "holographic_settings_sensitivity_value",
+    "text": "%1$d",
+    "source": "en"
+  },
+  {
+    "name": "holographic_settings_haptic",
+    "text": "Rotation haptic",
+    "source": "en"
+  },
+  {
+    "name": "holographic_settings_haptic_off",
+    "text": "Off",
+    "source": "en"
+  },
+  {
+    "name": "holographic_settings_haptic_light",
+    "text": "Light",
+    "source": "en"
+  },
+  {
+    "name": "holographic_settings_haptic_medium",
+    "text": "Medium",
+    "source": "en"
+  },
+  {
+    "name": "holographic_settings_haptic_strong",
+    "text": "Strong",
+    "source": "en"
+  },
+  {
+    "name": "holographic_hidden_apps_entry_title",
+    "text": "Hidden apps",
+    "source": "en"
+  },
+  {
+    "name": "holographic_hidden_apps_entry_desc",
+    "text": "Hide apps from the holographic sphere",
+    "source": "en"
+  },
+  {
+    "name": "holographic_hidden_apps_title",
+    "text": "Holographic hidden apps",
+    "source": "en"
+  },
+  {
+    "name": "holographic_hidden_apps_desc",
+    "text": "Hidden apps won\\'t appear on the sphere. This does not affect the side index or other lists.",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_task_switcher",
+    "text": "Task switcher",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_back",
+    "text": "Back",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_home",
+    "text": "Home",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_recents",
+    "text": "Recents",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_close_current_app",
+    "text": "Close current app",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_free_window_current_app",
+    "text": "Open current app in freeform",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_click_passthrough",
+    "text": "Click through",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_flashlight",
+    "text": "Flashlight",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_adjust_volume",
+    "text": "Swipe to adjust volume",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_adjust_volume_desc",
+    "text": "Show a volume bar and adjust while swiping",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_adjust_volume_permission",
+    "text": "Needs Do Not Disturb access",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_adjust_brightness",
+    "text": "Swipe to adjust brightness",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_adjust_brightness_desc",
+    "text": "Show a brightness bar and adjust while swiping",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_adjust_brightness_permission",
+    "text": "Needs write settings permission",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_toggle_auto_brightness",
+    "text": "Auto brightness",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_toggle_auto_brightness_desc",
+    "text": "Turn system auto brightness on or off",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_launch_assistant",
+    "text": "Launch default assistant",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_voice_search",
+    "text": "Voice search",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_voice_search_desc",
+    "text": "Launch hands-free voice search and speech recognition panel",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_voice_assistant",
+    "text": "Voice assistant",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_voice_assistant_desc",
+    "text": "Wake up system voice command mode (like headset voice key)",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_toggle_auto_rotate",
+    "text": "Toggle auto rotate",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_toggle_auto_rotate_desc",
+    "text": "Turn screen auto-rotation on or off",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_force_portrait",
+    "text": "Force portrait",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_force_portrait_desc",
+    "text": "Disable auto-rotation and lock screen to portrait orientation",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_force_landscape",
+    "text": "Force landscape",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_force_landscape_desc",
+    "text": "Disable auto-rotation and lock screen to landscape orientation",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_toggle_mute",
+    "text": "Toggle ringer silent",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_toggle_mute_desc",
+    "text": "Silence calls and notifications only; media volume is unchanged",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_toggle_mute_permission",
+    "text": "Needs notification/Do Not Disturb access",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_media_play_pause",
+    "text": "Play/Pause",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_media_previous",
+    "text": "Previous track",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_media_next",
+    "text": "Next track",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_previous_app",
+    "text": "Previous app",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_open_notifications",
+    "text": "Open notification shade",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_open_quick_settings",
+    "text": "Open quick settings",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_lock_screen",
+    "text": "Lock screen",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_lock_screen_and_silence_ring",
+    "text": "Lock screen and silence ringer",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_lock_screen_and_silence_ring_desc",
+    "text": "Silence calls and notifications, then lock; media volume is unchanged",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_lock_screen_and_mute_all",
+    "text": "Lock screen and mute all",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_lock_screen_and_mute_all_desc",
+    "text": "Silence ringer/notifications and set media volume to 0, then lock; restore volume manually",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_screenshot",
+    "text": "Screenshot",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_fullscreen_screenshot_pick",
+    "text": "Full-screen screenshot pick",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_fullscreen_screenshot_pick_desc",
+    "text": "Capture full screen and open text pick panel",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_fullscreen_screenshot_pick_permission",
+    "text": "Accessibility service required",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_regional_screenshot_pick",
+    "text": "Regional screenshot & pick",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_regional_screenshot_pick_desc",
+    "text": "Continuous only: drag from edge; ball follows finger, cross picks text or frames an area",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_regional_screenshot_pick_permission",
+    "text": "Accessibility service required",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_search_panel",
+    "text": "Search panel",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_search_panel_desc",
+    "text": "Quickly search for text or images",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_power_menu",
+    "text": "Power menu",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_keep_screen_on",
+    "text": "Keep screen on",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_snooze_overlays",
+    "text": "Pause overlays",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_snooze_overlays_desc",
+    "text": "Temporarily hide triggers, corner wheel, and float ball for 5 seconds",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_snooze_overlays_toast",
+    "text": "Triggers, corner wheel, and float ball paused for 5 seconds",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_scroll_to_top",
+    "text": "Jump to top",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_scroll_to_top_desc",
+    "text": "Simulated swipe on Android 7.0+",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_scroll_to_bottom",
+    "text": "Jump to bottom",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_scroll_to_bottom_desc",
+    "text": "Simulated swipe on Android 7.0+",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_shell_command_panel",
+    "text": "Shell command panel",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_execute_shell_command",
+    "text": "Execute shell command",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_execute_shell_command_named",
+    "text": "Execute shell: %1$s",
+    "source": "en"
+  },
+  {
+    "name": "gesture_shell_command_config_title",
+    "text": "Configure shell command",
+    "source": "en"
+  },
+  {
+    "name": "gesture_shell_command_config_hint",
+    "text": "The command is saved for this gesture and runs in the background when triggered.",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_quick_tools_overlay",
+    "text": "Quick tools (overlay)",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_quick_tools_overlay_permission",
+    "text": "Requires Cebian enabled",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_widget_popup_overlay",
+    "text": "Widget popup",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_widget_popup_overlay_permission",
+    "text": "Requires Cebian enabled",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_stash_panel",
+    "text": "Open stash",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_stash_panel_permission",
+    "text": "Requires Cebian enabled",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_clipboard_panel",
+    "text": "Open clipboard",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_clipboard_panel_permission",
+    "text": "Requires Cebian enabled",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_clipboard_float",
+    "text": "Floating clipboard",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_clipboard_float_desc",
+    "text": "Open the floating clipboard window anywhere",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_clipboard_float_permission",
+    "text": "Requires Cebian enabled and overlay permission",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_style_title",
+    "text": "Floating List Style",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_style_desc",
+    "text": "Switch between compact single-line and card view",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_style_single_line",
+    "text": "Compact Single-Line",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_style_card",
+    "text": "Multi-line Cards",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_style_toggle",
+    "text": "Toggle List Style",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_clipboard_pick",
+    "text": "Clipboard pick",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_clipboard_pick_desc",
+    "text": "Read the system clipboard and open the text pick panel",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_clipboard_pick_permission",
+    "text": "Requires Cebian enabled",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_toggle_dnd",
+    "text": "Toggle Do Not Disturb",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_screen_record",
+    "text": "Screen record",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_toggle_wifi",
+    "text": "Toggle Wi鈥慒i",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_toggle_mobile_data",
+    "text": "Toggle mobile data",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_toggle_shell_permission",
+    "text": "Needs Shizuku or Root permission",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_screen_record_permission",
+    "text": "Needs “Display over other apps” permission",
+    "source": "en"
+  },
+  {
+    "name": "screen_record_channel_name",
+    "text": "Screen recording",
+    "source": "en"
+  },
+  {
+    "name": "screen_record_notification_recording",
+    "text": "Recording screen…",
+    "source": "en"
+  },
+  {
+    "name": "media_notification_listener_name",
+    "text": "Notification listener (media sessions & history)",
+    "source": "en"
+  },
+  {
+    "name": "side_gestures_behavior_section",
+    "text": "Layout & behavior",
+    "source": "en"
+  },
+  {
+    "name": "default_trigger_mode",
+    "text": "Default trigger mode",
+    "source": "en"
+  },
+  {
+    "name": "default_trigger_mode_desc",
+    "text": "Used when a gesture has no mode of its own",
+    "source": "en"
+  },
+  {
+    "name": "trigger_mode_default_slot_desc",
+    "text": "Follow Cebian default (%1$s)",
+    "source": "en"
+  },
+  {
+    "name": "slot_pick_action",
+    "text": "Choose action type",
+    "source": "en"
+  },
+  {
+    "name": "slot_pick_trigger_mode",
+    "text": "Choose trigger mode",
+    "source": "en"
+  },
+  {
+    "name": "trigger_mode_default",
+    "text": "Default",
+    "source": "en"
+  },
+  {
+    "name": "trigger_mode_on_release",
+    "text": "Release to trigger",
+    "source": "en"
+  },
+  {
+    "name": "trigger_mode_on_release_desc",
+    "text": "Run the action after you lift your finger",
+    "source": "en"
+  },
+  {
+    "name": "trigger_mode_continuous",
+    "text": "Continuous",
+    "source": "en"
+  },
+  {
+    "name": "trigger_mode_continuous_desc",
+    "text": "Keep triggering while swiping. Supports: %1$s",
+    "source": "en"
+  },
+  {
+    "name": "trigger_mode_immediate",
+    "text": "Immediate",
+    "source": "en"
+  },
+  {
+    "name": "trigger_mode_immediate_desc",
+    "text": "Run as soon as the swipe distance is reached",
+    "source": "en"
+  },
+  {
+    "name": "slot_trigger_mode",
+    "text": "Trigger mode",
+    "source": "en"
+  },
+  {
+    "name": "slot_action_type",
+    "text": "Action type",
+    "source": "en"
+  },
+  {
+    "name": "confirm",
+    "text": "OK",
+    "source": "en"
+  },
+  {
+    "name": "short_swipe_distance",
+    "text": "Short swipe distance",
+    "source": "en"
+  },
+  {
+    "name": "long_swipe_distance",
+    "text": "Long swipe distance",
+    "source": "en"
+  },
+  {
+    "name": "swipe_distance_small",
+    "text": "Near",
+    "source": "en"
+  },
+  {
+    "name": "swipe_distance_large",
+    "text": "Far",
+    "source": "en"
+  },
+  {
+    "name": "gesture_animation_title",
+    "text": "Gesture animation",
+    "source": "en"
+  },
+  {
+    "name": "trigger_collection_landscape_title",
+    "text": "Landscape handles",
+    "source": "en"
+  },
+  {
+    "name": "trigger_collection_landscape_desc",
+    "text": "Configure handle layout separately for landscape",
+    "source": "en"
+  },
+  {
+    "name": "trigger_collection_open_landscape",
+    "text": "Landscape",
+    "source": "en"
+  },
+  {
+    "name": "trigger_collection_back_portrait",
+    "text": "Portrait",
+    "source": "en"
+  },
+  {
+    "name": "hide_trigger_landscape",
+    "text": "Landscape",
+    "source": "en"
+  },
+  {
+    "name": "hide_trigger_lock_screen",
+    "text": "Lock screen",
+    "source": "en"
+  },
+  {
+    "name": "hide_trigger_launcher",
+    "text": "Home screen",
+    "source": "en"
+  },
+  {
+    "name": "dynamic_color",
+    "text": "Dynamic color",
+    "source": "en"
+  },
+  {
+    "name": "dynamic_color_desc",
+    "text": "Derive colors from the wallpaper",
+    "source": "en"
+  },
+  {
+    "name": "bottom_nav_glass_enabled",
+    "text": "Bottom navigation glass",
+    "source": "en"
+  },
+  {
+    "name": "bottom_nav_glass_enabled_desc",
+    "text": "Uses a solid bar instead of sampling the screen behind it; can improve scroll smoothness",
+    "source": "en"
+  },
+  {
+    "name": "top_app_bar_blur_style",
+    "text": "Top bar blur style",
+    "source": "en"
+  },
+  {
+    "name": "top_app_bar_blur_style_desc",
+    "text": "Requires Android 13+ with RuntimeShader support",
+    "source": "en"
+  },
+  {
+    "name": "top_app_bar_blur_style_gaussian",
+    "text": "Gaussian",
+    "source": "en"
+  },
+  {
+    "name": "top_app_bar_blur_style_progressive",
+    "text": "Progressive",
+    "source": "en"
+  },
+  {
+    "name": "bottom_nav_blur_radius",
+    "text": "Bottom navigation blur",
+    "source": "en"
+  },
+  {
+    "name": "gesture_hint_style_title",
+    "text": "Animation style",
+    "source": "en"
+  },
+  {
+    "name": "gesture_hint_style_wave",
+    "text": "Wave",
+    "source": "en"
+  },
+  {
+    "name": "gesture_hint_style_wave_desc",
+    "text": "Edge wave stretches with the gesture",
+    "source": "en"
+  },
+  {
+    "name": "gesture_hint_style_capsule",
+    "text": "Capsule",
+    "source": "en"
+  },
+  {
+    "name": "gesture_hint_style_bubble",
+    "text": "Bubble",
+    "source": "en"
+  },
+  {
+    "name": "gesture_hint_style_bubble_desc",
+    "text": "Bubbles pop inward from the edge",
+    "source": "en"
+  },
+  {
+    "name": "animation_style_select_desc",
+    "text": "Choose the edge gesture hint animation",
+    "source": "en"
+  },
+  {
+    "name": "animation_style_select_hint",
+    "text": "Tap the gear after selecting a style for details.",
+    "source": "en"
+  },
+  {
+    "name": "gesture_hint_finger_offset_title",
+    "text": "Offset from finger",
+    "source": "en"
+  },
+  {
+    "name": "gesture_hint_finger_offset_hint",
+    "text": "Animation still follows your finger. Increase to move it away from your fingertip (up on sides/bottom, down on top). 0 keeps the default position.",
+    "source": "en"
+  },
+  {
+    "name": "animation_style_customize",
+    "text": "Customize style",
+    "source": "en"
+  },
+  {
+    "name": "animation_style_color_picker_title",
+    "text": "Choose color",
+    "source": "en"
+  },
+  {
+    "name": "animation_style_color_hex_label",
+    "text": "Color value",
+    "source": "en"
+  },
+  {
+    "name": "animation_style_color_hex_invalid",
+    "text": "Enter a valid hex color",
+    "source": "en"
+  },
+  {
+    "name": "animation_style_color_alpha_label",
+    "text": "Opacity",
+    "source": "en"
+  },
+  {
+    "name": "animation_style_color_outline",
+    "text": "Color outline",
+    "source": "en"
+  },
+  {
+    "name": "animation_style_shape_size",
+    "text": "Shape size",
+    "source": "en"
+  },
+  {
+    "name": "animation_style_icon",
+    "text": "Icon",
+    "source": "en"
+  },
+  {
+    "name": "animation_style_background_color",
+    "text": "Background color",
+    "source": "en"
+  },
+  {
+    "name": "animation_style_stroke_color",
+    "text": "Stroke color",
+    "source": "en"
+  },
+  {
+    "name": "animation_style_stroke_width",
+    "text": "Stroke width",
+    "source": "en"
+  },
+  {
+    "name": "animation_style_width",
+    "text": "Width",
+    "source": "en"
+  },
+  {
+    "name": "animation_style_length",
+    "text": "Length",
+    "source": "en"
+  },
+  {
+    "name": "animation_style_corner_radius",
+    "text": "Corner radius",
+    "source": "en"
+  },
+  {
+    "name": "animation_style_diameter",
+    "text": "Diameter",
+    "source": "en"
+  },
+  {
+    "name": "animation_style_pop_offset",
+    "text": "Pop distance",
+    "source": "en"
+  },
+  {
+    "name": "animation_style_reserved_bounds",
+    "text": "Keep in bounds",
+    "source": "en"
+  },
+  {
+    "name": "animation_style_reserved_bounds_hint",
+    "text": "Prevents going off-screen; turn off to center",
+    "source": "en"
+  },
+  {
+    "name": "animation_style_bezier_transform",
+    "text": "Morph",
+    "source": "en"
+  },
+  {
+    "name": "animation_style_bezier_transform_hint",
+    "text": "Change shape as your finger moves",
+    "source": "en"
+  },
+  {
+    "name": "animation_style_custom_icon",
+    "text": "Custom icon",
+    "source": "en"
+  },
+  {
+    "name": "animation_style_tint",
+    "text": "Tint",
+    "source": "en"
+  },
+  {
+    "name": "animation_style_scaling",
+    "text": "Scale",
+    "source": "en"
+  },
+  {
+    "name": "animation_style_small",
+    "text": "Small",
+    "source": "en"
+  },
+  {
+    "name": "animation_style_large",
+    "text": "Large",
+    "source": "en"
+  },
+  {
+    "name": "animation_style_short",
+    "text": "Short",
+    "source": "en"
+  },
+  {
+    "name": "animation_style_long",
+    "text": "Long",
+    "source": "en"
+  },
+  {
+    "name": "permission_shizuku_title",
+    "text": "Shizuku permission",
+    "source": "en"
+  }
+]

@@ -211,6 +211,7 @@ fun MessageReminderSettingsScreen(
                                 enter = expandVertically(expandFrom = Alignment.Top) + fadeIn(),
                                 exit = shrinkVertically(shrinkTowards = Alignment.Top) + fadeOut(),
                             ) {
+                                val neverDismissLabel = stringResource(R.string.message_reminder_unlock_auto_dismiss_never)
                                 SettingsSliderRow(
                                     title = stringResource(R.string.message_reminder_unlock_auto_dismiss),
                                     value = settings.unlockConfirmationAutoDismissSeconds.toFloat(),
@@ -218,12 +219,16 @@ fun MessageReminderSettingsScreen(
                                     steps = 29,
                                     enabled = controlsEnabled,
                                     label = if (settings.unlockConfirmationAutoDismissSeconds == 0) {
-                                        stringResource(R.string.message_reminder_unlock_auto_dismiss_never)
+                                        neverDismissLabel
                                     } else {
                                         "${settings.unlockConfirmationAutoDismissSeconds}s"
                                     },
                                     formatLabel = { seconds ->
-                                        if (seconds == 0f) "永不" else "${seconds.toInt()}s"
+                                        if (seconds == 0f) {
+                                            neverDismissLabel
+                                        } else {
+                                            "${seconds.toInt()}s"
+                                        }
                                     },
                                     onValueChange = { onUnlockConfirmationAutoDismissSecondsChange(it.toInt()) },
                                 )

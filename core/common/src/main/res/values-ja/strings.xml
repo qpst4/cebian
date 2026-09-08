@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="activity_shortcut_coupons">クーポン</string>
+    <string name="activity_shortcut_favorites">お気に入り</string>
+    <string name="activity_shortcut_search">検索</string>
+    <string name="activity_shortcut_scan">スキャン</string>
+</resources>

@@ -1,0 +1,722 @@
+[
+  {
+    "name": "permission_shizuku_desc",
+    "ja": "許可後、最近使ったアプリカードの削除、アプリの終了、Shell ベースのエッジタップスルーが利用できます（推奨）。"
+  },
+  {
+    "name": "permission_shizuku_grant",
+    "ja": "Shizuku を許可"
+  },
+  {
+    "name": "shizuku_start_service_hint",
+    "ja": "先に Shizuku サービスを起動し、戻ってから再度「許可」をタップしてください"
+  },
+  {
+    "name": "shizuku_not_installed",
+    "ja": "Shizuku がインストールされていません。インストールしてサービスを起動してください"
+  },
+  {
+    "name": "quick_launcher_editor_title",
+    "ja": "クイックランチャー"
+  },
+  {
+    "name": "honeycomb_launcher_editor_title",
+    "ja": "ハニカムランチャー"
+  },
+  {
+    "name": "honeycomb_launcher_add",
+    "ja": "アプリを追加"
+  },
+  {
+    "name": "honeycomb_launcher_editor_desc",
+    "ja": "ハニカムランチャー用のアプリとショートカットを選択します。連続トリガーモード：長押ししてスライドで選択、離して起動。"
+  },
+  {
+    "name": "honeycomb_launcher_entry_desc",
+    "ja": "ハニカムランチャー用のアプリを設定"
+  },
+  {
+    "name": "app_switcher_editor_title",
+    "ja": "リングランチャー"
+  },
+  {
+    "name": "app_switcher_editor_desc",
+    "ja": "リングランチャーのスロットを設定します。連続トリガーモード：長押ししてスライドで選択、離して起動。"
+  },
+  {
+    "name": "app_switcher_add",
+    "ja": "アプリを追加"
+  },
+  {
+    "name": "app_switcher_entry_desc",
+    "ja": "リングランチャー用のアプリを設定"
+  },
+  {
+    "name": "app_switcher_display_settings_title",
+    "ja": "リングランチャーの外観"
+  },
+  {
+    "name": "app_switcher_display_settings_entry",
+    "ja": "外観と動作"
+  },
+  {
+    "name": "app_switcher_display_settings_entry_desc",
+    "ja": "アイコンサイズ、選択スケール、ピン留め、背景"
+  },
+  {
+    "name": "app_switcher_display_section_layout",
+    "ja": "レイアウト"
+  },
+  {
+    "name": "app_switcher_display_section_behavior",
+    "ja": "動作"
+  },
+  {
+    "name": "app_switcher_display_section_background",
+    "ja": "背景"
+  },
+  {
+    "name": "app_switcher_icon_size",
+    "ja": "アイコンサイズ"
+  },
+  {
+    "name": "app_switcher_spacing",
+    "ja": "スロット間隔"
+  },
+  {
+    "name": "app_switcher_selection_scale",
+    "ja": "選択スケール"
+  },
+  {
+    "name": "app_switcher_initial_radius_ratio",
+    "ja": "端の半径"
+  },
+  {
+    "name": "app_switcher_pin_on_release",
+    "ja": "離したときにピン留め"
+  },
+  {
+    "name": "app_switcher_pin_on_release_desc",
+    "ja": "スロットに当たらずに離した場合もパネルを画面に残します"
+  },
+  {
+    "name": "app_switcher_empty_tap_close",
+    "ja": "外側タップで閉じる"
+  },
+  {
+    "name": "app_switcher_empty_tap_close_desc",
+    "ja": "ピン留めパネルを外側タップで閉じます"
+  },
+  {
+    "name": "app_switcher_show_selected_name",
+    "ja": "選択名を表示"
+  },
+  {
+    "name": "app_switcher_show_selected_name_desc",
+    "ja": "スライド中に現在のスロット名を上部に表示"
+  },
+  {
+    "name": "app_switcher_slot_haptic",
+    "ja": "スロット触覚フィードバック"
+  },
+  {
+    "name": "app_switcher_slot_haptic_desc",
+    "ja": "スロット間をスライドする際に軽い振動を提供"
+  },
+  {
+    "name": "app_switcher_dim_percent",
+    "ja": "背景の暗さ"
+  },
+  {
+    "name": "app_switcher_blur_dp",
+    "ja": "背景のぼかし"
+  },
+  {
+    "name": "app_switcher_selected_hint_icon_size",
+    "ja": "選択名のサイズ"
+  },
+  {
+    "name": "fv_app_switcher_appearance_title",
+    "ja": "円形ランチャーの外観とレイアウト"
+  },
+  {
+    "name": "fv_app_switcher_circle_count_title",
+    "ja": "リング層数"
+  },
+  {
+    "name": "fv_app_switcher_circle_count_desc",
+    "ja": "同心円リングの数を選択"
+  },
+  {
+    "name": "fv_app_switcher_icon_size_title",
+    "ja": "アイコンサイズ"
+  },
+  {
+    "name": "fv_app_switcher_icon_shape_title",
+    "ja": "アイコン形状"
+  },
+  {
+    "name": "fv_icon_shape_rounded_rect",
+    "ja": "角丸四角形"
+  },
+  {
+    "name": "fv_icon_shape_circle",
+    "ja": "円"
+  },
+  {
+    "name": "fv_icon_shape_squircle",
+    "ja": "スクワークル"
+  },
+  {
+    "name": "fv_icon_shape_square",
+    "ja": "正方形"
+  },
+  {
+    "name": "fv_app_switcher_base_radius_title",
+    "ja": "内側リング半径"
+  },
+  {
+    "name": "fv_app_switcher_layer_gap_title",
+    "ja": "リング層の間隔"
+  },
+  {
+    "name": "fv_app_switcher_end_margin_title",
+    "ja": "弧の端余白と間隔"
+  },
+  {
+    "name": "fv_app_switcher_link_axes_title",
+    "ja": "縦横を同期"
+  },
+  {
+    "name": "fv_app_switcher_link_axes_desc",
+    "ja": "オンにすると、上下/左右で同じリング、外観、スロットを共有"
+  },
+  {
+    "name": "fv_app_switcher_link_appearance_axes_title",
+    "ja": "外観を同期"
+  },
+  {
+    "name": "fv_app_switcher_link_appearance_axes_desc",
+    "ja": "オンにすると、縦軸と横軸でリング数、アイコンサイズ、形状、半径を共有"
+  },
+  {
+    "name": "fv_app_switcher_link_slot_axes_title",
+    "ja": "スロットを同期"
+  },
+  {
+    "name": "fv_app_switcher_link_slot_axes_desc",
+    "ja": "オンにすると、縦軸と横軸でスロット割り当てを共有"
+  },
+  {
+    "name": "fv_app_switcher_axis_vertical",
+    "ja": "縦軸（上/下）"
+  },
+  {
+    "name": "fv_app_switcher_axis_horizontal",
+    "ja": "横軸（左/右）"
+  },
+  {
+    "name": "fv_app_switcher_link_merge_title",
+    "ja": "同期方向を選択"
+  },
+  {
+    "name": "fv_app_switcher_link_merge_message",
+    "ja": "%1$s を有効にする際、使用する軸を選択してください：\\n\\n· %3$s を使用\\n· %3$s を %2$s で上書き"
+  },
+  {
+    "name": "fv_app_switcher_link_merge_appearance_kind",
+    "ja": "外観同期"
+  },
+  {
+    "name": "fv_app_switcher_link_merge_slot_kind",
+    "ja": "スロット同期"
+  },
+  {
+    "name": "fv_app_switcher_link_merge_use_other",
+    "ja": "他の軸を使用"
+  },
+  {
+    "name": "fv_app_switcher_link_merge_use_current",
+    "ja": "現在の軸で他を上書き"
+  },
+  {
+    "name": "fv_app_switcher_reset_defaults",
+    "ja": "デフォルトにリセット"
+  },
+  {
+    "name": "fv_app_switcher_done",
+    "ja": "完了"
+  },
+  {
+    "name": "honeycomb_display_settings_title",
+    "ja": "ハニカム表示とモーション"
+  },
+  {
+    "name": "honeycomb_display_settings_entry",
+    "ja": "表示とモーション"
+  },
+  {
+    "name": "honeycomb_display_settings_entry_desc",
+    "ja": "モード、位置、レイアウト、背景、アニメーション"
+  },
+  {
+    "name": "honeycomb_display_section_mode",
+    "ja": "操作"
+  },
+  {
+    "name": "honeycomb_display_section_position",
+    "ja": "位置"
+  },
+  {
+    "name": "honeycomb_display_section_layout",
+    "ja": "レイアウト"
+  },
+  {
+    "name": "honeycomb_display_section_background",
+    "ja": "背景"
+  },
+  {
+    "name": "honeycomb_display_section_animation",
+    "ja": "アニメーション"
+  },
+  {
+    "name": "honeycomb_mode_hold",
+    "ja": "長押しで選択"
+  },
+  {
+    "name": "honeycomb_mode_hold_desc",
+    "ja": "スライドでハイライト、離して起動"
+  },
+  {
+    "name": "honeycomb_mode_browse",
+    "ja": "ブラウズモード"
+  },
+  {
+    "name": "honeycomb_mode_browse_desc",
+    "ja": "ディスクをパン/ズームし、アイコンをタップして起動"
+  },
+  {
+    "name": "honeycomb_empty_tap_close",
+    "ja": "空白タップで閉じる"
+  },
+  {
+    "name": "honeycomb_empty_tap_close_desc",
+    "ja": "ブラウズモードのみ"
+  },
+  {
+    "name": "honeycomb_show_selected_name",
+    "ja": "選択名を表示"
+  },
+  {
+    "name": "honeycomb_show_selected_name_desc",
+    "ja": "ハイライト中のアプリのアイコンと名前をディスク上に表示"
+  },
+  {
+    "name": "honeycomb_follow_finger",
+    "ja": "指に追従"
+  },
+  {
+    "name": "honeycomb_follow_finger_desc",
+    "ja": "オフの場合、下の固定位置を使用"
+  },
+  {
+    "name": "honeycomb_fixed_x",
+    "ja": "固定水平位置"
+  },
+  {
+    "name": "honeycomb_fixed_y",
+    "ja": "固定垂直位置"
+  },
+  {
+    "name": "honeycomb_icon_size",
+    "ja": "アイコンサイズ"
+  },
+  {
+    "name": "honeycomb_spacing",
+    "ja": "ハニカム間隔"
+  },
+  {
+    "name": "honeycomb_disc_size",
+    "ja": "ディスクサイズ"
+  },
+  {
+    "name": "honeycomb_background_blur",
+    "ja": "ガウスぼかし"
+  },
+  {
+    "name": "honeycomb_background_black",
+    "ja": "ソリッド暗転"
+  },
+  {
+    "name": "honeycomb_blur_strength",
+    "ja": "ぼかしの強さ"
+  },
+  {
+    "name": "honeycomb_dim_percent",
+    "ja": "暗転量"
+  },
+  {
+    "name": "honeycomb_animation_speed",
+    "ja": "アニメーション速度"
+  },
+  {
+    "name": "honeycomb_inertia",
+    "ja": "慣性"
+  },
+  {
+    "name": "honeycomb_center_scale",
+    "ja": "中心の膨らみ"
+  },
+  {
+    "name": "honeycomb_edge_scale",
+    "ja": "端の縮小"
+  },
+  {
+    "name": "honeycomb_selection_scale",
+    "ja": "選択スケール"
+  },
+  {
+    "name": "honeycomb_speed_very_fast",
+    "ja": "非常に速い"
+  },
+  {
+    "name": "honeycomb_speed_fast",
+    "ja": "速い"
+  },
+  {
+    "name": "honeycomb_speed_normal",
+    "ja": "標準"
+  },
+  {
+    "name": "honeycomb_speed_soft",
+    "ja": "ソフト"
+  },
+  {
+    "name": "honeycomb_speed_slow",
+    "ja": "遅い"
+  },
+  {
+    "name": "honeycomb_inertia_low",
+    "ja": "低"
+  },
+  {
+    "name": "honeycomb_inertia_medium",
+    "ja": "中"
+  },
+  {
+    "name": "honeycomb_inertia_high",
+    "ja": "高"
+  },
+  {
+    "name": "honeycomb_layout_editor_title",
+    "ja": "ハニカム位置"
+  },
+  {
+    "name": "honeycomb_layout_editor_hint",
+    "ja": "レイアウトはライブハニカムと一致します。「編集」をタップし、アイコンを長押しして別スロットにドラッグで入れ替え、左下にドラッグで削除。"
+  },
+  {
+    "name": "honeycomb_layout_editor_edit",
+    "ja": "編集"
+  },
+  {
+    "name": "honeycomb_layout_editor_done",
+    "ja": "完了"
+  },
+  {
+    "name": "honeycomb_layout_editor_delete_zone",
+    "ja": "ここにドラッグして削除"
+  },
+  {
+    "name": "honeycomb_layout_editor_empty",
+    "ja": "下の + をタップしてアプリまたはショートカットを追加"
+  },
+  {
+    "name": "quick_launcher_panels_section",
+    "ja": "ランチャーパネル"
+  },
+  {
+    "name": "quick_launcher_panel_add",
+    "ja": "新規パネル"
+  },
+  {
+    "name": "quick_launcher_panel_rename",
+    "ja": "名前を変更"
+  },
+  {
+    "name": "quick_launcher_panel_duplicate",
+    "ja": "複製"
+  },
+  {
+    "name": "quick_launcher_panel_delete",
+    "ja": "パネルを削除"
+  },
+  {
+    "name": "quick_launcher_panel_delete_confirm",
+    "ja": "このパネルに紐づくジェスチャーは、代わりにデフォルトパネルを開きます。"
+  },
+  {
+    "name": "quick_launcher_panel_default_name",
+    "ja": "パネル %1$d"
+  },
+  {
+    "name": "quick_launcher_panel_pick_title",
+    "ja": "ランチャーパネルを選択"
+  },
+  {
+    "name": "quick_launcher_panel_pick_desc",
+    "ja": "ジェスチャースロットごとに異なるランチャーパネルを開けます。"
+  },
+  {
+    "name": "gesture_action_quick_launcher_named",
+    "ja": "クイックランチャー · %1$s"
+  },
+  {
+    "name": "quick_launcher_editor_desc",
+    "ja": "オーバーレイパネルと同じサイドバーレイアウト：+ で追加、− で編集。編集モードではドラッグで並べ替え、赤バッジをタップで削除。"
+  },
+  {
+    "name": "quick_launcher_appearance_section",
+    "ja": "外観"
+  },
+  {
+    "name": "quick_launcher_icon_size",
+    "ja": "アイコンサイズ"
+  },
+  {
+    "name": "quick_launcher_icon_size_value",
+    "ja": "%1$d dp"
+  },
+  {
+    "name": "quick_launcher_icon_shape_section",
+    "ja": "アイコン形状"
+  },
+  {
+    "name": "quick_launcher_icon_shape_default",
+    "ja": "デフォルト"
+  },
+  {
+    "name": "quick_launcher_icon_shape_circle",
+    "ja": "円"
+  },
+  {
+    "name": "quick_launcher_icon_shape_adaptive",
+    "ja": "アダプティブ"
+  },
+  {
+    "name": "quick_launcher_background_opacity",
+    "ja": "背景の不透明度"
+  },
+  {
+    "name": "quick_launcher_background_opacity_value",
+    "ja": "%1$d%%"
+  },
+  {
+    "name": "quick_launcher_blur_strength",
+    "ja": "ぼかしの強さ"
+  },
+  {
+    "name": "quick_launcher_blur_strength_value",
+    "ja": "%1$d dp"
+  },
+  {
+    "name": "quick_launcher_add",
+    "ja": "ショートカットを追加"
+  },
+  {
+    "name": "quick_launcher_shell_shortcuts_section",
+    "ja": "Shell パネルショートカット"
+  },
+  {
+    "name": "quick_launcher_shell_shortcuts_empty",
+    "ja": "先に「拡張機能 → Shell コマンドパネル」でショートカットを追加してください"
+  },
+  {
+    "name": "quick_launcher_loading_shortcuts",
+    "ja": "アプリショートカットをスキャン中…"
+  },
+  {
+    "name": "quick_launcher_add_overlay_done",
+    "ja": "完了"
+  },
+  {
+    "name": "create_shortcut",
+    "ja": "ショートカットを作成"
+  },
+  {
+    "name": "launch_shortcut",
+    "ja": "既存のショートカット"
+  },
+  {
+    "name": "create_shortcut_tap_hint",
+    "ja": "タップしてカスタムショートカットを作成"
+  },
+  {
+    "name": "action_picker_tab_actions",
+    "ja": "操作"
+  },
+  {
+    "name": "action_picker_tab_apps",
+    "ja": "アプリ"
+  },
+  {
+    "name": "action_picker_tab_shortcuts",
+    "ja": "ショートカット"
+  },
+  {
+    "name": "shortcut_kind_empty",
+    "ja": "このカテゴリにショートカットはありません"
+  },
+  {
+    "name": "task_switcher_close_all",
+    "ja": "すべて閉じる"
+  },
+  {
+    "name": "task_switcher_empty",
+    "ja": "バックグラウンドタスクはありません"
+  },
+  {
+    "name": "task_switcher_loading",
+    "ja": "読み込み中…"
+  },
+  {
+    "name": "task_switcher_menu_free_window",
+    "ja": "フリーフォームで開く"
+  },
+  {
+    "name": "task_switcher_menu_app_info",
+    "ja": "アプリ情報"
+  },
+  {
+    "name": "task_switcher_menu_force_stop",
+    "ja": "強制停止"
+  },
+  {
+    "name": "widget_panel_settings_title",
+    "ja": "ウィジェットパネル"
+  },
+  {
+    "name": "widget_panel_settings_desc",
+    "ja": "「ウィジェットポップアップ」ジェスチャーで表示するシステムウィジェットを設定。空セルをタップしてリストから選択、追加済みウィジェットを長押しで削除。"
+  },
+  {
+    "name": "widget_panel_entry_desc",
+    "ja": "ポップアップ内のシステムウィジェットを設定"
+  },
+  {
+    "name": "widget_panel_entry_summary",
+    "ja": "ウィジェット：%1$d · ページ：%2$d"
+  },
+  {
+    "name": "floating_pointer_design_section",
+    "ja": "ポインターデザイン"
+  },
+  {
+    "name": "floating_pointer_design_ring",
+    "ja": "リング（デフォルト）"
+  },
+  {
+    "name": "floating_pointer_design_arrow_1",
+    "ja": "矢印 1"
+  },
+  {
+    "name": "floating_pointer_design_arrow_2",
+    "ja": "矢印 2"
+  },
+  {
+    "name": "floating_pointer_design_arrow_3",
+    "ja": "矢印 3"
+  },
+  {
+    "name": "floating_pointer_design_arrow_4",
+    "ja": "矢印 4"
+  },
+  {
+    "name": "floating_pointer_design_arrow_5",
+    "ja": "矢印 5"
+  },
+  {
+    "name": "floating_pointer_design_arrow_6",
+    "ja": "矢印 6"
+  },
+  {
+    "name": "floating_pointer_design_arrow_7",
+    "ja": "矢印 7"
+  },
+  {
+    "name": "floating_pointer_design_arrow_8",
+    "ja": "矢印 8"
+  },
+  {
+    "name": "floating_pointer_design_arrow_9",
+    "ja": "矢印 9"
+  },
+  {
+    "name": "floating_pointer_design_arrow_10",
+    "ja": "矢印 10"
+  },
+  {
+    "name": "floating_pointer_design_arrow_11",
+    "ja": "矢印 11"
+  },
+  {
+    "name": "floating_pointer_design_arrow_12",
+    "ja": "矢印 12"
+  },
+  {
+    "name": "floating_pointer_design_arrow_13",
+    "ja": "矢印 13"
+  },
+  {
+    "name": "floating_pointer_design_arrow_14",
+    "ja": "矢印 14"
+  },
+  {
+    "name": "floating_pointer_design_arrow_15",
+    "ja": "矢印 15"
+  },
+  {
+    "name": "floating_pointer_design_arrow_16",
+    "ja": "矢印 16"
+  },
+  {
+    "name": "floating_pointer_design_arrow_17",
+    "ja": "矢印 17"
+  },
+  {
+    "name": "floating_pointer_design_arrow_18",
+    "ja": "矢印 18"
+  },
+  {
+    "name": "floating_pointer_design_arrow_19",
+    "ja": "矢印 19"
+  },
+  {
+    "name": "floating_pointer_design_hand_1",
+    "ja": "手 1"
+  },
+  {
+    "name": "floating_pointer_design_hand_2",
+    "ja": "手 2"
+  },
+  {
+    "name": "floating_pointer_design_hand_3",
+    "ja": "手 3"
+  },
+  {
+    "name": "floating_pointer_design_hand_4",
+    "ja": "手 4"
+  },
+  {
+    "name": "floating_pointer_design_hand_5",
+    "ja": "手 5"
+  },
+  {
+    "name": "floating_pointer_design_hand_6",
+    "ja": "手 6"
+  },
+  {
+    "name": "floating_pointer_design_crosshair_1",
+    "ja": "クロスヘア 1"
+  }
+]

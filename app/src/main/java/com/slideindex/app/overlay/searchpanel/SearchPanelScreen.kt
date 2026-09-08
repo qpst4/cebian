@@ -1395,13 +1395,13 @@ fun SearchPanelScreen(
                             }
 
                             val engineGridBlock: @Composable () -> Unit = {
-                                val aggregateSearchEngine = remember {
+                                val aggregateSearchEngine = remember(context) {
                                     SearchEngineConfig(
                                         id = "slideindex_aggregate_image_search",
-                                        name = "聚合搜图",
+                                        name = context.getString(R.string.search_panel_aggregated_image_search),
                                         engineType = SearchEngineType.SHARE_IMAGE_TO_APP,
                                         iconType = SearchIconType.TEXT,
-                                        textIcon = "聚",
+                                        textIcon = context.getString(R.string.search_panel_aggregated_image_icon),
                                     )
                                 }
                                 val activeEngines = if (mode == SearchMode.TEXT) {

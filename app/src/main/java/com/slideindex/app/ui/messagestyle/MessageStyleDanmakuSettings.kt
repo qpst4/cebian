@@ -34,6 +34,9 @@ fun danmakuSettingsCardItems(
 ): List<CardItem> = buildList {
     add(
         settingsCardScopeItem("speed") {
+            val slowLabel = stringResource(R.string.message_danmaku_speed_slow)
+            val fastLabel = stringResource(R.string.message_danmaku_speed_fast)
+            val normalLabel = stringResource(R.string.message_danmaku_speed_normal)
             SettingsSliderRow(
                 title = stringResource(R.string.message_danmaku_speed),
                 value = settings.danmakuSpeedLevel.toFloat(),
@@ -41,15 +44,15 @@ fun danmakuSettingsCardItems(
                 steps = 1,
                 enabled = controlsEnabled,
                 label = when (settings.danmakuSpeedLevel.coerceIn(DanmakuSpeed.SLOW, DanmakuSpeed.FAST)) {
-                    DanmakuSpeed.SLOW -> stringResource(R.string.message_danmaku_speed_slow)
-                    DanmakuSpeed.FAST -> stringResource(R.string.message_danmaku_speed_fast)
-                    else -> stringResource(R.string.message_danmaku_speed_normal)
+                    DanmakuSpeed.SLOW -> slowLabel
+                    DanmakuSpeed.FAST -> fastLabel
+                    else -> normalLabel
                 },
                 formatLabel = { level ->
                     when (level.toInt().coerceIn(DanmakuSpeed.SLOW, DanmakuSpeed.FAST)) {
-                        DanmakuSpeed.SLOW -> "慢"
-                        DanmakuSpeed.FAST -> "快"
-                        else -> "标准"
+                        DanmakuSpeed.SLOW -> slowLabel
+                        DanmakuSpeed.FAST -> fastLabel
+                        else -> normalLabel
                     }
                 },
                 onValueChange = { onDanmakuSpeedLevelChange(it.toInt()) },

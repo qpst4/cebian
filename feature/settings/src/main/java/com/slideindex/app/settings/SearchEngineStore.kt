@@ -1,5 +1,6 @@
 package com.slideindex.app.settings
 
+import android.content.Context
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 
@@ -14,11 +15,11 @@ object SearchEngineStore {
     fun encode(engines: List<SearchEngineConfig>): String =
         json.encodeToString(listSerializer, engines.sortedBy { it.sortOrder })
 
-    fun decode(raw: String?): List<SearchEngineConfig> {
-        if (raw.isNullOrBlank()) return SearchEngineCatalog.defaultEngines()
+    fun decode(context: Context, raw: String?): List<SearchEngineConfig> {
+        if (raw.isNullOrBlank()) return SearchEngineCatalog.defaultEngines(context)
         return runCatching {
             json.decodeFromString(listSerializer, raw)
-        }.getOrElse { SearchEngineCatalog.defaultEngines() }
+        }.getOrElse { SearchEngineCatalog.defaultEngines(context) }
     }
 
     fun textPickPanelEngines(engines: List<SearchEngineConfig>): List<SearchEngineConfig> =

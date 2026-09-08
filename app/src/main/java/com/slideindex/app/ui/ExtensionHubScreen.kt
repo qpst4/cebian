@@ -301,7 +301,7 @@ fun SettingsCardScope.AboutEntryCard(
     SettingNavigationRow(
         icon = { label -> Icon(HubLeadingIcons.about(outlinedLeadingIcons), contentDescription = label) },
         title = stringResource(R.string.about_section_title),
-        subtitle = "版本、更新与隐私协议",
+        subtitle = stringResource(R.string.extension_about_subtitle),
         onClick = onClick,
     )
 }

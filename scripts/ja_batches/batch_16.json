@@ -1,0 +1,727 @@
+[
+  {
+    "name": "clipboard_monitoring_status_error_headline",
+    "text": "%1$s · Unavailable",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitoring_status_badge_running",
+    "text": "Foreground service running",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitoring_status_badge_no_root",
+    "text": "No Root access",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitoring_status_badge_no_shizuku",
+    "text": "Shizuku not authorized",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitoring_status_badge_no_overlay",
+    "text": "Overlay permission missing",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitoring_status_badge_no_read_logs",
+    "text": "READ_LOGS missing",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitoring_status_desc_no_root",
+    "text": "Cannot execute su. Ensure the device is rooted and access is granted to this app.",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitoring_status_desc_no_shizuku",
+    "text": "Shizuku is not running or not authorized. Start Shizuku and grant permission.",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitoring_status_desc_no_overlay",
+    "text": "Background clipboard reads require overlay permission. Grant “Display over other apps”.",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitoring_status_desc_no_read_logs",
+    "text": "Shizuku logcat pipeline needs READ_LOGS. Grant via Shizuku or switch to Hidden API.",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitoring_status_desc_stopped",
+    "text": "Listener service is not running. Check permissions and environment above.",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitoring_mode_follow_privilege",
+    "text": "Follow privilege mode (recommended)",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitoring_mode_follow_privilege_desc",
+    "text": "Follows privileged execution; currently %1$s",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_screenshot_monitoring_section",
+    "text": "Screenshot monitoring",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_screenshot_monitoring_title",
+    "text": "Screenshots to clipboard history",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_screenshot_monitoring_desc",
+    "text": "Monitor screenshots saved to the gallery by the system and other apps, and add them to clipboard history automatically (requires photo access)",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_media_read_status_title",
+    "text": "Photo library access",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_media_read_status_granted",
+    "text": "Granted — can monitor screenshots",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_media_read_status_denied",
+    "text": "Not granted — allow access to photos and videos",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitoring_mode_shizuku_logs",
+    "text": "Shizuku · System logs",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitoring_mode_shizuku_logs_desc",
+    "text": "Watch ClipboardService logs in Shizuku environment",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitoring_mode_shizuku_hidden_api",
+    "text": "Shizuku · Hidden API",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitoring_mode_shizuku_hidden_api_desc",
+    "text": "Listen via IClipboard hidden API in Shizuku environment",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitoring_mode_root_logs",
+    "text": "Root · System logs",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitoring_mode_root_logs_desc",
+    "text": "Watch ClipboardService logs via su",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitoring_mode_root_hidden_api",
+    "text": "Root · Hidden API",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitoring_mode_root_hidden_api_desc",
+    "text": "Run hidden API listener via su",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitoring_mode_standard",
+    "text": "Standard · Public API",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitoring_mode_standard_desc",
+    "text": "Uses only ClipboardManager public listener, no Root/Shizuku; unreliable for other apps in background on Android 10+",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitor_backend_standard_ready",
+    "text": "No privilege required",
+    "source": "en"
+  },
+  {
+    "name": "stash_clipboard_entry_summary_clipboard_standard",
+    "text": "Standard API monitoring",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitor_notification_standard_running",
+    "text": "Standard API mode",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitor_backend_status_title",
+    "text": "Privileged backend",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitor_backend_shizuku_ready",
+    "text": "Shizuku granted",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitor_backend_shizuku_missing",
+    "text": "Shizuku not granted or disconnected",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitor_backend_root_ready",
+    "text": "Root available",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitor_backend_root_missing",
+    "text": "Root not detected",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitor_overlay_status_title",
+    "text": "Overlay permission",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitor_overlay_ready",
+    "text": "Granted (needed to read clipboard in background)",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitor_overlay_missing",
+    "text": "Not granted; background read may fail",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitor_service_status_title",
+    "text": "Listener service",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitor_service_running",
+    "text": "Running",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitor_service_stopped",
+    "text": "Stopped",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitor_notification_channel_name",
+    "text": "Clipboard monitor",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitor_notification_channel_desc",
+    "text": "Shows clipboard background listener status",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitor_notification_waiting_title",
+    "text": "Clipboard monitor",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitor_notification_waiting_text",
+    "text": "Starting listener service…",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitor_notification_starting",
+    "text": "Starting: %1$s",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitor_notification_running_title",
+    "text": "Clipboard monitor running",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitor_notification_shizuku_running",
+    "text": "Shizuku mode",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitor_notification_root_running",
+    "text": "Root mode",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitor_notification_stopped_title",
+    "text": "Clipboard monitor stopped",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitor_notification_stopped_text",
+    "text": "Background clipboard listening ended",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitor_notification_error_title",
+    "text": "Clipboard monitor error",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitor_notification_listener_asset_error",
+    "text": "Failed to copy listener.zip",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitor_notification_error_unknown",
+    "text": "Unknown error",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitor_notification_root_unavailable",
+    "text": "Root unavailable; listening stopped",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitor_notification_shizuku_disconnected_title",
+    "text": "Shizuku disconnected",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_monitor_notification_shizuku_disconnected_text",
+    "text": "Clipboard listening stopped; check Shizuku",
+    "source": "en"
+  },
+  {
+    "name": "stash_clipboard_entry_summary_clipboard_shizuku",
+    "text": "Clipboard · Shizuku monitor",
+    "source": "en"
+  },
+  {
+    "name": "stash_clipboard_entry_summary_clipboard_root",
+    "text": "Clipboard · Root monitor",
+    "source": "en"
+  },
+  {
+    "name": "stash_clipboard_entry_summary_clipboard_not_ready",
+    "text": "Clipboard · Monitor not ready",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_clear_history",
+    "text": "Clear clipboard history",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_clear_history_confirm_title",
+    "text": "Clear clipboard history?",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_clear_history_confirm_message",
+    "text": "All clipboard entries will be deleted. This cannot be undone.",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_history_capacity_title",
+    "text": "History capacity",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_history_capacity_unlimited",
+    "text": "Unlimited",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_read_logs_shizuku_grant",
+    "text": "Grant via Shizuku",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_read_logs_shizuku_reminder_title",
+    "text": "Before granting",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_read_logs_shizuku_reminder_message",
+    "text": "Shizuku will grant the read logs permission.\\n\\n• The app may crash during this step. That is normal—just reopen it.\\n\\n• If a system \\\"Read logs\\\" permission dialog appears, tap Allow.",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_read_logs_shizuku_reminder_continue",
+    "text": "Continue",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_entry_type_text",
+    "text": "Text",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_entry_type_uri",
+    "text": "Link / file",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_entry_type_intent",
+    "text": "Intent",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_entry_type_html",
+    "text": "Rich text",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_image_unavailable",
+    "text": "Image unavailable or expired",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_action_save_image",
+    "text": "Save image",
+    "source": "en"
+  },
+  {
+    "name": "history_drag_unsupported",
+    "text": "This item cannot be dragged",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_history_float_section",
+    "text": "Edge history float",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_history_float_enabled_title",
+    "text": "Show clipboard history edge float",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_history_float_enabled_desc",
+    "text": "Shows a handle on the right edge; swipe left or double-tap to expand clipboard history.",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_history_float_enabled_landscape_title",
+    "text": "Show edge float in landscape",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_history_float_enabled_landscape_desc",
+    "text": "When on, the edge handle stays visible in landscape; off by default",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_history_float_lock_position_title",
+    "text": "Lock handle position",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_history_float_lock_position_desc",
+    "text": "When on, the handle cannot be dragged vertically.",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_history_float_handle_width_title",
+    "text": "Handle width",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_history_float_overlay_permission_hint",
+    "text": "Display over other apps permission is required for the edge float.",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_history_float_open_overlay_permission",
+    "text": "Grant overlay permission",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_history_float_copy",
+    "text": "Copy",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_section",
+    "text": "Floating clipboard",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_enabled_title",
+    "text": "Enable floating clipboard",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_enabled_desc",
+    "text": "Shows a clipboard window above the keyboard while typing. Drag, resize, and tap an entry to paste.",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_a11y_hint",
+    "text": "Cebian accessibility must be enabled to detect the keyboard and paste into fields.",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_show_chip_title",
+    "text": "Show entry chip first",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_show_chip_desc",
+    "text": "When on, show a small chip first; tap to expand. When off, expand immediately when the keyboard opens.",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_pin_title",
+    "text": "Remember panel and chip position",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_pin_desc",
+    "text": "When on, the panel and chip reopen where you left them. When off, they always appear at the default spot above the keyboard.",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_click_action_title",
+    "text": "Tap entry",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_click_action_paste",
+    "text": "Paste",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_click_action_copy",
+    "text": "Copy",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_click_action_copy_and_paste",
+    "text": "Copy and paste",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_reset_layout",
+    "text": "Reset panel and chip layout",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_title",
+    "text": "Clipboard",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_open",
+    "text": "Open clipboard",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_keep_visible",
+    "text": "Keep visible when keyboard hides",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_open_stash_panel",
+    "text": "Open stash panel",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_collapse",
+    "text": "Collapse",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_close",
+    "text": "Close",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_meta_image",
+    "text": "Image",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_paste_failed",
+    "text": "Paste failed. Focus an input field first.",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_paste_no_window",
+    "text": "Paste failed. No active input window found.",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_paste_insert_failed",
+    "text": "Paste failed. This app does not support automatic insertion.",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_paste_haptic_title",
+    "text": "Vibrate on successful paste",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_paste_haptic_desc",
+    "text": "Short vibration after a successful paste",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_app_blacklist",
+    "text": "App blacklist",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_app_blacklist_page_desc",
+    "text": "The floating clipboard will not appear in these apps.",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_blacklist_section_blocked",
+    "text": "Blocked apps",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_blacklist_empty",
+    "text": "No blocked apps",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_blacklist_remove",
+    "text": "Remove",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_blacklist_section_add",
+    "text": "Add app",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_opacity_title",
+    "text": "Floating window opacity",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_opacity_desc",
+    "text": "Adjust floating window opacity when displayed",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_auto_dim_title",
+    "text": "Auto-dim when unfocused",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_auto_dim_desc",
+    "text": "Automatically dim when touching outside while pinned, and restore when tapping",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_auto_close_title",
+    "text": "Auto-close delay (unpinned)",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_auto_close_never",
+    "text": "Never",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_auto_close_5s",
+    "text": "5 seconds",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_auto_close_10s",
+    "text": "10 seconds",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_auto_close_15s",
+    "text": "15 seconds",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_auto_close_30s",
+    "text": "30 seconds",
+    "source": "en"
+  },
+  {
+    "name": "clipboard_float_auto_close_60s",
+    "text": "60 seconds",
+    "source": "en"
+  },
+  {
+    "name": "stash_clear_all",
+    "text": "Clear stash",
+    "source": "en"
+  },
+  {
+    "name": "stash_clear_all_confirm_title",
+    "text": "Clear stash?",
+    "source": "en"
+  },
+  {
+    "name": "stash_clear_all_confirm_message",
+    "text": "All stash items (including images) will be deleted. This cannot be undone.",
+    "source": "en"
+  },
+  {
+    "name": "message_style_float_position",
+    "text": "悬浮球位置",
+    "source": "zh"
+  },
+  {
+    "name": "message_style_float_icon_corner",
+    "text": "角落",
+    "source": "zh"
+  },
+  {
+    "name": "message_style_position_y",
+    "text": "垂直位置",
+    "source": "zh"
+  },
+  {
+    "name": "message_style_corner_top_start",
+    "text": "左上",
+    "source": "zh"
+  },
+  {
+    "name": "message_style_corner_top_end",
+    "text": "右上",
+    "source": "zh"
+  },
+  {
+    "name": "message_style_corner_bottom_start",
+    "text": "左下",
+    "source": "zh"
+  },
+  {
+    "name": "message_style_corner_bottom_end",
+    "text": "右下",
+    "source": "zh"
+  },
+  {
+    "name": "message_preview_content",
+    "text": "拖动滑块可实时预览位置",
+    "source": "zh"
+  },
+  {
+    "name": "float_ball_gesture_swipe_up_return",
+    "text": "上滑后返回",
+    "source": "zh"
+  },
+  {
+    "name": "float_ball_gesture_swipe_down_return",
+    "text": "下滑后返回",
+    "source": "zh"
+  },
+  {
+    "name": "float_ball_gesture_swipe_side_return",
+    "text": "侧滑后返回",
+    "source": "zh"
+  }
+]

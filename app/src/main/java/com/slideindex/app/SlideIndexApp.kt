@@ -1,6 +1,7 @@
 package com.slideindex.app
 
 import android.app.Application
+import android.content.Context
 import android.os.Build
 import com.slideindex.app.clipboard.monitor.ClipboardMonitorStartup
 import com.slideindex.app.di.AppDependencies
@@ -19,8 +20,10 @@ import com.slideindex.app.service.ClipboardFloatLifecycle
 import com.slideindex.app.service.GestureToggleTileWarmup
 import com.slideindex.app.service.HistoryFloatLifecycle
 import com.slideindex.app.util.HiddenApiBootstrap
+import com.slideindex.app.util.AppLocaleApplier
 import com.slideindex.app.util.PredictiveBackHelper
 import com.slideindex.app.util.ServiceEnabledStore
+import com.slideindex.app.settings.AppUiLanguage
 import com.slideindex.app.update.UpdateCheckScheduler
 import com.slideindex.app.update.UpdatePreferencesStore
 import com.slideindex.app.widget.WidgetPanelPage
@@ -29,6 +32,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 @HiltAndroidApp
 class SlideIndexApp : Application() {
@@ -42,8 +46,18 @@ class SlideIndexApp : Application() {
     @Inject lateinit var segmentationEngineProvisioner: SegmentationEngineProvisioner
     @Inject lateinit var updatePreferencesStore: UpdatePreferencesStore
 
+    override fun attachBaseContext(base: Context) {
+        super.attachBaseContext(AppLocaleApplier.wrapContextIfNeeded(base))
+    }
+
     override fun onCreate() {
         super.onCreate()
+        runBlocking(Dispatchers.IO) {
+            val language = AppUiLanguage.fromStorageTag(
+                runCatching { deps.settingsRepository.readFreshSnapshot().appUiLanguageTag }.getOrDefault(""),
+            )
+            AppLocaleApplier.apply(this@SlideIndexApp, language)
+        }
         com.slideindex.app.util.LocalCrashHandler.install(this)
         HiddenApiBootstrap.install()
         NativeEngineRuntime.coordinator = nativeEnginePackCoordinator

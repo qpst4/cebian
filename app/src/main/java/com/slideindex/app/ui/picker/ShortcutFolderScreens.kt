@@ -71,11 +71,11 @@ fun LazyListScope.shortcutFolderCardsSection(
     if (showMyShortcuts) {
         items += CardItem("my-shortcuts") {
             ArrowPreference(
-                title = "我的直达",
+                title = stringResource(R.string.quick_launcher_my_shortcuts),
                 summary = if (activityShortcutsCount > 0) {
-                    "${activityShortcutsCount} 个自定义直达快捷方式"
+                    stringResource(R.string.shortcut_custom_count_summary, activityShortcutsCount)
                 } else {
-                    "自定义创建与管理的直达快捷方式"
+                    stringResource(R.string.shortcut_custom_empty_summary)
                 },
                 onClick = onOpenMyShortcuts,
             )
@@ -83,8 +83,8 @@ fun LazyListScope.shortcutFolderCardsSection(
     }
     items += CardItem("preset-shortcuts") {
         ArrowPreference(
-            title = "预设快捷方式库",
-            summary = "内置精选直达规则 · 涵盖常用应用",
+            title = stringResource(R.string.quick_launcher_preset_shortcuts),
+            summary = stringResource(R.string.preset_shortcut_library_summary),
             onClick = onOpenPresetShortcuts,
         )
     }
@@ -149,7 +149,7 @@ fun MyShortcutsFolderScreen(
     }
 
     SettingsLazyScreenScaffoldWithExpandableSearch(
-        title = "我的直达",
+        title = stringResource(R.string.quick_launcher_my_shortcuts),
         searchQuery = standaloneQuery,
         onSearchQueryChange = { standaloneQuery = it },
         onBack = onBack,
@@ -178,7 +178,7 @@ private fun LazyListScope.myShortcutsListContent(
     onBrowseNewShortcut: () -> Unit,
 ) {
     item(key = "my-shortcuts-header") {
-        Md3PickerSectionHeader("自定义快捷方式 (${filtered.size})")
+        Md3PickerSectionHeader(stringResource(R.string.shortcut_custom_section_header, filtered.size))
     }
 
     val segmentCount = filtered.size + 1
@@ -304,9 +304,9 @@ fun PresetShortcutsFolderScreen(
         }
     }
     val emptyMessage = if (effectiveQuery.isBlank()) {
-        "当前设备暂无已安装应用对应的预设快捷方式，搜索可查看全部"
+        stringResource(R.string.preset_shortcut_no_installed)
     } else {
-        "未找到匹配的预设快捷方式"
+        stringResource(R.string.preset_shortcut_no_match)
     }
 
     if (embedInParentChrome) {
@@ -347,7 +347,7 @@ fun PresetShortcutsFolderScreen(
     }
 
     SettingsLazyScreenScaffoldWithExpandableSearch(
-        title = "预设快捷方式库",
+        title = stringResource(R.string.quick_launcher_preset_shortcuts),
         searchQuery = standaloneQuery,
         onSearchQueryChange = { standaloneQuery = it },
         onBack = onBack,
@@ -422,7 +422,7 @@ private fun LazyListScope.presetShortcutsListContent(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     if (!isInstalled) {
                         Text(
-                            text = "未安装",
+                            text = stringResource(R.string.ocr_engine_status_not_installed),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.error,
                             modifier = Modifier
@@ -432,7 +432,7 @@ private fun LazyListScope.presetShortcutsListContent(
                         Spacer(Modifier.width(6.dp))
                     }
                     Text(
-                        text = "${group.shortcuts.size} 项",
+                        text = stringResource(R.string.shortcut_item_count, group.shortcuts.size),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )

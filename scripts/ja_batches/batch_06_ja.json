@@ -1,0 +1,722 @@
+[
+  {
+    "name": "ocr_download_notification_verifying",
+    "ja": "モデルを検証中…"
+  },
+  {
+    "name": "ocr_download_notification_finalizing",
+    "ja": "モデルをインストール中…"
+  },
+  {
+    "name": "ocr_download_notification_done",
+    "ja": "モデルのダウンロード完了"
+  },
+  {
+    "name": "ocr_download_notification_failed",
+    "ja": "モデルのダウンロード失敗"
+  },
+  {
+    "name": "ocr_download_notification_cancelled",
+    "ja": "モデルのダウンロードをキャンセルしました"
+  },
+  {
+    "name": "float_ball_recognizing",
+    "ja": "認識中…"
+  },
+  {
+    "name": "float_ball_action_share",
+    "ja": "共有"
+  },
+  {
+    "name": "float_ball_action_open_image",
+    "ja": "アプリで開く"
+  },
+  {
+    "name": "float_ball_action_failed",
+    "ja": "操作に失敗しました"
+  },
+  {
+    "name": "float_ball_screenshot_saved",
+    "ja": "スクリーンショットをギャラリーに保存しました"
+  },
+  {
+    "name": "float_ball_pick_result_image_section",
+    "ja": "画像"
+  },
+  {
+    "name": "float_ball_action_stash",
+    "ja": "ストッシュに保存"
+  },
+  {
+    "name": "stash_empty",
+    "ja": "ストッシュに項目はまだありません"
+  },
+  {
+    "name": "stash_saved",
+    "ja": "ストッシュに保存しました"
+  },
+  {
+    "name": "stash_save_failed",
+    "ja": "ストッシュへの保存に失敗しました"
+  },
+  {
+    "name": "stash_toggle_side",
+    "ja": "左右を切り替え"
+  },
+  {
+    "name": "stash_action_pin",
+    "ja": "画面にピン留め"
+  },
+  {
+    "name": "stash_action_open_pick",
+    "ja": "選択パネルで開く"
+  },
+  {
+    "name": "stash_action_delete",
+    "ja": "削除"
+  },
+  {
+    "name": "stash_time_just_now",
+    "ja": "たった今"
+  },
+  {
+    "name": "stash_time_minutes_ago",
+    "ja": "%d 分前"
+  },
+  {
+    "name": "stash_time_hours_ago",
+    "ja": "%d 時間前"
+  },
+  {
+    "name": "stash_drop_target_stash",
+    "ja": "ストッシュ"
+  },
+  {
+    "name": "stash_drop_target_delete",
+    "ja": "削除"
+  },
+  {
+    "name": "stash_drop_target_notification",
+    "ja": "通知"
+  },
+  {
+    "name": "stash_pin_add_failed",
+    "ja": "ピン留めを作成できませんでした"
+  },
+  {
+    "name": "stash_pin_notification_title",
+    "ja": "画面ピン留め"
+  },
+  {
+    "name": "stash_pin_notification_text",
+    "ja": "タップして画面ピン留めを復元"
+  },
+  {
+    "name": "stash_pin_notification_posted",
+    "ja": "通知シェードに追加しました"
+  },
+  {
+    "name": "stash_pin_notification_restored",
+    "ja": "画面ピン留めを復元しました"
+  },
+  {
+    "name": "stash_pin_notification_restore_failed",
+    "ja": "画面ピン留めの復元に失敗しました"
+  },
+  {
+    "name": "stash_pin_notification_channel_name",
+    "ja": "画面ピン留め"
+  },
+  {
+    "name": "stash_pin_notification_channel_desc",
+    "ja": "ピン留めした画像を通知シェードに配置します"
+  },
+  {
+    "name": "float_ball_image_search_panel_title",
+    "ja": "画像で検索"
+  },
+  {
+    "name": "float_ball_image_search_uploading",
+    "ja": "画像をアップロード中…"
+  },
+  {
+    "name": "float_ball_image_search_upload_failed",
+    "ja": "画像のアップロードに失敗しました。ネットワークを確認して再試行してください。"
+  },
+  {
+    "name": "float_ball_image_search_retry",
+    "ja": "再試行"
+  },
+  {
+    "name": "float_ball_image_search_privacy_hint",
+    "ja": "検索のため、画像は一時的にホストにアップロードされます。"
+  },
+  {
+    "name": "float_ball_image_search_refresh",
+    "ja": "更新"
+  },
+  {
+    "name": "float_ball_image_search_open_browser",
+    "ja": "ブラウザで開く"
+  },
+  {
+    "name": "float_ball_image_search_no_engines",
+    "ja": "有効な集約検索エンジンがありません。設定で有効にしてください。"
+  },
+  {
+    "name": "float_ball_image_search_ascii2d_screenshot_saved",
+    "ja": "スクリーンショットをギャラリーに保存しました。ASCII2D でアップロード時に選択してください。"
+  },
+  {
+    "name": "float_ball_image_search_tab_loading",
+    "ja": "検索中"
+  },
+  {
+    "name": "float_ball_image_search_tab_ready",
+    "ja": "検索完了"
+  },
+  {
+    "name": "float_ball_image_search_tab_failed",
+    "ja": "検索失敗"
+  },
+  {
+    "name": "float_ball_pick_source_a11y",
+    "ja": "アクセシビリティ"
+  },
+  {
+    "name": "float_ball_pick_source_ocr",
+    "ja": "OCR"
+  },
+  {
+    "name": "float_ball_pick_source_barcode",
+    "ja": "スキャン"
+  },
+  {
+    "name": "float_ball_action_edit",
+    "ja": "編集"
+  },
+  {
+    "name": "float_ball_action_word_select",
+    "ja": "単語タップ"
+  },
+  {
+    "name": "float_ball_action_select_all",
+    "ja": "すべて選択"
+  },
+  {
+    "name": "float_ball_action_deselect_all",
+    "ja": "選択解除"
+  },
+  {
+    "name": "float_ball_action_trim_spaces",
+    "ja": "空白をトリム"
+  },
+  {
+    "name": "floating_pointer_settings_title",
+    "ja": "フローティングポインター"
+  },
+  {
+    "name": "floating_pointer_settings_section_appearance",
+    "ja": "外観"
+  },
+  {
+    "name": "floating_pointer_joystick_area_section",
+    "ja": "ポインター移動"
+  },
+  {
+    "name": "floating_pointer_sensitivity",
+    "ja": "ポインター速度"
+  },
+  {
+    "name": "floating_pointer_preview_drag_hint",
+    "ja": "有効にすると、実際の画面でジョイスティックと移動範囲をプレビューします。"
+  },
+  {
+    "name": "floating_pointer_area_preview_title",
+    "ja": "移動範囲プレビュー"
+  },
+  {
+    "name": "floating_pointer_area_preview_desc",
+    "ja": "実際の画面でジョイスティックの移動範囲を表示"
+  },
+  {
+    "name": "floating_pointer_preview_pointer_range",
+    "ja": "ポインター開始位置"
+  },
+  {
+    "name": "floating_pointer_pointer_settings_title",
+    "ja": "ポインター外観"
+  },
+  {
+    "name": "floating_pointer_pointer_settings_summary",
+    "ja": "リング %1$d px · ドット %2$d px"
+  },
+  {
+    "name": "floating_pointer_joystick_settings_title",
+    "ja": "ジョイスティックの外観と動作"
+  },
+  {
+    "name": "floating_pointer_joystick_settings_summary",
+    "ja": "直径 %1$d px"
+  },
+  {
+    "name": "floating_pointer_preview_section",
+    "ja": "プレビュー"
+  },
+  {
+    "name": "floating_pointer_ring_color",
+    "ja": "リングの色"
+  },
+  {
+    "name": "floating_pointer_fill_color",
+    "ja": "塗りつぶし色"
+  },
+  {
+    "name": "floating_pointer_fill_color_desc",
+    "ja": "内側リングの端と中心ドットの間の領域"
+  },
+  {
+    "name": "floating_pointer_dot_color",
+    "ja": "内側ドットの色"
+  },
+  {
+    "name": "floating_pointer_visual_feedback_section",
+    "ja": "触覚と視覚フィードバック"
+  },
+  {
+    "name": "floating_pointer_click_haptic",
+    "ja": "触覚フィードバック"
+  },
+  {
+    "name": "floating_pointer_click_haptic_desc",
+    "ja": "タップ時に振動"
+  },
+  {
+    "name": "floating_pointer_click_visual_feedback",
+    "ja": "視覚フィードバック"
+  },
+  {
+    "name": "floating_pointer_click_visual_feedback_desc",
+    "ja": "タップ時に視覚フィードバックを表示"
+  },
+  {
+    "name": "floating_pointer_ripple_color",
+    "ja": "リップル色"
+  },
+  {
+    "name": "floating_pointer_ripple_color_desc",
+    "ja": "タップ時のリップル効果の色"
+  },
+  {
+    "name": "floating_pointer_trail_section",
+    "ja": "軌跡"
+  },
+  {
+    "name": "floating_pointer_trail_off",
+    "ja": "オフ"
+  },
+  {
+    "name": "floating_pointer_trail_simple",
+    "ja": "シンプル"
+  },
+  {
+    "name": "floating_pointer_trail_high_detail",
+    "ja": "高詳細"
+  },
+  {
+    "name": "floating_pointer_trail_duration",
+    "ja": "軌跡の表示時間"
+  },
+  {
+    "name": "floating_pointer_trail_duration_value",
+    "ja": "%1$d ms"
+  },
+  {
+    "name": "floating_pointer_trail_color",
+    "ja": "軌跡の色"
+  },
+  {
+    "name": "floating_pointer_settings_section_other",
+    "ja": "その他"
+  },
+  {
+    "name": "floating_pointer_hide_on_release",
+    "ja": "ジョイスティック離したらポインターを非表示"
+  },
+  {
+    "name": "floating_pointer_hide_on_release_desc",
+    "ja": "ジョイスティックを触っている間のみポインターを表示"
+  },
+  {
+    "name": "floating_pointer_reset_visual",
+    "ja": "ポインター外観をデフォルトに戻す"
+  },
+  {
+    "name": "floating_pointer_joystick_visual_section",
+    "ja": "外観"
+  },
+  {
+    "name": "floating_pointer_joystick_inner_color",
+    "ja": "内側の色"
+  },
+  {
+    "name": "floating_pointer_joystick_outer_color",
+    "ja": "外側の色"
+  },
+  {
+    "name": "floating_pointer_joystick_gradient_radius",
+    "ja": "グラデーション半径"
+  },
+  {
+    "name": "floating_pointer_percent_value",
+    "ja": "%1$d%%"
+  },
+  {
+    "name": "floating_pointer_reset_joystick_visual",
+    "ja": "ジョイスティック外観をリセット"
+  },
+  {
+    "name": "floating_pointer_joystick_behavior_section",
+    "ja": "動作"
+  },
+  {
+    "name": "floating_pointer_click_distance_threshold",
+    "ja": "クリック距離閾値"
+  },
+  {
+    "name": "floating_pointer_click_distance_threshold_desc",
+    "ja": "押下から離すまでのジョイスティック移動距離の上限。これ以内ならクリックまたは長押しと判定します。手ぶれが多い環境では値を大きくしてください。"
+  },
+  {
+    "name": "floating_pointer_release_click_and_dismiss",
+    "ja": "離したらクリックして閉じる"
+  },
+  {
+    "name": "floating_pointer_release_click_and_dismiss_desc",
+    "ja": "エッジジェスチャでフローティングポインターを連続ドラッグした場合：離すとポインター位置でクリックして閉じます。ドラッグ中はアクションリングを非表示（常駐ジョイスティックのタップは変更なし）"
+  },
+  {
+    "name": "floating_pointer_hover_enter_select",
+    "ja": "ホバーで選択モードに入る"
+  },
+  {
+    "name": "floating_pointer_hover_enter_select_desc",
+    "ja": "エッジジェスチャの連続ドラッグ中、ポインター上で一時停止すると選択モードに入ります。離すと要素を選択、さらにドラッグすると領域スクリーンショット"
+  },
+  {
+    "name": "floating_pointer_hide_outside_click",
+    "ja": "外側タップで非表示"
+  },
+  {
+    "name": "floating_pointer_hide_outside_click_desc",
+    "ja": "ジョイスティック外をタップしたら非表示"
+  },
+  {
+    "name": "floating_pointer_hide_quick_swipe",
+    "ja": "クイックスワイプで非表示"
+  },
+  {
+    "name": "floating_pointer_hide_quick_swipe_desc",
+    "ja": "素早いスワイプジェスチャー（例：ページめくり）で非表示"
+  },
+  {
+    "name": "floating_pointer_hide_idle",
+    "ja": "アイドル時に非表示"
+  },
+  {
+    "name": "floating_pointer_hide_idle_desc",
+    "ja": "ジョイスティックがしばらく操作されないと非表示"
+  },
+  {
+    "name": "floating_pointer_hide_idle_delay",
+    "ja": "アイドル非表示遅延"
+  },
+  {
+    "name": "floating_pointer_hide_idle_delay_value",
+    "ja": "%1$d 秒"
+  },
+  {
+    "name": "floating_pointer_reset_joystick_behavior",
+    "ja": "ジョイスティック動作をデフォルトに戻す"
+  },
+  {
+    "name": "floating_pointer_joystick_size",
+    "ja": "ジョイスティック直径"
+  },
+  {
+    "name": "floating_pointer_settings_section_pointer",
+    "ja": "ポインター外観"
+  },
+  {
+    "name": "floating_pointer_pointer_size",
+    "ja": "ポインター直径"
+  },
+  {
+    "name": "floating_pointer_ring_thickness",
+    "ja": "リングの太さ"
+  },
+  {
+    "name": "floating_pointer_dot_diameter",
+    "ja": "内側ドットサイズ"
+  },
+  {
+    "name": "floating_pointer_size_px_value",
+    "ja": "%1$d px"
+  },
+  {
+    "name": "floating_pointer_size_px_dp_value",
+    "ja": "%1$d px（%2$.1f dp）"
+  },
+  {
+    "name": "floating_pointer_entry_desc",
+    "ja": "ジョイスティック、ポインター外観、移動を設定"
+  },
+  {
+    "name": "floating_pointer_entry_summary",
+    "ja": "ジョイスティック %1$dpx · ポインター %2$dpx · 速度 %3$d%%"
+  },
+  {
+    "name": "floating_pointer_edge_settings_title",
+    "ja": "エッジアクション"
+  },
+  {
+    "name": "floating_pointer_edge_settings_summary",
+    "ja": "ポインターが画面端を超えたときにアクションをプレビューして実行"
+  },
+  {
+    "name": "floating_pointer_edge_section_general",
+    "ja": "一般"
+  },
+  {
+    "name": "floating_pointer_edge_section_sides",
+    "ja": "エッジ"
+  },
+  {
+    "name": "floating_pointer_edge_side_summary_enabled",
+    "ja": "有効"
+  },
+  {
+    "name": "floating_pointer_edge_side_summary_disabled",
+    "ja": "無効"
+  },
+  {
+    "name": "floating_pointer_edge_threshold",
+    "ja": "トリガー閾値"
+  },
+  {
+    "name": "floating_pointer_edge_threshold_value",
+    "ja": "%1$d dp"
+  },
+  {
+    "name": "floating_pointer_edge_preview_sensitivity",
+    "ja": "プレビュー感度"
+  },
+  {
+    "name": "floating_pointer_edge_preview_glow_size",
+    "ja": "プレビューグローサイズ"
+  },
+  {
+    "name": "floating_pointer_edge_preview_show_icon",
+    "ja": "プレビューアイコンを表示"
+  },
+  {
+    "name": "floating_pointer_edge_preview_show_icon_desc",
+    "ja": "エッジに近づいている間、アクションアイコンを表示"
+  },
+  {
+    "name": "floating_pointer_edge_visual_color",
+    "ja": "プレビュー色"
+  },
+  {
+    "name": "floating_pointer_edge_side_top",
+    "ja": "上端"
+  },
+  {
+    "name": "floating_pointer_edge_side_left",
+    "ja": "左端"
+  },
+  {
+    "name": "floating_pointer_edge_side_right",
+    "ja": "右端"
+  },
+  {
+    "name": "floating_pointer_edge_side_bottom",
+    "ja": "下端"
+  },
+  {
+    "name": "floating_pointer_edge_side_enabled_desc",
+    "ja": "このエッジでアクションを有効化"
+  },
+  {
+    "name": "floating_pointer_edge_section_zones_count",
+    "ja": "ゾーン（%1$d）"
+  },
+  {
+    "name": "floating_pointer_edge_zone_title",
+    "ja": "ゾーン %1$d"
+  },
+  {
+    "name": "floating_pointer_edge_add_zone",
+    "ja": "ゾーンを追加"
+  },
+  {
+    "name": "floating_pointer_edge_add_zone_desc",
+    "ja": "このエッジに設定可能なゾーンを追加"
+  },
+  {
+    "name": "floating_pointer_edge_remove_zone",
+    "ja": "ゾーンを削除"
+  },
+  {
+    "name": "floating_pointer_edge_preview_off",
+    "ja": "オフ"
+  },
+  {
+    "name": "floating_pointer_edge_preview_low",
+    "ja": "低"
+  },
+  {
+    "name": "floating_pointer_edge_preview_medium",
+    "ja": "中"
+  },
+  {
+    "name": "floating_pointer_edge_preview_high",
+    "ja": "高"
+  },
+  {
+    "name": "floating_pointer_edge_reset_defaults",
+    "ja": "エッジ設定をリセット"
+  },
+  {
+    "name": "floating_pointer_edge_reset_defaults_desc",
+    "ja": "デフォルトのエッジアクションとプレビュー設定を復元"
+  },
+  {
+    "name": "floating_pointer_radial_settings_title",
+    "ja": "ジョイスティック機能リング"
+  },
+  {
+    "name": "floating_pointer_radial_tab_settings",
+    "ja": "設定"
+  },
+  {
+    "name": "floating_pointer_radial_tab_functions",
+    "ja": "機能"
+  },
+  {
+    "name": "floating_pointer_radial_tab_design",
+    "ja": "デザイン"
+  },
+  {
+    "name": "floating_pointer_radial_always_visible",
+    "ja": "常に表示"
+  },
+  {
+    "name": "floating_pointer_radial_always_visible_desc",
+    "ja": "ジョイスティック機能を常に表示"
+  },
+  {
+    "name": "floating_pointer_radial_long_press_ms",
+    "ja": "長押し時間"
+  },
+  {
+    "name": "floating_pointer_radial_long_press_ms_value",
+    "ja": "%1$d ms"
+  },
+  {
+    "name": "floating_pointer_joystick_long_press_action",
+    "ja": "ジョイスティック長押しアクション"
+  },
+  {
+    "name": "floating_pointer_radial_functions_section",
+    "ja": "ジョイスティック機能"
+  },
+  {
+    "name": "floating_pointer_radial_outer_size",
+    "ja": "外側リングサイズ"
+  },
+  {
+    "name": "floating_pointer_radial_outer_color",
+    "ja": "外側リング色"
+  },
+  {
+    "name": "floating_pointer_radial_inner_size",
+    "ja": "内側リングサイズ"
+  },
+  {
+    "name": "floating_pointer_radial_inner_color",
+    "ja": "内側リング色"
+  },
+  {
+    "name": "floating_pointer_radial_divider_thickness",
+    "ja": "区切り線の太さ"
+  },
+  {
+    "name": "floating_pointer_radial_divider_color",
+    "ja": "区切り線の色"
+  },
+  {
+    "name": "floating_pointer_radial_icon_size",
+    "ja": "アイコンサイズ"
+  },
+  {
+    "name": "floating_pointer_radial_icon_color",
+    "ja": "アイコン色"
+  },
+  {
+    "name": "floating_pointer_radial_reset_design",
+    "ja": "デザインをリセット"
+  },
+  {
+    "name": "floating_pointer_radial_slot_top",
+    "ja": "上"
+  },
+  {
+    "name": "floating_pointer_radial_slot_top_right",
+    "ja": "右上"
+  },
+  {
+    "name": "floating_pointer_radial_slot_right",
+    "ja": "右"
+  },
+  {
+    "name": "floating_pointer_radial_slot_bottom_right",
+    "ja": "右下"
+  },
+  {
+    "name": "floating_pointer_radial_slot_bottom",
+    "ja": "下"
+  },
+  {
+    "name": "floating_pointer_radial_slot_bottom_left",
+    "ja": "左下"
+  },
+  {
+    "name": "floating_pointer_radial_slot_left",
+    "ja": "左"
+  },
+  {
+    "name": "floating_pointer_radial_slot_top_left",
+    "ja": "左上"
+  },
+  {
+    "name": "gesture_action_pointer_swipe",
+    "ja": "スワイプ"
+  },
+  {
+    "name": "gesture_action_pointer_swipe_desc",
+    "ja": "ポインター位置でスワイプをシミュレート"
+  },
+  {
+    "name": "gesture_action_pointer_swipe_permission",
+    "ja": "Cebian が必要です"
+  },
+  {
+    "name": "pointer_swipe_config_title",
+    "ja": "操作設定"
+  },
+  {
+    "name": "pointer_swipe_config_desc",
+    "ja": "現在のポインター位置から、選択した方向と距離でスワイプします。"
+  }
+]

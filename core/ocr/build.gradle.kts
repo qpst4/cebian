@@ -24,6 +24,7 @@ dependencies {
     implementation(project(":vendor:ppocr-sdk"))
     implementation(libs.mlkit.text.recognition.chinese.unbundled)
     implementation(libs.tesseract4android)
+    implementation(libs.onnxruntime.android)
     implementation(libs.core.ktx)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.serialization.json)

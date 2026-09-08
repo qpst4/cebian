@@ -53,7 +53,7 @@ fun FloatBallPickSettingsScreen(
     onOpenOcrModels: () -> Unit,
     onOpenShareImageOcrHistory: () -> Unit,
 ) {
-    val askEveryTimeLabel = FloatBallPickSettingsViewModel.ASK_EVERY_TIME_LABEL
+    val askEveryTimeLabel = stringResource(R.string.image_viewer_ask_every_time)
     val readyOptions = (imageViewerOptions as? ImageViewerOptionsState.Ready)?.options
     val imageViewerItems = remember(readyOptions) {
         readyOptions?.map { option -> option.toDropdownItem() }
@@ -66,7 +66,7 @@ fun FloatBallPickSettingsScreen(
         } ?: 0
     }
     val imageViewerSubtitle = when (imageViewerOptions) {
-        ImageViewerOptionsState.Loading -> "加载中…"
+        ImageViewerOptionsState.Loading -> stringResource(R.string.loading)
         is ImageViewerOptionsState.Ready ->
             imageViewerItems
                 .getOrNull(selectedImageViewerIndex.coerceIn(0, imageViewerItems.lastIndex))
@@ -137,7 +137,7 @@ fun FloatBallPickSettingsScreen(
                 add(
                     settingsCardScopeItem("image-viewer") {
                         SettingSpinnerRow(
-                            title = "默认图片查看器",
+                            title = stringResource(R.string.image_viewer_default_title),
                             subtitle = imageViewerSubtitle,
                             dialogButtonText = stringResource(R.string.cancel),
                             items = imageViewerItems,

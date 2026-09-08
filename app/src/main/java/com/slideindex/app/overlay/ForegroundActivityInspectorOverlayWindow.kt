@@ -420,7 +420,7 @@ object ForegroundActivityInspectorOverlayWindow {
 
         // 2. 包名模块
         val pkgLabel = TextView(context).apply {
-            text = "PACKAGE (点击复制):"
+            text = context.getString(R.string.foreground_inspector_package_tap_copy)
             setTextColor(0x88FFFFFF.toInt())
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 9f)
             typeface = Typeface.MONOSPACE
@@ -448,7 +448,7 @@ object ForegroundActivityInspectorOverlayWindow {
 
         // 3. Activity 模块
         val actLabel = TextView(context).apply {
-            text = "ACTIVITY (点击复制):"
+            text = context.getString(R.string.foreground_inspector_activity_tap_copy)
             setTextColor(0x88FFFFFF.toInt())
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 9f)
             typeface = Typeface.MONOSPACE
@@ -704,8 +704,12 @@ object ForegroundActivityInspectorOverlayWindow {
         val context = appContext ?: return
         if (currentPackage.isBlank()) return
         val text = buildString {
-            if (currentLabel.isNotBlank()) append("应用名称: $currentLabel\n")
-            append("包名: $currentPackage\n")
+            if (currentLabel.isNotBlank()) {
+                append(context.getString(R.string.foreground_inspector_app_name, currentLabel))
+                append('\n')
+            }
+            append(context.getString(R.string.foreground_inspector_package_name, currentPackage))
+            append('\n')
             if (currentActivity.isNotBlank()) append("Activity: $currentActivity")
         }
         copyToClipboard(context, text, context.getString(R.string.foreground_activity_inspector_all_copied))

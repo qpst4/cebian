@@ -1,0 +1,902 @@
+[
+  {
+    "name": "permission_shizuku_desc",
+    "text": "After granting, you can dismiss recents cards, close apps, and use shell-based edge tap-through (recommended).",
+    "source": "en"
+  },
+  {
+    "name": "permission_shizuku_grant",
+    "text": "Grant Shizuku",
+    "source": "en"
+  },
+  {
+    "name": "shizuku_start_service_hint",
+    "text": "Start the Shizuku service first, then return and tap Grant again",
+    "source": "en"
+  },
+  {
+    "name": "shizuku_not_installed",
+    "text": "Shizuku is not installed. Install it and start the service first",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_editor_title",
+    "text": "Quick launcher",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_launcher_editor_title",
+    "text": "Honeycomb launcher",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_launcher_add",
+    "text": "Add app",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_launcher_editor_desc",
+    "text": "Choose apps and shortcuts for the honeycomb launcher. Use Continuous trigger mode: hold and slide to select, release to launch.",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_launcher_entry_desc",
+    "text": "Configure apps for the honeycomb launcher",
+    "source": "en"
+  },
+  {
+    "name": "app_switcher_editor_title",
+    "text": "Ring launcher",
+    "source": "en"
+  },
+  {
+    "name": "app_switcher_editor_desc",
+    "text": "Configure slots for the ring launcher. Use Continuous trigger mode: hold and slide to select, release to launch.",
+    "source": "en"
+  },
+  {
+    "name": "app_switcher_add",
+    "text": "Add app",
+    "source": "en"
+  },
+  {
+    "name": "app_switcher_entry_desc",
+    "text": "Configure apps for the ring launcher",
+    "source": "en"
+  },
+  {
+    "name": "app_switcher_display_settings_title",
+    "text": "Ring launcher appearance",
+    "source": "en"
+  },
+  {
+    "name": "app_switcher_display_settings_entry",
+    "text": "Appearance & behavior",
+    "source": "en"
+  },
+  {
+    "name": "app_switcher_display_settings_entry_desc",
+    "text": "Icon size, selection scale, pin and background",
+    "source": "en"
+  },
+  {
+    "name": "app_switcher_display_section_layout",
+    "text": "Layout",
+    "source": "en"
+  },
+  {
+    "name": "app_switcher_display_section_behavior",
+    "text": "Behavior",
+    "source": "en"
+  },
+  {
+    "name": "app_switcher_display_section_background",
+    "text": "Background",
+    "source": "en"
+  },
+  {
+    "name": "app_switcher_icon_size",
+    "text": "Icon size",
+    "source": "en"
+  },
+  {
+    "name": "app_switcher_spacing",
+    "text": "Slot spacing",
+    "source": "en"
+  },
+  {
+    "name": "app_switcher_selection_scale",
+    "text": "Selection scale",
+    "source": "en"
+  },
+  {
+    "name": "app_switcher_initial_radius_ratio",
+    "text": "Edge radius",
+    "source": "en"
+  },
+  {
+    "name": "app_switcher_pin_on_release",
+    "text": "Pin on release",
+    "source": "en"
+  },
+  {
+    "name": "app_switcher_pin_on_release_desc",
+    "text": "Keep the panel on screen when released without a slot hit",
+    "source": "en"
+  },
+  {
+    "name": "app_switcher_empty_tap_close",
+    "text": "Tap outside to close",
+    "source": "en"
+  },
+  {
+    "name": "app_switcher_empty_tap_close_desc",
+    "text": "Dismiss pinned panel when tapping outside",
+    "source": "en"
+  },
+  {
+    "name": "app_switcher_show_selected_name",
+    "text": "Show selected name",
+    "source": "en"
+  },
+  {
+    "name": "app_switcher_show_selected_name_desc",
+    "text": "Show the current slot name at the top while sliding",
+    "source": "en"
+  },
+  {
+    "name": "app_switcher_slot_haptic",
+    "text": "Slot haptic feedback",
+    "source": "en"
+  },
+  {
+    "name": "app_switcher_slot_haptic_desc",
+    "text": "Provide light vibration when sliding across slots",
+    "source": "en"
+  },
+  {
+    "name": "app_switcher_dim_percent",
+    "text": "Background dim",
+    "source": "en"
+  },
+  {
+    "name": "app_switcher_blur_dp",
+    "text": "Background blur",
+    "source": "en"
+  },
+  {
+    "name": "app_switcher_selected_hint_icon_size",
+    "text": "Selected name size",
+    "source": "en"
+  },
+  {
+    "name": "fv_app_switcher_appearance_title",
+    "text": "Circular Launcher Appearance & Layout",
+    "source": "en"
+  },
+  {
+    "name": "fv_app_switcher_circle_count_title",
+    "text": "Ring Layers",
+    "source": "en"
+  },
+  {
+    "name": "fv_app_switcher_circle_count_desc",
+    "text": "Select the number of concentric rings",
+    "source": "en"
+  },
+  {
+    "name": "fv_app_switcher_icon_size_title",
+    "text": "Icon Size",
+    "source": "en"
+  },
+  {
+    "name": "fv_app_switcher_icon_shape_title",
+    "text": "Icon Shape",
+    "source": "en"
+  },
+  {
+    "name": "fv_icon_shape_rounded_rect",
+    "text": "Rounded Rectangle",
+    "source": "en"
+  },
+  {
+    "name": "fv_icon_shape_circle",
+    "text": "Circle",
+    "source": "en"
+  },
+  {
+    "name": "fv_icon_shape_squircle",
+    "text": "Squircle",
+    "source": "en"
+  },
+  {
+    "name": "fv_icon_shape_square",
+    "text": "Square",
+    "source": "en"
+  },
+  {
+    "name": "fv_app_switcher_base_radius_title",
+    "text": "Inner Ring Radius",
+    "source": "en"
+  },
+  {
+    "name": "fv_app_switcher_layer_gap_title",
+    "text": "Ring Layer Gap",
+    "source": "en"
+  },
+  {
+    "name": "fv_app_switcher_end_margin_title",
+    "text": "Arc End Margin & Spacing",
+    "source": "en"
+  },
+  {
+    "name": "fv_app_switcher_link_axes_title",
+    "text": "Sync vertical and horizontal",
+    "source": "en"
+  },
+  {
+    "name": "fv_app_switcher_link_axes_desc",
+    "text": "When on, top/bottom and left/right share the same rings, appearance, and slots",
+    "source": "en"
+  },
+  {
+    "name": "fv_app_switcher_link_appearance_axes_title",
+    "text": "Sync appearance",
+    "source": "en"
+  },
+  {
+    "name": "fv_app_switcher_link_appearance_axes_desc",
+    "text": "When on, vertical and horizontal axes share ring count, icon size, shape, and radius",
+    "source": "en"
+  },
+  {
+    "name": "fv_app_switcher_link_slot_axes_title",
+    "text": "Sync slots",
+    "source": "en"
+  },
+  {
+    "name": "fv_app_switcher_link_slot_axes_desc",
+    "text": "When on, vertical and horizontal axes share slot assignments",
+    "source": "en"
+  },
+  {
+    "name": "fv_app_switcher_axis_vertical",
+    "text": "Vertical axis (top/bottom)",
+    "source": "en"
+  },
+  {
+    "name": "fv_app_switcher_axis_horizontal",
+    "text": "Horizontal axis (left/right)",
+    "source": "en"
+  },
+  {
+    "name": "fv_app_switcher_link_merge_title",
+    "text": "Choose sync direction",
+    "source": "en"
+  },
+  {
+    "name": "fv_app_switcher_link_merge_message",
+    "text": "When enabling %1$s, choose which axis to use:\\n\\n· Use %3$s\\n· Overwrite %3$s with %2$s",
+    "source": "en"
+  },
+  {
+    "name": "fv_app_switcher_link_merge_appearance_kind",
+    "text": "appearance sync",
+    "source": "en"
+  },
+  {
+    "name": "fv_app_switcher_link_merge_slot_kind",
+    "text": "slot sync",
+    "source": "en"
+  },
+  {
+    "name": "fv_app_switcher_link_merge_use_other",
+    "text": "Use other axis",
+    "source": "en"
+  },
+  {
+    "name": "fv_app_switcher_link_merge_use_current",
+    "text": "Overwrite other with current axis",
+    "source": "en"
+  },
+  {
+    "name": "fv_app_switcher_reset_defaults",
+    "text": "Reset to Defaults",
+    "source": "en"
+  },
+  {
+    "name": "fv_app_switcher_done",
+    "text": "Done",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_display_settings_title",
+    "text": "Honeycomb display & motion",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_display_settings_entry",
+    "text": "Display & motion",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_display_settings_entry_desc",
+    "text": "Mode, position, layout, background and animation",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_display_section_mode",
+    "text": "Interaction",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_display_section_position",
+    "text": "Position",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_display_section_layout",
+    "text": "Layout",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_display_section_background",
+    "text": "Background",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_display_section_animation",
+    "text": "Animation",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_mode_hold",
+    "text": "Hold to select",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_mode_hold_desc",
+    "text": "Slide to highlight, release to launch",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_mode_browse",
+    "text": "Browse mode",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_mode_browse_desc",
+    "text": "Pan and zoom the disc, tap an icon to launch",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_empty_tap_close",
+    "text": "Close on empty tap",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_empty_tap_close_desc",
+    "text": "Browse mode only",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_show_selected_name",
+    "text": "Show selected name",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_show_selected_name_desc",
+    "text": "Show icon and name above the disc for the highlighted app",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_follow_finger",
+    "text": "Follow finger",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_follow_finger_desc",
+    "text": "When off, use fixed position below",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_fixed_x",
+    "text": "Fixed horizontal position",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_fixed_y",
+    "text": "Fixed vertical position",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_icon_size",
+    "text": "Icon size",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_spacing",
+    "text": "Honeycomb spacing",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_disc_size",
+    "text": "Disc size",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_background_blur",
+    "text": "Gaussian blur",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_background_black",
+    "text": "Solid dim",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_blur_strength",
+    "text": "Blur strength",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_dim_percent",
+    "text": "Dim amount",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_animation_speed",
+    "text": "Animation speed",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_inertia",
+    "text": "Inertia",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_center_scale",
+    "text": "Center bulge",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_edge_scale",
+    "text": "Edge shrink",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_selection_scale",
+    "text": "Selection scale",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_speed_very_fast",
+    "text": "Very fast",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_speed_fast",
+    "text": "Fast",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_speed_normal",
+    "text": "Normal",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_speed_soft",
+    "text": "Soft",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_speed_slow",
+    "text": "Slow",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_inertia_low",
+    "text": "Low",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_inertia_medium",
+    "text": "Medium",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_inertia_high",
+    "text": "High",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_layout_editor_title",
+    "text": "Honeycomb position",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_layout_editor_hint",
+    "text": "Layout matches the live honeycomb. Tap Edit, long-press an icon and drag to another slot to swap, or drag to the bottom-left corner to remove.",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_layout_editor_edit",
+    "text": "Edit",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_layout_editor_done",
+    "text": "Done",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_layout_editor_delete_zone",
+    "text": "Drag here to remove",
+    "source": "en"
+  },
+  {
+    "name": "honeycomb_layout_editor_empty",
+    "text": "Tap + below to add apps or shortcuts",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_panels_section",
+    "text": "Launcher panels",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_panel_add",
+    "text": "New panel",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_panel_rename",
+    "text": "Rename",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_panel_duplicate",
+    "text": "Duplicate",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_panel_delete",
+    "text": "Delete panel",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_panel_delete_confirm",
+    "text": "Gestures bound to this panel will open the default panel instead.",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_panel_default_name",
+    "text": "Panel %1$d",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_panel_pick_title",
+    "text": "Choose launcher panel",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_panel_pick_desc",
+    "text": "Different gesture slots can open different launcher panels.",
+    "source": "en"
+  },
+  {
+    "name": "gesture_action_quick_launcher_named",
+    "text": "Quick launcher · %1$s",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_editor_desc",
+    "text": "Same sidebar layout as the overlay panel: + to add, − to edit; in edit mode drag to reorder or tap the red badge to delete.",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_appearance_section",
+    "text": "Appearance",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_icon_size",
+    "text": "Icon size",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_icon_size_value",
+    "text": "%1$d dp",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_icon_shape_section",
+    "text": "Icon shape",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_icon_shape_default",
+    "text": "Default",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_icon_shape_circle",
+    "text": "Circle",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_icon_shape_adaptive",
+    "text": "Adaptive",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_background_opacity",
+    "text": "Background opacity",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_background_opacity_value",
+    "text": "%1$d%%",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_blur_strength",
+    "text": "Blur strength",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_blur_strength_value",
+    "text": "%1$d dp",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_add",
+    "text": "Add shortcut",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_shell_shortcuts_section",
+    "text": "Shell panel shortcuts",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_shell_shortcuts_empty",
+    "text": "Add shortcuts in Extension → Shell command panel first",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_loading_shortcuts",
+    "text": "Scanning app shortcuts…",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_add_overlay_done",
+    "text": "Done",
+    "source": "en"
+  },
+  {
+    "name": "create_shortcut",
+    "text": "Create shortcut",
+    "source": "en"
+  },
+  {
+    "name": "launch_shortcut",
+    "text": "Existing shortcuts",
+    "source": "en"
+  },
+  {
+    "name": "create_shortcut_tap_hint",
+    "text": "Tap to create a custom shortcut",
+    "source": "en"
+  },
+  {
+    "name": "action_picker_tab_actions",
+    "text": "Actions",
+    "source": "en"
+  },
+  {
+    "name": "action_picker_tab_apps",
+    "text": "Apps",
+    "source": "en"
+  },
+  {
+    "name": "action_picker_tab_shortcuts",
+    "text": "Shortcuts",
+    "source": "en"
+  },
+  {
+    "name": "shortcut_kind_empty",
+    "text": "No shortcuts in this category",
+    "source": "en"
+  },
+  {
+    "name": "task_switcher_close_all",
+    "text": "Close all",
+    "source": "en"
+  },
+  {
+    "name": "task_switcher_empty",
+    "text": "No background tasks",
+    "source": "en"
+  },
+  {
+    "name": "task_switcher_loading",
+    "text": "Loading…",
+    "source": "en"
+  },
+  {
+    "name": "task_switcher_menu_free_window",
+    "text": "Open in freeform",
+    "source": "en"
+  },
+  {
+    "name": "task_switcher_menu_app_info",
+    "text": "App info",
+    "source": "en"
+  },
+  {
+    "name": "task_switcher_menu_force_stop",
+    "text": "Force stop",
+    "source": "en"
+  },
+  {
+    "name": "widget_panel_settings_title",
+    "text": "Widget panel",
+    "source": "en"
+  },
+  {
+    "name": "widget_panel_settings_desc",
+    "text": "Configure system widgets shown in the “Widget popup” gesture. Tap an empty cell to pick from the list; long-press an added widget to remove it.",
+    "source": "en"
+  },
+  {
+    "name": "widget_panel_entry_desc",
+    "text": "Configure system widgets in the popup",
+    "source": "en"
+  },
+  {
+    "name": "widget_panel_entry_summary",
+    "text": "Widgets: %1$d · Pages: %2$d",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_design_section",
+    "text": "Pointer design",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_design_ring",
+    "text": "Ring (default)",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_design_arrow_1",
+    "text": "Arrow 1",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_design_arrow_2",
+    "text": "Arrow 2",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_design_arrow_3",
+    "text": "Arrow 3",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_design_arrow_4",
+    "text": "Arrow 4",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_design_arrow_5",
+    "text": "Arrow 5",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_design_arrow_6",
+    "text": "Arrow 6",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_design_arrow_7",
+    "text": "Arrow 7",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_design_arrow_8",
+    "text": "Arrow 8",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_design_arrow_9",
+    "text": "Arrow 9",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_design_arrow_10",
+    "text": "Arrow 10",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_design_arrow_11",
+    "text": "Arrow 11",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_design_arrow_12",
+    "text": "Arrow 12",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_design_arrow_13",
+    "text": "Arrow 13",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_design_arrow_14",
+    "text": "Arrow 14",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_design_arrow_15",
+    "text": "Arrow 15",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_design_arrow_16",
+    "text": "Arrow 16",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_design_arrow_17",
+    "text": "Arrow 17",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_design_arrow_18",
+    "text": "Arrow 18",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_design_arrow_19",
+    "text": "Arrow 19",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_design_hand_1",
+    "text": "Hand 1",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_design_hand_2",
+    "text": "Hand 2",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_design_hand_3",
+    "text": "Hand 3",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_design_hand_4",
+    "text": "Hand 4",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_design_hand_5",
+    "text": "Hand 5",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_design_hand_6",
+    "text": "Hand 6",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_design_crosshair_1",
+    "text": "Crosshair 1",
+    "source": "en"
+  }
+]

@@ -1,0 +1,902 @@
+[
+  {
+    "name": "float_ball_translating",
+    "text": "Translating…",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_translate_failed",
+    "text": "Translation failed",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_translate_error_model_missing",
+    "text": "Download the ML Kit language pack for this language first",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_translate_error_engine_missing",
+    "text": "Download the offline translate engine first (Extension → Runtime engines)",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_translate_error_wifi_required",
+    "text": "A Wi-Fi connection is required to download language packs",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_translate_error_unsupported_language",
+    "text": "This target language is not supported",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_translate_error_unavailable",
+    "text": "Translation service unavailable",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_translate_error_network",
+    "text": "Check your network connection and whether Google Translate is reachable",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_settings_title",
+    "text": "Text search engines",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_settings_subtitle",
+    "text": "Text search on the pick panel",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_settings_preview_mode",
+    "text": "Preview sort mode",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_settings_preview_mode_summary",
+    "text": "Preview the pick panel layout and drag to reorder search engines",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_preview_sort_title",
+    "text": "Preview sort mode",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_preview_sort_hint",
+    "text": "Long-press an icon to drag and reorder. Drag to the screen edge to change pages.",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_preview_sort_empty",
+    "text": "Add search engines that appear in the pick panel first",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_settings_display_section",
+    "text": "Pick panel display",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_grid_columns",
+    "text": "Columns",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_grid_rows",
+    "text": "Rows",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_show_labels",
+    "text": "Show icon names",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_show_labels_desc",
+    "text": "Show engine names under icons in the pick panel grid",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_settings_preset_catalog",
+    "text": "Preset Catalog",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_settings_preset_catalog_subtitle",
+    "text": "Add from built-in search engines (social, media, tools, etc.)",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_preset_picker_title",
+    "text": "Preset Engines",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_preset_picker_search_hint",
+    "text": "Search presets…",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_preset_picker_cat_all",
+    "text": "All",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_preset_picker_cat_general",
+    "text": "General",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_preset_picker_cat_social",
+    "text": "Social",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_preset_picker_cat_video",
+    "text": "Media",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_preset_picker_cat_shopping",
+    "text": "Shopping",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_preset_picker_cat_tools",
+    "text": "Tools",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_preset_added",
+    "text": "Added",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_preset_add",
+    "text": "Add",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_preset_single_added_toast",
+    "text": "Added \\\"%1$s\\\"",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_settings_import_section",
+    "text": "Import from other apps",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_settings_import",
+    "text": "Import backup",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_settings_import_subtitle",
+    "text": "Supports SearchEVO / GestureEVO backup files",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_settings_list_section",
+    "text": "Text search engines (%1$d)",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_settings_empty",
+    "text": "No search engines available",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_type_direct_link",
+    "text": "URL / Scheme Link",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_type_jump_activity",
+    "text": "Jump to activity",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_editor_tab_link",
+    "text": "Link",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_editor_tab_activity",
+    "text": "Activity",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_editor_tab_share",
+    "text": "Share",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_type_extern_jump",
+    "text": "App Scheme",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_url_link_hint",
+    "text": "URL / Scheme Address",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_url_link_support",
+    "text": "Supports https://, coolmarket://, intent:// etc. Use %s or %q as placeholder",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_url_link_flow_desc",
+    "text": "Execution Rules & Flow:\n1. Parameterized Jump: If %s is used (e.g. .../search?q=%s), query is replaced into URL directly\n2. Target App: If target package is set, forces open with specified App; otherwise uses default App\n3. Auto-fill: If no %s is used and auto-input is ON, fills query into search bar via accessibility after launch",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_jump_activity_flow_desc",
+    "text": "Execution Rules & Flow:\n1. Activity Launch: Opens target App Activity directly (non-exported activities launched via Shizuku if needed)\n2. Auto-fill: After launch (if auto-input is ON), searches for search bar within 600ms~3000ms to fill and enter",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_type_share",
+    "text": "Share",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_type_share_image",
+    "text": "Share image",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_import_preview_title",
+    "text": "Confirm import",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_import_preview_source",
+    "text": "Source: %1$s",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_import_preview_hint",
+    "text": "Merge keeps existing engines; Replace clears the list first",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_import_merge",
+    "text": "Merge",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_import_replace",
+    "text": "Replace",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_import_failed",
+    "text": "Import failed: %1$s",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_query_empty",
+    "text": "Select or enter text to search first",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_accessibility_required",
+    "text": "Enable the Cebian accessibility service to use this feature",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_shizuku_required",
+    "text": "Shizuku permission is required to launch non-exported activities",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_add_title",
+    "text": "Add search engine",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_add_subtitle",
+    "text": "Configure a custom text search engine",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_edit_title",
+    "text": "Edit search engine",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_edit_identity_title",
+    "text": "Edit search engine information",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_edit_identity_hint",
+    "text": "Tap to edit name and alias",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_save",
+    "text": "Save",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_saved",
+    "text": "Search engine saved",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_deleted",
+    "text": "Search engine deleted",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_validation_failed",
+    "text": "Please complete the search engine configuration",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_delete_title",
+    "text": "Delete search engine",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_delete_message",
+    "text": "Delete %1$s?",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_delete_confirm",
+    "text": "Delete",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_move_up",
+    "text": "Move up",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_move_down",
+    "text": "Move down",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_name_hint",
+    "text": "Name",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_alias_hint",
+    "text": "Alias (optional)",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_alias_support",
+    "text": "In the search panel, type “alias + space + query” to lock an engine. Example: g weather",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_alias_invalid",
+    "text": "Alias cannot contain spaces and must be at most 16 characters",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_section_alias_label",
+    "text": "Alias",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_section_alias_hint",
+    "text": "Type “alias + space + query” to lock this type. Example: app WeChat",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_section_alias_add",
+    "text": "Add alias",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_section_alias_clear",
+    "text": "Clear alias",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_section_alias_add_title",
+    "text": "Add alias for “%1$s”",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_section_alias_edit_title",
+    "text": "Edit alias for “%1$s”",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_section_alias_conflict",
+    "text": "Alias already in use",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_section_alias_invalid",
+    "text": "Invalid alias (no spaces, max 16 characters)",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_app_search_desc",
+    "text": "Search installed apps by name in the search panel",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_settings_search_desc",
+    "text": "Search system settings and open them (system index first; falls back to Settings manifest)",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_settings_search_title",
+    "text": "System settings search",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_settings_index_title",
+    "text": "Settings index",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_settings_index_refresh",
+    "text": "Reload settings index",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_settings_index_loading",
+    "text": "Loading…",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_section_all",
+    "text": "All",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_section_apps",
+    "text": "Apps",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_section_contacts",
+    "text": "Contacts",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_section_files",
+    "text": "Files",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_section_settings",
+    "text": "Settings",
+    "source": "en"
+  },
+  {
+    "name": "search_panel_section_menu",
+    "text": "Switch search type",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_type_section",
+    "text": "Launch mode",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_search_link_hint",
+    "text": "Search URL",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_search_link_support",
+    "text": "Use %s or %q as the keyword placeholder",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_optional_search_link_hint",
+    "text": "Fallback search URL (optional)",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_target_package_hint",
+    "text": "Target package (optional)",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_target_activity_hint",
+    "text": "Target activity",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_extern_link_hint",
+    "text": "Scheme / Intent URI",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_extern_package_hint",
+    "text": "External jump package (optional)",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_auto_input_enter",
+    "text": "Auto input and search",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_auto_input_enter_desc",
+    "text": "Fill the query via accessibility after launching the target app",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_pick_icon",
+    "text": "Choose icon",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_pick_app_icon",
+    "text": "App icon",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_pick_app_icon_title",
+    "text": "Choose app icon",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_pick_app_icon_loading",
+    "text": "Saving app icon…",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_pick_app_icon_failed",
+    "text": "Failed to load app icon",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_pick_app",
+    "text": "Choose app",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_pick_app_title",
+    "text": "Choose app",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_pick_activity",
+    "text": "Choose activity",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_pick_activity_title",
+    "text": "Choose activity",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_pick_activity_requires_package",
+    "text": "Select a target package first",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_activity_search_hint",
+    "text": "Search activity name or class",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_activity_empty",
+    "text": "No activities found",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_activity_not_exported",
+    "text": "Not exported",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_fetch_favicon",
+    "text": "Fetch website icon",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_fetch_favicon_loading",
+    "text": "Fetching website icon…",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_fetch_favicon_failed",
+    "text": "Failed to fetch website icon. Check the search URL or network.",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_text_icon",
+    "text": "Text icon",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_text_icon_title",
+    "text": "Set text icon",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_text_icon_hint",
+    "text": "Enter one character or short text",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_text_icon_support",
+    "text": "The first character will be shown as the icon",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_share_type_readonly",
+    "text": "Share engines only support renaming and reordering",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_share_image_target_section",
+    "text": "Image share target",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_share_image_target_not_set",
+    "text": "No image share target selected",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_pick_share_image_target",
+    "text": "Choose image share target",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_pick_share_image_target_title",
+    "text": "Choose image share handler",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_share_image_target_search_hint",
+    "text": "Search apps or activities",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_share_image_target_empty",
+    "text": "No apps can receive shared images",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_share_text_target_section",
+    "text": "Text share target",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_share_text_target_not_set",
+    "text": "No text share target selected",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_pick_share_text_target",
+    "text": "Choose text share target",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_pick_share_text_target_title",
+    "text": "Choose text share handler",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_share_text_target_search_hint",
+    "text": "Search apps or activities",
+    "source": "en"
+  },
+  {
+    "name": "search_engine_share_text_target_empty",
+    "text": "No apps can receive shared text",
+    "source": "en"
+  },
+  {
+    "name": "image_search_engine_settings_title",
+    "text": "Image search engines",
+    "source": "en"
+  },
+  {
+    "name": "image_search_engine_settings_subtitle",
+    "text": "Image search and screenshot sharing",
+    "source": "en"
+  },
+  {
+    "name": "image_search_engine_aggregated_hint",
+    "text": "Long-press to reorder tabs. Tap an engine for show and preload settings.",
+    "source": "en"
+  },
+  {
+    "name": "image_search_engine_aggregated_empty",
+    "text": "No aggregated engines are visible. Enable at least one below.",
+    "source": "en"
+  },
+  {
+    "name": "image_search_engine_show_in_panel",
+    "text": "Show in image search panel",
+    "source": "en"
+  },
+  {
+    "name": "image_search_engine_preload_on_open",
+    "text": "Preload on open",
+    "source": "en"
+  },
+  {
+    "name": "image_search_engine_preload_on_open_desc",
+    "text": "When off, search starts only after you switch to this tab.",
+    "source": "en"
+  },
+  {
+    "name": "image_search_engine_status_hidden",
+    "text": "Hidden",
+    "source": "en"
+  },
+  {
+    "name": "image_search_engine_status_visible_preload",
+    "text": "Visible · Preload on open",
+    "source": "en"
+  },
+  {
+    "name": "image_search_engine_status_visible_on_tab",
+    "text": "Visible · Search on tab switch",
+    "source": "en"
+  },
+  {
+    "name": "image_search_engine_mode_hosted_url",
+    "text": "Hosted URL",
+    "source": "en"
+  },
+  {
+    "name": "image_search_engine_mode_direct_post",
+    "text": "POST",
+    "source": "en"
+  },
+  {
+    "name": "image_search_engine_mode_hosted_url_desc",
+    "text": "Uploads the image to a host, then searches by URL",
+    "source": "en"
+  },
+  {
+    "name": "image_search_engine_mode_direct_post_desc",
+    "text": "Uploads the image directly to the search engine",
+    "source": "en"
+  },
+  {
+    "name": "image_search_engine_share_section",
+    "text": "Share to app (%1$d)",
+    "source": "en"
+  },
+  {
+    "name": "image_search_engine_share_hint",
+    "text": "Shown on the screenshot bar. Tap to open the app directly. Long-press to reorder.",
+    "source": "en"
+  },
+  {
+    "name": "image_search_engine_add_share_target",
+    "text": "Add share target",
+    "source": "en"
+  },
+  {
+    "name": "image_search_engine_add_share_target_subtitle",
+    "text": "Configure a screenshot sharing target",
+    "source": "en"
+  },
+  {
+    "name": "image_search_engine_share_empty",
+    "text": "No share targets yet. Add apps such as Taobao or Xianyu.",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_image_search_pick_panel_transparency",
+    "text": "Pick card dimming during image search",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_appearance_settings_title",
+    "text": "Appearance",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_gesture_settings_title",
+    "text": "Gestures",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_gesture_settings_summary",
+    "text": "Configure swipe, tap, and long-press actions",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_gesture_action_settings",
+    "text": "Action settings",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_gesture_distance_section",
+    "text": "Swipe distance",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_gesture_actions_section",
+    "text": "Gesture actions",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_gesture_down_swipe_distance",
+    "text": "Down swipe short distance (screen height %)",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_gesture_side_swipe_distance",
+    "text": "Side swipe short distance (screen width %)",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_gesture_up_swipe_distance",
+    "text": "Up swipe short distance (screen height %)",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_gesture_swipe_up_short",
+    "text": "Swipe up (short)",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_gesture_swipe_up_long",
+    "text": "Swipe up (long)",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_gesture_swipe_down_short",
+    "text": "Swipe down (short)",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_gesture_swipe_down_long",
+    "text": "Swipe down (long)",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_gesture_swipe_side_short",
+    "text": "Side swipe (short)",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_gesture_swipe_side_long",
+    "text": "Side swipe (long)",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_gesture_single_tap",
+    "text": "Single tap",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_gesture_double_tap",
+    "text": "Double tap",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_gesture_long_press",
+    "text": "Long press",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_section_style",
+    "text": "Style",
+    "source": "en"
+  },
+  {
+    "name": "float_ball_style_picker_title",
+    "text": "Float ball style",
+    "source": "en"
+  }
+]

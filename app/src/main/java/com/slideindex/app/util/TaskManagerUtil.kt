@@ -87,7 +87,10 @@ object TaskManagerUtil {
     @Suppress("UNCHECKED_CAST")
     private inline fun <reified T> privilegedMainThreadFallback(): T = when (T::class) {
         Boolean::class -> false as T
-        ShellCommandResult::class -> ShellCommandResult(-1, "主线程跳过特权任务") as T
+        ShellCommandResult::class -> ShellCommandResult(
+            -1,
+            appContext().getString(R.string.privileged_task_skipped_main_thread),
+        ) as T
         Int::class -> 0 as T
         String::class -> "" as T
         Unit::class -> Unit as T
@@ -566,7 +569,10 @@ object TaskManagerUtil {
     fun runShellCommandOutput(vararg cmd: String): ShellCommandResult {
         if (PrivilegeGateway.isRootMode()) {
             if (!hasPrivilegedAccess()) {
-                return ShellCommandResult(exitCode = -1, output = "无 Root 权限")
+                return ShellCommandResult(
+                    exitCode = -1,
+                    output = appContext().getString(R.string.privileged_no_root),
+                )
             }
             return runOnTaskWorker { RootPrivilegedOperations.runShellCommandOutput(*cmd) }
         }
@@ -588,7 +594,10 @@ object TaskManagerUtil {
     ): ShellCommandResult {
         if (PrivilegeGateway.isRootMode()) {
             if (!hasPrivilegedAccess()) {
-                return ShellCommandResult(exitCode = -1, output = "无 Root 权限")
+                return ShellCommandResult(
+                    exitCode = -1,
+                    output = appContext().getString(R.string.privileged_no_root),
+                )
             }
             return runOnTaskWorker { RootPrivilegedOperations.runShellCommandLine(command, timeoutMs) }
         }

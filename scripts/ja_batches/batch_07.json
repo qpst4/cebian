@@ -1,0 +1,902 @@
+[
+  {
+    "name": "pointer_swipe_direction_title",
+    "text": "Direction",
+    "source": "en"
+  },
+  {
+    "name": "pointer_swipe_direction_left",
+    "text": "Left",
+    "source": "en"
+  },
+  {
+    "name": "pointer_swipe_direction_up",
+    "text": "Top",
+    "source": "en"
+  },
+  {
+    "name": "pointer_swipe_direction_right",
+    "text": "Right",
+    "source": "en"
+  },
+  {
+    "name": "pointer_swipe_direction_down",
+    "text": "Bottom",
+    "source": "en"
+  },
+  {
+    "name": "pointer_swipe_distance_title",
+    "text": "Swipe distance",
+    "source": "en"
+  },
+  {
+    "name": "pointer_swipe_distance_short",
+    "text": "Short",
+    "source": "en"
+  },
+  {
+    "name": "pointer_swipe_distance_medium",
+    "text": "Medium",
+    "source": "en"
+  },
+  {
+    "name": "pointer_swipe_distance_long",
+    "text": "Long",
+    "source": "en"
+  },
+  {
+    "name": "pointer_swipe_duration_title",
+    "text": "Swipe duration",
+    "source": "en"
+  },
+  {
+    "name": "pointer_swipe_duration_value",
+    "text": "%1$d ms",
+    "source": "en"
+  },
+  {
+    "name": "pointer_swipe_pointer_count_title",
+    "text": "Multi-touch",
+    "source": "en"
+  },
+  {
+    "name": "pointer_swipe_action_summary",
+    "text": "%1$s 路 tap gear to configure",
+    "source": "en"
+  },
+  {
+    "name": "notification_history_entry_title",
+    "text": "Notification filter box",
+    "source": "en"
+  },
+  {
+    "name": "notification_history_entry_desc",
+    "text": "View live and archived notifications; hide and reopen",
+    "source": "en"
+  },
+  {
+    "name": "notification_history_entry_summary",
+    "text": "Saved notifications: %1$d",
+    "source": "en"
+  },
+  {
+    "name": "notification_history_entry_permission_needed",
+    "text": "Notification access required",
+    "source": "en"
+  },
+  {
+    "name": "notification_history_title",
+    "text": "Notification filter box",
+    "source": "en"
+  },
+  {
+    "name": "notification_history_subtitle",
+    "text": "View live shade notifications and history",
+    "source": "en"
+  },
+  {
+    "name": "notification_history_empty",
+    "text": "No notifications yet. Enable notification access to start recording.",
+    "source": "en"
+  },
+  {
+    "name": "notification_history_search_hint",
+    "text": "Search notifications…",
+    "source": "en"
+  },
+  {
+    "name": "notification_history_clear_all",
+    "text": "Clear all",
+    "source": "en"
+  },
+  {
+    "name": "notification_history_delete",
+    "text": "Delete",
+    "source": "en"
+  },
+  {
+    "name": "notification_history_menu_reopen",
+    "text": "Reopen",
+    "source": "en"
+  },
+  {
+    "name": "notification_history_channel_id_label",
+    "text": "Channel ID: %1$s",
+    "source": "en"
+  },
+  {
+    "name": "notification_history_menu_copy_channel_id",
+    "text": "Copy channel ID",
+    "source": "en"
+  },
+  {
+    "name": "notification_history_menu_open_channel_settings",
+    "text": "Open notification settings",
+    "source": "en"
+  },
+  {
+    "name": "notification_history_channel_id_copied",
+    "text": "Channel ID copied: %1$s",
+    "source": "en"
+  },
+  {
+    "name": "notification_history_delete_confirm_title",
+    "text": "Delete this notification?",
+    "source": "en"
+  },
+  {
+    "name": "notification_history_delete_confirm_message",
+    "text": "This removes the record from the filter box. This cannot be undone.",
+    "source": "en"
+  },
+  {
+    "name": "notification_history_clear_all_confirm_title",
+    "text": "Clear all notifications?",
+    "source": "en"
+  },
+  {
+    "name": "notification_history_clear_all_confirm_message",
+    "text": "This deletes every saved notification in the filter box. This cannot be undone.",
+    "source": "en"
+  },
+  {
+    "name": "notification_history_permission_title",
+    "text": "Notification access required",
+    "source": "en"
+  },
+  {
+    "name": "notification_history_permission_desc",
+    "text": "Enable notification access for this app in system settings to record, hide, and reopen notifications.",
+    "source": "en"
+  },
+  {
+    "name": "notification_history_permission_grant",
+    "text": "Open settings",
+    "source": "en"
+  },
+  {
+    "name": "notification_history_reopen_failed_reason",
+    "text": "Could not reopen: %1$s",
+    "source": "en"
+  },
+  {
+    "name": "notification_history_recycled_title",
+    "text": "Notification has been recycled",
+    "source": "en"
+  },
+  {
+    "name": "notification_history_recycled_message",
+    "text": "The notification link memory has been recycled by Android and can no longer be opened.\\nYou can open the app as an alternative.",
+    "source": "en"
+  },
+  {
+    "name": "notification_history_open_app",
+    "text": "Open %1$s",
+    "source": "en"
+  },
+  {
+    "name": "notification_filter_hide",
+    "text": "Hide",
+    "source": "en"
+  },
+  {
+    "name": "notification_filter_hidden_badge",
+    "text": "Hidden",
+    "source": "en"
+  },
+  {
+    "name": "notification_hidden_success",
+    "text": "Hidden",
+    "source": "en"
+  },
+  {
+    "name": "notification_hide_failed",
+    "text": "Could not hide this notification from the shade",
+    "source": "en"
+  },
+  {
+    "name": "notification_hide_listener_required",
+    "text": "Enable notification access first",
+    "source": "en"
+  },
+  {
+    "name": "notification_restore_snoozed_action",
+    "text": "Scan and restore hidden notifications",
+    "source": "en"
+  },
+  {
+    "name": "notification_restore_snoozed_desc",
+    "text": "Restore notifications snoozed from the shade by this app.",
+    "source": "en"
+  },
+  {
+    "name": "notification_restore_snoozed_result",
+    "text": "Restored to the shade: %1$d",
+    "source": "en"
+  },
+  {
+    "name": "notification_restore_snoozed_empty",
+    "text": "No hidden notifications found",
+    "source": "en"
+  },
+  {
+    "name": "notification_filter_active_in_shade",
+    "text": "In shade",
+    "source": "en"
+  },
+  {
+    "name": "notification_filter_tab_active",
+    "text": "Live",
+    "source": "en"
+  },
+  {
+    "name": "notification_filter_tab_history",
+    "text": "History",
+    "source": "en"
+  },
+  {
+    "name": "notification_filter_history_hidden",
+    "text": "Hidden",
+    "source": "en"
+  },
+  {
+    "name": "notification_filter_rules_action",
+    "text": "Task rules",
+    "source": "en"
+  },
+  {
+    "name": "notification_filter_more_menu",
+    "text": "More",
+    "source": "en"
+  },
+  {
+    "name": "notification_filter_settings_title",
+    "text": "Filter settings",
+    "source": "en"
+  },
+  {
+    "name": "notification_rules_screen_subtitle",
+    "text": "Automatically process notifications by conditions",
+    "source": "en"
+  },
+  {
+    "name": "otp_hub_entry_title",
+    "text": "Verification codes",
+    "source": "en"
+  },
+  {
+    "name": "otp_hub_entry_desc",
+    "text": "Extract, record, and auto-fill codes",
+    "source": "en"
+  },
+  {
+    "name": "notification_filter_tab_rules",
+    "text": "Task rules",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_section_title",
+    "text": "Task management",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_empty",
+    "text": "No task rules yet",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_add",
+    "text": "Add task rule",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_edit",
+    "text": "Edit task rule",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_name",
+    "text": "Rule name",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_actions",
+    "text": "Actions",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_action_hide",
+    "text": "Dismiss notification",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_action_tts",
+    "text": "Read aloud",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_action_open",
+    "text": "Open notification",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_pick_app",
+    "text": "Pick app",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_select_all",
+    "text": "Select all",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_invert_selection",
+    "text": "Invert",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_selected_apps_count",
+    "text": "Selected apps: %1$d",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_app_search_hint",
+    "text": "Search apps",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_saved",
+    "text": "Rule saved",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_invalid",
+    "text": "Select at least one action",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_all_apps",
+    "text": "All apps",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_unnamed",
+    "text": "Unnamed rule",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_delete",
+    "text": "Delete rule",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_package_summary",
+    "text": "App: %1$s",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_text_summary",
+    "text": "Content: %1$s",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_section_apps",
+    "text": "Apps",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_section_text",
+    "text": "Content",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_section_time",
+    "text": "Time and date",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_section_device",
+    "text": "Phone state",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_app_mode_all",
+    "text": "All apps",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_app_mode_include",
+    "text": "Include",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_app_mode_exclude",
+    "text": "Exclude",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_text_mode_all",
+    "text": "All content",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_text_mode_contain_any",
+    "text": "Contains any",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_text_mode_not_contain_any",
+    "text": "Not contains any",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_text_mode_contain_all",
+    "text": "Contains all",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_text_mode_not_contain_all",
+    "text": "Not contains all",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_text_mode_contain_and_not",
+    "text": "Contains A, not B",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_text_mode_regex",
+    "text": "Regular expression",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_text_mode_advanced",
+    "text": "Advanced (JSON)",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_keywords_hint",
+    "text": "Keywords, one per line",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_keywords_exclude_hint",
+    "text": "Exclude keywords, one per line",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_regex_hint",
+    "text": "Regular expression",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_advanced_hint",
+    "text": "Advanced filter JSON",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_time_start",
+    "text": "Start (HH:mm)",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_time_end",
+    "text": "End (HH:mm)",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_time_all_day",
+    "text": "All day",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_week_days",
+    "text": "Weekdays",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_screen_on",
+    "text": "Screen on",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_screen_off",
+    "text": "Screen off",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_charge_battery",
+    "text": "On battery",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_charge_wired",
+    "text": "Wired charging",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_charge_wireless",
+    "text": "Wireless charging",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_channel",
+    "text": "Channel ID (optional)",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_action_mute",
+    "text": "Mute",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_action_later",
+    "text": "Postpone",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_action_replace",
+    "text": "Replace content",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_action_change_sound",
+    "text": "Change sound",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_action_call",
+    "text": "Call-style alert",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_action_click_button",
+    "text": "Click button",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_action_webhook",
+    "text": "Webhook",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_action_delay",
+    "text": "Delay (ms)",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_action_include_ongoing",
+    "text": "Include ongoing",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_action_button_names",
+    "text": "Button names, one per line",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_action_replace_title",
+    "text": "Replace title",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_action_replace_message",
+    "text": "Replace message",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_action_sound_uri",
+    "text": "Sound URI (optional)",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_action_later_time",
+    "text": "Postpone to (HH:mm)",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_action_tts_template",
+    "text": "TTS template ({title} {text} {app})",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_action_webhook_url",
+    "text": "Webhook URL",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_action_webhook_body",
+    "text": "Request body (optional)",
+    "source": "en"
+  },
+  {
+    "name": "notification_rule_export",
+    "text": "Export rules",
+    "source": "en"
+  },
+  {
+    "name": "notification_settings_history_section",
+    "text": "History",
+    "source": "en"
+  },
+  {
+    "name": "notification_settings_rules_hint",
+    "text": "Manage task rules from the Rules button in the filter top bar.",
+    "source": "en"
+  },
+  {
+    "name": "notification_filter_hidden_empty",
+    "text": "No hidden notifications",
+    "source": "en"
+  },
+  {
+    "name": "notification_restore_action",
+    "text": "Restore",
+    "source": "en"
+  },
+  {
+    "name": "notification_history_menu_restore",
+    "text": "Restore to shade",
+    "source": "en"
+  },
+  {
+    "name": "notification_restore_success_shade",
+    "text": "Restored to notification shade",
+    "source": "en"
+  },
+  {
+    "name": "notification_restore_success_rule_only",
+    "text": "Hide rule removed; future matching notifications will show normally",
+    "source": "en"
+  },
+  {
+    "name": "notification_restore_unsnooze_failed",
+    "text": "Could not restore to shade; the notification may have been dismissed",
+    "source": "en"
+  },
+  {
+    "name": "notification_filter_active_empty",
+    "text": "No notifications in shade",
+    "source": "en"
+  },
+  {
+    "name": "notification_history_max_count_title",
+    "text": "History save limit",
+    "source": "en"
+  },
+  {
+    "name": "notification_history_group_by_app_title",
+    "text": "Group by app",
+    "source": "en"
+  },
+  {
+    "name": "notification_history_group_by_app_desc",
+    "text": "Collapse when an app has multiple notifications; tap to expand",
+    "source": "en"
+  },
+  {
+    "name": "notification_history_group_count",
+    "text": "%1$d",
+    "source": "en"
+  },
+  {
+    "name": "notification_history_group_summary",
+    "text": "%1$d notifications",
+    "source": "en"
+  },
+  {
+    "name": "notification_history_group_latest_preview",
+    "text": "Latest: %1$s",
+    "source": "en"
+  },
+  {
+    "name": "notification_history_group_tap_expand",
+    "text": "Tap to expand",
+    "source": "en"
+  },
+  {
+    "name": "notification_history_group_tap_collapse",
+    "text": "Tap to collapse",
+    "source": "en"
+  },
+  {
+    "name": "notification_history_max_count_value",
+    "text": "Item count: %1$d",
+    "source": "en"
+  },
+  {
+    "name": "otp_settings_title",
+    "text": "Verification code",
+    "source": "en"
+  },
+  {
+    "name": "otp_settings_desc",
+    "text": "Extract verification codes from notification text with keyword matching",
+    "source": "en"
+  },
+  {
+    "name": "otp_copy_to_clipboard_title",
+    "text": "Copy to clipboard",
+    "source": "en"
+  },
+  {
+    "name": "otp_copy_to_clipboard_desc",
+    "text": "Automatically copy extracted codes",
+    "source": "en"
+  },
+  {
+    "name": "otp_copied_to_clipboard",
+    "text": "Copied code: %1$s",
+    "source": "en"
+  },
+  {
+    "name": "otp_copy_action",
+    "text": "Copy code",
+    "source": "en"
+  },
+  {
+    "name": "otp_extracted_code_label",
+    "text": "Code: %1$s",
+    "source": "en"
+  },
+  {
+    "name": "otp_keywords_section",
+    "text": "Keyword matching",
+    "source": "en"
+  },
+  {
+    "name": "otp_keywords_fallback_section",
+    "text": "Keyword fallback",
+    "source": "en"
+  },
+  {
+    "name": "otp_keywords_fallback_hint",
+    "text": "Used when app rules do not match: find 4–8 digit codes near keyword matches.",
+    "source": "en"
+  },
+  {
+    "name": "otp_keywords_regex_label",
+    "text": "Keyword regex",
+    "source": "en"
+  },
+  {
+    "name": "otp_keywords_regex_hint",
+    "text": "Looks for 4–8 digit codes near keyword matches",
+    "source": "en"
+  },
+  {
+    "name": "otp_keywords_save",
+    "text": "Save keywords",
+    "source": "en"
+  },
+  {
+    "name": "otp_keywords_save_desc",
+    "text": "Apply the current regex pattern",
+    "source": "en"
+  },
+  {
+    "name": "otp_keywords_reset",
+    "text": "Reset to default",
+    "source": "en"
+  },
+  {
+    "name": "otp_keywords_reset_desc",
+    "text": "Use the built-in default keyword pattern",
+    "source": "en"
+  },
+  {
+    "name": "otp_match_rules_entry_title",
+    "text": "Verification code rules",
+    "source": "en"
+  },
+  {
+    "name": "otp_match_rules_entry_desc",
+    "text": "Official and custom extraction rules",
+    "source": "en"
+  },
+  {
+    "name": "otp_rules_list_title",
+    "text": "Verification code rules",
+    "source": "en"
+  },
+  {
+    "name": "otp_rules_refresh",
+    "text": "Refresh",
+    "source": "en"
+  },
+  {
+    "name": "otp_rules_add",
+    "text": "Add rule",
+    "source": "en"
+  },
+  {
+    "name": "otp_rules_edit",
+    "text": "Edit rule",
+    "source": "en"
+  },
+  {
+    "name": "otp_rules_delete",
+    "text": "Delete",
+    "source": "en"
+  },
+  {
+    "name": "otp_rules_official_section",
+    "text": "Official rules",
+    "source": "en"
+  },
+  {
+    "name": "otp_rules_official_hint",
+    "text": "Official rules loaded from smscode-rules: %1$d. Tap refresh for the latest.",
+    "source": "en"
+  },
+  {
+    "name": "otp_rules_official_empty",
+    "text": "No official rules",
+    "source": "en"
+  },
+  {
+    "name": "otp_rules_user_section",
+    "text": "User rules",
+    "source": "en"
+  },
+  {
+    "name": "otp_rules_user_empty",
+    "text": "No rules yet. Tap + to add.",
+    "source": "en"
+  },
+  {
+    "name": "otp_rules_keyword_label",
+    "text": "Keyword: %1$s",
+    "source": "en"
+  },
+  {
+    "name": "otp_rules_name_label",
+    "text": "Name",
+    "source": "en"
+  },
+  {
+    "name": "otp_rules_keyword_field_label",
+    "text": "Keyword",
+    "source": "en"
+  },
+  {
+    "name": "otp_rules_regex_label",
+    "text": "Extraction regex",
+    "source": "en"
+  },
+  {
+    "name": "otp_rules_package_label",
+    "text": "Package name (optional)",
+    "source": "en"
+  },
+  {
+    "name": "otp_rules_package_hint",
+    "text": "Leave blank to apply to all apps",
+    "source": "en"
+  },
+  {
+    "name": "otp_rules_invalid",
+    "text": "Name, keyword, and regex are required",
+    "source": "en"
+  }
+]

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="vlm_provider_dashscope_name">Alibaba Cloud DashScope</string>
+    <string name="vlm_provider_dashscope_desc">Qwen VL · Fast and cost-effective for formulas and charts</string>
+    <string name="vlm_provider_dashscope_hint">Get an API key (sk-…) from the DashScope console</string>
+    <string name="vlm_provider_zhipu_name">Zhipu GLM</string>
+    <string name="vlm_provider_zhipu_desc">GLM-4V · Strong Chinese understanding for long docs and complex formulas</string>
+    <string name="vlm_provider_zhipu_hint">Get an API key from the Zhipu Open Platform</string>
+    <string name="vlm_provider_siliconflow_name">SiliconFlow</string>
+    <string name="vlm_provider_siliconflow_desc">SiliconFlow · High-concurrency relay for open vision models</string>
+    <string name="vlm_provider_siliconflow_hint">Get an API key from the SiliconFlow platform</string>
+    <string name="vlm_provider_custom_name">Custom endpoint</string>
+    <string name="vlm_provider_custom_desc">Self-hosted OneAPI, reverse proxy, or OpenAI-compatible endpoint</string>
+    <string name="vlm_provider_custom_hint">Any standard OpenAI /chat/completions compatible endpoint</string>
+
+    <string name="ocr_error_unknown_model">Unknown OCR model: %1$s</string>
+    <string name="ocr_error_model_not_installed">OCR model not installed</string>
+    <string name="ocr_error_native_engine_not_ready">OCR runtime not ready</string>
+    <string name="ocr_error_api_key_not_configured">API key not configured. Set it under OCR models → Cloud</string>
+    <string name="ocr_error_unsupported_engine">Unsupported OCR engine</string>
+    <string name="ocr_error_no_text_recognized">No text recognized</string>
+
+    <string name="vlm_error_cloud_http">Cloud recognition failed (HTTP %1$d): %2$s</string>
+    <string name="vlm_error_cloud_empty">Cloud response invalid: no recognition result</string>
+    <string name="vlm_error_network">Network or API error: %1$s</string>
+    <string name="vlm_error_no_details">No details</string>
+    <string name="vlm_test_success">Connection successful! Authentication OK</string>
+    <string name="vlm_test_failed">Connection failed (HTTP %1$d): %2$s</string>
+    <string name="vlm_test_network_error">Network or URL error: %1$s</string>
+    <string name="vlm_error_api_key_empty">API key cannot be empty</string>
+    <string name="vlm_error_unknown">Unknown error</string>
+    <string name="vlm_user_recognition_prompt">Recognize all text and formulas in this image following the system formatting rules:</string>
+
+    <string name="ocr_error_paddle_not_initialized">PaddleOCR engine not initialized</string>
+
+    <string name="vlm_default_system_prompt">You are a professional OCR assistant for text and formulas. Extract content exactly as shown in the image:\n1. Wrap inline math with $...$ and display math with $$...$$\n2. Preserve original line breaks and paragraphs\n3. Do not add explanations, prefixes, or Markdown headings\n4. Output an empty string if unreadable</string>
+</resources>

@@ -1,0 +1,722 @@
+[
+  {
+    "name": "freezer_filter_title",
+    "ja": "フィルター"
+  },
+  {
+    "name": "freezer_apps_section_title",
+    "ja": "アプリ（%1$d）"
+  },
+  {
+    "name": "freezer_list_section_title",
+    "ja": "フリーズリスト（%1$d）"
+  },
+  {
+    "name": "freezer_list_empty",
+    "ja": "アプリがまだありません。下から追加してください。"
+  },
+  {
+    "name": "freezer_section_add",
+    "ja": "アプリを追加"
+  },
+  {
+    "name": "freezer_add_all_added",
+    "ja": "すべてのアプリがすでにリストに含まれています"
+  },
+  {
+    "name": "freezer_batch_freeze_all",
+    "ja": "すべて凍結"
+  },
+  {
+    "name": "freezer_batch_unfreeze_all",
+    "ja": "すべて解除"
+  },
+  {
+    "name": "freezer_status_frozen",
+    "ja": "凍結中"
+  },
+  {
+    "name": "freezer_status_active",
+    "ja": "有効"
+  },
+  {
+    "name": "freezer_remove_from_list",
+    "ja": "リストから削除"
+  },
+  {
+    "name": "freezer_unfreeze_and_remove",
+    "ja": "解除して削除"
+  },
+  {
+    "name": "freezer_remove_while_frozen",
+    "ja": "このアプリはまだ凍結中です。先に解除するか、「解除して削除」を選択してください。"
+  },
+  {
+    "name": "freezer_import_frozen_apps",
+    "ja": "凍結済みアプリをインポート"
+  },
+  {
+    "name": "freezer_import_frozen_apps_desc",
+    "ja": "無効化されたランチャーアプリをスキャンし、フリーズリストに追加します"
+  },
+  {
+    "name": "freezer_import_frozen_done",
+    "ja": "%1$d 件のアプリをインポートしました"
+  },
+  {
+    "name": "freezer_import_frozen_none",
+    "ja": "インポートする凍結アプリがありません"
+  },
+  {
+    "name": "freezer_add_to_list",
+    "ja": "フリーズリストに追加"
+  },
+  {
+    "name": "freezer_launch_app",
+    "ja": "アプリを起動"
+  },
+  {
+    "name": "freezer_launch_failed",
+    "ja": "このアプリを起動できません"
+  },
+  {
+    "name": "freezer_shortcut_label",
+    "ja": "凍結アプリ"
+  },
+  {
+    "name": "freezer_grid_search_hint",
+    "ja": "凍結アプリを検索"
+  },
+  {
+    "name": "freezer_manage_apps",
+    "ja": "アプリを管理"
+  },
+  {
+    "name": "freezer_batch_menu",
+    "ja": "一括操作"
+  },
+  {
+    "name": "freezer_action_freeze",
+    "ja": "凍結"
+  },
+  {
+    "name": "freezer_action_unfreeze",
+    "ja": "解除"
+  },
+  {
+    "name": "freezer_action_add_to_home",
+    "ja": "ホーム画面に追加"
+  },
+  {
+    "name": "freezer_show_in_launcher_title",
+    "ja": "ランチャーに表示"
+  },
+  {
+    "name": "freezer_show_in_launcher_desc",
+    "ja": "システムダイアログで確認し、削除可能なホーム画面ショートカットを追加します（アプリアイコンではありません）"
+  },
+  {
+    "name": "freezer_pin_shortcut_unpin_hint",
+    "ja": "オフになりました。ホーム画面の「凍結アプリ」ショートカットを長押しして「削除」を選択してください"
+  },
+  {
+    "name": "freezer_pin_shortcut_failed",
+    "ja": "ショートカットを追加できませんでした。ランチャーがピン留めに対応していない可能性があります"
+  },
+  {
+    "name": "freezer_legacy_icon_cleanup",
+    "ja": "旧バージョンの重複サイドバーアイコンは、ランチャーまたは端末の再起動後に消えます。残っている場合は「アンインストール」してもアプリは削除されません"
+  },
+  {
+    "name": "expand_panel_shortcuts_title",
+    "ja": "ショートカット"
+  },
+  {
+    "name": "expand_panel_shortcut_add",
+    "ja": "ショートカットを追加"
+  },
+  {
+    "name": "expand_panel_shortcut_pick",
+    "ja": "アプリを選択"
+  },
+  {
+    "name": "expand_panel_edit",
+    "ja": "編集"
+  },
+  {
+    "name": "expand_panel_done",
+    "ja": "完了"
+  },
+  {
+    "name": "expand_panel_edit_hint",
+    "ja": "編集中：スロットをタップして変更、− をタップして削除。空白部分を長押しで終了"
+  },
+  {
+    "name": "expand_panel_clear_slot",
+    "ja": "このスロットをクリア"
+  },
+  {
+    "name": "expand_panel_editing_slot",
+    "ja": "スロット %1$d を編集中 · %2$s"
+  },
+  {
+    "name": "expand_panel_slot_add_label",
+    "ja": "追加"
+  },
+  {
+    "name": "freezer_shizuku_granted",
+    "ja": "Shizuku が許可されました"
+  },
+  {
+    "name": "freezer_shizuku_denied",
+    "ja": "Shizuku が許可されていません"
+  },
+  {
+    "name": "freezer_root_available",
+    "ja": "Root が利用可能です"
+  },
+  {
+    "name": "freezer_root_unavailable",
+    "ja": "Root が利用できません（一部の端末ではアプリの凍結に Root が必要です）"
+  },
+  {
+    "name": "xposed_module_description",
+    "ja": "Cebian：OTP 自動入力（android スコープを有効化）"
+  },
+  {
+    "name": "otp_records_title",
+    "ja": "認証コード履歴"
+  },
+  {
+    "name": "otp_records_entry_title",
+    "ja": "認証コード履歴"
+  },
+  {
+    "name": "otp_records_entry_desc",
+    "ja": "抽出した認証コードの履歴を表示"
+  },
+  {
+    "name": "otp_records_filter",
+    "ja": "フィルター"
+  },
+  {
+    "name": "otp_records_sort",
+    "ja": "並べ替え"
+  },
+  {
+    "name": "otp_records_sort_newest",
+    "ja": "新しい順"
+  },
+  {
+    "name": "otp_records_sort_oldest",
+    "ja": "古い順"
+  },
+  {
+    "name": "otp_records_filter_all",
+    "ja": "すべてのアプリ"
+  },
+  {
+    "name": "otp_records_filter_empty",
+    "ja": "現在のフィルターに一致する履歴がありません"
+  },
+  {
+    "name": "otp_records_empty_title",
+    "ja": "まだ何もありません！"
+  },
+  {
+    "name": "otp_records_empty_subtitle",
+    "ja": "新しい SMS の到着を待つか、設定済みのテストフローを実行してください。"
+  },
+  {
+    "name": "otp_records_open_test_flow",
+    "ja": "SMS テストを開く"
+  },
+  {
+    "name": "otp_records_delete_title",
+    "ja": "履歴を削除"
+  },
+  {
+    "name": "otp_records_delete_message",
+    "ja": "認証コード %1$s の履歴を削除しますか？"
+  },
+  {
+    "name": "otp_records_rule_label",
+    "ja": "ルール：%1$s"
+  },
+  {
+    "name": "otp_records_test_source",
+    "ja": "テスト SMS"
+  },
+  {
+    "name": "otp_record_fill_none",
+    "ja": "自動入力なし"
+  },
+  {
+    "name": "otp_record_fill_pending",
+    "ja": "入力中…"
+  },
+  {
+    "name": "otp_record_fill_lsposed",
+    "ja": "LSPosed 注入"
+  },
+  {
+    "name": "otp_record_fill_accessibility",
+    "ja": "アクセシビリティ入力"
+  },
+  {
+    "name": "otp_record_fill_failed",
+    "ja": "入力に失敗しました"
+  },
+  {
+    "name": "otp_records_sender_hint",
+    "ja": "1068 で始まる長い番号は SMS の送信元 ID であり、入力統計ではありません。「拡張機能」タブ下部の「入力統計」を参照してください。"
+  },
+  {
+    "name": "otp_rules_tab_title",
+    "ja": "抽出ルール"
+  },
+  {
+    "name": "otp_hub_rules_hint",
+    "ja": "アプリルールを優先的に適用し、一致しない場合はキーワードフォールバックを実行します。下部のテストで確認してください。"
+  },
+  {
+    "name": "otp_hub_section_more",
+    "ja": "その他"
+  },
+  {
+    "name": "otp_hub_tab_rules",
+    "ja": "ルール"
+  },
+  {
+    "name": "otp_hub_tab_records",
+    "ja": "履歴"
+  },
+  {
+    "name": "otp_hub_tab_extensions",
+    "ja": "拡張機能"
+  },
+  {
+    "name": "permission_overlay_title",
+    "ja": "他のアプリの上に表示"
+  },
+  {
+    "name": "permission_notification_title",
+    "ja": "通知の権限"
+  },
+  {
+    "name": "permission_notification_desc",
+    "ja": "バックグラウンドサービスの稼働に必要です"
+  },
+  {
+    "name": "permission_usage_title",
+    "ja": "使用状況へのアクセス"
+  },
+  {
+    "name": "gesture_action_app_carousel_switcher_permission",
+    "ja": "最近使ったアプリを表示するには使用状況へのアクセスが必要です"
+  },
+  {
+    "name": "grant_permission",
+    "ja": "許可"
+  },
+  {
+    "name": "live_preview_hint",
+    "ja": "スライダーをドラッグしてライブプレビュー。それ以外は画面端でジェスチャーをお試しください。"
+  },
+  {
+    "name": "side_gestures_preview_hint",
+    "ja": "スライダーをドラッグしてトリガーゾーンと短/長スワイプのしきい値をプレビューします。"
+  },
+  {
+    "name": "handle_width",
+    "ja": "ハンドル幅"
+  },
+  {
+    "name": "handle_length",
+    "ja": "ハンドル長"
+  },
+  {
+    "name": "handle_length_small",
+    "ja": "上"
+  },
+  {
+    "name": "handle_length_large",
+    "ja": "下"
+  },
+  {
+    "name": "handle_span_horizontal",
+    "ja": "ハンドルの水平方向の範囲"
+  },
+  {
+    "name": "handle_span_horizontal_start",
+    "ja": "左"
+  },
+  {
+    "name": "handle_span_horizontal_end",
+    "ja": "右"
+  },
+  {
+    "name": "handle_width_small",
+    "ja": "小"
+  },
+  {
+    "name": "handle_width_large",
+    "ja": "大"
+  },
+  {
+    "name": "align_handles",
+    "ja": "ハンドルを揃える"
+  },
+  {
+    "name": "align_handles_desc",
+    "ja": "このグループのハンドルを反対側と同じ位置に揃えます"
+  },
+  {
+    "name": "align_opposite_gestures",
+    "ja": "反対側とジェスチャーを同期"
+  },
+  {
+    "name": "align_opposite_gestures_desc",
+    "ja": "このグループの左右のハンドルはスロット操作とトリガーモードを共有します"
+  },
+  {
+    "name": "align_opposite_gestures_mirror_title",
+    "ja": "反対側とジェスチャーを同期"
+  },
+  {
+    "name": "align_opposite_gestures_mirror_message",
+    "ja": "左右で同じジェスチャーを共有します。ソースとする側を選択してください："
+  },
+  {
+    "name": "align_opposite_gestures_use_this_side",
+    "ja": "現在の側を使用（%1$s）"
+  },
+  {
+    "name": "align_opposite_gestures_use_opposite_side",
+    "ja": "反対側を使用（%1$s）"
+  },
+  {
+    "name": "side_gestures_shared_with_opposite",
+    "ja": "このグループではジェスチャースロットが反対側のハンドルと共有されています"
+  },
+  {
+    "name": "trigger_handles_add",
+    "ja": "ハンドルを追加"
+  },
+  {
+    "name": "trigger_handles_restore_opposite",
+    "ja": "反対側のハンドルを復元"
+  },
+  {
+    "name": "trigger_collection_title",
+    "ja": "ハンドルセット"
+  },
+  {
+    "name": "trigger_collection_side",
+    "ja": "側面ハンドル"
+  },
+  {
+    "name": "trigger_side_left_item",
+    "ja": "左ハンドル"
+  },
+  {
+    "name": "trigger_side_right_item",
+    "ja": "右ハンドル"
+  },
+  {
+    "name": "trigger_pair_index",
+    "ja": "グループ %1$d"
+  },
+  {
+    "name": "trigger_summary_none",
+    "ja": "なし"
+  },
+  {
+    "name": "trigger_appearance_title",
+    "ja": "レイアウトとヒント"
+  },
+  {
+    "name": "trigger_appearance_desc",
+    "ja": "ハンドルの位置とスワイプ距離"
+  },
+  {
+    "name": "trigger_appearance_entry",
+    "ja": "レイアウトとヒント"
+  },
+  {
+    "name": "trigger_appearance_summary",
+    "ja": "幅 %1$d dp"
+  },
+  {
+    "name": "trigger_design_reset",
+    "ja": "デフォルトにリセット"
+  },
+  {
+    "name": "trigger_design_reset_desc",
+    "ja": "ハンドルのデザインをデフォルトスタイルに戻します"
+  },
+  {
+    "name": "trigger_design_align_handles",
+    "ja": "ハンドルを揃える"
+  },
+  {
+    "name": "trigger_design_align_handles_desc",
+    "ja": "このグループのデザインを反対側と同期します"
+  },
+  {
+    "name": "intercept_system_back",
+    "ja": "システム戻るジェスチャーを傍受"
+  },
+  {
+    "name": "intercept_system_back_desc",
+    "ja": "システム API を使用します。互換性の問題が発生する場合があります"
+  },
+  {
+    "name": "limit_intercept_length",
+    "ja": "最大傍受長を制限"
+  },
+  {
+    "name": "limit_intercept_length_desc",
+    "ja": "現在のシステム API の上限は 200 dp です"
+  },
+  {
+    "name": "side_gestures_handle_section",
+    "ja": "ハンドルレイアウト"
+  },
+  {
+    "name": "index_height",
+    "ja": "インデックス文字の高さ"
+  },
+  {
+    "name": "hide_empty_index_letters",
+    "ja": "空の文字を非表示"
+  },
+  {
+    "name": "hide_empty_index_letters_desc",
+    "ja": "アプリがないインデックス文字を表示しません"
+  },
+  {
+    "name": "apps_per_row",
+    "ja": "インデックス行あたりのアプリ数"
+  },
+  {
+    "name": "quick_launcher_grid_columns",
+    "ja": "クイックランチャーの列数"
+  },
+  {
+    "name": "quick_launcher_grid_rows",
+    "ja": "クイックランチャーの行数"
+  },
+  {
+    "name": "quick_launcher_grid_columns_label",
+    "ja": "列：%1$d"
+  },
+  {
+    "name": "quick_launcher_grid_rows_label",
+    "ja": "行：%1$d"
+  },
+  {
+    "name": "panel_opacity",
+    "ja": "パネルの不透明度"
+  },
+  {
+    "name": "haptic_enabled",
+    "ja": "振動"
+  },
+  {
+    "name": "settings_predictive_back",
+    "ja": "予測型戻るジェスチャー"
+  },
+  {
+    "name": "settings_predictive_back_summary",
+    "ja": "予測型戻るアニメーションを有効にします"
+  },
+  {
+    "name": "settings_swipe_dismiss",
+    "ja": "スワイプ戻るジェスチャー"
+  },
+  {
+    "name": "settings_swipe_dismiss_summary",
+    "ja": "ページ上の任意の場所を横にスワイプして戻ります"
+  },
+  {
+    "name": "interaction_appearance_settings_title",
+    "ja": "操作と外観"
+  },
+  {
+    "name": "interaction_appearance_settings_entry_desc",
+    "ja": "触覚、戻るジェスチャー、テーマ、ナビゲーションバー"
+  },
+  {
+    "name": "settings_section_navigation_back",
+    "ja": "ナビゲーションと戻る"
+  },
+  {
+    "name": "settings_section_theme_appearance",
+    "ja": "テーマと外観"
+  },
+  {
+    "name": "settings_section_interaction_feedback",
+    "ja": "操作フィードバック"
+  },
+  {
+    "name": "haptic_strength",
+    "ja": "振動の強さ"
+  },
+  {
+    "name": "selected_hint_icon_size_value",
+    "ja": "%1$d dp"
+  },
+  {
+    "name": "corner_gesture_selected_hint_icon_size",
+    "ja": "ヒットヒントアイコンサイズ"
+  },
+  {
+    "name": "honeycomb_selected_hint_icon_size",
+    "ja": "ヒットヒントアイコンサイズ"
+  },
+  {
+    "name": "haptic_strength_light",
+    "ja": "弱"
+  },
+  {
+    "name": "haptic_strength_medium",
+    "ja": "中"
+  },
+  {
+    "name": "haptic_strength_strong",
+    "ja": "強"
+  },
+  {
+    "name": "theme_color",
+    "ja": "テーマカラー"
+  },
+  {
+    "name": "theme_palette_style",
+    "ja": "パレットスタイル"
+  },
+  {
+    "name": "theme_palette_style_desc",
+    "ja": "プライマリ、コンテナ、サーフェスの組み合わせ方を制御します"
+  },
+  {
+    "name": "theme_palette_tonal_spot",
+    "ja": "トーナルスポット"
+  },
+  {
+    "name": "theme_palette_vibrant",
+    "ja": "ビブラント"
+  },
+  {
+    "name": "theme_palette_expressive",
+    "ja": "エクスプレッシブ"
+  },
+  {
+    "name": "theme_palette_monochrome",
+    "ja": "モノクローム"
+  },
+  {
+    "name": "theme_palette_neutral",
+    "ja": "ニュートラル"
+  },
+  {
+    "name": "theme_palette_fidelity",
+    "ja": "フィデリティ"
+  },
+  {
+    "name": "theme_palette_content",
+    "ja": "コンテンツ"
+  },
+  {
+    "name": "theme_palette_rainbow",
+    "ja": "レインボー"
+  },
+  {
+    "name": "theme_palette_fruit_salad",
+    "ja": "フルーツサラダ"
+  },
+  {
+    "name": "theme_mode",
+    "ja": "テーマモード"
+  },
+  {
+    "name": "theme_mode_system",
+    "ja": "システム"
+  },
+  {
+    "name": "theme_mode_light",
+    "ja": "ライト"
+  },
+  {
+    "name": "theme_mode_dark",
+    "ja": "ダーク"
+  },
+  {
+    "name": "theme_dark_background",
+    "ja": "ダーク背景"
+  },
+  {
+    "name": "theme_dark_background_quiet_blue",
+    "ja": "クワイエットブルー"
+  },
+  {
+    "name": "theme_dark_background_deep_black",
+    "ja": "ディープブラック"
+  },
+  {
+    "name": "theme_dark_background_amoled_black",
+    "ja": "AMOLED ブラック"
+  },
+  {
+    "name": "theme_custom_color",
+    "ja": "カスタムカラー"
+  },
+  {
+    "name": "theme_custom_color_desc",
+    "ja": "デフォルトの Miuix ブルーではなく、パレットスタイルから色を生成します"
+  },
+  {
+    "name": "theme_seed_color",
+    "ja": "シードカラー"
+  },
+  {
+    "name": "theme_seed_color_desc",
+    "ja": "タップしてパレットのシードカラーを選択"
+  },
+  {
+    "name": "theme_seed_color_dialog_title",
+    "ja": "カスタムカラー"
+  },
+  {
+    "name": "theme_seed_color_reset",
+    "ja": "リセット"
+  },
+  {
+    "name": "theme_color_spec",
+    "ja": "カラースペック"
+  },
+  {
+    "name": "theme_color_spec_2021",
+    "ja": "Material 3 (2021)"
+  },
+  {
+    "name": "theme_color_spec_2025",
+    "ja": "Material 3 (2025)"
+  },
+  {
+    "name": "theme_color_spec_2025_unsupported",
+    "ja": "現在のパレットスタイルは Material 3 (2021) のみ対応しています"
+  },
+  {
+    "name": "bottom_nav_style",
+    "ja": "下部バーのスタイル"
+  },
+  {
+    "name": "bottom_nav_style_classic",
+    "ja": "クラシックグラス"
+  },
+  {
+    "name": "bottom_nav_style_liquid_glass",
+    "ja": "リキッドグラス"
+  }
+]

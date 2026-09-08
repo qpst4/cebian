@@ -1,0 +1,1036 @@
+{
+  "entries": [
+    {
+      "name": "vlm_ocr_connection_test_failed_saved",
+      "zh": "连接测试未通过，配置已保存，请检查接口设置",
+      "en": "Connection test failed; settings saved. Check API configuration.",
+      "ja": "接続テストに失敗しました。設定は保存済みです。API 設定を確認してください。"
+    },
+    {
+      "name": "vlm_ocr_provider_config_title",
+      "zh": "%1$s 配置",
+      "en": "%1$s settings",
+      "ja": "%1$s 設定"
+    },
+    {
+      "name": "vlm_ocr_section_api",
+      "zh": "接口连接",
+      "en": "API connection",
+      "ja": "API 接続"
+    },
+    {
+      "name": "vlm_ocr_api_key_label",
+      "zh": "API Key (密钥)",
+      "en": "API Key",
+      "ja": "API Key（秘密鍵）"
+    },
+    {
+      "name": "vlm_ocr_base_url_label",
+      "zh": "Base URL (端点地址)",
+      "en": "Base URL (endpoint)",
+      "ja": "Base URL（エンドポイント）"
+    },
+    {
+      "name": "vlm_ocr_default_endpoint",
+      "zh": "默认端点为：%1$s",
+      "en": "Default endpoint: %1$s",
+      "ja": "デフォルトのエンドポイント: %1$s"
+    },
+    {
+      "name": "vlm_ocr_section_model",
+      "zh": "模型选择与测试",
+      "en": "Model selection & test",
+      "ja": "モデル選択とテスト"
+    },
+    {
+      "name": "vlm_ocr_model_label",
+      "zh": "Model 模型名称",
+      "en": "Model name",
+      "ja": "モデル名"
+    },
+    {
+      "name": "vlm_ocr_recommended_models",
+      "zh": "快捷选择该服务商推荐型号：",
+      "en": "Quick-select recommended models:",
+      "ja": "このプロバイダーの推奨モデルを選択:"
+    },
+    {
+      "name": "vlm_ocr_saved_custom_models",
+      "zh": "已保存的自定义型号：",
+      "en": "Saved custom models:",
+      "ja": "保存済みのカスタムモデル:"
+    },
+    {
+      "name": "vlm_ocr_testing_connection",
+      "zh": "正在测试连接...",
+      "en": "Testing connection…",
+      "ja": "接続をテスト中…"
+    },
+    {
+      "name": "vlm_ocr_test_connection",
+      "zh": "测试连接",
+      "en": "Test connection",
+      "ja": "接続テスト"
+    },
+    {
+      "name": "vlm_ocr_connection_success_prefix",
+      "zh": "连接成功",
+      "en": "Connection successful",
+      "ja": "接続成功"
+    },
+    {
+      "name": "vlm_ocr_section_prompt",
+      "zh": "识别提示词 (System Prompt)",
+      "en": "Recognition prompt (System Prompt)",
+      "ja": "認識プロンプト (System Prompt)"
+    },
+    {
+      "name": "vlm_ocr_custom_prompt_title",
+      "zh": "自定义专属提示词",
+      "en": "Custom dedicated prompt",
+      "ja": "専用プロンプトをカスタマイズ"
+    },
+    {
+      "name": "vlm_ocr_custom_prompt_enabled",
+      "zh": "已启用专属覆盖，优先使用下方自定义内容",
+      "en": "Dedicated override enabled; custom content below takes priority",
+      "ja": "専用上書きを有効化。以下のカスタム内容を優先します"
+    },
+    {
+      "name": "vlm_ocr_custom_prompt_disabled",
+      "zh": "已暂停专属覆盖，草稿仍保留在本地",
+      "en": "Dedicated override paused; draft kept locally",
+      "ja": "専用上書きを一時停止。下書きはローカルに保持されます"
+    },
+    {
+      "name": "vlm_ocr_custom_prompt_label",
+      "zh": "专属 System Prompt",
+      "en": "Dedicated System Prompt",
+      "ja": "専用 System Prompt"
+    },
+    {
+      "name": "vlm_ocr_load_generic_template",
+      "zh": "载入通用模板",
+      "en": "Load generic template",
+      "ja": "汎用テンプレートを読み込む"
+    },
+    {
+      "name": "vlm_ocr_custom_prompt_hint",
+      "zh": "关闭开关时暂停专属覆盖；开启后可为 %1$s 独立微调。只有点击「载入通用模板」才会写入通用内容。",
+      "en": "Turn off to pause dedicated override; turn on to fine-tune for %1$s. Generic content is written only when you tap Load generic template.",
+      "ja": "オフで専用上書きを一時停止。オンで %1$s 向けに個別調整。汎用内容は「汎用テンプレートを読み込む」をタップしたときのみ書き込まれます。"
+    },
+    {
+      "name": "ocr_error_no_model_selected",
+      "zh": "未选择 OCR 模型",
+      "en": "No OCR model selected",
+      "ja": "OCR モデルが選択されていません"
+    },
+    {
+      "name": "ocr_error_service_unavailable",
+      "zh": "OCR 服务不可用",
+      "en": "OCR service unavailable",
+      "ja": "OCR サービスを利用できません"
+    },
+    {
+      "name": "ocr_error_recognition_failed",
+      "zh": "识别异常：%1$s",
+      "en": "Recognition error: %1$s",
+      "ja": "認識エラー: %1$s"
+    },
+    {
+      "name": "ocr_error_unknown",
+      "zh": "未知错误",
+      "en": "Unknown error",
+      "ja": "不明なエラー"
+    },
+    {
+      "name": "ocr_engine_status_ready",
+      "zh": "已就绪",
+      "en": "Ready",
+      "ja": "準備完了"
+    },
+    {
+      "name": "ocr_engine_status_not_installed",
+      "zh": "未安装",
+      "en": "Not installed",
+      "ja": "未インストール"
+    },
+    {
+      "name": "ocr_engine_installed_summary",
+      "zh": "底层 C++ 推理库 · %1$s%2$s",
+      "en": "Native C++ inference engine · %1$s%2$s",
+      "ja": "ネイティブ C++ 推論エンジン · %1$s%2$s"
+    },
+    {
+      "name": "ocr_engine_not_installed_summary",
+      "zh": "未安装底层运行库 (%1$s)，离线识别不可用",
+      "en": "Runtime engine not installed (%1$s); offline recognition unavailable",
+      "ja": "ランタイムエンジン未インストール (%1$s)。オフライン認識は利用できません"
+    },
+    {
+      "name": "ocr_engine_manage",
+      "zh": "管理",
+      "en": "Manage",
+      "ja": "管理"
+    },
+    {
+      "name": "ocr_engine_install",
+      "zh": "安装",
+      "en": "Install",
+      "ja": "インストール"
+    },
+    {
+      "name": "ocr_common_config_title",
+      "zh": "通用配置",
+      "en": "General settings",
+      "ja": "共通設定"
+    },
+    {
+      "name": "ocr_common_prompt_customized",
+      "zh": "已自定义全局通用内容",
+      "en": "Global prompt customized",
+      "ja": "グローバルプロンプトをカスタマイズ済み"
+    },
+    {
+      "name": "ocr_common_prompt_default",
+      "zh": "当前使用出厂默认",
+      "en": "Using factory default",
+      "ja": "工場出荷時のデフォルトを使用中"
+    },
+    {
+      "name": "ocr_global_system_prompt",
+      "zh": "全局通用提示词 (System Prompt)",
+      "en": "Global System Prompt",
+      "ja": "グローバル System Prompt"
+    },
+    {
+      "name": "ocr_edit",
+      "zh": "编辑",
+      "en": "Edit",
+      "ja": "編集"
+    },
+    {
+      "name": "ocr_restore_default",
+      "zh": "恢复默认",
+      "en": "Restore default",
+      "ja": "デフォルトに戻す"
+    },
+    {
+      "name": "ocr_global_system_prompt_field",
+      "zh": "全局通用 System Prompt",
+      "en": "Global System Prompt",
+      "ja": "グローバル System Prompt"
+    },
+    {
+      "name": "ocr_model_status_active",
+      "zh": "使用中",
+      "en": "Active",
+      "ja": "使用中"
+    },
+    {
+      "name": "ocr_model_status_not_configured",
+      "zh": "未配置",
+      "en": "Not configured",
+      "ja": "未設定"
+    },
+    {
+      "name": "ocr_model_summary_custom_prompt",
+      "zh": "当前模型: %1$s · 专属提示词",
+      "en": "Current model: %1$s · dedicated prompt",
+      "ja": "現在のモデル: %1$s · 専用プロンプト"
+    },
+    {
+      "name": "ocr_model_summary_inherit_global",
+      "zh": "当前模型: %1$s · 继承全局",
+      "en": "Current model: %1$s · inherits global",
+      "ja": "現在のモデル: %1$s · グローバルを継承"
+    },
+    {
+      "name": "ocr_settings",
+      "zh": "设置",
+      "en": "Settings",
+      "ja": "設定"
+    },
+    {
+      "name": "ocr_configure",
+      "zh": "配置",
+      "en": "Configure",
+      "ja": "設定"
+    },
+    {
+      "name": "foreground_inspector_package_tap_copy",
+      "zh": "PACKAGE (点击复制):",
+      "en": "PACKAGE (tap to copy):",
+      "ja": "PACKAGE（タップでコピー）:"
+    },
+    {
+      "name": "foreground_inspector_activity_tap_copy",
+      "zh": "ACTIVITY (点击复制):",
+      "en": "ACTIVITY (tap to copy):",
+      "ja": "ACTIVITY（タップでコピー）:"
+    },
+    {
+      "name": "foreground_inspector_app_name",
+      "zh": "应用名称: %1$s",
+      "en": "App name: %1$s",
+      "ja": "アプリ名: %1$s"
+    },
+    {
+      "name": "foreground_inspector_package_name",
+      "zh": "包名: %1$s",
+      "en": "Package: %1$s",
+      "ja": "パッケージ: %1$s"
+    },
+    {
+      "name": "shell_downgrade_hint",
+      "zh": "提示:已将root降权至shell\n",
+      "en": "Note: downgraded root to shell\n",
+      "ja": "注意: root を shell に降格しました\n"
+    },
+    {
+      "name": "shell_downgrade_failed",
+      "zh": "无法降级到 adb/shell 身份（Shizuku 当前以 Root 运行）。\n请改用 adb/无线调试方式启动 Shizuku。",
+      "en": "Cannot downgrade to adb/shell (Shizuku is running as Root).\nStart Shizuku via adb/wireless debugging instead.",
+      "ja": "adb/shell に降格できません（Shizuku が Root で実行中）。\nadb/ワイヤレスデバッグで Shizuku を起動してください。"
+    },
+    {
+      "name": "shell_su_exec_failed",
+      "zh": "su 执行失败",
+      "en": "su execution failed",
+      "ja": "su の実行に失敗しました"
+    },
+    {
+      "name": "privileged_task_skipped_main_thread",
+      "zh": "主线程跳过特权任务",
+      "en": "Privileged task skipped on main thread",
+      "ja": "メインスレッドで特権タスクをスキップ"
+    },
+    {
+      "name": "privileged_no_root",
+      "zh": "无 Root 权限",
+      "en": "No Root permission",
+      "ja": "Root 権限がありません"
+    },
+    {
+      "name": "shell_no_shizuku",
+      "zh": "无 Shizuku 权限",
+      "en": "No Shizuku permission",
+      "ja": "Shizuku 権限がありません"
+    },
+    {
+      "name": "shell_user_service_failed",
+      "zh": "Shizuku UserService 连接失败，请重启 Shizuku 后重试",
+      "en": "Shizuku UserService connection failed. Restart Shizuku and retry.",
+      "ja": "Shizuku UserService への接続に失敗しました。Shizuku を再起動して再試行してください。"
+    },
+    {
+      "name": "shell_command_timeout",
+      "zh": "Shell 命令超时（%1$d s），请重试",
+      "en": "Shell command timed out (%1$d s). Retry.",
+      "ja": "Shell コマンドがタイムアウトしました（%1$d 秒）。再試行してください。"
+    },
+    {
+      "name": "shell_command_empty",
+      "zh": "命令为空",
+      "en": "Command is empty",
+      "ja": "コマンドが空です"
+    },
+    {
+      "name": "shell_connect_failed",
+      "zh": "无法连接 Shell 服务（期望 build=%1$s）。\n请点击「重启 Shell 服务」；若仍失败，请完全关闭 Shizuku 与本应用后重试。",
+      "en": "Cannot connect to Shell service (expected build=%1$s).\nTap Restart Shell service; if it still fails, fully close Shizuku and this app, then retry.",
+      "ja": "Shell サービスに接続できません（期待 build=%1$s）。\n「Shell サービスを再起動」をタップ。失敗する場合は Shizuku と本アプリを完全終了して再試行してください。"
+    },
+    {
+      "name": "shell_shizuku_api_outdated",
+      "zh": "Shizuku 服务版本过旧 (api=%1$s)，请重启 Shizuku 后重试",
+      "en": "Shizuku service too old (api=%1$s). Restart Shizuku and retry.",
+      "ja": "Shizuku サービスのバージョンが古いです (api=%1$s)。Shizuku を再起動して再試行してください。"
+    },
+    {
+      "name": "shell_root_uid_warning",
+      "zh": "命令仍在 root 身份下执行（uid=0）。\nadb 模式应返回 uid=2000。\n若 Shizuku 以 Root 启动，请改用无线调试/adb 方式启动 Shizuku，\n或在 APatch 中取消 Shell 的永久 Root 授权。",
+      "en": "Command still runs as root (uid=0).\nadb mode should return uid=2000.\nIf Shizuku was started as Root, use wireless debugging/adb instead,\nor revoke permanent Root for Shell in APatch.",
+      "ja": "コマンドは root 権限 (uid=0) で実行されています。\nadb モードでは uid=2000 である必要があります。\nShizuku を Root で起動した場合はワイヤレスデバッグ/adb で起動するか、\nAPatch で Shell の永久 Root 権限を取り消してください。"
+    },
+    {
+      "name": "shell_no_response",
+      "zh": "Shell 服务无响应。请完全关闭并重启 Shizuku，然后重新打开本应用",
+      "en": "Shell service not responding. Fully restart Shizuku, then reopen this app.",
+      "ja": "Shell サービスが応答しません。Shizuku を完全に再起動し、本アプリを開き直してください。"
+    },
+    {
+      "name": "app_carousel_cancel_hint",
+      "zh": "移至屏幕顶部或底部松手取消",
+      "en": "Move to top or bottom edge and release to cancel",
+      "ja": "画面上部または下部へ移動して離すとキャンセル"
+    },
+    {
+      "name": "extension_about_subtitle",
+      "zh": "版本、更新与隐私协议",
+      "en": "Version, updates & privacy",
+      "ja": "バージョン、更新、プライバシーポリシー"
+    },
+    {
+      "name": "external_invocation_keyword_example",
+      "zh": " \"关键词\"",
+      "en": " \"keyword\"",
+      "ja": " \"キーワード\""
+    },
+    {
+      "name": "search_panel_aggregated_image_search",
+      "zh": "聚合搜图",
+      "en": "Aggregated image search",
+      "ja": "画像検索を集約"
+    },
+    {
+      "name": "search_panel_aggregated_image_icon",
+      "zh": "聚",
+      "en": "Agg",
+      "ja": "集"
+    },
+    {
+      "name": "pick_result_copy_selection",
+      "zh": "复制选中",
+      "en": "Copy selection",
+      "ja": "選択をコピー"
+    },
+    {
+      "name": "image_viewer_default_title",
+      "zh": "默认图片查看器",
+      "en": "Default image viewer",
+      "ja": "デフォルトの画像ビューア"
+    },
+    {
+      "name": "image_viewer_ask_every_time",
+      "zh": "每次都询问",
+      "en": "Ask every time",
+      "ja": "毎回確認"
+    },
+    {
+      "name": "quick_launcher_default_folder_name",
+      "zh": "文件夹",
+      "en": "Folder",
+      "ja": "フォルダ"
+    },
+    {
+      "name": "quick_launcher_add_title",
+      "zh": "快速启动器 · 添加快捷项",
+      "en": "Quick launcher · Add shortcut",
+      "ja": "クイックランチャー · ショートカットを追加"
+    },
+    {
+      "name": "quick_launcher_my_shortcuts",
+      "zh": "我的直达",
+      "en": "My shortcuts",
+      "ja": "マイショートカット"
+    },
+    {
+      "name": "quick_launcher_preset_shortcuts",
+      "zh": "预设快捷方式库",
+      "en": "Preset shortcuts",
+      "ja": "プリセットショートカット"
+    },
+    {
+      "name": "quick_launcher_multi_select_hint",
+      "zh": "可勾选多个快捷项添加到面板",
+      "en": "Select multiple shortcuts to add to the panel",
+      "ja": "複数のショートカットを選択してパネルに追加できます"
+    },
+    {
+      "name": "quick_launcher_panel_named",
+      "zh": "面板 %1$d",
+      "en": "Panel %1$d",
+      "ja": "パネル %1$d"
+    },
+    {
+      "name": "quick_launcher_folder_add",
+      "zh": "+ 添加",
+      "en": "+ Add",
+      "ja": "+ 追加"
+    },
+    {
+      "name": "shortcut_custom_count_summary",
+      "zh": "%1$d 个自定义直达快捷方式",
+      "en": "%1$d custom direct shortcuts",
+      "ja": "カスタム直接ショートカット %1$d 件"
+    },
+    {
+      "name": "shortcut_custom_empty_summary",
+      "zh": "自定义创建与管理的直达快捷方式",
+      "en": "Create and manage your direct shortcuts",
+      "ja": "カスタムで作成・管理する直接ショートカット"
+    },
+    {
+      "name": "preset_shortcut_library_summary",
+      "zh": "内置精选直达规则 · 涵盖常用应用",
+      "en": "Built-in direct rules for popular apps",
+      "ja": "人気アプリ向けの組み込み直接ルール"
+    },
+    {
+      "name": "shortcut_custom_section_header",
+      "zh": "自定义快捷方式 (%1$d)",
+      "en": "Custom shortcuts (%1$d)",
+      "ja": "カスタムショートカット (%1$d)"
+    },
+    {
+      "name": "preset_shortcut_no_installed",
+      "zh": "当前设备暂无已安装应用对应的预设快捷方式，搜索可查看全部",
+      "en": "No preset shortcuts for installed apps on this device. Search to see all.",
+      "ja": "この端末にインストール済みアプリ向けのプリセットはありません。検索ですべて表示できます。"
+    },
+    {
+      "name": "preset_shortcut_no_match",
+      "zh": "未找到匹配的预设快捷方式",
+      "en": "No matching preset shortcuts",
+      "ja": "一致するプリセットショートカットがありません"
+    },
+    {
+      "name": "shortcut_item_count",
+      "zh": "%1$d 项",
+      "en": "%1$d items",
+      "ja": "%1$d 件"
+    },
+    {
+      "name": "preset_shortcut_category_other",
+      "zh": "其他快捷指令",
+      "en": "Other shortcuts",
+      "ja": "その他のショートカット"
+    },
+    {
+      "name": "preset_app_alipay",
+      "zh": "支付宝",
+      "en": "Alipay",
+      "ja": "Alipay"
+    },
+    {
+      "name": "preset_app_coolapk",
+      "zh": "酷安",
+      "en": "CoolApk",
+      "ja": "CoolApk"
+    },
+    {
+      "name": "preset_app_wechat",
+      "zh": "微信",
+      "en": "WeChat",
+      "ja": "WeChat"
+    },
+    {
+      "name": "preset_app_meituan",
+      "zh": "美团",
+      "en": "Meituan",
+      "ja": "Meituan"
+    },
+    {
+      "name": "preset_app_taobao",
+      "zh": "淘宝",
+      "en": "Taobao",
+      "ja": "Taobao"
+    },
+    {
+      "name": "preset_app_bilibili",
+      "zh": "哔哩哔哩",
+      "en": "bilibili",
+      "ja": "bilibili"
+    },
+    {
+      "name": "preset_app_qq_music",
+      "zh": "QQ音乐",
+      "en": "QQ Music",
+      "ja": "QQミュージック"
+    },
+    {
+      "name": "preset_app_netease_music",
+      "zh": "网易云音乐",
+      "en": "NetEase Cloud Music",
+      "ja": "NetEase Cloud Music"
+    },
+    {
+      "name": "preset_app_unionpay",
+      "zh": "云闪付",
+      "en": "UnionPay",
+      "ja": "UnionPay"
+    },
+    {
+      "name": "preset_app_system_settings",
+      "zh": "系统设置",
+      "en": "System settings",
+      "ja": "システム設定"
+    },
+    {
+      "name": "preset_app_miui_security",
+      "zh": "手机管家/安全中心",
+      "en": "Security app",
+      "ja": "セキュリティ"
+    },
+    {
+      "name": "preset_app_pinduoduo",
+      "zh": "拼多多",
+      "en": "Pinduoduo",
+      "ja": "Pinduoduo"
+    },
+    {
+      "name": "preset_app_jd",
+      "zh": "京东",
+      "en": "JD.com",
+      "ja": "JD.com"
+    },
+    {
+      "name": "preset_app_douyin",
+      "zh": "抖音",
+      "en": "Douyin",
+      "ja": "Douyin"
+    },
+    {
+      "name": "shortcut_scan",
+      "zh": "扫一扫",
+      "en": "Scan",
+      "ja": "スキャン"
+    },
+    {
+      "name": "shortcut_my_qr",
+      "zh": "我的二维码",
+      "en": "My QR code",
+      "ja": "マイ QR コード"
+    },
+    {
+      "name": "shortcut_receive_pay",
+      "zh": "收付款",
+      "en": "Receive & pay",
+      "ja": "受取・支払い"
+    },
+    {
+      "name": "shortcut_cainiao",
+      "zh": "菜鸟",
+      "en": "Cainiao",
+      "ja": "Cainiao"
+    },
+    {
+      "name": "shortcut_ant_forest",
+      "zh": "蚂蚁森林",
+      "en": "Ant Forest",
+      "ja": "Ant Forest"
+    },
+    {
+      "name": "shortcut_receive_code",
+      "zh": "收款码",
+      "en": "Receive code",
+      "ja": "受取コード"
+    },
+    {
+      "name": "shortcut_pay_code",
+      "zh": "付款码",
+      "en": "Pay code",
+      "ja": "支払いコード"
+    },
+    {
+      "name": "shortcut_bus_code",
+      "zh": "乘车码",
+      "en": "Transit code",
+      "ja": "交通コード"
+    },
+    {
+      "name": "gesture_search_carousel_1",
+      "zh": "应用切换器",
+      "en": "App switcher",
+      "ja": "アプリ切替"
+    },
+    {
+      "name": "gesture_search_carousel_2",
+      "zh": "卡片切换",
+      "en": "Card switcher",
+      "ja": "カード切替"
+    },
+    {
+      "name": "gesture_search_carousel_3",
+      "zh": "应用轮播",
+      "en": "App carousel",
+      "ja": "アプリカルーセル"
+    },
+    {
+      "name": "gesture_search_carousel_4",
+      "zh": "任务轮播",
+      "en": "Task carousel",
+      "ja": "タスクカルーセル"
+    },
+    {
+      "name": "gesture_search_carousel_5",
+      "zh": "多任务",
+      "en": "Multitasking",
+      "ja": "マルチタスク"
+    },
+    {
+      "name": "gesture_search_fingertip_1",
+      "zh": "指尖圆环",
+      "en": "Fingertip ring",
+      "ja": "指先リング"
+    },
+    {
+      "name": "gesture_search_fingertip_2",
+      "zh": "圆环",
+      "en": "Ring",
+      "ja": "リング"
+    },
+    {
+      "name": "gesture_search_fingertip_3",
+      "zh": "径向",
+      "en": "Radial",
+      "ja": "ラジアル"
+    },
+    {
+      "name": "gesture_search_screen_off_1",
+      "zh": "伪息屏",
+      "en": "Fake screen off",
+      "ja": "疑似スリープ"
+    },
+    {
+      "name": "gesture_search_screen_off_2",
+      "zh": "息屏挂机",
+      "en": "Screen-off keep-alive",
+      "ja": "画面オフ常時起動"
+    },
+    {
+      "name": "gesture_search_screen_off_3",
+      "zh": "保持唤醒",
+      "en": "Keep awake",
+      "ja": "スリープ防止"
+    },
+    {
+      "name": "gesture_search_screen_off_4",
+      "zh": "防烧屏",
+      "en": "Burn-in protection",
+      "ja": "焼き付き防止"
+    },
+    {
+      "name": "gesture_search_screen_off_5",
+      "zh": "黑屏挂机",
+      "en": "Black screen keep-alive",
+      "ja": "黒画面常時起動"
+    },
+    {
+      "name": "gesture_search_pin_1",
+      "zh": "钉到屏幕",
+      "en": "Pin to screen",
+      "ja": "画面に固定"
+    },
+    {
+      "name": "gesture_search_pin_2",
+      "zh": "屏幕便签",
+      "en": "Screen note",
+      "ja": "画面メモ"
+    },
+    {
+      "name": "gesture_search_pin_3",
+      "zh": "置顶图片",
+      "en": "Pin image",
+      "ja": "画像を固定"
+    },
+    {
+      "name": "gesture_search_pin_4",
+      "zh": "悬浮便签",
+      "en": "Floating note",
+      "ja": "フローティングメモ"
+    },
+    {
+      "name": "gesture_search_pin_5",
+      "zh": "置顶",
+      "en": "Pin",
+      "ja": "固定"
+    },
+    {
+      "name": "gesture_search_fg_activity_1",
+      "zh": "前台活动",
+      "en": "Foreground activity",
+      "ja": "フォアグラウンド Activity"
+    },
+    {
+      "name": "gesture_search_fg_activity_2",
+      "zh": "前台活动探测",
+      "en": "Foreground activity inspector",
+      "ja": "フォアグラウンド Activity 検出"
+    },
+    {
+      "name": "gesture_search_fg_activity_3",
+      "zh": "当前页面",
+      "en": "Current page",
+      "ja": "現在のページ"
+    },
+    {
+      "name": "gesture_search_fg_activity_4",
+      "zh": "包名查看",
+      "en": "View package name",
+      "ja": "パッケージ名を表示"
+    },
+    {
+      "name": "gesture_search_app_info_1",
+      "zh": "当前应用信息",
+      "en": "Current app info",
+      "ja": "現在のアプリ情報"
+    },
+    {
+      "name": "gesture_search_app_info_2",
+      "zh": "应用详情",
+      "en": "App details",
+      "ja": "アプリ詳細"
+    },
+    {
+      "name": "gesture_search_app_info_3",
+      "zh": "应用管理",
+      "en": "App management",
+      "ja": "アプリ管理"
+    },
+    {
+      "name": "gesture_search_internet_1",
+      "zh": "网络连接面板",
+      "en": "Internet panel",
+      "ja": "ネットワークパネル"
+    },
+    {
+      "name": "gesture_search_internet_2",
+      "zh": "网络面板",
+      "en": "Network panel",
+      "ja": "ネットワークパネル"
+    },
+    {
+      "name": "gesture_search_internet_3",
+      "zh": "移动数据",
+      "en": "Mobile data",
+      "ja": "モバイルデータ"
+    },
+    {
+      "name": "gesture_search_volume_1",
+      "zh": "原生声音调节",
+      "en": "Native volume control",
+      "ja": "ネイティブ音量調整"
+    },
+    {
+      "name": "gesture_search_volume_2",
+      "zh": "原生音量",
+      "en": "Native volume",
+      "ja": "ネイティブ音量"
+    },
+    {
+      "name": "gesture_search_volume_3",
+      "zh": "音量面板",
+      "en": "Volume panel",
+      "ja": "音量パネル"
+    },
+    {
+      "name": "gesture_search_keyevent_1",
+      "zh": "模拟按键",
+      "en": "Simulate key",
+      "ja": "キー入力をシミュレート"
+    },
+    {
+      "name": "gesture_search_keyevent_2",
+      "zh": "按键模拟",
+      "en": "Key simulation",
+      "ja": "キーシミュレーション"
+    },
+    {
+      "name": "keyevent_fallback_name",
+      "zh": "KeyCode %1$d",
+      "en": "KeyCode %1$d",
+      "ja": "KeyCode %1$d"
+    },
+    {
+      "name": "app_switcher_slot_title",
+      "zh": "圆环启动器 · 槽位 %1$d",
+      "en": "Ring launcher · Slot %1$d",
+      "ja": "リングランチャー · スロット %1$d"
+    },
+    {
+      "name": "app_switcher_slot_bound",
+      "zh": "已绑定: %1$s",
+      "en": "Bound: %1$s",
+      "ja": "バインド済み: %1$s"
+    },
+    {
+      "name": "app_switcher_slot_unconfigured",
+      "zh": "未配置（自动填充最近任务）",
+      "en": "Not configured (auto-fill from recents)",
+      "ja": "未設定（最近のタスクから自動入力）"
+    },
+    {
+      "name": "fv_app_switcher_circle_1",
+      "zh": "1 圈(5)",
+      "en": "1 ring (5)",
+      "ja": "1 リング (5)"
+    },
+    {
+      "name": "fv_app_switcher_circle_2",
+      "zh": "2 圈(13)",
+      "en": "2 rings (13)",
+      "ja": "2 リング (13)"
+    },
+    {
+      "name": "fv_app_switcher_circle_3",
+      "zh": "3 圈(24)",
+      "en": "3 rings (24)",
+      "ja": "3 リング (24)"
+    },
+    {
+      "name": "fv_app_switcher_circle_4",
+      "zh": "4 圈(38)",
+      "en": "4 rings (38)",
+      "ja": "4 リング (38)"
+    },
+    {
+      "name": "widget_tab_apps",
+      "zh": "应用程序",
+      "en": "Apps",
+      "ja": "アプリ"
+    },
+    {
+      "name": "widget_tab_shortcuts",
+      "zh": "快捷方式",
+      "en": "Shortcuts",
+      "ja": "ショートカット"
+    },
+    {
+      "name": "widget_group_count",
+      "zh": "%1$d 个小组件",
+      "en": "%1$d widgets",
+      "ja": "ウィジェット %1$d 件"
+    },
+    {
+      "name": "cd_view_all",
+      "zh": "查看全部",
+      "en": "View all",
+      "ja": "すべて表示"
+    },
+    {
+      "name": "holographic_no_apps_loaded",
+      "zh": "未加载到应用",
+      "en": "No apps loaded",
+      "ja": "アプリが読み込まれていません"
+    },
+    {
+      "name": "holographic_check_settings_hint",
+      "zh": "请检查设置或前往设置页配置",
+      "en": "Check settings or configure on the settings page",
+      "ja": "設定を確認するか、設定ページで構成してください"
+    },
+    {
+      "name": "update_version_current",
+      "zh": "当前 v%1$s",
+      "en": "Current v%1$s",
+      "ja": "現在 v%1$s"
+    },
+    {
+      "name": "update_version_latest",
+      "zh": "最新 v%1$s",
+      "en": "Latest v%1$s",
+      "ja": "最新 v%1$s"
+    },
+    {
+      "name": "task_switcher_app_info",
+      "zh": "应用信息",
+      "en": "App info",
+      "ja": "アプリ情報"
+    },
+    {
+      "name": "task_switcher_quick_share",
+      "zh": "快速分享",
+      "en": "Quick Share",
+      "ja": "クイック共有"
+    },
+    {
+      "name": "toggle_gesture_enabled",
+      "zh": "手势已开启",
+      "en": "Gestures enabled",
+      "ja": "ジェスチャーを有効にしました"
+    },
+    {
+      "name": "toggle_gesture_disabled",
+      "zh": "手势已关闭",
+      "en": "Gestures disabled",
+      "ja": "ジェスチャーを無効にしました"
+    },
+    {
+      "name": "settings_slider_milliseconds",
+      "zh": "%1$d 毫秒",
+      "en": "%1$d ms",
+      "ja": "%1$d ミリ秒"
+    },
+    {
+      "name": "screenshot_keyword_screenshot_cn",
+      "zh": "截图",
+      "en": "screenshot",
+      "ja": "スクリーンショット"
+    },
+    {
+      "name": "screenshot_keyword_screencap_cn",
+      "zh": "截屏",
+      "en": "screencap",
+      "ja": "画面キャプチャ"
+    },
+    {
+      "name": "screenshot_keyword_screenshot_tw",
+      "zh": "截圖",
+      "en": "screenshot",
+      "ja": "螢幕截圖"
+    },
+    {
+      "name": "loading",
+      "zh": "加载中…",
+      "en": "Loading…",
+      "ja": "読み込み中…"
+    },
+    {
+      "name": "gesture_angle_save",
+      "zh": "保存",
+      "en": "Save",
+      "ja": "保存"
+    },
+    {
+      "name": "cancel",
+      "zh": "取消",
+      "en": "Cancel",
+      "ja": "キャンセル"
+    },
+    {
+      "name": "confirm",
+      "zh": "确定",
+      "en": "OK",
+      "ja": "OK"
+    },
+    {
+      "name": "cd_navigate_back",
+      "zh": "返回",
+      "en": "Navigate back",
+      "ja": "戻る"
+    },
+    {
+      "name": "message_reminder_unlock_auto_dismiss_never",
+      "zh": "永不",
+      "en": "Never",
+      "ja": "しない"
+    },
+    {
+      "name": "message_danmaku_speed_slow",
+      "zh": "慢",
+      "en": "Slow",
+      "ja": "遅い"
+    },
+    {
+      "name": "message_danmaku_speed_normal",
+      "zh": "标准",
+      "en": "Normal",
+      "ja": "標準"
+    },
+    {
+      "name": "message_danmaku_speed_fast",
+      "zh": "快",
+      "en": "Fast",
+      "ja": "速い"
+    },
+    {
+      "name": "gesture_action_quick_launcher",
+      "zh": "快速启动器",
+      "en": "Quick launcher",
+      "ja": "クイックランチャー"
+    }
+  ]
+}

@@ -4,6 +4,7 @@ package com.slideindex.app
 
 import android.Manifest
 import android.app.ActivityManager
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.database.ContentObserver
@@ -47,6 +48,7 @@ import com.slideindex.app.ui.navigation.MainNavHost
 import com.slideindex.app.ui.navigation.NavPermissionStates
 import com.slideindex.app.update.UpdateAppForeground
 import com.slideindex.app.update.UpdateIntents
+import com.slideindex.app.util.AppLocaleApplier
 import com.slideindex.app.util.PermissionHelper
 import com.slideindex.app.util.PredictiveBackHelper
 import com.slideindex.app.util.TaskManagerUtil
@@ -62,6 +64,10 @@ import androidx.core.graphics.drawable.IconCompat
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     @Inject lateinit var deps: AppDependencies
+
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(AppLocaleApplier.wrapContextIfNeeded(newBase))
+    }
 
     internal val permissionStates = NavPermissionStates(
         overlayGranted = mutableStateOf(false),

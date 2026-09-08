@@ -6,6 +6,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.slideindex.app.R
 import com.slideindex.app.search.ImageViewTargetResolver
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -55,7 +56,7 @@ class FloatBallPickSettingsViewModel @Inject constructor(
                 add(
                     ImageViewerDropdownOption(
                         packageName = null,
-                        label = ASK_EVERY_TIME_LABEL,
+                        label = context.getString(R.string.image_viewer_ask_every_time),
                         iconBitmap = null,
                     ),
                 )
@@ -73,7 +74,5 @@ class FloatBallPickSettingsViewModel @Inject constructor(
                 }
             }
         }
-
-        const val ASK_EVERY_TIME_LABEL = "每次都询问"
     }
 }

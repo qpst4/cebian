@@ -38,7 +38,7 @@ class EdgeSettingsMutator @Inject constructor(
 
     /** 对齐开启但左右手势槽位 desync 时，合并并写入 DataStore（已一致则 no-op）。 */
     suspend fun persistOppositeGestureSlotRepairIfNeeded(): Result<Unit> = editor.edit { prefs ->
-        val current = SettingsSnapshotReader.read(prefs)
+        val current = SettingsSnapshotReader.read(prefs, context)
         if (!current.hasOppositeGestureSlotDesync()) return@edit
         val repaired = current.withRepairedOppositeGestureSlotsIfNeeded()
         prefs[SettingsPreferenceKeys.GESTURE_RULES] = GestureRuleCodec.encodeAll(repaired.gestureRules)
@@ -171,7 +171,7 @@ class EdgeSettingsMutator @Inject constructor(
     }
 
     suspend fun ensureLandscapeTriggerHandlesInitialized() = editor.edit { prefs ->
-        val current = SettingsSnapshotReader.read(prefs)
+        val current = SettingsSnapshotReader.read(prefs, context)
         val updated = when {
             !current.landscapeTriggersInitialized && !current.hasStoredLandscapeTriggerHandles() ->
                 current.withLandscapeCopiedFromPortrait()
@@ -325,6 +325,7 @@ class EdgeSettingsMutator @Inject constructor(
     ) = editor.edit { prefs ->
         SettingsTriggerStore.updateTriggerSwipeDistances(
             prefs,
+            context,
             side,
             handleId,
             shortSwipeDistanceDp = value,
@@ -340,6 +341,7 @@ class EdgeSettingsMutator @Inject constructor(
     ) = editor.edit { prefs ->
         SettingsTriggerStore.updateTriggerSwipeDistances(
             prefs,
+            context,
             side,
             handleId,
             longSwipeDistanceDp = value,
@@ -418,6 +420,9 @@ class EdgeSettingsMutator @Inject constructor(
     suspend fun setHideFromRecents(enabled: Boolean) = editor.edit { it[SettingsPreferenceKeys.HIDE_FROM_RECENTS] = enabled }
     suspend fun setPredictiveBackEnabled(enabled: Boolean) =
         editor.edit { it[SettingsPreferenceKeys.PREDICTIVE_BACK_ENABLED] = enabled }
+
+    suspend fun setAppUiLanguage(language: AppUiLanguage) =
+        editor.edit { it[SettingsPreferenceKeys.APP_UI_LANGUAGE_TAG] = language.toStorageTag() }
 
     suspend fun setSwipeDismissEnabled(enabled: Boolean) =
         editor.edit { it[SettingsPreferenceKeys.SWIPE_DISMISS_ENABLED] = enabled }
@@ -638,7 +643,7 @@ class EdgeSettingsMutator @Inject constructor(
     private suspend fun editLandscapeProfile(
         block: (AppSettings) -> AppSettings,
     ): Result<Unit> = editor.edit { prefs ->
-        val snapshot = SettingsSnapshotReader.read(prefs)
+        val snapshot = SettingsSnapshotReader.read(prefs, context)
         val working = snapshot.forLandscapeEditing()
         val updated = block(working)
         SettingsTriggerStore.writeLandscapeSettings(prefs, snapshot.mergeLandscapeEdits(updated))
@@ -648,7 +653,7 @@ class EdgeSettingsMutator @Inject constructor(
         landscape: Boolean,
         block: (AppSettings) -> AppSettings,
     ): Result<Unit> = editor.edit { prefs ->
-        val snapshot = SettingsSnapshotReader.read(prefs)
+        val snapshot = SettingsSnapshotReader.read(prefs, context)
         val working = if (landscape) snapshot.forLandscapeHandleEditing() else snapshot
         val updated = block(working)
         if (landscape) {

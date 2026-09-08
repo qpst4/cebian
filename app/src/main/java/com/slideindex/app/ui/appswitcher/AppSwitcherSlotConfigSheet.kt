@@ -196,9 +196,12 @@ fun AppSwitcherSlotConfigSheet(
                         }
 
                         val title = when (subScreen) {
-                            QuickLauncherAddSubScreen.Main -> "圆环启动器 · 槽位 ${slotIndex + 1}"
-                            QuickLauncherAddSubScreen.MyShortcuts -> "我的直达"
-                            QuickLauncherAddSubScreen.PresetShortcuts -> "预设快捷方式库"
+                            QuickLauncherAddSubScreen.Main -> stringResource(
+                                R.string.app_switcher_slot_title,
+                                slotIndex + 1,
+                            )
+                            QuickLauncherAddSubScreen.MyShortcuts -> stringResource(R.string.quick_launcher_my_shortcuts)
+                            QuickLauncherAddSubScreen.PresetShortcuts -> stringResource(R.string.quick_launcher_preset_shortcuts)
                             QuickLauncherAddSubScreen.PickApp -> stringResource(R.string.activity_shortcut_pick_app_title)
                             is QuickLauncherAddSubScreen.PickActivity -> stringResource(R.string.search_engine_pick_activity_title)
                             is QuickLauncherAddSubScreen.ShellCommandConfig -> stringResource(R.string.gesture_shell_command_config_title)
@@ -218,9 +221,12 @@ fun AppSwitcherSlotConfigSheet(
                             )
                             if (subScreen == QuickLauncherAddSubScreen.Main) {
                                 val statusText = if (currentItem != null && currentItem.payload.isNotBlank()) {
-                                    "已绑定: ${currentItem.label.ifBlank { currentItem.payload }}"
+                                    stringResource(
+                                        R.string.app_switcher_slot_bound,
+                                        currentItem.label.ifBlank { currentItem.payload },
+                                    )
                                 } else {
-                                    "未配置（自动填充最近任务）"
+                                    stringResource(R.string.app_switcher_slot_unconfigured)
                                 }
                                 Text(
                                     text = statusText,
@@ -248,7 +254,7 @@ fun AppSwitcherSlotConfigSheet(
                                     modifier = Modifier.size(18.dp),
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
-                                Text(text = "恢复默认")
+                                Text(text = stringResource(R.string.ocr_restore_default))
                             }
                         }
 

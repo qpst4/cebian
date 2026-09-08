@@ -50,7 +50,7 @@ fun filterGestureActions(
     if (q.isEmpty()) return actions
     return actions.filter { action ->
         val label = gestureActionLabelText(context, action)
-        val aliases = gestureActionSearchAliases(action)
+        val aliases = gestureActionSearchAliases(context, action)
         label.lowercase().contains(q) ||
             PinyinHelper.sortKey(label).contains(q) ||
             aliases.any { it.contains(q) || PinyinHelper.sortKey(it).contains(q) } ||
@@ -58,16 +58,75 @@ fun filterGestureActions(
     }
 }
 
-fun gestureActionSearchAliases(action: GestureAction): List<String> = when (action.type) {
-    GestureActionType.APP_CAROUSEL_SWITCHER -> listOf("应用切换器", "app switcher", "卡片切换", "应用轮播", "任务轮播", "多任务", "carousel")
-    GestureActionType.FINGERTIP_RING -> listOf("指尖圆环", "fingertip ring", "圆环", "径向", "radial", "ring menu")
-    GestureActionType.SCREEN_OFF_KEEP_AWAKE -> listOf("伪息屏", "息屏挂机", "保持唤醒", "防烧屏", "黑屏挂机", "screen off")
-    GestureActionType.PIN_TO_SCREEN -> listOf("钉到屏幕", "屏幕便签", "置顶图片", "悬浮便签", "pin", "置顶")
-    GestureActionType.FOREGROUND_ACTIVITY_INSPECTOR -> listOf("前台活动", "前台活动探测", "当前页面", "activity", "包名查看", "activity inspector", "top activity", "foreground")
-    GestureActionType.CURRENT_APP_INFO -> listOf("当前应用信息", "应用详情", "app info", "应用管理")
-    GestureActionType.OPEN_INTERNET_PANEL -> listOf("网络连接面板", "网络面板", "wifi", "移动数据", "internet panel")
-    GestureActionType.OPEN_VOLUME_PANEL -> listOf("原生声音调节", "原生音量", "音量面板", "volume panel")
-    GestureActionType.SIMULATE_KEY_EVENT -> listOf("模拟按键", "按键模拟", "keyevent", "input keyevent")
+fun gestureActionSearchAliases(context: Context, action: GestureAction): List<String> = when (action.type) {
+    GestureActionType.APP_CAROUSEL_SWITCHER -> listOf(
+        context.getString(R.string.gesture_search_carousel_1),
+        "app switcher",
+        context.getString(R.string.gesture_search_carousel_2),
+        context.getString(R.string.gesture_search_carousel_3),
+        context.getString(R.string.gesture_search_carousel_4),
+        context.getString(R.string.gesture_search_carousel_5),
+        "carousel",
+    )
+    GestureActionType.FINGERTIP_RING -> listOf(
+        context.getString(R.string.gesture_search_fingertip_1),
+        "fingertip ring",
+        context.getString(R.string.gesture_search_fingertip_2),
+        context.getString(R.string.gesture_search_fingertip_3),
+        "radial",
+        "ring menu",
+    )
+    GestureActionType.SCREEN_OFF_KEEP_AWAKE -> listOf(
+        context.getString(R.string.gesture_search_screen_off_1),
+        context.getString(R.string.gesture_search_screen_off_2),
+        context.getString(R.string.gesture_search_screen_off_3),
+        context.getString(R.string.gesture_search_screen_off_4),
+        context.getString(R.string.gesture_search_screen_off_5),
+        "screen off",
+    )
+    GestureActionType.PIN_TO_SCREEN -> listOf(
+        context.getString(R.string.gesture_search_pin_1),
+        context.getString(R.string.gesture_search_pin_2),
+        context.getString(R.string.gesture_search_pin_3),
+        context.getString(R.string.gesture_search_pin_4),
+        "pin",
+        context.getString(R.string.gesture_search_pin_5),
+    )
+    GestureActionType.FOREGROUND_ACTIVITY_INSPECTOR -> listOf(
+        context.getString(R.string.gesture_search_fg_activity_1),
+        context.getString(R.string.gesture_search_fg_activity_2),
+        context.getString(R.string.gesture_search_fg_activity_3),
+        "activity",
+        context.getString(R.string.gesture_search_fg_activity_4),
+        "activity inspector",
+        "top activity",
+        "foreground",
+    )
+    GestureActionType.CURRENT_APP_INFO -> listOf(
+        context.getString(R.string.gesture_search_app_info_1),
+        context.getString(R.string.gesture_search_app_info_2),
+        "app info",
+        context.getString(R.string.gesture_search_app_info_3),
+    )
+    GestureActionType.OPEN_INTERNET_PANEL -> listOf(
+        context.getString(R.string.gesture_search_internet_1),
+        context.getString(R.string.gesture_search_internet_2),
+        "wifi",
+        context.getString(R.string.gesture_search_internet_3),
+        "internet panel",
+    )
+    GestureActionType.OPEN_VOLUME_PANEL -> listOf(
+        context.getString(R.string.gesture_search_volume_1),
+        context.getString(R.string.gesture_search_volume_2),
+        context.getString(R.string.gesture_search_volume_3),
+        "volume panel",
+    )
+    GestureActionType.SIMULATE_KEY_EVENT -> listOf(
+        context.getString(R.string.gesture_search_keyevent_1),
+        context.getString(R.string.gesture_search_keyevent_2),
+        "keyevent",
+        "input keyevent",
+    )
     else -> emptyList()
 }
 
@@ -136,7 +195,7 @@ fun gestureActionLabelText(context: Context, action: GestureAction): String = wh
         }
     }
     is GestureAction.SimulateKeyEvent -> {
-        val name = if (action.keyName.isNotBlank()) action.keyName else com.slideindex.app.gesture.KeyEventPresets.getDisplayName(action.keyCode)
+        val name = if (action.keyName.isNotBlank()) action.keyName else com.slideindex.app.gesture.KeyEventPresets.getDisplayName(context, action.keyCode)
         context.getString(R.string.gesture_action_simulate_key_event_named, name)
     }
     else -> when (action.type) {
@@ -233,6 +292,7 @@ fun gestureActionSortKey(context: Context, action: GestureAction): String =
 
 @Composable
 fun gestureActionLabel(action: GestureAction, settings: AppSettings? = null): String {
+    val context = LocalContext.current
     val appRepository = rememberAppRepository()
     return when (action) {
     is GestureAction.LaunchApp -> {
@@ -276,7 +336,7 @@ fun gestureActionLabel(action: GestureAction, settings: AppSettings? = null): St
         if (action.keyName.isBlank() || (action.keyCode == 82 && action.keyName == "KEYCODE_MENU")) {
             stringResource(R.string.gesture_action_simulate_key_event)
         } else {
-            val name = if (action.keyName.isNotBlank()) action.keyName else com.slideindex.app.gesture.KeyEventPresets.getDisplayName(action.keyCode)
+            val name = if (action.keyName.isNotBlank()) action.keyName else com.slideindex.app.gesture.KeyEventPresets.getDisplayName(context, action.keyCode)
             stringResource(R.string.gesture_action_simulate_key_event_named, name)
         }
     }
@@ -372,6 +432,7 @@ fun gestureActionLabel(action: GestureAction, settings: AppSettings? = null): St
 
 @Composable
 fun gestureActionSettingSubtitle(action: GestureAction): String {
+    val context = LocalContext.current
     return when (action) {
         is GestureAction.ExecuteShellCommand -> {
             if (action.command.isBlank()) {
@@ -384,7 +445,7 @@ fun gestureActionSettingSubtitle(action: GestureAction): String {
             }
         }
         is GestureAction.SimulateKeyEvent -> {
-            val name = if (action.keyName.isNotBlank()) action.keyName else com.slideindex.app.gesture.KeyEventPresets.getDisplayName(action.keyCode)
+            val name = if (action.keyName.isNotBlank()) action.keyName else com.slideindex.app.gesture.KeyEventPresets.getDisplayName(context, action.keyCode)
             stringResource(R.string.gesture_action_simulate_key_event_named, name)
         }
         else -> gestureActionLabel(action)

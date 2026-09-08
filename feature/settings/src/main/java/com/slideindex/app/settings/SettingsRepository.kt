@@ -84,7 +84,7 @@ class SettingsRepository @Inject constructor(
     fun readSnapshot(): AppSettings = cachedSettings
 
     suspend fun readFreshSnapshot(): AppSettings =
-        SettingsSnapshotReader.read(editor.readRawPreferences())
+        SettingsSnapshotReader.read(editor.readRawPreferences(), context)
 
     suspend fun exportSettings(
         appVersionName: String,
@@ -209,6 +209,7 @@ class SettingsRepository @Inject constructor(
             prefs[SettingsPreferenceKeys.PRIVILEGE_MODE] = mode.storageValue
         }
     suspend fun setPredictiveBackEnabled(enabled: Boolean) = edge.setPredictiveBackEnabled(enabled)
+    suspend fun setAppUiLanguage(language: AppUiLanguage) = edge.setAppUiLanguage(language)
     suspend fun setSwipeDismissEnabled(enabled: Boolean) = edge.setSwipeDismissEnabled(enabled)
     suspend fun setAccessibilityKeepAliveEnabled(enabled: Boolean) = edge.setAccessibilityKeepAliveEnabled(enabled)
     suspend fun setHapticStrengthLevel(level: Int) = edge.setHapticStrengthLevel(level)

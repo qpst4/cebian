@@ -1,0 +1,902 @@
+[
+  {
+    "name": "app_name",
+    "text": "Cebian",
+    "source": "en"
+  },
+  {
+    "name": "main_settings_subtitle",
+    "text": "Edge gestures and sidebar panels",
+    "source": "en"
+  },
+  {
+    "name": "main_nav_home",
+    "text": "Home",
+    "source": "en"
+  },
+  {
+    "name": "main_nav_shake",
+    "text": "Shake",
+    "source": "en"
+  },
+  {
+    "name": "main_nav_notification",
+    "text": "Messages",
+    "source": "en"
+  },
+  {
+    "name": "main_nav_extension",
+    "text": "Extensions",
+    "source": "en"
+  },
+  {
+    "name": "extension_hub_subtitle",
+    "text": "Quick launcher, command panel, and more",
+    "source": "en"
+  },
+  {
+    "name": "extension_section_launch_panel",
+    "text": "Launchers & panels",
+    "source": "en"
+  },
+  {
+    "name": "extension_section_shortcuts",
+    "text": "Shortcuts & actions",
+    "source": "en"
+  },
+  {
+    "name": "extension_section_tools",
+    "text": "Tools",
+    "source": "en"
+  },
+  {
+    "name": "extension_section_maintenance",
+    "text": "Maintenance",
+    "source": "en"
+  },
+  {
+    "name": "external_invocation_entry_title",
+    "text": "External invocation",
+    "source": "en"
+  },
+  {
+    "name": "external_invocation_entry_desc",
+    "text": "Deeplinks and intent actions for Tasker and other apps",
+    "source": "en"
+  },
+  {
+    "name": "external_invocation_title",
+    "text": "External invocation",
+    "source": "en"
+  },
+  {
+    "name": "external_invocation_hint",
+    "text": "Open Cebian features from other apps via cebian:// links or intent actions. Search panel, stash, and clipboard require the sidebar and accessibility service.",
+    "source": "en"
+  },
+  {
+    "name": "external_invocation_query_hint",
+    "text": "Optional q pre-fills a search query, e.g. cebian://open/search-panel?q=weather.",
+    "source": "en"
+  },
+  {
+    "name": "external_invocation_deeplink_section",
+    "text": "Deeplinks (recommended)",
+    "source": "en"
+  },
+  {
+    "name": "external_invocation_action_section",
+    "text": "Intent actions (advanced)",
+    "source": "en"
+  },
+  {
+    "name": "external_invocation_action_hint",
+    "text": "Tap an entry to copy an adb command. Some actions require an explicit component. Shell panel is app-internal only.",
+    "source": "en"
+  },
+  {
+    "name": "external_invocation_copied",
+    "text": "Copied to clipboard",
+    "source": "en"
+  },
+  {
+    "name": "external_invocation_query_example",
+    "text": "Supports %1$s",
+    "source": "en"
+  },
+  {
+    "name": "external_invocation_action_component",
+    "text": "Component: %1$s",
+    "source": "en"
+  },
+  {
+    "name": "external_invocation_action_query_extra",
+    "text": "Optional extra: %1$s",
+    "source": "en"
+  },
+  {
+    "name": "external_invocation_entry_notification_history",
+    "text": "Notification hub",
+    "source": "en"
+  },
+  {
+    "name": "external_invocation_entry_stash",
+    "text": "Stash",
+    "source": "en"
+  },
+  {
+    "name": "external_invocation_entry_clipboard",
+    "text": "Clipboard",
+    "source": "en"
+  },
+  {
+    "name": "external_invocation_entry_search_panel",
+    "text": "Search panel",
+    "source": "en"
+  },
+  {
+    "name": "external_invocation_entry_toggle_gesture",
+    "text": "Toggle gestures",
+    "source": "en"
+  },
+  {
+    "name": "external_invocation_entry_shell_panel",
+    "text": "Shell command panel",
+    "source": "en"
+  },
+  {
+    "name": "external_invocation_entry_notification_history_desc",
+    "text": "Open notification hub",
+    "source": "en"
+  },
+  {
+    "name": "external_invocation_entry_stash_desc",
+    "text": "Open stash panel",
+    "source": "en"
+  },
+  {
+    "name": "external_invocation_entry_clipboard_desc",
+    "text": "Open clipboard panel",
+    "source": "en"
+  },
+  {
+    "name": "external_invocation_entry_search_panel_desc",
+    "text": "Open search panel",
+    "source": "en"
+  },
+  {
+    "name": "external_invocation_action_notification_history_desc",
+    "text": "Open notification hub (prefer deeplink for search prefill)",
+    "source": "en"
+  },
+  {
+    "name": "external_invocation_action_stash_desc",
+    "text": "Open stash panel",
+    "source": "en"
+  },
+  {
+    "name": "external_invocation_action_clipboard_desc",
+    "text": "Open clipboard panel",
+    "source": "en"
+  },
+  {
+    "name": "external_invocation_action_search_panel_desc",
+    "text": "Open search panel",
+    "source": "en"
+  },
+  {
+    "name": "external_invocation_action_toggle_gesture_desc",
+    "text": "Toggle edge gesture master switch",
+    "source": "en"
+  },
+  {
+    "name": "external_invocation_action_shell_panel_desc",
+    "text": "Open shell panel (not exported; app shortcuts only)",
+    "source": "en"
+  },
+  {
+    "name": "shake_gestures_title",
+    "text": "Shake Gestures",
+    "source": "en"
+  },
+  {
+    "name": "shake_gestures_subtitle",
+    "text": "Trigger actions by shaking your phone",
+    "source": "en"
+  },
+  {
+    "name": "shake_gestures_section_basic",
+    "text": "Basic shake actions",
+    "source": "en"
+  },
+  {
+    "name": "shake_gestures_section_advanced",
+    "text": "Advanced shake actions",
+    "source": "en"
+  },
+  {
+    "name": "shake_gestures_section_sensitivity",
+    "text": "Sensitivity & settings",
+    "source": "en"
+  },
+  {
+    "name": "shake_gestures_section_feedback",
+    "text": "Feedback effects",
+    "source": "en"
+  },
+  {
+    "name": "shake_gestures_section_advanced_features",
+    "text": "Advanced features",
+    "source": "en"
+  },
+  {
+    "name": "shake_gesture_left_flip",
+    "text": "Left flip",
+    "source": "en"
+  },
+  {
+    "name": "shake_gesture_right_flip",
+    "text": "Right flip",
+    "source": "en"
+  },
+  {
+    "name": "shake_gesture_forward_flip",
+    "text": "Forward flip",
+    "source": "en"
+  },
+  {
+    "name": "shake_gesture_backward_flip",
+    "text": "Backward flip",
+    "source": "en"
+  },
+  {
+    "name": "shake_gesture_left_flick",
+    "text": "Left flick",
+    "source": "en"
+  },
+  {
+    "name": "shake_gesture_right_flick",
+    "text": "Right flick",
+    "source": "en"
+  },
+  {
+    "name": "shake_gestures_lock_screen",
+    "text": "Lock & screen-on state",
+    "source": "en"
+  },
+  {
+    "name": "shake_gestures_lock_screen_desc",
+    "text": "Allow separate shake actions on lock screen; disabled when screen is off",
+    "source": "en"
+  },
+  {
+    "name": "shake_gestures_independent_app",
+    "text": "Per-app shake",
+    "source": "en"
+  },
+  {
+    "name": "shake_gestures_independent_app_desc",
+    "text": "Set exclusive shake actions for specific apps",
+    "source": "en"
+  },
+  {
+    "name": "shake_gestures_global_sensitivity",
+    "text": "Global sensitivity",
+    "source": "en"
+  },
+  {
+    "name": "shake_gestures_sensitivity_hint",
+    "text": "Higher values are easier to trigger",
+    "source": "en"
+  },
+  {
+    "name": "shake_gestures_sensitivity_easy",
+    "text": "Easier",
+    "source": "en"
+  },
+  {
+    "name": "shake_gestures_sensitivity_hard",
+    "text": "Harder",
+    "source": "en"
+  },
+  {
+    "name": "shake_gestures_independent_sensitivity",
+    "text": "Independent sensitivity",
+    "source": "en"
+  },
+  {
+    "name": "shake_gestures_independent_sensitivity_desc",
+    "text": "Set sensitivity per direction",
+    "source": "en"
+  },
+  {
+    "name": "shake_gestures_vibration_feedback",
+    "text": "Vibration",
+    "source": "en"
+  },
+  {
+    "name": "shake_gestures_animation_feedback",
+    "text": "Animation feedback",
+    "source": "en"
+  },
+  {
+    "name": "shake_gestures_animation_color",
+    "text": "Animation color",
+    "source": "en"
+  },
+  {
+    "name": "shake_gestures_disable_landscape",
+    "text": "Disable in landscape",
+    "source": "en"
+  },
+  {
+    "name": "shake_gestures_app_blacklist",
+    "text": "App blacklist",
+    "source": "en"
+  },
+  {
+    "name": "shake_gestures_app_blacklist_desc",
+    "text": "Disable shake gestures in blacklisted apps",
+    "source": "en"
+  },
+  {
+    "name": "shake_gestures_blacklist_section_blocked",
+    "text": "Blocked apps",
+    "source": "en"
+  },
+  {
+    "name": "shake_gestures_blacklist_section_add",
+    "text": "Add app",
+    "source": "en"
+  },
+  {
+    "name": "shake_gestures_blacklist_empty",
+    "text": "No blocked apps",
+    "source": "en"
+  },
+  {
+    "name": "shake_gestures_blacklist_remove",
+    "text": "Remove from blacklist",
+    "source": "en"
+  },
+  {
+    "name": "shake_gestures_lock_screen_settings_desc",
+    "text": "Use these shake actions while the lock screen is shown",
+    "source": "en"
+  },
+  {
+    "name": "shake_gestures_per_app_configured",
+    "text": "Configured apps",
+    "source": "en"
+  },
+  {
+    "name": "shake_gestures_per_app_add",
+    "text": "Add app",
+    "source": "en"
+  },
+  {
+    "name": "shake_gestures_per_app_empty",
+    "text": "No configured apps yet",
+    "source": "en"
+  },
+  {
+    "name": "shake_gestures_per_app_remove",
+    "text": "Remove config",
+    "source": "en"
+  },
+  {
+    "name": "shake_gestures_per_app_actions_title",
+    "text": "%1$s shake actions",
+    "source": "en"
+  },
+  {
+    "name": "face_down_gestures_title",
+    "text": "Face-down on table",
+    "source": "en"
+  },
+  {
+    "name": "face_down_gestures_subtitle",
+    "text": "Trigger when the phone is face-down and still while the screen is on",
+    "source": "en"
+  },
+  {
+    "name": "face_down_gestures_action",
+    "text": "Action",
+    "source": "en"
+  },
+  {
+    "name": "face_down_gestures_hold_duration",
+    "text": "Hold duration",
+    "source": "en"
+  },
+  {
+    "name": "face_down_gestures_hold_duration_value",
+    "text": "%.1f s",
+    "source": "en"
+  },
+  {
+    "name": "face_down_gestures_require_proximity",
+    "text": "Require near object",
+    "source": "en"
+  },
+  {
+    "name": "face_down_gestures_require_proximity_desc",
+    "text": "Proximity sensor must read near (ignored if unavailable)",
+    "source": "en"
+  },
+  {
+    "name": "face_down_gestures_disable_landscape",
+    "text": "Disable in landscape",
+    "source": "en"
+  },
+  {
+    "name": "face_down_gestures_vibration_feedback",
+    "text": "Vibration feedback",
+    "source": "en"
+  },
+  {
+    "name": "face_down_gestures_audio_feedback",
+    "text": "Sound feedback",
+    "source": "en"
+  },
+  {
+    "name": "face_down_gestures_audio_feedback_desc",
+    "text": "Short confirmation tone on the alarm volume stream. Actions that mute the device play feedback before executing",
+    "source": "en"
+  },
+  {
+    "name": "face_down_gestures_audio_feedback_volume",
+    "text": "Feedback volume",
+    "source": "en"
+  },
+  {
+    "name": "face_down_gestures_audio_feedback_volume_value",
+    "text": "%1$d%%",
+    "source": "en"
+  },
+  {
+    "name": "face_down_gestures_blacklist_hint",
+    "text": "Shares app blacklist with shake gestures",
+    "source": "en"
+  },
+  {
+    "name": "notification_hub_subtitle",
+    "text": "Manage notifications and verification codes",
+    "source": "en"
+  },
+  {
+    "name": "notification_hub_section_tools",
+    "text": "Tools",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_title",
+    "text": "Message reminders",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_subtitle",
+    "text": "Intercept notifications and show floating alerts",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_entry_enabled",
+    "text": "Enabled",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_entry_disabled",
+    "text": "Disabled",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_section_general",
+    "text": "General",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_section_landscape",
+    "text": "Landscape",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_section_gestures",
+    "text": "Gesture actions",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_enabled",
+    "text": "Enable message reminders",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_enabled_desc",
+    "text": "Turn on floating icon, side bubble, danmaku, and other alert styles",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_intercept_notifications",
+    "text": "Intercept system notifications",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_intercept_notifications_desc",
+    "text": "When on, hide notifications from the shade and show them via the styles below",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_open_last_on_unlock",
+    "text": "Open last message after unlock",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_open_last_on_unlock_desc",
+    "text": "When a message arrives while the screen is locked, open it automatically after unlock",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_open_last_rules",
+    "text": "Open on unlock rules",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_open_last_rules_desc",
+    "text": "Configure which reminder apps are always allowed to open",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_open_last_rules_title",
+    "text": "Open on unlock rules",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_open_last_rules_desc_page",
+    "text": "Apps not set to always allow will prompt before opening after unlock.",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_open_last_rules_always",
+    "text": "Always allow opening after unlock",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_open_last_rules_empty",
+    "text": "Select apps in Reminder apps/rules first",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_unlock_confirm_title",
+    "text": "Open message received while locked?",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_unlock_confirm_always_allow",
+    "text": "Always allow this app",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_unlock_confirm_cancel",
+    "text": "Cancel",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_unlock_confirm_open",
+    "text": "Open",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_unlock_auto_dismiss",
+    "text": "Auto-dismiss confirmation",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_unlock_auto_dismiss_desc",
+    "text": "How long to show the confirmation dialog; 0 means never auto-dismiss",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_unlock_auto_dismiss_never",
+    "text": "Never",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_danmaku_theme",
+    "text": "Danmaku theme",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_side_opacity",
+    "text": "Side bubble opacity",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_danmaku_opacity",
+    "text": "Danmaku opacity",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_auto_dismiss",
+    "text": "Auto dismiss",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_auto_dismiss_off",
+    "text": "Never",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_auto_dismiss_seconds",
+    "text": "%1$d s",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_hide_in_landscape",
+    "text": "Hide card in landscape",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_hide_in_landscape_desc",
+    "text": "Hide the card in landscape; danmaku may still show",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_portrait_danmaku",
+    "text": "Show danmaku in portrait",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_portrait_danmaku_desc",
+    "text": "Keep danmaku alerts visible in portrait",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_landscape_danmaku",
+    "text": "Show danmaku in landscape",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_landscape_danmaku_desc",
+    "text": "Keep danmaku alerts visible in landscape",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_gesture_tap",
+    "text": "Tap",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_gesture_swipe_up",
+    "text": "Swipe up",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_gesture_swipe_down",
+    "text": "Swipe down",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_gesture_swipe_left",
+    "text": "Swipe left",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_gesture_swipe_right",
+    "text": "Swipe right",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_gesture_long_press",
+    "text": "Long press",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_pick_action",
+    "text": "Select gesture action",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_permission_listener_title",
+    "text": "Notification access",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_permission_listener_desc",
+    "text": "Notification access is required to intercept notifications",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_permission_overlay_desc",
+    "text": "Overlay permission is required to display message reminders",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_enable_hint",
+    "text": "Permissions are ready. Turn on message reminders above and send a test notification.",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_section_filter",
+    "text": "Filtering",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_allowed_apps",
+    "text": "Reminder apps/rules",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_allowed_apps_subtitle",
+    "text": "Choose reminder apps and set per-app filtering rules",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_allowed_apps_title",
+    "text": "Reminder apps/rules",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_allowed_apps_desc",
+    "text": "Only show notifications from selected apps. When none are selected, all apps are allowed.",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_allowed_apps_section_configured",
+    "text": "Selected apps",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_allowed_apps_section_add",
+    "text": "Add app",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_allowed_apps_empty",
+    "text": "No reminder apps selected",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_allowed_apps_all_added",
+    "text": "All apps are already selected",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_allowed_apps_add",
+    "text": "Add",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_allowed_apps_remove",
+    "text": "Remove",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_dnd_apps",
+    "text": "Do Not Disturb apps",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_dnd_apps_subtitle",
+    "text": "Do not show reminders while using these apps",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_dnd_apps_title",
+    "text": "Do Not Disturb apps",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_dnd_apps_desc",
+    "text": "Hide message reminders while one of these apps is in the foreground.",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_dnd_apps_section_blocked",
+    "text": "Selected apps",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_dnd_apps_section_add",
+    "text": "Add app",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_dnd_apps_empty",
+    "text": "No Do Not Disturb apps selected",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_dnd_apps_all_added",
+    "text": "All apps are already selected",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_dnd_apps_add",
+    "text": "Add",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_dnd_apps_remove",
+    "text": "Remove",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_suppress_system_dnd",
+    "text": "DND suppression",
+    "source": "en"
+  },
+  {
+    "name": "message_reminder_suppress_system_dnd_desc",
+    "text": "Do not show message reminders while system Do Not Disturb is on",
+    "source": "en"
+  },
+  {
+    "name": "message_filter_mode_title",
+    "text": "Filter mode",
+    "source": "en"
+  },
+  {
+    "name": "message_filter_mode_no_filter",
+    "text": "No filter",
+    "source": "en"
+  },
+  {
+    "name": "message_filter_mode_only_matching",
+    "text": "Only matching",
+    "source": "en"
+  },
+  {
+    "name": "message_filter_mode_block_matching",
+    "text": "Block matching",
+    "source": "en"
+  },
+  {
+    "name": "message_filter_editor_subtitle",
+    "text": "Set notification filter rules for this app",
+    "source": "en"
+  },
+  {
+    "name": "message_filter_only_conditions",
+    "text": "Only-remind conditions",
+    "source": "en"
+  },
+  {
+    "name": "message_filter_block_conditions",
+    "text": "Block conditions",
+    "source": "en"
+  },
+  {
+    "name": "message_filter_conditions_empty",
+    "text": "No conditions yet; all notifications follow the selected mode",
+    "source": "en"
+  },
+  {
+    "name": "message_filter_add_condition",
+    "text": "Add condition",
+    "source": "en"
+  },
+  {
+    "name": "message_filter_remove_condition",
+    "text": "Remove condition",
+    "source": "en"
+  },
+  {
+    "name": "message_filter_condition_title",
+    "text": "Match condition",
+    "source": "en"
+  },
+  {
+    "name": "message_match_field_label",
+    "text": "Match field",
+    "source": "en"
+  },
+  {
+    "name": "message_match_type_label",
+    "text": "Match type",
+    "source": "en"
+  },
+  {
+    "name": "message_match_keyword_label",
+    "text": "Keyword",
+    "source": "en"
+  }
+]

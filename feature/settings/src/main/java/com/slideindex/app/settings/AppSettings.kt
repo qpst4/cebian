@@ -33,6 +33,8 @@ data class AppSettings(
     val privilegeMode: PrivilegeMode = PrivilegeMode.SHIZUKU,
     /** Android 14+ 侧滑返回跟手动画（需系统预测性返回可用）。 */
     val predictiveBackEnabled: Boolean = false,
+    /** 应用界面语言；空字符串表示跟随系统。 */
+    val appUiLanguageTag: String = "",
     /** 页内横移返回上一页（miuix-nav swipeDismiss）。 */
     val swipeDismissEnabled: Boolean = true,
     val accessibilityKeepAliveEnabled: Boolean = false,

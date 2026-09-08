@@ -315,15 +315,15 @@ object AppShortcutLoader {
         )
     }
 
-    fun loadInstantShortcuts(packageName: String): List<TaskSwitcherMenuItem> =
-        KnownAppShortcuts.load(packageName)
+    fun loadInstantShortcuts(context: Context, packageName: String): List<TaskSwitcherMenuItem> =
+        KnownAppShortcuts.load(context, packageName)
 
     fun loadFastShortcuts(context: Context, packageName: String): List<TaskSwitcherMenuItem> {
         val manifest = ShortcutUtils.shortcutsForPackage(context, packageName)
             .map { it.toMenuItem() }
             .filter { isLaunchable(context, it) }
         if (manifest.isNotEmpty()) return limitShortcuts(manifest, MAX_MENU_SHORTCUTS)
-        return limitShortcuts(KnownAppShortcuts.load(packageName), MAX_MENU_SHORTCUTS)
+        return limitShortcuts(KnownAppShortcuts.load(context, packageName), MAX_MENU_SHORTCUTS)
     }
 
     fun loadMenuShortcuts(context: Context, packageName: String): List<TaskSwitcherMenuItem> {
@@ -334,7 +334,7 @@ object AppShortcutLoader {
             .forEach { item ->
                 merged[item.shortcutId ?: item.label] = item
             }
-        KnownAppShortcuts.load(packageName).forEach { item ->
+        KnownAppShortcuts.load(context, packageName).forEach { item ->
             merged.putIfAbsent(item.shortcutId ?: item.label, item)
         }
         return limitShortcuts(merged.values.toList(), MAX_MENU_SHORTCUTS)

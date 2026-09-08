@@ -1,0 +1,722 @@
+[
+  {
+    "name": "float_ball_style_picker_summary",
+    "ja": "フローティングボールの見た目を選択"
+  },
+  {
+    "name": "float_ball_style_pick_image",
+    "ja": "画像を選択"
+  },
+  {
+    "name": "float_ball_style_pick_slideshow",
+    "ja": "スライドショー画像を選択"
+  },
+  {
+    "name": "float_ball_style_pick_gif",
+    "ja": "GIF を選択"
+  },
+  {
+    "name": "float_ball_style_default",
+    "ja": "デフォルト"
+  },
+  {
+    "name": "float_ball_style_animated_plane",
+    "ja": "紙飛行機"
+  },
+  {
+    "name": "float_ball_style_animated_pulse",
+    "ja": "パルスリング"
+  },
+  {
+    "name": "float_ball_style_animated_orbit",
+    "ja": "オービット"
+  },
+  {
+    "name": "float_ball_style_custom_image",
+    "ja": "カスタム画像"
+  },
+  {
+    "name": "float_ball_style_slideshow",
+    "ja": "スライドショー"
+  },
+  {
+    "name": "float_ball_style_gif",
+    "ja": "GIF"
+  },
+  {
+    "name": "float_ball_style_custom_image_hint",
+    "ja": "フローティングボール用のカスタム画像を選択"
+  },
+  {
+    "name": "float_ball_style_image_selected",
+    "ja": "カスタム画像を選択しました"
+  },
+  {
+    "name": "float_ball_style_gif_hint",
+    "ja": "フローティングボール用の GIF を選択"
+  },
+  {
+    "name": "float_ball_pick_settings_title",
+    "ja": "テキスト選択"
+  },
+  {
+    "name": "float_ball_pick_section_recognition_image",
+    "ja": "認識と画像選択"
+  },
+  {
+    "name": "float_ball_pick_section_panel",
+    "ja": "選択パネル"
+  },
+  {
+    "name": "float_ball_pick_section_operation",
+    "ja": "選択操作"
+  },
+  {
+    "name": "float_ball_pick_section_advanced",
+    "ja": "詳細選択パラメータ"
+  },
+  {
+    "name": "float_ball_appearance_settings_summary",
+    "ja": "%1$.0f dp · 不透明度 %2$d%%"
+  },
+  {
+    "name": "float_ball_pick_settings_summary",
+    "ja": "間隔 %1$.0f dp · OCR %2$s"
+  },
+  {
+    "name": "float_ball_ocr_fallback_on",
+    "ja": "オン"
+  },
+  {
+    "name": "float_ball_ocr_fallback_off",
+    "ja": "オフ"
+  },
+  {
+    "name": "float_ball_size",
+    "ja": "ボールサイズ"
+  },
+  {
+    "name": "float_ball_size_value",
+    "ja": "%1$.0f dp"
+  },
+  {
+    "name": "float_ball_pick_cross_arm",
+    "ja": "選択十字のサイズ"
+  },
+  {
+    "name": "float_ball_pick_cross_arm_value",
+    "ja": "%1$.1f dp"
+  },
+  {
+    "name": "float_ball_opacity",
+    "ja": "不透明度"
+  },
+  {
+    "name": "float_ball_pointer_speed",
+    "ja": "プラス水平速度"
+  },
+  {
+    "name": "float_ball_pointer_speed_vertical",
+    "ja": "プラス垂直速度"
+  },
+  {
+    "name": "float_ball_pick_offset",
+    "ja": "プラス間隔"
+  },
+  {
+    "name": "float_ball_pick_text_size",
+    "ja": "選択テキストサイズ"
+  },
+  {
+    "name": "float_ball_text_size_value",
+    "ja": "%1$.0f sp"
+  },
+  {
+    "name": "float_ball_pick_bottom_transition",
+    "ja": "下部遷移ゾーン"
+  },
+  {
+    "name": "float_ball_pick_text_first_panel",
+    "ja": "テキスト優先選択パネル"
+  },
+  {
+    "name": "float_ball_pick_text_first_panel_desc",
+    "ja": "デフォルトでテキストと検索エンジンを表示します。画像セクションは「画像」行をタップするまで折りたたまれます"
+  },
+  {
+    "name": "float_ball_pick_panel_enter_animation",
+    "ja": "選択パネル表示アニメーション"
+  },
+  {
+    "name": "float_ball_pick_panel_exit_animation",
+    "ja": "選択パネル非表示アニメーション"
+  },
+  {
+    "name": "float_ball_pick_panel_animation_ms_value",
+    "ja": "%1$d ms"
+  },
+  {
+    "name": "float_ball_pointer_slop",
+    "ja": "全画面ポインター閾値"
+  },
+  {
+    "name": "float_ball_hover_pause_delay",
+    "ja": "ホバー一時停止遅延"
+  },
+  {
+    "name": "float_ball_regional_cancel_slop",
+    "ja": "スクリーンショットキャンセル閾値"
+  },
+  {
+    "name": "float_ball_text_copied",
+    "ja": "テキストをクリップボードにコピーしました"
+  },
+  {
+    "name": "float_ball_image_copied",
+    "ja": "画像をクリップボードにコピーしました"
+  },
+  {
+    "name": "share_image_ocr_target_label",
+    "ja": "Cebian OCR 選択"
+  },
+  {
+    "name": "share_image_ocr_service_required",
+    "ja": "先に Cebian アクセシビリティサービスを有効にしてください"
+  },
+  {
+    "name": "share_image_ocr_model_required",
+    "ja": "先にフローティングボール設定で OCR モデルをダウンロードして選択してください"
+  },
+  {
+    "name": "share_image_ocr_image_load_failed",
+    "ja": "共有された画像を読み取れませんでした"
+  },
+  {
+    "name": "share_image_ocr_background_action",
+    "ja": "バックグラウンドで実行"
+  },
+  {
+    "name": "share_image_ocr_background_started",
+    "ja": "バックグラウンドで認識中です。完了すると結果がポップアップ表示されます"
+  },
+  {
+    "name": "share_image_ocr_background_complete",
+    "ja": "認識完了"
+  },
+  {
+    "name": "share_image_ocr_saved_to_history",
+    "ja": "結果を長画像履歴に保存しました"
+  },
+  {
+    "name": "share_image_ocr_history_enabled",
+    "ja": "長画像 OCR 履歴を保存"
+  },
+  {
+    "name": "share_image_ocr_history_enabled_desc",
+    "ja": "共有された長画像 OCR 結果を自動保存します。パネルを閉じても再表示できます"
+  },
+  {
+    "name": "share_image_ocr_history_title",
+    "ja": "長画像 OCR 履歴"
+  },
+  {
+    "name": "share_image_ocr_history_entry_desc_empty",
+    "ja": "履歴はまだありません"
+  },
+  {
+    "name": "share_image_ocr_history_empty",
+    "ja": "長画像 OCR 履歴はまだありません"
+  },
+  {
+    "name": "share_image_ocr_history_clear",
+    "ja": "履歴を消去"
+  },
+  {
+    "name": "float_ball_text_not_found",
+    "ja": "テキストが認識されませんでした"
+  },
+  {
+    "name": "pick_from_history_empty",
+    "ja": "選択パネルで開く項目がありません"
+  },
+  {
+    "name": "float_ball_ocr_fallback",
+    "ja": "OCR フォールバック"
+  },
+  {
+    "name": "float_ball_ocr_fallback_desc",
+    "ja": "アクセシビリティ選択が失敗した場合、スクリーンショットにローカル OCR モデルを使用します"
+  },
+  {
+    "name": "float_ball_ocr_models",
+    "ja": "OCR モデル管理"
+  },
+  {
+    "name": "ocr_models_title",
+    "ja": "OCR モデル"
+  },
+  {
+    "name": "ocr_models_subtitle",
+    "ja": "オフライン OCR エンジンとクラウド Vision モデルを管理"
+  },
+  {
+    "name": "ocr_tab_local",
+    "ja": "ローカル（オフライン）"
+  },
+  {
+    "name": "ocr_tab_cloud",
+    "ja": "クラウド（VLM）"
+  },
+  {
+    "name": "ocr_models_section_available",
+    "ja": "利用可能なモデル"
+  },
+  {
+    "name": "ocr_models_section_cloud",
+    "ja": "Vision-Language モデル"
+  },
+  {
+    "name": "ocr_models_clear_selection",
+    "ja": "現在の選択を解除"
+  },
+  {
+    "name": "ocr_models_hint",
+    "ja": "オフラインモデルはネットワークなしでデバイス上で動作します。必要に応じてダウンロードしてください。ML Kit Chinese は Play サービスを使用します。"
+  },
+  {
+    "name": "ocr_models_cloud_hint",
+    "ja": "クラウド VLM は API 経由で複雑な数式、手書きレイアウト、表を認識します。簡単に切り替えたりカスタムモデルを追加できます。"
+  },
+  {
+    "name": "ocr_download_step_engine",
+    "ja": "OCR エンジンをダウンロード中（%1$d/%2$d）…"
+  },
+  {
+    "name": "ocr_download_step_model",
+    "ja": "モデルをダウンロード中（%1$d/%2$d）…"
+  },
+  {
+    "name": "translate_download_step_engine",
+    "ja": "翻訳エンジンをダウンロード中（%1$d/%2$d）…"
+  },
+  {
+    "name": "translate_download_step_language",
+    "ja": "言語パックをダウンロード中（%1$d/%2$d）…"
+  },
+  {
+    "name": "segmentation_engine_preparing",
+    "ja": "分かち書きエンジンを準備中…"
+  },
+  {
+    "name": "native_engine_status_manage",
+    "ja": "管理"
+  },
+  {
+    "name": "about_advanced_section_title",
+    "ja": "詳細設定"
+  },
+  {
+    "name": "about_section_app_info",
+    "ja": "アプリ情報"
+  },
+  {
+    "name": "about_section_open_source",
+    "ja": "オープンソースとライセンス"
+  },
+  {
+    "name": "about_section_community",
+    "ja": "コミュニティ"
+  },
+  {
+    "name": "about_release_notes_subtitle",
+    "ja": "GitHub でリリース履歴を表示"
+  },
+  {
+    "name": "about_version_format",
+    "ja": "v%1$s (%2$d)"
+  },
+  {
+    "name": "about_copyright_notice",
+    "ja": "© %1$d qpst4. GNU AGPL v3.0 の下でライセンスされています。"
+  },
+  {
+    "name": "about_native_engine_packs_entry_desc",
+    "ja": "ランタイムエンジンパックのインストール、削除、再インストール"
+  },
+  {
+    "name": "diagnostic_report_entry_title",
+    "ja": "診断とログ"
+  },
+  {
+    "name": "diagnostic_report_entry_subtitle",
+    "ja": "Shizuku ライブ Logcat、クラッシュ履歴、診断エクスポート"
+  },
+  {
+    "name": "diagnostic_log_title",
+    "ja": "診断とログ"
+  },
+  {
+    "name": "diagnostic_log_subtitle",
+    "ja": "このアプリ UID のライブ Logcat（Shizuku + READ_LOGS が必要）"
+  },
+  {
+    "name": "diagnostic_log_tab_runtime",
+    "ja": "ランタイム"
+  },
+  {
+    "name": "diagnostic_log_tab_crashes",
+    "ja": "クラッシュ"
+  },
+  {
+    "name": "diagnostic_log_waiting",
+    "ja": "ログを待機中…"
+  },
+  {
+    "name": "diagnostic_log_connecting",
+    "ja": "Logcat に接続中…"
+  },
+  {
+    "name": "diagnostic_log_stream_error",
+    "ja": "Logcat ストリームが終了しました。戻って再試行してください。"
+  },
+  {
+    "name": "diagnostic_log_permission_required",
+    "ja": "Shizuku と READ_LOGS が必要です"
+  },
+  {
+    "name": "diagnostic_log_permission_title",
+    "ja": "特権ログアクセスが必要です"
+  },
+  {
+    "name": "diagnostic_log_permission_desc",
+    "ja": "ランタイムログは Shizuku 経由で特権プロセスから読み取られます。先に Shizuku を許可し、次に Shizuku 経由で READ_LOGS を許可してください。"
+  },
+  {
+    "name": "diagnostic_log_grant_shizuku",
+    "ja": "Shizuku を許可"
+  },
+  {
+    "name": "diagnostic_log_grant_read_logs",
+    "ja": "ログ読み取りを許可"
+  },
+  {
+    "name": "diagnostic_log_clear",
+    "ja": "消去"
+  },
+  {
+    "name": "diagnostic_log_share",
+    "ja": "診断レポートを共有"
+  },
+  {
+    "name": "diagnostic_log_copy",
+    "ja": "コピー"
+  },
+  {
+    "name": "diagnostic_log_crash_empty",
+    "ja": "（空のファイル）"
+  },
+  {
+    "name": "diagnostic_log_crash_empty_list",
+    "ja": "クラッシュレポートはまだありません"
+  },
+  {
+    "name": "diagnostic_log_clear_runtime_title",
+    "ja": "ランタイムログを消去しますか？"
+  },
+  {
+    "name": "diagnostic_log_clear_runtime_message",
+    "ja": "画面上のバッファのみを消去し、Logcat ソースは消去しません。"
+  },
+  {
+    "name": "diagnostic_log_clear_crash_title",
+    "ja": "クラッシュ履歴を消去しますか？"
+  },
+  {
+    "name": "diagnostic_log_clear_crash_message",
+    "ja": "このデバイス上の保存済みクラッシュレポートファイルをすべて削除します。元に戻せません。"
+  },
+  {
+    "name": "diagnostic_report_shared",
+    "ja": "共有シートを開きました"
+  },
+  {
+    "name": "diagnostic_report_copied",
+    "ja": "診断レポートをクリップボードにコピーしました"
+  },
+  {
+    "name": "diagnostic_report_copied_truncated",
+    "ja": "共有できません。切り詰めたコピーをクリップボードに保存しました"
+  },
+  {
+    "name": "diagnostic_report_shared_fallback",
+    "ja": "レポートが大きすぎてクリップボードに入りません。完全なファイルをエクスポートする共有を開きました"
+  },
+  {
+    "name": "diagnostic_report_export_failed",
+    "ja": "診断レポートのエクスポートに失敗しました。再試行してください。"
+  },
+  {
+    "name": "diagnostic_report_share_chooser_title",
+    "ja": "診断ログを共有"
+  },
+  {
+    "name": "diagnostic_report_share_subject",
+    "ja": "Cebian 診断ログ"
+  },
+  {
+    "name": "diagnostic_report_truncation_suffix",
+    "ja": "\\n\\n...(truncated)..."
+  },
+  {
+    "name": "native_engine_packs_title",
+    "ja": "ランタイムエンジン"
+  },
+  {
+    "name": "native_engine_packs_subtitle",
+    "ja": "OCR、オフライン翻訳、分かち書き用ネイティブライブラリ"
+  },
+  {
+    "name": "native_engine_packs_section",
+    "ja": "エンジンパック"
+  },
+  {
+    "name": "native_engine_packs_hint",
+    "ja": "ランタイムエンジンは APK に同梱されています。このページはローカルダウンロードキャッシュの消去のみ（同梱ライブラリは削除されません）。"
+  },
+  {
+    "name": "native_engine_pack_ocr",
+    "ja": "OCR エンジン"
+  },
+  {
+    "name": "native_engine_pack_translate",
+    "ja": "オフライン翻訳エンジン"
+  },
+  {
+    "name": "native_engine_pack_segmentation",
+    "ja": "分かち書きエンジン"
+  },
+  {
+    "name": "native_engine_pack_size",
+    "ja": "約 %1$s"
+  },
+  {
+    "name": "native_engine_pack_installed_version",
+    "ja": "インストール済み · %1$s"
+  },
+  {
+    "name": "native_engine_pack_latest_version",
+    "ja": "最新 · %1$s"
+  },
+  {
+    "name": "native_engine_pack_update_available",
+    "ja": "現在 %1$s、%2$s に更新"
+  },
+  {
+    "name": "native_engine_pack_download",
+    "ja": "ダウンロード"
+  },
+  {
+    "name": "native_engine_pack_delete",
+    "ja": "削除"
+  },
+  {
+    "name": "native_engine_download_channel",
+    "ja": "ランタイムエンジンのダウンロード"
+  },
+  {
+    "name": "native_engine_download_title",
+    "ja": "ランタイムエンジンをダウンロード中"
+  },
+  {
+    "name": "native_engine_download_starting",
+    "ja": "準備中…"
+  },
+  {
+    "name": "native_engine_download_progress",
+    "ja": "エンジンパックをダウンロード中…"
+  },
+  {
+    "name": "native_engine_download_verifying",
+    "ja": "検証中…"
+  },
+  {
+    "name": "native_engine_download_extracting",
+    "ja": "展開中…"
+  },
+  {
+    "name": "native_engine_download_done",
+    "ja": "ダウンロード完了"
+  },
+  {
+    "name": "native_engine_download_failed",
+    "ja": "ダウンロード失敗"
+  },
+  {
+    "name": "native_engine_download_cancelled",
+    "ja": "キャンセルしました"
+  },
+  {
+    "name": "extension_native_engine_packs_entry_title",
+    "ja": "ランタイムエンジン"
+  },
+  {
+    "name": "extension_native_engine_packs_entry_desc",
+    "ja": "OCR / オフライン翻訳 / 分かち書きネイティブ"
+  },
+  {
+    "name": "ocr_engine_migration_success_title",
+    "ja": "OCR エンジンを更新しました"
+  },
+  {
+    "name": "ocr_engine_migration_success_message",
+    "ja": "このバージョンに合わせて OCR ランタイムエンジンを %1$s にアップグレードしました。認識に失敗した場合は、ランタイムエンジンから再インストールしてください。"
+  },
+  {
+    "name": "ocr_engine_migration_download_title",
+    "ja": "OCR エンジンの更新が必要です"
+  },
+  {
+    "name": "ocr_engine_migration_download_message",
+    "ja": "このアプリバージョンには OCR 用の %1$s エンジンパックが必要です。ランタイムエンジンを開いてダウンロード・インストールしてください。"
+  },
+  {
+    "name": "ocr_engine_migration_acknowledge",
+    "ja": "ダウンロード"
+  },
+  {
+    "name": "ocr_engine_migration_later",
+    "ja": "後で"
+  },
+  {
+    "name": "ocr_engine_migration_download_action",
+    "ja": "ダウンロード"
+  },
+  {
+    "name": "ocr_engine_migration_version_fallback",
+    "ja": "最新バージョン"
+  },
+  {
+    "name": "ocr_download_wifi_only",
+    "ja": "Wi-Fi のみでダウンロード"
+  },
+  {
+    "name": "ocr_download_wifi_only_desc",
+    "ja": "モバイルデータではダウンロードを開始しません"
+  },
+  {
+    "name": "ocr_model_ppocrv6_tiny",
+    "ja": "PP-OCRv6 Tiny"
+  },
+  {
+    "name": "ocr_model_ppocrv6_tiny_desc",
+    "ja": "最小サイズ、低スペック端末向け"
+  },
+  {
+    "name": "ocr_model_ppocrv6_small",
+    "ja": "PP-OCRv6 Small"
+  },
+  {
+    "name": "ocr_model_ppocrv6_small_desc",
+    "ja": "速度と精度のバランス（推奨）"
+  },
+  {
+    "name": "ocr_model_ppocrv6_medium",
+    "ja": "PP-OCRv6 Medium"
+  },
+  {
+    "name": "ocr_model_ppocrv6_medium_desc",
+    "ja": "高精度、サイズ大、速度遅め"
+  },
+  {
+    "name": "ocr_model_mlkit_chinese",
+    "ja": "ML Kit Chinese"
+  },
+  {
+    "name": "ocr_model_mlkit_chinese_desc",
+    "ja": "Google Play 中国語認識。オンラインダウンロードが必要"
+  },
+  {
+    "name": "ocr_model_tesseract_chi_sim_eng",
+    "ja": "Tesseract 中国語・英語"
+  },
+  {
+    "name": "ocr_model_tesseract_chi_sim_eng_desc",
+    "ja": "中国語・英語のオフライン OCR"
+  },
+  {
+    "name": "ocr_model_meta",
+    "ja": "約 %1$s · %2$s"
+  },
+  {
+    "name": "ocr_model_status_selected",
+    "ja": "選択中"
+  },
+  {
+    "name": "ocr_model_status_installed",
+    "ja": "インストール済み"
+  },
+  {
+    "name": "ocr_model_status_downloading",
+    "ja": "ダウンロード中"
+  },
+  {
+    "name": "ocr_model_status_not_installed",
+    "ja": "未インストール"
+  },
+  {
+    "name": "ocr_model_download",
+    "ja": "ダウンロード"
+  },
+  {
+    "name": "ocr_model_delete",
+    "ja": "削除"
+  },
+  {
+    "name": "ocr_download_progress_bytes",
+    "ja": "%1$s をダウンロード中… %2$s / %3$s"
+  },
+  {
+    "name": "ocr_download_progress_indeterminate",
+    "ja": "%1$s をダウンロード中… %2$s ダウンロード済み"
+  },
+  {
+    "name": "ocr_download_verifying",
+    "ja": "%1$s を検証中…"
+  },
+  {
+    "name": "ocr_download_finalizing",
+    "ja": "%1$s をインストール中…"
+  },
+  {
+    "name": "ocr_download_failed",
+    "ja": "ダウンロード失敗: %1$s"
+  },
+  {
+    "name": "ocr_download_cancelled",
+    "ja": "ダウンロードをキャンセルしました"
+  },
+  {
+    "name": "ocr_download_ready",
+    "ja": "%1$s をインストールしました"
+  },
+  {
+    "name": "ocr_download_notification_channel",
+    "ja": "OCR モデルのダウンロード"
+  },
+  {
+    "name": "ocr_download_notification_title",
+    "ja": "OCR モデルのダウンロード"
+  },
+  {
+    "name": "ocr_download_notification_starting",
+    "ja": "ダウンロードを準備中…"
+  },
+  {
+    "name": "ocr_download_notification_progress",
+    "ja": "ダウンロード中… %1$s / %2$s"
+  },
+  {
+    "name": "ocr_download_notification_progress_indeterminate",
+    "ja": "ダウンロード中… %1$s ダウンロード済み"
+  }
+]

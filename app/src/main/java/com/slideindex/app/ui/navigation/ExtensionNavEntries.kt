@@ -452,7 +452,7 @@ fun NavEntryBuilder.extensionNavEntries(ctx: MainNavContext) {
             onBack = { ctx.backStack.removeLastOrNull() },
             onConfirm = { keyEventAction ->
                 val label = keyEventAction.keyName.ifBlank {
-                    com.slideindex.app.gesture.KeyEventPresets.getDisplayName(keyEventAction.keyCode)
+                    com.slideindex.app.gesture.KeyEventPresets.getDisplayName(ctx.activity, keyEventAction.keyCode)
                 }
                 val item = QuickLauncherItem.action(
                     keyEventAction,
@@ -650,7 +650,7 @@ fun NavEntryBuilder.extensionNavEntries(ctx: MainNavContext) {
             onBack = { ctx.navigateBackTo(AppNavKey.HoneycombLauncherAdd) },
             onConfirm = { keyEventAction ->
                 val label = keyEventAction.keyName.ifBlank {
-                    com.slideindex.app.gesture.KeyEventPresets.getDisplayName(keyEventAction.keyCode)
+                    com.slideindex.app.gesture.KeyEventPresets.getDisplayName(ctx.activity, keyEventAction.keyCode)
                 }
                 viewModel.addHoneycombItem(
                     QuickLauncherItem.action(

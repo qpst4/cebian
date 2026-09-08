@@ -1,9 +1,12 @@
 package com.slideindex.app.util
 
 import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import androidx.annotation.StringRes
 import androidx.core.net.toUri
+import com.slideindex.app.R
 import com.slideindex.app.overlay.TaskSwitcherMenuItem
 import com.slideindex.app.overlay.TaskSwitcherMenuItemType
 
@@ -19,6 +22,12 @@ internal object KnownAppShortcuts {
 
     private val supportedPackages = setOf(WECHAT, QQ, TIM, ALIPAY)
 
+    private data class ShortcutDef(
+        val id: String,
+        @StringRes val labelRes: Int,
+        val intent: Intent,
+    )
+
     fun supports(packageName: String): Boolean = packageName in supportedPackages
 
     fun packageForIntentUri(intentUri: String): String? {
@@ -26,10 +35,8 @@ internal object KnownAppShortcuts {
             Intent.parseUri(intentUri, Intent.URI_INTENT_SCHEME)
         }.getOrNull() ?: return null
         supportedPackages.forEach { packageName ->
-            load(packageName).forEach { item ->
-                item.shortcutIntent?.let { shortcutIntent ->
-                    if (intentsMatchForIcon(target, shortcutIntent)) return packageName
-                }
+            definitionsForPackage(packageName).forEach { def ->
+                if (intentsMatchForIcon(target, def.intent)) return packageName
             }
         }
         return null
@@ -52,38 +59,46 @@ internal object KnownAppShortcuts {
         return left.toString() == right.toString()
     }
 
-    fun load(packageName: String): List<TaskSwitcherMenuItem> {
-        return when (packageName) {
-            WECHAT -> weChatShortcuts()
-            QQ, TIM -> qqShortcuts(packageName)
-            ALIPAY -> alipayShortcuts()
-            else -> emptyList()
+    fun load(context: Context, packageName: String): List<TaskSwitcherMenuItem> =
+        definitionsForPackage(packageName).map { def ->
+            TaskSwitcherMenuItem(
+                label = context.getString(def.labelRes),
+                type = TaskSwitcherMenuItemType.SHORTCUT,
+                shortcutId = def.id,
+                shortcutIntent = def.intent,
+            )
         }
+
+    private fun definitionsForPackage(packageName: String): List<ShortcutDef> = when (packageName) {
+        WECHAT -> weChatDefinitions()
+        QQ, TIM -> qqDefinitions(packageName)
+        ALIPAY -> alipayDefinitions()
+        else -> emptyList()
     }
 
-    private fun weChatShortcuts(): List<TaskSwitcherMenuItem> {
+    private fun weChatDefinitions(): List<ShortcutDef> {
         val flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         return listOf(
-            item(
+            ShortcutDef(
                 id = "wechat_scan",
-                label = "扫一扫",
+                labelRes = R.string.shortcut_scan,
                 intent = Intent(Intent.ACTION_VIEW).apply {
                     component = ComponentName(WECHAT, "com.tencent.mm.ui.LauncherUI")
                     putExtra("LauncherUI.From.Scaner.Shortcut", true)
                     this.flags = flags
                 },
             ),
-            item(
+            ShortcutDef(
                 id = "wechat_my_qrcode",
-                label = "我的二维码",
+                labelRes = R.string.shortcut_my_qr,
                 intent = Intent(Intent.ACTION_VIEW, "weixin://dl/myQRcode".toUri()).apply {
                     setPackage(WECHAT)
                     this.flags = Intent.FLAG_ACTIVITY_NEW_TASK
                 },
             ),
-            item(
+            ShortcutDef(
                 id = "wechat_pay",
-                label = "收付款",
+                labelRes = R.string.shortcut_receive_pay,
                 intent = Intent(Intent.ACTION_VIEW).apply {
                     component = ComponentName(WECHAT, "com.tencent.mm.plugin.offline.ui.WalletOfflineCoinPurseUI")
                     this.flags = Intent.FLAG_ACTIVITY_NEW_TASK
@@ -92,12 +107,12 @@ internal object KnownAppShortcuts {
         )
     }
 
-    private fun qqShortcuts(packageName: String): List<TaskSwitcherMenuItem> {
+    private fun qqDefinitions(packageName: String): List<ShortcutDef> {
         val flags = Intent.FLAG_ACTIVITY_NEW_TASK
         return listOf(
-            item(
+            ShortcutDef(
                 id = "qq_scan",
-                label = "扫一扫",
+                labelRes = R.string.shortcut_scan,
                 intent = Intent(
                     Intent.ACTION_VIEW,
                     "mqqapi://qrcode/scan_qrcode?version=1&src_type=app".toUri(),
@@ -106,9 +121,9 @@ internal object KnownAppShortcuts {
                     this.flags = flags
                 },
             ),
-            item(
+            ShortcutDef(
                 id = "qq_my_qrcode",
-                label = "我的二维码",
+                labelRes = R.string.shortcut_my_qr,
                 intent = Intent(
                     Intent.ACTION_VIEW,
                     "mqqapi://qrcode/showcard?version=1&src_type=internal".toUri(),
@@ -117,9 +132,9 @@ internal object KnownAppShortcuts {
                     this.flags = flags
                 },
             ),
-            item(
+            ShortcutDef(
                 id = "qq_pay",
-                label = "收付款",
+                labelRes = R.string.shortcut_receive_pay,
                 intent = Intent(
                     Intent.ACTION_VIEW,
                     "mqqapi://wallet/pay?version=1&src_type=app".toUri(),
@@ -131,28 +146,19 @@ internal object KnownAppShortcuts {
         )
     }
 
-    private fun alipayShortcuts(): List<TaskSwitcherMenuItem> {
+    private fun alipayDefinitions(): List<ShortcutDef> {
         val flags = Intent.FLAG_ACTIVITY_NEW_TASK
         return listOf(
-            item("alipay_cainiao", "菜鸟", viewUri("alipays://platformapi/startapp?saId=2021001141626787", flags)),
-            item("alipay_forest", "蚂蚁森林", viewUri("alipays://platformapi/startapp?appId=60000002", flags)),
-            item("alipay_receive", "收款码", viewUri("alipayqr://platformapi/startapp?saId=20000123", flags)),
-            item("alipay_pay", "付款码", viewUri("alipayqr://platformapi/startapp?saId=20000056", flags)),
-            item("alipay_bus", "乘车码", viewUri("alipayqr://platformapi/startapp?saId=200011235", flags)),
-            item("alipay_scan", "扫一扫", viewUri("alipayqr://platformapi/startapp?saId=10000007", flags)),
+            ShortcutDef("alipay_cainiao", R.string.shortcut_cainiao, viewUri("alipays://platformapi/startapp?saId=2021001141626787", flags)),
+            ShortcutDef("alipay_forest", R.string.shortcut_ant_forest, viewUri("alipays://platformapi/startapp?appId=60000002", flags)),
+            ShortcutDef("alipay_receive", R.string.shortcut_receive_code, viewUri("alipayqr://platformapi/startapp?saId=20000123", flags)),
+            ShortcutDef("alipay_pay", R.string.shortcut_pay_code, viewUri("alipayqr://platformapi/startapp?saId=20000056", flags)),
+            ShortcutDef("alipay_bus", R.string.shortcut_bus_code, viewUri("alipayqr://platformapi/startapp?saId=200011235", flags)),
+            ShortcutDef("alipay_scan", R.string.shortcut_scan, viewUri("alipayqr://platformapi/startapp?saId=10000007", flags)),
         )
     }
 
     private fun viewUri(uri: String, flags: Int): Intent {
         return Intent(Intent.ACTION_VIEW, uri.toUri()).apply { this.flags = flags }
-    }
-
-    private fun item(id: String, label: String, intent: Intent): TaskSwitcherMenuItem {
-        return TaskSwitcherMenuItem(
-            label = label,
-            type = TaskSwitcherMenuItemType.SHORTCUT,
-            shortcutId = id,
-            shortcutIntent = intent,
-        )
     }
 }

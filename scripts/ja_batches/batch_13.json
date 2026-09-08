@@ -1,0 +1,902 @@
+[
+  {
+    "name": "floating_pointer_design_crosshair_2",
+    "text": "Crosshair 2",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_design_crosshair_3",
+    "text": "Crosshair 3",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_design_crosshair_4",
+    "text": "Crosshair 4",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_design_crosshair_5",
+    "text": "Crosshair 5",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_design_crosshair_6",
+    "text": "Crosshair 6",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_design_crosshair_7",
+    "text": "Crosshair 7",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_design_crosshair_8",
+    "text": "Crosshair 8",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_ripple_size",
+    "text": "Ripple size",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_ripple_size_value",
+    "text": "%1$.0f dp",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_ripple_duration",
+    "text": "Ripple duration",
+    "source": "en"
+  },
+  {
+    "name": "floating_pointer_ripple_duration_value",
+    "text": "%1$d ms",
+    "source": "en"
+  },
+  {
+    "name": "widget_panel_blur",
+    "text": "Background blur",
+    "source": "en"
+  },
+  {
+    "name": "widget_panel_blur_desc",
+    "text": "Frosted glass behind the panel on Android 12+",
+    "source": "en"
+  },
+  {
+    "name": "widget_panel_grid_section",
+    "text": "Widget layout",
+    "source": "en"
+  },
+  {
+    "name": "widget_panel_opacity",
+    "text": "Panel opacity",
+    "source": "en"
+  },
+  {
+    "name": "widget_panel_add_widget",
+    "text": "Add widget",
+    "source": "en"
+  },
+  {
+    "name": "widget_panel_page_indicator",
+    "text": "Page %1$d / %2$d",
+    "source": "en"
+  },
+  {
+    "name": "widget_picker_title",
+    "text": "Choose widget",
+    "source": "en"
+  },
+  {
+    "name": "widget_picker_search_hint",
+    "text": "Search widgets…",
+    "source": "en"
+  },
+  {
+    "name": "widget_picker_span_size",
+    "text": "%1$d 脳 %2$d",
+    "source": "en"
+  },
+  {
+    "name": "widget_picker_open_app_widgets",
+    "text": "View all widgets",
+    "source": "en"
+  },
+  {
+    "name": "widget_panel_edit_mode",
+    "text": "Edit mode",
+    "source": "en"
+  },
+  {
+    "name": "widget_panel_exit_edit",
+    "text": "Exit edit",
+    "source": "en"
+  },
+  {
+    "name": "widget_panel_edit_hint",
+    "text": "Long-press empty space to edit",
+    "source": "en"
+  },
+  {
+    "name": "widget_loading",
+    "text": "Loading…",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_entry_title",
+    "text": "Shell command panel",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_entry_desc",
+    "text": "Save common shell commands for one-tap run",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_entry_desc_count",
+    "text": "Saved commands: %1$d",
+    "source": "en"
+  },
+  {
+    "name": "activity_shortcut_entry_title",
+    "text": "In-app shortcuts",
+    "source": "en"
+  },
+  {
+    "name": "activity_shortcut_entry_desc",
+    "text": "In-app pages and app shortcuts (e.g. WeChat coupons/scanner); custom icons supported",
+    "source": "en"
+  },
+  {
+    "name": "activity_shortcut_entry_desc_count",
+    "text": "Saved shortcuts: %1$d",
+    "source": "en"
+  },
+  {
+    "name": "activity_shortcut_title",
+    "text": "In-app shortcuts",
+    "source": "en"
+  },
+  {
+    "name": "activity_shortcut_hint",
+    "text": "Items here can be bound to gestures and launchers. Tap to open. Catalogued shortcuts show native/custom icons. Non-exported activities require Shizuku.",
+    "source": "en"
+  },
+  {
+    "name": "activity_shortcut_presets_title",
+    "text": "Recommended",
+    "source": "en"
+  },
+  {
+    "name": "activity_shortcut_presets_desc",
+    "text": "Try before adding. Added items appear under My shortcuts and can be bound to gestures.",
+    "source": "en"
+  },
+  {
+    "name": "activity_shortcut_mine_title",
+    "text": "My shortcuts",
+    "source": "en"
+  },
+  {
+    "name": "activity_shortcut_empty",
+    "text": "No shortcuts yet",
+    "source": "en"
+  },
+  {
+    "name": "activity_shortcut_add_from_presets",
+    "text": "Add from recommendations",
+    "source": "en"
+  },
+  {
+    "name": "activity_shortcut_add_from_presets_sub",
+    "text": "WeChat and other common pages",
+    "source": "en"
+  },
+  {
+    "name": "activity_shortcut_browse_custom",
+    "text": "Browse activities",
+    "source": "en"
+  },
+  {
+    "name": "activity_shortcut_browse_custom_sub",
+    "text": "Pick any in-app page",
+    "source": "en"
+  },
+  {
+    "name": "activity_shortcut_add_from_shortcuts",
+    "text": "Add app shortcut",
+    "source": "en"
+  },
+  {
+    "name": "activity_shortcut_add_from_shortcuts_sub",
+    "text": "Add from system/app shortcuts",
+    "source": "en"
+  },
+  {
+    "name": "activity_shortcut_add_from_shell",
+    "text": "Add from shell command",
+    "source": "en"
+  },
+  {
+    "name": "activity_shortcut_add_from_shell_sub",
+    "text": "Pick a saved command from the shell panel",
+    "source": "en"
+  },
+  {
+    "name": "activity_shortcut_pick_app_shortcut_title",
+    "text": "Choose shortcut",
+    "source": "en"
+  },
+  {
+    "name": "activity_shortcut_change_icon",
+    "text": "Change icon",
+    "source": "en"
+  },
+  {
+    "name": "activity_shortcut_reset_icon",
+    "text": "Reset icon",
+    "source": "en"
+  },
+  {
+    "name": "activity_shortcut_add",
+    "text": "Add shortcut",
+    "source": "en"
+  },
+  {
+    "name": "activity_shortcut_pick_app_title",
+    "text": "Choose app",
+    "source": "en"
+  },
+  {
+    "name": "activity_shortcut_preset_add",
+    "text": "Add",
+    "source": "en"
+  },
+  {
+    "name": "activity_shortcut_preset_added",
+    "text": "Added",
+    "source": "en"
+  },
+  {
+    "name": "activity_shortcut_not_exported",
+    "text": "Shizuku required",
+    "source": "en"
+  },
+  {
+    "name": "activity_shortcut_delete_title",
+    "text": "Delete shortcut",
+    "source": "en"
+  },
+  {
+    "name": "activity_shortcut_delete_message",
+    "text": "Delete \\\"%1$s\\\"?",
+    "source": "en"
+  },
+  {
+    "name": "activity_shortcut_rename",
+    "text": "Rename",
+    "source": "en"
+  },
+  {
+    "name": "activity_shortcut_rename_title",
+    "text": "Rename shortcut",
+    "source": "en"
+  },
+  {
+    "name": "activity_shortcut_name_hint",
+    "text": "Display name",
+    "source": "en"
+  },
+  {
+    "name": "activity_shortcut_shizuku_required",
+    "text": "This activity is not exported. Shizuku is required.",
+    "source": "en"
+  },
+  {
+    "name": "activity_shortcut_picker_section",
+    "text": "My shortcuts",
+    "source": "en"
+  },
+  {
+    "name": "activity_shortcut_browse",
+    "text": "Browse activities…",
+    "source": "en"
+  },
+  {
+    "name": "activity_shortcut_browse_hint",
+    "text": "Pick any activity inside an app",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_shizuku_label",
+    "text": "Shizuku",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_shizuku_active",
+    "text": "Active",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_shizuku_inactive",
+    "text": "Not authorized",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_shizuku_active_desc",
+    "text": "Ready to run shell commands",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_shizuku_inactive_desc",
+    "text": "Authorize Shizuku to run commands",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_root_label",
+    "text": "Root",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_root_active",
+    "text": "Granted",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_root_inactive",
+    "text": "No root access",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_root_active_desc",
+    "text": "Ready to run shell commands",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_root_inactive_desc",
+    "text": "Grant su access to this app in Magisk or similar",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_commands_section",
+    "text": "Shortcuts",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_commands_section_count",
+    "text": "Shortcuts · %1$d",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_restart_success",
+    "text": "Shell service restarted (build=%1$d)",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_restart_outdated",
+    "text": "Shell service outdated (api=%1$d). Update in Shizuku",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_restart_failed",
+    "text": "Failed to restart shell service. Check Shizuku",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_history_action",
+    "text": "Output history",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_empty_hint",
+    "text": "Tap + at the bottom right to add a command. Tap a card to run; long-press to edit or delete.",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_add",
+    "text": "Add command",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_edit",
+    "text": "Edit command",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_label_field",
+    "text": "Name",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_command_field",
+    "text": "Shell command",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_edit_hint",
+    "text": "Pipes and redirects work, e.g. dumpsys connectivity | grep wlan0",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_save",
+    "text": "Save",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_cancel",
+    "text": "Cancel",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_delete",
+    "text": "Delete",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_run",
+    "text": "Run",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_execute_timeout",
+    "text": "Timed out. Restart Shizuku and retry, or check whether the command blocks for a long time.",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_exit_code",
+    "text": "Exit code: %1$d",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_no_output",
+    "text": "(no output)",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_copy",
+    "text": "Copy output",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_close",
+    "text": "Close",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_overlay_empty",
+    "text": "No commands yet — tap “Add command” below",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_result_section_output",
+    "text": "Output",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_copied",
+    "text": "Copied to clipboard",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_reset_icon",
+    "text": "Reset to default",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_test",
+    "text": "Test",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_restart_shizuku",
+    "text": "Restart Shizuku service",
+    "source": "en"
+  },
+  {
+    "name": "no_apps",
+    "text": "No apps found",
+    "source": "en"
+  },
+  {
+    "name": "search_no_actions",
+    "text": "No actions found",
+    "source": "en"
+  },
+  {
+    "name": "cancel",
+    "text": "Cancel",
+    "source": "en"
+  },
+  {
+    "name": "screen_record_notification_saved",
+    "text": "Screen recording saved to gallery",
+    "source": "en"
+  },
+  {
+    "name": "screen_capture_channel_name",
+    "text": "Screen capture",
+    "source": "en"
+  },
+  {
+    "name": "screen_capture_notification_active",
+    "text": "Screen capture ready",
+    "source": "en"
+  },
+  {
+    "name": "screen_capture_permission_required",
+    "text": "Screen capture permission is required for regional screenshots",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_scan_system_xml",
+    "text": "Reading system shortcut data…",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_scan_dumpsys",
+    "text": "Fetching shortcuts via Shizuku…",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_scan_packages",
+    "text": "Scanning package shortcuts (%1$d/%2$d)…",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_scan_apps",
+    "text": "Scanning installed apps (%1$d/%2$d)…",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_scan_finalizing",
+    "text": "Organizing shortcut list…",
+    "source": "en"
+  },
+  {
+    "name": "task_switcher_no_shizuku",
+    "text": "Shizuku permission is required to show recent tasks",
+    "source": "en"
+  },
+  {
+    "name": "notification_history_search_no_results",
+    "text": "No matching notifications",
+    "source": "en"
+  },
+  {
+    "name": "widget_picker_empty",
+    "text": "No widgets available",
+    "source": "en"
+  },
+  {
+    "name": "shell_panel_title",
+    "text": "Shell command panel",
+    "source": "en"
+  },
+  {
+    "name": "cd_navigate_back",
+    "text": "Navigate back",
+    "source": "en"
+  },
+  {
+    "name": "cd_navigate_forward",
+    "text": "Navigate forward",
+    "source": "en"
+  },
+  {
+    "name": "cd_action_confirm",
+    "text": "Confirm",
+    "source": "en"
+  },
+  {
+    "name": "cd_export_settings",
+    "text": "Export settings",
+    "source": "en"
+  },
+  {
+    "name": "cd_import_settings",
+    "text": "Import settings",
+    "source": "en"
+  },
+  {
+    "name": "cd_notification_icon",
+    "text": "Notification icon",
+    "source": "en"
+  },
+  {
+    "name": "cd_app_icon",
+    "text": "App icon",
+    "source": "en"
+  },
+  {
+    "name": "cd_animation_preview",
+    "text": "Animation preview",
+    "source": "en"
+  },
+  {
+    "name": "cd_auto_brightness",
+    "text": "Auto brightness",
+    "source": "en"
+  },
+  {
+    "name": "cd_media_play",
+    "text": "Play",
+    "source": "en"
+  },
+  {
+    "name": "cd_media_pause",
+    "text": "Pause",
+    "source": "en"
+  },
+  {
+    "name": "cd_media_previous",
+    "text": "Previous track",
+    "source": "en"
+  },
+  {
+    "name": "cd_media_next",
+    "text": "Next track",
+    "source": "en"
+  },
+  {
+    "name": "cd_widget_preview",
+    "text": "Widget preview",
+    "source": "en"
+  },
+  {
+    "name": "cd_shake_feedback",
+    "text": "Shake feedback",
+    "source": "en"
+  },
+  {
+    "name": "cd_radial_menu_settings",
+    "text": "Radial menu settings",
+    "source": "en"
+  },
+  {
+    "name": "cd_settings",
+    "text": "Settings",
+    "source": "en"
+  },
+  {
+    "name": "cd_bluetooth_toggle",
+    "text": "Bluetooth toggle",
+    "source": "en"
+  },
+  {
+    "name": "cd_auto_rotate_toggle",
+    "text": "Auto-rotate toggle",
+    "source": "en"
+  },
+  {
+    "name": "cd_expand_section",
+    "text": "Expand",
+    "source": "en"
+  },
+  {
+    "name": "cd_collapse_section",
+    "text": "Collapse",
+    "source": "en"
+  },
+  {
+    "name": "cd_edge_trigger_left",
+    "text": "Left edge trigger %1$d",
+    "source": "en"
+  },
+  {
+    "name": "cd_edge_trigger_right",
+    "text": "Right edge trigger %1$d",
+    "source": "en"
+  },
+  {
+    "name": "cd_edge_trigger_bottom",
+    "text": "Bottom edge trigger %1$d",
+    "source": "en"
+  },
+  {
+    "name": "cd_edge_trigger_top",
+    "text": "Top edge trigger %1$d",
+    "source": "en"
+  },
+  {
+    "name": "cd_edge_touch_capture_left",
+    "text": "Left edge touch capture %1$d",
+    "source": "en"
+  },
+  {
+    "name": "cd_edge_touch_capture_right",
+    "text": "Right edge touch capture %1$d",
+    "source": "en"
+  },
+  {
+    "name": "cd_edge_touch_capture_bottom",
+    "text": "Bottom edge touch capture %1$d",
+    "source": "en"
+  },
+  {
+    "name": "cd_edge_touch_capture_top",
+    "text": "Top edge touch capture %1$d",
+    "source": "en"
+  },
+  {
+    "name": "cd_overlay_edge_gesture_surface",
+    "text": "Edge gesture surface",
+    "source": "en"
+  },
+  {
+    "name": "cd_overlay_panel_index",
+    "text": "App index panel",
+    "source": "en"
+  },
+  {
+    "name": "cd_overlay_panel_quick_launcher",
+    "text": "Quick launcher panel",
+    "source": "en"
+  },
+  {
+    "name": "cd_overlay_panel_task_switcher",
+    "text": "Task switcher panel",
+    "source": "en"
+  },
+  {
+    "name": "cd_overlay_panel_shell_commands",
+    "text": "Shell command panel",
+    "source": "en"
+  },
+  {
+    "name": "cd_overlay_index_letter",
+    "text": "Letter %1$s",
+    "source": "en"
+  },
+  {
+    "name": "cd_overlay_launch_app",
+    "text": "Launch %1$s",
+    "source": "en"
+  },
+  {
+    "name": "cd_overlay_quick_launcher_item",
+    "text": "%1$s",
+    "source": "en"
+  },
+  {
+    "name": "cd_overlay_task_switch_row",
+    "text": "Switch to %1$s",
+    "source": "en"
+  },
+  {
+    "name": "cd_overlay_task_switch_close",
+    "text": "Close %1$s",
+    "source": "en"
+  },
+  {
+    "name": "cd_overlay_task_switch_free_window",
+    "text": "Open %1$s in free window",
+    "source": "en"
+  },
+  {
+    "name": "cd_overlay_shell_command_run",
+    "text": "Run command %1$s",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_item_shortcut",
+    "text": "Shortcut",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_item_action",
+    "text": "Action",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_item_widget",
+    "text": "Widget",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_item_folder",
+    "text": "Folder",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_new_folder",
+    "text": "New folder",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_create_folder",
+    "text": "Create folder",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_folder_name",
+    "text": "Folder name",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_folder_name_hint",
+    "text": "Enter folder name",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_folder_empty",
+    "text": "Folder is empty, add items in edit mode",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_folder_edit_title",
+    "text": "Edit folder",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_folder_add_items",
+    "text": "Add items",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_folder_delete",
+    "text": "Delete folder",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_folder_rename",
+    "text": "Rename",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_folder_items_count",
+    "text": "%1$d items",
+    "source": "en"
+  },
+  {
+    "name": "quick_launcher_panel_switch",
+    "text": "Switch panel",
+    "source": "en"
+  },
+  {
+    "name": "adjust_volume_ring_label",
+    "text": "Ring",
+    "source": "en"
+  },
+  {
+    "name": "adjust_volume_notification_label",
+    "text": "Notif",
+    "source": "en"
+  },
+  {
+    "name": "widget_panel_columns_title",
+    "text": "Columns: %1$d",
+    "source": "en"
+  },
+  {
+    "name": "widget_panel_rows_title",
+    "text": "Rows: %1$d",
+    "source": "en"
+  },
+  {
+    "name": "widget_panel_visible_rows_title",
+    "text": "Visible rows: %1$d",
+    "source": "en"
+  },
+  {
+    "name": "widget_panel_cell_width_title",
+    "text": "Grid cell width: %1$d dp",
+    "source": "en"
+  },
+  {
+    "name": "widget_panel_margin_top_title",
+    "text": "Top margin: %1$d dp",
+    "source": "en"
+  },
+  {
+    "name": "weekday_short_sunday",
+    "text": "Sun",
+    "source": "en"
+  },
+  {
+    "name": "weekday_short_monday",
+    "text": "Mon",
+    "source": "en"
+  }
+]

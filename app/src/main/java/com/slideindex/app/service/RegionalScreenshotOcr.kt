@@ -17,6 +17,7 @@ import android.os.SystemClock
 
 import android.util.Log
 
+import com.slideindex.app.R
 import com.slideindex.app.ocr.OcrDependencyAccess
 import com.slideindex.app.ocr.OcrRecognizeResult
 
@@ -128,10 +129,11 @@ object RegionalScreenshotOcr {
 
     ): OcrRecognizeResult {
 
-        if (modelId.isBlank()) return OcrRecognizeResult.Failure("未选择 OCR 模型")
-
+        if (modelId.isBlank()) {
+            return OcrRecognizeResult.Failure(context.getString(R.string.ocr_error_no_model_selected))
+        }
         val service = OcrDependencyAccess.inferenceService(context)
-            ?: return OcrRecognizeResult.Failure("OCR 服务不可用")
+            ?: return OcrRecognizeResult.Failure(context.getString(R.string.ocr_error_service_unavailable))
 
         return try {
 
@@ -141,7 +143,12 @@ object RegionalScreenshotOcr {
 
             Log.w(TAG, "ocr failed", error)
 
-            OcrRecognizeResult.Failure("识别异常：${error.localizedMessage ?: error.message ?: "未知错误"}")
+            OcrRecognizeResult.Failure(
+                context.getString(
+                    R.string.ocr_error_recognition_failed,
+                    error.localizedMessage ?: error.message ?: context.getString(R.string.ocr_error_unknown),
+                ),
+            )
 
         }
 

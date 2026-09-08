@@ -1,5 +1,8 @@
 package com.slideindex.app.activity
 
+import android.content.Context
+import androidx.annotation.StringRes
+import com.slideindex.app.common.R
 import java.util.UUID
 
 enum class ActivityShortcutKind {
@@ -93,12 +96,14 @@ fun List<ActivityShortcut>.findByIdentityKey(key: String): ActivityShortcut? {
 }
 
 data class ActivityShortcutPreset(
-    val label: String,
+    @StringRes val labelRes: Int,
     val packageName: String,
     val activityClassName: String,
 ) {
-    fun toShortcut(): ActivityShortcut = ActivityShortcut.component(
-        label = label,
+    fun label(context: Context): String = context.getString(labelRes)
+
+    fun toShortcut(context: Context): ActivityShortcut = ActivityShortcut.component(
+        label = label(context),
         packageName = packageName,
         activityClassName = activityClassName,
     )
@@ -174,22 +179,22 @@ object ActivityShortcutCatalog {
 
     fun presets(): List<ActivityShortcutPreset> = listOf(
         ActivityShortcutPreset(
-            label = "优惠券",
+            labelRes = R.string.activity_shortcut_coupons,
             packageName = WECHAT,
             activityClassName = "com.tencent.mm.plugin.card.ui.v4.CouponAndGiftCardListV4UI",
         ),
         ActivityShortcutPreset(
-            label = "收藏",
+            labelRes = R.string.activity_shortcut_favorites,
             packageName = WECHAT,
             activityClassName = "com.tencent.mm.plugin.fav.ui.FavoriteIndexUI",
         ),
         ActivityShortcutPreset(
-            label = "搜索",
+            labelRes = R.string.activity_shortcut_search,
             packageName = WECHAT,
             activityClassName = "com.tencent.mm.plugin.fts.ui.FTSMainUI",
         ),
         ActivityShortcutPreset(
-            label = "扫一扫",
+            labelRes = R.string.activity_shortcut_scan,
             packageName = WECHAT,
             activityClassName = "com.tencent.mm.plugin.scanner.ui.BaseScanUI",
         ),

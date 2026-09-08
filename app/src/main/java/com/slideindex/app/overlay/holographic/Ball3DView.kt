@@ -16,6 +16,7 @@ import android.view.View
 import android.view.ViewConfiguration
 import android.view.ViewParent
 import androidx.core.view.ViewCompat
+import com.slideindex.app.R
 import com.slideindex.app.settings.HolographicLauncherSettings
 import kotlin.math.abs
 import kotlin.math.cos
@@ -138,9 +139,9 @@ class Ball3DView @JvmOverloads constructor(
         val cy = height / 2f
         val radius = minOf(cx, cy) * 0.98f
         if (nodes.isEmpty()) {
-            canvas.drawText("未加载到应用", cx, cy - 30f, hintPaint)
+            canvas.drawText(context.getString(R.string.holographic_no_apps_loaded), cx, cy - 30f, hintPaint)
             val smallHint = Paint(hintPaint).apply { textSize = resources.displayMetrics.density * 14f }
-            canvas.drawText("请检查设置或前往设置页配置", cx, cy + 30f, smallHint)
+            canvas.drawText(context.getString(R.string.holographic_check_settings_hint), cx, cy + 30f, smallHint)
             return
         }
         val drawableNodes = mutableListOf<AppNode>()

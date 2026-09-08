@@ -1,0 +1,2136 @@
+{
+  "entries": [
+    {
+      "name": "keyevent_category_system",
+      "zh": "系统控制",
+      "kind": "category"
+    },
+    {
+      "name": "keyevent_category_media",
+      "zh": "媒体与声音",
+      "kind": "category"
+    },
+    {
+      "name": "keyevent_category_navigation",
+      "zh": "方向与网页导航",
+      "kind": "category"
+    },
+    {
+      "name": "keyevent_category_input_edit",
+      "zh": "输入与文本编辑",
+      "kind": "category"
+    },
+    {
+      "name": "keyevent_category_hardware",
+      "zh": "硬件与快捷应用",
+      "kind": "category"
+    },
+    {
+      "name": "keyevent_category_tv_remote",
+      "zh": "电视与智能遥控",
+      "kind": "category"
+    },
+    {
+      "name": "keyevent_category_gamepad",
+      "zh": "游戏与手柄按键",
+      "kind": "category"
+    },
+    {
+      "name": "keyevent_category_function_keys",
+      "zh": "功能键 (F1-F12)",
+      "kind": "category"
+    },
+    {
+      "name": "keyevent_label_keycode_menu",
+      "zh": "菜单键 (Menu)",
+      "kind": "label",
+      "constant": "KEYCODE_MENU"
+    },
+    {
+      "name": "keyevent_desc_keycode_menu",
+      "zh": "打开当前前台应用的选项菜单 (Option Menu)",
+      "kind": "desc",
+      "constant": "KEYCODE_MENU"
+    },
+    {
+      "name": "keyevent_label_keycode_app_switch",
+      "zh": "多任务 / 最近应用",
+      "kind": "label",
+      "constant": "KEYCODE_APP_SWITCH"
+    },
+    {
+      "name": "keyevent_desc_keycode_app_switch",
+      "zh": "呼出系统任务切换器",
+      "kind": "desc",
+      "constant": "KEYCODE_APP_SWITCH"
+    },
+    {
+      "name": "keyevent_label_keycode_home",
+      "zh": "主屏幕 (Home)",
+      "kind": "label",
+      "constant": "KEYCODE_HOME"
+    },
+    {
+      "name": "keyevent_desc_keycode_home",
+      "zh": "回到系统桌面",
+      "kind": "desc",
+      "constant": "KEYCODE_HOME"
+    },
+    {
+      "name": "keyevent_label_keycode_back",
+      "zh": "返回键 / 历史后退 (Back)",
+      "kind": "label",
+      "constant": "KEYCODE_BACK"
+    },
+    {
+      "name": "keyevent_desc_keycode_back",
+      "zh": "系统返回上一层 / 历史栈后退 (Complement of KEYCODE_FORWARD)",
+      "kind": "desc",
+      "constant": "KEYCODE_BACK"
+    },
+    {
+      "name": "keyevent_label_keycode_power",
+      "zh": "电源键 (Power)",
+      "kind": "label",
+      "constant": "KEYCODE_POWER"
+    },
+    {
+      "name": "keyevent_desc_keycode_power",
+      "zh": "系统电源开关",
+      "kind": "desc",
+      "constant": "KEYCODE_POWER"
+    },
+    {
+      "name": "keyevent_label_keycode_sleep",
+      "zh": "屏幕休眠",
+      "kind": "label",
+      "constant": "KEYCODE_SLEEP"
+    },
+    {
+      "name": "keyevent_desc_keycode_sleep",
+      "zh": "让设备屏幕进入睡眠休眠状态",
+      "kind": "desc",
+      "constant": "KEYCODE_SLEEP"
+    },
+    {
+      "name": "keyevent_label_keycode_wakeup",
+      "zh": "唤醒屏幕",
+      "kind": "label",
+      "constant": "KEYCODE_WAKEUP"
+    },
+    {
+      "name": "keyevent_desc_keycode_wakeup",
+      "zh": "点亮并唤醒休眠中的屏幕",
+      "kind": "desc",
+      "constant": "KEYCODE_WAKEUP"
+    },
+    {
+      "name": "keyevent_label_keycode_soft_sleep",
+      "zh": "软休眠 / 锁屏",
+      "kind": "label",
+      "constant": "KEYCODE_SOFT_SLEEP"
+    },
+    {
+      "name": "keyevent_desc_keycode_soft_sleep",
+      "zh": "锁定屏幕进入待机",
+      "kind": "desc",
+      "constant": "KEYCODE_SOFT_SLEEP"
+    },
+    {
+      "name": "keyevent_label_keycode_notification",
+      "zh": "通知面板",
+      "kind": "label",
+      "constant": "KEYCODE_NOTIFICATION"
+    },
+    {
+      "name": "keyevent_desc_keycode_notification",
+      "zh": "下拉展开系统通知面板",
+      "kind": "desc",
+      "constant": "KEYCODE_NOTIFICATION"
+    },
+    {
+      "name": "keyevent_label_keycode_settings",
+      "zh": "系统设置",
+      "kind": "label",
+      "constant": "KEYCODE_SETTINGS"
+    },
+    {
+      "name": "keyevent_desc_keycode_settings",
+      "zh": "打开系统主设置页面",
+      "kind": "desc",
+      "constant": "KEYCODE_SETTINGS"
+    },
+    {
+      "name": "keyevent_label_keycode_search",
+      "zh": "搜索键",
+      "kind": "label",
+      "constant": "KEYCODE_SEARCH"
+    },
+    {
+      "name": "keyevent_desc_keycode_search",
+      "zh": "触发全局搜索或应用内搜索",
+      "kind": "desc",
+      "constant": "KEYCODE_SEARCH"
+    },
+    {
+      "name": "keyevent_label_keycode_voice_assist",
+      "zh": "语音助手",
+      "kind": "label",
+      "constant": "KEYCODE_VOICE_ASSIST"
+    },
+    {
+      "name": "keyevent_desc_keycode_voice_assist",
+      "zh": "唤醒系统语音助理",
+      "kind": "desc",
+      "constant": "KEYCODE_VOICE_ASSIST"
+    },
+    {
+      "name": "keyevent_label_keycode_sysrq",
+      "zh": "系统截屏 (SysRq / PrintScreen)",
+      "kind": "label",
+      "constant": "KEYCODE_SYSRQ"
+    },
+    {
+      "name": "keyevent_desc_keycode_sysrq",
+      "zh": "触发系统原生截屏",
+      "kind": "desc",
+      "constant": "KEYCODE_SYSRQ"
+    },
+    {
+      "name": "keyevent_label_keycode_all_apps",
+      "zh": "所有应用抽屉",
+      "kind": "label",
+      "constant": "KEYCODE_ALL_APPS"
+    },
+    {
+      "name": "keyevent_desc_keycode_all_apps",
+      "zh": "打开系统应用抽屉列表",
+      "kind": "desc",
+      "constant": "KEYCODE_ALL_APPS"
+    },
+    {
+      "name": "keyevent_label_keycode_window",
+      "zh": "画中画 / 窗口模式",
+      "kind": "label",
+      "constant": "KEYCODE_WINDOW"
+    },
+    {
+      "name": "keyevent_desc_keycode_window",
+      "zh": "切换窗口显示模式",
+      "kind": "desc",
+      "constant": "KEYCODE_WINDOW"
+    },
+    {
+      "name": "keyevent_label_keycode_volume_up",
+      "zh": "音量增大 (+)",
+      "kind": "label",
+      "constant": "KEYCODE_VOLUME_UP"
+    },
+    {
+      "name": "keyevent_desc_keycode_volume_up",
+      "zh": "增加系统音量",
+      "kind": "desc",
+      "constant": "KEYCODE_VOLUME_UP"
+    },
+    {
+      "name": "keyevent_label_keycode_volume_down",
+      "zh": "音量减小 (-)",
+      "kind": "label",
+      "constant": "KEYCODE_VOLUME_DOWN"
+    },
+    {
+      "name": "keyevent_desc_keycode_volume_down",
+      "zh": "降低系统音量",
+      "kind": "desc",
+      "constant": "KEYCODE_VOLUME_DOWN"
+    },
+    {
+      "name": "keyevent_label_keycode_volume_mute",
+      "zh": "静音切换",
+      "kind": "label",
+      "constant": "KEYCODE_VOLUME_MUTE"
+    },
+    {
+      "name": "keyevent_desc_keycode_volume_mute",
+      "zh": "开启或关闭系统静音",
+      "kind": "desc",
+      "constant": "KEYCODE_VOLUME_MUTE"
+    },
+    {
+      "name": "keyevent_label_keycode_mute",
+      "zh": "麦克风/媒体静音",
+      "kind": "label",
+      "constant": "KEYCODE_MUTE"
+    },
+    {
+      "name": "keyevent_desc_keycode_mute",
+      "zh": "麦克风静音或媒体静音",
+      "kind": "desc",
+      "constant": "KEYCODE_MUTE"
+    },
+    {
+      "name": "keyevent_label_keycode_media_play_pause",
+      "zh": "播放 / 暂停",
+      "kind": "label",
+      "constant": "KEYCODE_MEDIA_PLAY_PAUSE"
+    },
+    {
+      "name": "keyevent_desc_keycode_media_play_pause",
+      "zh": "切换当前媒体播放/暂停状态",
+      "kind": "desc",
+      "constant": "KEYCODE_MEDIA_PLAY_PAUSE"
+    },
+    {
+      "name": "keyevent_label_keycode_media_play",
+      "zh": "播放",
+      "kind": "label",
+      "constant": "KEYCODE_MEDIA_PLAY"
+    },
+    {
+      "name": "keyevent_desc_keycode_media_play",
+      "zh": "开始播放媒体",
+      "kind": "desc",
+      "constant": "KEYCODE_MEDIA_PLAY"
+    },
+    {
+      "name": "keyevent_label_keycode_media_pause",
+      "zh": "暂停",
+      "kind": "label",
+      "constant": "KEYCODE_MEDIA_PAUSE"
+    },
+    {
+      "name": "keyevent_desc_keycode_media_pause",
+      "zh": "暂停当前播放",
+      "kind": "desc",
+      "constant": "KEYCODE_MEDIA_PAUSE"
+    },
+    {
+      "name": "keyevent_label_keycode_media_next",
+      "zh": "下一曲",
+      "kind": "label",
+      "constant": "KEYCODE_MEDIA_NEXT"
+    },
+    {
+      "name": "keyevent_desc_keycode_media_next",
+      "zh": "切换下一首歌曲或视频",
+      "kind": "desc",
+      "constant": "KEYCODE_MEDIA_NEXT"
+    },
+    {
+      "name": "keyevent_label_keycode_media_previous",
+      "zh": "上一曲",
+      "kind": "label",
+      "constant": "KEYCODE_MEDIA_PREVIOUS"
+    },
+    {
+      "name": "keyevent_desc_keycode_media_previous",
+      "zh": "切换上一首歌曲或视频",
+      "kind": "desc",
+      "constant": "KEYCODE_MEDIA_PREVIOUS"
+    },
+    {
+      "name": "keyevent_label_keycode_media_fast_forward",
+      "zh": "快进",
+      "kind": "label",
+      "constant": "KEYCODE_MEDIA_FAST_FORWARD"
+    },
+    {
+      "name": "keyevent_desc_keycode_media_fast_forward",
+      "zh": "媒体播放快进",
+      "kind": "desc",
+      "constant": "KEYCODE_MEDIA_FAST_FORWARD"
+    },
+    {
+      "name": "keyevent_label_keycode_media_rewind",
+      "zh": "快退",
+      "kind": "label",
+      "constant": "KEYCODE_MEDIA_REWIND"
+    },
+    {
+      "name": "keyevent_desc_keycode_media_rewind",
+      "zh": "媒体播放快退",
+      "kind": "desc",
+      "constant": "KEYCODE_MEDIA_REWIND"
+    },
+    {
+      "name": "keyevent_label_keycode_media_stop",
+      "zh": "停止播放",
+      "kind": "label",
+      "constant": "KEYCODE_MEDIA_STOP"
+    },
+    {
+      "name": "keyevent_desc_keycode_media_stop",
+      "zh": "停止当前媒体播放",
+      "kind": "desc",
+      "constant": "KEYCODE_MEDIA_STOP"
+    },
+    {
+      "name": "keyevent_label_keycode_media_audio_track",
+      "zh": "切换音轨",
+      "kind": "label",
+      "constant": "KEYCODE_MEDIA_AUDIO_TRACK"
+    },
+    {
+      "name": "keyevent_desc_keycode_media_audio_track",
+      "zh": "切换视频或多媒体音轨",
+      "kind": "desc",
+      "constant": "KEYCODE_MEDIA_AUDIO_TRACK"
+    },
+    {
+      "name": "keyevent_label_keycode_media_eject",
+      "zh": "弹出介质 (Eject)",
+      "kind": "label",
+      "constant": "KEYCODE_MEDIA_EJECT"
+    },
+    {
+      "name": "keyevent_desc_keycode_media_eject",
+      "zh": "弹出光驱或存储介质",
+      "kind": "desc",
+      "constant": "KEYCODE_MEDIA_EJECT"
+    },
+    {
+      "name": "keyevent_label_keycode_media_record",
+      "zh": "录音 / 录制",
+      "kind": "label",
+      "constant": "KEYCODE_MEDIA_RECORD"
+    },
+    {
+      "name": "keyevent_desc_keycode_media_record",
+      "zh": "触发多媒体录制",
+      "kind": "desc",
+      "constant": "KEYCODE_MEDIA_RECORD"
+    },
+    {
+      "name": "keyevent_label_keycode_headsethook",
+      "zh": "耳机线控键 (Hook)",
+      "kind": "label",
+      "constant": "KEYCODE_HEADSETHOOK"
+    },
+    {
+      "name": "keyevent_desc_keycode_headsethook",
+      "zh": "模拟耳机线控按键（接听/挂断/播控）",
+      "kind": "desc",
+      "constant": "KEYCODE_HEADSETHOOK"
+    },
+    {
+      "name": "keyevent_label_keycode_back",
+      "zh": "历史后退 / 返回 (Back)",
+      "kind": "label",
+      "constant": "KEYCODE_BACK"
+    },
+    {
+      "name": "keyevent_desc_keycode_back",
+      "zh": "浏览器历史后退 / 返回上一层 (Complement of KEYCODE_FORWARD)",
+      "kind": "desc",
+      "constant": "KEYCODE_BACK"
+    },
+    {
+      "name": "keyevent_label_keycode_forward",
+      "zh": "历史前进 (Forward)",
+      "kind": "label",
+      "constant": "KEYCODE_FORWARD"
+    },
+    {
+      "name": "keyevent_desc_keycode_forward",
+      "zh": "浏览器或历史栈前进到下一页 (Complement of KEYCODE_BACK)",
+      "kind": "desc",
+      "constant": "KEYCODE_FORWARD"
+    },
+    {
+      "name": "keyevent_label_keycode_refresh",
+      "zh": "刷新页面 (Refresh / F5)",
+      "kind": "label",
+      "constant": "KEYCODE_REFRESH"
+    },
+    {
+      "name": "keyevent_desc_keycode_refresh",
+      "zh": "刷新当前网页或视图",
+      "kind": "desc",
+      "constant": "KEYCODE_REFRESH"
+    },
+    {
+      "name": "keyevent_label_keycode_bookmark",
+      "zh": "打开书签",
+      "kind": "label",
+      "constant": "KEYCODE_BOOKMARK"
+    },
+    {
+      "name": "keyevent_desc_keycode_bookmark",
+      "zh": "打开浏览器收藏书签",
+      "kind": "desc",
+      "constant": "KEYCODE_BOOKMARK"
+    },
+    {
+      "name": "keyevent_label_keycode_zoom_in",
+      "zh": "放大视图 (Zoom In)",
+      "kind": "label",
+      "constant": "KEYCODE_ZOOM_IN"
+    },
+    {
+      "name": "keyevent_desc_keycode_zoom_in",
+      "zh": "页面或视图内容放大",
+      "kind": "desc",
+      "constant": "KEYCODE_ZOOM_IN"
+    },
+    {
+      "name": "keyevent_label_keycode_zoom_out",
+      "zh": "缩小视图 (Zoom Out)",
+      "kind": "label",
+      "constant": "KEYCODE_ZOOM_OUT"
+    },
+    {
+      "name": "keyevent_desc_keycode_zoom_out",
+      "zh": "页面或视图内容缩小",
+      "kind": "desc",
+      "constant": "KEYCODE_ZOOM_OUT"
+    },
+    {
+      "name": "keyevent_label_keycode_dpad_up",
+      "zh": "方向键：上 (Up)",
+      "kind": "label",
+      "constant": "KEYCODE_DPAD_UP"
+    },
+    {
+      "name": "keyevent_desc_keycode_dpad_up",
+      "zh": "向上移动焦点或光标",
+      "kind": "desc",
+      "constant": "KEYCODE_DPAD_UP"
+    },
+    {
+      "name": "keyevent_label_keycode_dpad_down",
+      "zh": "方向键：下 (Down)",
+      "kind": "label",
+      "constant": "KEYCODE_DPAD_DOWN"
+    },
+    {
+      "name": "keyevent_desc_keycode_dpad_down",
+      "zh": "向下移动焦点或光标",
+      "kind": "desc",
+      "constant": "KEYCODE_DPAD_DOWN"
+    },
+    {
+      "name": "keyevent_label_keycode_dpad_left",
+      "zh": "方向键：左 (Left)",
+      "kind": "label",
+      "constant": "KEYCODE_DPAD_LEFT"
+    },
+    {
+      "name": "keyevent_desc_keycode_dpad_left",
+      "zh": "向左移动焦点或光标",
+      "kind": "desc",
+      "constant": "KEYCODE_DPAD_LEFT"
+    },
+    {
+      "name": "keyevent_label_keycode_dpad_right",
+      "zh": "方向键：右 (Right)",
+      "kind": "label",
+      "constant": "KEYCODE_DPAD_RIGHT"
+    },
+    {
+      "name": "keyevent_desc_keycode_dpad_right",
+      "zh": "向右移动焦点或光标",
+      "kind": "desc",
+      "constant": "KEYCODE_DPAD_RIGHT"
+    },
+    {
+      "name": "keyevent_label_keycode_dpad_center",
+      "zh": "居中确认 (DPad Center)",
+      "kind": "label",
+      "constant": "KEYCODE_DPAD_CENTER"
+    },
+    {
+      "name": "keyevent_desc_keycode_dpad_center",
+      "zh": "确定 / 点击当前焦点项",
+      "kind": "desc",
+      "constant": "KEYCODE_DPAD_CENTER"
+    },
+    {
+      "name": "keyevent_label_keycode_page_up",
+      "zh": "向上翻页 (Page Up)",
+      "kind": "label",
+      "constant": "KEYCODE_PAGE_UP"
+    },
+    {
+      "name": "keyevent_desc_keycode_page_up",
+      "zh": "屏幕或列表向上翻一页",
+      "kind": "desc",
+      "constant": "KEYCODE_PAGE_UP"
+    },
+    {
+      "name": "keyevent_label_keycode_page_down",
+      "zh": "向下翻页 (Page Down)",
+      "kind": "label",
+      "constant": "KEYCODE_PAGE_DOWN"
+    },
+    {
+      "name": "keyevent_desc_keycode_page_down",
+      "zh": "屏幕或列表向下翻一页",
+      "kind": "desc",
+      "constant": "KEYCODE_PAGE_DOWN"
+    },
+    {
+      "name": "keyevent_label_keycode_move_home",
+      "zh": "跳至顶部 / 行首 (Move Home)",
+      "kind": "label",
+      "constant": "KEYCODE_MOVE_HOME"
+    },
+    {
+      "name": "keyevent_desc_keycode_move_home",
+      "zh": "光标或视图跳至最顶端/最前端",
+      "kind": "desc",
+      "constant": "KEYCODE_MOVE_HOME"
+    },
+    {
+      "name": "keyevent_label_keycode_move_end",
+      "zh": "跳至底部 / 行尾 (Move End)",
+      "kind": "label",
+      "constant": "KEYCODE_MOVE_END"
+    },
+    {
+      "name": "keyevent_desc_keycode_move_end",
+      "zh": "光标或视图跳至最底端/末尾",
+      "kind": "desc",
+      "constant": "KEYCODE_MOVE_END"
+    },
+    {
+      "name": "keyevent_label_keycode_enter",
+      "zh": "回车确认 (Enter)",
+      "kind": "label",
+      "constant": "KEYCODE_ENTER"
+    },
+    {
+      "name": "keyevent_desc_keycode_enter",
+      "zh": "换行或确认发送",
+      "kind": "desc",
+      "constant": "KEYCODE_ENTER"
+    },
+    {
+      "name": "keyevent_label_keycode_numpad_enter",
+      "zh": "小键盘回车 (Numpad Enter)",
+      "kind": "label",
+      "constant": "KEYCODE_NUMPAD_ENTER"
+    },
+    {
+      "name": "keyevent_desc_keycode_numpad_enter",
+      "zh": "数字键盘确认",
+      "kind": "desc",
+      "constant": "KEYCODE_NUMPAD_ENTER"
+    },
+    {
+      "name": "keyevent_label_keycode_tab",
+      "zh": "制表键 (Tab)",
+      "kind": "label",
+      "constant": "KEYCODE_TAB"
+    },
+    {
+      "name": "keyevent_desc_keycode_tab",
+      "zh": "跳转到下一个输入框或焦点",
+      "kind": "desc",
+      "constant": "KEYCODE_TAB"
+    },
+    {
+      "name": "keyevent_label_keycode_space",
+      "zh": "空格键 (Space)",
+      "kind": "label",
+      "constant": "KEYCODE_SPACE"
+    },
+    {
+      "name": "keyevent_desc_keycode_space",
+      "zh": "输入空格",
+      "kind": "desc",
+      "constant": "KEYCODE_SPACE"
+    },
+    {
+      "name": "keyevent_label_keycode_del",
+      "zh": "退格删除 (Backspace)",
+      "kind": "label",
+      "constant": "KEYCODE_DEL"
+    },
+    {
+      "name": "keyevent_desc_keycode_del",
+      "zh": "向前删除一个字符",
+      "kind": "desc",
+      "constant": "KEYCODE_DEL"
+    },
+    {
+      "name": "keyevent_label_keycode_forward_del",
+      "zh": "前进删除 (Delete)",
+      "kind": "label",
+      "constant": "KEYCODE_FORWARD_DEL"
+    },
+    {
+      "name": "keyevent_desc_keycode_forward_del",
+      "zh": "向后删除一个字符",
+      "kind": "desc",
+      "constant": "KEYCODE_FORWARD_DEL"
+    },
+    {
+      "name": "keyevent_label_keycode_clear",
+      "zh": "清空 (Clear)",
+      "kind": "label",
+      "constant": "KEYCODE_CLEAR"
+    },
+    {
+      "name": "keyevent_desc_keycode_clear",
+      "zh": "清除当前输入内容",
+      "kind": "desc",
+      "constant": "KEYCODE_CLEAR"
+    },
+    {
+      "name": "keyevent_label_keycode_insert",
+      "zh": "插入模式 (Insert)",
+      "kind": "label",
+      "constant": "KEYCODE_INSERT"
+    },
+    {
+      "name": "keyevent_desc_keycode_insert",
+      "zh": "切换文本插入/覆盖模式",
+      "kind": "desc",
+      "constant": "KEYCODE_INSERT"
+    },
+    {
+      "name": "keyevent_label_keycode_caps_lock",
+      "zh": "大写锁定 (Caps Lock)",
+      "kind": "label",
+      "constant": "KEYCODE_CAPS_LOCK"
+    },
+    {
+      "name": "keyevent_desc_keycode_caps_lock",
+      "zh": "切换大小写锁定",
+      "kind": "desc",
+      "constant": "KEYCODE_CAPS_LOCK"
+    },
+    {
+      "name": "keyevent_label_keycode_scroll_lock",
+      "zh": "滚动锁定 (Scroll Lock)",
+      "kind": "label",
+      "constant": "KEYCODE_SCROLL_LOCK"
+    },
+    {
+      "name": "keyevent_desc_keycode_scroll_lock",
+      "zh": "切换滚动锁定状态",
+      "kind": "desc",
+      "constant": "KEYCODE_SCROLL_LOCK"
+    },
+    {
+      "name": "keyevent_label_keycode_num_lock",
+      "zh": "数字键盘锁 (Num Lock)",
+      "kind": "label",
+      "constant": "KEYCODE_NUM_LOCK"
+    },
+    {
+      "name": "keyevent_desc_keycode_num_lock",
+      "zh": "切换小键盘数字模式",
+      "kind": "desc",
+      "constant": "KEYCODE_NUM_LOCK"
+    },
+    {
+      "name": "keyevent_label_keycode_language_switch",
+      "zh": "切换输入法语言",
+      "kind": "label",
+      "constant": "KEYCODE_LANGUAGE_SWITCH"
+    },
+    {
+      "name": "keyevent_desc_keycode_language_switch",
+      "zh": "切换键盘输入语言",
+      "kind": "desc",
+      "constant": "KEYCODE_LANGUAGE_SWITCH"
+    },
+    {
+      "name": "keyevent_label_keycode_escape",
+      "zh": "退出键 (Esc)",
+      "kind": "label",
+      "constant": "KEYCODE_ESCAPE"
+    },
+    {
+      "name": "keyevent_desc_keycode_escape",
+      "zh": "退出当前模式或弹窗",
+      "kind": "desc",
+      "constant": "KEYCODE_ESCAPE"
+    },
+    {
+      "name": "keyevent_label_keycode_camera",
+      "zh": "相机快门 (Camera)",
+      "kind": "label",
+      "constant": "KEYCODE_CAMERA"
+    },
+    {
+      "name": "keyevent_desc_keycode_camera",
+      "zh": "打开相机或拍摄照片",
+      "kind": "desc",
+      "constant": "KEYCODE_CAMERA"
+    },
+    {
+      "name": "keyevent_label_keycode_focus",
+      "zh": "相机对焦 (Focus)",
+      "kind": "label",
+      "constant": "KEYCODE_FOCUS"
+    },
+    {
+      "name": "keyevent_desc_keycode_focus",
+      "zh": "相机半按对焦",
+      "kind": "desc",
+      "constant": "KEYCODE_FOCUS"
+    },
+    {
+      "name": "keyevent_label_keycode_call",
+      "zh": "拨号 / 接听电话 (Call)",
+      "kind": "label",
+      "constant": "KEYCODE_CALL"
+    },
+    {
+      "name": "keyevent_desc_keycode_call",
+      "zh": "打开拨号盘或接听来电",
+      "kind": "desc",
+      "constant": "KEYCODE_CALL"
+    },
+    {
+      "name": "keyevent_label_keycode_endcall",
+      "zh": "挂断电话 (End Call)",
+      "kind": "label",
+      "constant": "KEYCODE_ENDCALL"
+    },
+    {
+      "name": "keyevent_desc_keycode_endcall",
+      "zh": "挂断当前通话",
+      "kind": "desc",
+      "constant": "KEYCODE_ENDCALL"
+    },
+    {
+      "name": "keyevent_label_keycode_brightness_up",
+      "zh": "屏幕亮度增大 (+)",
+      "kind": "label",
+      "constant": "KEYCODE_BRIGHTNESS_UP"
+    },
+    {
+      "name": "keyevent_desc_keycode_brightness_up",
+      "zh": "调高屏幕显示亮度",
+      "kind": "desc",
+      "constant": "KEYCODE_BRIGHTNESS_UP"
+    },
+    {
+      "name": "keyevent_label_keycode_brightness_down",
+      "zh": "屏幕亮度减小 (-)",
+      "kind": "label",
+      "constant": "KEYCODE_BRIGHTNESS_DOWN"
+    },
+    {
+      "name": "keyevent_desc_keycode_brightness_down",
+      "zh": "调低屏幕显示亮度",
+      "kind": "desc",
+      "constant": "KEYCODE_BRIGHTNESS_DOWN"
+    },
+    {
+      "name": "keyevent_label_keycode_calculator",
+      "zh": "打开计算器",
+      "kind": "label",
+      "constant": "KEYCODE_CALCULATOR"
+    },
+    {
+      "name": "keyevent_desc_keycode_calculator",
+      "zh": "启动系统计算器应用",
+      "kind": "desc",
+      "constant": "KEYCODE_CALCULATOR"
+    },
+    {
+      "name": "keyevent_label_keycode_calendar",
+      "zh": "打开日历",
+      "kind": "label",
+      "constant": "KEYCODE_CALENDAR"
+    },
+    {
+      "name": "keyevent_desc_keycode_calendar",
+      "zh": "启动系统日历应用",
+      "kind": "desc",
+      "constant": "KEYCODE_CALENDAR"
+    },
+    {
+      "name": "keyevent_label_keycode_music",
+      "zh": "打开音乐",
+      "kind": "label",
+      "constant": "KEYCODE_MUSIC"
+    },
+    {
+      "name": "keyevent_desc_keycode_music",
+      "zh": "启动系统音乐播放器",
+      "kind": "desc",
+      "constant": "KEYCODE_MUSIC"
+    },
+    {
+      "name": "keyevent_label_keycode_envelope",
+      "zh": "打开邮件",
+      "kind": "label",
+      "constant": "KEYCODE_ENVELOPE"
+    },
+    {
+      "name": "keyevent_desc_keycode_envelope",
+      "zh": "启动系统电子邮件应用",
+      "kind": "desc",
+      "constant": "KEYCODE_ENVELOPE"
+    },
+    {
+      "name": "keyevent_label_keycode_contacts",
+      "zh": "打开联系人",
+      "kind": "label",
+      "constant": "KEYCODE_CONTACTS"
+    },
+    {
+      "name": "keyevent_desc_keycode_contacts",
+      "zh": "启动系统通讯录",
+      "kind": "desc",
+      "constant": "KEYCODE_CONTACTS"
+    },
+    {
+      "name": "keyevent_label_keycode_explorer",
+      "zh": "打开浏览器",
+      "kind": "label",
+      "constant": "KEYCODE_EXPLORER"
+    },
+    {
+      "name": "keyevent_desc_keycode_explorer",
+      "zh": "启动默认网络浏览器",
+      "kind": "desc",
+      "constant": "KEYCODE_EXPLORER"
+    },
+    {
+      "name": "keyevent_label_keycode_help",
+      "zh": "帮助 (Help)",
+      "kind": "label",
+      "constant": "KEYCODE_HELP"
+    },
+    {
+      "name": "keyevent_desc_keycode_help",
+      "zh": "打开应用或系统帮助",
+      "kind": "desc",
+      "constant": "KEYCODE_HELP"
+    },
+    {
+      "name": "keyevent_label_keycode_tv_power",
+      "zh": "电视电源 (TV Power)",
+      "kind": "label",
+      "constant": "KEYCODE_TV_POWER"
+    },
+    {
+      "name": "keyevent_desc_keycode_tv_power",
+      "zh": "电视电源开关控制",
+      "kind": "desc",
+      "constant": "KEYCODE_TV_POWER"
+    },
+    {
+      "name": "keyevent_label_keycode_tv_input",
+      "zh": "电视信号源 (TV Input)",
+      "kind": "label",
+      "constant": "KEYCODE_TV_INPUT"
+    },
+    {
+      "name": "keyevent_desc_keycode_tv_input",
+      "zh": "切换电视 HDMI/AV 信号源",
+      "kind": "desc",
+      "constant": "KEYCODE_TV_INPUT"
+    },
+    {
+      "name": "keyevent_label_keycode_channel_up",
+      "zh": "频道 + (Channel Up)",
+      "kind": "label",
+      "constant": "KEYCODE_CHANNEL_UP"
+    },
+    {
+      "name": "keyevent_desc_keycode_channel_up",
+      "zh": "电视/机顶盒电视频道增加",
+      "kind": "desc",
+      "constant": "KEYCODE_CHANNEL_UP"
+    },
+    {
+      "name": "keyevent_label_keycode_channel_down",
+      "zh": "频道 - (Channel Down)",
+      "kind": "label",
+      "constant": "KEYCODE_CHANNEL_DOWN"
+    },
+    {
+      "name": "keyevent_desc_keycode_channel_down",
+      "zh": "电视/机顶盒电视频道减少",
+      "kind": "desc",
+      "constant": "KEYCODE_CHANNEL_DOWN"
+    },
+    {
+      "name": "keyevent_label_keycode_last_channel",
+      "zh": "上一频道 (Last Channel)",
+      "kind": "label",
+      "constant": "KEYCODE_LAST_CHANNEL"
+    },
+    {
+      "name": "keyevent_desc_keycode_last_channel",
+      "zh": "切换回到上一个观看的频道",
+      "kind": "desc",
+      "constant": "KEYCODE_LAST_CHANNEL"
+    },
+    {
+      "name": "keyevent_label_keycode_guide",
+      "zh": "节目指南 (EPG / Guide)",
+      "kind": "label",
+      "constant": "KEYCODE_GUIDE"
+    },
+    {
+      "name": "keyevent_desc_keycode_guide",
+      "zh": "打开电视节目指南",
+      "kind": "desc",
+      "constant": "KEYCODE_GUIDE"
+    },
+    {
+      "name": "keyevent_label_keycode_info",
+      "zh": "节目信息 (Info)",
+      "kind": "label",
+      "constant": "KEYCODE_INFO"
+    },
+    {
+      "name": "keyevent_desc_keycode_info",
+      "zh": "查看当前播放内容详细信息",
+      "kind": "desc",
+      "constant": "KEYCODE_INFO"
+    },
+    {
+      "name": "keyevent_label_keycode_prog_red",
+      "zh": "遥控红键 (Red)",
+      "kind": "label",
+      "constant": "KEYCODE_PROG_RED"
+    },
+    {
+      "name": "keyevent_desc_keycode_prog_red",
+      "zh": "遥控器红色快捷按键",
+      "kind": "desc",
+      "constant": "KEYCODE_PROG_RED"
+    },
+    {
+      "name": "keyevent_label_keycode_prog_green",
+      "zh": "遥控绿键 (Green)",
+      "kind": "label",
+      "constant": "KEYCODE_PROG_GREEN"
+    },
+    {
+      "name": "keyevent_desc_keycode_prog_green",
+      "zh": "遥控器绿色快捷按键",
+      "kind": "desc",
+      "constant": "KEYCODE_PROG_GREEN"
+    },
+    {
+      "name": "keyevent_label_keycode_prog_yellow",
+      "zh": "遥控黄键 (Yellow)",
+      "kind": "label",
+      "constant": "KEYCODE_PROG_YELLOW"
+    },
+    {
+      "name": "keyevent_desc_keycode_prog_yellow",
+      "zh": "遥控器黄色快捷按键",
+      "kind": "desc",
+      "constant": "KEYCODE_PROG_YELLOW"
+    },
+    {
+      "name": "keyevent_label_keycode_prog_blue",
+      "zh": "遥控蓝键 (Blue)",
+      "kind": "label",
+      "constant": "KEYCODE_PROG_BLUE"
+    },
+    {
+      "name": "keyevent_desc_keycode_prog_blue",
+      "zh": "遥控器蓝色快捷按键",
+      "kind": "desc",
+      "constant": "KEYCODE_PROG_BLUE"
+    },
+    {
+      "name": "keyevent_label_keycode_button_a",
+      "zh": "手柄 A 键",
+      "kind": "label",
+      "constant": "KEYCODE_BUTTON_A"
+    },
+    {
+      "name": "keyevent_desc_keycode_button_a",
+      "zh": "游戏手柄 A 确认键",
+      "kind": "desc",
+      "constant": "KEYCODE_BUTTON_A"
+    },
+    {
+      "name": "keyevent_label_keycode_button_b",
+      "zh": "手柄 B 键",
+      "kind": "label",
+      "constant": "KEYCODE_BUTTON_B"
+    },
+    {
+      "name": "keyevent_desc_keycode_button_b",
+      "zh": "游戏手柄 B 取消/后退键",
+      "kind": "desc",
+      "constant": "KEYCODE_BUTTON_B"
+    },
+    {
+      "name": "keyevent_label_keycode_button_x",
+      "zh": "手柄 X 键",
+      "kind": "label",
+      "constant": "KEYCODE_BUTTON_X"
+    },
+    {
+      "name": "keyevent_desc_keycode_button_x",
+      "zh": "游戏手柄 X 功能按键",
+      "kind": "desc",
+      "constant": "KEYCODE_BUTTON_X"
+    },
+    {
+      "name": "keyevent_label_keycode_button_y",
+      "zh": "手柄 Y 键",
+      "kind": "label",
+      "constant": "KEYCODE_BUTTON_Y"
+    },
+    {
+      "name": "keyevent_desc_keycode_button_y",
+      "zh": "游戏手柄 Y 功能按键",
+      "kind": "desc",
+      "constant": "KEYCODE_BUTTON_Y"
+    },
+    {
+      "name": "keyevent_label_keycode_button_c",
+      "zh": "手柄 C 键",
+      "kind": "label",
+      "constant": "KEYCODE_BUTTON_C"
+    },
+    {
+      "name": "keyevent_desc_keycode_button_c",
+      "zh": "六键手柄 C 按键",
+      "kind": "desc",
+      "constant": "KEYCODE_BUTTON_C"
+    },
+    {
+      "name": "keyevent_label_keycode_button_z",
+      "zh": "手柄 Z 键",
+      "kind": "label",
+      "constant": "KEYCODE_BUTTON_Z"
+    },
+    {
+      "name": "keyevent_desc_keycode_button_z",
+      "zh": "六键手柄 Z 按键",
+      "kind": "desc",
+      "constant": "KEYCODE_BUTTON_Z"
+    },
+    {
+      "name": "keyevent_label_keycode_button_l1",
+      "zh": "手柄 L1 键",
+      "kind": "label",
+      "constant": "KEYCODE_BUTTON_L1"
+    },
+    {
+      "name": "keyevent_desc_keycode_button_l1",
+      "zh": "游戏手柄左肩键 L1 (LB)",
+      "kind": "desc",
+      "constant": "KEYCODE_BUTTON_L1"
+    },
+    {
+      "name": "keyevent_label_keycode_button_r1",
+      "zh": "手柄 R1 键",
+      "kind": "label",
+      "constant": "KEYCODE_BUTTON_R1"
+    },
+    {
+      "name": "keyevent_desc_keycode_button_r1",
+      "zh": "游戏手柄右肩键 R1 (RB)",
+      "kind": "desc",
+      "constant": "KEYCODE_BUTTON_R1"
+    },
+    {
+      "name": "keyevent_label_keycode_button_l2",
+      "zh": "手柄 L2 键",
+      "kind": "label",
+      "constant": "KEYCODE_BUTTON_L2"
+    },
+    {
+      "name": "keyevent_desc_keycode_button_l2",
+      "zh": "游戏手柄左扳机键 L2 (LT)",
+      "kind": "desc",
+      "constant": "KEYCODE_BUTTON_L2"
+    },
+    {
+      "name": "keyevent_label_keycode_button_r2",
+      "zh": "手柄 R2 键",
+      "kind": "label",
+      "constant": "KEYCODE_BUTTON_R2"
+    },
+    {
+      "name": "keyevent_desc_keycode_button_r2",
+      "zh": "游戏手柄右扳机键 R2 (RT)",
+      "kind": "desc",
+      "constant": "KEYCODE_BUTTON_R2"
+    },
+    {
+      "name": "keyevent_label_keycode_button_thumbl",
+      "zh": "左摇杆下压 (L3)",
+      "kind": "label",
+      "constant": "KEYCODE_BUTTON_THUMBL"
+    },
+    {
+      "name": "keyevent_desc_keycode_button_thumbl",
+      "zh": "游戏手柄左摇杆垂直下压按键 (L3)",
+      "kind": "desc",
+      "constant": "KEYCODE_BUTTON_THUMBL"
+    },
+    {
+      "name": "keyevent_label_keycode_button_thumbr",
+      "zh": "右摇杆下压 (R3)",
+      "kind": "label",
+      "constant": "KEYCODE_BUTTON_THUMBR"
+    },
+    {
+      "name": "keyevent_desc_keycode_button_thumbr",
+      "zh": "游戏手柄右摇杆垂直下压按键 (R3)",
+      "kind": "desc",
+      "constant": "KEYCODE_BUTTON_THUMBR"
+    },
+    {
+      "name": "keyevent_label_keycode_button_start",
+      "zh": "手柄 Start 键",
+      "kind": "label",
+      "constant": "KEYCODE_BUTTON_START"
+    },
+    {
+      "name": "keyevent_desc_keycode_button_start",
+      "zh": "游戏手柄 Start 开始/暂停键",
+      "kind": "desc",
+      "constant": "KEYCODE_BUTTON_START"
+    },
+    {
+      "name": "keyevent_label_keycode_button_select",
+      "zh": "手柄 Select 键",
+      "kind": "label",
+      "constant": "KEYCODE_BUTTON_SELECT"
+    },
+    {
+      "name": "keyevent_desc_keycode_button_select",
+      "zh": "游戏手柄 Select / Back 选择键",
+      "kind": "desc",
+      "constant": "KEYCODE_BUTTON_SELECT"
+    },
+    {
+      "name": "keyevent_label_keycode_button_mode",
+      "zh": "手柄 Mode 键 (Guide)",
+      "kind": "label",
+      "constant": "KEYCODE_BUTTON_MODE"
+    },
+    {
+      "name": "keyevent_desc_keycode_button_mode",
+      "zh": "游戏手柄中间西瓜键 / Mode 模式键",
+      "kind": "desc",
+      "constant": "KEYCODE_BUTTON_MODE"
+    },
+    {
+      "name": "keyevent_label_keycode_f1",
+      "zh": "F1 功能键",
+      "kind": "label",
+      "constant": "KEYCODE_F1"
+    },
+    {
+      "name": "keyevent_desc_keycode_f1",
+      "zh": "键盘标准 F1 功能键",
+      "kind": "desc",
+      "constant": "KEYCODE_F1"
+    },
+    {
+      "name": "keyevent_label_keycode_f2",
+      "zh": "F2 功能键",
+      "kind": "label",
+      "constant": "KEYCODE_F2"
+    },
+    {
+      "name": "keyevent_desc_keycode_f2",
+      "zh": "键盘标准 F2 功能键 (重命名等)",
+      "kind": "desc",
+      "constant": "KEYCODE_F2"
+    },
+    {
+      "name": "keyevent_label_keycode_f3",
+      "zh": "F3 功能键",
+      "kind": "label",
+      "constant": "KEYCODE_F3"
+    },
+    {
+      "name": "keyevent_desc_keycode_f3",
+      "zh": "键盘标准 F3 功能键 (查找下一个等)",
+      "kind": "desc",
+      "constant": "KEYCODE_F3"
+    },
+    {
+      "name": "keyevent_label_keycode_f4",
+      "zh": "F4 功能键",
+      "kind": "label",
+      "constant": "KEYCODE_F4"
+    },
+    {
+      "name": "keyevent_desc_keycode_f4",
+      "zh": "键盘标准 F4 功能键",
+      "kind": "desc",
+      "constant": "KEYCODE_F4"
+    },
+    {
+      "name": "keyevent_label_keycode_f5",
+      "zh": "F5 功能键 (刷新)",
+      "kind": "label",
+      "constant": "KEYCODE_F5"
+    },
+    {
+      "name": "keyevent_desc_keycode_f5",
+      "zh": "键盘标准 F5 功能键 (刷新)",
+      "kind": "desc",
+      "constant": "KEYCODE_F5"
+    },
+    {
+      "name": "keyevent_label_keycode_f6",
+      "zh": "F6 功能键",
+      "kind": "label",
+      "constant": "KEYCODE_F6"
+    },
+    {
+      "name": "keyevent_desc_keycode_f6",
+      "zh": "键盘标准 F6 功能键",
+      "kind": "desc",
+      "constant": "KEYCODE_F6"
+    },
+    {
+      "name": "keyevent_label_keycode_f7",
+      "zh": "F7 功能键",
+      "kind": "label",
+      "constant": "KEYCODE_F7"
+    },
+    {
+      "name": "keyevent_desc_keycode_f7",
+      "zh": "键盘标准 F7 功能键",
+      "kind": "desc",
+      "constant": "KEYCODE_F7"
+    },
+    {
+      "name": "keyevent_label_keycode_f8",
+      "zh": "F8 功能键",
+      "kind": "label",
+      "constant": "KEYCODE_F8"
+    },
+    {
+      "name": "keyevent_desc_keycode_f8",
+      "zh": "键盘标准 F8 功能键",
+      "kind": "desc",
+      "constant": "KEYCODE_F8"
+    },
+    {
+      "name": "keyevent_label_keycode_f9",
+      "zh": "F9 功能键",
+      "kind": "label",
+      "constant": "KEYCODE_F9"
+    },
+    {
+      "name": "keyevent_desc_keycode_f9",
+      "zh": "键盘标准 F9 功能键",
+      "kind": "desc",
+      "constant": "KEYCODE_F9"
+    },
+    {
+      "name": "keyevent_label_keycode_f10",
+      "zh": "F10 功能键",
+      "kind": "label",
+      "constant": "KEYCODE_F10"
+    },
+    {
+      "name": "keyevent_desc_keycode_f10",
+      "zh": "键盘标准 F10 功能键",
+      "kind": "desc",
+      "constant": "KEYCODE_F10"
+    },
+    {
+      "name": "keyevent_label_keycode_f11",
+      "zh": "F11 功能键 (全屏)",
+      "kind": "label",
+      "constant": "KEYCODE_F11"
+    },
+    {
+      "name": "keyevent_desc_keycode_f11",
+      "zh": "键盘标准 F11 功能键 (全屏切换)",
+      "kind": "desc",
+      "constant": "KEYCODE_F11"
+    },
+    {
+      "name": "keyevent_label_keycode_f12",
+      "zh": "F12 功能键 (开发者工具)",
+      "kind": "label",
+      "constant": "KEYCODE_F12"
+    },
+    {
+      "name": "keyevent_desc_keycode_f12",
+      "zh": "键盘标准 F12 功能键 (开发者工具/另存为)",
+      "kind": "desc",
+      "constant": "KEYCODE_F12"
+    }
+  ],
+  "items": [
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_MENU",
+      "constantName": "KEYCODE_MENU",
+      "category": "SYSTEM",
+      "labelRes": "keyevent_label_keycode_menu",
+      "descRes": "keyevent_desc_keycode_menu"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_APP_SWITCH",
+      "constantName": "KEYCODE_APP_SWITCH",
+      "category": "SYSTEM",
+      "labelRes": "keyevent_label_keycode_app_switch",
+      "descRes": "keyevent_desc_keycode_app_switch"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_HOME",
+      "constantName": "KEYCODE_HOME",
+      "category": "SYSTEM",
+      "labelRes": "keyevent_label_keycode_home",
+      "descRes": "keyevent_desc_keycode_home"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_BACK",
+      "constantName": "KEYCODE_BACK",
+      "category": "SYSTEM",
+      "labelRes": "keyevent_label_keycode_back",
+      "descRes": "keyevent_desc_keycode_back"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_POWER",
+      "constantName": "KEYCODE_POWER",
+      "category": "SYSTEM",
+      "labelRes": "keyevent_label_keycode_power",
+      "descRes": "keyevent_desc_keycode_power"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_SLEEP",
+      "constantName": "KEYCODE_SLEEP",
+      "category": "SYSTEM",
+      "labelRes": "keyevent_label_keycode_sleep",
+      "descRes": "keyevent_desc_keycode_sleep"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_WAKEUP",
+      "constantName": "KEYCODE_WAKEUP",
+      "category": "SYSTEM",
+      "labelRes": "keyevent_label_keycode_wakeup",
+      "descRes": "keyevent_desc_keycode_wakeup"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_SOFT_SLEEP",
+      "constantName": "KEYCODE_SOFT_SLEEP",
+      "category": "SYSTEM",
+      "labelRes": "keyevent_label_keycode_soft_sleep",
+      "descRes": "keyevent_desc_keycode_soft_sleep"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_NOTIFICATION",
+      "constantName": "KEYCODE_NOTIFICATION",
+      "category": "SYSTEM",
+      "labelRes": "keyevent_label_keycode_notification",
+      "descRes": "keyevent_desc_keycode_notification"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_SETTINGS",
+      "constantName": "KEYCODE_SETTINGS",
+      "category": "SYSTEM",
+      "labelRes": "keyevent_label_keycode_settings",
+      "descRes": "keyevent_desc_keycode_settings"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_SEARCH",
+      "constantName": "KEYCODE_SEARCH",
+      "category": "SYSTEM",
+      "labelRes": "keyevent_label_keycode_search",
+      "descRes": "keyevent_desc_keycode_search"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_VOICE_ASSIST",
+      "constantName": "KEYCODE_VOICE_ASSIST",
+      "category": "SYSTEM",
+      "labelRes": "keyevent_label_keycode_voice_assist",
+      "descRes": "keyevent_desc_keycode_voice_assist"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_SYSRQ",
+      "constantName": "KEYCODE_SYSRQ",
+      "category": "SYSTEM",
+      "labelRes": "keyevent_label_keycode_sysrq",
+      "descRes": "keyevent_desc_keycode_sysrq"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_ALL_APPS",
+      "constantName": "KEYCODE_ALL_APPS",
+      "category": "SYSTEM",
+      "labelRes": "keyevent_label_keycode_all_apps",
+      "descRes": "keyevent_desc_keycode_all_apps"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_WINDOW",
+      "constantName": "KEYCODE_WINDOW",
+      "category": "SYSTEM",
+      "labelRes": "keyevent_label_keycode_window",
+      "descRes": "keyevent_desc_keycode_window"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_VOLUME_UP",
+      "constantName": "KEYCODE_VOLUME_UP",
+      "category": "MEDIA",
+      "labelRes": "keyevent_label_keycode_volume_up",
+      "descRes": "keyevent_desc_keycode_volume_up"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_VOLUME_DOWN",
+      "constantName": "KEYCODE_VOLUME_DOWN",
+      "category": "MEDIA",
+      "labelRes": "keyevent_label_keycode_volume_down",
+      "descRes": "keyevent_desc_keycode_volume_down"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_VOLUME_MUTE",
+      "constantName": "KEYCODE_VOLUME_MUTE",
+      "category": "MEDIA",
+      "labelRes": "keyevent_label_keycode_volume_mute",
+      "descRes": "keyevent_desc_keycode_volume_mute"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_MUTE",
+      "constantName": "KEYCODE_MUTE",
+      "category": "MEDIA",
+      "labelRes": "keyevent_label_keycode_mute",
+      "descRes": "keyevent_desc_keycode_mute"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE",
+      "constantName": "KEYCODE_MEDIA_PLAY_PAUSE",
+      "category": "MEDIA",
+      "labelRes": "keyevent_label_keycode_media_play_pause",
+      "descRes": "keyevent_desc_keycode_media_play_pause"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_MEDIA_PLAY",
+      "constantName": "KEYCODE_MEDIA_PLAY",
+      "category": "MEDIA",
+      "labelRes": "keyevent_label_keycode_media_play",
+      "descRes": "keyevent_desc_keycode_media_play"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_MEDIA_PAUSE",
+      "constantName": "KEYCODE_MEDIA_PAUSE",
+      "category": "MEDIA",
+      "labelRes": "keyevent_label_keycode_media_pause",
+      "descRes": "keyevent_desc_keycode_media_pause"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_MEDIA_NEXT",
+      "constantName": "KEYCODE_MEDIA_NEXT",
+      "category": "MEDIA",
+      "labelRes": "keyevent_label_keycode_media_next",
+      "descRes": "keyevent_desc_keycode_media_next"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_MEDIA_PREVIOUS",
+      "constantName": "KEYCODE_MEDIA_PREVIOUS",
+      "category": "MEDIA",
+      "labelRes": "keyevent_label_keycode_media_previous",
+      "descRes": "keyevent_desc_keycode_media_previous"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_MEDIA_FAST_FORWARD",
+      "constantName": "KEYCODE_MEDIA_FAST_FORWARD",
+      "category": "MEDIA",
+      "labelRes": "keyevent_label_keycode_media_fast_forward",
+      "descRes": "keyevent_desc_keycode_media_fast_forward"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_MEDIA_REWIND",
+      "constantName": "KEYCODE_MEDIA_REWIND",
+      "category": "MEDIA",
+      "labelRes": "keyevent_label_keycode_media_rewind",
+      "descRes": "keyevent_desc_keycode_media_rewind"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_MEDIA_STOP",
+      "constantName": "KEYCODE_MEDIA_STOP",
+      "category": "MEDIA",
+      "labelRes": "keyevent_label_keycode_media_stop",
+      "descRes": "keyevent_desc_keycode_media_stop"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_MEDIA_AUDIO_TRACK",
+      "constantName": "KEYCODE_MEDIA_AUDIO_TRACK",
+      "category": "MEDIA",
+      "labelRes": "keyevent_label_keycode_media_audio_track",
+      "descRes": "keyevent_desc_keycode_media_audio_track"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_MEDIA_EJECT",
+      "constantName": "KEYCODE_MEDIA_EJECT",
+      "category": "MEDIA",
+      "labelRes": "keyevent_label_keycode_media_eject",
+      "descRes": "keyevent_desc_keycode_media_eject"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_MEDIA_RECORD",
+      "constantName": "KEYCODE_MEDIA_RECORD",
+      "category": "MEDIA",
+      "labelRes": "keyevent_label_keycode_media_record",
+      "descRes": "keyevent_desc_keycode_media_record"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_HEADSETHOOK",
+      "constantName": "KEYCODE_HEADSETHOOK",
+      "category": "MEDIA",
+      "labelRes": "keyevent_label_keycode_headsethook",
+      "descRes": "keyevent_desc_keycode_headsethook"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_BACK",
+      "constantName": "KEYCODE_BACK",
+      "category": "NAVIGATION",
+      "labelRes": "keyevent_label_keycode_back",
+      "descRes": "keyevent_desc_keycode_back"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_FORWARD",
+      "constantName": "KEYCODE_FORWARD",
+      "category": "NAVIGATION",
+      "labelRes": "keyevent_label_keycode_forward",
+      "descRes": "keyevent_desc_keycode_forward"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_REFRESH",
+      "constantName": "KEYCODE_REFRESH",
+      "category": "NAVIGATION",
+      "labelRes": "keyevent_label_keycode_refresh",
+      "descRes": "keyevent_desc_keycode_refresh"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_BOOKMARK",
+      "constantName": "KEYCODE_BOOKMARK",
+      "category": "NAVIGATION",
+      "labelRes": "keyevent_label_keycode_bookmark",
+      "descRes": "keyevent_desc_keycode_bookmark"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_ZOOM_IN",
+      "constantName": "KEYCODE_ZOOM_IN",
+      "category": "NAVIGATION",
+      "labelRes": "keyevent_label_keycode_zoom_in",
+      "descRes": "keyevent_desc_keycode_zoom_in"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_ZOOM_OUT",
+      "constantName": "KEYCODE_ZOOM_OUT",
+      "category": "NAVIGATION",
+      "labelRes": "keyevent_label_keycode_zoom_out",
+      "descRes": "keyevent_desc_keycode_zoom_out"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_DPAD_UP",
+      "constantName": "KEYCODE_DPAD_UP",
+      "category": "NAVIGATION",
+      "labelRes": "keyevent_label_keycode_dpad_up",
+      "descRes": "keyevent_desc_keycode_dpad_up"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_DPAD_DOWN",
+      "constantName": "KEYCODE_DPAD_DOWN",
+      "category": "NAVIGATION",
+      "labelRes": "keyevent_label_keycode_dpad_down",
+      "descRes": "keyevent_desc_keycode_dpad_down"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_DPAD_LEFT",
+      "constantName": "KEYCODE_DPAD_LEFT",
+      "category": "NAVIGATION",
+      "labelRes": "keyevent_label_keycode_dpad_left",
+      "descRes": "keyevent_desc_keycode_dpad_left"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_DPAD_RIGHT",
+      "constantName": "KEYCODE_DPAD_RIGHT",
+      "category": "NAVIGATION",
+      "labelRes": "keyevent_label_keycode_dpad_right",
+      "descRes": "keyevent_desc_keycode_dpad_right"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_DPAD_CENTER",
+      "constantName": "KEYCODE_DPAD_CENTER",
+      "category": "NAVIGATION",
+      "labelRes": "keyevent_label_keycode_dpad_center",
+      "descRes": "keyevent_desc_keycode_dpad_center"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_PAGE_UP",
+      "constantName": "KEYCODE_PAGE_UP",
+      "category": "NAVIGATION",
+      "labelRes": "keyevent_label_keycode_page_up",
+      "descRes": "keyevent_desc_keycode_page_up"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_PAGE_DOWN",
+      "constantName": "KEYCODE_PAGE_DOWN",
+      "category": "NAVIGATION",
+      "labelRes": "keyevent_label_keycode_page_down",
+      "descRes": "keyevent_desc_keycode_page_down"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_MOVE_HOME",
+      "constantName": "KEYCODE_MOVE_HOME",
+      "category": "NAVIGATION",
+      "labelRes": "keyevent_label_keycode_move_home",
+      "descRes": "keyevent_desc_keycode_move_home"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_MOVE_END",
+      "constantName": "KEYCODE_MOVE_END",
+      "category": "NAVIGATION",
+      "labelRes": "keyevent_label_keycode_move_end",
+      "descRes": "keyevent_desc_keycode_move_end"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_ENTER",
+      "constantName": "KEYCODE_ENTER",
+      "category": "INPUT_EDIT",
+      "labelRes": "keyevent_label_keycode_enter",
+      "descRes": "keyevent_desc_keycode_enter"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_NUMPAD_ENTER",
+      "constantName": "KEYCODE_NUMPAD_ENTER",
+      "category": "INPUT_EDIT",
+      "labelRes": "keyevent_label_keycode_numpad_enter",
+      "descRes": "keyevent_desc_keycode_numpad_enter"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_TAB",
+      "constantName": "KEYCODE_TAB",
+      "category": "INPUT_EDIT",
+      "labelRes": "keyevent_label_keycode_tab",
+      "descRes": "keyevent_desc_keycode_tab"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_SPACE",
+      "constantName": "KEYCODE_SPACE",
+      "category": "INPUT_EDIT",
+      "labelRes": "keyevent_label_keycode_space",
+      "descRes": "keyevent_desc_keycode_space"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_DEL",
+      "constantName": "KEYCODE_DEL",
+      "category": "INPUT_EDIT",
+      "labelRes": "keyevent_label_keycode_del",
+      "descRes": "keyevent_desc_keycode_del"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_FORWARD_DEL",
+      "constantName": "KEYCODE_FORWARD_DEL",
+      "category": "INPUT_EDIT",
+      "labelRes": "keyevent_label_keycode_forward_del",
+      "descRes": "keyevent_desc_keycode_forward_del"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_CLEAR",
+      "constantName": "KEYCODE_CLEAR",
+      "category": "INPUT_EDIT",
+      "labelRes": "keyevent_label_keycode_clear",
+      "descRes": "keyevent_desc_keycode_clear"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_INSERT",
+      "constantName": "KEYCODE_INSERT",
+      "category": "INPUT_EDIT",
+      "labelRes": "keyevent_label_keycode_insert",
+      "descRes": "keyevent_desc_keycode_insert"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_CAPS_LOCK",
+      "constantName": "KEYCODE_CAPS_LOCK",
+      "category": "INPUT_EDIT",
+      "labelRes": "keyevent_label_keycode_caps_lock",
+      "descRes": "keyevent_desc_keycode_caps_lock"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_SCROLL_LOCK",
+      "constantName": "KEYCODE_SCROLL_LOCK",
+      "category": "INPUT_EDIT",
+      "labelRes": "keyevent_label_keycode_scroll_lock",
+      "descRes": "keyevent_desc_keycode_scroll_lock"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_NUM_LOCK",
+      "constantName": "KEYCODE_NUM_LOCK",
+      "category": "INPUT_EDIT",
+      "labelRes": "keyevent_label_keycode_num_lock",
+      "descRes": "keyevent_desc_keycode_num_lock"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_LANGUAGE_SWITCH",
+      "constantName": "KEYCODE_LANGUAGE_SWITCH",
+      "category": "INPUT_EDIT",
+      "labelRes": "keyevent_label_keycode_language_switch",
+      "descRes": "keyevent_desc_keycode_language_switch"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_ESCAPE",
+      "constantName": "KEYCODE_ESCAPE",
+      "category": "INPUT_EDIT",
+      "labelRes": "keyevent_label_keycode_escape",
+      "descRes": "keyevent_desc_keycode_escape"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_CAMERA",
+      "constantName": "KEYCODE_CAMERA",
+      "category": "HARDWARE",
+      "labelRes": "keyevent_label_keycode_camera",
+      "descRes": "keyevent_desc_keycode_camera"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_FOCUS",
+      "constantName": "KEYCODE_FOCUS",
+      "category": "HARDWARE",
+      "labelRes": "keyevent_label_keycode_focus",
+      "descRes": "keyevent_desc_keycode_focus"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_CALL",
+      "constantName": "KEYCODE_CALL",
+      "category": "HARDWARE",
+      "labelRes": "keyevent_label_keycode_call",
+      "descRes": "keyevent_desc_keycode_call"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_ENDCALL",
+      "constantName": "KEYCODE_ENDCALL",
+      "category": "HARDWARE",
+      "labelRes": "keyevent_label_keycode_endcall",
+      "descRes": "keyevent_desc_keycode_endcall"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_BRIGHTNESS_UP",
+      "constantName": "KEYCODE_BRIGHTNESS_UP",
+      "category": "HARDWARE",
+      "labelRes": "keyevent_label_keycode_brightness_up",
+      "descRes": "keyevent_desc_keycode_brightness_up"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_BRIGHTNESS_DOWN",
+      "constantName": "KEYCODE_BRIGHTNESS_DOWN",
+      "category": "HARDWARE",
+      "labelRes": "keyevent_label_keycode_brightness_down",
+      "descRes": "keyevent_desc_keycode_brightness_down"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_CALCULATOR",
+      "constantName": "KEYCODE_CALCULATOR",
+      "category": "HARDWARE",
+      "labelRes": "keyevent_label_keycode_calculator",
+      "descRes": "keyevent_desc_keycode_calculator"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_CALENDAR",
+      "constantName": "KEYCODE_CALENDAR",
+      "category": "HARDWARE",
+      "labelRes": "keyevent_label_keycode_calendar",
+      "descRes": "keyevent_desc_keycode_calendar"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_MUSIC",
+      "constantName": "KEYCODE_MUSIC",
+      "category": "HARDWARE",
+      "labelRes": "keyevent_label_keycode_music",
+      "descRes": "keyevent_desc_keycode_music"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_ENVELOPE",
+      "constantName": "KEYCODE_ENVELOPE",
+      "category": "HARDWARE",
+      "labelRes": "keyevent_label_keycode_envelope",
+      "descRes": "keyevent_desc_keycode_envelope"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_CONTACTS",
+      "constantName": "KEYCODE_CONTACTS",
+      "category": "HARDWARE",
+      "labelRes": "keyevent_label_keycode_contacts",
+      "descRes": "keyevent_desc_keycode_contacts"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_EXPLORER",
+      "constantName": "KEYCODE_EXPLORER",
+      "category": "HARDWARE",
+      "labelRes": "keyevent_label_keycode_explorer",
+      "descRes": "keyevent_desc_keycode_explorer"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_HELP",
+      "constantName": "KEYCODE_HELP",
+      "category": "HARDWARE",
+      "labelRes": "keyevent_label_keycode_help",
+      "descRes": "keyevent_desc_keycode_help"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_TV_POWER",
+      "constantName": "KEYCODE_TV_POWER",
+      "category": "TV_REMOTE",
+      "labelRes": "keyevent_label_keycode_tv_power",
+      "descRes": "keyevent_desc_keycode_tv_power"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_TV_INPUT",
+      "constantName": "KEYCODE_TV_INPUT",
+      "category": "TV_REMOTE",
+      "labelRes": "keyevent_label_keycode_tv_input",
+      "descRes": "keyevent_desc_keycode_tv_input"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_CHANNEL_UP",
+      "constantName": "KEYCODE_CHANNEL_UP",
+      "category": "TV_REMOTE",
+      "labelRes": "keyevent_label_keycode_channel_up",
+      "descRes": "keyevent_desc_keycode_channel_up"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_CHANNEL_DOWN",
+      "constantName": "KEYCODE_CHANNEL_DOWN",
+      "category": "TV_REMOTE",
+      "labelRes": "keyevent_label_keycode_channel_down",
+      "descRes": "keyevent_desc_keycode_channel_down"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_LAST_CHANNEL",
+      "constantName": "KEYCODE_LAST_CHANNEL",
+      "category": "TV_REMOTE",
+      "labelRes": "keyevent_label_keycode_last_channel",
+      "descRes": "keyevent_desc_keycode_last_channel"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_GUIDE",
+      "constantName": "KEYCODE_GUIDE",
+      "category": "TV_REMOTE",
+      "labelRes": "keyevent_label_keycode_guide",
+      "descRes": "keyevent_desc_keycode_guide"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_INFO",
+      "constantName": "KEYCODE_INFO",
+      "category": "TV_REMOTE",
+      "labelRes": "keyevent_label_keycode_info",
+      "descRes": "keyevent_desc_keycode_info"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_PROG_RED",
+      "constantName": "KEYCODE_PROG_RED",
+      "category": "TV_REMOTE",
+      "labelRes": "keyevent_label_keycode_prog_red",
+      "descRes": "keyevent_desc_keycode_prog_red"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_PROG_GREEN",
+      "constantName": "KEYCODE_PROG_GREEN",
+      "category": "TV_REMOTE",
+      "labelRes": "keyevent_label_keycode_prog_green",
+      "descRes": "keyevent_desc_keycode_prog_green"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_PROG_YELLOW",
+      "constantName": "KEYCODE_PROG_YELLOW",
+      "category": "TV_REMOTE",
+      "labelRes": "keyevent_label_keycode_prog_yellow",
+      "descRes": "keyevent_desc_keycode_prog_yellow"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_PROG_BLUE",
+      "constantName": "KEYCODE_PROG_BLUE",
+      "category": "TV_REMOTE",
+      "labelRes": "keyevent_label_keycode_prog_blue",
+      "descRes": "keyevent_desc_keycode_prog_blue"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_BUTTON_A",
+      "constantName": "KEYCODE_BUTTON_A",
+      "category": "GAMEPAD",
+      "labelRes": "keyevent_label_keycode_button_a",
+      "descRes": "keyevent_desc_keycode_button_a"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_BUTTON_B",
+      "constantName": "KEYCODE_BUTTON_B",
+      "category": "GAMEPAD",
+      "labelRes": "keyevent_label_keycode_button_b",
+      "descRes": "keyevent_desc_keycode_button_b"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_BUTTON_X",
+      "constantName": "KEYCODE_BUTTON_X",
+      "category": "GAMEPAD",
+      "labelRes": "keyevent_label_keycode_button_x",
+      "descRes": "keyevent_desc_keycode_button_x"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_BUTTON_Y",
+      "constantName": "KEYCODE_BUTTON_Y",
+      "category": "GAMEPAD",
+      "labelRes": "keyevent_label_keycode_button_y",
+      "descRes": "keyevent_desc_keycode_button_y"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_BUTTON_C",
+      "constantName": "KEYCODE_BUTTON_C",
+      "category": "GAMEPAD",
+      "labelRes": "keyevent_label_keycode_button_c",
+      "descRes": "keyevent_desc_keycode_button_c"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_BUTTON_Z",
+      "constantName": "KEYCODE_BUTTON_Z",
+      "category": "GAMEPAD",
+      "labelRes": "keyevent_label_keycode_button_z",
+      "descRes": "keyevent_desc_keycode_button_z"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_BUTTON_L1",
+      "constantName": "KEYCODE_BUTTON_L1",
+      "category": "GAMEPAD",
+      "labelRes": "keyevent_label_keycode_button_l1",
+      "descRes": "keyevent_desc_keycode_button_l1"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_BUTTON_R1",
+      "constantName": "KEYCODE_BUTTON_R1",
+      "category": "GAMEPAD",
+      "labelRes": "keyevent_label_keycode_button_r1",
+      "descRes": "keyevent_desc_keycode_button_r1"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_BUTTON_L2",
+      "constantName": "KEYCODE_BUTTON_L2",
+      "category": "GAMEPAD",
+      "labelRes": "keyevent_label_keycode_button_l2",
+      "descRes": "keyevent_desc_keycode_button_l2"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_BUTTON_R2",
+      "constantName": "KEYCODE_BUTTON_R2",
+      "category": "GAMEPAD",
+      "labelRes": "keyevent_label_keycode_button_r2",
+      "descRes": "keyevent_desc_keycode_button_r2"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_BUTTON_THUMBL",
+      "constantName": "KEYCODE_BUTTON_THUMBL",
+      "category": "GAMEPAD",
+      "labelRes": "keyevent_label_keycode_button_thumbl",
+      "descRes": "keyevent_desc_keycode_button_thumbl"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_BUTTON_THUMBR",
+      "constantName": "KEYCODE_BUTTON_THUMBR",
+      "category": "GAMEPAD",
+      "labelRes": "keyevent_label_keycode_button_thumbr",
+      "descRes": "keyevent_desc_keycode_button_thumbr"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_BUTTON_START",
+      "constantName": "KEYCODE_BUTTON_START",
+      "category": "GAMEPAD",
+      "labelRes": "keyevent_label_keycode_button_start",
+      "descRes": "keyevent_desc_keycode_button_start"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_BUTTON_SELECT",
+      "constantName": "KEYCODE_BUTTON_SELECT",
+      "category": "GAMEPAD",
+      "labelRes": "keyevent_label_keycode_button_select",
+      "descRes": "keyevent_desc_keycode_button_select"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_BUTTON_MODE",
+      "constantName": "KEYCODE_BUTTON_MODE",
+      "category": "GAMEPAD",
+      "labelRes": "keyevent_label_keycode_button_mode",
+      "descRes": "keyevent_desc_keycode_button_mode"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_F1",
+      "constantName": "KEYCODE_F1",
+      "category": "FUNCTION_KEYS",
+      "labelRes": "keyevent_label_keycode_f1",
+      "descRes": "keyevent_desc_keycode_f1"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_F2",
+      "constantName": "KEYCODE_F2",
+      "category": "FUNCTION_KEYS",
+      "labelRes": "keyevent_label_keycode_f2",
+      "descRes": "keyevent_desc_keycode_f2"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_F3",
+      "constantName": "KEYCODE_F3",
+      "category": "FUNCTION_KEYS",
+      "labelRes": "keyevent_label_keycode_f3",
+      "descRes": "keyevent_desc_keycode_f3"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_F4",
+      "constantName": "KEYCODE_F4",
+      "category": "FUNCTION_KEYS",
+      "labelRes": "keyevent_label_keycode_f4",
+      "descRes": "keyevent_desc_keycode_f4"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_F5",
+      "constantName": "KEYCODE_F5",
+      "category": "FUNCTION_KEYS",
+      "labelRes": "keyevent_label_keycode_f5",
+      "descRes": "keyevent_desc_keycode_f5"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_F6",
+      "constantName": "KEYCODE_F6",
+      "category": "FUNCTION_KEYS",
+      "labelRes": "keyevent_label_keycode_f6",
+      "descRes": "keyevent_desc_keycode_f6"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_F7",
+      "constantName": "KEYCODE_F7",
+      "category": "FUNCTION_KEYS",
+      "labelRes": "keyevent_label_keycode_f7",
+      "descRes": "keyevent_desc_keycode_f7"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_F8",
+      "constantName": "KEYCODE_F8",
+      "category": "FUNCTION_KEYS",
+      "labelRes": "keyevent_label_keycode_f8",
+      "descRes": "keyevent_desc_keycode_f8"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_F9",
+      "constantName": "KEYCODE_F9",
+      "category": "FUNCTION_KEYS",
+      "labelRes": "keyevent_label_keycode_f9",
+      "descRes": "keyevent_desc_keycode_f9"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_F10",
+      "constantName": "KEYCODE_F10",
+      "category": "FUNCTION_KEYS",
+      "labelRes": "keyevent_label_keycode_f10",
+      "descRes": "keyevent_desc_keycode_f10"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_F11",
+      "constantName": "KEYCODE_F11",
+      "category": "FUNCTION_KEYS",
+      "labelRes": "keyevent_label_keycode_f11",
+      "descRes": "keyevent_desc_keycode_f11"
+    },
+    {
+      "keyCodeExpr": "KeyEvent.KEYCODE_F12",
+      "constantName": "KEYCODE_F12",
+      "category": "FUNCTION_KEYS",
+      "labelRes": "keyevent_label_keycode_f12",
+      "descRes": "keyevent_desc_keycode_f12"
+    }
+  ]
+}

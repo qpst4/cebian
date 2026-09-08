@@ -2,8 +2,11 @@ package com.slideindex.app.shizuku
 
 import android.content.Context
 import androidx.annotation.Keep
+import androidx.annotation.StringRes
 
 class TaskManagerUserService() : ITaskManagerService.Stub() {
+
+    private var appContext: Context? = null
 
     private val shell = TaskManagerShellExecutor
     private val shellRunner = ShellCommandRunner { args -> shell.shellCommand(*args) }
@@ -12,7 +15,9 @@ class TaskManagerUserService() : ITaskManagerService.Stub() {
     private val freeWindow = TaskManagerFreeWindowOperations(DefaultTaskShellPort, tasks)
 
     @Keep
-    constructor(context: Context) : this()
+    constructor(context: Context) : this() {
+        appContext = context.applicationContext
+    }
 
     override fun destroy() {
         System.exit(0)
@@ -64,7 +69,7 @@ class TaskManagerUserService() : ITaskManagerService.Stub() {
         val wantRoot = useRoot && !forceAdb
         val result = when {
             wantRoot -> shell.runAsRootUser(trimmed)
-            else -> shell.runAsShellUser(trimmed)
+            else -> shell.runAsShellUser(trimmed, appContext)
         }
         return shell.formatShellOutput(result.exitCode, result.output)
     }
@@ -95,6 +100,7 @@ class TaskManagerUserService() : ITaskManagerService.Stub() {
 
     companion object {
         const val API_VERSION = ShizukuUserServiceHost.SERVICE_BUILD
-        const val SHELL_DOWNGRADE_HINT = TaskManagerShellExecutor.SHELL_DOWNGRADE_HINT
+        @StringRes
+        val SHELL_DOWNGRADE_HINT_RES: Int = TaskManagerShellExecutor.SHELL_DOWNGRADE_HINT_RES
     }
 }

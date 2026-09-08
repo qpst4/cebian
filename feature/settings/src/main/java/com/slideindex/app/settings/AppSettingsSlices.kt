@@ -323,7 +323,7 @@ data class ClipboardSettings(
 /** 搜索面板与搜索引擎。 */
 data class SearchPanelSettings(
     /** Configured text/image search engines for pick panel. */
-    val searchEngines: List<SearchEngineConfig> = SearchEngineCatalog.defaultEngines(),
+    val searchEngines: List<SearchEngineConfig> = emptyList(),
     val searchEngineGridColumns: Int = 5,
     val searchEngineGridRows: Int = 2,
     val searchEngineShowLabels: Boolean = true,

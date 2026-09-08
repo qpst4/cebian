@@ -1,5 +1,6 @@
 package com.slideindex.app.settings
 
+import android.content.Context
 import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.Preferences
 import com.slideindex.app.gesture.GestureRuleCodec
@@ -101,13 +102,14 @@ internal object SettingsTriggerStore {
 
     fun updateTriggerSwipeDistances(
         prefs: MutablePreferences,
+        context: Context,
         side: PanelSide,
         handleId: String,
         shortSwipeDistanceDp: Float? = null,
         longSwipeDistanceDp: Float? = null,
         landscape: Boolean = false,
     ) {
-        val snapshot = SettingsSnapshotReader.read(prefs)
+        val snapshot = SettingsSnapshotReader.read(prefs, context)
         val current = if (landscape) snapshot.forLandscapeHandleEditing() else snapshot
         val sourceHandle = current.triggerHandle(side, handleId)
         var updated = current.withUpdatedTriggerHandleDistances(

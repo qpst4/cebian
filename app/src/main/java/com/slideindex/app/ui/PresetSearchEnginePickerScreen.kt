@@ -108,7 +108,7 @@ fun PresetSearchEnginePickerScreen(
             }
 
             // 4. 若无 searchLink，根据名称及包名判定
-            if (preset.name == engine.name) {
+            if (preset.localizedName(context) == engine.name) {
                 return@any (presetPkg == null || enginePkg == null || presetPkg == enginePkg)
             }
 
@@ -116,14 +116,14 @@ fun PresetSearchEnginePickerScreen(
         }
     }
 
-    val filteredPresets = remember(selectedCategoryIndex, searchQuery, currentEngines) {
+    val filteredPresets = remember(selectedCategoryIndex, searchQuery, currentEngines, context) {
         val cat = categories[selectedCategoryIndex].first
         val query = searchQuery.trim().lowercase()
         allPresets.filter { preset ->
             val matchCategory = (cat == PresetSearchCategory.All || preset.category == cat)
             val matchQuery = query.isEmpty() ||
-                preset.name.lowercase().contains(query) ||
-                preset.description.lowercase().contains(query) ||
+                preset.localizedName(context).lowercase().contains(query) ||
+                preset.localizedDescription(context).lowercase().contains(query) ||
                 preset.targetPackage?.lowercase()?.contains(query) == true ||
                 preset.searchLink?.lowercase()?.contains(query) == true
             matchCategory && matchQuery
@@ -138,7 +138,7 @@ fun PresetSearchEnginePickerScreen(
                 "preset_search_icons/${preset.iconAssetFileName}",
             )
         }
-        val base = preset.toSearchEngineConfig(sortOrder)
+        val base = preset.toSearchEngineConfig(context, sortOrder)
         return if (iconPath != null) {
             base.copy(iconType = SearchIconType.URI, iconPath = iconPath)
         } else {
@@ -220,7 +220,7 @@ fun PresetSearchEnginePickerScreen(
                         onAddEngines(listOf(config))
                         Toast.makeText(
                             context,
-                            String.format(addedToastTemplate, preset.name),
+                            String.format(addedToastTemplate, preset.localizedName(context)),
                             Toast.LENGTH_SHORT,
                         ).show()
                     },
@@ -244,6 +244,9 @@ private fun PresetEngineItemRow(
     var iconBitmap by remember(preset.iconAssetFileName, preset.targetPackage) {
         mutableStateOf<android.graphics.Bitmap?>(null)
     }
+
+    val presetName = preset.localizedName(context)
+    val presetDescription = preset.localizedDescription(context)
 
     LaunchedEffect(preset.iconAssetFileName, preset.targetPackage) {
         val assetFile = preset.iconAssetFileName
@@ -289,14 +292,14 @@ private fun PresetEngineItemRow(
                 if (bmp != null) {
                     Image(
                         bitmap = bmp.asImageBitmap(),
-                        contentDescription = preset.name,
+                        contentDescription = presetName,
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop,
                         alpha = if (alreadyAdded) 0.45f else 1f,
                     )
                 } else {
                     Text(
-                        text = preset.name.take(1),
+                        text = presetName.take(1),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(
@@ -313,7 +316,7 @@ private fun PresetEngineItemRow(
                 modifier = Modifier.weight(1f),
             ) {
                 Text(
-                    text = preset.name,
+                    text = presetName,
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.SemiBold,
                     color = if (alreadyAdded) {
@@ -326,7 +329,7 @@ private fun PresetEngineItemRow(
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
-                    text = preset.description,
+                    text = presetDescription,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(
                         alpha = if (alreadyAdded) 0.45f else 0.8f,

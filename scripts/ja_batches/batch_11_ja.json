@@ -1,0 +1,722 @@
+[
+  {
+    "name": "holographic_settings_timeout",
+    "ja": "アイドル時に自動で閉じる"
+  },
+  {
+    "name": "holographic_settings_timeout_value",
+    "ja": "%1$d 秒"
+  },
+  {
+    "name": "holographic_settings_sensitivity",
+    "ja": "回転感度"
+  },
+  {
+    "name": "holographic_settings_sensitivity_value",
+    "ja": "%1$d"
+  },
+  {
+    "name": "holographic_settings_haptic",
+    "ja": "回転時の触覚"
+  },
+  {
+    "name": "holographic_settings_haptic_off",
+    "ja": "オフ"
+  },
+  {
+    "name": "holographic_settings_haptic_light",
+    "ja": "弱"
+  },
+  {
+    "name": "holographic_settings_haptic_medium",
+    "ja": "中"
+  },
+  {
+    "name": "holographic_settings_haptic_strong",
+    "ja": "強"
+  },
+  {
+    "name": "holographic_hidden_apps_entry_title",
+    "ja": "非表示アプリ"
+  },
+  {
+    "name": "holographic_hidden_apps_entry_desc",
+    "ja": "ホログラフィック球体からアプリを非表示"
+  },
+  {
+    "name": "holographic_hidden_apps_title",
+    "ja": "ホログラフィック非表示アプリ"
+  },
+  {
+    "name": "holographic_hidden_apps_desc",
+    "ja": "非表示にしたアプリは球体に表示されません。サイドインデックスや他のリストには影響しません。"
+  },
+  {
+    "name": "gesture_action_task_switcher",
+    "ja": "タスク切替"
+  },
+  {
+    "name": "gesture_action_back",
+    "ja": "戻る"
+  },
+  {
+    "name": "gesture_action_home",
+    "ja": "ホーム"
+  },
+  {
+    "name": "gesture_action_recents",
+    "ja": "最近使ったアプリ"
+  },
+  {
+    "name": "gesture_action_close_current_app",
+    "ja": "現在のアプリを閉じる"
+  },
+  {
+    "name": "gesture_action_free_window_current_app",
+    "ja": "現在のアプリをフリーフォームで開く"
+  },
+  {
+    "name": "gesture_action_click_passthrough",
+    "ja": "クリックスルー"
+  },
+  {
+    "name": "gesture_action_flashlight",
+    "ja": "ライト"
+  },
+  {
+    "name": "gesture_action_adjust_volume",
+    "ja": "スワイプで音量調整"
+  },
+  {
+    "name": "gesture_action_adjust_volume_desc",
+    "ja": "音量バーを表示し、スワイプ中に調整します"
+  },
+  {
+    "name": "gesture_action_adjust_volume_permission",
+    "ja": "サイレントモード（DND）へのアクセスが必要です"
+  },
+  {
+    "name": "gesture_action_adjust_brightness",
+    "ja": "スワイプで明るさ調整"
+  },
+  {
+    "name": "gesture_action_adjust_brightness_desc",
+    "ja": "明るさバーを表示し、スワイプ中に調整します"
+  },
+  {
+    "name": "gesture_action_adjust_brightness_permission",
+    "ja": "システム設定の変更権限が必要です"
+  },
+  {
+    "name": "gesture_action_toggle_auto_brightness",
+    "ja": "自動明るさ"
+  },
+  {
+    "name": "gesture_action_toggle_auto_brightness_desc",
+    "ja": "システムの自動明るさをオン/オフします"
+  },
+  {
+    "name": "gesture_action_launch_assistant",
+    "ja": "デフォルトアシスタントを起動"
+  },
+  {
+    "name": "gesture_action_voice_search",
+    "ja": "音声検索"
+  },
+  {
+    "name": "gesture_action_voice_search_desc",
+    "ja": "ハンズフリー音声検索と音声認識パネルを起動します"
+  },
+  {
+    "name": "gesture_action_voice_assistant",
+    "ja": "音声アシスタント"
+  },
+  {
+    "name": "gesture_action_voice_assistant_desc",
+    "ja": "システムの音声コマンドモードを起動します（ヘッドセットの音声キーと同様）"
+  },
+  {
+    "name": "gesture_action_toggle_auto_rotate",
+    "ja": "自動回転の切り替え"
+  },
+  {
+    "name": "gesture_action_toggle_auto_rotate_desc",
+    "ja": "画面の自動回転をオン/オフします"
+  },
+  {
+    "name": "gesture_action_force_portrait",
+    "ja": "縦向き固定"
+  },
+  {
+    "name": "gesture_action_force_portrait_desc",
+    "ja": "自動回転を無効にし、画面を縦向きに固定します"
+  },
+  {
+    "name": "gesture_action_force_landscape",
+    "ja": "横向き固定"
+  },
+  {
+    "name": "gesture_action_force_landscape_desc",
+    "ja": "自動回転を無効にし、画面を横向きに固定します"
+  },
+  {
+    "name": "gesture_action_toggle_mute",
+    "ja": "着信音をサイレントに切り替え"
+  },
+  {
+    "name": "gesture_action_toggle_mute_desc",
+    "ja": "通話と通知のみをサイレントにします。メディア音量は変更されません"
+  },
+  {
+    "name": "gesture_action_toggle_mute_permission",
+    "ja": "通知/サイレントモード（DND）へのアクセスが必要です"
+  },
+  {
+    "name": "gesture_action_media_play_pause",
+    "ja": "再生/一時停止"
+  },
+  {
+    "name": "gesture_action_media_previous",
+    "ja": "前の曲"
+  },
+  {
+    "name": "gesture_action_media_next",
+    "ja": "次の曲"
+  },
+  {
+    "name": "gesture_action_previous_app",
+    "ja": "前のアプリ"
+  },
+  {
+    "name": "gesture_action_open_notifications",
+    "ja": "通知シェードを開く"
+  },
+  {
+    "name": "gesture_action_open_quick_settings",
+    "ja": "クイック設定を開く"
+  },
+  {
+    "name": "gesture_action_lock_screen",
+    "ja": "画面をロック"
+  },
+  {
+    "name": "gesture_action_lock_screen_and_silence_ring",
+    "ja": "画面ロックと着信音サイレント"
+  },
+  {
+    "name": "gesture_action_lock_screen_and_silence_ring_desc",
+    "ja": "通話と通知をサイレントにしてからロックします。メディア音量は変更されません"
+  },
+  {
+    "name": "gesture_action_lock_screen_and_mute_all",
+    "ja": "画面ロックとすべてミュート"
+  },
+  {
+    "name": "gesture_action_lock_screen_and_mute_all_desc",
+    "ja": "着信音/通知をサイレントにし、メディア音量を 0 にしてからロックします。音量は手動で復元してください"
+  },
+  {
+    "name": "gesture_action_screenshot",
+    "ja": "スクリーンショット"
+  },
+  {
+    "name": "gesture_action_fullscreen_screenshot_pick",
+    "ja": "全画面スクリーンショット選択"
+  },
+  {
+    "name": "gesture_action_fullscreen_screenshot_pick_desc",
+    "ja": "全画面をキャプチャし、テキスト選択パネルを開きます"
+  },
+  {
+    "name": "gesture_action_fullscreen_screenshot_pick_permission",
+    "ja": "アクセシビリティサービスが必要です"
+  },
+  {
+    "name": "gesture_action_regional_screenshot_pick",
+    "ja": "部分スクリーンショットと選択"
+  },
+  {
+    "name": "gesture_action_regional_screenshot_pick_desc",
+    "ja": "連続モードのみ：端からドラッグ。ボールが指に追従し、十字でテキスト選択または領域指定"
+  },
+  {
+    "name": "gesture_action_regional_screenshot_pick_permission",
+    "ja": "アクセシビリティサービスが必要です"
+  },
+  {
+    "name": "gesture_action_search_panel",
+    "ja": "検索パネル"
+  },
+  {
+    "name": "gesture_action_search_panel_desc",
+    "ja": "テキストや画像を素早く検索"
+  },
+  {
+    "name": "gesture_action_power_menu",
+    "ja": "電源メニュー"
+  },
+  {
+    "name": "gesture_action_keep_screen_on",
+    "ja": "画面を常時オン"
+  },
+  {
+    "name": "gesture_action_snooze_overlays",
+    "ja": "オーバーレイを一時停止"
+  },
+  {
+    "name": "gesture_action_snooze_overlays_desc",
+    "ja": "トリガー、コーナーホイール、フローティングボールを 5 秒間一時的に非表示"
+  },
+  {
+    "name": "gesture_action_snooze_overlays_toast",
+    "ja": "トリガー、コーナーホイール、フローティングボールを 5 秒間一時停止しました"
+  },
+  {
+    "name": "gesture_action_scroll_to_top",
+    "ja": "先頭へジャンプ"
+  },
+  {
+    "name": "gesture_action_scroll_to_top_desc",
+    "ja": "Android 7.0 以降でシミュレートされたスワイプ"
+  },
+  {
+    "name": "gesture_action_scroll_to_bottom",
+    "ja": "末尾へジャンプ"
+  },
+  {
+    "name": "gesture_action_scroll_to_bottom_desc",
+    "ja": "Android 7.0 以降でシミュレートされたスワイプ"
+  },
+  {
+    "name": "gesture_action_shell_command_panel",
+    "ja": "Shell コマンドパネル"
+  },
+  {
+    "name": "gesture_action_execute_shell_command",
+    "ja": "Shell コマンドを実行"
+  },
+  {
+    "name": "gesture_action_execute_shell_command_named",
+    "ja": "Shell を実行：%1$s"
+  },
+  {
+    "name": "gesture_shell_command_config_title",
+    "ja": "Shell コマンドを設定"
+  },
+  {
+    "name": "gesture_shell_command_config_hint",
+    "ja": "コマンドはこのジェスチャー用に保存され、トリガー時にバックグラウンドで実行されます。"
+  },
+  {
+    "name": "gesture_action_quick_tools_overlay",
+    "ja": "クイックツール（オーバーレイ）"
+  },
+  {
+    "name": "gesture_action_quick_tools_overlay_permission",
+    "ja": "Cebian の有効化が必要です"
+  },
+  {
+    "name": "gesture_action_widget_popup_overlay",
+    "ja": "ウィジェットポップアップ"
+  },
+  {
+    "name": "gesture_action_widget_popup_overlay_permission",
+    "ja": "Cebian の有効化が必要です"
+  },
+  {
+    "name": "gesture_action_stash_panel",
+    "ja": "ストッシュを開く"
+  },
+  {
+    "name": "gesture_action_stash_panel_permission",
+    "ja": "Cebian の有効化が必要です"
+  },
+  {
+    "name": "gesture_action_clipboard_panel",
+    "ja": "クリップボードを開く"
+  },
+  {
+    "name": "gesture_action_clipboard_panel_permission",
+    "ja": "Cebian の有効化が必要です"
+  },
+  {
+    "name": "gesture_action_clipboard_float",
+    "ja": "フローティングクリップボード"
+  },
+  {
+    "name": "gesture_action_clipboard_float_desc",
+    "ja": "どこからでもフローティングクリップボードウィンドウを開きます"
+  },
+  {
+    "name": "gesture_action_clipboard_float_permission",
+    "ja": "Cebian の有効化とオーバーレイ権限が必要です"
+  },
+  {
+    "name": "clipboard_float_style_title",
+    "ja": "フローティングリストスタイル"
+  },
+  {
+    "name": "clipboard_float_style_desc",
+    "ja": "コンパクトな 1 行表示とカード表示を切り替え"
+  },
+  {
+    "name": "clipboard_float_style_single_line",
+    "ja": "コンパクト 1 行"
+  },
+  {
+    "name": "clipboard_float_style_card",
+    "ja": "複数行カード"
+  },
+  {
+    "name": "clipboard_float_style_toggle",
+    "ja": "リストスタイルを切り替え"
+  },
+  {
+    "name": "gesture_action_clipboard_pick",
+    "ja": "クリップボード選択"
+  },
+  {
+    "name": "gesture_action_clipboard_pick_desc",
+    "ja": "システムクリップボードを読み取り、テキスト選択パネルを開きます"
+  },
+  {
+    "name": "gesture_action_clipboard_pick_permission",
+    "ja": "Cebian の有効化が必要です"
+  },
+  {
+    "name": "gesture_action_toggle_dnd",
+    "ja": "サイレントモード（DND）の切り替え"
+  },
+  {
+    "name": "gesture_action_screen_record",
+    "ja": "画面録画"
+  },
+  {
+    "name": "gesture_action_toggle_wifi",
+    "ja": "Wi-Fi の切り替え"
+  },
+  {
+    "name": "gesture_action_toggle_mobile_data",
+    "ja": "モバイルデータの切り替え"
+  },
+  {
+    "name": "gesture_action_toggle_shell_permission",
+    "ja": "Shizuku または Root 権限が必要です"
+  },
+  {
+    "name": "gesture_action_screen_record_permission",
+    "ja": "「他のアプリの上に表示」権限が必要です"
+  },
+  {
+    "name": "screen_record_channel_name",
+    "ja": "画面録画"
+  },
+  {
+    "name": "screen_record_notification_recording",
+    "ja": "画面を録画中…"
+  },
+  {
+    "name": "media_notification_listener_name",
+    "ja": "通知リスナー（メディアセッションと履歴）"
+  },
+  {
+    "name": "side_gestures_behavior_section",
+    "ja": "レイアウトと動作"
+  },
+  {
+    "name": "default_trigger_mode",
+    "ja": "デフォルトのトリガーモード"
+  },
+  {
+    "name": "default_trigger_mode_desc",
+    "ja": "ジェスチャーに独自のモードがない場合に使用されます"
+  },
+  {
+    "name": "trigger_mode_default_slot_desc",
+    "ja": "Cebian デフォルトに従う（%1$s）"
+  },
+  {
+    "name": "slot_pick_action",
+    "ja": "操作タイプを選択"
+  },
+  {
+    "name": "slot_pick_trigger_mode",
+    "ja": "トリガーモードを選択"
+  },
+  {
+    "name": "trigger_mode_default",
+    "ja": "デフォルト"
+  },
+  {
+    "name": "trigger_mode_on_release",
+    "ja": "離してトリガー"
+  },
+  {
+    "name": "trigger_mode_on_release_desc",
+    "ja": "指を離した後に操作を実行します"
+  },
+  {
+    "name": "trigger_mode_continuous",
+    "ja": "連続"
+  },
+  {
+    "name": "trigger_mode_continuous_desc",
+    "ja": "スワイプ中もトリガーし続けます。対応：%1$s"
+  },
+  {
+    "name": "trigger_mode_immediate",
+    "ja": "即時"
+  },
+  {
+    "name": "trigger_mode_immediate_desc",
+    "ja": "スワイプ距離に達した時点で実行します"
+  },
+  {
+    "name": "slot_trigger_mode",
+    "ja": "トリガーモード"
+  },
+  {
+    "name": "slot_action_type",
+    "ja": "操作タイプ"
+  },
+  {
+    "name": "confirm",
+    "ja": "OK"
+  },
+  {
+    "name": "short_swipe_distance",
+    "ja": "短スワイプ距離"
+  },
+  {
+    "name": "long_swipe_distance",
+    "ja": "長スワイプ距離"
+  },
+  {
+    "name": "swipe_distance_small",
+    "ja": "近"
+  },
+  {
+    "name": "swipe_distance_large",
+    "ja": "遠"
+  },
+  {
+    "name": "gesture_animation_title",
+    "ja": "ジェスチャーアニメーション"
+  },
+  {
+    "name": "trigger_collection_landscape_title",
+    "ja": "横向きハンドル"
+  },
+  {
+    "name": "trigger_collection_landscape_desc",
+    "ja": "横向き用にハンドルレイアウトを個別に設定"
+  },
+  {
+    "name": "trigger_collection_open_landscape",
+    "ja": "横向き"
+  },
+  {
+    "name": "trigger_collection_back_portrait",
+    "ja": "縦向き"
+  },
+  {
+    "name": "hide_trigger_landscape",
+    "ja": "横向き"
+  },
+  {
+    "name": "hide_trigger_lock_screen",
+    "ja": "ロック画面"
+  },
+  {
+    "name": "hide_trigger_launcher",
+    "ja": "ホーム画面"
+  },
+  {
+    "name": "dynamic_color",
+    "ja": "ダイナミックカラー"
+  },
+  {
+    "name": "dynamic_color_desc",
+    "ja": "壁紙から色を生成します"
+  },
+  {
+    "name": "bottom_nav_glass_enabled",
+    "ja": "下部ナビゲーションのグラス効果"
+  },
+  {
+    "name": "bottom_nav_glass_enabled_desc",
+    "ja": "背面の画面をサンプリングせず、ソリッドバーを使用します。スクロールの滑らかさが向上する場合があります"
+  },
+  {
+    "name": "top_app_bar_blur_style",
+    "ja": "上部バーのぼかしスタイル"
+  },
+  {
+    "name": "top_app_bar_blur_style_desc",
+    "ja": "RuntimeShader 対応の Android 13 以降が必要です"
+  },
+  {
+    "name": "top_app_bar_blur_style_gaussian",
+    "ja": "ガウス"
+  },
+  {
+    "name": "top_app_bar_blur_style_progressive",
+    "ja": "プログレッシブ"
+  },
+  {
+    "name": "bottom_nav_blur_radius",
+    "ja": "下部ナビゲーションのぼかし"
+  },
+  {
+    "name": "gesture_hint_style_title",
+    "ja": "アニメーションスタイル"
+  },
+  {
+    "name": "gesture_hint_style_wave",
+    "ja": "ウェーブ"
+  },
+  {
+    "name": "gesture_hint_style_wave_desc",
+    "ja": "エッジのウェーブがジェスチャーに合わせて伸縮します"
+  },
+  {
+    "name": "gesture_hint_style_capsule",
+    "ja": "カプセル"
+  },
+  {
+    "name": "gesture_hint_style_bubble",
+    "ja": "バブル"
+  },
+  {
+    "name": "gesture_hint_style_bubble_desc",
+    "ja": "端から内側にバブルがポップします"
+  },
+  {
+    "name": "animation_style_select_desc",
+    "ja": "エッジジェスチャーヒントのアニメーションを選択"
+  },
+  {
+    "name": "animation_style_select_hint",
+    "ja": "スタイル選択後、歯車アイコンをタップして詳細を確認できます。"
+  },
+  {
+    "name": "gesture_hint_finger_offset_title",
+    "ja": "指からのオフセット"
+  },
+  {
+    "name": "gesture_hint_finger_offset_hint",
+    "ja": "アニメーションは指に追従します。値を大きくすると指先から離れます（側面/下は上方向、上は下方向）。0 でデフォルト位置。"
+  },
+  {
+    "name": "animation_style_customize",
+    "ja": "スタイルをカスタマイズ"
+  },
+  {
+    "name": "animation_style_color_picker_title",
+    "ja": "色を選択"
+  },
+  {
+    "name": "animation_style_color_hex_label",
+    "ja": "カラー値"
+  },
+  {
+    "name": "animation_style_color_hex_invalid",
+    "ja": "有効な 16 進カラーを入力してください"
+  },
+  {
+    "name": "animation_style_color_alpha_label",
+    "ja": "不透明度"
+  },
+  {
+    "name": "animation_style_color_outline",
+    "ja": "カラーアウトライン"
+  },
+  {
+    "name": "animation_style_shape_size",
+    "ja": "形状サイズ"
+  },
+  {
+    "name": "animation_style_icon",
+    "ja": "アイコン"
+  },
+  {
+    "name": "animation_style_background_color",
+    "ja": "背景色"
+  },
+  {
+    "name": "animation_style_stroke_color",
+    "ja": "ストローク色"
+  },
+  {
+    "name": "animation_style_stroke_width",
+    "ja": "ストローク幅"
+  },
+  {
+    "name": "animation_style_width",
+    "ja": "幅"
+  },
+  {
+    "name": "animation_style_length",
+    "ja": "長さ"
+  },
+  {
+    "name": "animation_style_corner_radius",
+    "ja": "角の半径"
+  },
+  {
+    "name": "animation_style_diameter",
+    "ja": "直径"
+  },
+  {
+    "name": "animation_style_pop_offset",
+    "ja": "ポップ距離"
+  },
+  {
+    "name": "animation_style_reserved_bounds",
+    "ja": "画面内に保持"
+  },
+  {
+    "name": "animation_style_reserved_bounds_hint",
+    "ja": "画面外に出ないようにします。オフにすると中央配置"
+  },
+  {
+    "name": "animation_style_bezier_transform",
+    "ja": "モーフ"
+  },
+  {
+    "name": "animation_style_bezier_transform_hint",
+    "ja": "指の動きに合わせて形状が変化します"
+  },
+  {
+    "name": "animation_style_custom_icon",
+    "ja": "カスタムアイコン"
+  },
+  {
+    "name": "animation_style_tint",
+    "ja": "ティント"
+  },
+  {
+    "name": "animation_style_scaling",
+    "ja": "スケール"
+  },
+  {
+    "name": "animation_style_small",
+    "ja": "小"
+  },
+  {
+    "name": "animation_style_large",
+    "ja": "大"
+  },
+  {
+    "name": "animation_style_short",
+    "ja": "短"
+  },
+  {
+    "name": "animation_style_long",
+    "ja": "長"
+  },
+  {
+    "name": "permission_shizuku_title",
+    "ja": "Shizuku 権限"
+  }
+]

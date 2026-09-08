@@ -1,0 +1,722 @@
+[
+  {
+    "name": "app_name",
+    "ja": "Cebian"
+  },
+  {
+    "name": "main_settings_subtitle",
+    "ja": "エッジジェスチャとサイドバーパネル"
+  },
+  {
+    "name": "main_nav_home",
+    "ja": "ホーム"
+  },
+  {
+    "name": "main_nav_shake",
+    "ja": "シェイク"
+  },
+  {
+    "name": "main_nav_notification",
+    "ja": "メッセージ"
+  },
+  {
+    "name": "main_nav_extension",
+    "ja": "拡張機能"
+  },
+  {
+    "name": "extension_hub_subtitle",
+    "ja": "クイックランチャー、コマンドパネルなど"
+  },
+  {
+    "name": "extension_section_launch_panel",
+    "ja": "ランチャーとパネル"
+  },
+  {
+    "name": "extension_section_shortcuts",
+    "ja": "ショートカットとアクション"
+  },
+  {
+    "name": "extension_section_tools",
+    "ja": "ツール"
+  },
+  {
+    "name": "extension_section_maintenance",
+    "ja": "メンテナンス"
+  },
+  {
+    "name": "external_invocation_entry_title",
+    "ja": "外部呼び出し"
+  },
+  {
+    "name": "external_invocation_entry_desc",
+    "ja": "Tasker など他アプリ向けのディープリンクと Intent アクション"
+  },
+  {
+    "name": "external_invocation_title",
+    "ja": "外部呼び出し"
+  },
+  {
+    "name": "external_invocation_hint",
+    "ja": "cebian:// リンクまたは Intent アクションで他アプリから Cebian の機能を開けます。検索パネル、ストッシュ、クリップボードにはサイドバーとアクセシビリティサービスが必要です。"
+  },
+  {
+    "name": "external_invocation_query_hint",
+    "ja": "オプションの q で検索クエリを事前入力できます。例: cebian://open/search-panel?q=weather"
+  },
+  {
+    "name": "external_invocation_deeplink_section",
+    "ja": "ディープリンク（推奨）"
+  },
+  {
+    "name": "external_invocation_action_section",
+    "ja": "Intent アクション（上級者向け）"
+  },
+  {
+    "name": "external_invocation_action_hint",
+    "ja": "項目をタップすると adb コマンドをコピーします。一部のアクションには明示的なコンポーネントが必要です。Shell パネルはアプリ内部専用です。"
+  },
+  {
+    "name": "external_invocation_copied",
+    "ja": "クリップボードにコピーしました"
+  },
+  {
+    "name": "external_invocation_query_example",
+    "ja": "%1$s に対応"
+  },
+  {
+    "name": "external_invocation_action_component",
+    "ja": "コンポーネント: %1$s"
+  },
+  {
+    "name": "external_invocation_action_query_extra",
+    "ja": "オプションの extra: %1$s"
+  },
+  {
+    "name": "external_invocation_entry_notification_history",
+    "ja": "通知ハブ"
+  },
+  {
+    "name": "external_invocation_entry_stash",
+    "ja": "ストッシュ"
+  },
+  {
+    "name": "external_invocation_entry_clipboard",
+    "ja": "クリップボード"
+  },
+  {
+    "name": "external_invocation_entry_search_panel",
+    "ja": "検索パネル"
+  },
+  {
+    "name": "external_invocation_entry_toggle_gesture",
+    "ja": "ジェスチャの切り替え"
+  },
+  {
+    "name": "external_invocation_entry_shell_panel",
+    "ja": "Shell コマンドパネル"
+  },
+  {
+    "name": "external_invocation_entry_notification_history_desc",
+    "ja": "通知ハブを開く"
+  },
+  {
+    "name": "external_invocation_entry_stash_desc",
+    "ja": "ストッシュパネルを開く"
+  },
+  {
+    "name": "external_invocation_entry_clipboard_desc",
+    "ja": "クリップボードパネルを開く"
+  },
+  {
+    "name": "external_invocation_entry_search_panel_desc",
+    "ja": "検索パネルを開く"
+  },
+  {
+    "name": "external_invocation_action_notification_history_desc",
+    "ja": "通知ハブを開く（検索の事前入力はディープリンクを推奨）"
+  },
+  {
+    "name": "external_invocation_action_stash_desc",
+    "ja": "ストッシュパネルを開く"
+  },
+  {
+    "name": "external_invocation_action_clipboard_desc",
+    "ja": "クリップボードパネルを開く"
+  },
+  {
+    "name": "external_invocation_action_search_panel_desc",
+    "ja": "検索パネルを開く"
+  },
+  {
+    "name": "external_invocation_action_toggle_gesture_desc",
+    "ja": "エッジジェスチャのマスタースイッチを切り替え"
+  },
+  {
+    "name": "external_invocation_action_shell_panel_desc",
+    "ja": "Shell パネルを開く（エクスポート不可、アプリ内ショートカットのみ）"
+  },
+  {
+    "name": "shake_gestures_title",
+    "ja": "シェイクジェスチャ"
+  },
+  {
+    "name": "shake_gestures_subtitle",
+    "ja": "端末を振ってアクションを実行"
+  },
+  {
+    "name": "shake_gestures_section_basic",
+    "ja": "基本のシェイクアクション"
+  },
+  {
+    "name": "shake_gestures_section_advanced",
+    "ja": "高度なシェイクアクション"
+  },
+  {
+    "name": "shake_gestures_section_sensitivity",
+    "ja": "感度と設定"
+  },
+  {
+    "name": "shake_gestures_section_feedback",
+    "ja": "フィードバック効果"
+  },
+  {
+    "name": "shake_gestures_section_advanced_features",
+    "ja": "高度な機能"
+  },
+  {
+    "name": "shake_gesture_left_flip",
+    "ja": "左フリップ"
+  },
+  {
+    "name": "shake_gesture_right_flip",
+    "ja": "右フリップ"
+  },
+  {
+    "name": "shake_gesture_forward_flip",
+    "ja": "前フリップ"
+  },
+  {
+    "name": "shake_gesture_backward_flip",
+    "ja": "後フリップ"
+  },
+  {
+    "name": "shake_gesture_left_flick",
+    "ja": "左フリック"
+  },
+  {
+    "name": "shake_gesture_right_flick",
+    "ja": "右フリック"
+  },
+  {
+    "name": "shake_gestures_lock_screen",
+    "ja": "ロック画面と画面オン状態"
+  },
+  {
+    "name": "shake_gestures_lock_screen_desc",
+    "ja": "ロック画面で個別のシェイクアクションを許可。画面オフ時は無効"
+  },
+  {
+    "name": "shake_gestures_independent_app",
+    "ja": "アプリ別シェイク"
+  },
+  {
+    "name": "shake_gestures_independent_app_desc",
+    "ja": "特定アプリ専用のシェイクアクションを設定"
+  },
+  {
+    "name": "shake_gestures_global_sensitivity",
+    "ja": "全体の感度"
+  },
+  {
+    "name": "shake_gestures_sensitivity_hint",
+    "ja": "値が大きいほど起動しやすくなります"
+  },
+  {
+    "name": "shake_gestures_sensitivity_easy",
+    "ja": "起動しやすい"
+  },
+  {
+    "name": "shake_gestures_sensitivity_hard",
+    "ja": "起動しにくい"
+  },
+  {
+    "name": "shake_gestures_independent_sensitivity",
+    "ja": "個別の感度"
+  },
+  {
+    "name": "shake_gestures_independent_sensitivity_desc",
+    "ja": "方向ごとに感度を設定"
+  },
+  {
+    "name": "shake_gestures_vibration_feedback",
+    "ja": "振動"
+  },
+  {
+    "name": "shake_gestures_animation_feedback",
+    "ja": "アニメーションフィードバック"
+  },
+  {
+    "name": "shake_gestures_animation_color",
+    "ja": "アニメーションの色"
+  },
+  {
+    "name": "shake_gestures_disable_landscape",
+    "ja": "横向きで無効"
+  },
+  {
+    "name": "shake_gestures_app_blacklist",
+    "ja": "アプリブラックリスト"
+  },
+  {
+    "name": "shake_gestures_app_blacklist_desc",
+    "ja": "ブラックリストのアプリでシェイクジェスチャを無効化"
+  },
+  {
+    "name": "shake_gestures_blacklist_section_blocked",
+    "ja": "ブロック中のアプリ"
+  },
+  {
+    "name": "shake_gestures_blacklist_section_add",
+    "ja": "アプリを追加"
+  },
+  {
+    "name": "shake_gestures_blacklist_empty",
+    "ja": "ブロック中のアプリはありません"
+  },
+  {
+    "name": "shake_gestures_blacklist_remove",
+    "ja": "ブラックリストから削除"
+  },
+  {
+    "name": "shake_gestures_lock_screen_settings_desc",
+    "ja": "ロック画面表示中にこれらのシェイクアクションを使用"
+  },
+  {
+    "name": "shake_gestures_per_app_configured",
+    "ja": "設定済みのアプリ"
+  },
+  {
+    "name": "shake_gestures_per_app_add",
+    "ja": "アプリを追加"
+  },
+  {
+    "name": "shake_gestures_per_app_empty",
+    "ja": "設定済みのアプリはまだありません"
+  },
+  {
+    "name": "shake_gestures_per_app_remove",
+    "ja": "設定を削除"
+  },
+  {
+    "name": "shake_gestures_per_app_actions_title",
+    "ja": "%1$s のシェイクアクション"
+  },
+  {
+    "name": "face_down_gestures_title",
+    "ja": "机に伏せる"
+  },
+  {
+    "name": "face_down_gestures_subtitle",
+    "ja": "画面オン中に端末を伏せて静止したときに実行"
+  },
+  {
+    "name": "face_down_gestures_action",
+    "ja": "アクション"
+  },
+  {
+    "name": "face_down_gestures_hold_duration",
+    "ja": "保持時間"
+  },
+  {
+    "name": "face_down_gestures_hold_duration_value",
+    "ja": "%.1f 秒"
+  },
+  {
+    "name": "face_down_gestures_require_proximity",
+    "ja": "近接物体を要求"
+  },
+  {
+    "name": "face_down_gestures_require_proximity_desc",
+    "ja": "近接センサーが near を検出する必要があります（利用不可の場合は無視）"
+  },
+  {
+    "name": "face_down_gestures_disable_landscape",
+    "ja": "横向きで無効"
+  },
+  {
+    "name": "face_down_gestures_vibration_feedback",
+    "ja": "振動フィードバック"
+  },
+  {
+    "name": "face_down_gestures_audio_feedback",
+    "ja": "サウンドフィードバック"
+  },
+  {
+    "name": "face_down_gestures_audio_feedback_desc",
+    "ja": "アラーム音量ストリームで短い確認音を再生。端末をミュートするアクションは実行前にフィードバックを再生"
+  },
+  {
+    "name": "face_down_gestures_audio_feedback_volume",
+    "ja": "フィードバック音量"
+  },
+  {
+    "name": "face_down_gestures_audio_feedback_volume_value",
+    "ja": "%1$d%%"
+  },
+  {
+    "name": "face_down_gestures_blacklist_hint",
+    "ja": "シェイクジェスチャとアプリブラックリストを共有"
+  },
+  {
+    "name": "notification_hub_subtitle",
+    "ja": "通知と認証コードを管理"
+  },
+  {
+    "name": "notification_hub_section_tools",
+    "ja": "ツール"
+  },
+  {
+    "name": "message_reminder_title",
+    "ja": "メッセージリマインダー"
+  },
+  {
+    "name": "message_reminder_subtitle",
+    "ja": "通知を傍受してフローティングアラートを表示"
+  },
+  {
+    "name": "message_reminder_entry_enabled",
+    "ja": "有効"
+  },
+  {
+    "name": "message_reminder_entry_disabled",
+    "ja": "無効"
+  },
+  {
+    "name": "message_reminder_section_general",
+    "ja": "一般"
+  },
+  {
+    "name": "message_reminder_section_landscape",
+    "ja": "横向き"
+  },
+  {
+    "name": "message_reminder_section_gestures",
+    "ja": "ジェスチャアクション"
+  },
+  {
+    "name": "message_reminder_enabled",
+    "ja": "メッセージリマインダーを有効化"
+  },
+  {
+    "name": "message_reminder_enabled_desc",
+    "ja": "フローティングアイコン、サイドバブル、弾幕などのアラートスタイルをオンにします"
+  },
+  {
+    "name": "message_reminder_intercept_notifications",
+    "ja": "システム通知を傍受"
+  },
+  {
+    "name": "message_reminder_intercept_notifications_desc",
+    "ja": "オンにすると通知シェードから非表示にし、下記スタイルで表示します"
+  },
+  {
+    "name": "message_reminder_open_last_on_unlock",
+    "ja": "ロック解除後に最後のメッセージを開く"
+  },
+  {
+    "name": "message_reminder_open_last_on_unlock_desc",
+    "ja": "画面ロック中にメッセージが届いた場合、ロック解除後に自動で開きます"
+  },
+  {
+    "name": "message_reminder_open_last_rules",
+    "ja": "ロック解除時に開くルール"
+  },
+  {
+    "name": "message_reminder_open_last_rules_desc",
+    "ja": "ロック解除後に常に開くことを許可するリマインダーアプリを設定"
+  },
+  {
+    "name": "message_reminder_open_last_rules_title",
+    "ja": "ロック解除時に開くルール"
+  },
+  {
+    "name": "message_reminder_open_last_rules_desc_page",
+    "ja": "常に許可に設定されていないアプリは、ロック解除後に開く前に確認を表示します。"
+  },
+  {
+    "name": "message_reminder_open_last_rules_always",
+    "ja": "ロック解除後の起動を常に許可"
+  },
+  {
+    "name": "message_reminder_open_last_rules_empty",
+    "ja": "先に「リマインダーアプリ/ルール」でアプリを選択してください"
+  },
+  {
+    "name": "message_reminder_unlock_confirm_title",
+    "ja": "ロック中に受信したメッセージを開きますか？"
+  },
+  {
+    "name": "message_reminder_unlock_confirm_always_allow",
+    "ja": "このアプリを常に許可"
+  },
+  {
+    "name": "message_reminder_unlock_confirm_cancel",
+    "ja": "キャンセル"
+  },
+  {
+    "name": "message_reminder_unlock_confirm_open",
+    "ja": "開く"
+  },
+  {
+    "name": "message_reminder_unlock_auto_dismiss",
+    "ja": "確認ダイアログの自動非表示"
+  },
+  {
+    "name": "message_reminder_unlock_auto_dismiss_desc",
+    "ja": "確認ダイアログの表示時間。0 は自動非表示しません"
+  },
+  {
+    "name": "message_reminder_unlock_auto_dismiss_never",
+    "ja": "しない"
+  },
+  {
+    "name": "message_reminder_danmaku_theme",
+    "ja": "弾幕テーマ"
+  },
+  {
+    "name": "message_reminder_side_opacity",
+    "ja": "サイドバブルの不透明度"
+  },
+  {
+    "name": "message_reminder_danmaku_opacity",
+    "ja": "弾幕の不透明度"
+  },
+  {
+    "name": "message_reminder_auto_dismiss",
+    "ja": "自動非表示"
+  },
+  {
+    "name": "message_reminder_auto_dismiss_off",
+    "ja": "しない"
+  },
+  {
+    "name": "message_reminder_auto_dismiss_seconds",
+    "ja": "%1$d 秒"
+  },
+  {
+    "name": "message_reminder_hide_in_landscape",
+    "ja": "横向きでカードを非表示"
+  },
+  {
+    "name": "message_reminder_hide_in_landscape_desc",
+    "ja": "横向きでカードを非表示。弾幕は表示される場合があります"
+  },
+  {
+    "name": "message_reminder_portrait_danmaku",
+    "ja": "縦向きで弾幕を表示"
+  },
+  {
+    "name": "message_reminder_portrait_danmaku_desc",
+    "ja": "縦向きでも弾幕アラートを表示"
+  },
+  {
+    "name": "message_reminder_landscape_danmaku",
+    "ja": "横向きで弾幕を表示"
+  },
+  {
+    "name": "message_reminder_landscape_danmaku_desc",
+    "ja": "横向きでも弾幕アラートを表示"
+  },
+  {
+    "name": "message_reminder_gesture_tap",
+    "ja": "タップ"
+  },
+  {
+    "name": "message_reminder_gesture_swipe_up",
+    "ja": "上スワイプ"
+  },
+  {
+    "name": "message_reminder_gesture_swipe_down",
+    "ja": "下スワイプ"
+  },
+  {
+    "name": "message_reminder_gesture_swipe_left",
+    "ja": "左スワイプ"
+  },
+  {
+    "name": "message_reminder_gesture_swipe_right",
+    "ja": "右スワイプ"
+  },
+  {
+    "name": "message_reminder_gesture_long_press",
+    "ja": "長押し"
+  },
+  {
+    "name": "message_reminder_pick_action",
+    "ja": "ジェスチャアクションを選択"
+  },
+  {
+    "name": "message_reminder_permission_listener_title",
+    "ja": "通知アクセス"
+  },
+  {
+    "name": "message_reminder_permission_listener_desc",
+    "ja": "通知を傍受するには通知アクセスが必要です"
+  },
+  {
+    "name": "message_reminder_permission_overlay_desc",
+    "ja": "メッセージリマインダーを表示するにはオーバーレイ権限が必要です"
+  },
+  {
+    "name": "message_reminder_enable_hint",
+    "ja": "権限の準備ができました。上でメッセージリマインダーをオンにし、テスト通知を送信してください。"
+  },
+  {
+    "name": "message_reminder_section_filter",
+    "ja": "フィルタリング"
+  },
+  {
+    "name": "message_reminder_allowed_apps",
+    "ja": "リマインダーアプリ/ルール"
+  },
+  {
+    "name": "message_reminder_allowed_apps_subtitle",
+    "ja": "リマインダーアプリを選択し、アプリごとのフィルタルールを設定"
+  },
+  {
+    "name": "message_reminder_allowed_apps_title",
+    "ja": "リマインダーアプリ/ルール"
+  },
+  {
+    "name": "message_reminder_allowed_apps_desc",
+    "ja": "選択したアプリからの通知のみ表示。未選択の場合はすべてのアプリが許可されます。"
+  },
+  {
+    "name": "message_reminder_allowed_apps_section_configured",
+    "ja": "選択中のアプリ"
+  },
+  {
+    "name": "message_reminder_allowed_apps_section_add",
+    "ja": "アプリを追加"
+  },
+  {
+    "name": "message_reminder_allowed_apps_empty",
+    "ja": "リマインダーアプリが選択されていません"
+  },
+  {
+    "name": "message_reminder_allowed_apps_all_added",
+    "ja": "すべてのアプリが既に選択されています"
+  },
+  {
+    "name": "message_reminder_allowed_apps_add",
+    "ja": "追加"
+  },
+  {
+    "name": "message_reminder_allowed_apps_remove",
+    "ja": "削除"
+  },
+  {
+    "name": "message_reminder_dnd_apps",
+    "ja": "おやすみモードアプリ"
+  },
+  {
+    "name": "message_reminder_dnd_apps_subtitle",
+    "ja": "これらのアプリ使用中はリマインダーを表示しない"
+  },
+  {
+    "name": "message_reminder_dnd_apps_title",
+    "ja": "おやすみモードアプリ"
+  },
+  {
+    "name": "message_reminder_dnd_apps_desc",
+    "ja": "これらのアプリが前面にある間、メッセージリマインダーを非表示にします。"
+  },
+  {
+    "name": "message_reminder_dnd_apps_section_blocked",
+    "ja": "選択中のアプリ"
+  },
+  {
+    "name": "message_reminder_dnd_apps_section_add",
+    "ja": "アプリを追加"
+  },
+  {
+    "name": "message_reminder_dnd_apps_empty",
+    "ja": "おやすみモードアプリが選択されていません"
+  },
+  {
+    "name": "message_reminder_dnd_apps_all_added",
+    "ja": "すべてのアプリが既に選択されています"
+  },
+  {
+    "name": "message_reminder_dnd_apps_add",
+    "ja": "追加"
+  },
+  {
+    "name": "message_reminder_dnd_apps_remove",
+    "ja": "削除"
+  },
+  {
+    "name": "message_reminder_suppress_system_dnd",
+    "ja": "DND 抑制"
+  },
+  {
+    "name": "message_reminder_suppress_system_dnd_desc",
+    "ja": "システムのおやすみモード中はメッセージリマインダーを表示しない"
+  },
+  {
+    "name": "message_filter_mode_title",
+    "ja": "フィルタモード"
+  },
+  {
+    "name": "message_filter_mode_no_filter",
+    "ja": "フィルタなし"
+  },
+  {
+    "name": "message_filter_mode_only_matching",
+    "ja": "一致のみ"
+  },
+  {
+    "name": "message_filter_mode_block_matching",
+    "ja": "一致をブロック"
+  },
+  {
+    "name": "message_filter_editor_subtitle",
+    "ja": "このアプリの通知フィルタルールを設定"
+  },
+  {
+    "name": "message_filter_only_conditions",
+    "ja": "リマインドのみ条件"
+  },
+  {
+    "name": "message_filter_block_conditions",
+    "ja": "ブロック条件"
+  },
+  {
+    "name": "message_filter_conditions_empty",
+    "ja": "条件がまだありません。すべての通知は選択したモードに従います"
+  },
+  {
+    "name": "message_filter_add_condition",
+    "ja": "条件を追加"
+  },
+  {
+    "name": "message_filter_remove_condition",
+    "ja": "条件を削除"
+  },
+  {
+    "name": "message_filter_condition_title",
+    "ja": "一致条件"
+  },
+  {
+    "name": "message_match_field_label",
+    "ja": "一致フィールド"
+  },
+  {
+    "name": "message_match_type_label",
+    "ja": "一致タイプ"
+  },
+  {
+    "name": "message_match_keyword_label",
+    "ja": "キーワード"
+  }
+]

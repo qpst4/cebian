@@ -1,0 +1,582 @@
+[
+  {
+    "name": "clipboard_monitoring_status_error_headline",
+    "ja": "%1$s · 利用不可"
+  },
+  {
+    "name": "clipboard_monitoring_status_badge_running",
+    "ja": "フォアグラウンドサービス実行中"
+  },
+  {
+    "name": "clipboard_monitoring_status_badge_no_root",
+    "ja": "Root 権限なし"
+  },
+  {
+    "name": "clipboard_monitoring_status_badge_no_shizuku",
+    "ja": "Shizuku 未認可"
+  },
+  {
+    "name": "clipboard_monitoring_status_badge_no_overlay",
+    "ja": "オーバーレイ権限なし"
+  },
+  {
+    "name": "clipboard_monitoring_status_badge_no_read_logs",
+    "ja": "READ_LOGS なし"
+  },
+  {
+    "name": "clipboard_monitoring_status_desc_no_root",
+    "ja": "su を実行できません。端末が root 済みで、このアプリにアクセスが許可されているか確認してください。"
+  },
+  {
+    "name": "clipboard_monitoring_status_desc_no_shizuku",
+    "ja": "Shizuku が実行されていないか未認可です。Shizuku を起動して権限を付与してください。"
+  },
+  {
+    "name": "clipboard_monitoring_status_desc_no_overlay",
+    "ja": "バックグラウンドのクリップボード読み取りにはオーバーレイ権限が必要です。「他のアプリの上に表示」を付与してください。"
+  },
+  {
+    "name": "clipboard_monitoring_status_desc_no_read_logs",
+    "ja": "Shizuku logcat パイプラインには READ_LOGS が必要です。Shizuku 経由で付与するか、非公開 API に切り替えてください。"
+  },
+  {
+    "name": "clipboard_monitoring_status_desc_stopped",
+    "ja": "リスナーサービスが実行されていません。上記の権限と環境を確認してください。"
+  },
+  {
+    "name": "clipboard_monitoring_mode_follow_privilege",
+    "ja": "特権モードに従う（推奨）"
+  },
+  {
+    "name": "clipboard_monitoring_mode_follow_privilege_desc",
+    "ja": "特権実行に従います。現在: %1$s"
+  },
+  {
+    "name": "clipboard_screenshot_monitoring_section",
+    "ja": "スクリーンショット監視"
+  },
+  {
+    "name": "clipboard_screenshot_monitoring_title",
+    "ja": "スクリーンショットをクリップボード履歴に"
+  },
+  {
+    "name": "clipboard_screenshot_monitoring_desc",
+    "ja": "システムや他アプリがギャラリーに保存したスクリーンショットを監視し、自動でクリップボード履歴に追加（写真へのアクセスが必要）"
+  },
+  {
+    "name": "clipboard_media_read_status_title",
+    "ja": "フォトライブラリアクセス"
+  },
+  {
+    "name": "clipboard_media_read_status_granted",
+    "ja": "付与済み — スクリーンショットを監視できます"
+  },
+  {
+    "name": "clipboard_media_read_status_denied",
+    "ja": "未付与 — 写真と動画へのアクセスを許可してください"
+  },
+  {
+    "name": "clipboard_monitoring_mode_shizuku_logs",
+    "ja": "Shizuku · システムログ"
+  },
+  {
+    "name": "clipboard_monitoring_mode_shizuku_logs_desc",
+    "ja": "Shizuku 環境で ClipboardService ログを監視"
+  },
+  {
+    "name": "clipboard_monitoring_mode_shizuku_hidden_api",
+    "ja": "Shizuku · 非公開 API"
+  },
+  {
+    "name": "clipboard_monitoring_mode_shizuku_hidden_api_desc",
+    "ja": "Shizuku 環境で IClipboard 非公開 API 経由で監視"
+  },
+  {
+    "name": "clipboard_monitoring_mode_root_logs",
+    "ja": "Root · システムログ"
+  },
+  {
+    "name": "clipboard_monitoring_mode_root_logs_desc",
+    "ja": "su 経由で ClipboardService ログを監視"
+  },
+  {
+    "name": "clipboard_monitoring_mode_root_hidden_api",
+    "ja": "Root · 非公開 API"
+  },
+  {
+    "name": "clipboard_monitoring_mode_root_hidden_api_desc",
+    "ja": "su 経由で非公開 API リスナーを実行"
+  },
+  {
+    "name": "clipboard_monitoring_mode_standard",
+    "ja": "標準 · 公開 API"
+  },
+  {
+    "name": "clipboard_monitoring_mode_standard_desc",
+    "ja": "ClipboardManager の公開リスナーのみ使用。Root/Shizuku 不要。Android 10 以降のバックグラウンドでは他アプリに対して不安定"
+  },
+  {
+    "name": "clipboard_monitor_backend_standard_ready",
+    "ja": "特権不要"
+  },
+  {
+    "name": "stash_clipboard_entry_summary_clipboard_standard",
+    "ja": "標準 API 監視"
+  },
+  {
+    "name": "clipboard_monitor_notification_standard_running",
+    "ja": "標準 API モード"
+  },
+  {
+    "name": "clipboard_monitor_backend_status_title",
+    "ja": "特権バックエンド"
+  },
+  {
+    "name": "clipboard_monitor_backend_shizuku_ready",
+    "ja": "Shizuku 付与済み"
+  },
+  {
+    "name": "clipboard_monitor_backend_shizuku_missing",
+    "ja": "Shizuku 未付与または切断"
+  },
+  {
+    "name": "clipboard_monitor_backend_root_ready",
+    "ja": "Root 利用可能"
+  },
+  {
+    "name": "clipboard_monitor_backend_root_missing",
+    "ja": "Root 未検出"
+  },
+  {
+    "name": "clipboard_monitor_overlay_status_title",
+    "ja": "オーバーレイ権限"
+  },
+  {
+    "name": "clipboard_monitor_overlay_ready",
+    "ja": "付与済み（バックグラウンド読み取りに必要）"
+  },
+  {
+    "name": "clipboard_monitor_overlay_missing",
+    "ja": "未付与。バックグラウンド読み取りが失敗する可能性があります"
+  },
+  {
+    "name": "clipboard_monitor_service_status_title",
+    "ja": "リスナーサービス"
+  },
+  {
+    "name": "clipboard_monitor_service_running",
+    "ja": "実行中"
+  },
+  {
+    "name": "clipboard_monitor_service_stopped",
+    "ja": "停止"
+  },
+  {
+    "name": "clipboard_monitor_notification_channel_name",
+    "ja": "クリップボード監視"
+  },
+  {
+    "name": "clipboard_monitor_notification_channel_desc",
+    "ja": "クリップボードバックグラウンドリスナーの状態を表示"
+  },
+  {
+    "name": "clipboard_monitor_notification_waiting_title",
+    "ja": "クリップボード監視"
+  },
+  {
+    "name": "clipboard_monitor_notification_waiting_text",
+    "ja": "リスナーサービスを起動中…"
+  },
+  {
+    "name": "clipboard_monitor_notification_starting",
+    "ja": "起動中: %1$s"
+  },
+  {
+    "name": "clipboard_monitor_notification_running_title",
+    "ja": "クリップボード監視実行中"
+  },
+  {
+    "name": "clipboard_monitor_notification_shizuku_running",
+    "ja": "Shizuku モード"
+  },
+  {
+    "name": "clipboard_monitor_notification_root_running",
+    "ja": "Root モード"
+  },
+  {
+    "name": "clipboard_monitor_notification_stopped_title",
+    "ja": "クリップボード監視停止"
+  },
+  {
+    "name": "clipboard_monitor_notification_stopped_text",
+    "ja": "バックグラウンドクリップボード監視が終了しました"
+  },
+  {
+    "name": "clipboard_monitor_notification_error_title",
+    "ja": "クリップボード監視エラー"
+  },
+  {
+    "name": "clipboard_monitor_notification_listener_asset_error",
+    "ja": "listener.zip のコピーに失敗"
+  },
+  {
+    "name": "clipboard_monitor_notification_error_unknown",
+    "ja": "不明なエラー"
+  },
+  {
+    "name": "clipboard_monitor_notification_root_unavailable",
+    "ja": "Root 利用不可。監視を停止しました"
+  },
+  {
+    "name": "clipboard_monitor_notification_shizuku_disconnected_title",
+    "ja": "Shizuku 切断"
+  },
+  {
+    "name": "clipboard_monitor_notification_shizuku_disconnected_text",
+    "ja": "クリップボード監視を停止しました。Shizuku を確認してください"
+  },
+  {
+    "name": "stash_clipboard_entry_summary_clipboard_shizuku",
+    "ja": "クリップボード · Shizuku 監視"
+  },
+  {
+    "name": "stash_clipboard_entry_summary_clipboard_root",
+    "ja": "クリップボード · Root 監視"
+  },
+  {
+    "name": "stash_clipboard_entry_summary_clipboard_not_ready",
+    "ja": "クリップボード · 監視未準備"
+  },
+  {
+    "name": "clipboard_clear_history",
+    "ja": "クリップボード履歴を消去"
+  },
+  {
+    "name": "clipboard_clear_history_confirm_title",
+    "ja": "クリップボード履歴を消去しますか？"
+  },
+  {
+    "name": "clipboard_clear_history_confirm_message",
+    "ja": "すべてのクリップボード項目が削除されます。元に戻せません。"
+  },
+  {
+    "name": "clipboard_history_capacity_title",
+    "ja": "履歴容量"
+  },
+  {
+    "name": "clipboard_history_capacity_unlimited",
+    "ja": "無制限"
+  },
+  {
+    "name": "clipboard_read_logs_shizuku_grant",
+    "ja": "Shizuku 経由で付与"
+  },
+  {
+    "name": "clipboard_read_logs_shizuku_reminder_title",
+    "ja": "付与前の確認"
+  },
+  {
+    "name": "clipboard_read_logs_shizuku_reminder_message",
+    "ja": "Shizuku がログ読み取り権限を付与します。\\n\\n• この手順中にアプリがクラッシュする場合があります。正常な動作です。再度開いてください。\\n\\n• システムの「ログの読み取り」権限ダイアログが表示されたら、許可をタップしてください。"
+  },
+  {
+    "name": "clipboard_read_logs_shizuku_reminder_continue",
+    "ja": "続行"
+  },
+  {
+    "name": "clipboard_entry_type_text",
+    "ja": "テキスト"
+  },
+  {
+    "name": "clipboard_entry_type_uri",
+    "ja": "リンク / ファイル"
+  },
+  {
+    "name": "clipboard_entry_type_intent",
+    "ja": "Intent"
+  },
+  {
+    "name": "clipboard_entry_type_html",
+    "ja": "リッチテキスト"
+  },
+  {
+    "name": "clipboard_image_unavailable",
+    "ja": "画像が利用不可または期限切れ"
+  },
+  {
+    "name": "clipboard_action_save_image",
+    "ja": "画像を保存"
+  },
+  {
+    "name": "history_drag_unsupported",
+    "ja": "この項目はドラッグできません"
+  },
+  {
+    "name": "clipboard_history_float_section",
+    "ja": "エッジ履歴フロート"
+  },
+  {
+    "name": "clipboard_history_float_enabled_title",
+    "ja": "クリップボード履歴のエッジフロートを表示"
+  },
+  {
+    "name": "clipboard_history_float_enabled_desc",
+    "ja": "右端にハンドルを表示。左スワイプまたはダブルタップでクリップボード履歴を展開。"
+  },
+  {
+    "name": "clipboard_history_float_enabled_landscape_title",
+    "ja": "横向きでもエッジフロートを表示"
+  },
+  {
+    "name": "clipboard_history_float_enabled_landscape_desc",
+    "ja": "オンにすると横向きでもエッジハンドルが表示されます。デフォルトはオフ"
+  },
+  {
+    "name": "clipboard_history_float_lock_position_title",
+    "ja": "ハンドル位置を固定"
+  },
+  {
+    "name": "clipboard_history_float_lock_position_desc",
+    "ja": "オンにするとハンドルを縦方向にドラッグできません。"
+  },
+  {
+    "name": "clipboard_history_float_handle_width_title",
+    "ja": "ハンドル幅"
+  },
+  {
+    "name": "clipboard_history_float_overlay_permission_hint",
+    "ja": "エッジフロートには他のアプリの上に表示する権限が必要です。"
+  },
+  {
+    "name": "clipboard_history_float_open_overlay_permission",
+    "ja": "オーバーレイ権限を付与"
+  },
+  {
+    "name": "clipboard_history_float_copy",
+    "ja": "コピー"
+  },
+  {
+    "name": "clipboard_float_section",
+    "ja": "フローティングクリップボード"
+  },
+  {
+    "name": "clipboard_float_enabled_title",
+    "ja": "フローティングクリップボードを有効化"
+  },
+  {
+    "name": "clipboard_float_enabled_desc",
+    "ja": "入力中にキーボード上にクリップボードウィンドウを表示。ドラッグ、リサイズ、項目タップで貼り付け。"
+  },
+  {
+    "name": "clipboard_float_a11y_hint",
+    "ja": "キーボード検出とフィールドへの貼り付けには Cebian アクセシビリティの有効化が必要です。"
+  },
+  {
+    "name": "clipboard_float_show_chip_title",
+    "ja": "先に項目チップを表示"
+  },
+  {
+    "name": "clipboard_float_show_chip_desc",
+    "ja": "オン: 小さなチップを先に表示、タップで展開。オフ: キーボード表示時にすぐ展開。"
+  },
+  {
+    "name": "clipboard_float_pin_title",
+    "ja": "パネルとチップの位置を記憶"
+  },
+  {
+    "name": "clipboard_float_pin_desc",
+    "ja": "オン: 前回の位置で再表示。オフ: 常にキーボード上のデフォルト位置。"
+  },
+  {
+    "name": "clipboard_float_click_action_title",
+    "ja": "項目をタップ"
+  },
+  {
+    "name": "clipboard_float_click_action_paste",
+    "ja": "貼り付け"
+  },
+  {
+    "name": "clipboard_float_click_action_copy",
+    "ja": "コピー"
+  },
+  {
+    "name": "clipboard_float_click_action_copy_and_paste",
+    "ja": "コピーして貼り付け"
+  },
+  {
+    "name": "clipboard_float_reset_layout",
+    "ja": "パネルとチップのレイアウトをリセット"
+  },
+  {
+    "name": "clipboard_float_title",
+    "ja": "クリップボード"
+  },
+  {
+    "name": "clipboard_float_open",
+    "ja": "クリップボードを開く"
+  },
+  {
+    "name": "clipboard_float_keep_visible",
+    "ja": "キーボード非表示時も表示"
+  },
+  {
+    "name": "clipboard_float_open_stash_panel",
+    "ja": "ストッシュパネルを開く"
+  },
+  {
+    "name": "clipboard_float_collapse",
+    "ja": "折りたたむ"
+  },
+  {
+    "name": "clipboard_float_close",
+    "ja": "閉じる"
+  },
+  {
+    "name": "clipboard_float_meta_image",
+    "ja": "画像"
+  },
+  {
+    "name": "clipboard_float_paste_failed",
+    "ja": "貼り付けに失敗しました。先に入力欄にフォーカスしてください。"
+  },
+  {
+    "name": "clipboard_float_paste_no_window",
+    "ja": "貼り付けに失敗しました。アクティブな入力ウィンドウが見つかりません。"
+  },
+  {
+    "name": "clipboard_float_paste_insert_failed",
+    "ja": "貼り付けに失敗しました。このアプリは自動挿入に対応していません。"
+  },
+  {
+    "name": "clipboard_float_paste_haptic_title",
+    "ja": "貼り付け成功時に振動"
+  },
+  {
+    "name": "clipboard_float_paste_haptic_desc",
+    "ja": "貼り付け成功後に短く振動"
+  },
+  {
+    "name": "clipboard_float_app_blacklist",
+    "ja": "アプリブラックリスト"
+  },
+  {
+    "name": "clipboard_float_app_blacklist_page_desc",
+    "ja": "これらのアプリではフローティングクリップボードを表示しません。"
+  },
+  {
+    "name": "clipboard_float_blacklist_section_blocked",
+    "ja": "ブロック中のアプリ"
+  },
+  {
+    "name": "clipboard_float_blacklist_empty",
+    "ja": "ブロック中のアプリなし"
+  },
+  {
+    "name": "clipboard_float_blacklist_remove",
+    "ja": "削除"
+  },
+  {
+    "name": "clipboard_float_blacklist_section_add",
+    "ja": "アプリを追加"
+  },
+  {
+    "name": "clipboard_float_opacity_title",
+    "ja": "フローティングウィンドウの不透明度"
+  },
+  {
+    "name": "clipboard_float_opacity_desc",
+    "ja": "表示時のフローティングウィンドウの不透明度を調整"
+  },
+  {
+    "name": "clipboard_float_auto_dim_title",
+    "ja": "非フォーカス時に自動減光"
+  },
+  {
+    "name": "clipboard_float_auto_dim_desc",
+    "ja": "固定中に外側をタッチすると自動的に暗くし、タップで復元"
+  },
+  {
+    "name": "clipboard_float_auto_close_title",
+    "ja": "自動クローズ遅延（非固定）"
+  },
+  {
+    "name": "clipboard_float_auto_close_never",
+    "ja": "しない"
+  },
+  {
+    "name": "clipboard_float_auto_close_5s",
+    "ja": "5 秒"
+  },
+  {
+    "name": "clipboard_float_auto_close_10s",
+    "ja": "10 秒"
+  },
+  {
+    "name": "clipboard_float_auto_close_15s",
+    "ja": "15 秒"
+  },
+  {
+    "name": "clipboard_float_auto_close_30s",
+    "ja": "30 秒"
+  },
+  {
+    "name": "clipboard_float_auto_close_60s",
+    "ja": "60 秒"
+  },
+  {
+    "name": "stash_clear_all",
+    "ja": "ストッシュを消去"
+  },
+  {
+    "name": "stash_clear_all_confirm_title",
+    "ja": "ストッシュを消去しますか？"
+  },
+  {
+    "name": "stash_clear_all_confirm_message",
+    "ja": "すべてのストッシュ項目（画像を含む）が削除されます。元に戻せません。"
+  },
+  {
+    "name": "message_style_float_position",
+    "ja": "フローティングボールの位置"
+  },
+  {
+    "name": "message_style_float_icon_corner",
+    "ja": "コーナー"
+  },
+  {
+    "name": "message_style_position_y",
+    "ja": "垂直位置"
+  },
+  {
+    "name": "message_style_corner_top_start",
+    "ja": "左上"
+  },
+  {
+    "name": "message_style_corner_top_end",
+    "ja": "右上"
+  },
+  {
+    "name": "message_style_corner_bottom_start",
+    "ja": "左下"
+  },
+  {
+    "name": "message_style_corner_bottom_end",
+    "ja": "右下"
+  },
+  {
+    "name": "message_preview_content",
+    "ja": "スライダーをドラッグして位置をリアルタイムプレビュー"
+  },
+  {
+    "name": "float_ball_gesture_swipe_up_return",
+    "ja": "上スワイプで戻る"
+  },
+  {
+    "name": "float_ball_gesture_swipe_down_return",
+    "ja": "下スワイプで戻る"
+  },
+  {
+    "name": "float_ball_gesture_swipe_side_return",
+    "ja": "横スワイプで戻る"
+  }
+]

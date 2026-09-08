@@ -1,0 +1,722 @@
+[
+  {
+    "name": "settings_section_features",
+    "ja": "機能"
+  },
+  {
+    "name": "settings_section_feedback_appearance",
+    "ja": "操作と外観"
+  },
+  {
+    "name": "gesture_angle_entry_title",
+    "ja": "ジェスチャ角度"
+  },
+  {
+    "name": "gesture_angle_entry_desc",
+    "ja": "各方向のトリガー角度を調整"
+  },
+  {
+    "name": "gesture_angle_title",
+    "ja": "ジェスチャ角度"
+  },
+  {
+    "name": "gesture_angle_reset",
+    "ja": "デフォルトにリセット"
+  },
+  {
+    "name": "gesture_angle_save",
+    "ja": "保存"
+  },
+  {
+    "name": "gesture_angle_side_left",
+    "ja": "左"
+  },
+  {
+    "name": "gesture_angle_side_right",
+    "ja": "右"
+  },
+  {
+    "name": "gesture_angle_side_bottom",
+    "ja": "下"
+  },
+  {
+    "name": "gesture_angle_side_top",
+    "ja": "上"
+  },
+  {
+    "name": "gesture_angle_live_preview_hint",
+    "ja": "境界をドラッグして端のジェスチャ角度をライブプレビュー。チェックマークをタップして保存。"
+  },
+  {
+    "name": "layout_settings_title",
+    "ja": "アプリインデックス"
+  },
+  {
+    "name": "layout_settings_entry_title",
+    "ja": "アプリインデックス"
+  },
+  {
+    "name": "layout_settings_entry_desc",
+    "ja": "文字インデックスの高さ、列数、パネル不透明度を調整"
+  },
+  {
+    "name": "layout_settings_entry_summary",
+    "ja": "インデックス列数: %1$d"
+  },
+  {
+    "name": "quick_launcher_entry_desc",
+    "ja": "クイックランチャー項目を編集"
+  },
+  {
+    "name": "quick_launcher_items_section",
+    "ja": "ショートカット"
+  },
+  {
+    "name": "quick_launcher_page_indicator",
+    "ja": "%1$d / %2$d ページ"
+  },
+  {
+    "name": "quick_launcher_page_previous",
+    "ja": "前のページ"
+  },
+  {
+    "name": "quick_launcher_page_next",
+    "ja": "次のページ"
+  },
+  {
+    "name": "trigger_collection_desc",
+    "ja": "左・右・上・下のエッジトリガーを個別に管理"
+  },
+  {
+    "name": "trigger_collection_long_press_remove_hint",
+    "ja": "行をタップで設定、長押しで削除"
+  },
+  {
+    "name": "trigger_bottom_default_title",
+    "ja": "下部ハンドル"
+  },
+  {
+    "name": "trigger_top_default_title",
+    "ja": "上部ハンドル"
+  },
+  {
+    "name": "trigger_collection_bottom",
+    "ja": "下部ハンドル"
+  },
+  {
+    "name": "trigger_collection_top",
+    "ja": "上部ハンドル"
+  },
+  {
+    "name": "trigger_collection_add_bottom",
+    "ja": "下部ハンドルを追加"
+  },
+  {
+    "name": "trigger_collection_add_top",
+    "ja": "上部ハンドルを追加"
+  },
+  {
+    "name": "corner_wheel_home_title",
+    "ja": "コーナーホイール"
+  },
+  {
+    "name": "corner_wheel_home_desc",
+    "ja": "左下・右下コーナーからの放射状メニュー"
+  },
+  {
+    "name": "corner_gesture_settings_title",
+    "ja": "コーナーホイール"
+  },
+  {
+    "name": "corner_gesture_settings_desc",
+    "ja": "左下または右下コーナーからスワイプして放射状アクションメニューを開く"
+  },
+  {
+    "name": "corner_gesture_settings_hint",
+    "ja": "コーナーからスワイプしてホイールを開き、アイコン上で離すとそのアクションを実行。"
+  },
+  {
+    "name": "corner_gesture_interaction_appearance_title",
+    "ja": "操作と外観"
+  },
+  {
+    "name": "corner_gesture_interaction_appearance_desc",
+    "ja": "トリガーゾーン、ホイールサイズ、動作、背景"
+  },
+  {
+    "name": "corner_gesture_slots_entry_desc",
+    "ja": "スロットアクションと内側リングの空白動作を設定"
+  },
+  {
+    "name": "corner_gesture_enabled",
+    "ja": "コーナーホイールを有効化"
+  },
+  {
+    "name": "corner_gesture_enabled_desc",
+    "ja": "下部コーナーの放射状メニュー。エッジハンドルとは独立"
+  },
+  {
+    "name": "corner_gesture_left_enabled",
+    "ja": "左下コーナーを有効化"
+  },
+  {
+    "name": "corner_gesture_left_enabled_desc",
+    "ja": "左下トリガーゾーンと左放射状メニュー"
+  },
+  {
+    "name": "corner_gesture_right_enabled",
+    "ja": "右下コーナーを有効化"
+  },
+  {
+    "name": "corner_gesture_right_enabled_desc",
+    "ja": "右下トリガーゾーンと右放射状メニュー"
+  },
+  {
+    "name": "corner_gesture_trigger_section",
+    "ja": "トリガーとメニュー"
+  },
+  {
+    "name": "corner_gesture_zone_preview_hint",
+    "ja": "下のスライダーをドラッグ中、下部コーナーに L 字型トリガーエリアを表示（左右共通）"
+  },
+  {
+    "name": "corner_gesture_vertical_edge_height",
+    "ja": "縦エッジの高さ"
+  },
+  {
+    "name": "corner_gesture_vertical_edge_width",
+    "ja": "縦エッジの幅"
+  },
+  {
+    "name": "corner_gesture_horizontal_edge_height",
+    "ja": "横エッジの高さ"
+  },
+  {
+    "name": "corner_gesture_horizontal_edge_width",
+    "ja": "横エッジの幅"
+  },
+  {
+    "name": "corner_gesture_trigger_slop",
+    "ja": "内側スワイプ距離"
+  },
+  {
+    "name": "corner_gesture_outer_diameter",
+    "ja": "メニュー外径"
+  },
+  {
+    "name": "corner_gesture_inner_diameter",
+    "ja": "メニュー内径"
+  },
+  {
+    "name": "corner_gesture_bubble_size",
+    "ja": "バブルサイズ"
+  },
+  {
+    "name": "corner_gesture_zone_dp_value",
+    "ja": "%1$d dp"
+  },
+  {
+    "name": "corner_gesture_behavior_section",
+    "ja": "動作"
+  },
+  {
+    "name": "corner_gesture_hide_landscape",
+    "ja": "横向きで無効"
+  },
+  {
+    "name": "corner_gesture_hide_landscape_desc",
+    "ja": "横向きでコーナートリガーゾーンを非表示"
+  },
+  {
+    "name": "corner_gesture_landscape_prevent_false_touch",
+    "ja": "横向き誤タッチ防止"
+  },
+  {
+    "name": "corner_gesture_landscape_prevent_false_touch_desc",
+    "ja": "横向きではより長い内側スワイプを要求"
+  },
+  {
+    "name": "corner_gesture_override_system_nav",
+    "ja": "システムナビゲーションジェスチャを上書き"
+  },
+  {
+    "name": "corner_gesture_override_system_nav_desc",
+    "ja": "コーナーゾーンでシステム下部ナビゲーションジェスチャを除外"
+  },
+  {
+    "name": "corner_gesture_left_slots_section",
+    "ja": "左メニュースロット"
+  },
+  {
+    "name": "corner_gesture_right_slots_section",
+    "ja": "右メニュースロット"
+  },
+  {
+    "name": "corner_gesture_slot_title",
+    "ja": "スロット %1$d"
+  },
+  {
+    "name": "corner_gesture_slot_empty",
+    "ja": "未設定"
+  },
+  {
+    "name": "corner_gesture_slot_main_action",
+    "ja": "スロットアクション"
+  },
+  {
+    "name": "corner_gesture_slot_submenu_section",
+    "ja": "ショートカットサブメニュー"
+  },
+  {
+    "name": "corner_gesture_slot_submenu_hint",
+    "ja": "このスロットで留まると（長押ししきい値 + 触覚）、アイコン上にショートカットピルが表示されます。ピル上で離すと起動。"
+  },
+  {
+    "name": "corner_gesture_slot_submenu_enabled",
+    "ja": "サブメニューを有効化"
+  },
+  {
+    "name": "corner_gesture_slot_submenu_enabled_desc",
+    "ja": "このスロットで留まったときに展開するピルを設定"
+  },
+  {
+    "name": "corner_gesture_slot_submenu_item_title",
+    "ja": "ショートカット %1$d"
+  },
+  {
+    "name": "corner_gesture_slot_submenu_remove_item",
+    "ja": "ショートカットを削除"
+  },
+  {
+    "name": "corner_gesture_slot_submenu_add",
+    "ja": "ショートカットを追加"
+  },
+  {
+    "name": "corner_gesture_slot_submenu_add_desc",
+    "ja": "システムショートカット一覧から選択"
+  },
+  {
+    "name": "corner_gesture_slot_submenu_import",
+    "ja": "アプリからインポート"
+  },
+  {
+    "name": "corner_gesture_slot_submenu_import_desc",
+    "ja": "スロットにリンクしたアプリからショートカットを入力"
+  },
+  {
+    "name": "corner_gesture_slot_submenu_import_title",
+    "ja": "インポートするショートカットを選択"
+  },
+  {
+    "name": "corner_gesture_slot_corner_left",
+    "ja": "左下放射状メニュー"
+  },
+  {
+    "name": "corner_gesture_slot_corner_right",
+    "ja": "右下放射状メニュー"
+  },
+  {
+    "name": "corner_gesture_layer_inner",
+    "ja": "内側レイヤー (3)"
+  },
+  {
+    "name": "corner_gesture_layer_middle",
+    "ja": "中間レイヤー (5)"
+  },
+  {
+    "name": "corner_gesture_layer_outer",
+    "ja": "外側レイヤー (7)"
+  },
+  {
+    "name": "corner_gesture_cancel_outside_wheel",
+    "ja": "ホイール外でキャンセル"
+  },
+  {
+    "name": "corner_gesture_cancel_outside_wheel_desc",
+    "ja": "指が扇形から離れるとハイライト解除。離しても何も実行しません"
+  },
+  {
+    "name": "corner_gesture_progressive_layers",
+    "ja": "段階的レイヤー"
+  },
+  {
+    "name": "corner_gesture_progressive_layers_desc",
+    "ja": "短いスワイプで内側レイヤー。さらにスワイプで中間・外側を表示"
+  },
+  {
+    "name": "corner_gesture_slot_haptic",
+    "ja": "スロット触覚フィードバック"
+  },
+  {
+    "name": "corner_gesture_slot_haptic_desc",
+    "ja": "指が新しいスロットに移動したときに振動（ホームの「触覚フィードバック」マスタースイッチに従う）"
+  },
+  {
+    "name": "corner_gesture_show_selected_name",
+    "ja": "ヒットラベルを表示"
+  },
+  {
+    "name": "corner_gesture_show_selected_name_desc",
+    "ja": "スロットがハイライトされたとき、画面上部付近にアイコンと名前を表示（Honeycomb 風）"
+  },
+  {
+    "name": "corner_gesture_background_style",
+    "ja": "ホイール背景"
+  },
+  {
+    "name": "corner_gesture_background_none",
+    "ja": "なし"
+  },
+  {
+    "name": "action_category_navigation",
+    "ja": "ナビゲーションとシステム"
+  },
+  {
+    "name": "action_category_controls",
+    "ja": "操作とメディア"
+  },
+  {
+    "name": "action_category_intelligence",
+    "ja": "画面と AI"
+  },
+  {
+    "name": "action_category_panel",
+    "ja": "パネルとランチャー"
+  },
+  {
+    "name": "action_category_pointer",
+    "ja": "ポインターと高度な機能"
+  },
+  {
+    "name": "action_category_other",
+    "ja": "その他"
+  },
+  {
+    "name": "corner_gesture_launch_policy_hint",
+    "ja": "アプリ起動とショートカット起動スロットは、フリーウィンドウ設定の起動ポリシーに従います。"
+  },
+  {
+    "name": "corner_gesture_slots_section",
+    "ja": "ホイールスロット"
+  },
+  {
+    "name": "corner_gesture_unified_slots",
+    "ja": "左右共通スロット"
+  },
+  {
+    "name": "corner_gesture_unified_slots_desc",
+    "ja": "両方の下部コーナーで同じスロットレイアウトを使用"
+  },
+  {
+    "name": "corner_gesture_inner_zone_action",
+    "ja": "内側空白の動作"
+  },
+  {
+    "name": "gesture_action_corner_inner_cancel",
+    "ja": "キャンセル"
+  },
+  {
+    "name": "gesture_action_corner_inner_cancel_desc",
+    "ja": "離すとホイールを閉じる"
+  },
+  {
+    "name": "gesture_action_corner_inner_pin_wheel",
+    "ja": "アクションなし"
+  },
+  {
+    "name": "gesture_action_corner_inner_pin_wheel_desc",
+    "ja": "ホイールを開いたまま。スロット、ホイール外、内側リングを再度タップで閉じる"
+  },
+  {
+    "name": "trigger_design_entry",
+    "ja": "デザイン"
+  },
+  {
+    "name": "trigger_design_title",
+    "ja": "トリガーデザイン"
+  },
+  {
+    "name": "trigger_design_desc",
+    "ja": "外観とグロー効果"
+  },
+  {
+    "name": "trigger_design_section",
+    "ja": "デザイン"
+  },
+  {
+    "name": "trigger_design_customize",
+    "ja": "カスタマイズ"
+  },
+  {
+    "name": "trigger_design_kind",
+    "ja": "トリガーデザイン"
+  },
+  {
+    "name": "trigger_design_kind_hide",
+    "ja": "非表示"
+  },
+  {
+    "name": "trigger_design_kind_rectangle",
+    "ja": "設定可能な矩形"
+  },
+  {
+    "name": "trigger_design_kind_custom_image",
+    "ja": "カスタム画像"
+  },
+  {
+    "name": "trigger_design_custom_image_hint",
+    "ja": "カスタム画像は近日対応予定"
+  },
+  {
+    "name": "trigger_design_preset",
+    "ja": "プリセットを選択"
+  },
+  {
+    "name": "trigger_design_preset_bar",
+    "ja": "バー"
+  },
+  {
+    "name": "trigger_design_preset_line",
+    "ja": "ライン"
+  },
+  {
+    "name": "trigger_design_preset_rounded_rect",
+    "ja": "角丸矩形"
+  },
+  {
+    "name": "trigger_design_preset_halo",
+    "ja": "グロー"
+  },
+  {
+    "name": "trigger_design_preset_line_and_halo",
+    "ja": "ラインとグロー"
+  },
+  {
+    "name": "trigger_design_size",
+    "ja": "サイズ"
+  },
+  {
+    "name": "trigger_design_background_color",
+    "ja": "背景色"
+  },
+  {
+    "name": "trigger_design_corner_radius",
+    "ja": "角の半径"
+  },
+  {
+    "name": "trigger_design_corner_mode",
+    "ja": "角モード"
+  },
+  {
+    "name": "trigger_design_corner_mode_all",
+    "ja": "すべて"
+  },
+  {
+    "name": "trigger_design_corner_mode_outer",
+    "ja": "外側"
+  },
+  {
+    "name": "trigger_design_border_size",
+    "ja": "枠線の太さ"
+  },
+  {
+    "name": "trigger_design_border_color",
+    "ja": "枠線の色"
+  },
+  {
+    "name": "trigger_design_halo_size",
+    "ja": "グローサイズ"
+  },
+  {
+    "name": "trigger_design_halo_color",
+    "ja": "グロー色"
+  },
+  {
+    "name": "trigger_remove_side_confirm_title",
+    "ja": "%1$s を削除しますか？"
+  },
+  {
+    "name": "trigger_remove_side_confirm_message",
+    "ja": "この側のトリガーとジェスチャ設定のみ削除されます。"
+  },
+  {
+    "name": "gesture_action_floating_pointer",
+    "ja": "フローティングポインター"
+  },
+  {
+    "name": "gesture_action_floating_pointer_permission",
+    "ja": "Cebian が必要"
+  },
+  {
+    "name": "gesture_action_pointer_gesture_recorder",
+    "ja": "ポインタージェスチャレコーダー"
+  },
+  {
+    "name": "gesture_action_pointer_gesture_recorder_desc",
+    "ja": "長押ししてスライドし、ポインターからスワイプとして再生"
+  },
+  {
+    "name": "gesture_action_pointer_realtime_gesture",
+    "ja": "ポインターリアルタイムジェスチャ"
+  },
+  {
+    "name": "gesture_action_pointer_realtime_gesture_desc",
+    "ja": "長押ししてスライドし、ポインターからリアルタイムでタッチをシミュレート"
+  },
+  {
+    "name": "gesture_action_require_min_sdk_36",
+    "ja": "必要な Android の最低バージョンは Android 16 (SDK 36) です"
+  },
+  {
+    "name": "gesture_action_pointer_gesture_record_permission",
+    "ja": "Cebian が必要"
+  },
+  {
+    "name": "gesture_action_open_floating_pointer_radial_menu",
+    "ja": "アクションリングを開く"
+  },
+  {
+    "name": "gesture_action_open_floating_pointer_radial_menu_desc",
+    "ja": "長押しでジョイスティックアクションリングを開く"
+  },
+  {
+    "name": "gesture_action_open_floating_pointer_radial_menu_permission",
+    "ja": "Cebian が必要"
+  },
+  {
+    "name": "float_ball_settings_title",
+    "ja": "フローティングボール"
+  },
+  {
+    "name": "float_ball_entry_desc",
+    "ja": "テキスト選択、画像検索、翻訳など"
+  },
+  {
+    "name": "float_ball_entry_summary_enabled",
+    "ja": "オン · %1$.0f dp · 不透明度 %2$d%%"
+  },
+  {
+    "name": "float_ball_entry_summary_disabled",
+    "ja": "オフ"
+  },
+  {
+    "name": "float_ball_enabled",
+    "ja": "フローティングボールを表示"
+  },
+  {
+    "name": "float_ball_enabled_desc",
+    "ja": "アクセシビリティサービスが必要。有効化するとすぐに表示されます"
+  },
+  {
+    "name": "float_ball_permission_required",
+    "ja": "アクセシビリティサービスが必要です"
+  },
+  {
+    "name": "float_ball_section_appearance",
+    "ja": "外観"
+  },
+  {
+    "name": "float_ball_section_line",
+    "ja": "エッジライン"
+  },
+  {
+    "name": "float_ball_position",
+    "ja": "位置"
+  },
+  {
+    "name": "float_ball_position_left",
+    "ja": "左"
+  },
+  {
+    "name": "float_ball_position_right",
+    "ja": "右"
+  },
+  {
+    "name": "float_ball_position_both_edges",
+    "ja": "両端"
+  },
+  {
+    "name": "float_ball_position_y",
+    "ja": "縦位置"
+  },
+  {
+    "name": "float_ball_visible_fraction",
+    "ja": "表示量"
+  },
+  {
+    "name": "float_ball_position_xy_hint",
+    "ja": "パーセンテージは、ドック時にボールのどれだけが画面内に残るかを示します"
+  },
+  {
+    "name": "float_ball_line_height",
+    "ja": "ラインの高さ"
+  },
+  {
+    "name": "float_ball_line_width",
+    "ja": "トリガー幅"
+  },
+  {
+    "name": "float_ball_line_width_preview_hint",
+    "ja": "トリガー幅スライダーをドラッグして、画面端のアクティブスワイプゾーンをプレビュー。"
+  },
+  {
+    "name": "float_ball_line_opacity",
+    "ja": "ラインの不透明度"
+  },
+  {
+    "name": "float_ball_translation_settings_title",
+    "ja": "翻訳"
+  },
+  {
+    "name": "float_ball_translate_engine",
+    "ja": "翻訳エンジン"
+  },
+  {
+    "name": "float_ball_translate_engine_google",
+    "ja": "Google"
+  },
+  {
+    "name": "float_ball_translate_engine_mlkit",
+    "ja": "ML Kit"
+  },
+  {
+    "name": "float_ball_translate_target_lang",
+    "ja": "翻訳先"
+  },
+  {
+    "name": "float_ball_instant_translate",
+    "ja": "即時翻訳"
+  },
+  {
+    "name": "float_ball_instant_translate_desc",
+    "ja": "ゲームなど他アプリでテキスト選択時、オーバーレイで翻訳テキストを表示"
+  },
+  {
+    "name": "float_ball_instant_translate_on",
+    "ja": "即時翻訳"
+  },
+  {
+    "name": "float_ball_instant_translate_off",
+    "ja": "Web ページ"
+  },
+  {
+    "name": "float_ball_translate_mlkit_models",
+    "ja": "ML Kit 言語パック"
+  },
+  {
+    "name": "float_ball_translate_mlkit_models_desc",
+    "ja": "オフライン翻訳言語モデルを管理"
+  },
+  {
+    "name": "float_ball_translate_mlkit_models_subtitle",
+    "ja": "ダウンロードする言語パックを選択。ML Kit 翻訳を使う前に必要なパックをインストールしてください。"
+  },
+  {
+    "name": "float_ball_translate_languages_section",
+    "ja": "言語パック"
+  },
+  {
+    "name": "float_ball_translate_panel_title",
+    "ja": "翻訳"
+  }
+]

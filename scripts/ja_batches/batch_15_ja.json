@@ -1,0 +1,722 @@
+[
+  {
+    "name": "update_download_failed",
+    "ja": "ダウンロードに失敗しました。もう一度お試しください。"
+  },
+  {
+    "name": "update_install_permission_hint",
+    "ja": "先にこのソースからのアプリインストールを許可してください"
+  },
+  {
+    "name": "update_view_on_github",
+    "ja": "GitHub で表示"
+  },
+  {
+    "name": "update_channel_update",
+    "ja": "アップデート通知"
+  },
+  {
+    "name": "update_channel_download",
+    "ja": "ダウンロード進捗"
+  },
+  {
+    "name": "update_notification_new_title",
+    "ja": "アップデートがあります"
+  },
+  {
+    "name": "update_notification_new_content",
+    "ja": "%1$s が利用可能です。タップして表示。"
+  },
+  {
+    "name": "update_notification_downloading_title",
+    "ja": "アップデートをダウンロード中"
+  },
+  {
+    "name": "update_notification_done_title",
+    "ja": "ダウンロード完了"
+  },
+  {
+    "name": "update_notification_done_content",
+    "ja": "タップして %1$s をインストール"
+  },
+  {
+    "name": "update_notification_failed_title",
+    "ja": "ダウンロード失敗"
+  },
+  {
+    "name": "update_notification_failed_content",
+    "ja": "タップして再試行"
+  },
+  {
+    "name": "update_notification_permission_title",
+    "ja": "通知を有効にする"
+  },
+  {
+    "name": "update_notification_permission_rationale",
+    "ja": "新バージョンの検出やダウンロード完了時に通知を受け取るには、通知を許可してください。"
+  },
+  {
+    "name": "about_project_url_desc",
+    "ja": "https://github.com/qpst4/cebian"
+  },
+  {
+    "name": "about_star_github_title",
+    "ja": "GitHub リポジトリ ⭐"
+  },
+  {
+    "name": "about_star_github_desc",
+    "ja": "https://github.com/qpst4/cebian · Star で開発を支援"
+  },
+  {
+    "name": "about_feedback_issues_title",
+    "ja": "Issues と機能リクエスト"
+  },
+  {
+    "name": "about_feedback_issues_desc",
+    "ja": "GitHub でバグ報告、機能提案、プリセット共有"
+  },
+  {
+    "name": "about_qq_group_title",
+    "ja": "QQ グループ"
+  },
+  {
+    "name": "about_qq_group_desc",
+    "ja": "1042783385"
+  },
+  {
+    "name": "about_qq_group_url",
+    "ja": "https://qm.qq.com/q/Zx4wd2LB4G"
+  },
+  {
+    "name": "about_open_source_license_title",
+    "ja": "オープンソースライセンス"
+  },
+  {
+    "name": "about_open_source_license_desc",
+    "ja": "GNU Affero GPL v3.0 (AGPLv3)"
+  },
+  {
+    "name": "about_third_party_notices_title",
+    "ja": "サードパーティオープンソース"
+  },
+  {
+    "name": "about_third_party_notices_subtitle",
+    "ja": "謝辞とライセンス表記"
+  },
+  {
+    "name": "search_panel_default_engine_title",
+    "ja": "デフォルト検索エンジン"
+  },
+  {
+    "name": "search_panel_default_engine_none",
+    "ja": "なし（検索しない）"
+  },
+  {
+    "name": "search_panel_open_link_host",
+    "ja": "%1$s を開く"
+  },
+  {
+    "name": "search_panel_entry_title",
+    "ja": "検索パネル"
+  },
+  {
+    "name": "search_panel_entry_desc",
+    "ja": "レイアウト、デフォルトエンジン、候補検索、エイリアス"
+  },
+  {
+    "name": "search_panel_settings_title",
+    "ja": "検索パネル"
+  },
+  {
+    "name": "search_panel_settings_subtitle",
+    "ja": "検索パネルのレイアウト、外観、候補を設定"
+  },
+  {
+    "name": "search_panel_settings_section_layout",
+    "ja": "表示とレイアウト"
+  },
+  {
+    "name": "search_panel_settings_section_behavior",
+    "ja": "パネルの動作"
+  },
+  {
+    "name": "search_panel_settings_section_appearance",
+    "ja": "外観"
+  },
+  {
+    "name": "search_panel_settings_section_candidates",
+    "ja": "候補検索"
+  },
+  {
+    "name": "search_panel_settings_section_engines",
+    "ja": "検索エンジン"
+  },
+  {
+    "name": "search_panel_presentation_title",
+    "ja": "表示形式"
+  },
+  {
+    "name": "search_panel_presentation_bottom_sheet",
+    "ja": "ボトムシート"
+  },
+  {
+    "name": "search_panel_presentation_fullscreen",
+    "ja": "全画面"
+  },
+  {
+    "name": "search_panel_bar_position_title",
+    "ja": "検索バーの位置"
+  },
+  {
+    "name": "search_panel_bar_position_top",
+    "ja": "上"
+  },
+  {
+    "name": "search_panel_bar_position_bottom",
+    "ja": "下"
+  },
+  {
+    "name": "search_panel_list_order_title",
+    "ja": "候補リストの順序"
+  },
+  {
+    "name": "search_panel_list_order_top_down",
+    "ja": "上から下"
+  },
+  {
+    "name": "search_panel_list_order_bottom_up",
+    "ja": "下から上"
+  },
+  {
+    "name": "search_panel_app_display_style_title",
+    "ja": "アプリの表示スタイル"
+  },
+  {
+    "name": "search_panel_app_display_style_icons",
+    "ja": "アイコン"
+  },
+  {
+    "name": "search_panel_app_display_style_list",
+    "ja": "リスト"
+  },
+  {
+    "name": "search_panel_expand_more_apps",
+    "ja": "アプリをもっと表示"
+  },
+  {
+    "name": "search_panel_calculator_title",
+    "ja": "電卓"
+  },
+  {
+    "name": "search_panel_calculator_desc",
+    "ja": "クエリが数式の場合、結果カードを表示"
+  },
+  {
+    "name": "honeycomb_background_wallpaper_blur",
+    "ja": "壁紙ぼかし"
+  },
+  {
+    "name": "wallpaper_blur_permission_title",
+    "ja": "すべてのファイルへのアクセス権限"
+  },
+  {
+    "name": "wallpaper_blur_permission_granted",
+    "ja": "付与済み — 壁紙ぼかしでホーム壁紙を読み込めます"
+  },
+  {
+    "name": "wallpaper_blur_permission_missing",
+    "ja": "未付与。タップしてすべてのファイルへのアクセスを付与し、システム壁紙を読み込んでください"
+  },
+  {
+    "name": "search_panel_input_behavior_title",
+    "ja": "開いたときの入力欄"
+  },
+  {
+    "name": "search_panel_input_behavior_select_all",
+    "ja": "テキストをすべて選択"
+  },
+  {
+    "name": "search_panel_input_behavior_clear",
+    "ja": "テキストを消去"
+  },
+  {
+    "name": "search_panel_input_behavior_keep",
+    "ja": "テキストを保持"
+  },
+  {
+    "name": "search_panel_contact_search_desc",
+    "ja": "連絡先を名前のピンインまたは電話番号で検索して発信"
+  },
+  {
+    "name": "search_panel_contact_permission_title",
+    "ja": "連絡先の権限"
+  },
+  {
+    "name": "search_panel_contact_permission_granted",
+    "ja": "連絡先の権限が付与されました"
+  },
+  {
+    "name": "search_panel_contact_permission_prompt",
+    "ja": "タップして連絡先検索を許可"
+  },
+  {
+    "name": "search_panel_file_search_desc",
+    "ja": "MediaStore でローカルのファイルとフォルダを名前で検索（すべてのファイルへのアクセスが必要）"
+  },
+  {
+    "name": "search_panel_file_search_manage_title",
+    "ja": "ファイルとフォルダ"
+  },
+  {
+    "name": "search_panel_file_search_manage_desc",
+    "ja": "結果に表示するファイル種別とパスフィルターを管理"
+  },
+  {
+    "name": "search_panel_file_permission_missing",
+    "ja": "未付与 — タップしてシステム設定を開く"
+  },
+  {
+    "name": "search_panel_file_permission_prompt",
+    "ja": "タップしてファイル検索を許可"
+  },
+  {
+    "name": "search_panel_file_open_failed",
+    "ja": "このファイルを開けません"
+  },
+  {
+    "name": "search_panel_file_type_documents",
+    "ja": "ドキュメント"
+  },
+  {
+    "name": "search_panel_file_type_pictures",
+    "ja": "画像"
+  },
+  {
+    "name": "search_panel_file_type_videos",
+    "ja": "動画"
+  },
+  {
+    "name": "search_panel_file_type_audio",
+    "ja": "音声"
+  },
+  {
+    "name": "search_panel_file_type_apks",
+    "ja": "APK ファイル"
+  },
+  {
+    "name": "search_panel_file_type_other",
+    "ja": "その他"
+  },
+  {
+    "name": "search_panel_file_show_folders",
+    "ja": "フォルダ"
+  },
+  {
+    "name": "search_panel_file_show_system",
+    "ja": "システムファイル"
+  },
+  {
+    "name": "search_panel_file_folder_filters_title",
+    "ja": "フォルダパスフィルター"
+  },
+  {
+    "name": "search_panel_file_folder_filters_desc",
+    "ja": "フォルダを検索して追加し、ファイルとフォルダ結果の範囲を制御します。"
+  },
+  {
+    "name": "search_panel_file_whitelist_title",
+    "ja": "ホワイトリスト"
+  },
+  {
+    "name": "search_panel_file_whitelist_desc",
+    "ja": "検索時はこれらのフォルダ内のみを対象"
+  },
+  {
+    "name": "search_panel_file_blacklist_title",
+    "ja": "ブラックリスト"
+  },
+  {
+    "name": "search_panel_file_blacklist_desc",
+    "ja": "検索時にこれらのフォルダを除外"
+  },
+  {
+    "name": "search_panel_file_folder_add",
+    "ja": "フォルダを追加"
+  },
+  {
+    "name": "search_panel_file_folder_add_title_whitelist",
+    "ja": "ホワイトリストフォルダを追加"
+  },
+  {
+    "name": "search_panel_file_folder_add_title_blacklist",
+    "ja": "ブラックリストフォルダを追加"
+  },
+  {
+    "name": "search_panel_file_folder_search_hint",
+    "ja": "フォルダ名を検索"
+  },
+  {
+    "name": "search_panel_file_folder_remove_hint",
+    "ja": "タップして削除"
+  },
+  {
+    "name": "search_panel_file_folder_empty",
+    "ja": "追加なし"
+  },
+  {
+    "name": "search_panel_file_folder_no_results",
+    "ja": "一致するフォルダがありません"
+  },
+  {
+    "name": "search_panel_text_engines_entry_desc",
+    "ja": "テキスト検索エンジンと選択パネルのグリッドを管理"
+  },
+  {
+    "name": "search_panel_image_engines_entry_desc",
+    "ja": "画像検索と共有先を管理"
+  },
+  {
+    "name": "search_panel_expand_more_contacts",
+    "ja": "連絡先をもっと表示"
+  },
+  {
+    "name": "search_panel_expand_more_files",
+    "ja": "ファイルをもっと表示"
+  },
+  {
+    "name": "search_panel_expand_more_settings",
+    "ja": "設定をもっと表示"
+  },
+  {
+    "name": "search_panel_collapse",
+    "ja": "折りたたむ"
+  },
+  {
+    "name": "search_panel_web_suggestions_title",
+    "ja": "Web サジェスト"
+  },
+  {
+    "name": "search_panel_web_suggestions_desc",
+    "ja": "入力中に Google から検索サジェストを取得"
+  },
+  {
+    "name": "search_panel_web_suggestions_count_title",
+    "ja": "サジェスト件数"
+  },
+  {
+    "name": "search_panel_history_capacity_title",
+    "ja": "検索履歴の上限"
+  },
+  {
+    "name": "search_panel_history_capacity_value",
+    "ja": "%1$d"
+  },
+  {
+    "name": "search_panel_history_clear",
+    "ja": "検索履歴を消去"
+  },
+  {
+    "name": "search_panel_history_clear_confirm_title",
+    "ja": "検索履歴を消去しますか？"
+  },
+  {
+    "name": "search_panel_history_clear_confirm_message",
+    "ja": "すべての検索履歴が削除されます。元に戻せません。"
+  },
+  {
+    "name": "search_panel_history_hint",
+    "ja": "空の入力欄でスペースキーを押すと検索履歴を表示"
+  },
+  {
+    "name": "search_panel_contact_action_call",
+    "ja": "発信"
+  },
+  {
+    "name": "search_panel_contact_action_sms",
+    "ja": "SMS を送信"
+  },
+  {
+    "name": "search_panel_contact_open_with",
+    "ja": "アプリで開く"
+  },
+  {
+    "name": "search_panel_file_previews_section_title",
+    "ja": "クイックプレビュー"
+  },
+  {
+    "name": "search_panel_file_previews_title",
+    "ja": "クイックプレビュー"
+  },
+  {
+    "name": "search_panel_file_previews_desc",
+    "ja": "画像と PDF を直接開かずパネル内でプレビュー"
+  },
+  {
+    "name": "search_panel_file_preview_share",
+    "ja": "共有"
+  },
+  {
+    "name": "search_panel_file_preview_open",
+    "ja": "開く"
+  },
+  {
+    "name": "search_panel_file_preview_unable_to_open",
+    "ja": "%1$s をプレビューできません"
+  },
+  {
+    "name": "keyboard_switch_to_number",
+    "ja": "数字キーボード"
+  },
+  {
+    "name": "keyboard_switch_back",
+    "ja": "テキストキーボード"
+  },
+  {
+    "name": "search_panel_phone_call",
+    "ja": "電話"
+  },
+  {
+    "name": "settings_backup_section_permissions",
+    "ja": "権限"
+  },
+  {
+    "name": "settings_backup_diff_overwritten",
+    "ja": "上書き: %1$s"
+  },
+  {
+    "name": "settings_backup_diff_new",
+    "ja": "追加: %1$s"
+  },
+  {
+    "name": "missing_permissions_title",
+    "ja": "不足している権限"
+  },
+  {
+    "name": "missing_permissions_subtitle",
+    "ja": "一部の機能には Android の権限が必要です"
+  },
+  {
+    "name": "missing_permissions_section",
+    "ja": "権限不足の機能"
+  },
+  {
+    "name": "missing_permissions_empty",
+    "ja": "設定済みのアクションはすべて必要な権限が付与されています"
+  },
+  {
+    "name": "missing_permissions_entry_title",
+    "ja": "必要な権限"
+  },
+  {
+    "name": "missing_permissions_entry_desc_none",
+    "ja": "すべての機能権限が付与されています"
+  },
+  {
+    "name": "gesture_action_flashlight_permission",
+    "ja": "カメラへのアクセスが必要です"
+  },
+  {
+    "name": "system_back_conflict_title",
+    "ja": "システムの戻るジェスチャーと競合する可能性"
+  },
+  {
+    "name": "system_back_conflict_desc",
+    "ja": "ジェスチャーナビゲーションが有効です。左エッジトリガーがシステムの戻るジェスチャーと競合する可能性があります。インターセプトを有効にし、インターセプト長を制限することを検討してください。"
+  },
+  {
+    "name": "system_back_conflict_apply",
+    "ja": "推奨設定を適用"
+  },
+  {
+    "name": "floating_panel_title",
+    "ja": "コレクションパネル"
+  },
+  {
+    "name": "stash_panel_tab",
+    "ja": "ストッシュ"
+  },
+  {
+    "name": "clipboard_panel_tab",
+    "ja": "クリップボード"
+  },
+  {
+    "name": "clipboard_empty",
+    "ja": "クリップボード履歴はまだありません"
+  },
+  {
+    "name": "clipboard_search_hint",
+    "ja": "クリップボードを検索…"
+  },
+  {
+    "name": "clipboard_search_empty",
+    "ja": "一致するクリップボード項目がありません"
+  },
+  {
+    "name": "stash_search_hint",
+    "ja": "ストッシュを検索…"
+  },
+  {
+    "name": "stash_search_empty",
+    "ja": "一致するストッシュ項目がありません"
+  },
+  {
+    "name": "stash_clipboard_entry_title",
+    "ja": "ストッシュとクリップボード"
+  },
+  {
+    "name": "stash_clipboard_entry_summary",
+    "ja": "%1$s · %2$s"
+  },
+  {
+    "name": "stash_clipboard_entry_summary_clipboard_off",
+    "ja": "クリップボード監視オフ"
+  },
+  {
+    "name": "stash_clipboard_settings_title",
+    "ja": "ストッシュとクリップボード"
+  },
+  {
+    "name": "stash_clipboard_settings_desc",
+    "ja": "クリップボード履歴とストッシュ管理"
+  },
+  {
+    "name": "stash_clipboard_section_history",
+    "ja": "クリップボード履歴"
+  },
+  {
+    "name": "stash_clipboard_section_stash",
+    "ja": "ストッシュ"
+  },
+  {
+    "name": "stash_clipboard_index_nav_section",
+    "ja": "クリップボードとコレクションパネル"
+  },
+  {
+    "name": "stash_clipboard_index_stash_panel_desc",
+    "ja": "背景ぼかしとエッジ履歴フロート"
+  },
+  {
+    "name": "stash_clipboard_index_clipboard_float_desc",
+    "ja": "スタイル、タップ動作、ブラックリストなど"
+  },
+  {
+    "name": "clipboard_history_settings_desc",
+    "ja": "クリップボード履歴、スクリーンショット、バックグラウンド監視"
+  },
+  {
+    "name": "stash_panel_settings_desc",
+    "ja": "コレクションパネルの外観とエッジ履歴フロート設定"
+  },
+  {
+    "name": "clipboard_float_settings_desc",
+    "ja": "フローティングクリップボードウィンドウの外観と操作"
+  },
+  {
+    "name": "stash_clipboard_stash_desc",
+    "ja": "サイドバーの「ストッシュを開く」エッジジェスチャーまたはフローティングボールの選択結果からストッシュに保存。"
+  },
+  {
+    "name": "stash_panel_section_appearance",
+    "ja": "コレクションパネル"
+  },
+  {
+    "name": "stash_panel_background_blur",
+    "ja": "背景ぼかし"
+  },
+  {
+    "name": "stash_panel_background_blur_desc",
+    "ja": "Android 12 以降でパネル背面をぼかし。スクロール中はヘッダーがパネル内コンテンツをぼかします"
+  },
+  {
+    "name": "clipboard_background_monitoring_section",
+    "ja": "バックグラウンド監視"
+  },
+  {
+    "name": "clipboard_background_monitoring_title",
+    "ja": "バックグラウンドでコピーを監視"
+  },
+  {
+    "name": "clipboard_background_monitoring_desc",
+    "ja": "他アプリからのコピーを自動記録（Shizuku/Root 特権リスナー経由）"
+  },
+  {
+    "name": "clipboard_background_monitoring_mode_title",
+    "ja": "監視モード"
+  },
+  {
+    "name": "clipboard_monitoring_section_modes",
+    "ja": "監視モードとパイプライン"
+  },
+  {
+    "name": "clipboard_monitoring_strategy_follow",
+    "ja": "特権モードに従う（推奨）"
+  },
+  {
+    "name": "clipboard_monitoring_strategy_follow_desc",
+    "ja": "ホームの「特権モード」に従います。現在: %1$s"
+  },
+  {
+    "name": "clipboard_monitoring_strategy_manual",
+    "ja": "手動監視パイプライン"
+  },
+  {
+    "name": "clipboard_monitoring_strategy_manual_desc",
+    "ja": "特権パスとキャプチャ方式を個別に選択"
+  },
+  {
+    "name": "clipboard_monitoring_privilege_path_title",
+    "ja": "特権パス"
+  },
+  {
+    "name": "clipboard_monitoring_privilege_shizuku_hint",
+    "ja": "Shizuku 付与のシェル ID でリスナーバックエンドを実行します。"
+  },
+  {
+    "name": "clipboard_monitoring_privilege_root_hint",
+    "ja": "su 特権プロセスでリスナーバックエンドを実行します。"
+  },
+  {
+    "name": "clipboard_monitoring_principle_title",
+    "ja": "仕組み"
+  },
+  {
+    "name": "clipboard_monitoring_principle_shizuku_hidden_api",
+    "ja": "Shizuku UserService にバインドし、シェル ID で app_process を起動してリスナーを読み込み、IClipboard.IOnPrimaryClipChangedListener をリフレクションで登録します。クリップボード変更時にシステムがコールバック。フォアグラウンドサービスでホストプロセスを維持。"
+  },
+  {
+    "name": "clipboard_monitoring_principle_shizuku_logcat",
+    "ja": "Shizuku 特権プロセスで logcat パイプを非同期読み取り（ClipboardService タグ）し、クリップボード書き込みログ行に一致してリフレクションなしでキャプチャ。一部端末では READ_LOGS が必要な場合があります。"
+  },
+  {
+    "name": "clipboard_monitoring_principle_root_hidden_api",
+    "ja": "su で app_process を root デーモンとして起動し、リスナーを読み込んで ClipboardManager にリフレクションでバインド、クリップボードイベントをパイプバック。フォアグラウンドサービスが必要。"
+  },
+  {
+    "name": "clipboard_monitoring_principle_root_logcat",
+    "ja": "su で logcat パイプを非同期読み取りし、ClipboardService のクリップボード変更ログをフィルタリング（リフレクションなしのフォールバック）。"
+  },
+  {
+    "name": "clipboard_monitoring_capture_title",
+    "ja": "キャプチャ方式"
+  },
+  {
+    "name": "clipboard_monitoring_capture_hidden_api",
+    "ja": "非公開 API"
+  },
+  {
+    "name": "clipboard_monitoring_capture_logcat",
+    "ja": "システムログ (Logcat)"
+  },
+  {
+    "name": "clipboard_monitoring_status_section",
+    "ja": "現在の状態"
+  },
+  {
+    "name": "clipboard_monitoring_status_running_headline",
+    "ja": "%1$s · %2$s · 監視 OK"
+  },
+  {
+    "name": "clipboard_monitoring_status_stopped_headline",
+    "ja": "%1$s · %2$s · 停止中"
+  }
+]
