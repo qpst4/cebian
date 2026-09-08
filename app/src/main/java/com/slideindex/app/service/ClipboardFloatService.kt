@@ -442,7 +442,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
         val overlayContext = OverlayCompose.themedContext(context)
         params = WindowManager.LayoutParams().apply {
             type = OverlayWindowTypes.overlayWindowType(context)
-            format = PixelFormat.TRANSLUCENT
+            format = PixelFormat.RGBA_8888
             flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                 WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
                 WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED or
@@ -553,8 +553,9 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
 
         if (displayMode == ClipboardFloatDisplayMode.Chip) {
             params.flags = params.flags and WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH.inv()
-            params.width = (44f * density).roundToInt()
-            params.height = (36f * density).roundToInt()
+            val chipWindowPx = ClipboardFloatWindowMetrics.chipWindowSizePx(density)
+            params.width = chipWindowPx
+            params.height = chipWindowPx
             if (shouldUseDefaultChipPosition(forceDefaultPosition)) {
                 applyChipDefaultPosition(screenWidth, marginPx, density)
             } else {
@@ -563,8 +564,8 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
             }
         } else {
             params.flags = params.flags or WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
-            params.width = (panelWidthDp * density).roundToInt()
-            params.height = (panelHeightDp * density).roundToInt()
+            params.width = ClipboardFloatWindowMetrics.expandedPanelWindowWidthPx(panelWidthDp, density)
+            params.height = ClipboardFloatWindowMetrics.expandedPanelWindowHeightPx(panelHeightDp, density)
             if (shouldUseDefaultPanelPosition(forceDefaultPosition)) {
                 applyPanelDefaultPosition(screenWidth, screenHeight, marginPx, density)
             } else {
@@ -639,16 +640,17 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
         cancelIdleGeometryPersist()
         resetAutoCloseTimer()
         val density = resources.displayMetrics.density
+        val insetPx = ClipboardFloatWindowMetrics.panelShadowInsetPx(density) * 2
         val nextWidthDp = ClipboardFloatWindowMetrics.coerceWidth(
-            (params.width + dw.roundToInt()).let { (it / density).roundToInt() },
+            ((params.width + dw.roundToInt() - insetPx) / density).roundToInt(),
         )
         val nextHeightDp = ClipboardFloatWindowMetrics.coerceHeight(
-            (params.height + dh.roundToInt()).let { (it / density).roundToInt() },
+            ((params.height + dh.roundToInt() - insetPx) / density).roundToInt(),
         )
         panelWidthDp = nextWidthDp
         panelHeightDp = nextHeightDp
-        params.width = (nextWidthDp * density).roundToInt()
-        params.height = (nextHeightDp * density).roundToInt()
+        params.width = ClipboardFloatWindowMetrics.expandedPanelWindowWidthPx(nextWidthDp, density)
+        params.height = ClipboardFloatWindowMetrics.expandedPanelWindowHeightPx(nextHeightDp, density)
         composeView?.let { windowManager.updateViewLayout(it, params) }
         scheduleIdleGeometryPersist()
     }

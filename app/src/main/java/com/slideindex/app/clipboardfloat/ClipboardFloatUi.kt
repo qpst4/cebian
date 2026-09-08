@@ -16,12 +16,15 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -75,9 +78,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.PointerEventType
@@ -91,6 +100,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.clipboard.ClipboardEntry
@@ -115,6 +125,11 @@ enum class ClipboardFloatDisplayMode {
     Chip,
     Expanded,
 }
+
+private val ClipboardFloatPanelCornerRadius =
+    ClipboardFloatWindowMetrics.PANEL_CORNER_RADIUS_DP.dp
+private val ClipboardFloatPanelShape = RoundedCornerShape(ClipboardFloatPanelCornerRadius)
+private val ClipboardFloatChipShape = RoundedCornerShape(16.dp)
 
 @Composable
 fun ClipboardFloatRoot(
@@ -218,21 +233,30 @@ private fun ClipboardFloatChip(
     onDragWindowEnd: () -> Unit,
 ) {
     val scheme = MiuixTheme.colorScheme
-    Surface(
+    Box(
         modifier = Modifier
-            .size(44.dp)
-            .clipboardFloatDragHandle(onDragWindowStart, onDragWindow, onDragWindowEnd)
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                onClick = onClick,
-            ),
-        shape = RoundedCornerShape(16.dp),
-        color = scheme.surfaceContainer.copy(alpha = 0.94f),
-        shadowElevation = 4.dp,
-        border = androidx.compose.foundation.BorderStroke(1.dp, scheme.onSurface.copy(alpha = 0.12f)),
+            .fillMaxSize()
+            .padding(ClipboardFloatWindowMetrics.CHIP_SHADOW_INSET_DP.dp),
     ) {
-        Box(contentAlignment = Alignment.Center) {
+        Box(
+            modifier = Modifier
+                .size(ClipboardFloatWindowMetrics.CHIP_SIZE_DP.dp)
+                .shadow(
+                    ClipboardFloatWindowMetrics.CHIP_SHADOW_ELEVATION_DP.dp,
+                    ClipboardFloatChipShape,
+                    clip = false,
+                )
+                .clip(ClipboardFloatChipShape)
+                .background(scheme.surfaceContainer)
+                .border(0.5.dp, scheme.onSurface.copy(alpha = 0.12f), ClipboardFloatChipShape)
+                .clipboardFloatDragHandle(onDragWindowStart, onDragWindow, onDragWindowEnd)
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = onClick,
+                ),
+            contentAlignment = Alignment.Center,
+        ) {
             Icon(
                 imageVector = Icons.Default.ContentPaste,
                 contentDescription = stringResource(R.string.clipboard_float_open),
@@ -279,26 +303,30 @@ private fun ClipboardFloatExpandedChrome(
         onDispose { onSearchActiveChanged(false) }
     }
 
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        shape = RoundedCornerShape(16.dp),
-        color = HistoryPanelColors.panelChrome(),
-        shadowElevation = 10.dp,
-        border = androidx.compose.foundation.BorderStroke(1.dp, scheme.onSurface.copy(alpha = 0.10f)),
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(ClipboardFloatWindowMetrics.PANEL_SHADOW_INSET_DP.dp),
     ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(4.dp)
-                    .background(scheme.onSurface.copy(alpha = 0.08f))
-                    .clipboardFloatDragHandle(onDragWindowStart, onDragWindow, onDragWindowEnd),
-            )
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .shadow(
+                    ClipboardFloatWindowMetrics.PANEL_SHADOW_ELEVATION_DP.dp,
+                    ClipboardFloatPanelShape,
+                    clip = false,
+                )
+                .clip(ClipboardFloatPanelShape)
+                .background(HistoryPanelColors.panelChrome())
+                .border(0.5.dp, scheme.onSurface.copy(alpha = 0.10f), ClipboardFloatPanelShape),
+        ) {
+            Column(modifier = Modifier.fillMaxSize()) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(40.dp)
-                    .padding(horizontal = 4.dp),
+                    .padding(horizontal = 4.dp)
+                    .clipboardFloatDragHandle(onDragWindowStart, onDragWindow, onDragWindowEnd),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 IconButton(onClick = onTogglePin, modifier = Modifier.size(32.dp)) {
@@ -330,8 +358,7 @@ private fun ClipboardFloatExpandedChrome(
                     text = stringResource(R.string.clipboard_float_title),
                     modifier = Modifier
                         .weight(1f)
-                        .fillMaxWidth()
-                        .clipboardFloatDragHandle(onDragWindowStart, onDragWindow, onDragWindowEnd),
+                        .fillMaxWidth(),
                     style = MiuixTheme.textStyles.subtitle,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -438,34 +465,49 @@ private fun ClipboardFloatExpandedChrome(
                     onEntryDragStart = onEntryDragStart,
                     onEntryDragEnd = onEntryDragEnd,
                 )
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .size(28.dp)
-                        .pointerInput(Unit) {
-                            detectDragGestures { change, dragAmount ->
-                                change.consume()
-                                onResizeWindow(dragAmount.x, dragAmount.y)
-                            }
-                        },
-                    contentAlignment = Alignment.BottomEnd,
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .padding(end = 4.dp, bottom = 4.dp)
-                            .size(width = 14.dp, height = 2.dp)
-                            .clip(RoundedCornerShape(1.dp))
-                            .background(scheme.primary.copy(alpha = 0.55f)),
-                    )
-                    Box(
-                        modifier = Modifier
-                            .padding(end = 4.dp, bottom = 4.dp)
-                            .size(width = 2.dp, height = 14.dp)
-                            .clip(RoundedCornerShape(1.dp))
-                            .background(scheme.primary.copy(alpha = 0.55f)),
-                    )
-                }
             }
+            }
+            ClipboardFloatResizeCornerHandle(
+                cornerRadius = ClipboardFloatPanelCornerRadius,
+                color = scheme.primary,
+                onResizeWindow = onResizeWindow,
+            )
+        }
+    }
+}
+
+@Composable
+private fun BoxScope.ClipboardFloatResizeCornerHandle(
+    cornerRadius: Dp,
+    color: Color,
+    onResizeWindow: (Float, Float) -> Unit,
+) {
+    val touchSize = (cornerRadius.value + 12f).coerceAtLeast(28f).dp
+    Box(
+        modifier = Modifier
+            .align(Alignment.BottomEnd)
+            .size(touchSize)
+            .pointerInput(Unit) {
+                detectDragGestures { change, dragAmount ->
+                    change.consume()
+                    onResizeWindow(dragAmount.x, dragAmount.y)
+                }
+            },
+        contentAlignment = Alignment.BottomEnd,
+    ) {
+        Canvas(modifier = Modifier.size(cornerRadius)) {
+            val radius = size.minDimension
+            val strokeWidth = 2.dp.toPx()
+            val inset = strokeWidth / 2f
+            drawArc(
+                color = color,
+                startAngle = 0f,
+                sweepAngle = 90f,
+                useCenter = false,
+                topLeft = Offset(-radius + inset, -radius + inset),
+                size = Size((radius - inset) * 2f, (radius - inset) * 2f),
+                style = Stroke(width = strokeWidth, cap = StrokeCap.Round),
+            )
         }
     }
 }
