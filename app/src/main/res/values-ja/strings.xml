@@ -3267,4 +3267,7 @@ APatch で Shell の永久 Root 権限を取り消してください。</string>
     <string name="screenshot_keyword_screenshot_cn">スクリーンショット</string>
     <string name="screenshot_keyword_screencap_cn">画面キャプチャ</string>
     <string name="screenshot_keyword_screenshot_tw">螢幕截圖</string>
+    <plurals name="search_panel_history_count">
+        <item quantity="other">現在 %1$d 件</item>
+    </plurals>
 </resources>
