@@ -48,7 +48,7 @@ object PickResultWordTokenizer {
 
     /**
      * Tap-select tokens: CJK uses locale word boundaries; Latin accumulates into words;
-     * works even when all spaces have been removed.
+     * whitespace is preserved one character per token for blank-chip rendering.
      */
     fun tokenizeSelectableWords(text: String, context: Context? = null): List<String> {
         if (text.isEmpty()) return emptyList()
@@ -67,6 +67,7 @@ object PickResultWordTokenizer {
             when {
                 char.isWhitespace() || char == '\u3000' -> {
                     flushLatin()
+                    tokens += char.toString()
                     index++
                 }
                 isHardDelimiter(char) -> {
@@ -102,7 +103,7 @@ object PickResultWordTokenizer {
         val newSelected = linkedSetOf<Int>()
         tokens.forEachIndexed { index, token ->
             val selected = selectedIndices.contains(index)
-            if (!selected || isDelimiterToken(token) || token.length <= 1) {
+            if (!selected || isDelimiterToken(token) || isWhitespaceToken(token) || token.length <= 1) {
                 val resultIndex = result.size
                 result += token
                 if (selected) {
@@ -158,6 +159,10 @@ object PickResultWordTokenizer {
 
     fun isDelimiterToken(token: String): Boolean {
         return token.length == 1 && isHardDelimiter(token[0])
+    }
+
+    fun isWhitespaceToken(token: String): Boolean {
+        return token.length == 1 && (token[0].isWhitespace() || token[0] == '\u3000')
     }
 
     internal fun breakCjkWords(text: String, context: Context? = null): List<String> {

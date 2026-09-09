@@ -8,7 +8,20 @@ class PickResultWordTokenizerTest {
     @Test
     fun `tokenizeSelectableWords splits latin words`() {
         val tokens = PickResultWordTokenizer.tokenizeSelectableWords("hello world")
-        assertEquals(listOf("hello", "world"), tokens)
+        assertEquals(listOf("hello", " ", "world"), tokens)
+    }
+
+    @Test
+    fun `tokenizeSelectableWords preserves consecutive spaces`() {
+        val tokens = PickResultWordTokenizer.tokenizeSelectableWords("a  b")
+        assertEquals(listOf("a", " ", " ", "b"), tokens)
+    }
+
+    @Test
+    fun `isWhitespaceToken detects whitespace tokens`() {
+        assertTrue(PickResultWordTokenizer.isWhitespaceToken(" "))
+        assertTrue(PickResultWordTokenizer.isWhitespaceToken("\u3000"))
+        assertTrue(!PickResultWordTokenizer.isWhitespaceToken("hello"))
     }
 
     @Test
@@ -32,7 +45,8 @@ class PickResultWordTokenizerTest {
         assertTrue(tokens.contains("10"))
         assertTrue(tokens.any { it.contains("video", ignoreCase = true) })
         assertEquals("我有10个video", tokens.filterNot {
-            PickResultWordTokenizer.isDelimiterToken(it)
+            PickResultWordTokenizer.isDelimiterToken(it) ||
+                PickResultWordTokenizer.isWhitespaceToken(it)
         }.joinToString(""))
     }
 

@@ -64,6 +64,17 @@ import kotlin.math.roundToInt
 /** Shorter than system long-press for quicker word-split feedback. */
 private const val WORD_SPLIT_LONG_PRESS_MS = 280L
 
+/** 与多字词 chip 一致的垂直内边距。 */
+private val WORD_TAP_CHIP_VERTICAL_PADDING = 8.dp
+
+/** 空格 chip 视觉宽度（略宽于真实空格，避免占满词间距）。 */
+private val WORD_WHITESPACE_VISUAL_WIDTH = 12.dp
+private val WORD_WHITESPACE_FULL_WIDTH = 16.dp
+private val WORD_WHITESPACE_TAB_WIDTH = 22.dp
+
+/** 空格 chip 左右 invisible 触控扩展，不改变 FlowRow 占位。 */
+private val WORD_WHITESPACE_HIT_EXPAND = 8.dp
+
 /** FlowRow 分组 token 数，避免单块过大影响测量。 */
 private const val WORD_TAP_ROW_CHUNK_SIZE = 40
 
@@ -264,7 +275,20 @@ fun PickResultWordTapBody(
                 coordinates.size.height.toFloat(),
             ),
         )
-        chipBounds[index] = Rect(topLeft, bottomRight)
+        chipBounds[index] = run {
+            var rect = Rect(topLeft, bottomRight)
+            val token = wordTokens.getOrNull(index)
+            if (token != null && PickResultWordTokenizer.isWhitespaceToken(token) && token != "\n") {
+                val inflatePx = with(density) { WORD_WHITESPACE_HIT_EXPAND.toPx() }
+                rect = Rect(
+                    left = rect.left - inflatePx,
+                    top = rect.top,
+                    right = rect.right + inflatePx,
+                    bottom = rect.bottom,
+                )
+            }
+            rect
+        }
     }
 
     fun pointerInGestureSpace(pointerInContainer: Offset): Offset? {
@@ -492,17 +516,22 @@ fun PickResultWordTapBody(
             chunks.forEach { chunk ->
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(0.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     chunk.tokens.forEachIndexed { localIndex, token ->
                         val index = chunk.startIndex + localIndex
+                        val nextToken = chunk.tokens.getOrNull(localIndex + 1)
+                        val trailingGap = nextToken != null &&
+                            !PickResultWordTokenizer.isWhitespaceToken(token) &&
+                            !PickResultWordTokenizer.isWhitespaceToken(nextToken)
                         WordTapTokenChip(
                             token = token,
                             selected = index in selectedWordIndices,
                             bodyTextSize = bodyTextSize,
                             delimiterTextSize = delimiterTextSize,
                             bodyLineHeight = bodyLineHeight,
+                            trailingGap = trailingGap,
                             onPositioned = { coordinates -> recordChipBounds(index, coordinates) },
                         )
                     }
@@ -580,11 +609,10 @@ private fun WordTapTokenChip(
     bodyTextSize: androidx.compose.ui.unit.TextUnit,
     delimiterTextSize: androidx.compose.ui.unit.TextUnit,
     bodyLineHeight: androidx.compose.ui.unit.TextUnit,
+    trailingGap: Boolean,
     onPositioned: (LayoutCoordinates) -> Unit,
 ) {
-    val display = token.trim().ifEmpty { token }
-    val isSingleChar = display.length == 1
-    val isDelimiter = PickResultWordTokenizer.isDelimiterToken(display)
+    val isWhitespace = PickResultWordTokenizer.isWhitespaceToken(token)
     val isDark = LocalAppDarkTheme.current
     val background = if (selected) {
         if (isDark) androidx.compose.ui.graphics.Color(0xFF322F4C) else androidx.compose.ui.graphics.Color(0xFFF0EDFF)
@@ -596,6 +624,45 @@ private fun WordTapTokenChip(
     } else {
         if (isDark) androidx.compose.ui.graphics.Color(0xFF4A4A4C) else androidx.compose.ui.graphics.Color(0xFFF1F2F6)
     }
+
+    if (isWhitespace) {
+        val whitespaceWidth = when (token) {
+            "\u3000" -> WORD_WHITESPACE_FULL_WIDTH
+            "\t" -> WORD_WHITESPACE_TAB_WIDTH
+            else -> WORD_WHITESPACE_VISUAL_WIDTH
+        }
+        val density = LocalDensity.current
+        val whitespaceContentHeight = with(density) { bodyLineHeight.toDp() }
+        Box(
+            modifier = Modifier
+                .onGloballyPositioned(onPositioned)
+                .then(
+                    if (token == "\n") {
+                        Modifier
+                            .fillMaxWidth()
+                            .height(1.dp)
+                    } else {
+                        Modifier.width(whitespaceWidth)
+                    },
+                )
+                .clip(RoundedCornerShape(8.dp))
+                .background(background)
+                .border(1.dp, borderColor, RoundedCornerShape(8.dp))
+                .padding(vertical = WORD_TAP_CHIP_VERTICAL_PADDING)
+                .then(
+                    if (token != "\n") {
+                        Modifier.height(whitespaceContentHeight)
+                    } else {
+                        Modifier
+                    },
+                ),
+        )
+        return
+    }
+
+    val display = token.trim().ifEmpty { token }
+    val isSingleChar = display.length == 1
+    val isDelimiter = PickResultWordTokenizer.isDelimiterToken(display)
     val textColor = if (selected) {
         if (isDark) androidx.compose.ui.graphics.Color(0xFF9BA8E6) else androidx.compose.ui.graphics.Color(0xFF8C7AE6)
     } else {
@@ -605,13 +672,20 @@ private fun WordTapTokenChip(
         text = display,
         modifier = Modifier
             .onGloballyPositioned(onPositioned)
+            .then(
+                if (trailingGap) {
+                    Modifier.padding(end = 4.dp)
+                } else {
+                    Modifier
+                },
+            )
             .shadow(elevation = if (selected) 0.dp else 1.dp, shape = RoundedCornerShape(8.dp), clip = false)
             .clip(RoundedCornerShape(8.dp))
             .background(background)
             .border(1.dp, borderColor, RoundedCornerShape(8.dp))
             .padding(
                 horizontal = if (isSingleChar) 8.dp else 12.dp,
-                vertical = if (isSingleChar) 6.dp else 8.dp,
+                vertical = if (isSingleChar) 6.dp else WORD_TAP_CHIP_VERTICAL_PADDING,
             ),
         fontSize = if (isDelimiter) delimiterTextSize else bodyTextSize,
         lineHeight = bodyLineHeight,

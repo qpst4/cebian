@@ -228,7 +228,8 @@ internal fun PickResultInteractiveTextSection(
             PickResultTextMode.WORD_TAP -> {
                 if (selectedWordIndices.isEmpty()) text
                 else selectedWordIndices.sorted().joinToString(separator = "") { index ->
-                    effectiveWordTokens.getOrElse(index) { "" }.trim()
+                    val token = effectiveWordTokens.getOrElse(index) { "" }
+                    if (PickResultWordTokenizer.isWhitespaceToken(token)) token else token.trim()
                 }.ifBlank { text }
             }
             PickResultTextMode.SELECT -> {
