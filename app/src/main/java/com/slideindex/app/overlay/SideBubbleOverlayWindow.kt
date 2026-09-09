@@ -287,7 +287,7 @@ object SideBubbleOverlayWindow {
 
     private fun scheduleAutoDismiss(entry: SideBubbleEntry) {
         entry.dismissRunnable?.let { mainHandler.removeCallbacks(it) }
-        val autoDismissMs = entry.plan.settings.autoDismissSeconds.coerceIn(0, 60) * 1000L
+        val autoDismissMs = entry.plan.settings.sideBubbleAutoDismissSeconds.coerceIn(0, 60) * 1000L
         if (autoDismissMs <= 0L) return
         val runnable = Runnable { removeEntry(entry, animate = true) }
         entry.dismissRunnable = runnable

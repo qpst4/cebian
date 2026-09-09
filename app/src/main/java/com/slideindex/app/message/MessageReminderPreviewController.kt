@@ -100,7 +100,8 @@ object MessageReminderPreviewController {
             enabled = true,
             floatIconEnabled = style == MessageStyle.FloatIcon,
             sideBubbleEnabled = style == MessageStyle.SideBubble,
-            autoDismissSeconds = 0
+            floatIconAutoDismissSeconds = 0,
+            sideBubbleAutoDismissSeconds = 0,
         )
 
     private fun buildPreviewPlan(

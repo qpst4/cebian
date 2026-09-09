@@ -141,8 +141,6 @@ fun NavEntryBuilder.notificationNavEntries(ctx: MainNavContext) {
             onEnabledChange = viewModel::setMessageReminderEnabled,
             onInterceptNotificationsChange = viewModel::setMessageInterceptNotifications,
             onOpenLastMessageOnUnlockChange = viewModel::setMessageOpenLastOnUnlock,
-            onUnlockConfirmationAutoDismissSecondsChange =
-                viewModel::setMessageUnlockConfirmationAutoDismissSeconds,
             onOpenLastMessageOnUnlockRules = {
                 ctx.navigate(AppNavKey.MessageReminderUnlockRules)
             },
@@ -235,7 +233,8 @@ fun NavEntryBuilder.notificationNavEntries(ctx: MainNavContext) {
             onSideMaxCountChange = viewModel::setMessageSideMaxCount,
             onSideMaxLinesChange = viewModel::setMessageSideMaxLines,
             onFloatIconSizeDpChange = viewModel::setMessageFloatIconSizeDp,
-            onAutoDismissSecondsChange = viewModel::setMessageAutoDismissSeconds,
+            onFloatIconAutoDismissSecondsChange = viewModel::setMessageFloatIconAutoDismissSeconds,
+            onSideBubbleAutoDismissSecondsChange = viewModel::setMessageSideBubbleAutoDismissSeconds,
             onSideHorizontalEdgeChange = { edge ->
                 viewModel.setMessageSideHorizontalEdge(edge.id)
             },
@@ -307,6 +306,8 @@ fun NavEntryBuilder.notificationNavEntries(ctx: MainNavContext) {
             settings = messageSettings,
             onBack = { ctx.navigateBackTo(AppNavKey.MessageReminder) },
             onAlwaysAllowChange = viewModel::setMessageOpenLastAlways,
+            onUnlockConfirmationAutoDismissSecondsChange =
+                viewModel::setMessageUnlockConfirmationAutoDismissSeconds,
         )
     }
 

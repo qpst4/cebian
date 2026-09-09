@@ -864,7 +864,18 @@ internal object SettingsSnapshotReader {
             sideMaxWidthDp = prefs[SettingsPreferenceKeys.MESSAGE_SIDE_MAX_WIDTH_DP] ?: base.sideMaxWidthDp,
             sideMaxLines = prefs[SettingsPreferenceKeys.MESSAGE_SIDE_MAX_LINES] ?: base.sideMaxLines,
             floatIconSizeDp = prefs[SettingsPreferenceKeys.MESSAGE_FLOAT_ICON_SIZE_DP] ?: base.floatIconSizeDp,
-            autoDismissSeconds = prefs[SettingsPreferenceKeys.MESSAGE_AUTO_DISMISS_SECONDS] ?: base.autoDismissSeconds,
+            floatIconAutoDismissSeconds = resolveMessageAutoDismissSeconds(
+                prefs = prefs,
+                styleKey = SettingsPreferenceKeys.MESSAGE_FLOAT_ICON_AUTO_DISMISS_SECONDS,
+                legacyKey = SettingsPreferenceKeys.MESSAGE_AUTO_DISMISS_SECONDS,
+                fallback = base.floatIconAutoDismissSeconds,
+            ),
+            sideBubbleAutoDismissSeconds = resolveMessageAutoDismissSeconds(
+                prefs = prefs,
+                styleKey = SettingsPreferenceKeys.MESSAGE_SIDE_BUBBLE_AUTO_DISMISS_SECONDS,
+                legacyKey = SettingsPreferenceKeys.MESSAGE_AUTO_DISMISS_SECONDS,
+                fallback = base.sideBubbleAutoDismissSeconds,
+            ),
             hideInLandscape = prefs[SettingsPreferenceKeys.MESSAGE_HIDE_IN_LANDSCAPE] ?: false,
             portraitDanmaku = prefs[SettingsPreferenceKeys.MESSAGE_PORTRAIT_DANMAKU] ?: true,
             landscapeDanmaku = prefs[SettingsPreferenceKeys.MESSAGE_LANDSCAPE_DANMAKU] ?: true,
@@ -1043,6 +1054,13 @@ internal object SettingsSnapshotReader {
                 ?: FingertipRingCodec.DEFAULT_ICON_SIZE_PX,
         )
     }
+
+    private fun resolveMessageAutoDismissSeconds(
+        prefs: Preferences,
+        styleKey: Preferences.Key<Int>,
+        legacyKey: Preferences.Key<Int>,
+        fallback: Int,
+    ): Int = (prefs[styleKey] ?: prefs[legacyKey] ?: fallback).coerceIn(0, 60)
 
     private fun intPreference(prefs: Preferences, key: Preferences.Key<Int>, default: Int): Int {
         runCatching { prefs[key] }.getOrNull()?.let { return it }

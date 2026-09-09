@@ -326,7 +326,12 @@ internal object SettingsPreferenceKeys {
     val MESSAGE_SIDE_MAX_WIDTH_DP = floatPreferencesKey("message_side_max_width_dp")
     val MESSAGE_SIDE_MAX_LINES = intPreferencesKey("message_side_max_lines")
     val MESSAGE_FLOAT_ICON_SIZE_DP = floatPreferencesKey("message_float_icon_size_dp")
+    @Deprecated("Migrated to per-style keys")
     val MESSAGE_AUTO_DISMISS_SECONDS = intPreferencesKey("message_auto_dismiss_seconds")
+    val MESSAGE_FLOAT_ICON_AUTO_DISMISS_SECONDS =
+        intPreferencesKey("message_float_icon_auto_dismiss_seconds")
+    val MESSAGE_SIDE_BUBBLE_AUTO_DISMISS_SECONDS =
+        intPreferencesKey("message_side_bubble_auto_dismiss_seconds")
     val MESSAGE_HIDE_IN_LANDSCAPE = booleanPreferencesKey("message_hide_in_landscape")
     val MESSAGE_PORTRAIT_DANMAKU = booleanPreferencesKey("message_portrait_danmaku")
     val MESSAGE_LANDSCAPE_DANMAKU = booleanPreferencesKey("message_landscape_danmaku")

@@ -845,7 +845,11 @@ class SettingsRepository @Inject constructor(
     suspend fun setMessageSideMaxCount(count: Int) = message.setMessageSideMaxCount(count)
     suspend fun setMessageSideMaxWidthDp(widthDp: Float) = message.setMessageSideMaxWidthDp(widthDp)
     suspend fun setMessageSideMaxLines(lines: Int) = message.setMessageSideMaxLines(lines)
-    suspend fun setMessageAutoDismissSeconds(seconds: Int) = message.setMessageAutoDismissSeconds(seconds)
+    suspend fun setMessageFloatIconAutoDismissSeconds(seconds: Int) =
+        message.setMessageFloatIconAutoDismissSeconds(seconds)
+
+    suspend fun setMessageSideBubbleAutoDismissSeconds(seconds: Int) =
+        message.setMessageSideBubbleAutoDismissSeconds(seconds)
     suspend fun setMessageHideInLandscape(enabled: Boolean) = message.setMessageHideInLandscape(enabled)
     suspend fun setMessagePortraitDanmaku(enabled: Boolean) = message.setMessagePortraitDanmaku(enabled)
     suspend fun setMessageLandscapeDanmaku(enabled: Boolean) = message.setMessageLandscapeDanmaku(enabled)

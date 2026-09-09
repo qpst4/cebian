@@ -2,13 +2,7 @@
 
 package com.slideindex.app.ui
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -55,7 +49,6 @@ import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.SETTINGS_SLIDER_PERCENT_KEY_POINTS_01
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.SettingSwitchRow
-import com.slideindex.app.ui.settings.components.SettingsSliderRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 import com.slideindex.app.ui.settings.components.settingsLazyHint
@@ -70,7 +63,6 @@ fun MessageReminderSettingsScreen(
     onEnabledChange: (Boolean) -> Unit,
     onInterceptNotificationsChange: (Boolean) -> Unit,
     onOpenLastMessageOnUnlockChange: (Boolean) -> Unit,
-    onUnlockConfirmationAutoDismissSecondsChange: (Int) -> Unit,
     onOpenLastMessageOnUnlockRules: () -> Unit,
     onFloatIconEnabledChange: (Boolean) -> Unit,
     onSideBubbleEnabledChange: (Boolean) -> Unit,
@@ -195,44 +187,15 @@ fun MessageReminderSettingsScreen(
                 )
                 add(
                     settingsCardScopeItem("open-last-on-unlock") {
-                        Column {
-                            SettingSwitchNavigationRow(
-                                title = stringResource(R.string.message_reminder_open_last_on_unlock),
-                                subtitle = stringResource(R.string.message_reminder_open_last_on_unlock_desc),
-                                icon = { label -> Icon(Icons.Outlined.LockOpen, contentDescription = label) },
-                                checked = settings.openLastMessageOnUnlock,
-                                enabled = controlsEnabled,
-                                onCheckedChange = onOpenLastMessageOnUnlockChange,
-                                onNavigate = onOpenLastMessageOnUnlockRules,
-                            )
-                            AnimatedVisibility(
-                                visible = settings.openLastMessageOnUnlock && controlsEnabled,
-                                enter = expandVertically(expandFrom = Alignment.Top) + fadeIn(),
-                                exit = shrinkVertically(shrinkTowards = Alignment.Top) + fadeOut(),
-                            ) {
-                                val neverDismissLabel = stringResource(R.string.message_reminder_unlock_auto_dismiss_never)
-                                SettingsSliderRow(
-                                    title = stringResource(R.string.message_reminder_unlock_auto_dismiss),
-                                    value = settings.unlockConfirmationAutoDismissSeconds.toFloat(),
-                                    valueRange = 0f..30f,
-                                    steps = 29,
-                                    enabled = controlsEnabled,
-                                    label = if (settings.unlockConfirmationAutoDismissSeconds == 0) {
-                                        neverDismissLabel
-                                    } else {
-                                        "${settings.unlockConfirmationAutoDismissSeconds}s"
-                                    },
-                                    formatLabel = { seconds ->
-                                        if (seconds == 0f) {
-                                            neverDismissLabel
-                                        } else {
-                                            "${seconds.toInt()}s"
-                                        }
-                                    },
-                                    onValueChange = { onUnlockConfirmationAutoDismissSecondsChange(it.toInt()) },
-                                )
-                            }
-                        }
+                        SettingSwitchNavigationRow(
+                            title = stringResource(R.string.message_reminder_open_last_on_unlock),
+                            subtitle = stringResource(R.string.message_reminder_open_last_on_unlock_desc),
+                            icon = { label -> Icon(Icons.Outlined.LockOpen, contentDescription = label) },
+                            checked = settings.openLastMessageOnUnlock,
+                            enabled = controlsEnabled,
+                            onCheckedChange = onOpenLastMessageOnUnlockChange,
+                            onNavigate = onOpenLastMessageOnUnlockRules,
+                        )
                     },
                 )
             },

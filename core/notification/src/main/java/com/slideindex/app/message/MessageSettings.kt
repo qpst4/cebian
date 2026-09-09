@@ -21,7 +21,10 @@ data class MessageSettings(
     val sideMaxWidthDp: Float = 168f,
     val sideMaxLines: Int = 2,
     val floatIconSizeDp: Float = 44f,
-    val autoDismissSeconds: Int = 5,
+    /** 悬浮球样式自动关闭时间，0 表示不自动关闭。 */
+    val floatIconAutoDismissSeconds: Int = 5,
+    /** 侧边气泡样式自动关闭时间，0 表示不自动关闭。 */
+    val sideBubbleAutoDismissSeconds: Int = 5,
     val hideInLandscape: Boolean = false,
     val portraitDanmaku: Boolean = true,
     val landscapeDanmaku: Boolean = true,

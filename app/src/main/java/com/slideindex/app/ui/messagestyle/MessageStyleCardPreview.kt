@@ -38,6 +38,37 @@ import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 
 @Composable
+fun autoDismissSettingsCardItem(
+    autoDismissSeconds: Int,
+    enabled: Boolean,
+    onAutoDismissSecondsChange: (Int) -> Unit,
+): CardItem {
+    val autoDismissOffLabel = stringResource(R.string.message_reminder_auto_dismiss_off)
+    return settingsCardScopeItem("auto-dismiss") {
+        SettingsSliderRow(
+            title = stringResource(R.string.message_reminder_auto_dismiss),
+            value = autoDismissSeconds.toFloat(),
+            valueRange = 0f..30f,
+            steps = 29,
+            enabled = enabled,
+            label = if (autoDismissSeconds <= 0) {
+                autoDismissOffLabel
+            } else {
+                stringResource(
+                    R.string.message_reminder_auto_dismiss_seconds,
+                    autoDismissSeconds,
+                )
+            },
+            formatLabel = { value ->
+                val seconds = value.toInt()
+                if (seconds <= 0) autoDismissOffLabel else "$seconds s"
+            },
+            onValueChange = { onAutoDismissSecondsChange(it.toInt()) },
+        )
+    }
+}
+
+@Composable
 fun primaryDisplayCardItems(
     settings: MessageSettings,
     enabled: Boolean,
@@ -46,6 +77,7 @@ fun primaryDisplayCardItems(
     opacityTitleRes: Int,
     onOpacityChange: (Float) -> Unit,
     onMaxLinesChange: (Int) -> Unit,
+    autoDismissSeconds: Int,
     onAutoDismissSecondsChange: (Int) -> Unit,
     onPickSideCount: (() -> Unit)? = null,
     sideMaxCount: Int = 3,
@@ -53,9 +85,7 @@ fun primaryDisplayCardItems(
     opacityRange: ClosedFloatingPointRange<Float> = 0.2f..1f,
     onPreviewChange: (MessageSettings) -> Unit = {},
     onPreviewCommit: () -> Unit = {},
-): List<CardItem> {
-    val autoDismissOffLabel = stringResource(R.string.message_reminder_auto_dismiss_off)
-    return buildList {
+): List<CardItem> = buildList {
         add(
             settingsCardScopeItem("opacity") {
                 SettingsSliderRow(
@@ -104,31 +134,13 @@ fun primaryDisplayCardItems(
             )
         }
         add(
-            settingsCardScopeItem("auto-dismiss") {
-                SettingsSliderRow(
-                    title = stringResource(R.string.message_reminder_auto_dismiss),
-                    value = settings.autoDismissSeconds.toFloat(),
-                    valueRange = 0f..30f,
-                    steps = 29,
-                    enabled = enabled,
-                    label = if (settings.autoDismissSeconds <= 0) {
-                        autoDismissOffLabel
-                    } else {
-                        stringResource(
-                            R.string.message_reminder_auto_dismiss_seconds,
-                            settings.autoDismissSeconds,
-                        )
-                    },
-                    formatLabel = { value ->
-                        val seconds = value.toInt()
-                        if (seconds <= 0) autoDismissOffLabel else "$seconds s"
-                    },
-                    onValueChange = { onAutoDismissSecondsChange(it.toInt()) },
-                )
-            },
+            autoDismissSettingsCardItem(
+                autoDismissSeconds = autoDismissSeconds,
+                enabled = enabled,
+                onAutoDismissSecondsChange = onAutoDismissSecondsChange,
+            ),
         )
     }
-}
 
 fun LazyListScope.primaryDisplaySection(
     items: List<CardItem>,

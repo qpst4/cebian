@@ -21,6 +21,7 @@ fun floatIconSettingsCardItems(
     enabled: Boolean,
     onOpacityChange: (Float) -> Unit,
     onFloatIconSizeDpChange: (Float) -> Unit,
+    onAutoDismissSecondsChange: (Int) -> Unit,
     onPreviewChange: (MessageSettings) -> Unit = {},
     onPreviewCommit: () -> Unit = {},
 ): List<CardItem> = buildList {
@@ -65,6 +66,13 @@ fun floatIconSettingsCardItems(
                 },
             )
         },
+    )
+    add(
+        autoDismissSettingsCardItem(
+            autoDismissSeconds = settings.floatIconAutoDismissSeconds,
+            enabled = enabled,
+            onAutoDismissSecondsChange = onAutoDismissSecondsChange,
+        ),
     )
 }
 

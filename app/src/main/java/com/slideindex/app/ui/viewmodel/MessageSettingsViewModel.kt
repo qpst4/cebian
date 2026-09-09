@@ -136,8 +136,12 @@ class MessageSettingsViewModel @Inject constructor(
         settingsRepository.setMessageSideMaxLines(lines)
     }
 
-    fun setMessageAutoDismissSeconds(seconds: Int) = launchSettingsWrite {
-        settingsRepository.setMessageAutoDismissSeconds(seconds)
+    fun setMessageFloatIconAutoDismissSeconds(seconds: Int) = launchSettingsWrite {
+        settingsRepository.setMessageFloatIconAutoDismissSeconds(seconds)
+    }
+
+    fun setMessageSideBubbleAutoDismissSeconds(seconds: Int) = launchSettingsWrite {
+        settingsRepository.setMessageSideBubbleAutoDismissSeconds(seconds)
     }
 
     fun setMessageFloatIconSizeDp(sizeDp: Float) = launchSettingsWrite {

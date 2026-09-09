@@ -111,8 +111,17 @@ class MessageSettingsMutator @Inject constructor(
     suspend fun setMessageSideMaxLines(lines: Int) =
         editor.edit { it[SettingsPreferenceKeys.MESSAGE_SIDE_MAX_LINES] = lines.coerceIn(1, 3) }
 
-    suspend fun setMessageAutoDismissSeconds(seconds: Int) =
-        editor.edit { it[SettingsPreferenceKeys.MESSAGE_AUTO_DISMISS_SECONDS] = seconds.coerceIn(0, 60) }
+    suspend fun setMessageFloatIconAutoDismissSeconds(seconds: Int) =
+        editor.edit {
+            it[SettingsPreferenceKeys.MESSAGE_FLOAT_ICON_AUTO_DISMISS_SECONDS] =
+                seconds.coerceIn(0, 60)
+        }
+
+    suspend fun setMessageSideBubbleAutoDismissSeconds(seconds: Int) =
+        editor.edit {
+            it[SettingsPreferenceKeys.MESSAGE_SIDE_BUBBLE_AUTO_DISMISS_SECONDS] =
+                seconds.coerceIn(0, 60)
+        }
 
     suspend fun setMessageHideInLandscape(enabled: Boolean) =
         editor.edit { it[SettingsPreferenceKeys.MESSAGE_HIDE_IN_LANDSCAPE] = enabled }
