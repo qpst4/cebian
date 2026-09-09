@@ -606,8 +606,13 @@
     <string name="search_engine_type_extern_jump">App Scheme</string>
     <string name="search_engine_url_link_hint">URL / Scheme Address</string>
     <string name="search_engine_url_link_support" formatted="false">Supports https://, coolmarket://, intent:// etc. Use %s or %q as placeholder</string>
-    <string name="search_engine_url_link_flow_desc" formatted="false">Execution Rules &amp; Flow:&#10;1. Parameterized Jump: If %s is used (e.g. .../search?q=%s), query is replaced into URL directly&#10;2. Target App: If target package is set, forces open with specified App; otherwise uses default App&#10;3. Auto-fill: If no %s is used and auto-input is ON, fills query into search bar via accessibility after launch</string>
-    <string name="search_engine_jump_activity_flow_desc">Execution Rules &amp; Flow:&#10;1. Activity Launch: Opens target App Activity directly (non-exported activities launched via Shizuku if needed)&#10;2. Auto-fill: After launch (if auto-input is ON), searches for search bar within 600ms~3000ms to fill and enter</string>
+    <string name="search_engine_url_link_flow_desc" formatted="false">Execution Rules &amp; Flow:
+1. Parameterized Jump: If %s is used (e.g. .../search?q=%s), query is replaced into URL directly
+2. Target App: If target package is set, forces open with specified App; otherwise uses default App
+3. Auto-fill: If no %s is used and auto-input is ON, fills query into search bar via accessibility after launch</string>
+    <string name="search_engine_jump_activity_flow_desc">Execution Rules &amp; Flow:
+1. Activity Launch: Opens target App Activity directly (non-exported activities launched via Shizuku if needed)
+2. Auto-fill: After launch (if auto-input is ON), searches for search bar within 600ms~3000ms to fill and enter</string>
     <string name="search_engine_type_share">Share</string>
     <string name="search_engine_type_share_image">Share image</string>
     <string name="search_engine_import_preview_title">Confirm import</string>
@@ -2309,7 +2314,6 @@
     <string name="notification_history_search_no_results">No matching notifications</string>
     <string name="widget_picker_empty">No widgets available</string>
     <string name="shell_panel_title">Shell command panel</string>
-
     <string name="cd_navigate_back">Navigate back</string>
     <string name="cd_navigate_forward">Navigate forward</string>
     <string name="cd_action_confirm">Confirm</string>
@@ -2380,7 +2384,6 @@
     <string name="weekday_short_thursday">Thu</string>
     <string name="weekday_short_friday">Fri</string>
     <string name="weekday_short_saturday">Sat</string>
-
     <string name="settings_backup_title">Settings backup</string>
     <string name="settings_backup_subtitle">Export or import app configuration for device migration</string>
     <string name="settings_backup_section_actions">Backup actions</string>
@@ -2418,7 +2421,6 @@
     <string name="settings_domain_sensitive_notification_filter_rules">Notification filter rules</string>
     <string name="settings_domain_sensitive_notification_filter_prefs">Notification filter preferences</string>
     <string name="settings_domain_sensitive_otp_stats">OTP autofill stats</string>
-
     <string name="onboarding_skip">Skip</string>
     <string name="onboarding_next">Next</string>
     <string name="onboarding_get_started">Get started</string>
@@ -2455,7 +2457,6 @@
     <string name="onboarding_permission_app_list_short">For displaying and searching apps in sidebar and quick launcher</string>
     <string name="onboarding_permission_status_ready">Ready</string>
     <string name="onboarding_permission_status_grant">Grant</string>
-
     <string name="privacy_policy_title">Privacy policy</string>
     <string name="privacy_policy_subtitle">How data is handled and whether it is uploaded</string>
     <string name="privacy_policy_entry_title">Privacy policy</string>
@@ -2470,7 +2471,6 @@
 Foreground service (special use): OverlayService keeps edge gestures and shake detection alive with subtype overlay_sidebar\u2014not for ads or unrelated background work.
 
 Questions: open a GitHub Issue on the project repository.</string>
-
     <string name="otp_autofill_stats_title">Fill statistics</string>
     <string name="otp_autofill_stats_screen_desc">View attempt counts, success rate, and the last failure reason</string>
     <string name="otp_autofill_stats_entry_empty">No records yet</string>
@@ -2522,7 +2522,6 @@ Questions: open a GitHub Issue on the project repository.</string>
     <string name="otp_autofill_stats_last_failure">Failed</string>
     <string name="otp_autofill_stats_reset">Reset statistics</string>
     <string name="otp_autofill_stats_empty">No auto-fill attempts yet</string>
-
     <string name="shell_panel_template_hint">Variables: {package}, {foreground_package}, {timestamp}, {datetime}</string>
     <string name="shell_panel_history_title">Output history</string>
     <string name="shell_panel_history_desc">Recent command output with search</string>
@@ -2534,8 +2533,6 @@ Questions: open a GitHub Issue on the project repository.</string>
     <string name="shell_panel_history_clear_confirm_message">This deletes all saved command output records. This cannot be undone.</string>
     <string name="shell_panel_history_empty">No execution history yet</string>
     <string name="shell_panel_history_exit_code">Exit code %1$d</string>
-
-
     <string name="tile_gesture_switch">Cebian</string>
     <string name="shortcut_toggle_gesture">Toggle gestures</string>
     <string name="shortcut_notification_hub">Notification filter</string>
@@ -2606,7 +2603,6 @@ Questions: open a GitHub Issue on the project repository.</string>
     <string name="about_open_source_license_desc">GNU Affero GPL v3.0 (AGPLv3)</string>
     <string name="about_third_party_notices_title">Third-party open source</string>
     <string name="about_third_party_notices_subtitle">Acknowledgments and license notices</string>
-
     <string name="search_panel_default_engine_title">Default search engine</string>
     <string name="search_panel_default_engine_none">None (do not search)</string>
     <string name="search_panel_open_link_host">Open %1$s</string>
@@ -2704,7 +2700,6 @@ Questions: open a GitHub Issue on the project repository.</string>
     <string name="keyboard_switch_to_number">Number keyboard</string>
     <string name="keyboard_switch_back">Text keyboard</string>
     <string name="search_panel_phone_call">Phone call</string>
-
     <string name="settings_backup_section_permissions">Permissions</string>
     <string name="settings_backup_diff_overwritten">Will overwrite: %1$s</string>
     <string name="settings_backup_diff_new">Will add: %1$s</string>
