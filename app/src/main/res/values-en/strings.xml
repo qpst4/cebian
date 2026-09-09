@@ -779,6 +779,8 @@
     <string name="float_ball_pick_bottom_transition">Bottom transition zone</string>
     <string name="float_ball_pick_text_first_panel">Text-first pick panel</string>
     <string name="float_ball_pick_text_first_panel_desc">Show text and search engines by default; image section stays collapsed until you tap the Image row</string>
+    <string name="float_ball_pick_copy_dismiss_panel">Dismiss panel after copy</string>
+    <string name="float_ball_pick_copy_dismiss_panel_desc">When enabled, tapping Copy selection closes the pick panel; long-press copy keeps the panel open</string>
     <string name="float_ball_pick_panel_enter_animation">Pick panel enter animation</string>
     <string name="float_ball_pick_panel_exit_animation">Pick panel exit animation</string>
     <string name="float_ball_pick_panel_animation_ms_value">%1$d ms</string>

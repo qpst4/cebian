@@ -354,7 +354,7 @@ object FloatBallTranslatePanel {
                 },
                 onDismiss = { dismiss() },
                 onTextChange = { translatedHolder.value = it },
-                onCopy = { text ->
+                onCopy = { text, _ ->
                     FloatBallTextPick.copyText(context, text)
                     Toast.makeText(context, R.string.float_ball_text_copied, Toast.LENGTH_SHORT).show()
                 },
@@ -400,7 +400,7 @@ private fun FloatBallTranslatePanelContent(
 
     onTextChange: (String) -> Unit,
 
-    onCopy: (String) -> Unit,
+    onCopy: (String, keepPanelOpen: Boolean) -> Unit,
 
     onSearch: (String) -> Unit,
 

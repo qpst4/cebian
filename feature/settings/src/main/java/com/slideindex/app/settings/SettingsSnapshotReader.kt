@@ -379,6 +379,8 @@ internal object SettingsSnapshotReader {
                     ?: 0.22f,
             floatBallPickTextFirstPanel =
                 prefs[SettingsPreferenceKeys.FLOAT_BALL_PICK_TEXT_FIRST_PANEL] ?: false,
+            floatBallPickCopyDismissPanel =
+                prefs[SettingsPreferenceKeys.FLOAT_BALL_PICK_COPY_DISMISS_PANEL] ?: false,
             floatBallPickPanelEnterAnimationMs =
                 PickPanelSlideAnimationDefaults.coerceMs(
                     prefs[SettingsPreferenceKeys.FLOAT_BALL_PICK_PANEL_ENTER_ANIMATION_MS]

@@ -1346,6 +1346,8 @@
     <string name="float_ball_pick_bottom_transition">贴底过渡区</string>
     <string name="float_ball_pick_text_first_panel">取词面板优先文本</string>
     <string name="float_ball_pick_text_first_panel_desc">默认只显示文本与搜索引擎；图片区折叠，点「图片」行可展开</string>
+    <string name="float_ball_pick_copy_dismiss_panel">复制后自动收起面板</string>
+    <string name="float_ball_pick_copy_dismiss_panel_desc">开启后，点击「复制选中」将自动关闭取词面板；长按复制则保留面板</string>
     <string name="float_ball_pick_panel_enter_animation">取词面板弹出动画</string>
     <string name="float_ball_pick_panel_exit_animation">取词面板消失动画</string>
     <string name="float_ball_pick_panel_animation_ms_value">%1$d 毫秒</string>

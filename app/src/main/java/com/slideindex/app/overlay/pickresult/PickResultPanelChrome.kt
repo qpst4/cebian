@@ -3,6 +3,7 @@ import com.slideindex.app.ui.theme.LocalAppDarkTheme
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -298,7 +299,9 @@ onOpenLink: () -> Unit = {},
 onOpenLinkChoice: (String) -> Unit = {},
 onDismissOpenLinkChooser: () -> Unit = {},
 onShare: () -> Unit,
+copyDismissEnabled: Boolean = false,
 onCopy: () -> Unit,
+onCopyKeepOpen: () -> Unit = onCopy,
 onTranslate: () -> Unit,
 onPinToScreen: (() -> Unit)? = null,
 onStash: (() -> Unit)? = null,
@@ -416,8 +419,7 @@ MaterialTheme.colorScheme.primary
 MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
 }
 val copyTint = if (enabled) androidx.compose.ui.graphics.Color.White else androidx.compose.ui.graphics.Color.White.copy(alpha = 0.5f)
-Row(
-modifier = Modifier
+val copyModifier = Modifier
 .height(44.dp)
 .then(
 if (enabled && !lightweightDrag) {
@@ -431,8 +433,20 @@ Modifier
 },
 )
 .background(copyBg, RoundedCornerShape(22.dp))
-.clickable(enabled = enabled, onClick = onCopy)
-.padding(horizontal = 16.dp),
+.then(
+if (copyDismissEnabled) {
+Modifier.combinedClickable(
+enabled = enabled,
+onClick = onCopy,
+onLongClick = onCopyKeepOpen,
+)
+} else {
+Modifier.clickable(enabled = enabled, onClick = onCopyKeepOpen)
+},
+)
+.padding(horizontal = 16.dp)
+Row(
+modifier = copyModifier,
 verticalAlignment = Alignment.CenterVertically,
 horizontalArrangement = Arrangement.Center
 ) {

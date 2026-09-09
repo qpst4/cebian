@@ -42,6 +42,7 @@ fun FloatBallPickSettingsScreen(
     onPickTextSizeChange: (Float) -> Unit,
     onPickBottomTransitionChange: (Float) -> Unit,
     onPickTextFirstPanelChange: (Boolean) -> Unit,
+    onPickCopyDismissPanelChange: (Boolean) -> Unit,
     onPickPanelEnterAnimationMsChange: (Int) -> Unit,
     onPickPanelExitAnimationMsChange: (Int) -> Unit,
     onPointerSlopChange: (Float) -> Unit,
@@ -169,6 +170,17 @@ fun FloatBallPickSettingsScreen(
                             checked = settings.floatBallPickTextFirstPanel,
                             enabled = true,
                             onCheckedChange = onPickTextFirstPanelChange
+                        )
+                    }
+                )
+                add(
+                    settingsCardScopeItem("copy-dismiss-panel") {
+                        SettingSwitchRow(
+                            title = stringResource(R.string.float_ball_pick_copy_dismiss_panel),
+                            subtitle = stringResource(R.string.float_ball_pick_copy_dismiss_panel_desc),
+                            checked = settings.floatBallPickCopyDismissPanel,
+                            enabled = true,
+                            onCheckedChange = onPickCopyDismissPanelChange
                         )
                     }
                 )

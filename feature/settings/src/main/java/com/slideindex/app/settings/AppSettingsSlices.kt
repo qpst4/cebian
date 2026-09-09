@@ -238,6 +238,8 @@ data class FloatBallSettings(
     val floatBallPickBottomTransitionFraction: Float = 0.22f,
     /** Pick panel: show text + search by default; image section stays collapsed until the image row is tapped. */
     val floatBallPickTextFirstPanel: Boolean = false,
+    /** Pick panel: dismiss after tapping copy; long-press copy keeps the panel open. */
+    val floatBallPickCopyDismissPanel: Boolean = false,
     /** Bottom pick panel slide-in duration in ms (0 = no animation). */
     val floatBallPickPanelEnterAnimationMs: Int = 64,
     /** Bottom pick panel slide-out duration in ms (0 = no animation). */

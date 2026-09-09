@@ -1348,6 +1348,8 @@
     <string name="float_ball_pick_bottom_transition">下部遷移ゾーン</string>
     <string name="float_ball_pick_text_first_panel">テキスト優先選択パネル</string>
     <string name="float_ball_pick_text_first_panel_desc">デフォルトでテキストと検索エンジンを表示します。画像セクションは「画像」行をタップするまで折りたたまれます</string>
+    <string name="float_ball_pick_copy_dismiss_panel">コピー後にパネルを閉じる</string>
+    <string name="float_ball_pick_copy_dismiss_panel_desc">オンにすると「選択をコピー」タップで選択パネルを閉じます。長押しコピーはパネルを残します</string>
     <string name="float_ball_pick_panel_enter_animation">選択パネル表示アニメーション</string>
     <string name="float_ball_pick_panel_exit_animation">選択パネル非表示アニメーション</string>
     <string name="float_ball_pick_panel_animation_ms_value">%1$d ミリ秒</string>

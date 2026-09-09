@@ -1027,9 +1027,16 @@ object FloatBallPickResultPanel {
                         }
                     },
                     onTextChange = { textHolder.value = it },
-                    onCopy = { value ->
+                    onCopy = { value, keepPanelOpen ->
                         FloatBallTextPick.copyText(context, value)
-                        showInPanelMessage(context.getString(R.string.float_ball_text_copied))
+                        val autoDismiss = settingsHolder.value.floatBallPickCopyDismissPanel
+                        if (autoDismiss && !keepPanelOpen) {
+                            val hostContext = appContext ?: context.applicationContext
+                            Toast.makeText(hostContext, R.string.float_ball_text_copied, Toast.LENGTH_SHORT).show()
+                            dismiss()
+                        } else {
+                            showInPanelMessage(context.getString(R.string.float_ball_text_copied))
+                        }
                     },
                     onShareText = {
                         FloatBallTextPick.shareText(context, it)

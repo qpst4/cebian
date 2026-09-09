@@ -572,6 +572,10 @@ class ExtensionSettingsViewModel @Inject constructor(
         settingsRepository.setFloatBallPickTextFirstPanel(enabled)
     }
 
+    fun setFloatBallPickCopyDismissPanel(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setFloatBallPickCopyDismissPanel(enabled)
+    }
+
     fun setFloatBallPickPanelEnterAnimationMs(value: Int) = launchSettingsWrite {
         settingsRepository.setFloatBallPickPanelEnterAnimationMs(value)
     }

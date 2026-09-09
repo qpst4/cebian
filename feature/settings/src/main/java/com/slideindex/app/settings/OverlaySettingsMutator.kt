@@ -835,6 +835,10 @@ class OverlaySettingsMutator @Inject constructor(
         it[SettingsPreferenceKeys.FLOAT_BALL_PICK_TEXT_FIRST_PANEL] = enabled
     }
 
+    suspend fun setFloatBallPickCopyDismissPanel(enabled: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.FLOAT_BALL_PICK_COPY_DISMISS_PANEL] = enabled
+    }
+
     suspend fun setFloatBallPickPanelEnterAnimationMs(value: Int) = editor.edit {
         it[SettingsPreferenceKeys.FLOAT_BALL_PICK_PANEL_ENTER_ANIMATION_MS] =
             PickPanelSlideAnimationDefaults.coerceMs(value)

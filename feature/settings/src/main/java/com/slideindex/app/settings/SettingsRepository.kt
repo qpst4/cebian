@@ -517,6 +517,9 @@ class SettingsRepository @Inject constructor(
     suspend fun setFloatBallPickTextFirstPanel(enabled: Boolean) =
         overlay.setFloatBallPickTextFirstPanel(enabled)
 
+    suspend fun setFloatBallPickCopyDismissPanel(enabled: Boolean) =
+        overlay.setFloatBallPickCopyDismissPanel(enabled)
+
     suspend fun setFloatBallPickPanelEnterAnimationMs(value: Int) =
         overlay.setFloatBallPickPanelEnterAnimationMs(value)
 

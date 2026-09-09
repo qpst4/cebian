@@ -633,6 +633,7 @@ fun NavEntryBuilder.floatBallNavEntries(ctx: MainNavContext) {
             onPickTextSizeChange = viewModel::setFloatBallPickTextSizeSp,
             onPickBottomTransitionChange = viewModel::setFloatBallPickBottomTransitionFraction,
             onPickTextFirstPanelChange = viewModel::setFloatBallPickTextFirstPanel,
+            onPickCopyDismissPanelChange = viewModel::setFloatBallPickCopyDismissPanel,
             onPickPanelEnterAnimationMsChange = viewModel::setFloatBallPickPanelEnterAnimationMs,
             onPickPanelExitAnimationMsChange = viewModel::setFloatBallPickPanelExitAnimationMs,
             onPointerSlopChange = viewModel::setFloatBallPointerSlopDp,
