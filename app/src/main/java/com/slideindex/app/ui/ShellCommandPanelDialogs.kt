@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.shell.ShellCommand
 import com.slideindex.app.shell.normalizeShellCommand
+import com.slideindex.app.shell.resolveShellCommandLabel
 import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
@@ -81,7 +82,7 @@ private fun buildShellCommandDraft(
     return applyIconDraft(
         ShellCommand(
             id = initial?.id ?: java.util.UUID.randomUUID().toString(),
-            label = label.trim(),
+            label = resolveShellCommandLabel(label, command),
             command = normalizeShellCommand(command),
         ),
         finalizedIcon,
@@ -217,6 +218,11 @@ private fun ShellCommandEditorFields(
             onValueChange = onLabelChange,
             label = stringResource(R.string.shell_panel_label_field),
         )
+        Text(
+            text = stringResource(R.string.shell_panel_label_optional_hint),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
         MiuixLabeledTextField(
             value = command,
             onValueChange = onCommandChange,
@@ -250,7 +256,7 @@ fun ShellCommandEditorScreen(
     var isSavingAppIcon by remember { mutableStateOf(false) }
     var testing by remember { mutableStateOf(false) }
     var testResult by remember { mutableStateOf<ShellTestResultState?>(null) }
-    val canSave = label.isNotBlank() && command.isNotBlank()
+    val canSave = command.isNotBlank()
     val canTest = canSave && shizukuGranted && !testing
     val context = LocalContext.current
 
@@ -643,7 +649,7 @@ private fun ShellCommandEditorOverlayBody(
 ) {
     var testing by remember { mutableStateOf(false) }
     var testResult by remember { mutableStateOf<ShellTestResultState?>(null) }
-    val canSave = label.isNotBlank() && command.isNotBlank()
+    val canSave = command.isNotBlank()
     val canTest = canSave && shizukuGranted && !testing
     val context = LocalContext.current
 

@@ -54,6 +54,7 @@ fun MainScreen(
     onOpenTriggerCollection: () -> Unit,
     onOpenCornerWheel: () -> Unit,
     onOpenGestureAngle: () -> Unit,
+    onOpenSystemBackGestureWidth: () -> Unit,
     onOpenAnimationStyleSelect: () -> Unit,
     onGestureHintEnabledChange: (Boolean) -> Unit,
     onHideTriggerInLandscapeChange: (Boolean) -> Unit,
@@ -298,6 +299,16 @@ fun MainScreen(
                                 outlinedLeadingIcons = true,
                                 onGestureHintEnabledChange = onGestureHintEnabledChange,
                                 onOpenAnimationStyleSelect = onOpenAnimationStyleSelect,
+                            )
+                        }
+                    },
+                )
+                add(
+                    settingsCardItem("system-back-gesture-width") {
+                        SettingsCardScopeContent {
+                            SystemBackGestureWidthEntryCard(
+                                outlinedLeadingIcons = true,
+                                onClick = onOpenSystemBackGestureWidth,
                             )
                         }
                     },

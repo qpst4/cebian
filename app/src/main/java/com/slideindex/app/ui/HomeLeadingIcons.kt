@@ -33,6 +33,8 @@ import androidx.compose.material.icons.outlined.SwapHoriz
 import androidx.compose.material.icons.outlined.TouchApp
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.outlined.Vibration
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.outlined.Security
@@ -55,6 +57,8 @@ internal object HomeLeadingIcons {
     fun gestureAngle(outlined: Boolean) = homeLeadingIcon(outlined, Icons.Default.Tune, Icons.Outlined.Tune)
     fun gestureAnimation(outlined: Boolean) =
         homeLeadingIcon(outlined, Icons.Default.Animation, Icons.Outlined.Animation)
+    fun systemBackGestureWidth(outlined: Boolean) =
+        homeLeadingIcon(outlined, Icons.AutoMirrored.Filled.ArrowBack, Icons.AutoMirrored.Outlined.ArrowBack)
     fun excludedApps(outlined: Boolean) = homeLeadingIcon(outlined, Icons.Default.Block, Icons.Outlined.Block)
     fun previousAppBlacklist(outlined: Boolean) =
         homeLeadingIcon(outlined, Icons.Default.SwapHoriz, Icons.Outlined.SwapHoriz)
