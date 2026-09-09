@@ -385,6 +385,12 @@ class SettingsRepository @Inject constructor(
         item: com.slideindex.app.launcher.QuickLauncherItem,
     ) = overlay.setFvAppSwitcherSlot(axis, index, item)
 
+    suspend fun swapFvAppSwitcherSlots(
+        axis: FvAppSwitcherAxis,
+        fromIndex: Int,
+        toIndex: Int,
+    ) = overlay.swapFvAppSwitcherSlots(axis, fromIndex, toIndex)
+
     suspend fun setFvAppSwitcherCircleCount(
         axis: FvAppSwitcherAxis,
         circleCount: Int,

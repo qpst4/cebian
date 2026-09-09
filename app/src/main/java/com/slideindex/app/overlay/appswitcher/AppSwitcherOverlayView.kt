@@ -75,6 +75,7 @@ import com.slideindex.app.settings.FvAppSwitcherLinkFlags
 import com.slideindex.app.settings.FvAppSwitcherSettings
 import com.slideindex.app.settings.effectiveLongPressDurationMs
 import com.slideindex.app.settings.launchPolicyLongPressEligible
+import com.slideindex.app.settings.moveFvAppSwitcherSlot
 import com.slideindex.app.util.HapticHelper
 import com.slideindex.app.util.InputMethodHelper
 import kotlin.math.roundToInt
@@ -91,6 +92,7 @@ internal class AppSwitcherOverlayView(
     private val onEditModeChanged: (Boolean) -> Unit = {},
     private val onMenuVisualActiveChange: (Boolean) -> Unit = {},
     private val onPrepareDirectTouch: () -> Unit = {},
+    private val onSlotsSwapped: (fromSlot: Int, toSlot: Int) -> Unit = { _, _ -> },
 ) : View(context) {
 
     private enum class SessionMode { NORMAL, EDIT }
@@ -129,8 +131,20 @@ internal class AppSwitcherOverlayView(
     private var slotLongPressArmed = false
     private var slotLongPressTrackingIndex = -1
     private var slotLongPressRunnable: Runnable? = null
+    private var editDragFromSlot = -1
+    private var editDragX = 0f
+    private var editDragY = 0f
+    private var pendingEditDragSlot = -1
+    private var pendingEditDragStartX = 0f
+    private var pendingEditDragStartY = 0f
+    private var editDragLongPressRunnable: Runnable? = null
     private val dimPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.BLACK }
     private var menuVisualActive = false
+
+    private companion object {
+        private const val EDIT_DRAG_LONG_PRESS_MS = 180L
+        private const val EDIT_DRAG_SLOP_DP = 10f
+    }
 
     init {
         setBackgroundColor(Color.TRANSPARENT)
@@ -214,6 +228,7 @@ internal class AppSwitcherOverlayView(
         highlightedToolbarButton = null
         menuRevealProgress = if (externalTracking) 1f else 0f
         cancelSlotLongPress()
+        cancelEditDrag()
         revealAnimator?.cancel()
         if (!externalTracking) {
             animateMenuReveal()
@@ -308,10 +323,30 @@ internal class AppSwitcherOverlayView(
                 lastHapticHighlightedSlot = -1
             }
         }
+        if (sessionMode == SessionMode.EDIT) {
+            syncEditDragTracking(slot, localX, localY)
+        }
         syncSlotPressTracking(slot, eventTime)
     }
 
+    private fun syncEditDragTracking(slot: Int, localX: Float, localY: Float) {
+        if (editDragFromSlot >= 0) {
+            editDragX = localX
+            editDragY = localY
+            return
+        }
+        if (pendingEditDragSlot >= 0 && slot != pendingEditDragSlot) {
+            val slop = EDIT_DRAG_SLOP_DP * density
+            val dx = localX - pendingEditDragStartX
+            val dy = localY - pendingEditDragStartY
+            if (dx * dx + dy * dy > slop * slop) {
+                cancelPendingEditDrag()
+            }
+        }
+    }
+
     private fun syncSlotPressTracking(slot: Int, eventTime: Long) {
+        if (editDragFromSlot >= 0 || pendingEditDragSlot >= 0) return
         if (slot >= 0) {
             if (slot != slotPressIndex) {
                 slotPressIndex = slot
@@ -361,6 +396,10 @@ internal class AppSwitcherOverlayView(
                 pinPanel()
                 if (wasEdit) enterEditMode()
                 InputMethodHelper.showInputMethodPicker(context)
+                return true
+            }
+            sessionMode == SessionMode.EDIT && editDragFromSlot >= 0 -> {
+                commitEditDrag(slot)
                 return true
             }
             sessionMode == SessionMode.EDIT && slot >= 0 -> {
@@ -436,6 +475,7 @@ internal class AppSwitcherOverlayView(
         lastHapticHighlightedSlot = -1
         highlightedToolbarButton = null
         cancelSlotLongPress()
+        cancelEditDrag()
         prepareForToolbarAction()
         if (wasEdit) {
             onEditModeChanged(false)
@@ -449,6 +489,7 @@ internal class AppSwitcherOverlayView(
         highlightedSlot = -1
         lastHapticHighlightedSlot = -1
         cancelSlotLongPress()
+        cancelEditDrag()
         onEditModeChanged(true)
         invalidate()
     }
@@ -501,6 +542,64 @@ internal class AppSwitcherOverlayView(
         lastHapticToolbarButton = null
         menuRevealProgress = 0f
         cancelSlotLongPress()
+        cancelEditDrag()
+        invalidate()
+    }
+
+    private fun scheduleEditDrag(slot: Int, localX: Float, localY: Float) {
+        cancelPendingEditDrag()
+        if (targets.getOrNull(slot) == null) return
+        pendingEditDragSlot = slot
+        pendingEditDragStartX = localX
+        pendingEditDragStartY = localY
+        val runnable = Runnable {
+            if (pendingEditDragSlot != slot) return@Runnable
+            editDragFromSlot = slot
+            editDragX = pendingEditDragStartX
+            editDragY = pendingEditDragStartY
+            pendingEditDragSlot = -1
+            cancelSlotLongPress()
+            HapticHelper.appTick(this, settings)
+            invalidate()
+        }
+        editDragLongPressRunnable = runnable
+        postDelayed(runnable, EDIT_DRAG_LONG_PRESS_MS)
+    }
+
+    private fun cancelPendingEditDrag() {
+        editDragLongPressRunnable?.let { removeCallbacks(it) }
+        editDragLongPressRunnable = null
+        pendingEditDragSlot = -1
+    }
+
+    private fun cancelEditDrag() {
+        cancelPendingEditDrag()
+        editDragFromSlot = -1
+        editDragX = 0f
+        editDragY = 0f
+    }
+
+    private fun commitEditDrag(dropSlot: Int) {
+        val fromSlot = editDragFromSlot
+        val toSlot = if (dropSlot >= 0) dropSlot else highlightedSlot
+        cancelEditDrag()
+        if (fromSlot < 0 || toSlot < 0 || fromSlot == toSlot) return
+        applyLocalSlotMove(fromSlot, toSlot)
+        onSlotsSwapped(fromSlot, toSlot)
+    }
+
+    private fun applyLocalSlotMove(fromSlot: Int, toSlot: Int) {
+        val mutableTargets = targets.toMutableList()
+        if (!mutableTargets.indices.contains(fromSlot) || !mutableTargets.indices.contains(toSlot)) return
+        val fromTarget = mutableTargets[fromSlot] ?: return
+        val toTarget = mutableTargets[toSlot]
+        mutableTargets[fromSlot] = toTarget
+        mutableTargets[toSlot] = fromTarget
+        targets = mutableTargets
+
+        val mutableSlots = fvSettings.slots.toMutableMap()
+        if (!mutableSlots.moveFvAppSwitcherSlot(fromSlot, toSlot)) return
+        fvSettings = fvSettings.copy(slots = mutableSlots)
         invalidate()
     }
 
@@ -568,6 +667,17 @@ internal class AppSwitcherOverlayView(
         return when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
                 updateInteraction(event.rawX, event.rawY, event.eventTime)
+                if (sessionMode == SessionMode.EDIT && highlightedToolbarButton == null) {
+                    val layout = panelLayout
+                    val slot = if (layout != null) {
+                        FvCircleLayoutEngine.slotIndexAt(layout, event.rawX, event.rawY)
+                    } else {
+                        -1
+                    }
+                    if (slot >= 0 && targets.getOrNull(slot) != null) {
+                        scheduleEditDrag(slot, event.rawX, event.rawY)
+                    }
+                }
                 invalidate()
                 true
             }
@@ -577,6 +687,7 @@ internal class AppSwitcherOverlayView(
                 true
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                cancelPendingEditDrag()
                 val handled = handleRelease(event.rawX, event.rawY, event.eventTime, fromPinned = panelPinned)
                 if (handled) performClick()
                 handled
@@ -605,6 +716,9 @@ internal class AppSwitcherOverlayView(
             activityShortcuts = settings.activityShortcuts,
             shellCommands = settings.shellCommands,
             appRepository = appRepository,
+            editDragFromSlot = editDragFromSlot,
+            editDragX = editDragX,
+            editDragY = editDragY,
         )
     }
 

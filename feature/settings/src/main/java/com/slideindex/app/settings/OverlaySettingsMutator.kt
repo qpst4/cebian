@@ -508,6 +508,30 @@ class OverlaySettingsMutator @Inject constructor(
         }
     }
 
+    suspend fun swapFvAppSwitcherSlots(
+        axis: FvAppSwitcherAxis,
+        fromIndex: Int,
+        toIndex: Int,
+    ) = editor.edit { prefs ->
+        if (fromIndex == toIndex) return@edit
+        val linkSlots = prefs[SettingsPreferenceKeys.FV_APP_SWITCHER_LINK_SLOT_AXES]
+            ?: FvAppSwitcherSettings.linkFlagsFromPreferences(prefs).linkSlotAxes
+        val targetAxes = if (linkSlots) {
+            listOf(FvAppSwitcherAxis.VERTICAL, FvAppSwitcherAxis.HORIZONTAL)
+        } else {
+            listOf(axis)
+        }
+        targetAxes.forEach { targetAxis ->
+            val current = FvAppSwitcherSettings.fromPreferences(prefs, targetAxis).slots.toMutableMap()
+            if (!current.moveFvAppSwitcherSlot(fromIndex, toIndex)) return@forEach
+            FvAppSwitcherSettings.writeSlotsAxis(
+                prefs,
+                targetAxis,
+                FvAppSwitcherSettings.fromPreferences(prefs, targetAxis).copy(slots = current),
+            )
+        }
+    }
+
     suspend fun setFvAppSwitcherSlot(
         axis: FvAppSwitcherAxis,
         index: Int,

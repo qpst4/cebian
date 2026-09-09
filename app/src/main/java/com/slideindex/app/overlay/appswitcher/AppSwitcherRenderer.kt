@@ -83,6 +83,9 @@ internal object AppSwitcherRenderer {
         activityShortcuts: List<ActivityShortcut>,
         shellCommands: List<ShellCommand>,
         appRepository: AppRepository? = null,
+        editDragFromSlot: Int = -1,
+        editDragX: Float = 0f,
+        editDragY: Float = 0f,
     ) {
         val progress = revealProgress.coerceIn(0f, 1f)
         if (progress <= 0.01f) return
@@ -109,6 +112,7 @@ internal object AppSwitcherRenderer {
                 val target = targets.getOrNull(slot)
                 val isEmpty = target == null
                 if (!editMode && isEmpty) continue
+                if (editDragFromSlot >= 0 && slot == editDragFromSlot) continue
 
                 val slotLayout = layout.slots[slot]
                 val centerX = layout.anchorX + (slotLayout.centerX - layout.anchorX) * progress
@@ -185,7 +189,39 @@ internal object AppSwitcherRenderer {
             }
         }
 
-        if (highlightedSlot >= 0) {
+        if (editDragFromSlot >= 0) {
+            val dragTarget = targets.getOrNull(editDragFromSlot)
+            if (dragTarget != null) {
+                val dragRadius = baseRadius * 1.12f
+                val iconSizePx = (dragRadius * 2f).toInt().coerceAtLeast(12)
+                val bitmap = AppSwitcherSlotIconBitmap.get(
+                    context = context,
+                    item = dragTarget.item,
+                    sizePx = iconSizePx,
+                    appsByPackage = appsByPackage,
+                    activityShortcuts = activityShortcuts,
+                    shellCommands = shellCommands,
+                    resolvedIcon = dragTarget.icon,
+                    appRepository = appRepository,
+                )
+                drawAppIcon(
+                    canvas = canvas,
+                    centerX = editDragX,
+                    centerY = editDragY,
+                    radius = dragRadius,
+                    bitmap = bitmap,
+                    highlighted = true,
+                    density = density,
+                    progress = progress,
+                    cornerRadiusRatio = layout.cornerRadiusRatio,
+                    shadowPaint = shadowPaint,
+                    strokePaint = strokePaint,
+                    iconPaint = iconPaint,
+                )
+            }
+        }
+
+        if (highlightedSlot >= 0 && editDragFromSlot < 0) {
             val target = targets.getOrNull(highlightedSlot)
             if (target != null) {
                 val bigIconSizePx = (52f * density).toInt().coerceAtLeast(24)

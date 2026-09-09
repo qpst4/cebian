@@ -257,6 +257,23 @@ data class FvAppSwitcherSettings(
     }
 }
 
+fun MutableMap<Int, QuickLauncherItem>.moveFvAppSwitcherSlot(
+    fromIndex: Int,
+    toIndex: Int,
+): Boolean {
+    if (fromIndex == toIndex) return false
+    val fromItem = this[fromIndex] ?: return false
+    val toItem = this[toIndex]
+    if (toItem != null) {
+        this[fromIndex] = toItem
+        this[toIndex] = fromItem
+    } else {
+        remove(fromIndex)
+        this[toIndex] = fromItem
+    }
+    return true
+}
+
 object FvAppSwitcherSlotCodec {
     private const val INDEX_SEP = "\u001D"
 

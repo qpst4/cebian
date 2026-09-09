@@ -374,6 +374,14 @@ object AppSwitcherOverlayWindow {
                     editModeActive = editMode
                     refreshTargetsForEditMode()
                 }
+
+                override fun onSlotsSwapped(fromSlot: Int, toSlot: Int) {
+                    val repository = deps?.settingsRepository ?: return
+                    val axis = side.toAxis()
+                    settingsScope.launch {
+                        repository.swapFvAppSwitcherSlots(axis, fromSlot, toSlot)
+                    }
+                }
             },
         )
         if (!shown) {

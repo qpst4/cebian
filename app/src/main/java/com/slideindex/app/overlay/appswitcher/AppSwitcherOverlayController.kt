@@ -35,6 +35,7 @@ internal class AppSwitcherOverlayController(
             mergeDirection: FvAppSwitcherAxisMergeDirection?,
         )
         fun onEditModeChanged(editMode: Boolean)
+        fun onSlotsSwapped(fromSlot: Int, toSlot: Int)
     }
 
     private val windowManager = context.getSystemService(WindowManager::class.java)
@@ -82,6 +83,7 @@ internal class AppSwitcherOverlayController(
             onLinkAppearanceAxesChange = listener::onLinkAppearanceAxesChange,
             onLinkSlotAxesChange = listener::onLinkSlotAxesChange,
             onEditModeChanged = listener::onEditModeChanged,
+            onSlotsSwapped = listener::onSlotsSwapped,
             onPrepareDirectTouch = { activateDirectTouch(next) },
         )
         next.configure(
