@@ -67,6 +67,7 @@ fun FingertipRingSettingsScreen(
 
     SettingsLazyScreenScaffold(
         title = stringResource(R.string.fingertip_ring_settings_title),
+        pageHint = stringResource(R.string.fingertip_ring_config_desc),
         onBack = onBack
     ) {
         settingsLazySmallTitle(

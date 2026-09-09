@@ -121,6 +121,7 @@ fun CornerSlotSubMenuShortcutPickScreen(
 
     SettingsLazyScreenScaffold(
         title = stringResource(R.string.corner_gesture_slot_submenu_add),
+        pageHint = stringResource(R.string.corner_gesture_slot_submenu_add_desc),
         onBack = handleBack,
         modifier = Modifier.fillMaxSize(),
         actions = {

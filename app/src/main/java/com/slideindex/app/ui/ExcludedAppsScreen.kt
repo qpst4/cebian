@@ -73,11 +73,9 @@ fun ExcludedAppsScreen(
 
     SettingsLazyScreenScaffold(
         title = stringResource(R.string.excluded_apps_title),
+        pageHint = stringResource(R.string.excluded_apps_desc),
         onBack = onBack
     ) {
-        managedAppListDescription(key = "desc") {
-            stringResource(R.string.excluded_apps_desc)
-        }
         if (!usageAccessGranted) {
             item(key = "usage-permission") {
                 PermissionCard(

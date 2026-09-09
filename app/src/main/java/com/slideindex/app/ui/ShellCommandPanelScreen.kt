@@ -231,6 +231,11 @@ fun ShellCommandPanelScreen(
 
     SettingsScreenScaffold(
         title = stringResource(R.string.shell_panel_title),
+        pageHint = buildString {
+            append(stringResource(R.string.shell_panel_entry_desc))
+            append('\n')
+            append(stringResource(R.string.shell_panel_template_hint))
+        },
         onBack = onBack,
         actions = {
             IconButton(onClick = onOpenHistory) {
@@ -251,7 +256,7 @@ fun ShellCommandPanelScreen(
         LazySettingsItem(key = "shell-panel-body", fillParentMaxSize = true) {
         Column(
             modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
 
                 var restartingService by remember { mutableStateOf(false) }
@@ -339,22 +344,18 @@ fun ShellCommandPanelScreen(
 
                     Column(
                         modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
                     ) {
 
-                        SmallTitle(if (commands.isEmpty()) {
-
+                        SmallTitle(
+                            text = if (commands.isEmpty()) {
                                 stringResource(R.string.shell_panel_commands_section)
-
                             } else {
-
                                 stringResource(R.string.shell_panel_commands_section_count, commands.size)
-
                             },
-
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp, bottom = 12.dp),
                         )
-
-                        MiuixHintText(stringResource(R.string.shell_panel_template_hint))
 
                         if (commands.isEmpty()) {
                             Column(
@@ -385,8 +386,9 @@ fun ShellCommandPanelScreen(
                                     .weight(1f, fill = true),
 
                             contentPadding = PaddingValues(
-                                horizontal = 16.dp,
-                                vertical = 16.dp,
+                                start = 12.dp,
+                                end = 12.dp,
+                                bottom = 16.dp,
                             ),
 
                             horizontalArrangement = Arrangement.spacedBy(10.dp),

@@ -82,6 +82,7 @@ fun FloatBallAppearanceSettingsScreen(
 
     SettingsScreenScaffold(
         title = stringResource(R.string.float_ball_appearance_settings_title),
+        pageHint = stringResource(R.string.float_ball_entry_desc),
         onBack = onBack
     ) {
         settingsLazySmallTitle(

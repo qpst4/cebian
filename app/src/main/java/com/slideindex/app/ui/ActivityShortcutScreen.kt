@@ -171,6 +171,7 @@ fun ActivityShortcutScreen(
 
     SettingsLazyScreenScaffold(
         title = stringResource(R.string.activity_shortcut_title),
+        pageHint = stringResource(R.string.activity_shortcut_entry_desc),
         onBack = onBack,
         floatingActionButton = {
             MiuixSettingsFab(
@@ -286,6 +287,7 @@ fun ActivityShortcutPresetsScreen(
 
     SettingsLazyScreenScaffold(
         title = stringResource(R.string.activity_shortcut_presets_title),
+        pageHint = stringResource(R.string.activity_shortcut_presets_desc),
         onBack = onBack
     ) {
         settingsLazyTipCard(key = "presets-hint", text = presetsDesc)

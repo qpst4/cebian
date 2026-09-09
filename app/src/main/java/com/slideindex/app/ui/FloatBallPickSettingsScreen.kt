@@ -82,6 +82,7 @@ fun FloatBallPickSettingsScreen(
 
     SettingsScreenScaffold(
         title = stringResource(R.string.float_ball_pick_settings_title),
+        pageHint = stringResource(R.string.float_ball_entry_desc),
         onBack = onBack
     ) {
         settingsLazySmallTitle(

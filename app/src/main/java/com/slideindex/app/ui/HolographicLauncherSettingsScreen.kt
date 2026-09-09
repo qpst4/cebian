@@ -65,6 +65,7 @@ fun HolographicLauncherSettingsScreen(
 
     SettingsScreenScaffold(
         title = stringResource(R.string.holographic_launcher_settings_title),
+        pageHint = stringResource(R.string.holographic_launcher_entry_desc),
         onBack = onBack
     ) {
         settingsLazySmallTitle(
@@ -211,7 +212,7 @@ fun HolographicLauncherSettingsScreen(
                     val hiddenCount = localSettings.hiddenAppPackages.size
                     HiddenAppsEntryCard(
                         hiddenCount = hiddenCount,
-                        titleRes = R.string.holographic_hidden_apps_entry_title,
+                        titleRes = R.string.hidden_apps_title,
                         descriptionRes = R.string.holographic_hidden_apps_entry_desc,
                         onClick = onOpenHiddenApps
                     )

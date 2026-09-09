@@ -58,13 +58,6 @@ fun MessageReminderUnlockRulesScreen(
         onSearchQueryChange = { searchQuery = it },
         onBack = onBack,
     ) {
-        item(key = "desc") {
-            Text(
-                text = stringResource(R.string.message_reminder_open_last_rules_desc_page),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 28.dp, vertical = 12.dp),
-            )
-        }
         if (apps.isEmpty()) {
             item(key = "empty") {
                 Text(

@@ -32,15 +32,16 @@ fun SearchEnginePreviewSortScreen(
     val emptyHint = stringResource(R.string.search_engine_preview_sort_empty)
     val sortHint = stringResource(R.string.search_engine_preview_sort_hint)
 
+    val tipText = "${stringResource(R.string.search_engine_settings_preview_mode_summary)}\n$sortHint"
+
     SettingsScreenScaffold(
         title = stringResource(R.string.search_engine_preview_sort_title),
-        subtitle = stringResource(R.string.search_engine_settings_preview_mode_summary),
         onBack = onBack,
     ) {
+        settingsLazyTipCard(key = "search-preview-sort-hint", text = tipText)
         if (panelEngines.isEmpty()) {
             settingsLazyHint(key = "search-preview-sort-empty", text = emptyHint)
         } else {
-            settingsLazyTipCard(key = "search-preview-sort-hint", text = sortHint)
             LazySettingsItem(key = "search-preview-sort-grid") {
                 SearchEngineSortableGrid(
                     engines = panelEngines,

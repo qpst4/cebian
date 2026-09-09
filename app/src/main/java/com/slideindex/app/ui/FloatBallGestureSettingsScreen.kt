@@ -69,6 +69,7 @@ fun FloatBallGestureSettingsScreen(
 
     SettingsScreenScaffold(
         title = stringResource(R.string.float_ball_gesture_settings_title),
+        pageHint = stringResource(R.string.float_ball_gesture_settings_summary),
         onBack = onBack
     ) {
         settingsLazySmallTitle(

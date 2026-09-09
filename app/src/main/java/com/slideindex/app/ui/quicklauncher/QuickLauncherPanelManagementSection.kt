@@ -17,7 +17,6 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import top.yukonga.miuix.kmp.basic.DropdownEntry
 import top.yukonga.miuix.kmp.basic.DropdownItem
 import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
@@ -45,8 +44,10 @@ import com.slideindex.app.launcher.QuickLauncherPanelDefaults
 import com.slideindex.app.launcher.QuickLauncherPanelMutator
 import com.slideindex.app.ui.miuix.MiuixSliderRow
 import top.yukonga.miuix.kmp.basic.SmallTitle
+import top.yukonga.miuix.kmp.basic.Text
+import com.slideindex.app.ui.miuix.MiuixInsetCardComponentMargin
 import com.slideindex.app.ui.miuix.MiuixTabRowContourHost
-import com.slideindex.app.ui.miuix.MiuixTabRowWithContour
+import com.slideindex.app.ui.miuix.MiuixTabRowWithContourInCard
 import top.yukonga.miuix.kmp.basic.Card
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -138,12 +139,13 @@ fun QuickLauncherPanelManagementSection(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 12.dp),
+                .padding(horizontal = 12.dp)
+                .padding(bottom = 12.dp),
             insideMargin = PaddingValues(16.dp),
         ) {
             Column(modifier = Modifier.fillMaxWidth()) {
                 if (panels.size > 1) {
-                    MiuixTabRowWithContour(
+                    MiuixTabRowWithContourInCard(
                         tabs = panels.mapIndexed { index, panel ->
                             panel.name.ifBlank {
                                 stringResource(R.string.quick_launcher_panel_default_name, index + 1)
@@ -152,11 +154,20 @@ fun QuickLauncherPanelManagementSection(
                         selectedTabIndex = safeIndex,
                         onTabSelected = onSelectedIndexChange,
                         contourHost = MiuixTabRowContourHost.SurfaceContainer,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 8.dp),
+                        modifier = Modifier.fillMaxWidth(),
                     )
                 }
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .then(
+                            if (panels.size > 1) {
+                                Modifier.padding(top = 12.dp)
+                            } else {
+                                Modifier
+                            },
+                        ),
+                ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -172,8 +183,8 @@ fun QuickLauncherPanelManagementSection(
                                 renameText = currentPanel.name
                             }
                             .padding(vertical = 8.dp),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
+                        style = MiuixTheme.textStyles.title4,
+                        color = MiuixTheme.colorScheme.onSurface,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
@@ -209,6 +220,7 @@ fun QuickLauncherPanelManagementSection(
                     valueRange = 2f..6f,
                     steps = 3,
                     enabled = true,
+                    insideMargin = MiuixInsetCardComponentMargin,
                     label = stringResource(R.string.quick_launcher_grid_columns_label, currentPanel.columnsPerPage),
                     onValueChange = { updatePanel(safeIndex, currentPanel.copy(columnsPerPage = it.toInt())) },
                 )
@@ -218,9 +230,11 @@ fun QuickLauncherPanelManagementSection(
                     valueRange = 2f..9f,
                     steps = 6,
                     enabled = true,
+                    insideMargin = MiuixInsetCardComponentMargin,
                     label = stringResource(R.string.quick_launcher_grid_rows_label, currentPanel.rowsPerPage),
                     onValueChange = { updatePanel(safeIndex, currentPanel.copy(rowsPerPage = it.toInt())) },
                 )
+                }
             }
         }
     }

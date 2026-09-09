@@ -109,6 +109,8 @@ fun SideGestureSlotConfigScreen(
 
         title = screenTitle,
 
+        pageHint = stringResource(R.string.side_gestures_desc),
+
         onBack = onBack,
 
     ) {

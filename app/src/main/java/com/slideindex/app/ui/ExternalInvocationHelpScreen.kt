@@ -35,6 +35,7 @@ fun ExternalInvocationHelpScreen(onBack: () -> Unit) {
 
     SettingsLazyScreenScaffold(
         title = stringResource(R.string.external_invocation_title),
+        pageHint = stringResource(R.string.external_invocation_entry_desc),
         onBack = onBack
     ) {
         settingsLazyTipCard(

@@ -277,6 +277,7 @@ fun OtpRecordsScreen(
 
     SettingsLazyScreenScaffold(
         title = stringResource(R.string.otp_records_title),
+        pageHint = stringResource(R.string.otp_records_entry_desc),
         onBack = onBack,
         actions = recordsUi.scaffoldActions,
     ) {

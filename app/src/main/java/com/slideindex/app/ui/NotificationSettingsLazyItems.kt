@@ -20,7 +20,6 @@ import com.slideindex.app.ui.miuix.CardItem
 import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.SettingSwitchRow
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
-import com.slideindex.app.ui.settings.components.settingsLazyTipCard
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import kotlin.math.roundToInt
 
@@ -159,7 +158,6 @@ fun rememberNotificationSettingsLazyGroups(
 fun LazyListScope.emitNotificationSettingsItems(
     groups: NotificationSettingsLazyGroups,
     historySectionTitle: String,
-    rulesHint: String,
 ) {
     groupedCardItems(
         keyPrefix = "notification-restore",
@@ -170,5 +168,4 @@ fun LazyListScope.emitNotificationSettingsItems(
         keyPrefix = "notification-history-max",
         items = groups.historyMaxCount,
     )
-    settingsLazyTipCard(key = "settings_hint", text = rulesHint)
 }

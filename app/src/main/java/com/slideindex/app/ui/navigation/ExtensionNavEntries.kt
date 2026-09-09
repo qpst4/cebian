@@ -198,24 +198,9 @@ fun NavEntryBuilder.extensionNavEntries(ctx: MainNavContext) {
 
     hiltEntry<AppNavKey.ExtensionDiagnosticLogs> {
         val viewModel: DiagnosticLogViewModel = hiltViewModel()
-        val permissions = ctx.collectPermissions()
-        val context = LocalContext.current
-        var readLogsGranted by remember {
-            mutableStateOf(ClipboardPermissionHelper.hasReadLogsPermission(context))
-        }
-        LaunchedEffect(permissions.shizukuGranted) {
-            readLogsGranted = ClipboardPermissionHelper.hasReadLogsPermission(context)
-        }
         DiagnosticLogScreen(
             viewModel = viewModel,
-            shizukuGranted = permissions.shizukuGranted,
-            readLogsGranted = readLogsGranted,
             onBack = { ctx.navigateBackTo(AppNavKey.ExtensionHub) },
-            onRequestShizuku = { ctx.requestShizuku() },
-            onRequestReadLogs = {
-                ctx.requestReadLogsGrant()
-                readLogsGranted = ClipboardPermissionHelper.hasReadLogsPermission(context)
-            },
         )
     }
 
@@ -699,7 +684,7 @@ fun NavEntryBuilder.extensionNavEntries(ctx: MainNavContext) {
             onBack = { ctx.navigateBackTo(AppNavKey.HolographicLauncherSettings) },
             onHideApp = viewModel::addHolographicHiddenApp,
             onUnhideApp = viewModel::removeHolographicHiddenApp,
-            titleRes = R.string.holographic_hidden_apps_title,
+            titleRes = R.string.hidden_apps_title,
             descriptionRes = R.string.holographic_hidden_apps_desc,
         )
     }
@@ -1034,7 +1019,7 @@ fun NavEntryBuilder.extensionNavEntries(ctx: MainNavContext) {
         val settings = overlaySettings.toMinimalAppSettings()
         ShakeGestureBlacklistScreen(
             blacklistedPackages = settings.clipboardFloatBlockedPackages,
-            onBack = { ctx.navigateBackTo(AppNavKey.StashClipboard) },
+            onBack = { ctx.navigateBackTo(AppNavKey.ClipboardFloatSettings) },
             onOpenAddApp = { ctx.navigate(AppNavKey.ClipboardFloatBlacklistPick) },
             onRemoveBlacklistedApp = viewModel::removeClipboardFloatBlockedPackage,
             titleRes = R.string.clipboard_float_app_blacklist,

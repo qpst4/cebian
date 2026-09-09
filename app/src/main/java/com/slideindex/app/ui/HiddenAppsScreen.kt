@@ -1,6 +1,5 @@
 package com.slideindex.app.ui
 
-import com.slideindex.app.ui.miuix.MiuixHintText
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -71,13 +70,11 @@ fun HiddenAppsScreen(
 
     SettingsLazyScreenScaffoldWithExpandableSearch(
         title = stringResource(titleRes),
+        pageHint = stringResource(descriptionRes),
         searchQuery = searchQuery,
         onSearchQueryChange = { searchQuery = it },
         onBack = onBack
     ) {
-        item(key = "desc") {
-            MiuixHintText(stringResource(descriptionRes))
-        }
         item(key = "section-hidden") {
             SmallTitle(
                 text = stringResource(R.string.hidden_apps_section_hidden),

@@ -287,6 +287,7 @@ fun NavEntryBuilder.shakeNavEntries(ctx: MainNavContext) {
             onBack = { ctx.navigateBackTo(AppNavKey.ShakeGestures) },
             onOpenAddApp = { ctx.navigate(AppNavKey.ShakeGestureBlacklistPick) },
             onRemoveBlacklistedApp = { packageName -> viewModel.removeShakeBlacklistedApp(packageName) },
+            showPageHint = false,
         )
     }
 

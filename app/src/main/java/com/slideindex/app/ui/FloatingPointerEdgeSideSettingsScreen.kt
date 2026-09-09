@@ -18,7 +18,6 @@ import com.slideindex.app.settings.FloatingPointerEdgeActionsCodec
 import com.slideindex.app.settings.FloatingPointerEdgeSide
 import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
-import com.slideindex.app.ui.settings.components.settingsLazyTipCard
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -35,7 +34,6 @@ fun FloatingPointerEdgeSideSettingsScreen(
 ) {
     val bar = settings.floatingPointerEdgeActionsConfig.bar(side)
     val slots = bar.layoutSlots()
-    val enabledDesc = stringResource(R.string.floating_pointer_edge_side_enabled_desc)
     val zonesSectionTitle = stringResource(
         R.string.floating_pointer_edge_section_zones_count,
         slots.size
@@ -46,7 +44,6 @@ fun FloatingPointerEdgeSideSettingsScreen(
         title = edgeSideTitle(side),
         onBack = onBack
     ) {
-        settingsLazyTipCard(key = "edge-enabled-desc", text = enabledDesc)
         groupedCardItems(
             keyPrefix = "edge-enabled-${side.name}",
             items = buildList {

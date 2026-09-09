@@ -43,6 +43,7 @@ fun FloatingPointerSettingsScreen(
 
     SettingsScreenScaffold(
         title = stringResource(R.string.floating_pointer_settings_title),
+        pageHint = stringResource(R.string.floating_pointer_entry_desc),
         onBack = onBack
     ) {
         settingsLazySmallTitle(

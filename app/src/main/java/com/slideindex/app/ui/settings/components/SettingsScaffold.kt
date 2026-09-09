@@ -53,6 +53,7 @@ fun SettingsEmbeddedContent(
 fun SettingsScreenScaffold(
     title: String,
     modifier: Modifier = Modifier,
+    pageHint: String? = null,
     subtitle: String? = null,
     onBack: (() -> Unit)? = null,
     enableBackHandler: Boolean = true,
@@ -71,6 +72,7 @@ fun SettingsScreenScaffold(
     MiuixSettingsScreenScaffold(
         title = title,
         modifier = modifier,
+        pageHint = pageHint,
         subtitle = subtitle,
         onBack = onBack,
         enableBackHandler = false,
@@ -87,6 +89,7 @@ fun SettingsScreenScaffold(
 fun SettingsLazyScreenScaffold(
     title: String,
     modifier: Modifier = Modifier,
+    pageHint: String? = null,
     subtitle: String? = null,
     onBack: (() -> Unit)? = null,
     enableBackHandler: Boolean = true,
@@ -99,17 +102,15 @@ fun SettingsLazyScreenScaffold(
     MiuixListScaffold(
         title = title,
         modifier = modifier,
+        pageHint = pageHint,
+        subtitle = subtitle,
+        showPageHintCard = true,
         navigationIcon = onBack?.let { { MiuixBackNavigationIcon(it) } },
         actions = actions,
         floatingActionButton = floatingActionButton,
         bottomContent = bottomContent,
         userScrollEnabled = userScrollEnabled,
     ) {
-        if (subtitle != null) {
-            item(key = "subtitle") {
-                MiuixHintText(subtitle)
-            }
-        }
         content()
     }
 }
@@ -121,6 +122,7 @@ fun SettingsLazyScreenScaffoldWithExpandableSearch(
     onSearchQueryChange: (String) -> Unit,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    pageHint: String? = null,
     subtitle: String? = null,
     hintResId: Int = R.string.search_hint,
     enableBackHandler: Boolean = true,
@@ -144,6 +146,7 @@ fun SettingsLazyScreenScaffoldWithExpandableSearch(
     SettingsLazyScreenScaffold(
         title = title,
         modifier = modifier,
+        pageHint = pageHint,
         subtitle = subtitle,
         onBack = handleBack,
         enableBackHandler = enableBackHandler,

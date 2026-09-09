@@ -102,6 +102,8 @@ fun InteractionAppearanceSettingsScreen(
 
     MiuixListScaffold(
         title = stringResource(R.string.interaction_appearance_settings_title),
+        pageHint = stringResource(R.string.interaction_appearance_settings_entry_desc),
+        showPageHintCard = true,
         navigationIcon = { MiuixBackNavigationIcon(onBack) },
     ) {
         item(key = "general_section") {

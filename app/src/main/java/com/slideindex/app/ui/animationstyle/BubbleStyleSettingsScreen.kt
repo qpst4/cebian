@@ -56,6 +56,7 @@ fun BubbleStyleSettingsScreen(
 
     SettingsScreenScaffold(
         title = stringResource(R.string.gesture_hint_style_bubble),
+        pageHint = stringResource(R.string.gesture_hint_style_bubble_desc),
         onBack = onBack,
     ) {
         settingsLazySmallTitle(

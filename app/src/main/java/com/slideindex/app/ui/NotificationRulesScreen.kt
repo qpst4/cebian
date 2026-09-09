@@ -23,7 +23,6 @@ fun NotificationRulesScreen(
 ) {
     SettingsLazyScreenScaffold(
         title = stringResource(R.string.notification_filter_tab_rules),
-        subtitle = stringResource(R.string.notification_rules_screen_subtitle),
         onBack = onBack,
         floatingActionButton = {
             MiuixSettingsFab(

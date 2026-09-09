@@ -60,6 +60,7 @@ fun ActivityShortcutPickAppShortcutScreen(
 
     SettingsLazyScreenScaffoldWithExpandableSearch(
         title = stringResource(R.string.activity_shortcut_pick_app_shortcut_title),
+        pageHint = stringResource(R.string.activity_shortcut_pick_app_shortcut_desc),
         searchQuery = query,
         onSearchQueryChange = { query = it },
         onBack = onBack,

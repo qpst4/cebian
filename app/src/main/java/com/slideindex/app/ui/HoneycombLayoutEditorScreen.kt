@@ -118,6 +118,7 @@ fun HoneycombLauncherItemsSection(
     modifier: Modifier = Modifier,
     nestedScrollEnabled: Boolean = true,
     descriptionResId: Int = R.string.honeycomb_launcher_editor_desc,
+    showSectionHeader: Boolean = true,
     activityShortcuts: List<com.slideindex.app.activity.ActivityShortcut> = emptyList(),
     shellCommands: List<com.slideindex.app.shell.ShellCommand> = emptyList(),
 ) {
@@ -166,23 +167,28 @@ fun HoneycombLauncherItemsSection(
                     Modifier.fillMaxWidth()
                 },
             )
-            .padding(horizontal = 20.dp, vertical = 12.dp),
+            .padding(
+                horizontal = if (showSectionHeader) 20.dp else 12.dp,
+                vertical = if (showSectionHeader) 12.dp else 8.dp,
+            ),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Text(
-            text = stringResource(descriptionResId),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        SmallTitle(
-            text = stringResource(R.string.honeycomb_layout_editor_title),
-            modifier = Modifier.fillMaxWidth(),
-        )
-        Text(
-            text = stringResource(R.string.honeycomb_layout_editor_hint),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        if (showSectionHeader) {
+            Text(
+                text = stringResource(descriptionResId),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            SmallTitle(
+                text = stringResource(R.string.honeycomb_layout_editor_title),
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Text(
+                text = stringResource(R.string.honeycomb_layout_editor_hint),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -291,6 +297,7 @@ fun HoneycombLayoutEditorScreen(
 
     SettingsScreenScaffold(
         title = stringResource(R.string.honeycomb_layout_editor_title),
+        pageHint = stringResource(R.string.honeycomb_layout_editor_hint),
         onBack = onBack,
         scrollContent = false, modifier = Modifier.fillMaxSize(),
     ) {
@@ -303,6 +310,7 @@ fun HoneycombLayoutEditorScreen(
             onItemsChange = onItemsChange,
             onAdd = {},
             onInteractionActiveChange = {},
+            showSectionHeader = false,
         )
         }
     }

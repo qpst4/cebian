@@ -23,7 +23,6 @@ import com.slideindex.app.notification.NotificationRuleChargeMask
 import com.slideindex.app.notification.ScreenMode
 import com.slideindex.app.notification.TextMatchMode
 import com.slideindex.app.ui.miuix.MiuixLabeledTextField
-import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.preference.ArrowPreference
@@ -215,9 +214,8 @@ internal fun NotificationRuleConditionEditor(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            SmallTitle(
+            NotificationRuleSectionHeading(
                 text = stringResource(R.string.notification_rule_section_time),
-                modifier = Modifier.fillMaxWidth(),
             )
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                 MiuixLabeledTextField(
@@ -239,9 +237,8 @@ internal fun NotificationRuleConditionEditor(
                 color = MiuixTheme.colorScheme.onSurfaceSecondary,
             )
 
-            SmallTitle(
+            NotificationRuleSectionHeading(
                 text = stringResource(R.string.notification_rule_week_days),
-                modifier = Modifier.fillMaxWidth(),
             )
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -258,9 +255,8 @@ internal fun NotificationRuleConditionEditor(
                 }
             }
 
-            SmallTitle(
+            NotificationRuleSectionHeading(
                 text = stringResource(R.string.notification_rule_section_device),
-                modifier = Modifier.fillMaxWidth(),
             )
             CheckboxPreference(
                 title = stringResource(R.string.notification_rule_screen_on),

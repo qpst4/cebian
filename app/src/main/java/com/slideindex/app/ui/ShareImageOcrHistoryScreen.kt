@@ -71,6 +71,7 @@ fun ShareImageOcrHistoryScreen(
 
     SettingsLazyScreenScaffold(
         title = stringResource(R.string.share_image_ocr_history_title),
+        pageHint = stringResource(R.string.share_image_ocr_history_enabled_desc),
         onBack = onBack,
     ) {
         if (entries.isNotEmpty()) {

@@ -36,7 +36,6 @@ import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingSwitchRow
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
-import com.slideindex.app.ui.settings.components.settingsLazyTipCard
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import com.slideindex.app.ui.viewmodel.SettingsBackupPreviewState
 import com.slideindex.app.settings.SettingsDomain
@@ -74,16 +73,13 @@ fun SettingsBackupScreen(
     }
 
     val actionsSectionTitle = stringResource(R.string.settings_backup_section_actions)
-    val backupHint = stringResource(R.string.settings_backup_hint)
     val permissionsSectionTitle = stringResource(R.string.settings_backup_section_permissions)
 
     SettingsScreenScaffold(
         title = stringResource(R.string.settings_backup_title),
-        subtitle = stringResource(R.string.settings_backup_subtitle),
         onBack = onBack,
     ) {
         settingsLazySmallTitle(key = "backup_actions_section", title = actionsSectionTitle)
-        settingsLazyTipCard(key = "backup_hint", text = backupHint)
         groupedCardItems(
             keyPrefix = "backup_sensitive",
             items = buildList {

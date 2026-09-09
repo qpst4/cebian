@@ -58,6 +58,24 @@ private fun PaddingValues.withWideContentPadding(
     )
 }
 
+/** 子页列表顶部的 Mishka 式灰 Card；[subtitle] 仅在同时提供 [pageHint] 时作为 Card 后的补充纯文本。 */
+fun LazyListScope.settingsPageHeaderItems(
+    pageHint: String?,
+    subtitle: String?,
+) {
+    val resolvedHint = pageHint ?: subtitle
+    if (resolvedHint != null) {
+        item(key = "page-hint") {
+            SettingsPageHintCard(resolvedHint)
+        }
+    }
+    if (pageHint != null && subtitle != null) {
+        item(key = "subtitle") {
+            MiuixHintText(subtitle)
+        }
+    }
+}
+
 /** TabRow 置于 [TopAppBar.bottomContent] 时的标准边距，与列表内容水平对齐。 */
 @Composable
 fun MiuixScaffoldTabRowBottomContent(
@@ -76,6 +94,9 @@ fun MiuixScaffoldTabRowBottomContent(
 fun MiuixListScaffold(
     title: String,
     modifier: Modifier = Modifier,
+    pageHint: String? = null,
+    subtitle: String? = null,
+    showPageHintCard: Boolean = false,
     navigationIcon: @Composable (() -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {},
     floatingActionButton: @Composable () -> Unit = {},
@@ -135,6 +156,9 @@ fun MiuixListScaffold(
                 overscrollEffect = null,
                 userScrollEnabled = userScrollEnabled,
             ) {
+                if (showPageHintCard) {
+                    settingsPageHeaderItems(pageHint = pageHint, subtitle = subtitle)
+                }
                 content()
                 if (bottomContentPadding > 0.dp) {
                     item(key = "list-bottom-inset") {
@@ -151,6 +175,7 @@ fun MiuixListScaffold(
 fun MiuixSettingsScreenScaffold(
     title: String,
     modifier: Modifier = Modifier,
+    pageHint: String? = null,
     subtitle: String? = null,
     onBack: (() -> Unit)? = null,
     @Suppress("UNUSED_PARAMETER") enableBackHandler: Boolean = true,
@@ -219,11 +244,7 @@ fun MiuixSettingsScreenScaffold(
                 .overScrollVertical()
                 .nestedScroll(scrollBehavior.nestedScrollConnection)
             val lazyContent: LazyListScope.() -> Unit = {
-                if (subtitle != null) {
-                    item(key = "subtitle") {
-                        MiuixHintText(subtitle)
-                    }
-                }
+                settingsPageHeaderItems(pageHint = pageHint, subtitle = subtitle)
                 content()
                 item(key = "settings-bottom-inset") {
                     Spacer(Modifier.height(8.dp + bottomContentPadding))

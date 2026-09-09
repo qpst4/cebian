@@ -150,6 +150,7 @@ fun MyShortcutsFolderScreen(
 
     SettingsLazyScreenScaffoldWithExpandableSearch(
         title = stringResource(R.string.quick_launcher_my_shortcuts),
+        pageHint = stringResource(R.string.quick_launcher_multi_select_hint),
         searchQuery = standaloneQuery,
         onSearchQueryChange = { standaloneQuery = it },
         onBack = onBack,
@@ -348,6 +349,7 @@ fun PresetShortcutsFolderScreen(
 
     SettingsLazyScreenScaffoldWithExpandableSearch(
         title = stringResource(R.string.quick_launcher_preset_shortcuts),
+        pageHint = stringResource(R.string.quick_launcher_multi_select_hint),
         searchQuery = standaloneQuery,
         onSearchQueryChange = { standaloneQuery = it },
         onBack = onBack,

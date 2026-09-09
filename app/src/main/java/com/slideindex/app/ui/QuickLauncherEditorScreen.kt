@@ -21,7 +21,6 @@ import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.launcher.QuickLauncherPanel
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.QuickLauncherDisplaySettings
-import com.slideindex.app.ui.miuix.MiuixHintText
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import com.slideindex.app.ui.quicklauncher.QuickLauncherPanelManagementSection
 import com.slideindex.app.ui.quicklauncher.quickLauncherAppearanceCardItems
@@ -112,9 +111,6 @@ fun QuickLauncherEditorContent(
         modifier = Modifier.fillMaxSize(),
         userScrollEnabled = !uiState.isGridInteractionActive,
     ) {
-        item(key = "desc") {
-            MiuixHintText(stringResource(R.string.quick_launcher_editor_desc))
-        }
         settingsLazySmallTitle(
             key = "quick-launcher-appearance",
             title = appearanceSectionTitle,

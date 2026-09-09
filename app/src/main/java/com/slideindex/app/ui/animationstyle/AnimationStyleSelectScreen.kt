@@ -27,9 +27,9 @@ import com.slideindex.app.ui.gestureHintStyleLabel
 import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingsCardScope
-import com.slideindex.app.ui.settings.components.SettingsHintText
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
-import com.slideindex.app.ui.settings.components.settingsLazyTipCard
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import kotlin.math.roundToInt
 
@@ -89,12 +89,13 @@ fun AnimationStyleSelectScreen(
     val gestureTitle = stringResource(R.string.gesture_animation_title)
     val fingerOffsetHint = stringResource(R.string.gesture_hint_finger_offset_hint)
 
+    val pageHint = "${stringResource(R.string.animation_style_select_desc)}\n$selectHint"
+
     SettingsScreenScaffold(
         title = stringResource(R.string.gesture_hint_style_title),
-        subtitle = stringResource(R.string.animation_style_select_desc),
+        pageHint = pageHint,
         onBack = onBack,
     ) {
-        settingsLazyTipCard(key = "animation-style-select-hint", text = selectHint)
         settingsLazySmallTitle(key = "animation-style-cards-title", title = styleTitle)
         LazySettingsItem(key = "animation-style-cards") {
             Column(
@@ -134,9 +135,17 @@ fun AnimationStyleSelectScreen(
         settingsLazySmallTitle(key = "gesture-animation-offset", title = gestureTitle)
         groupedCardItems(
             keyPrefix = "gesture-finger-offset",
-            items = buildList {
-                add(
-                    settingsCardScopeItem("finger-offset") {
+            items = listOf(
+                settingsCardScopeItem("finger-offset") {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            text = fingerOffsetHint,
+                            style = MiuixTheme.textStyles.body2,
+                            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                        )
                         SettingsSliderRow(
                             title = stringResource(R.string.gesture_hint_finger_offset_title),
                             value = settings.gestureHintFingerOffsetDp,
@@ -149,14 +158,9 @@ fun AnimationStyleSelectScreen(
                             endLabel = stringResource(R.string.animation_style_large),
                             onValueChange = onGestureHintFingerOffsetDpChange,
                         )
-                    },
-                )
-                add(
-                    settingsCardScopeItem("finger-offset-hint") {
-                        SettingsHintText(fingerOffsetHint)
-                    },
-                )
-            },
+                    }
+                },
+            ),
         )
     }
 }

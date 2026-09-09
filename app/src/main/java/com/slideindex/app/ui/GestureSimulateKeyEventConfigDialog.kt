@@ -265,6 +265,7 @@ fun GestureSimulateKeyEventScreen(
     } else {
         SettingsScreenScaffold(
             title = stringResource(R.string.key_event_config_title),
+            pageHint = stringResource(R.string.gesture_action_simulate_key_event_desc),
             onBack = onBack,
             enableBackHandler = enableBackHandler,
             overlayMode = overlayMode,

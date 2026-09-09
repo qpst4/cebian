@@ -44,6 +44,7 @@ fun BackTapSettingsScreen(
 
     SettingsScreenScaffold(
         title = stringResource(R.string.extension_back_tap_title),
+        pageHint = stringResource(R.string.extension_back_tap_subtitle),
         onBack = onBack
     ) {
         groupedCardItems(

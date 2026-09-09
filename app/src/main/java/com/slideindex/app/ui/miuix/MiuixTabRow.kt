@@ -42,8 +42,13 @@ fun miuixTabRowContourColors(host: MiuixTabRowContourHost): TabRowColors {
     }
 }
 
-private fun Modifier.miuixTabRowPadding(contentHorizontalPadding: Dp): Modifier =
-    fillMaxWidth().padding(horizontal = contentHorizontalPadding, vertical = 4.dp)
+private fun Modifier.miuixTabRowPadding(
+    contentHorizontalPadding: Dp,
+    verticalPadding: Dp,
+): Modifier = fillMaxWidth().padding(
+    horizontal = contentHorizontalPadding,
+    vertical = verticalPadding,
+)
 
 @Composable
 fun MiuixTabRow(
@@ -53,13 +58,14 @@ fun MiuixTabRow(
     modifier: Modifier = Modifier,
     listState: LazyListState? = null,
     contentHorizontalPadding: Dp = 0.dp,
+    verticalPadding: Dp = 4.dp,
 ) {
     TabRow(
         tabs = tabs,
         selectedTabIndex = selectedTabIndex,
         onTabSelected = onTabSelected,
         listState = listState,
-        modifier = modifier.miuixTabRowPadding(contentHorizontalPadding),
+        modifier = modifier.miuixTabRowPadding(contentHorizontalPadding, verticalPadding),
     )
 }
 
@@ -72,6 +78,7 @@ fun MiuixTabRowWithContour(
     modifier: Modifier = Modifier,
     listState: LazyListState? = null,
     contentHorizontalPadding: Dp = 0.dp,
+    verticalPadding: Dp = 4.dp,
     contourHost: MiuixTabRowContourHost = MiuixTabRowContourHost.AppScaffold,
     colors: TabRowColors = miuixTabRowContourColors(contourHost),
 ) {
@@ -81,6 +88,30 @@ fun MiuixTabRowWithContour(
         onTabSelected = onTabSelected,
         listState = listState,
         colors = colors,
-        modifier = modifier.miuixTabRowPadding(contentHorizontalPadding),
+        modifier = modifier.miuixTabRowPadding(contentHorizontalPadding, verticalPadding),
+    )
+}
+
+/** Card 内 TabRow：依赖 Card `insideMargin = 16.dp` 提供四边留白，与官方 TabRowSection 一致。 */
+@Composable
+fun MiuixTabRowWithContourInCard(
+    tabs: List<String>,
+    selectedTabIndex: Int,
+    onTabSelected: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+    listState: LazyListState? = null,
+    contourHost: MiuixTabRowContourHost = MiuixTabRowContourHost.SurfaceContainer,
+    colors: TabRowColors = miuixTabRowContourColors(contourHost),
+) {
+    MiuixTabRowWithContour(
+        tabs = tabs,
+        selectedTabIndex = selectedTabIndex,
+        onTabSelected = onTabSelected,
+        modifier = modifier,
+        listState = listState,
+        contentHorizontalPadding = 0.dp,
+        verticalPadding = 0.dp,
+        contourHost = contourHost,
+        colors = colors,
     )
 }

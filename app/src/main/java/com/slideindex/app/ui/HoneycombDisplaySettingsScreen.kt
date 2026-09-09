@@ -70,6 +70,7 @@ fun HoneycombDisplaySettingsScreen(
 
     SettingsScreenScaffold(
         title = stringResource(R.string.honeycomb_display_settings_title),
+        pageHint = stringResource(R.string.honeycomb_display_settings_entry_desc),
         onBack = onBack
     ) {
         settingsLazySmallTitle(

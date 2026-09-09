@@ -56,6 +56,7 @@ fun CapsuleStyleSettingsScreen(
 
     SettingsScreenScaffold(
         title = stringResource(R.string.gesture_hint_style_capsule),
+        pageHint = stringResource(R.string.gesture_hint_style_capsule_desc),
         onBack = onBack,
     ) {
         settingsLazySmallTitle(

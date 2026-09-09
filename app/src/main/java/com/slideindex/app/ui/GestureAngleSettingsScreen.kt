@@ -101,6 +101,7 @@ fun GestureAngleSettingsScreen(
 
     SettingsScreenScaffold(
         title = stringResource(R.string.gesture_angle_title),
+        pageHint = stringResource(R.string.gesture_angle_entry_desc),
         onBack = onBack,
         scrollContent = false,
         actions = {
@@ -142,7 +143,11 @@ fun GestureAngleSettingsScreen(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                SingleChoiceSegmentedButtonRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp),
+                ) {
                     listOf(
                         PanelSide.LEFT to stringResource(R.string.gesture_angle_side_left),
                         PanelSide.RIGHT to stringResource(R.string.gesture_angle_side_right),

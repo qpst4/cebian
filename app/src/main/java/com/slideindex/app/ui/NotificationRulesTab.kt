@@ -54,8 +54,12 @@ fun LazyListScope.notificationRulesItems(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            SmallTitle(stringResource(R.string.notification_rule_section_title))
+            SmallTitle(
+                text = stringResource(R.string.notification_rule_section_title),
+                modifier = Modifier.weight(1f, fill = false),
+            )
             TextButton(
+                modifier = Modifier.padding(end = 28.dp),
                 text = stringResource(R.string.notification_rule_export),
                 onClick = {
                     val json = viewModel.exportRulesJson()

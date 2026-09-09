@@ -101,6 +101,13 @@ fun ShareTargetPickScreen(
 
     SettingsLazyScreenScaffoldWithExpandableSearch(
         title = stringResource(titleRes),
+        pageHint = stringResource(
+            if (forImage) {
+                R.string.search_engine_pick_share_image_target
+            } else {
+                R.string.search_engine_pick_share_text_target
+            },
+        ),
         searchQuery = query,
         onSearchQueryChange = { query = it },
         onBack = onBack,

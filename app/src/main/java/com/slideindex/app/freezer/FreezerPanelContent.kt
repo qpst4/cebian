@@ -157,6 +157,7 @@ fun FreezerPanelContent(
     SettingsLazyScreenScaffold(
         modifier = modifier,
         title = screenTitle,
+        pageHint = stringResource(R.string.extension_freezer_subtitle),
         onBack = onBack?.let { handleBack },
         userScrollEnabled = false,
         actions = {

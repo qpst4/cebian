@@ -57,6 +57,7 @@ fun FreeWindowSettingsScreen(
 
     SettingsScreenScaffold(
         title = stringResource(R.string.free_window_settings_title),
+        pageHint = stringResource(R.string.free_window_entry_desc),
         onBack = onBack
     ) {
         settingsLazySmallTitle(

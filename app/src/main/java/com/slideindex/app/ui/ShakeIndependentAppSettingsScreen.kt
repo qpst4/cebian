@@ -48,9 +48,6 @@ fun ShakeIndependentAppSettingsScreen(
         title = stringResource(R.string.shake_gestures_independent_app),
         onBack = onBack,
     ) {
-        managedAppListDescription(key = "desc") {
-            stringResource(R.string.shake_gestures_independent_app_desc)
-        }
         managedAppListSectionTitle(
             key = "section-configured",
             title = { stringResource(R.string.shake_gestures_per_app_configured) },

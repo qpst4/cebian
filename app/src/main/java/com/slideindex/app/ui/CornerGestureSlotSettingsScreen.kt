@@ -56,6 +56,7 @@ fun CornerGestureSlotSettingsScreen(
 
     SettingsScreenScaffold(
         title = slotTitle,
+        pageHint = stringResource(R.string.corner_gesture_slots_entry_desc),
         onBack = onBack
     ) {
         settingsLazyHint(

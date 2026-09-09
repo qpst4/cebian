@@ -33,6 +33,7 @@ fun ActivityShortcutPickShellScreen(
 ) {
     SettingsLazyScreenScaffold(
         title = stringResource(R.string.activity_shortcut_add_from_shell),
+        pageHint = stringResource(R.string.activity_shortcut_add_from_shell_sub),
         onBack = onBack,
         modifier = Modifier.fillMaxSize(),
     ) {

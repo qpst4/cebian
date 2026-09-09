@@ -13,8 +13,6 @@ import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
-import com.slideindex.app.ui.settings.components.settingsLazyTipCard
-
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun CornerGestureSettingsScreen(
@@ -29,16 +27,17 @@ fun CornerGestureSettingsScreen(
 ) {
     val corner = settings.cornerGestureSettings
     val subSettingsEnabled = serviceEnabled && corner.enabled
-    val settingsHint = stringResource(R.string.corner_gesture_settings_hint)
+    val pageHint = buildString {
+        append(stringResource(R.string.corner_gesture_settings_desc))
+        append('\n')
+        append(stringResource(R.string.corner_gesture_settings_hint))
+    }
 
     SettingsScreenScaffold(
         title = stringResource(R.string.corner_gesture_settings_title),
-        subtitle = stringResource(R.string.corner_gesture_settings_desc),
+        pageHint = pageHint,
         onBack = onBack
     ) {
-        settingsLazyTipCard(key = "corner-gesture-settings-hint",
-            text = settingsHint
-        )
         groupedCardItems(
             keyPrefix = "corner-enabled",
             items = buildList {

@@ -148,7 +148,9 @@ fun FloatingPointerPointerSettingsScreen(
         settingsLazySmallTitle(key = "fp-preview-section", title = previewSectionTitle)
         item(key = "floating-pointer-preview") {
             Surface(
-                modifier = Modifier.padding(bottom = 4.dp),
+                modifier = Modifier
+                    .padding(horizontal = 12.dp)
+                    .padding(bottom = 4.dp),
                 shape = MaterialTheme.shapes.large,
                 color = MaterialTheme.colorScheme.surfaceContainerHigh
             ) {

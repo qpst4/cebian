@@ -290,6 +290,7 @@ fun ShellCommandEditorScreen(
 
     SettingsScreenScaffold(
         title = title,
+        pageHint = stringResource(R.string.shell_panel_edit_hint),
         onBack = onBack,
     ) {
         LazySettingsItem(key = "shell-editor-body") {

@@ -1310,7 +1310,7 @@
     <string name="task_switcher_menu_app_info">应用信息</string>
     <string name="task_switcher_menu_force_stop">强行停止</string>
     <string name="widget_panel_settings_title">小组件面板</string>
-    <string name="widget_panel_settings_desc">配置手势「小组件弹出窗口」中显示的系统小组件。点击空格子从列表中选择，长按已添加的小组件可移除。</string>
+    <string name="widget_panel_settings_desc">配置手势「小组件弹出窗口」中显示的系统小组件。点击加号按钮从列表中选择，长按小组件可拖拽调整位置。</string>
     <string name="widget_panel_entry_desc">配置弹出窗口中的系统小组件</string>
     <string name="widget_panel_entry_summary">已添加 %1$d 个小组件 · %2$d 页</string>
     <string name="float_ball_settings_title">悬浮球</string>
@@ -2142,6 +2142,8 @@
     <string name="activity_shortcut_add_from_shell">从 Shell 命令添加</string>
     <string name="activity_shortcut_add_from_shell_sub">使用 Shell 面板中已保存的命令</string>
     <string name="activity_shortcut_pick_app_shortcut_title">选择快捷方式</string>
+    <string name="activity_shortcut_pick_app_shortcut_desc">从该应用已注册的 Activity 或快捷方式中选择一项</string>
+    <string name="activity_shortcut_pick_app_desc">从已安装应用中选择要添加快捷方式的应用</string>
     <string name="activity_shortcut_change_icon">更换图标</string>
     <string name="activity_shortcut_reset_icon">恢复默认图标</string>
     <string name="activity_shortcut_add">添加快捷方式</string>

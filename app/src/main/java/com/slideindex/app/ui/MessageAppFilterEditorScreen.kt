@@ -59,6 +59,7 @@ fun MessageAppFilterEditorScreen(
 
     SettingsFormScreen(
         title = appLabel,
+        pageHint = editorSubtitle,
         onBack = onBack,
         onConfirm = {
             onSave(

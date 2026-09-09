@@ -8,6 +8,7 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -26,6 +27,7 @@ import com.slideindex.app.ui.miuix.MiuixArrowRow
 import com.slideindex.app.ui.miuix.MiuixGroupedCard
 import com.slideindex.app.ui.miuix.miuixGroupedCardItem
 import top.yukonga.miuix.kmp.basic.BasicComponent
+import top.yukonga.miuix.kmp.basic.BasicComponentDefaults
 import top.yukonga.miuix.kmp.basic.Switch
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.preference.ArrowPreference
@@ -318,12 +320,14 @@ fun SettingsCardScope.SettingNavigationRow(
     enabled: Boolean = true,
     onClick: () -> Unit,
     trailingContent: (@Composable () -> Unit)? = null,
+    insideMargin: PaddingValues = BasicComponentDefaults.InsideMargin,
 ) {
     val deferredClick = rememberDeferredNavigationClick(onClick)
     SettingsCardRow(key = title) { position ->
         if (trailingContent != null) {
             BasicComponent(
                 modifier = Modifier.settingsGroupedRowBackground(position.index, position.count),
+                insideMargin = insideMargin,
                 title = title,
                 summary = subtitle,
                 enabled = enabled,
@@ -334,6 +338,7 @@ fun SettingsCardScope.SettingNavigationRow(
         } else {
             ArrowPreference(
                 modifier = Modifier.settingsGroupedRowBackground(position.index, position.count),
+                insideMargin = insideMargin,
                 title = title,
                 summary = subtitle,
                 enabled = enabled,

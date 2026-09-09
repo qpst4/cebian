@@ -8,7 +8,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.slideindex.app.R
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -30,6 +32,7 @@ fun LicenseTextScreen(
     }
     SettingsScreenScaffold(
         title = title,
+        pageHint = stringResource(R.string.about_open_source_license_desc),
         onBack = onBack,
     ) {
         item(key = "license-text-body") {

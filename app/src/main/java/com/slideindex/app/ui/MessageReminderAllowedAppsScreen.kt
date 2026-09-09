@@ -1,6 +1,5 @@
 package com.slideindex.app.ui
 
-import com.slideindex.app.ui.miuix.MiuixHintText
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -76,9 +75,6 @@ fun MessageReminderAllowedAppsScreen(
         onSearchQueryChange = { searchQuery = it },
         onBack = onBack,
     ) {
-            item(key = "desc") {
-                MiuixHintText(stringResource(R.string.message_reminder_allowed_apps_desc))
-            }
             item(key = "section-configured") {
                 SmallTitle(stringResource(R.string.message_reminder_allowed_apps_section_configured))
             }

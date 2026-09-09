@@ -7,8 +7,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.DpSize
 import kotlinx.coroutines.flow.distinctUntilChanged
 import top.yukonga.miuix.kmp.basic.TextField
+import top.yukonga.miuix.kmp.basic.TextFieldDefaults
 
 /**
  * 与外部 [value] 双向同步的 Miuix 表单输入框，用于替代 Material [androidx.compose.material3.OutlinedTextField]。
@@ -19,6 +21,7 @@ fun MiuixLabeledTextField(
     onValueChange: (String) -> Unit,
     label: String,
     modifier: Modifier = Modifier,
+    insideMargin: DpSize = TextFieldDefaults.InsideMargin,
     singleLine: Boolean = true,
     minLines: Int = 1,
     maxLines: Int = if (singleLine) 1 else 6,
@@ -59,5 +62,6 @@ fun MiuixLabeledTextField(
         label = label,
         useLabelAsPlaceholder = true,
         lineLimits = lineLimits,
+        insideMargin = insideMargin,
     )
 }

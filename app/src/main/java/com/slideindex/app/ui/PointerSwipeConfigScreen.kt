@@ -85,6 +85,7 @@ fun PointerSwipeConfigScreen(
 
     SettingsFormScreen(
         title = stringResource(R.string.pointer_swipe_config_title),
+        pageHint = stringResource(R.string.pointer_swipe_config_desc),
         onBack = onBack,
         onConfirm = {
             onConfirm(

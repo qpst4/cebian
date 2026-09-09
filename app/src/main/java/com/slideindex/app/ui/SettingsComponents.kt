@@ -39,6 +39,7 @@ fun SettingsEmbeddedContent(
 fun SettingsScreenScaffold(
     title: String,
     modifier: Modifier = Modifier,
+    pageHint: String? = null,
     subtitle: String? = null,
     onBack: (() -> Unit)? = null,
     embedded: Boolean = false,
@@ -51,6 +52,7 @@ fun SettingsScreenScaffold(
 ) = SettingsScreenScaffoldImpl(
     title = title,
     modifier = modifier,
+    pageHint = pageHint,
     subtitle = subtitle,
     onBack = onBack,
     embedded = embedded,
@@ -66,6 +68,7 @@ fun SettingsScreenScaffold(
 fun SettingsLazyScreenScaffold(
     title: String,
     modifier: Modifier = Modifier,
+    pageHint: String? = null,
     subtitle: String? = null,
     onBack: (() -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {},
@@ -76,6 +79,7 @@ fun SettingsLazyScreenScaffold(
 ) = SettingsLazyScreenScaffoldImpl(
     title = title,
     modifier = modifier,
+    pageHint = pageHint,
     subtitle = subtitle,
     onBack = onBack,
     actions = actions,

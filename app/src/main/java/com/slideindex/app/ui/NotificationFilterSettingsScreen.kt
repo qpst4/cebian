@@ -27,7 +27,6 @@ fun NotificationFilterSettingsScreen(
         onRestoreAllSnoozed = viewModel::restoreAllSnoozed,
     )
     val historySectionTitle = stringResource(R.string.notification_settings_history_section)
-    val rulesHint = stringResource(R.string.notification_settings_rules_hint)
 
     SettingsLazyScreenScaffold(
         title = stringResource(R.string.notification_filter_settings_title),
@@ -36,7 +35,6 @@ fun NotificationFilterSettingsScreen(
         emitNotificationSettingsItems(
             groups = groups,
             historySectionTitle = historySectionTitle,
-            rulesHint = rulesHint,
         )
     }
 }

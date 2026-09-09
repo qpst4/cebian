@@ -138,6 +138,7 @@ fun GestureExecuteShellCommandScreen(
 
     SettingsScreenScaffold(
         title = stringResource(R.string.gesture_shell_command_config_title),
+        pageHint = stringResource(R.string.gesture_shell_command_config_hint),
         onBack = onBack,
         enableBackHandler = enableBackHandler,
         overlayMode = overlayMode,

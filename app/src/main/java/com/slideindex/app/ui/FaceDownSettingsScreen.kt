@@ -60,7 +60,6 @@ fun FaceDownSettingsScreen(
 
     SettingsScreenScaffold(
         title = stringResource(R.string.face_down_gestures_title),
-        subtitle = stringResource(R.string.face_down_gestures_subtitle),
         onBack = onBack
     ) {
         groupedCardItems(

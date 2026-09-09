@@ -29,6 +29,7 @@ fun ShakeGestureBlacklistScreen(
     emptyRes: Int = R.string.shake_gestures_blacklist_empty,
     removeActionDescriptionRes: Int = R.string.shake_gestures_blacklist_remove,
     addSectionTitleRes: Int = R.string.shake_gestures_blacklist_section_add,
+    showPageHint: Boolean = true,
 ) {
     val appRepository = rememberAppRepository()
     var allApps by remember { mutableStateOf<List<AppInfo>>(emptyList()) }
@@ -49,11 +50,9 @@ fun ShakeGestureBlacklistScreen(
 
     SettingsLazyScreenScaffold(
         title = stringResource(titleRes),
+        pageHint = if (showPageHint) stringResource(descriptionRes) else null,
         onBack = onBack,
     ) {
-        managedAppListDescription(key = "desc") {
-            stringResource(descriptionRes)
-        }
         managedAppListSectionTitle(
             key = "section-blacklisted",
             title = { stringResource(blockedSectionTitleRes) },

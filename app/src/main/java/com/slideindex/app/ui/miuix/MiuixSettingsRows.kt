@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -19,10 +20,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.ui.settings.components.SETTINGS_SLIDER_MAX_STEPS_WITH_KEY_POINTS
 import com.slideindex.app.ui.settings.components.settingsSliderInferFormatLabel
 import com.slideindex.app.ui.settings.components.settingsSliderSnapValue
+import top.yukonga.miuix.kmp.basic.BasicComponentDefaults
 import top.yukonga.miuix.kmp.basic.SliderDefaults
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.preference.ArrowPreference
@@ -36,10 +39,11 @@ import kotlin.math.roundToInt
 fun MiuixHintText(
     text: String,
     modifier: Modifier = Modifier,
+    horizontalPadding: Dp = 28.dp,
 ) {
     Text(
         text = text,
-        modifier = modifier.padding(horizontal = 28.dp, vertical = 8.dp),
+        modifier = modifier.padding(horizontal = horizontalPadding, vertical = 8.dp),
         fontSize = MiuixTheme.textStyles.body2.fontSize,
         color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
     )
@@ -52,6 +56,7 @@ fun MiuixSwitchRow(
     modifier: Modifier = Modifier,
     summary: String? = null,
     enabled: Boolean = true,
+    insideMargin: PaddingValues = BasicComponentDefaults.InsideMargin,
     onCheckedChange: (Boolean) -> Unit,
 ) {
     SwitchPreference(
@@ -60,6 +65,7 @@ fun MiuixSwitchRow(
         summary = summary,
         checked = checked,
         enabled = enabled,
+        insideMargin = insideMargin,
         onCheckedChange = onCheckedChange,
     )
 }
@@ -119,6 +125,7 @@ fun MiuixSliderRow(
     valueRange: ClosedFloatingPointRange<Float>,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    insideMargin: PaddingValues = BasicComponentDefaults.InsideMargin,
     steps: Int = 0,
     /** When true with [steps] > 0, matches MIUIX demo "Steps with Key Points". */
     showKeyPoints: Boolean = steps in 1..SETTINGS_SLIDER_MAX_STEPS_WITH_KEY_POINTS,
@@ -152,6 +159,7 @@ fun MiuixSliderRow(
     val discrete = effectiveSteps > 0
     SliderPreference(
         modifier = modifier,
+        insideMargin = insideMargin,
         title = title,
         value = localValue.coerceIn(valueRange.start, valueRange.endInclusive),
         valueRange = valueRange,

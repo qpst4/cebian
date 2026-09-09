@@ -50,11 +50,12 @@ import com.slideindex.app.overlay.pickresult.SearchEngineIcon
 import com.slideindex.app.overlay.searchpanel.SearchPanelAliasResolver
 import com.slideindex.app.ui.miuix.MiuixFormDialog
 import com.slideindex.app.ui.miuix.MiuixHintText
+import com.slideindex.app.ui.miuix.MiuixInsetCardComponentMargin
 import com.slideindex.app.ui.miuix.MiuixLabeledTextField
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import com.slideindex.app.ui.miuix.MiuixSwitchRow
 import com.slideindex.app.ui.miuix.MiuixTabRowContourHost
-import com.slideindex.app.ui.miuix.MiuixTabRowWithContour
+import com.slideindex.app.ui.miuix.MiuixTabRowWithContourInCard
 import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import com.slideindex.app.ui.viewmodel.SearchEngineDraft
@@ -227,7 +228,10 @@ fun SearchEngineEditorScreen(
                 Column(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    SmallTitle(stringResource(R.string.search_engine_pick_icon))
+                    SmallTitle(
+                        text = stringResource(R.string.search_engine_pick_icon),
+                        insideMargin = PaddingValues(bottom = 8.dp),
+                    )
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -364,13 +368,16 @@ fun SearchEngineEditorScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     if (isShareImageType) {
-                        SmallTitle(stringResource(R.string.search_engine_share_image_target_section))
+                        SmallTitle(
+                            text = stringResource(R.string.search_engine_share_image_target_section),
+                            insideMargin = PaddingValues(bottom = 8.dp),
+                        )
                         val targetSummary = when {
                             targetPackage.isBlank() -> stringResource(R.string.search_engine_share_image_target_not_set)
                             targetActivity.isBlank() -> targetPackage
                             else -> "$targetPackage / ${targetActivity.substringAfterLast('.')}"
                         }
-                        MiuixHintText(targetSummary)
+                        MiuixHintText(targetSummary, horizontalPadding = 0.dp)
                         MiuixButton(
                             onClick = { onPickShareTarget(targetPackage, targetActivity) },
                             modifier = Modifier.fillMaxWidth(),
@@ -502,7 +509,7 @@ private fun EditorTypeFields(
         SearchEngineType.SHARE_TO_APP to stringResource(R.string.search_engine_editor_tab_share),
     )
 
-    MiuixTabRowWithContour(
+    MiuixTabRowWithContourInCard(
         tabs = engineTypes.map { it.second },
         selectedTabIndex = engineTypes.indexOfFirst { it.first == engineType }.coerceAtLeast(0),
         onTabSelected = { index ->
@@ -521,7 +528,10 @@ private fun EditorTypeFields(
                 onValueChange = onSearchLinkChange,
                 label = stringResource(R.string.search_engine_url_link_hint),
             )
-            MiuixHintText(stringResource(R.string.search_engine_search_link_support))
+            MiuixHintText(
+                stringResource(R.string.search_engine_search_link_support),
+                horizontalPadding = 0.dp,
+            )
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -543,9 +553,13 @@ private fun EditorTypeFields(
                 title = stringResource(R.string.search_engine_auto_input_enter),
                 summary = stringResource(R.string.search_engine_auto_input_enter_desc),
                 checked = autoInputEnter,
+                insideMargin = MiuixInsetCardComponentMargin,
                 onCheckedChange = onAutoInputEnterChange,
             )
-            MiuixHintText(stringResource(R.string.search_engine_url_link_flow_desc))
+            MiuixHintText(
+                stringResource(R.string.search_engine_url_link_flow_desc),
+                horizontalPadding = 0.dp,
+            )
         }
 
         SearchEngineType.JUMP_TO_ACTIVITY -> {
@@ -585,9 +599,13 @@ private fun EditorTypeFields(
                 title = stringResource(R.string.search_engine_auto_input_enter),
                 summary = stringResource(R.string.search_engine_auto_input_enter_desc),
                 checked = autoInputEnter,
+                insideMargin = MiuixInsetCardComponentMargin,
                 onCheckedChange = onAutoInputEnterChange,
             )
-            MiuixHintText(stringResource(R.string.search_engine_jump_activity_flow_desc))
+            MiuixHintText(
+                stringResource(R.string.search_engine_jump_activity_flow_desc),
+                horizontalPadding = 0.dp,
+            )
         }
 
         SearchEngineType.EXTERN_JUMP_LINK -> {
@@ -596,7 +614,10 @@ private fun EditorTypeFields(
                 onValueChange = onExternJumpLinkChange,
                 label = stringResource(R.string.search_engine_extern_link_hint),
             )
-            MiuixHintText(stringResource(R.string.search_engine_url_link_support))
+            MiuixHintText(
+                stringResource(R.string.search_engine_url_link_support),
+                horizontalPadding = 0.dp,
+            )
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -618,19 +639,26 @@ private fun EditorTypeFields(
                 title = stringResource(R.string.search_engine_auto_input_enter),
                 summary = stringResource(R.string.search_engine_auto_input_enter_desc),
                 checked = autoInputEnter,
+                insideMargin = MiuixInsetCardComponentMargin,
                 onCheckedChange = onAutoInputEnterChange,
             )
-            MiuixHintText(stringResource(R.string.search_engine_url_link_flow_desc))
+            MiuixHintText(
+                stringResource(R.string.search_engine_url_link_flow_desc),
+                horizontalPadding = 0.dp,
+            )
         }
 
         SearchEngineType.SHARE_TO_APP -> {
-            SmallTitle(stringResource(R.string.search_engine_share_text_target_section))
+            SmallTitle(
+                text = stringResource(R.string.search_engine_share_text_target_section),
+                insideMargin = PaddingValues(bottom = 8.dp),
+            )
             val targetSummary = when {
                 targetPackage.isBlank() -> stringResource(R.string.search_engine_share_text_target_not_set)
                 targetActivity.isBlank() -> targetPackage
                 else -> "$targetPackage / ${targetActivity.substringAfterLast('.')}"
             }
-            MiuixHintText(targetSummary)
+            MiuixHintText(targetSummary, horizontalPadding = 0.dp)
             MiuixButton(
                 onClick = onPickShareTarget,
                 modifier = Modifier.fillMaxWidth(),
@@ -742,6 +770,13 @@ private fun discardPendingIconPath(
     }
 }
 
+private fun searchEngineEditorIconNeedsPlaceholder(engine: SearchEngineConfig): Boolean {
+    if (engine.iconType == SearchIconType.TEXT) {
+        return engine.textIcon.isNullOrBlank() && engine.name.isBlank()
+    }
+    return engine.iconPath.isNullOrBlank() && engine.name.isBlank()
+}
+
 @Composable
 private fun SearchEngineEditorIconPreview(
     previewEngine: SearchEngineConfig,
@@ -774,6 +809,21 @@ private fun SearchEngineEditorIconPreview(
                     .clip(RoundedCornerShape(12.dp)),
                 contentScale = ContentScale.Crop,
             )
+        } else if (searchEngineEditorIconNeedsPlaceholder(previewEngine)) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(backgroundColor),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = MiuixIcons.Image,
+                    contentDescription = null,
+                    modifier = Modifier.size(28.dp),
+                    tint = fallbackContentColor,
+                )
+            }
         } else {
             SearchEngineIcon(
                 engine = previewEngine,

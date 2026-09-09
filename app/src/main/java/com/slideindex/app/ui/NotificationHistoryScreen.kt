@@ -208,7 +208,6 @@ fun NotificationHistoryScreen(
 
     SettingsLazyScreenScaffold(
         title = stringResource(R.string.notification_history_title),
-        subtitle = stringResource(R.string.notification_history_subtitle),
         onBack = handleBack,
         actions = {
             if (showSearchUi) {

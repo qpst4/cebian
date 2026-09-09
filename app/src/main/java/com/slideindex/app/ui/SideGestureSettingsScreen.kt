@@ -43,9 +43,11 @@ import com.slideindex.app.settings.triggerCollectionEntries
 import com.slideindex.app.settings.triggerHandle
 import com.slideindex.app.ui.miuix.CardItem
 import com.slideindex.app.ui.miuix.MiuixHintText
-import top.yukonga.miuix.kmp.basic.SmallTitle
+import com.slideindex.app.ui.miuix.MiuixInsetCardComponentMargin
 import com.slideindex.app.ui.miuix.MiuixTabRowContourHost
-import com.slideindex.app.ui.miuix.MiuixTabRowWithContour
+import com.slideindex.app.ui.miuix.MiuixTabRowWithContourInCard
+import top.yukonga.miuix.kmp.basic.BasicComponentDefaults
+import top.yukonga.miuix.kmp.basic.SmallTitle
 import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.SettingSwitchRow
@@ -229,7 +231,7 @@ fun SideGestureSettingsScreen(
                 insideMargin = PaddingValues(16.dp),
             ) {
                 Column(modifier = Modifier.fillMaxWidth()) {
-                    MiuixTabRowWithContour(
+                    MiuixTabRowWithContourInCard(
                         tabs = SideGestureDistanceTab.entries.map { tab ->
                             stringResource(
                                 when (tab) {
@@ -242,10 +244,13 @@ fun SideGestureSettingsScreen(
                         selectedTabIndex = selectedTab.ordinal,
                         onTabSelected = { selectedTab = SideGestureDistanceTab.entries[it] },
                         contourHost = MiuixTabRowContourHost.SurfaceContainer,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(bottom = 8.dp),
-                    )
+                            .padding(top = 12.dp),
+                    ) {
                     when (selectedTab) {
                         SideGestureDistanceTab.Short -> {
                             SmallTitle(
@@ -261,6 +266,7 @@ fun SideGestureSettingsScreen(
                                     triggers = SwipeDirectionFamily.orderedEntries().map { it.shortTrigger },
                                     titleStyle = SideGestureSlotTitleStyle.SlotLabel,
                                     onOpenSlotConfig = onOpenSlotConfig,
+                                    rowInsideMargin = MiuixInsetCardComponentMargin,
                                 ),
                             )
                             SmallTitle(
@@ -276,6 +282,7 @@ fun SideGestureSettingsScreen(
                                     triggers = SwipeDirectionFamily.orderedEntries().map { it.hoverTrigger },
                                     titleStyle = SideGestureSlotTitleStyle.TriggerLabel,
                                     onOpenSlotConfig = onOpenSlotConfig,
+                                    rowInsideMargin = MiuixInsetCardComponentMargin,
                                 ),
                             )
                         }
@@ -290,6 +297,7 @@ fun SideGestureSettingsScreen(
                                     triggers = SwipeDirectionFamily.orderedEntries().map { it.longTrigger },
                                     titleStyle = SideGestureSlotTitleStyle.SlotLabel,
                                     onOpenSlotConfig = onOpenSlotConfig,
+                                    rowInsideMargin = MiuixInsetCardComponentMargin,
                                 ),
                             )
                         }
@@ -297,6 +305,7 @@ fun SideGestureSettingsScreen(
                         SideGestureDistanceTab.Compound -> {
                             MiuixHintText(
                                 text = compoundHint,
+                                horizontalPadding = 0.dp,
                                 modifier = Modifier.padding(bottom = 8.dp),
                             )
                             RenderSideGestureSlotItems(
@@ -309,6 +318,7 @@ fun SideGestureSettingsScreen(
                                 ),
                             )
                         }
+                    }
                     }
                 }
             }
@@ -367,6 +377,7 @@ private fun sideGestureCompoundSlotItems(
     triggers = sideGestureCompoundTriggers(),
     titleStyle = SideGestureSlotTitleStyle.SlotLabel,
     onOpenSlotConfig = onOpenSlotConfig,
+    rowInsideMargin = MiuixInsetCardComponentMargin,
 )
 
 private fun sideGestureSlotCardItems(
@@ -377,6 +388,7 @@ private fun sideGestureSlotCardItems(
     triggers: List<GestureTriggerType>,
     titleStyle: SideGestureSlotTitleStyle,
     onOpenSlotConfig: (GestureTriggerType) -> Unit,
+    rowInsideMargin: PaddingValues = BasicComponentDefaults.InsideMargin,
 ): List<CardItem> = buildList {
     triggers.forEach { trigger ->
         add(
@@ -392,6 +404,7 @@ private fun sideGestureSlotCardItems(
                     action = settings.slotAction(slotSide, trigger, handleId),
                     modeLabel = triggerModeLabel(settings.slotTriggerMode(slotSide, trigger, handleId)),
                     onClick = { onOpenSlotConfig(trigger) },
+                    insideMargin = rowInsideMargin,
                 )
             },
         )
@@ -462,6 +475,7 @@ private fun SettingsCardScope.GestureSlotRow(
     action: GestureAction,
     modeLabel: String?,
     onClick: () -> Unit,
+    insideMargin: PaddingValues = BasicComponentDefaults.InsideMargin,
 ) {
     val subtitle = if (modeLabel == null) {
         gestureActionSettingSubtitle(action)
@@ -480,6 +494,7 @@ private fun SettingsCardScope.GestureSlotRow(
         title = label,
         subtitle = subtitle,
         onClick = onClick,
+        insideMargin = insideMargin,
     )
 }
 

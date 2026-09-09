@@ -98,6 +98,7 @@ fun ShakeGesturesScreen(
     }
 
     val basicSectionTitle = stringResource(R.string.shake_gestures_section_basic)
+    val serviceSectionTitle = stringResource(R.string.settings_section_general)
     val faceDownSectionTitle = stringResource(R.string.face_down_gestures_title)
     val backTapSectionTitle = stringResource(R.string.extension_back_tap_title)
     val advancedSectionTitle = stringResource(R.string.shake_gestures_section_advanced)
@@ -112,6 +113,7 @@ fun ShakeGesturesScreen(
         listState = listState,
         bottomContentPadding = bottomContentPadding,
     ) {
+        settingsLazySmallTitle(key = "shake-service", title = serviceSectionTitle)
         groupedCardItems(
             keyPrefix = "shake-enabled",
             items = listOf(

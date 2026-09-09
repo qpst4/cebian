@@ -22,7 +22,7 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.ExtensionHubSettings
 import com.slideindex.app.ui.miuix.MiuixArrowRow
 import com.slideindex.app.ui.miuix.MiuixBackNavigationIcon
-import com.slideindex.app.ui.miuix.MiuixHintText
+import com.slideindex.app.ui.miuix.MiuixBackNavigationIcon
 import com.slideindex.app.ui.miuix.MiuixListScaffold
 import com.slideindex.app.ui.miuix.MiuixSliderRow
 import com.slideindex.app.ui.miuix.MiuixSwitchRow
@@ -54,14 +54,15 @@ fun LayoutSettingsScreen(
 
     val panelSliderCount = 3
 
+    val layoutDesc = stringResource(R.string.layout_settings_entry_desc)
+    val previewHint = stringResource(R.string.live_preview_hint)
+
     MiuixListScaffold(
         title = stringResource(R.string.layout_settings_title),
+        pageHint = "$layoutDesc\n$previewHint",
+        showPageHintCard = true,
         navigationIcon = { MiuixBackNavigationIcon(onBack) },
     ) {
-        item(key = "hint") {
-            MiuixHintText(stringResource(R.string.live_preview_hint))
-        }
-
         item(key = "panel_section") {
             SmallTitle(stringResource(R.string.settings_section_panel), modifier = Modifier.fillMaxWidth())
         }

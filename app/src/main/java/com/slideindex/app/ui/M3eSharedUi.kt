@@ -258,6 +258,7 @@ fun SettingsRadioPickerScreen(
 @Composable
 fun SettingsFormScreen(
     title: String,
+    pageHint: String? = null,
     onBack: () -> Unit,
     onConfirm: () -> Unit,
     confirmEnabled: Boolean = true,
@@ -265,6 +266,7 @@ fun SettingsFormScreen(
 ) {
     SettingsScreenScaffold(
         title = title,
+        pageHint = pageHint,
         onBack = onBack,
     ) {
         item(key = "settings-form-content") {

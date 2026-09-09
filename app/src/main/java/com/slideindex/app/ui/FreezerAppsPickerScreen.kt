@@ -140,6 +140,7 @@ fun FreezerAppsPickerScreen(
 
     SettingsLazyScreenScaffoldWithExpandableSearch(
         title = stringResource(R.string.freezer_manage_apps),
+        pageHint = stringResource(R.string.extension_freezer_subtitle),
         searchQuery = searchQuery,
         onSearchQueryChange = { searchQuery = it },
         onBack = onBack

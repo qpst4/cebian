@@ -25,6 +25,7 @@ import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffold
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
+import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import com.slideindex.app.ui.viewmodel.HoneycombLauncherEditorViewModel
 import com.slideindex.app.ui.viewmodel.HoneycombLauncherUiState
 
@@ -80,12 +81,19 @@ fun HoneycombLauncherEditorContent(
     onAdd: () -> Unit,
     onInteractionActiveChange: (Boolean) -> Unit
 ) {
+    val displaySectionTitle = stringResource(R.string.honeycomb_display_settings_entry)
+    val layoutSectionTitle = stringResource(R.string.honeycomb_layout_editor_title)
+
     SettingsLazyScreenScaffold(
         title = stringResource(R.string.honeycomb_launcher_editor_title),
         onBack = onBack,
         modifier = Modifier.fillMaxSize(),
         userScrollEnabled = !uiState.isLayoutEditing
     ) {
+        settingsLazySmallTitle(
+            key = "honeycomb-display-section",
+            title = displaySectionTitle,
+        )
         groupedCardItems(
             keyPrefix = "honeycomb-display-entry",
             items = listOf(
@@ -100,6 +108,10 @@ fun HoneycombLauncherEditorContent(
                     )
                 }
             )
+        )
+        settingsLazySmallTitle(
+            key = "honeycomb-layout-section",
+            title = layoutSectionTitle,
         )
         LazySettingsItem(key = "honeycomb-launcher-items") {
             Box(
@@ -116,7 +128,8 @@ fun HoneycombLauncherEditorContent(
                     appsByPackage = uiState.appsByPackage,
                     onItemsChange = onSaveItems,
                     onAdd = onAdd,
-                    onInteractionActiveChange = onInteractionActiveChange
+                    onInteractionActiveChange = onInteractionActiveChange,
+                    showSectionHeader = false,
                 )
             }
         }

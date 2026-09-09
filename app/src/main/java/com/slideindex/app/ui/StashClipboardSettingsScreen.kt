@@ -46,7 +46,6 @@ import com.slideindex.app.ui.settings.components.SettingSwitchRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 import com.slideindex.app.ui.settings.components.settingsLazyHint
-import com.slideindex.app.ui.settings.components.settingsLazyTipCard
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import kotlin.math.roundToInt
 
@@ -65,20 +64,15 @@ fun StashClipboardSettingsScreen(
     var showClearStashDialog by remember { mutableStateOf(false) }
     val monitoringUi = rememberClipboardMonitoringUiState(settings)
     val stashSectionTitle = stringResource(R.string.stash_clipboard_section_stash)
-    val stashDesc = stringResource(R.string.stash_clipboard_stash_desc)
     val navSectionTitle = stringResource(R.string.stash_clipboard_index_nav_section)
 
     SettingsScreenScaffold(
         title = stringResource(R.string.stash_clipboard_settings_title),
-        subtitle = stringResource(R.string.stash_clipboard_settings_desc),
         onBack = onBack,
     ) {
         settingsLazySmallTitle(
             key = "stash-section",
             title = stashSectionTitle,
-        )
-        settingsLazyTipCard(key = "stash-desc",
-            text = stashDesc,
         )
         groupedCardItems(
             keyPrefix = "stash-clear",

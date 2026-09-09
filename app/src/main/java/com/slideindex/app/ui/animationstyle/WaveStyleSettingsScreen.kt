@@ -57,6 +57,7 @@ fun WaveStyleSettingsScreen(
 
     SettingsScreenScaffold(
         title = stringResource(R.string.gesture_hint_style_wave),
+        pageHint = stringResource(R.string.gesture_hint_style_wave_desc),
         onBack = onBack,
     ) {
         settingsLazySmallTitle(key = "wave-color-outline", title = colorOutlineTitle)

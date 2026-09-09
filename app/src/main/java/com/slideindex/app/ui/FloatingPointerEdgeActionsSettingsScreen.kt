@@ -29,6 +29,7 @@ import com.slideindex.app.ui.animationstyle.AnimationStyleColorRow
 import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
+import com.slideindex.app.ui.settings.components.settingsLazyTipCard
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -59,12 +60,17 @@ fun FloatingPointerEdgeActionsSettingsScreen(
 
     val generalSectionTitle = stringResource(R.string.floating_pointer_edge_section_general)
     val sidesSectionTitle = stringResource(R.string.floating_pointer_edge_section_sides)
+    val edgeSummary = stringResource(R.string.floating_pointer_edge_settings_summary)
 
     Box(modifier = Modifier.fillMaxSize()) {
         SettingsScreenScaffold(
             title = stringResource(R.string.floating_pointer_edge_settings_title),
             onBack = onBack
         ) {
+            settingsLazyTipCard(
+                key = "fp-edge-summary",
+                text = edgeSummary,
+            )
             settingsLazySmallTitle(
                 key = "edge-general-section",
                 title = generalSectionTitle

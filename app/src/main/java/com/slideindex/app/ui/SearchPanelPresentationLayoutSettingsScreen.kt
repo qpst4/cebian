@@ -53,6 +53,7 @@ fun SearchPanelPresentationLayoutSettingsScreen(
 
     SettingsScreenScaffold(
         title = stringResource(R.string.search_panel_settings_section_layout),
+        pageHint = stringResource(R.string.search_panel_settings_subtitle),
         onBack = onBack,
     ) {
         groupedCardItems(

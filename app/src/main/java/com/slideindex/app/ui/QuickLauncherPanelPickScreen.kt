@@ -31,6 +31,7 @@ fun QuickLauncherPanelPickScreen(
 
     SettingsScreenScaffold(
         title = stringResource(R.string.quick_launcher_panel_pick_title),
+        pageHint = stringResource(R.string.quick_launcher_panel_pick_desc),
         onBack = onBack,
     ) {
         item(key = "quick-launcher-panel-pick-desc") {

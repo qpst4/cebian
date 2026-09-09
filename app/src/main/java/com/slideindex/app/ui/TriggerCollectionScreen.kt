@@ -63,7 +63,6 @@ import com.slideindex.app.settings.triggerCollectionEntries
 import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 import com.slideindex.app.ui.settings.components.settingsCardItems
-import com.slideindex.app.ui.settings.components.settingsLazyHint
 import com.slideindex.app.ui.settings.components.SwitchNavigationTrailingContent
 import kotlinx.coroutines.delay
 
@@ -150,13 +149,16 @@ fun TriggerCollectionScreen(
 
     val longPressRemoveHint = stringResource(R.string.trigger_collection_long_press_remove_hint)
 
+    val collectionDesc = stringResource(
+        if (landscapeMode) R.string.trigger_collection_landscape_desc else R.string.trigger_collection_desc,
+    )
+    val pageHint = "$collectionDesc\n$longPressRemoveHint"
+
     SettingsScreenScaffold(
         title = stringResource(
             if (landscapeMode) R.string.trigger_collection_landscape_title else R.string.trigger_collection_title,
         ),
-        subtitle = stringResource(
-            if (landscapeMode) R.string.trigger_collection_landscape_desc else R.string.trigger_collection_desc,
-        ),
+        pageHint = pageHint,
         onBack = onBack,
         actions = {
             IconButton(
@@ -179,8 +181,6 @@ fun TriggerCollectionScreen(
             }
         },
     ) {
-        settingsLazyHint(key = "trigger-long-press-hint", text = longPressRemoveHint)
-
         LazySettingsItem(key = "trigger-side-section") {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 TriggerEntryList(
@@ -630,6 +630,6 @@ private fun triggerHandleActionSummary(
     return if (labels.isEmpty()) {
         stringResource(R.string.trigger_summary_none)
     } else {
-        labels.take(5).joinToString("?")
+        labels.take(5).joinToString(" · ")
     }
 }

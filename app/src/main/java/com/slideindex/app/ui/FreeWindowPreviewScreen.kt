@@ -54,6 +54,7 @@ fun FreeWindowPreviewScreen(
 
     SettingsScreenScaffold(
         title = stringResource(R.string.free_window_preview_title),
+        pageHint = stringResource(R.string.free_window_adjust_layout_desc),
         onBack = onBack,
         scrollContent = false,
         bottomBar = {
