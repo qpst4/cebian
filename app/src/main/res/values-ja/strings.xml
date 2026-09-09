@@ -1312,7 +1312,7 @@
     <string name="task_switcher_menu_app_info">アプリ情報</string>
     <string name="task_switcher_menu_force_stop">強制停止</string>
     <string name="widget_panel_settings_title">ウィジェットパネル</string>
-    <string name="widget_panel_settings_desc">「ウィジェットポップアップ」ジェスチャーで表示するシステムウィジェットを設定。空セルをタップしてリストから選択、追加済みウィジェットを長押しで削除。</string>
+    <string name="widget_panel_settings_desc">「ウィジェットポップアップ」ジェスチャーで表示するシステムウィジェットを設定。＋ボタンをタップしてリストから選択、ウィジェットを長押ししドラッグして位置を調整。</string>
     <string name="widget_panel_entry_desc">ポップアップ内のシステムウィジェットを設定</string>
     <string name="widget_panel_entry_summary">ウィジェット：%1$d · ページ：%2$d</string>
     <string name="float_ball_settings_title">フローティングボール</string>
@@ -3287,4 +3287,6 @@ APatch で Shell の永久 Root 権限を取り消してください。</string>
     <plurals name="search_panel_history_count">
         <item quantity="other">現在 %1$d 件</item>
     </plurals>
+    <string name="activity_shortcut_pick_app_shortcut_desc">アプリケーションに登録されているアクティビティまたはショートカットから1つ選択</string>
+    <string name="activity_shortcut_pick_app_desc">ショートカットを追加したいアプリケーションの一覧からインストール済みのアプリケーションを選択</string>
 </resources>
