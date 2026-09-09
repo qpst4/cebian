@@ -18,7 +18,6 @@ import com.slideindex.app.data.AppInfo
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.GestureActionType
 import com.slideindex.app.gesture.GestureTriggerType
-import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
 import com.slideindex.app.ui.picker.FilteredShortcutCatalog
 import com.slideindex.app.ui.picker.GestureActionCatalog
 import com.slideindex.app.ui.picker.GestureActionCatalogScope
@@ -28,8 +27,6 @@ import com.slideindex.app.ui.picker.systemShortcutCatalogItems
 import com.slideindex.app.ui.requestPermissionForAdjustAction
 import com.slideindex.app.util.AppShortcutLoader
 import com.slideindex.app.util.ShortcutScanProgress
-import top.yukonga.miuix.kmp.basic.Text as MiuixText
-import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
 fun rememberActionPickerFilteredActions(
@@ -103,15 +100,7 @@ fun LazyListScope.actionPickerActionItems(
     val sections = GestureActionCatalog.groupIntoSections(filtered)
     sections.forEach { section ->
         item(key = "action-cat-${section.category.name}") {
-            MiuixText(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = MiuixSmallTitleSectionTop)
-                    .padding(horizontal = 14.dp, vertical = 8.dp),
-                text = stringResource(section.category.titleRes),
-                style = MiuixTheme.textStyles.subtitle,
-                color = MiuixTheme.colorScheme.onBackgroundVariant,
-            )
+            com.slideindex.app.ui.Md3PickerSectionHeader(stringResource(section.category.titleRes))
         }
         items(
             count = section.actions.size,

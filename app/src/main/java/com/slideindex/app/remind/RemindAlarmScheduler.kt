@@ -27,7 +27,7 @@ object RemindAlarmScheduler {
         return pendingIntent(
             context,
             safeMinutes,
-            PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE,
+            PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
         ) != null
     }
 
@@ -37,7 +37,7 @@ object RemindAlarmScheduler {
         val pendingIntent = pendingIntent(
             context,
             safeMinutes,
-            PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE,
+            PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
         )
         if (pendingIntent != null) {
             alarmManager.cancel(pendingIntent)
@@ -45,14 +45,14 @@ object RemindAlarmScheduler {
             Toast.makeText(
                 context,
                 context.getString(R.string.gesture_remind_cancelled, safeMinutes),
-                Toast.LENGTH_SHORT,
+                Toast.LENGTH_SHORT
             ).show()
             return true
         }
         val scheduleIntent = pendingIntent(
             context,
             safeMinutes,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         ) ?: return false
         val triggerAt = System.currentTimeMillis() + safeMinutes * 60_000L
         runCatching {
@@ -67,7 +67,7 @@ object RemindAlarmScheduler {
         Toast.makeText(
             context,
             context.getString(R.string.gesture_remind_scheduled, safeMinutes),
-            Toast.LENGTH_SHORT,
+            Toast.LENGTH_SHORT
         ).show()
         return true
     }
@@ -81,7 +81,7 @@ object RemindAlarmScheduler {
             context,
             REQUEST_CODE_BASE + minutes,
             intent,
-            flags,
+            flags
         )
     }
 }

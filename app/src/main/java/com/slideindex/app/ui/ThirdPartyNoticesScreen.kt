@@ -50,7 +50,6 @@ fun ThirdPartyNoticesScreen(
             settingsLazySmallTitle(
                 key = "third-party-section-title-$index",
                 title = section.title,
-                sectionTop = index == 0 && introMarkdown.isBlank(),
             )
             LazySettingsItem(key = "third-party-section-$index") {
                 CardSegment(isFirst = true, isLast = true) {

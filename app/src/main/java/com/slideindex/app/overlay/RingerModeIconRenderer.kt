@@ -28,7 +28,7 @@ object RingerModeIconRenderer {
         cy: Float,
         sizePx: Float,
         ringerMode: Int,
-        alphaScale: Float,
+        alphaScale: Float
     ) {
         ensure(context)
         val drawable = when (ringerMode) {

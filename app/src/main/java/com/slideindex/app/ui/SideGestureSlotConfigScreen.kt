@@ -119,8 +119,6 @@ fun SideGestureSlotConfigScreen(
 
             title = actionSectionTitle,
 
-            sectionTop = true,
-
         )
 
         groupedCardItems(
@@ -176,8 +174,6 @@ fun SideGestureSlotConfigScreen(
                 key = "slot-quick-launcher-section",
 
                 title = quickLauncherSectionTitle,
-
-                sectionTop = true,
 
             )
 
@@ -237,8 +233,6 @@ fun SideGestureSlotConfigScreen(
 
                 title = fingertipRingSectionTitle,
 
-                sectionTop = true,
-
             )
 
             groupedCardItems(
@@ -297,8 +291,6 @@ fun SideGestureSlotConfigScreen(
 
                 title = shellCommandSectionTitle,
 
-                sectionTop = true,
-
             )
 
             groupedCardItems(
@@ -354,8 +346,6 @@ fun SideGestureSlotConfigScreen(
             key = "slot-trigger-mode-section",
 
             title = triggerModeSectionTitle,
-
-            sectionTop = true,
 
         )
 

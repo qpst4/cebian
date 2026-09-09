@@ -4,7 +4,7 @@ import android.graphics.RectF
 import android.view.MotionEvent
 
 internal class QuickLauncherManagementTouchHandler(
-    private val touch: QuickLauncherTouchHandler,
+    private val touch: QuickLauncherTouchHandler
 ) {
     private val ctrl get() = touch.ctrl
     private val scrollHandler get() = touch.scrollHandler
@@ -15,7 +15,7 @@ internal class QuickLauncherManagementTouchHandler(
         y: Float,
         panelRect: RectF,
         tapGesture: Boolean,
-        toolbarCommitAllowed: Boolean,
+        toolbarCommitAllowed: Boolean
     ): Boolean = ctrl.quickLauncherPanelController.handleManagementTouch(
         event = event,
         localX = x,
@@ -23,7 +23,7 @@ internal class QuickLauncherManagementTouchHandler(
         panelRect = panelRect,
         cellBounds = touch.host.panelGridSession().cellBounds,
         tapGesture = tapGesture,
-        toolbarCommitAllowed = toolbarCommitAllowed,
+        toolbarCommitAllowed = toolbarCommitAllowed
     )
 
     fun isTapGesture(touchX: Float, localY: Float): Boolean {
@@ -51,7 +51,7 @@ internal class QuickLauncherManagementTouchHandler(
     fun tryCommitToolbarOnContinuousPickUp(
         touchX: Float,
         localY: Float,
-        panelRect: RectF,
+        panelRect: RectF
     ): Boolean {
         if (!toolbarCommitAllowed()) return false
         return ctrl.quickLauncherPanelController.commitToolbarAtRelease(
@@ -60,7 +60,7 @@ internal class QuickLauncherManagementTouchHandler(
             panelRect = panelRect,
             tapGesture = false,
             toolbarCommitAllowed = true,
-            allowSlideRelease = true,
+            allowSlideRelease = true
         )
     }
 

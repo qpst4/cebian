@@ -114,7 +114,7 @@ object WidgetPickerOverlayWindow {
       val appDeps = runCatching {
         dagger.hilt.android.EntryPointAccessors.fromApplication(
           hostContext.applicationContext,
-          com.slideindex.app.di.AppGraphEntryPoint::class.java,
+          com.slideindex.app.di.AppGraphEntryPoint::class.java
         ).dependencies()
       }.getOrNull()
 
@@ -126,7 +126,7 @@ object WidgetPickerOverlayWindow {
         setContent {
           androidx.compose.runtime.CompositionLocalProvider(
             *(listOfNotNull(
-              appDeps?.let { com.slideindex.app.ui.compose.LocalAppDependencies provides it },
+              appDeps?.let { com.slideindex.app.ui.compose.LocalAppDependencies provides it }
             ).toTypedArray())
           ) {
             OverlayAwareModuleTheme {
@@ -146,7 +146,7 @@ object WidgetPickerOverlayWindow {
                   mainHandler.post {
                     requestAnimatedDismiss?.invoke() ?: dismiss()
                   }
-                },
+                }
                 )
               }
             }
@@ -156,7 +156,7 @@ object WidgetPickerOverlayWindow {
 
       val params = OverlayPanelLayoutParams.fullScreenOverlay(
         context = hostContext,
-        focusable = true,
+        focusable = true
       )
 
       val added = runCatching { wm.addView(view, params) }
@@ -223,7 +223,7 @@ object WidgetPickerOverlayWindow {
   private fun abortPickerShow(
     wm: WindowManager?,
     view: android.view.View?,
-    dialogOwner: OverlayComposeOwner?,
+    dialogOwner: OverlayComposeOwner?
   ) {
     screenOffDismissReceiver.unregister()
     backHandler?.detach()
@@ -292,7 +292,7 @@ private const val PICKER_ANIM_OUT_MS = 240
 fun WidgetPickerOverlayRoot(
   onAnimatedDismissReady: ((() -> Unit)?) -> Unit,
   onDismissRequest: () -> Unit,
-  onWidgetSelected: (com.slideindex.app.widget.WidgetProviderEntry) -> Unit,
+  onWidgetSelected: (com.slideindex.app.widget.WidgetProviderEntry) -> Unit
 ) {
   var visible by remember { mutableStateOf(false) }
   var hasOpened by remember { mutableStateOf(false) }
@@ -328,7 +328,7 @@ fun WidgetPickerOverlayRoot(
       visible = visible,
       enter = fadeIn(scrimEnterSpec),
       exit = fadeOut(scrimExitSpec),
-      modifier = Modifier.fillMaxSize(),
+      modifier = Modifier.fillMaxSize()
     ) {
       Box(
         modifier = Modifier
@@ -337,14 +337,14 @@ fun WidgetPickerOverlayRoot(
           .clickable(
             interactionSource = remember { MutableInteractionSource() },
             indication = null,
-            onClick = dismiss,
-          ),
+            onClick = dismiss
+          )
       )
     }
 
     BoxWithConstraints(
       modifier = Modifier.fillMaxSize(),
-      contentAlignment = Alignment.BottomCenter,
+      contentAlignment = Alignment.BottomCenter
     ) {
       val sheetHeight = maxHeight * 0.85f
       val slideOffset = with(LocalDensity.current) { sheetHeight.roundToPx() }
@@ -353,7 +353,7 @@ fun WidgetPickerOverlayRoot(
         visible = visible,
         enter = fadeIn(scrimEnterSpec) + slideInVertically(panelEnterSpec) { slideOffset },
         exit = fadeOut(scrimExitSpec) + slideOutVertically(panelExitSpec) { slideOffset },
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth()
       ) {
         Surface(
           modifier = Modifier
@@ -362,10 +362,10 @@ fun WidgetPickerOverlayRoot(
             .clickable(
               interactionSource = remember { MutableInteractionSource() },
               indication = null,
-              onClick = {},
+              onClick = {}
             ),
           shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-          color = Color(0xFFF7F7F7),
+          color = Color(0xFFF7F7F7)
         ) {
         val context = androidx.compose.ui.platform.LocalContext.current
         val (initialAppPkgs, initialShortcutKeys) = remember {
@@ -403,18 +403,18 @@ fun WidgetPickerOverlayRoot(
                       packageName = created.hostPackageName,
                       shortcutId = "created_${created.label.hashCode()}",
                       label = created.label,
-                      intentUri = created.intentUri.orEmpty(),
+                      intentUri = created.intentUri.orEmpty()
                     )
                   } else {
                     WidgetPickerTrampoline.deliverCancel()
                   }
-                },
+                }
               )
             }
           },
           // Overlay ComposeView 没有 OnBackPressedDispatcherOwner；返回由 OverlayViewBackHandler 处理。
           enableBackHandler = false,
-          overlayMode = true,
+          overlayMode = true
         )
         }
       }

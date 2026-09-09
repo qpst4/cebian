@@ -35,7 +35,7 @@ fun HolographicLauncherSettingsScreen(
     onBackgroundStyleChange: (Int) -> Unit,
     onBlurDpChange: (Int) -> Unit,
     onDimPercentChange: (Int) -> Unit,
-    onOpenHiddenApps: () -> Unit,
+    onOpenHiddenApps: () -> Unit
 ) {
     val context = LocalContext.current
     var localSettings by remember { mutableStateOf(settings) }
@@ -54,23 +54,22 @@ fun HolographicLauncherSettingsScreen(
         stringResource(R.string.holographic_settings_haptic_off),
         stringResource(R.string.holographic_settings_haptic_light),
         stringResource(R.string.holographic_settings_haptic_medium),
-        stringResource(R.string.holographic_settings_haptic_strong),
+        stringResource(R.string.holographic_settings_haptic_strong)
     )
     val backgroundStyles = listOf(
         HolographicLauncherSettings.BACKGROUND_BLUR,
         HolographicLauncherSettings.BACKGROUND_WALLPAPER_BLUR,
-        HolographicLauncherSettings.BACKGROUND_BLACK,
+        HolographicLauncherSettings.BACKGROUND_BLACK
     )
     val blurEnabled = localSettings.backgroundStyle != HolographicLauncherSettings.BACKGROUND_BLACK
 
     SettingsScreenScaffold(
         title = stringResource(R.string.holographic_launcher_settings_title),
-        onBack = onBack,
+        onBack = onBack
     ) {
         settingsLazySmallTitle(
             key = "section-interaction",
-            title = interactionSectionTitle,
-            sectionTop = true,
+            title = interactionSectionTitle
         )
         groupedCardItems(
             keyPrefix = "holographic-interaction",
@@ -86,15 +85,15 @@ fun HolographicLauncherSettingsScreen(
                             enabled = true,
                             label = stringResource(
                                 R.string.holographic_settings_timeout_value,
-                                localSettings.timeoutSeconds,
+                                localSettings.timeoutSeconds
                             ),
                             onValueChange = { value ->
                                 val next = value.roundToInt()
                                 localSettings = localSettings.copy(timeoutSeconds = next)
                                 onTimeoutSecondsChange(next)
-                            },
+                            }
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("sensitivity") {
@@ -106,14 +105,14 @@ fun HolographicLauncherSettingsScreen(
                             enabled = true,
                             label = stringResource(
                                 R.string.holographic_settings_sensitivity_value,
-                                (localSettings.rotationSensitivity * 1000).roundToInt(),
+                                (localSettings.rotationSensitivity * 1000).roundToInt()
                             ),
                             onValueChange = { value ->
                                 localSettings = localSettings.copy(rotationSensitivity = value)
                                 onRotationSensitivityChange(value)
-                            },
+                            }
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("haptic") {
@@ -124,15 +123,15 @@ fun HolographicLauncherSettingsScreen(
                             onSelectedIndexChange = { index ->
                                 localSettings = localSettings.copy(hapticLevel = index)
                                 onHapticLevelChange(index)
-                            },
+                            }
                         )
-                    },
+                    }
                 )
-            },
+            }
         )
         settingsLazySmallTitle(
             key = "section-background",
-            title = backgroundSectionTitle,
+            title = backgroundSectionTitle
         )
         groupedCardItems(
             keyPrefix = "holographic-background",
@@ -144,7 +143,7 @@ fun HolographicLauncherSettingsScreen(
                             items = listOf(
                                 stringResource(R.string.honeycomb_background_blur),
                                 stringResource(R.string.honeycomb_background_wallpaper_blur),
-                                stringResource(R.string.honeycomb_background_black),
+                                stringResource(R.string.honeycomb_background_black)
                             ),
                             selectedIndex = backgroundStyles.indexOf(localSettings.backgroundStyle).coerceAtLeast(0),
                             onSelectedIndexChange = { index ->
@@ -156,9 +155,9 @@ fun HolographicLauncherSettingsScreen(
                                 ) {
                                     ensureWallpaperPermission()
                                 }
-                            },
+                            }
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("blur-strength") {
@@ -174,9 +173,9 @@ fun HolographicLauncherSettingsScreen(
                                 val next = value.roundToInt()
                                 localSettings = localSettings.copy(blurDp = next)
                                 onBlurDpChange(next)
-                            },
+                            }
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("dim-percent") {
@@ -189,21 +188,21 @@ fun HolographicLauncherSettingsScreen(
                             enabled = true,
                             label = stringResource(
                                 R.string.floating_pointer_percent_value,
-                                localSettings.dimPercent,
+                                localSettings.dimPercent
                             ),
                             onValueChange = { value ->
                                 val next = value.roundToInt()
                                 localSettings = localSettings.copy(dimPercent = next)
                                 onDimPercentChange(next)
-                            },
+                            }
                         )
-                    },
+                    }
                 )
-            },
+            }
         )
         settingsLazySmallTitle(
             key = "section-apps",
-            title = appsSectionTitle,
+            title = appsSectionTitle
         )
         groupedCardItems(
             keyPrefix = "holographic-apps",
@@ -214,10 +213,10 @@ fun HolographicLauncherSettingsScreen(
                         hiddenCount = hiddenCount,
                         titleRes = R.string.holographic_hidden_apps_entry_title,
                         descriptionRes = R.string.holographic_hidden_apps_entry_desc,
-                        onClick = onOpenHiddenApps,
+                        onClick = onOpenHiddenApps
                     )
-                },
-            ),
+                }
+            )
         )
     }
 }
@@ -227,7 +226,7 @@ fun SettingsCardScope.HolographicLauncherEntryCard(
     hiddenAppCount: Int,
     enabled: Boolean,
     outlinedLeadingIcons: Boolean = false,
-    onClick: () -> Unit,
+    onClick: () -> Unit
 ) {
     val subtitle = if (hiddenAppCount > 0) {
         stringResource(R.string.holographic_launcher_entry_summary_hidden, hiddenAppCount)
@@ -241,6 +240,6 @@ fun SettingsCardScope.HolographicLauncherEntryCard(
         title = stringResource(R.string.holographic_launcher_entry_title),
         subtitle = subtitle,
         enabled = enabled,
-        onClick = onClick,
+        onClick = onClick
     )
 }

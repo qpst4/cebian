@@ -74,7 +74,7 @@ class HistoryFloatService : Service() {
                     handleWidth = handleWidth,
                     onOpenPanel = { openClipboardPanel() },
                     onMoveHandle = { moveHandle(it) },
-                    onMoveHandleEnd = { persistHandlePosition() },
+                    onMoveHandleEnd = { persistHandlePosition() }
                 )
             }
         }
@@ -89,7 +89,7 @@ class HistoryFloatService : Service() {
             ACTION_SET_HANDLE_WIDTH -> {
                 handleWidth = intent.getIntExtra(
                     EXTRA_HANDLE_WIDTH_DP,
-                    HistoryFloatHandleWidth.DEFAULT_DP,
+                    HistoryFloatHandleWidth.DEFAULT_DP
                 )
                 return START_STICKY
             }
@@ -179,7 +179,7 @@ class HistoryFloatService : Service() {
         positionY = HistoryFloatHandlePosition.resolveY(
             storedY = storedHandleY(),
             screenHeightPx = screenHeightPx(),
-            handleHeightPx = estimateHandleHeightPx(),
+            handleHeightPx = estimateHandleHeightPx()
         )
         mainParams.x = 0
         mainParams.y = positionY
@@ -193,7 +193,7 @@ class HistoryFloatService : Service() {
         positionY = HistoryFloatHandlePosition.clampY(
             y = positionY + dy.roundToInt(),
             screenHeightPx = screenHeightPx(),
-            handleHeightPx = estimateHandleHeightPx(),
+            handleHeightPx = estimateHandleHeightPx()
         )
         mainParams.x = 0
         mainParams.y = positionY

@@ -29,7 +29,7 @@ internal class PointerTapEchoGuard {
         rawX: Float,
         rawY: Float,
         echoSlopPx: Float,
-        durationMs: Long = ABSORB_MS,
+        durationMs: Long = ABSORB_MS
     ) {
         armed = true
         injectX = rawX
@@ -65,7 +65,7 @@ internal class PointerTapEchoGuard {
 
         val distance = hypot(
             (event.rawX - injectX).toDouble(),
-            (event.rawY - injectY).toDouble(),
+            (event.rawY - injectY).toDouble()
         ).toFloat()
         return distance <= echoSlopPx
     }

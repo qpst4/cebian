@@ -57,6 +57,7 @@ import com.slideindex.app.ui.FreeWindowPreviewScreen
 import com.slideindex.app.ui.FreeWindowSettingsScreen
 import com.slideindex.app.ui.GestureActionPickerScreen
 import com.slideindex.app.ui.GestureAngleSettingsScreen
+import com.slideindex.app.ui.SystemBackGestureWidthSettingsScreen
 import com.slideindex.app.gesture.PointerSwipeConfig
 import com.slideindex.app.ui.GestureExecuteShellCommandScreen
 import com.slideindex.app.ui.PointerSwipeConfigScreen
@@ -143,6 +144,7 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
             onOpenTriggerCollection = { ctx.navigate(AppNavKey.HomeTriggerCollection) },
             onOpenCornerWheel = { ctx.navigate(AppNavKey.HomeCornerGesture) },
             onOpenGestureAngle = { ctx.navigate(AppNavKey.HomeGestureAngle) },
+            onOpenSystemBackGestureWidth = { ctx.navigate(AppNavKey.HomeSystemBackGestureWidth) },
             onOpenAnimationStyleSelect = { ctx.navigate(AppNavKey.HomeAnimationStyleSelect) },
             onGestureHintEnabledChange = { enabled -> viewModel.setGestureHintEnabled(enabled) },
             onHideTriggerInLandscapeChange = { enabled -> viewModel.setHideTriggerInLandscape(enabled) },
@@ -1239,6 +1241,23 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
             onPreviewStart = { ctx.startGestureAnglesPreview(it) },
             onPreviewAnglesChange = { ctx.updateGestureAnglesPreview(it) },
             onPreviewStop = { ctx.stopGestureAnglesPreview() },
+        )
+    }
+
+    hiltEntry<AppNavKey.HomeSystemBackGestureWidth> {
+        val permissions = ctx.collectPermissions()
+        var privilegedAccessGranted by remember { mutableStateOf(false) }
+        LaunchedEffect(Unit) {
+            withContext(Dispatchers.IO) {
+                privilegedAccessGranted = com.slideindex.app.util.TaskManagerUtil.hasPrivilegedAccess()
+            }
+        }
+        SystemBackGestureWidthSettingsScreen(
+            writeSecureSettingsGranted = permissions.writeSecureSettingsGranted,
+            privilegedAccessGranted = privilegedAccessGranted,
+            onBack = { ctx.navigateBackTo(AppNavKey.HomeMain) },
+            onRequestSecureSettingsGrant = { ctx.requestSecureSettingsGrant() },
+            onRefreshPermissions = { ctx.refreshPermissionState() },
         )
     }
 

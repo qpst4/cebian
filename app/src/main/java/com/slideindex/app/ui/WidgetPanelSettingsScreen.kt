@@ -50,8 +50,7 @@ import com.slideindex.app.widget.WidgetPanelGridLogic
 import com.slideindex.app.widget.WidgetPanelMutator
 import com.slideindex.app.widget.WidgetPanelPage
 import com.slideindex.app.ui.miuix.CardSegment
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
-import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import top.yukonga.miuix.kmp.basic.SmallTitle
 import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
@@ -63,7 +62,7 @@ import com.slideindex.app.ui.settings.components.SettingsSliderRow
 import com.slideindex.app.ui.settings.components.SETTINGS_SLIDER_PERCENT_KEY_POINTS_01
 import com.slideindex.app.ui.settings.components.settingsCardItems
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
-import com.slideindex.app.ui.settings.components.settingsLazyHint
+import com.slideindex.app.ui.settings.components.settingsLazyTipCard
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.clickable
@@ -149,7 +148,7 @@ fun WidgetPanelSettingsContent(
     title = stringResource(R.string.widget_panel_settings_title),
     onBack = onBack,
   ) {
-    settingsLazyHint(
+    settingsLazyTipCard(
       key = "widget-panel-desc",
       text = settingsDesc,
     )
@@ -186,7 +185,6 @@ fun WidgetPanelSettingsContent(
     settingsLazySmallTitle(
       key = "widget-panel-grid-section",
       title = gridSectionTitle,
-      sectionTop = true,
     )
     LazySettingsItem(key = "widget-panel-pager") {
       Column(
@@ -392,11 +390,11 @@ private fun WidgetPanelGridEditor(
       }
     }
 
-    MiuixSmallTitle(
+    SmallTitle(
       text = previewSectionTitle,
       modifier = Modifier
         .fillMaxWidth()
-        .padding(top = MiuixSmallTitleSectionTop),
+        ,
     )
 
     CardSegment(

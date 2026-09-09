@@ -35,7 +35,6 @@ import com.slideindex.app.settings.ExcludedAppScopes
 import com.slideindex.app.ui.compose.rememberAppRepository
 import com.slideindex.app.ui.picker.ActivityShortcutPickAppScreen
 import com.slideindex.app.ui.miuix.CardItem
-import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
 import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.PermissionCard
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
@@ -51,7 +50,7 @@ fun ExcludedAppsScreen(
     onRequestUsageAccess: () -> Unit,
     onOpenAddApp: () -> Unit,
     onRemoveExcludedApp: (String) -> Unit,
-    onExcludedAppScopesChange: (String, ExcludedAppScopes) -> Unit,
+    onExcludedAppScopesChange: (String, ExcludedAppScopes) -> Unit
 ) {
     val appRepository = rememberAppRepository()
     var allApps by remember { mutableStateOf<List<AppInfo>>(emptyList()) }
@@ -74,7 +73,7 @@ fun ExcludedAppsScreen(
 
     SettingsLazyScreenScaffold(
         title = stringResource(R.string.excluded_apps_title),
-        onBack = onBack,
+        onBack = onBack
     ) {
         managedAppListDescription(key = "desc") {
             stringResource(R.string.excluded_apps_desc)
@@ -85,9 +84,9 @@ fun ExcludedAppsScreen(
                     title = stringResource(R.string.permission_usage_title),
                     description = stringResource(
                         R.string.permission_usage_desc_excluded_apps,
-                        stringResource(R.string.app_name),
+                        stringResource(R.string.app_name)
                     ),
-                    onGrant = onRequestUsageAccess,
+                    onGrant = onRequestUsageAccess
                 )
             }
         }
@@ -100,24 +99,22 @@ fun ExcludedAppsScreen(
             excludedEntries.isEmpty() -> {
                 groupedCardItems(
                     keyPrefix = "excluded-empty",
-                    outerTopPadding = MiuixSmallTitleSectionTop,
                     items = listOf(
                         CardItem("placeholder") {
                             Text(
                                 text = stringResource(R.string.excluded_apps_empty),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp)
                             )
-                        },
-                    ),
+                        }
+                    )
                 )
             }
             else -> {
                 managedAppListSectionTitle(
                     key = "section-excluded",
-                    title = { stringResource(R.string.excluded_apps_section_excluded) },
-                    sectionTop = true,
+                    title = { stringResource(R.string.excluded_apps_section_excluded) }
                 )
                 managedAppListDescription(key = "excluded-hint") {
                     stringResource(R.string.excluded_apps_excluded_hint)
@@ -133,7 +130,7 @@ fun ExcludedAppsScreen(
                             ?: ExcludedAppScopes(
                                 suppressTriggers = false,
                                 suppressCornerWheel = false,
-                                suppressFloatBall = false,
+                                suppressFloatBall = false
                             )
                         formatExcludedAppScopesSummary(scopes)
                     },
@@ -142,15 +139,15 @@ fun ExcludedAppsScreen(
                         editingEntry = EditingExcludedApp(
                             packageName = entry.packageName,
                             label = entryLabel(entry),
-                            scopes = settings.excludedAppScopes[entry.packageName] ?: ExcludedAppScopes.ALL,
+                            scopes = settings.excludedAppScopes[entry.packageName] ?: ExcludedAppScopes.ALL
                         )
-                    },
+                    }
                 )
             }
         }
         managedAppListAddRow(
             title = { stringResource(R.string.excluded_apps_section_add) },
-            onClick = onOpenAddApp,
+            onClick = onOpenAddApp
         )
     }
 
@@ -162,7 +159,7 @@ fun ExcludedAppsScreen(
             onConfirm = { scopes ->
                 onExcludedAppScopesChange(editing.packageName, scopes)
                 editingEntry = null
-            },
+            }
         )
     }
 }
@@ -172,7 +169,7 @@ fun ExcludedAppsScreen(
 fun ExcludedAppPickScreen(
     excludedPackages: Set<String>,
     onBack: () -> Unit,
-    onConfirmAdd: (String, ExcludedAppScopes) -> Unit,
+    onConfirmAdd: (String, ExcludedAppScopes) -> Unit
 ) {
     var pending by remember { mutableStateOf<PendingExcludeApp?>(null) }
 
@@ -184,9 +181,9 @@ fun ExcludedAppPickScreen(
             pending = PendingExcludeApp(
                 packageName = app.packageName,
                 label = app.label,
-                scopes = ExcludedAppScopes.ALL,
+                scopes = ExcludedAppScopes.ALL
             )
-        },
+        }
     )
 
     pending?.let { target ->
@@ -198,7 +195,7 @@ fun ExcludedAppPickScreen(
                 onConfirmAdd(target.packageName, scopes)
                 pending = null
                 onBack()
-            },
+            }
         )
     }
 }
@@ -207,7 +204,7 @@ fun ExcludedAppPickScreen(
 fun SettingsCardScope.ExcludedAppsEntryCard(
     excludedCount: Int,
     outlinedLeadingIcons: Boolean = false,
-    onClick: () -> Unit,
+    onClick: () -> Unit
 ) {
     val subtitle = if (excludedCount > 0) {
         stringResource(R.string.excluded_apps_entry_count, excludedCount)
@@ -220,7 +217,7 @@ fun SettingsCardScope.ExcludedAppsEntryCard(
         },
         title = stringResource(R.string.excluded_apps_entry_title),
         subtitle = subtitle,
-        onClick = onClick,
+        onClick = onClick
     )
 }
 
@@ -230,26 +227,26 @@ private fun ExcludedAppScopeChipPicker(
     scopes: ExcludedAppScopes,
     onSuppressTriggersChange: (Boolean) -> Unit,
     onSuppressCornerWheelChange: (Boolean) -> Unit,
-    onSuppressFloatBallChange: (Boolean) -> Unit,
+    onSuppressFloatBallChange: (Boolean) -> Unit
 ) {
     FlowRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         ExcludedAppScopeChip(
             label = stringResource(R.string.excluded_apps_scope_triggers_short),
             selected = scopes.suppressTriggers,
-            onClick = { onSuppressTriggersChange(!scopes.suppressTriggers) },
+            onClick = { onSuppressTriggersChange(!scopes.suppressTriggers) }
         )
         ExcludedAppScopeChip(
             label = stringResource(R.string.excluded_apps_scope_corner_wheel_short),
             selected = scopes.suppressCornerWheel,
-            onClick = { onSuppressCornerWheelChange(!scopes.suppressCornerWheel) },
+            onClick = { onSuppressCornerWheelChange(!scopes.suppressCornerWheel) }
         )
         ExcludedAppScopeChip(
             label = stringResource(R.string.excluded_apps_scope_float_ball_short),
             selected = scopes.suppressFloatBall,
-            onClick = { onSuppressFloatBallChange(!scopes.suppressFloatBall) },
+            onClick = { onSuppressFloatBallChange(!scopes.suppressFloatBall) }
         )
     }
 }
@@ -258,7 +255,7 @@ private fun ExcludedAppScopeChipPicker(
 private fun ExcludedAppScopeChip(
     label: String,
     selected: Boolean,
-    onClick: () -> Unit,
+    onClick: () -> Unit
 ) {
     FilterChip(
         selected = selected,
@@ -266,8 +263,8 @@ private fun ExcludedAppScopeChip(
         label = { Text(label) },
         colors = FilterChipDefaults.filterChipColors(
             selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-        ),
+            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+        )
     )
 }
 
@@ -290,7 +287,7 @@ private fun ExcludedAppScopesEditorDialog(
     appLabel: String,
     scopes: ExcludedAppScopes,
     onDismiss: () -> Unit,
-    onConfirm: (ExcludedAppScopes) -> Unit,
+    onConfirm: (ExcludedAppScopes) -> Unit
 ) {
     var localScopes by remember(scopes, appLabel) { mutableStateOf(scopes) }
     MiuixFormDialog(
@@ -298,11 +295,11 @@ private fun ExcludedAppScopesEditorDialog(
         onDismissRequest = onDismiss,
         title = appLabel,
         confirmEnabled = localScopes.hasAny(),
-        onConfirm = { onConfirm(localScopes) },
+        onConfirm = { onConfirm(localScopes) }
     ) {
         ExcludedAppScopesDialogBody(
             scopes = localScopes,
-            onScopesChange = { localScopes = it },
+            onScopesChange = { localScopes = it }
         )
     }
 }
@@ -312,7 +309,7 @@ private fun ExcludedAppAddScopesDialog(
     appLabel: String,
     scopes: ExcludedAppScopes,
     onDismiss: () -> Unit,
-    onConfirm: (ExcludedAppScopes) -> Unit,
+    onConfirm: (ExcludedAppScopes) -> Unit
 ) {
     var localScopes by remember(appLabel) { mutableStateOf(scopes) }
     MiuixFormDialog(
@@ -320,18 +317,18 @@ private fun ExcludedAppAddScopesDialog(
         onDismissRequest = onDismiss,
         title = stringResource(R.string.excluded_apps_confirm_add_title),
         confirmEnabled = localScopes.hasAny(),
-        onConfirm = { onConfirm(localScopes) },
+        onConfirm = { onConfirm(localScopes) }
     ) {
         Column {
             Text(
                 text = appLabel,
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface,
+                color = MaterialTheme.colorScheme.onSurface
             )
             Spacer(modifier = Modifier.height(8.dp))
             ExcludedAppScopesDialogBody(
                 scopes = localScopes,
-                onScopesChange = { localScopes = it },
+                onScopesChange = { localScopes = it }
             )
         }
     }
@@ -340,27 +337,27 @@ private fun ExcludedAppAddScopesDialog(
 @Composable
 private fun ExcludedAppScopesDialogBody(
     scopes: ExcludedAppScopes,
-    onScopesChange: (ExcludedAppScopes) -> Unit,
+    onScopesChange: (ExcludedAppScopes) -> Unit
 ) {
     Column {
         Text(
             text = stringResource(R.string.excluded_apps_scope_dialog_hint),
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(modifier = Modifier.height(12.dp))
         ExcludedAppScopeChipPicker(
             scopes = scopes,
             onSuppressTriggersChange = { onScopesChange(scopes.copy(suppressTriggers = it)) },
             onSuppressCornerWheelChange = { onScopesChange(scopes.copy(suppressCornerWheel = it)) },
-            onSuppressFloatBallChange = { onScopesChange(scopes.copy(suppressFloatBall = it)) },
+            onSuppressFloatBallChange = { onScopesChange(scopes.copy(suppressFloatBall = it)) }
         )
         Spacer(modifier = Modifier.height(12.dp))
         Text(
             text = if (scopes.hasAny()) {
                 stringResource(
                     R.string.excluded_apps_template_summary,
-                    formatExcludedAppScopesSummary(scopes),
+                    formatExcludedAppScopesSummary(scopes)
                 )
             } else {
                 stringResource(R.string.excluded_apps_template_empty)
@@ -370,7 +367,7 @@ private fun ExcludedAppScopesDialogBody(
                 MaterialTheme.colorScheme.primary
             } else {
                 MaterialTheme.colorScheme.error
-            },
+            }
         )
     }
 }
@@ -378,13 +375,13 @@ private fun ExcludedAppScopesDialogBody(
 private data class EditingExcludedApp(
     val packageName: String,
     val label: String,
-    val scopes: ExcludedAppScopes,
+    val scopes: ExcludedAppScopes
 )
 
 private data class PendingExcludeApp(
     val packageName: String,
     val label: String,
-    val scopes: ExcludedAppScopes,
+    val scopes: ExcludedAppScopes
 )
 
 private fun entryLabel(entry: AppPackageEntry): String = when (entry) {

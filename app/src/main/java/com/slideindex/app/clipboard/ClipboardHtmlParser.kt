@@ -8,7 +8,7 @@ import java.util.regex.Pattern
 internal object ClipboardHtmlParser {
     private val IMG_SRC_PATTERN = Pattern.compile(
         """<img\b[^>]*\bsrc\s*=\s*["']([^"']+)["']""",
-        Pattern.CASE_INSENSITIVE,
+        Pattern.CASE_INSENSITIVE
     )
 
     fun plainTextFromHtml(html: String): String =
@@ -40,7 +40,7 @@ internal object ClipboardHtmlParser {
     fun buildHtmlFromBlocks(
         blocks: List<ClipboardContentBlock>,
         imageSrcForFile: (String) -> String?,
-        imageSizeForFile: (String) -> Pair<Int, Int>? = { null },
+        imageSizeForFile: (String) -> Pair<Int, Int>? = { null }
     ): String {
         val body = buildString {
             blocks.forEach { block ->
@@ -102,7 +102,7 @@ internal object ClipboardHtmlParser {
 
     private val IMG_SRC_REPLACE_PATTERN = Pattern.compile(
         """\bsrc\s*=\s*["'][^"']*["']""",
-        Pattern.CASE_INSENSITIVE,
+        Pattern.CASE_INSENSITIVE
     )
 
     private const val DEFAULT_CLIPBOARD_IMAGE_WIDTH_PX = 480

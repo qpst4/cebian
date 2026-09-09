@@ -20,7 +20,7 @@ object OtpClipboardHelper {
             Toast.makeText(
                 appContext,
                 appContext.getString(R.string.otp_copied_to_clipboard, code),
-                Toast.LENGTH_SHORT,
+                Toast.LENGTH_SHORT
             ).show()
         }
     }

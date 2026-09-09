@@ -8,19 +8,19 @@ internal object ClipboardPasteTextLogic {
 
     data class EditableSnapshot(
         val content: String,
-        val leadingPlaceholderLength: Int,
+        val leadingPlaceholderLength: Int
     )
 
     fun effectiveInputText(
         rawText: CharSequence?,
-        hintText: CharSequence? = null,
+        hintText: CharSequence? = null
     ): String {
         return snapshotEditableText(rawText, hintText).content
     }
 
     fun snapshotEditableText(
         rawText: CharSequence?,
-        hintText: CharSequence? = null,
+        hintText: CharSequence? = null
     ): EditableSnapshot {
         val text = rawText?.toString().orEmpty()
         if (text.isEmpty()) {
@@ -42,7 +42,7 @@ internal object ClipboardPasteTextLogic {
         val content = text.substring(leadingPlaceholderLength)
         return EditableSnapshot(
             content = content,
-            leadingPlaceholderLength = leadingPlaceholderLength,
+            leadingPlaceholderLength = leadingPlaceholderLength
         )
     }
 
@@ -50,7 +50,7 @@ internal object ClipboardPasteTextLogic {
         currentText: String,
         clipText: String,
         selectionStart: Int,
-        selectionEnd: Int,
+        selectionEnd: Int
     ): String {
         if (currentText.isEmpty()) return clipText
         val start = selectionStart.coerceIn(0, currentText.length)

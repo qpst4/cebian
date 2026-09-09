@@ -15,7 +15,7 @@ internal object OverlayDisplayMetrics {
     fun resolve(
         context: Context,
         windowManager: WindowManager? = null,
-        densityHint: Float? = null,
+        densityHint: Float? = null
     ): DisplayMetrics {
         val wm = windowManager ?: context.getSystemService(WindowManager::class.java)
         val host = context.resources.displayMetrics
@@ -34,7 +34,7 @@ internal object OverlayDisplayMetrics {
             densityHint,
             max(systemMetrics.density, systemMetrics.densityDpi / 160f),
             fromWidth,
-            max(host.density, host.densityDpi / 160f),
+            max(host.density, host.densityDpi / 160f)
         ).max()
 
         return DisplayMetrics().apply {
@@ -54,7 +54,7 @@ internal object OverlayDisplayMetrics {
     fun screenWidthPx(
         context: Context,
         windowManager: WindowManager? = null,
-        metrics: DisplayMetrics,
+        metrics: DisplayMetrics
     ): Float {
         val wm = windowManager ?: context.getSystemService(WindowManager::class.java)
         val bounds = runCatching { wm?.currentWindowMetrics?.bounds }.getOrNull()

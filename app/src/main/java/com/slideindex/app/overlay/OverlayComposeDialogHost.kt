@@ -37,7 +37,7 @@ class OverlayComposeDialogHost(
 
     private val themeSettings: () -> AppSettings = { AppSettings() },
 
-    private val fullScreen: Boolean = true,
+    private val fullScreen: Boolean = true
 
 ) {
 
@@ -71,7 +71,7 @@ class OverlayComposeDialogHost(
 
         onDismiss: (() -> Unit)? = null,
 
-        content: @Composable () -> Unit,
+        content: @Composable () -> Unit
 
     ) {
 
@@ -324,7 +324,7 @@ class OverlayComposeDialogHost(
                 WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED or
                 WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
 
-            PixelFormat.TRANSLUCENT,
+            PixelFormat.TRANSLUCENT
 
         ).apply {
 

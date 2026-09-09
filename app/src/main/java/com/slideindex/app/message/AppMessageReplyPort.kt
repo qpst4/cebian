@@ -13,20 +13,20 @@ class AppMessageReplyPort @Inject constructor() : MessageReplyPort {
         context: Context,
         data: NotificationData,
         onSent: () -> Unit,
-        onCancelled: () -> Unit,
+        onCancelled: () -> Unit
     ) {
         MessageReplyOverlayWindow.show(context, data, onSent, onCancelled)
     }
 
     override fun showQuickReplyUnavailable(
         context: Context,
-        data: NotificationData,
+        data: NotificationData
     ) {
         val hostContext = context.applicationContext
         Toast.makeText(
             hostContext,
             hostContext.getString(R.string.message_action_quick_reply_unavailable, data.title.ifBlank { data.packageName }),
-            Toast.LENGTH_SHORT,
+            Toast.LENGTH_SHORT
         ).show()
     }
 }

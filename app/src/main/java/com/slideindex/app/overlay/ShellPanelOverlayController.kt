@@ -12,7 +12,7 @@ import com.slideindex.app.service.ShellCommandResultTrampoline
 import com.slideindex.app.shell.ShellCommand
 
 internal class ShellPanelOverlayController(
-    private val host: Host,
+    private val host: Host
 ) {
     interface Host {
         val context: Context
@@ -56,7 +56,7 @@ internal class ShellPanelOverlayController(
                 onDismissComplete: () -> Unit,
                 onSave: (ShellCommand) -> Unit,
                 onDelete: (() -> Unit)?,
-                onTest: (ShellCommand, (Int, String) -> Unit) -> Unit,
+                onTest: (ShellCommand, (Int, String) -> Unit) -> Unit
             ) {
                 ShellCommandEditorTrampoline.launch(
                     context = host.context,
@@ -70,7 +70,7 @@ internal class ShellPanelOverlayController(
                         syncInputFocus()
                     },
                     onSave = onSave,
-                    onDelete = onDelete,
+                    onDelete = onDelete
                 )
                 host.invalidate()
             }
@@ -79,7 +79,7 @@ internal class ShellPanelOverlayController(
                 command: String,
                 exitCode: Int,
                 output: String,
-                onDismissComplete: () -> Unit,
+                onDismissComplete: () -> Unit
             ) {
                 ShellCommandResultTrampoline.launch(
                     context = host.context,
@@ -87,7 +87,7 @@ internal class ShellPanelOverlayController(
                         label = label,
                         command = command,
                         exitCode = exitCode,
-                        output = output,
+                        output = output
                     ),
                     onPrepare = { prepareAuxiliaryUi() },
                     onDismiss = {
@@ -95,7 +95,7 @@ internal class ShellPanelOverlayController(
                         onDismissComplete()
                         host.notifyPresentationTouchRequirementChanged()
                         syncInputFocus()
-                    },
+                    }
                 )
                 host.invalidate()
             }
@@ -117,7 +117,7 @@ internal class ShellPanelOverlayController(
             override fun onPersist(commands: List<ShellCommand>) {
                 host.onShellCommandsPersist(commands)
             }
-        },
+        }
     )
 
     private var exiting = false
@@ -150,7 +150,7 @@ internal class ShellPanelOverlayController(
                     host.onInitiatingEdgeGestureReleased()
                     true
                 }
-            },
+            }
         )
         if (continuousPick && event.actionMasked == MotionEvent.ACTION_UP &&
             !panelController.hasActiveUi()
@@ -199,7 +199,7 @@ internal class ShellPanelOverlayController(
                 host.notifyPresentationTouchRequirementChanged()
                 syncInputFocus()
             },
-            onPersist = host::onShellCommandsPersist,
+            onPersist = host::onShellCommandsPersist
         )
         host.invalidate()
     }

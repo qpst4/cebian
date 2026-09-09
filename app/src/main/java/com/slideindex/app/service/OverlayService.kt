@@ -98,7 +98,7 @@ class OverlayService : LifecycleService() {
             startForeground(
                 NOTIFICATION_ID,
                 notification,
-                ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE,
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
             )
         } else {
             startForeground(NOTIFICATION_ID, notification)
@@ -110,7 +110,7 @@ class OverlayService : LifecycleService() {
         val channel = NotificationChannel(
             CHANNEL_ID,
             getString(R.string.app_name),
-            NotificationManager.IMPORTANCE_LOW,
+            NotificationManager.IMPORTANCE_LOW
         )
         manager.createNotificationChannel(channel)
     }
@@ -120,7 +120,7 @@ class OverlayService : LifecycleService() {
             this,
             0,
             Intent(this, MainActivity::class.java),
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle(getString(R.string.service_notification_title))
@@ -155,7 +155,7 @@ class OverlayService : LifecycleService() {
                 side = side,
                 handleId = handleId,
                 showSwipeDistances = getBooleanExtra(EXTRA_PREVIEW_SHOW_SWIPE_DISTANCES, false),
-                showPairedGroup = getBooleanExtra(EXTRA_PREVIEW_SHOW_PAIRED_GROUP, false),
+                showPairedGroup = getBooleanExtra(EXTRA_PREVIEW_SHOW_PAIRED_GROUP, false)
             )
         }
 

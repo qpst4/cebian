@@ -34,7 +34,7 @@ object FloatBallTextPick {
                     Toast.makeText(
                         appContext,
                         appContext.getString(R.string.float_ball_text_not_found),
-                        Toast.LENGTH_SHORT,
+                        Toast.LENGTH_SHORT
                     ).show()
                 }
                 return@post
@@ -43,7 +43,7 @@ object FloatBallTextPick {
             Toast.makeText(
                 appContext,
                 appContext.getString(R.string.float_ball_text_copied),
-                Toast.LENGTH_SHORT,
+                Toast.LENGTH_SHORT
             ).show()
         }
     }
@@ -71,7 +71,7 @@ object FloatBallTextPick {
         val encoded = Uri.encode(text)
         val intent = Intent(
             Intent.ACTION_VIEW,
-            "https://translate.google.com/?sl=auto&tl=zh-CN&text=$encoded".toUri(),
+            "https://translate.google.com/?sl=auto&tl=zh-CN&text=$encoded".toUri()
         ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         runCatching { context.startActivity(intent) }
             .onFailure {
@@ -94,7 +94,7 @@ object FloatBallTextPick {
         context: Context,
         url: String,
         settings: AppSettings,
-        longPressTriggered: Boolean = false,
+        longPressTriggered: Boolean = false
     ) {
         SearchEngineLauncher.launchOpenableUri(context, url, settings, longPressTriggered)
     }
@@ -222,7 +222,7 @@ object FloatBallTextPick {
             } else {
                 val chooser = Intent.createChooser(
                     intent,
-                    context.getString(R.string.float_ball_action_open_image),
+                    context.getString(R.string.float_ball_action_open_image)
                 ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 context.startActivity(chooser)
             }

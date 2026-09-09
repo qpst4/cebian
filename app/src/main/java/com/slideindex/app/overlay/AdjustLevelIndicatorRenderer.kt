@@ -29,7 +29,7 @@ internal object AdjustLevelIndicatorRenderer {
         recede: Boolean = false,
         volumePanel: VolumePanelVisual? = null,
         brightnessPanel: BrightnessPanelVisual? = null,
-        context: Context? = null,
+        context: Context? = null
     ) {
         if (enterProgress <= 0f) return
         val t = enterProgress.coerceIn(0f, 1f)
@@ -57,7 +57,7 @@ internal object AdjustLevelIndicatorRenderer {
                         dndEnabled = volumePanel?.let {
                             VolumeControlHelper.isDndFilter(it.interruptionFilter)
                         } == true,
-                        context = context,
+                        context = context
                     )
                 }
             }
@@ -70,7 +70,7 @@ internal object AdjustLevelIndicatorRenderer {
                         density = density,
                         alphaScale = alphaScale,
                         shadowAlphaScale = shadowAlphaScale,
-                        enabled = brightnessPanel?.autoBrightnessEnabled == true,
+                        enabled = brightnessPanel?.autoBrightnessEnabled == true
                     )
                 }
             }
@@ -84,7 +84,7 @@ internal object AdjustLevelIndicatorRenderer {
                 mode = mode,
                 fraction = fraction.coerceIn(0f, 1f),
                 density = density,
-                alphaScale = alphaScale,
+                alphaScale = alphaScale
             )
             drawPercentLabel(this, layout.bounds, fraction.coerceIn(0f, 1f), density, alphaScale)
             if (mode == ContinuousAdjustController.Mode.VOLUME) {
@@ -103,7 +103,7 @@ internal object AdjustLevelIndicatorRenderer {
                                     corner = corner,
                                     density = density,
                                     alphaScale = alphaScale,
-                                    shadowAlphaScale = shadowAlphaScale,
+                                    shadowAlphaScale = shadowAlphaScale
                                 )
                             }
                         }
@@ -120,7 +120,7 @@ internal object AdjustLevelIndicatorRenderer {
                                     corner = corner,
                                     density = density,
                                     alphaScale = alphaScale,
-                                    shadowAlphaScale = shadowAlphaScale,
+                                    shadowAlphaScale = shadowAlphaScale
                                 )
                             }
                         }
@@ -136,7 +136,7 @@ internal object AdjustLevelIndicatorRenderer {
                         shadowAlphaScale = shadowAlphaScale,
                         ringerMode = volumePanel?.ringerMode ?: AudioManager.RINGER_MODE_NORMAL,
                         expanded = volumePanel?.expanded == true,
-                        context = context,
+                        context = context
                     )
                 }
             }
@@ -149,7 +149,7 @@ internal object AdjustLevelIndicatorRenderer {
                         density = density,
                         alphaScale = alphaScale,
                         shadowAlphaScale = shadowAlphaScale,
-                        context = context,
+                        context = context
                     ) {
                         BrightnessIconRenderer.drawDarkMode(
                             context = it,
@@ -158,7 +158,7 @@ internal object AdjustLevelIndicatorRenderer {
                             cy = bottomPill.centerY(),
                             sizePx = minOf(bottomPill.width() * 0.38f, bottomPill.height() * 0.46f),
                             darkModeEnabled = brightnessPanel?.darkModeEnabled == true,
-                            alphaScale = alphaScale,
+                            alphaScale = alphaScale
                         )
                     }
                 }
@@ -178,7 +178,7 @@ internal object AdjustLevelIndicatorRenderer {
             bounds.bottom + spread + 4f,
             corner + 4f,
             corner + 4f,
-            shadowPaint,
+            shadowPaint
         )
     }
 
@@ -202,7 +202,7 @@ internal object AdjustLevelIndicatorRenderer {
         mode: ContinuousAdjustController.Mode,
         fraction: Float,
         density: Float,
-        alphaScale: Float,
+        alphaScale: Float
     ) {
         val corner = 8f * density
         val trackPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -234,7 +234,7 @@ internal object AdjustLevelIndicatorRenderer {
                 fillRect.top,
                 startColor,
                 endColor,
-                Shader.TileMode.CLAMP,
+                Shader.TileMode.CLAMP
             )
         }
         canvas.drawRoundRect(fillRect, corner, corner, fillPaint)
@@ -249,14 +249,14 @@ internal object AdjustLevelIndicatorRenderer {
             fillTop + 8f * density,
             corner,
             corner,
-            highlightPaint,
+            highlightPaint
         )
     }
 
     private data class IconAccent(
         val primary: Int,
         val secondary: Int,
-        val glow: Int,
+        val glow: Int
     )
 
     private fun iconAccent(mode: ContinuousAdjustController.Mode, level: Float, alphaScale: Float): IconAccent {
@@ -265,12 +265,12 @@ internal object AdjustLevelIndicatorRenderer {
             ContinuousAdjustController.Mode.VOLUME -> IconAccent(
                 primary = scaledColor(160, 210, 255, a),
                 secondary = scaledColor(90, 165, 255, a),
-                glow = scaledColor(66, 133, 244, a * (0.35f + 0.65f * level)),
+                glow = scaledColor(66, 133, 244, a * (0.35f + 0.65f * level))
             )
             ContinuousAdjustController.Mode.BRIGHTNESS -> IconAccent(
                 primary = scaledColor(255, 236, 170, a),
                 secondary = scaledColor(255, 196, 90, a),
-                glow = scaledColor(255, 183, 77, a * (0.30f + 0.70f * level)),
+                glow = scaledColor(255, 183, 77, a * (0.30f + 0.70f * level))
             )
         }
     }
@@ -282,7 +282,7 @@ internal object AdjustLevelIndicatorRenderer {
         mode: ContinuousAdjustController.Mode,
         fraction: Float,
         density: Float,
-        alphaScale: Float,
+        alphaScale: Float
     ) {
         val level = fraction.coerceIn(0f, 1f)
         val iconSize = 19f * density
@@ -306,7 +306,7 @@ internal object AdjustLevelIndicatorRenderer {
         accent: IconAccent,
         level: Float,
         density: Float,
-        alphaScale: Float,
+        alphaScale: Float
     ) {
         if (level <= 0.02f) return
         val radius = (width.coerceAtMost(headerHeight) * 0.62f) * (0.85f + 0.15f * level)
@@ -317,7 +317,7 @@ internal object AdjustLevelIndicatorRenderer {
                 radius,
                 Color.argb((110 * alphaScale * (0.35f + 0.65f * level)).roundToInt(), Color.red(accent.glow), Color.green(accent.glow), Color.blue(accent.glow)),
                 Color.TRANSPARENT,
-                Shader.TileMode.CLAMP,
+                Shader.TileMode.CLAMP
             )
         }
         canvas.drawCircle(cx, cy, radius, glowPaint)
@@ -331,7 +331,7 @@ internal object AdjustLevelIndicatorRenderer {
         level: Float,
         accent: IconAccent,
         density: Float,
-        alphaScale: Float,
+        alphaScale: Float
     ) {
         val halfH = size * 0.36f
         val bodyInset = size * 0.04f
@@ -383,7 +383,7 @@ internal object AdjustLevelIndicatorRenderer {
                 cy - halfH * 0.75f,
                 groupLeft + contentWidth - slashPad,
                 cy + halfH * 0.75f,
-                mutePaint,
+                mutePaint
             )
             return
         }
@@ -396,7 +396,7 @@ internal object AdjustLevelIndicatorRenderer {
                 iconAlpha,
                 Color.red(accent.primary),
                 Color.green(accent.primary),
-                Color.blue(accent.primary),
+                Color.blue(accent.primary)
             )
         }
         for (i in 0 until waveCount) {
@@ -410,7 +410,7 @@ internal object AdjustLevelIndicatorRenderer {
                 -68f,
                 136f,
                 false,
-                wavePaint,
+                wavePaint
             )
         }
     }
@@ -430,7 +430,7 @@ internal object AdjustLevelIndicatorRenderer {
         size: Float,
         level: Float,
         accent: IconAccent,
-        density: Float,
+        density: Float
     ) {
         val coreRadius = size * (0.22f + 0.08f * level)
         val corePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -440,7 +440,7 @@ internal object AdjustLevelIndicatorRenderer {
                 coreRadius * 1.2f,
                 blendColors(scaledColor(255, 255, 245, 1f), accent.primary, 0.25f + 0.55f * level),
                 accent.secondary,
-                Shader.TileMode.CLAMP,
+                Shader.TileMode.CLAMP
             )
         }
         canvas.drawCircle(cx, cy, coreRadius, corePaint)
@@ -478,7 +478,7 @@ internal object AdjustLevelIndicatorRenderer {
                 cy + sin * rayInner,
                 cx + cos * rayOuter,
                 cy + sin * rayOuter,
-                rayPaint,
+                rayPaint
             )
         }
     }
@@ -491,7 +491,7 @@ internal object AdjustLevelIndicatorRenderer {
         return Color.rgb(
             (Color.red(from) + (Color.red(to) - Color.red(from)) * t).roundToInt(),
             (Color.green(from) + (Color.green(to) - Color.green(from)) * t).roundToInt(),
-            (Color.blue(from) + (Color.blue(to) - Color.blue(from)) * t).roundToInt(),
+            (Color.blue(from) + (Color.blue(to) - Color.blue(from)) * t).roundToInt()
         )
     }
 
@@ -506,7 +506,7 @@ internal object AdjustLevelIndicatorRenderer {
         corner: Float,
         density: Float,
         alphaScale: Float,
-        shadowAlphaScale: Float,
+        shadowAlphaScale: Float
     ) {
         drawShadow(canvas, pill, corner, shadowAlphaScale)
         drawPillBackground(canvas, pill, corner, alphaScale)
@@ -522,7 +522,7 @@ internal object AdjustLevelIndicatorRenderer {
         startColor: Int,
         endColor: Int,
         density: Float,
-        alphaScale: Float,
+        alphaScale: Float
     ) {
         val corner = 7f * density
         val trackPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -541,7 +541,7 @@ internal object AdjustLevelIndicatorRenderer {
                 fillRect.top,
                 startColor,
                 endColor,
-                Shader.TileMode.CLAMP,
+                Shader.TileMode.CLAMP
             )
         }
         canvas.drawRoundRect(fillRect, corner, corner, fillPaint)
@@ -553,7 +553,7 @@ internal object AdjustLevelIndicatorRenderer {
         baselineY: Float,
         text: String,
         density: Float,
-        alphaScale: Float,
+        alphaScale: Float
     ) {
         val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             textAlign = Paint.Align.CENTER
@@ -572,7 +572,7 @@ internal object AdjustLevelIndicatorRenderer {
         alphaScale: Float,
         shadowAlphaScale: Float,
         context: Context?,
-        drawIcon: (Context) -> Unit,
+        drawIcon: (Context) -> Unit
     ) {
         drawShadow(canvas, bounds, corner, shadowAlphaScale)
         drawPillBackground(canvas, bounds, corner, alphaScale)
@@ -586,7 +586,7 @@ internal object AdjustLevelIndicatorRenderer {
         density: Float,
         alphaScale: Float,
         shadowAlphaScale: Float,
-        enabled: Boolean,
+        enabled: Boolean
     ) {
         drawShadow(canvas, bounds, corner, shadowAlphaScale)
         drawPillBackground(canvas, bounds, corner, alphaScale)
@@ -605,7 +605,7 @@ internal object AdjustLevelIndicatorRenderer {
             cy = bounds.centerY(),
             sizePx = iconSize,
             enabled = enabled,
-            alphaScale = alphaScale,
+            alphaScale = alphaScale
         )
     }
 
@@ -617,7 +617,7 @@ internal object AdjustLevelIndicatorRenderer {
         alphaScale: Float,
         shadowAlphaScale: Float,
         dndEnabled: Boolean,
-        context: Context?,
+        context: Context?
     ) {
         val iconSize = minOf(bounds.width() * 0.38f, bounds.height() * 0.46f)
         drawCompactChromePill(
@@ -627,7 +627,7 @@ internal object AdjustLevelIndicatorRenderer {
             density = density,
             alphaScale = alphaScale,
             shadowAlphaScale = shadowAlphaScale,
-            context = context,
+            context = context
         ) {
             DndIconRenderer.draw(
                 context = it,
@@ -636,7 +636,7 @@ internal object AdjustLevelIndicatorRenderer {
                 cy = bounds.centerY(),
                 sizePx = iconSize,
                 dndEnabled = dndEnabled,
-                alphaScale = alphaScale,
+                alphaScale = alphaScale
             )
         }
     }
@@ -650,7 +650,7 @@ internal object AdjustLevelIndicatorRenderer {
         shadowAlphaScale: Float,
         ringerMode: Int,
         expanded: Boolean,
-        context: Context?,
+        context: Context?
     ) {
         drawShadow(canvas, bounds, corner, shadowAlphaScale)
         drawPillBackground(canvas, bounds, corner, alphaScale)
@@ -665,7 +665,7 @@ internal object AdjustLevelIndicatorRenderer {
             dividerY,
             bounds.right - 10f * density,
             dividerY,
-            dividerPaint,
+            dividerPaint
         )
 
         val iconSize = minOf(bounds.width() * 0.38f, bounds.height() * 0.30f)
@@ -686,7 +686,7 @@ internal object AdjustLevelIndicatorRenderer {
         size: Float,
         expanded: Boolean,
         density: Float,
-        alphaScale: Float,
+        alphaScale: Float
     ) {
         val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             style = Paint.Style.STROKE
@@ -724,7 +724,7 @@ internal object AdjustLevelIndicatorRenderer {
         fraction: Float,
         density: Float,
         alphaScale: Float,
-        textSizeDp: Float = 11f,
+        textSizeDp: Float = 11f
     ) {
         val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             textAlign = Paint.Align.CENTER

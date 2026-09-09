@@ -9,7 +9,7 @@ internal object ClipboardImageLabel {
     fun isMetadataText(
         text: String,
         imageSources: List<String> = emptyList(),
-        uri: String? = null,
+        uri: String? = null
     ): Boolean {
         val trimmed = text.trim()
         if (trimmed.isEmpty()) return false
@@ -43,7 +43,7 @@ internal object ClipboardImageLabel {
     fun blocksForClipboardWrite(
         blocks: List<ClipboardContentBlock>,
         imageSources: List<String>,
-        uri: String?,
+        uri: String?
     ): List<ClipboardContentBlock> {
         if (blocks.isEmpty()) return blocks
         return blocks.filterNot { block ->
@@ -55,7 +55,7 @@ internal object ClipboardImageLabel {
     fun stripMetadataText(
         text: String,
         imageSources: List<String>,
-        uri: String?,
+        uri: String?
     ): String {
         val trimmed = text.trim()
         if (trimmed.isEmpty()) return ""

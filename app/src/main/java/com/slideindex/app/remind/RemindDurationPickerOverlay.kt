@@ -47,7 +47,7 @@ object RemindDurationPickerOverlay {
         val hostContext = MessageOverlayHost.resolveHostContext(context) ?: context.applicationContext
         val dialogHost = host ?: OverlayComposeDialogHost(
             context = hostContext,
-            fullScreen = false,
+            fullScreen = false
         ).also { host = it }
         dialogHost.show {
             RemindDurationPickerContent(
@@ -56,7 +56,7 @@ object RemindDurationPickerOverlay {
                     RemindAlarmScheduler.toggle(hostContext, minutes)
                     dialogHost.dismiss()
                 },
-                onDismiss = { dialogHost.dismiss() },
+                onDismiss = { dialogHost.dismiss() }
             )
         }
     }
@@ -71,7 +71,7 @@ object RemindDurationPickerOverlay {
 private fun RemindDurationPickerContent(
     context: Context,
     onConfirm: (Int) -> Unit,
-    onDismiss: () -> Unit,
+    onDismiss: () -> Unit
 ) {
     var selectedMinutes by remember { mutableIntStateOf(5) }
     var sliderValue by remember { mutableFloatStateOf(5f) }
@@ -82,24 +82,24 @@ private fun RemindDurationPickerContent(
             .width(320.dp),
         shape = RoundedCornerShape(28.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp, vertical = 18.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
                 text = stringResource(R.string.gesture_remind_picker_title),
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleMedium
             )
             FlowRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 RemindAlarmScheduler.PRESET_MINUTES.forEach { preset ->
                     FilterChip(
@@ -112,10 +112,10 @@ private fun RemindDurationPickerContent(
                             Text(
                                 stringResource(
                                     R.string.gesture_remind_picker_preset_minutes,
-                                    preset,
-                                ),
+                                    preset
+                                )
                             )
-                        },
+                        }
                     )
                 }
             }
@@ -127,7 +127,7 @@ private fun RemindDurationPickerContent(
                 formatLabel = { value ->
                     val minutes = value.roundToInt().coerceIn(
                         RemindAlarmScheduler.MIN_MINUTES,
-                        RemindAlarmScheduler.MAX_MINUTES,
+                        RemindAlarmScheduler.MAX_MINUTES
                     )
                     context.getString(R.string.gesture_remind_picker_minutes_value, minutes)
                 },
@@ -135,25 +135,25 @@ private fun RemindDurationPickerContent(
                     sliderValue = value
                     selectedMinutes = value.roundToInt().coerceIn(
                         RemindAlarmScheduler.MIN_MINUTES,
-                        RemindAlarmScheduler.MAX_MINUTES,
+                        RemindAlarmScheduler.MAX_MINUTES
                     )
-                },
+                }
             )
             Button(
                 onClick = { onConfirm(selectedMinutes) },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
                     if (pending) {
                         stringResource(R.string.gesture_remind_picker_cancel, selectedMinutes)
                     } else {
                         stringResource(R.string.gesture_remind_picker_confirm, selectedMinutes)
-                    },
+                    }
                 )
             }
             TextButton(
                 onClick = onDismiss,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Text(stringResource(R.string.cancel))
             }

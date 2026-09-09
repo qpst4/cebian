@@ -15,12 +15,12 @@ object OverlayPanelEnterAnimation {
 
     val enterSpec = spring<Float>(
         dampingRatio = Spring.DampingRatioLowBouncy,
-        stiffness = Spring.StiffnessMediumLow,
+        stiffness = Spring.StiffnessMediumLow
     )
 
     val exitSpec = tween<Float>(
         durationMillis = DURATION_MS,
-        easing = FastOutLinearInEasing,
+        easing = FastOutLinearInEasing
     )
 
     /** @param progress 0 = hidden/off-screen, 1 = fully shown */
@@ -28,7 +28,7 @@ object OverlayPanelEnterAnimation {
         progress: Float,
         panelWidthPx: Float,
         marginPx: Float,
-        side: PanelSide?,
+        side: PanelSide?
     ): Float {
         if (side == null || panelWidthPx <= 0f) return 0f
         val delta = 1f - progress.coerceIn(0f, 1f)

@@ -24,7 +24,7 @@ internal class EdgeGesturePanelRenderer(
     private val previewFocusProvider: () -> LayoutPreviewFocus?,
     private val densityProvider: () -> Float,
     private val dpFn: (Float) -> Float,
-    private val syncZoneLayout: () -> Unit,
+    private val syncZoneLayout: () -> Unit
 ) {
     fun draw(canvas: Canvas, viewWidth: Int, viewHeight: Int) {
         val panelVisible = gestureSession.panelMode() != OverlayPanelMode.NONE
@@ -43,7 +43,7 @@ internal class EdgeGesturePanelRenderer(
                     density = densityProvider(),
                     dp = dpFn,
                     focusHandleId = previewFocusProvider()?.handleId,
-                    showSwipeDistances = previewFocusProvider()?.showSwipeDistances == true,
+                    showSwipeDistances = previewFocusProvider()?.showSwipeDistances == true
                 )
                 LayoutPreviewContent.INDEX_ONLY -> indexPanelRenderer.drawLetterRail(canvas)
             }

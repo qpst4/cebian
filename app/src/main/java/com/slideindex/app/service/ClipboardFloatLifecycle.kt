@@ -18,7 +18,7 @@ object ClipboardFloatLifecycle {
                 action = ClipboardFloatService.ACTION_SHOW_IME
                 putExtra(ClipboardFloatService.EXTRA_IME_TOP, imeTop)
                 putExtra(ClipboardFloatService.EXTRA_SHOW_CHIP, showChip)
-            },
+            }
         )
     }
 
@@ -27,7 +27,7 @@ object ClipboardFloatLifecycle {
         appContext.startService(
             Intent(appContext, ClipboardFloatService::class.java).apply {
                 action = ClipboardFloatService.ACTION_SHOW_EXPANDED
-            },
+            }
         )
     }
 
@@ -36,7 +36,7 @@ object ClipboardFloatLifecycle {
         appContext.startService(
             Intent(appContext, ClipboardFloatService::class.java).apply {
                 action = ClipboardFloatService.ACTION_HIDE
-            },
+            }
         )
     }
 }

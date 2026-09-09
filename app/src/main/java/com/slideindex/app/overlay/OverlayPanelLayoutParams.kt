@@ -19,7 +19,7 @@ object OverlayPanelLayoutParams {
         focusable: Boolean = false,
         touchable: Boolean = true,
         softInputMode: Int = defaultSoftInputMode,
-        windowType: Int = OverlayWindowTypes.overlayWindowType(context),
+        windowType: Int = OverlayWindowTypes.overlayWindowType(context)
     ): WindowManager.LayoutParams {
         val flags = WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
             WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
@@ -37,7 +37,7 @@ object OverlayPanelLayoutParams {
             } else {
                 WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
             },
-            PixelFormat.TRANSLUCENT,
+            PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.TOP or Gravity.START
             @Suppress("DEPRECATION")
@@ -52,13 +52,13 @@ object OverlayPanelLayoutParams {
         context: Context,
         focusable: Boolean = false,
         touchable: Boolean = true,
-        softInputMode: Int = defaultSoftInputMode,
+        softInputMode: Int = defaultSoftInputMode
     ): WindowManager.LayoutParams = fullScreenOverlay(
         context = context,
         focusable = focusable,
         touchable = touchable,
         softInputMode = softInputMode,
-        windowType = OverlayWindowTypes.contentPanelWindowType(context),
+        windowType = OverlayWindowTypes.contentPanelWindowType(context)
     ).apply {
         // 侧栏浏览时不抢焦点，尽量保持底层 App 输入法不收起（对齐 ClipShare 单窗 NOT_FOCUSABLE 策略）。
         flags = flags or WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM
@@ -70,6 +70,6 @@ object OverlayPanelLayoutParams {
             focusable = false,
             touchable = false,
             softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_NOTHING,
-            windowType = OverlayWindowTypes.contentPanelWindowType(context),
+            windowType = OverlayWindowTypes.contentPanelWindowType(context)
         )
 }

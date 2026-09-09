@@ -53,7 +53,7 @@ class EdgeGestureOverlayView(
     private val onOverlayPresentationResume: () -> Unit = {},
     private val onShellPanelAuxiliaryPrepare: () -> Unit = {},
     private val onShellPanelAuxiliaryDismiss: () -> Unit = {},
-    overlayBrightness: OverlayBrightnessControl? = null,
+    overlayBrightness: OverlayBrightnessControl? = null
 ) : View(context), IndexSessionHost {
 
     private val gestureCallbacks = GestureSessionCallbackBridge()
@@ -73,7 +73,7 @@ class EdgeGestureOverlayView(
         clickPassthroughHandler = onClickPassthroughCallback,
         overlayBrightness = overlayBrightness,
         side = side,
-        onShellCommandsPersist = onShellCommandsPersist,
+        onShellCommandsPersist = onShellCommandsPersist
     )
     private val pathRecognizer = SwipePathRecognizer(side, resources.displayMetrics.density)
     private val panelContentRect = RectF()
@@ -87,7 +87,7 @@ class EdgeGestureOverlayView(
         indexSession = indexSession,
         pathRecognizer = pathRecognizer,
         actionExecutor = actionExecutor,
-        callbacks = gestureCallbacks,
+        callbacks = gestureCallbacks
     )
 
     private val gestureAnimationCoordinator = GestureAnimationCoordinator(
@@ -95,7 +95,7 @@ class EdgeGestureOverlayView(
         gestureSessionProvider = { gestureSession },
         pathRecognizerProvider = { pathRecognizer },
         settingsProvider = { settings },
-        post = { action -> post(action) },
+        post = { action -> post(action) }
     )
 
     private val overlayHosts = EdgeGestureOverlayHosts(
@@ -133,7 +133,7 @@ class EdgeGestureOverlayView(
         onOverlayWindowSuspendFn = onOverlayWindowSuspend,
         onOverlayWindowResumeFn = onOverlayWindowResume,
         onShellPanelAuxiliaryPrepareFn = onShellPanelAuxiliaryPrepare,
-        onShellPanelAuxiliaryDismissFn = onShellPanelAuxiliaryDismiss,
+        onShellPanelAuxiliaryDismissFn = onShellPanelAuxiliaryDismiss
     )
 
     private val shellCoordinator: ShellPanelOverlayController = ShellPanelOverlayController(overlayHosts)
@@ -158,7 +158,7 @@ class EdgeGestureOverlayView(
         settingsProvider = { settings },
         previewModeProvider = { previewMode },
         viewSizeProvider = { width to height },
-        onSessionEnd = onSessionEndCallback,
+        onSessionEnd = onSessionEndCallback
     )
 
     private val sessionCoordinator = EdgeGestureSessionCoordinator(
@@ -181,7 +181,7 @@ class EdgeGestureOverlayView(
         requestInvalidate = ::invalidate,
         indexPanelContentRect = { indexPanelRenderer.indexPanelContentRect() },
         onIndexSessionStart = ::warmIndexLaunchIcons,
-        notifyAccessibilityStructure = ::notifyOverlayAccessibilityStructureIfNeeded,
+        notifyAccessibilityStructure = ::notifyOverlayAccessibilityStructureIfNeeded
     )
 
     init {
@@ -206,7 +206,7 @@ class EdgeGestureOverlayView(
         previewFocusProvider = { previewFocus },
         densityProvider = { resources.displayMetrics.density },
         dpFn = ::dp,
-        syncZoneLayout = { layoutCoordinator.syncZoneLayout() },
+        syncZoneLayout = { layoutCoordinator.syncZoneLayout() }
     )
 
     private val touchDispatcher = EdgeGestureTouchDispatcher(
@@ -224,7 +224,7 @@ class EdgeGestureOverlayView(
         onForceRecoverInteractionState = ::forceRecoverInteractionState,
         edgeCaptureTouchActive = { edgeCaptureTouchActive },
         setEdgeCaptureTouchActive = { edgeCaptureTouchActive = it },
-        composeOverlayDialogShowing = layoutCoordinator::composeOverlayDialogShowing,
+        composeOverlayDialogShowing = layoutCoordinator::composeOverlayDialogShowing
     )
 
     init {
@@ -326,7 +326,7 @@ class EdgeGestureOverlayView(
                         rawX = event.rawX,
                         rawY = event.rawY,
                         localX = localX,
-                        localY = localY,
+                        localY = localY
                     )
                 ) {
                     return false
@@ -378,7 +378,7 @@ class EdgeGestureOverlayView(
     fun setPreviewMode(
         enabled: Boolean,
         content: LayoutPreviewContent = LayoutPreviewContent.TRIGGER_ONLY,
-        focus: LayoutPreviewFocus? = null,
+        focus: LayoutPreviewFocus? = null
     ) {
         previewMode = enabled
         previewContent = content
@@ -428,7 +428,7 @@ class EdgeGestureOverlayView(
         mode: ContinuousAdjustController.Mode,
         fraction: Float,
         anchorRawY: Float,
-        @Suppress("UNUSED_PARAMETER") deferWindowLayout: Boolean = false,
+        @Suppress("UNUSED_PARAMETER") deferWindowLayout: Boolean = false
     ) {
         onAdjustPanelLayoutCallback(anchorRawY)
         adjustPanelController.showAdjustPanel(mode, fraction, anchorRawY)
@@ -450,7 +450,7 @@ class EdgeGestureOverlayView(
             quickLauncherController = quickLauncherController,
             taskSwitcherController = taskSwitcherController,
             shellPanelController = shellCoordinator.shellCommandPanelController(),
-            appsByPackage = quickLauncherController.quickLauncherAppsByPackage,
+            appsByPackage = quickLauncherController.quickLauncherAppsByPackage
         )
 
     private fun notifyOverlayAccessibilityIfChanged() {
@@ -499,7 +499,7 @@ class EdgeGestureOverlayView(
             (rect.left - pad).toInt().coerceAtLeast(0),
             (rect.top - pad).toInt().coerceAtLeast(0),
             (rect.right + pad).toInt().coerceAtMost(width.coerceAtLeast(1)),
-            (rect.bottom + pad).toInt().coerceAtMost(height.coerceAtLeast(1)),
+            (rect.bottom + pad).toInt().coerceAtMost(height.coerceAtLeast(1))
         )
         notifyOverlayAccessibilityStructureIfNeeded()
     }
@@ -521,7 +521,7 @@ class EdgeGestureOverlayView(
                     viewTreeObserver.removeOnGlobalLayoutListener(this)
                     block()
                 }
-            },
+            }
         )
         requestLayout()
     }
@@ -531,7 +531,7 @@ class EdgeGestureOverlayView(
         localX: Float,
         localY: Float,
         includeHistory: Boolean,
-        block: (rawX: Float, rawY: Float, localX: Float, localY: Float) -> Unit,
+        block: (rawX: Float, rawY: Float, localX: Float, localY: Float) -> Unit
     ) {
         if (includeHistory) {
             val rawOffsetX = event.rawX - event.x

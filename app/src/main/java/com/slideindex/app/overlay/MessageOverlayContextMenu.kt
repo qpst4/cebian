@@ -17,23 +17,23 @@ fun MessageOverlayContextMenu(
     onDismissRequest: () -> Unit,
     onCopy: () -> Unit,
     onClose: () -> Unit,
-    onClearAll: () -> Unit,
+    onClearAll: () -> Unit
 ) {
     DropdownMenu(
         expanded = expanded,
-        onDismissRequest = onDismissRequest,
+        onDismissRequest = onDismissRequest
     ) {
         DropdownMenuItem(
             text = { Text(stringResource(R.string.message_overlay_menu_copy)) },
-            onClick = onCopy,
+            onClick = onCopy
         )
         DropdownMenuItem(
             text = { Text(stringResource(R.string.message_overlay_menu_close)) },
-            onClick = onClose,
+            onClick = onClose
         )
         DropdownMenuItem(
             text = { Text(stringResource(R.string.message_overlay_menu_clear_all)) },
-            onClick = onClearAll,
+            onClick = onClearAll
         )
     }
 }

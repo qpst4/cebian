@@ -20,7 +20,7 @@ data class SearchEngineImportResult(
     val importedCount: Int,
     val skippedCount: Int,
     val sourceLabel: String,
-    val mergedEngines: List<SearchEngineConfig>,
+    val mergedEngines: List<SearchEngineConfig>
 )
 
 object SearchEngineImporter {
@@ -30,7 +30,7 @@ object SearchEngineImporter {
         context: Context,
         uri: Uri,
         existing: List<SearchEngineConfig>,
-        replaceExisting: Boolean,
+        replaceExisting: Boolean
     ): Result<SearchEngineImportResult> = runCatching {
         val bytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
             ?: error("cannot_read_file")
@@ -45,7 +45,7 @@ object SearchEngineImporter {
         context: Context,
         bytes: ByteArray,
         existing: List<SearchEngineConfig>,
-        replaceExisting: Boolean,
+        replaceExisting: Boolean
     ): SearchEngineImportResult {
         val entries = readZipEntries(bytes)
         val gevoJson = entries["settings/search.json"]
@@ -65,7 +65,7 @@ object SearchEngineImporter {
         context: Context,
         raw: String,
         existing: List<SearchEngineConfig>,
-        replaceExisting: Boolean,
+        replaceExisting: Boolean
     ): SearchEngineImportResult {
         val imported = parseGevoExportJson(raw)
         return finalizeImport(context, existing, replaceExisting, imported, emptyMap(), "JSON")
@@ -77,7 +77,7 @@ object SearchEngineImporter {
         replaceExisting: Boolean,
         imported: List<SearchEngineConfig>,
         zipEntries: Map<String, ByteArray>,
-        sourceLabel: String,
+        sourceLabel: String
     ): SearchEngineImportResult {
         if (imported.isEmpty()) error("no_search_engines")
         copyIconsFromZip(context, zipEntries, imported)
@@ -88,13 +88,13 @@ object SearchEngineImporter {
             importedCount = added,
             skippedCount = skipped,
             sourceLabel = sourceLabel,
-            mergedEngines = merged,
+            mergedEngines = merged
         )
     }
 
     fun parseGevoSearchJson(
         settingsJson: String,
-        zipEntries: Map<String, ByteArray>,
+        zipEntries: Map<String, ByteArray>
     ): List<SearchEngineConfig> {
         val root = json.parseToJsonElement(settingsJson).jsonObject
         val entries = root["entries"]?.jsonArray ?: return emptyList()
@@ -123,7 +123,7 @@ object SearchEngineImporter {
 
     private fun parseGevoEngineArray(
         listJson: String,
-        zipEntries: Map<String, ByteArray>,
+        zipEntries: Map<String, ByteArray>
     ): List<SearchEngineConfig> {
         val array = json.parseToJsonElement(listJson).jsonArray
         return array.mapIndexed { index, item ->
@@ -133,7 +133,7 @@ object SearchEngineImporter {
 
     private fun mapGevoEngine(
         obj: JsonObject,
-        zipEntries: Map<String, ByteArray>,
+        zipEntries: Map<String, ByteArray>
     ): SearchEngineConfig {
         val engineType = runCatching {
             SearchEngineType.valueOf(obj.stringValue("engineType") ?: SearchEngineType.DIRECT_LINK.name)
@@ -157,13 +157,13 @@ object SearchEngineImporter {
             targetPackage = obj.stringValue("targetPackage"),
             targetActivity = obj.stringValue("targetActivity"),
             autoInputEnter = obj.booleanValue("autoInputEnter") ?: true,
-            showInPickPanel = obj.booleanValue("showInSearchEngineList") ?: true,
+            showInPickPanel = obj.booleanValue("showInSearchEngineList") ?: true
         )
     }
 
     fun parseSevoSearchJson(
         infoJson: String,
-        zipEntries: Map<String, ByteArray>,
+        zipEntries: Map<String, ByteArray>
     ): List<SearchEngineConfig> {
         val searchArray = extractSevoSearchArray(infoJson) ?: error("sevo_search_parse_failed")
         return searchArray.mapIndexed { index, item ->
@@ -173,7 +173,7 @@ object SearchEngineImporter {
 
     private fun mapSevoEngine(
         obj: JsonObject,
-        zipEntries: Map<String, ByteArray>,
+        zipEntries: Map<String, ByteArray>
     ): SearchEngineConfig {
         val url = obj.stringValue("url").orEmpty()
         val externUrl = obj.stringValue("externUrl").orEmpty()
@@ -198,7 +198,7 @@ object SearchEngineImporter {
             targetPackage = pkg.takeIf { it.isNotBlank() },
             targetActivity = targetClass.takeIf { it.isNotBlank() },
             autoInputEnter = true,
-            showInPickPanel = true,
+            showInPickPanel = true
         )
     }
 
@@ -231,7 +231,7 @@ object SearchEngineImporter {
     private fun copyIconsFromZip(
         context: Context,
         zipEntries: Map<String, ByteArray>,
-        engines: List<SearchEngineConfig>,
+        engines: List<SearchEngineConfig>
     ) {
         val iconDir = File(context.filesDir, "search_icons").apply { mkdirs() }
         engines.forEach { engine ->

@@ -37,7 +37,7 @@ private object SystemRecentsReader : RecentsReader {
 
 internal class TaskManagerTaskOperations(
     private val shell: ShellCommandRunner = DefaultShellRunner,
-    private val recents: RecentsReader = SystemRecentsReader,
+    private val recents: RecentsReader = SystemRecentsReader
 ) {
 
     fun removeTaskById(taskIdStr: String?): Boolean {
@@ -50,7 +50,7 @@ internal class TaskManagerTaskOperations(
             arrayOf("cmd", "activity", "task", "remove", id.toString()),
             arrayOf("cmd", "activity", "task", "remove-task", id.toString()),
             arrayOf("am", "task", "remove", id.toString()),
-            arrayOf("am", "stack", "remove", id.toString()),
+            arrayOf("am", "stack", "remove", id.toString())
         )
         for (command in commands) {
             if (shell.shellCommand(*command)) {
@@ -111,7 +111,7 @@ internal class TaskManagerTaskOperations(
     fun switchToTask(
         taskIdStr: String?,
         identifier: String?,
-        topComponentStr: String?,
+        topComponentStr: String?
     ): Boolean {
         val rawId = identifier?.trim().orEmpty()
         val knownTaskId = taskIdStr?.toIntOrNull()?.takeIf { it > 0 }
@@ -144,7 +144,7 @@ internal class TaskManagerTaskOperations(
         if (packageName.isNullOrBlank() || shortcutId.isNullOrBlank()) return false
         val attempts = listOf(
             arrayOf("cmd", "shortcut", "start-shortcut", "--user", "0", packageName, shortcutId),
-            arrayOf("cmd", "shortcut", "start-shortcut", packageName, shortcutId),
+            arrayOf("cmd", "shortcut", "start-shortcut", packageName, shortcutId)
         )
         val started = attempts.any { shell.shellCommand(*it) }
         Log.i(TAG, "startPublishedShortcut($packageName, $shortcutId) -> $started")

@@ -9,11 +9,11 @@ internal data class TaskSwitcherPick(
     val row: Int = -1,
     val close: Int = -1,
     val freeWindow: Int = -1,
-    val closeAll: Boolean = false,
+    val closeAll: Boolean = false
 )
 
 internal class TaskSwitcherPickResolver(
-    private val touch: TaskSwitcherTouchHandler,
+    private val touch: TaskSwitcherTouchHandler
 ) {
     private val ctrl get() = touch.ctrl
     private val host get() = touch.host
@@ -21,7 +21,7 @@ internal class TaskSwitcherPickResolver(
     fun resolve(
         layout: TaskSwitcherPanelLayout,
         localX: Float,
-        localY: Float,
+        localY: Float
     ): TaskSwitcherPick {
         val touchX = host.panelEnterAdjustedX(localX, layout.panelRect)
         if (layout.closeAllRect.contains(touchX, localY)) {
@@ -78,7 +78,7 @@ internal class TaskSwitcherPickResolver(
         layout: TaskSwitcherPanelLayout,
         pick: TaskSwitcherPick,
         eventTime: Long,
-        haptic: Boolean,
+        haptic: Boolean
     ) {
         if (host.gestureSession().taskSwitcherContinuousPickActive() && !touch.continuousPickReady()) {
             return
@@ -91,7 +91,7 @@ internal class TaskSwitcherPickResolver(
     fun isDownPickHeld(
         localX: Float,
         localY: Float,
-        layout: TaskSwitcherPanelLayout,
+        layout: TaskSwitcherPanelLayout
     ): Boolean {
         val touchX = host.panelEnterAdjustedX(localX, layout.panelRect)
         when {
@@ -118,7 +118,7 @@ internal class TaskSwitcherPickResolver(
     fun isInteractiveTouch(
         localX: Float,
         localY: Float,
-        layout: TaskSwitcherPanelLayout,
+        layout: TaskSwitcherPanelLayout
     ): Boolean {
         if (isPanelTouch(localX, localY, layout.panelRect)) return true
         if (isInCloseApproachZone(localX, layout)) {
@@ -188,7 +188,7 @@ internal class TaskSwitcherPickResolver(
         localX: Float,
         localY: Float,
         row: TaskSwitcherRowLayout,
-        layout: TaskSwitcherPanelLayout,
+        layout: TaskSwitcherPanelLayout
     ): Boolean {
         if (!hitVisible(row.closeRect, layout.listRect)) return false
         if (row.closeRect.contains(localX, localY)) return true

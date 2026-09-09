@@ -27,7 +27,7 @@ enum class VolumeHitTarget {
 
 data class BrightnessPanelVisual(
     val autoBrightnessEnabled: Boolean,
-    val darkModeEnabled: Boolean,
+    val darkModeEnabled: Boolean
 )
 
 data class VolumePanelVisual(
@@ -35,7 +35,7 @@ data class VolumePanelVisual(
     val ringFraction: Float,
     val notificationFraction: Float,
     val ringerMode: Int,
-    val interruptionFilter: Int,
+    val interruptionFilter: Int
 )
 
 data class AdjustLevelIndicatorLayout(
@@ -48,5 +48,5 @@ data class AdjustLevelIndicatorLayout(
     val topPill: RectF? = null,
     val bottomPill: RectF? = null,
     val ringerButton: RectF? = null,
-    val expandButton: RectF? = null,
+    val expandButton: RectF? = null
 )

@@ -17,7 +17,7 @@ import kotlin.math.abs
  */
 internal class OverlayFloatSpringMotion(
     private val scope: CoroutineScope,
-    private val animationSpec: AnimationSpec<Float> = OverlayPanelSpringMotion.snapSpec,
+    private val animationSpec: AnimationSpec<Float> = OverlayPanelSpringMotion.snapSpec
 ) {
     private var job: Job? = null
 
@@ -34,7 +34,7 @@ internal class OverlayFloatSpringMotion(
         target: Float,
         epsilon: Float,
         onValue: (Float) -> Unit,
-        onComplete: () -> Unit = {},
+        onComplete: () -> Unit = {}
     ) {
         cancel()
         if (abs(start - target) < epsilon) {
@@ -48,7 +48,7 @@ internal class OverlayFloatSpringMotion(
                 withContext(AndroidUiDispatcher.Main) {
                     AnimationState(initialValue = start).animateTo(
                         targetValue = target,
-                        animationSpec = animationSpec,
+                        animationSpec = animationSpec
                     ) {
                         onValue(value)
                     }

@@ -50,7 +50,7 @@ fun FingertipRingSettingsScreen(
     onIconSizeChange: (Float) -> Unit,
     onOpenSlotActionPick: (Int) -> Unit,
     onOpenShellCommand: (Int, String) -> Unit,
-    onOpenSwipeConfig: (Int) -> Unit,
+    onOpenSwipeConfig: (Int) -> Unit
 ) {
     val slotCount = FingertipRingCodec.effectiveSlotCount(settings.fingertipRingSlotCount)
     val activeSlots = FingertipRingCodec.activeSlots(settings.fingertipRing)
@@ -67,12 +67,11 @@ fun FingertipRingSettingsScreen(
 
     SettingsLazyScreenScaffold(
         title = stringResource(R.string.fingertip_ring_settings_title),
-        onBack = onBack,
+        onBack = onBack
     ) {
         settingsLazySmallTitle(
             key = "fingertip_ring_layout_title",
-            title = layoutSectionTitle,
-            sectionTop = true,
+            title = layoutSectionTitle
         )
         groupedCardItems(
             keyPrefix = "fingertip-ring-layout",
@@ -85,7 +84,7 @@ fun FingertipRingSettingsScreen(
                         steps = ((FingertipRingCodec.MAX_ORBIT_RADIUS_PX - FingertipRingCodec.MIN_ORBIT_RADIUS_PX) / 8f).roundToInt() - 1,
                         enabled = true,
                         label = orbitRadiusLabel,
-                        onValueChange = onOrbitRadiusChange,
+                        onValueChange = onOrbitRadiusChange
                     )
                 },
                 settingsCardScopeItem("icon-size") {
@@ -96,15 +95,15 @@ fun FingertipRingSettingsScreen(
                         steps = ((FingertipRingCodec.MAX_ICON_SIZE_PX - FingertipRingCodec.MIN_ICON_SIZE_PX) / 4f).roundToInt() - 1,
                         enabled = true,
                         label = iconSizeLabel,
-                        onValueChange = onIconSizeChange,
+                        onValueChange = onIconSizeChange
                     )
-                },
-            ),
+                }
+            )
         )
 
         settingsLazySmallTitle(
             key = "fingertip_ring_slots_title",
-            title = slotsSectionTitle,
+            title = slotsSectionTitle
         )
         groupedCardItems(
             keyPrefix = "fingertip-ring-slots",
@@ -118,9 +117,9 @@ fun FingertipRingSettingsScreen(
                             steps = FingertipRingCodec.MAX_SLOT_COUNT - FingertipRingCodec.MIN_SLOT_COUNT - 1,
                             enabled = true,
                             label = slotCountLabel,
-                            onValueChange = { onSlotCountChange(it.roundToInt()) },
+                            onValueChange = { onSlotCountChange(it.roundToInt()) }
                         )
-                    },
+                    }
                 )
                 repeat(slotCount) { index ->
                     val action = activeSlots.getOrElse(index) { GestureAction.None }
@@ -131,7 +130,7 @@ fun FingertipRingSettingsScreen(
                                     FingertipRingSlotActionIcon(
                                         action = action,
                                         settings = settings,
-                                        contentDescription = label,
+                                        contentDescription = label
                                     )
                                 },
                                 title = stringResource(R.string.fingertip_ring_slot_title, index + 1),
@@ -150,23 +149,23 @@ fun FingertipRingSettingsScreen(
                                                         is GestureAction.ExecuteShellCommand ->
                                                             onOpenShellCommand(index, current.command)
                                                     }
-                                                },
+                                                }
                                             ) {
                                                 Icon(
                                                     Icons.Outlined.Settings,
                                                     contentDescription = stringResource(R.string.cd_radial_menu_settings),
-                                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                                                 )
                                             }
                                         }
                                     }
                                     else -> null
-                                },
+                                }
                             )
-                        },
+                        }
                     )
                 }
-            },
+            }
         )
     }
 }
@@ -175,32 +174,32 @@ fun FingertipRingSettingsScreen(
 private fun FingertipRingSlotActionIcon(
     action: GestureAction,
     settings: AppSettings,
-    contentDescription: String?,
+    contentDescription: String?
 ) {
     when (action) {
         is GestureAction.LaunchApp -> {
             Md3PickerPackageLeading(
                 packageName = action.packageName,
-                contentDescription = contentDescription,
+                contentDescription = contentDescription
             )
         }
         is GestureAction.LaunchShortcut -> {
             Md3PickerLaunchShortcutLeading(
                 action = action,
-                activityShortcuts = settings.activityShortcuts,
+                activityShortcuts = settings.activityShortcuts
             )
         }
         is GestureAction.ExecuteShellCommand -> {
             FingertipRingShellSlotIcon(
                 action = action,
                 settings = settings,
-                contentDescription = contentDescription,
+                contentDescription = contentDescription
             )
         }
         else -> {
             Icon(
                 imageVector = gestureActionIcon(action),
-                contentDescription = contentDescription,
+                contentDescription = contentDescription
             )
         }
     }
@@ -210,7 +209,7 @@ private fun FingertipRingSlotActionIcon(
 private fun FingertipRingShellSlotIcon(
     action: GestureAction.ExecuteShellCommand,
     settings: AppSettings,
-    contentDescription: String?,
+    contentDescription: String?
 ) {
     val context = LocalContext.current
     val density = LocalDensity.current
@@ -223,23 +222,23 @@ private fun FingertipRingShellSlotIcon(
             sizePx = iconPx,
             tintArgb = android.graphics.Color.WHITE,
             activityShortcuts = settings.activityShortcuts,
-            shellCommands = settings.shellCommands,
+            shellCommands = settings.shellCommands
         )
     }
     Box(
         modifier = Modifier.size(40.dp),
-        contentAlignment = Alignment.Center,
+        contentAlignment = Alignment.Center
     ) {
         if (bitmap != null) {
             Image(
                 bitmap = bitmap!!.asImageBitmap(),
                 contentDescription = contentDescription,
-                modifier = Modifier.size(iconSize),
+                modifier = Modifier.size(iconSize)
             )
         } else {
             Icon(
                 imageVector = gestureActionIcon(action),
-                contentDescription = contentDescription,
+                contentDescription = contentDescription
             )
         }
         if (action.showsShellCommandBadge(settings.shellCommands)) {

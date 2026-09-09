@@ -17,7 +17,7 @@ object OverlayLayoutPreviewStore {
         val bottomFraction: Float? = null,
         val shortSwipeDistanceDp: Float? = null,
         val longSwipeDistanceDp: Float? = null,
-        val design: TriggerHandleDesign? = null,
+        val design: TriggerHandleDesign? = null
     )
 
     @Volatile
@@ -44,7 +44,7 @@ object OverlayLayoutPreviewStore {
         bottomFraction: Float? = null,
         shortSwipeDistanceDp: Float? = null,
         longSwipeDistanceDp: Float? = null,
-        design: TriggerHandleDesign? = null,
+        design: TriggerHandleDesign? = null
     ) {
         val existing = triggerHandlePreview?.takeIf { it.side == side && it.handleId == handleId }
         triggerHandlePreview = TriggerHandlePreview(
@@ -55,7 +55,7 @@ object OverlayLayoutPreviewStore {
             bottomFraction = bottomFraction ?: existing?.bottomFraction,
             shortSwipeDistanceDp = shortSwipeDistanceDp ?: existing?.shortSwipeDistanceDp,
             longSwipeDistanceDp = longSwipeDistanceDp ?: existing?.longSwipeDistanceDp,
-            design = design ?: existing?.design,
+            design = design ?: existing?.design
         )
     }
 }

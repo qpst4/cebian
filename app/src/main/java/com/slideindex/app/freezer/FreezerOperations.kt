@@ -58,7 +58,7 @@ object FreezerOperations {
         appRepository: AppRepository,
         settings: AppSettings,
         app: AppInfo,
-        fullscreen: Boolean = true,
+        fullscreen: Boolean = true
     ): Boolean = withContext(Dispatchers.IO) {
         if (isFrozen(context, app.packageName)) {
             if (!setFrozen(context, app.packageName, frozen = false)) {
@@ -75,7 +75,7 @@ object FreezerOperations {
         app: AppInfo,
         settings: AppSettings,
         appRepository: AppRepository,
-        fullscreen: Boolean,
+        fullscreen: Boolean
     ): Boolean {
         val effectiveSettings = if (!fullscreen) {
             settings.copy(freeWindow = settings.freeWindow.copy(freeWindowEnabled = true))

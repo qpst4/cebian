@@ -21,7 +21,7 @@ import com.slideindex.app.ui.settings.components.SettingsCardScope
 import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffold
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
-import com.slideindex.app.ui.settings.components.settingsLazyHint
+import com.slideindex.app.ui.settings.components.settingsLazyTipCard
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 
 @Composable
@@ -35,20 +35,20 @@ fun ExternalInvocationHelpScreen(onBack: () -> Unit) {
 
     SettingsLazyScreenScaffold(
         title = stringResource(R.string.external_invocation_title),
-        onBack = onBack,
+        onBack = onBack
     ) {
-        settingsLazyHint(
+        settingsLazyTipCard(
             key = "external_invocation_hint",
-            text = hintText,
+            text = hintText
         )
-        settingsLazyHint(
+        settingsLazyTipCard(
             key = "external_invocation_query_hint",
-            text = queryHintText,
+            text = queryHintText
         )
 
         settingsLazySmallTitle(
             key = "external_invocation_deeplink_section",
-            title = deeplinkSectionTitle,
+            title = deeplinkSectionTitle
         )
         groupedCardItems(
             keyPrefix = "external_invocation_deeplink",
@@ -56,20 +56,19 @@ fun ExternalInvocationHelpScreen(onBack: () -> Unit) {
                 settingsCardScopeItem("deeplink-${entry.path}") {
                     ExternalInvocationDeeplinkRow(
                         entry = entry,
-                        copiedMessage = copiedMessage,
+                        copiedMessage = copiedMessage
                     )
                 }
-            },
+            }
         )
 
         settingsLazySmallTitle(
             key = "external_invocation_action_section",
-            title = actionSectionTitle,
-            sectionTop = true,
+            title = actionSectionTitle
         )
-        settingsLazyHint(
+        settingsLazyTipCard(
             key = "external_invocation_action_hint",
-            text = actionHintText,
+            text = actionHintText
         )
         groupedCardItems(
             keyPrefix = "external_invocation_action",
@@ -77,10 +76,10 @@ fun ExternalInvocationHelpScreen(onBack: () -> Unit) {
                 settingsCardScopeItem("action-${entry.action}") {
                     ExternalInvocationActionRow(
                         entry = entry,
-                        copiedMessage = copiedMessage,
+                        copiedMessage = copiedMessage
                     )
                 }
-            },
+            }
         )
     }
 }
@@ -88,7 +87,7 @@ fun ExternalInvocationHelpScreen(onBack: () -> Unit) {
 @Composable
 private fun SettingsCardScope.ExternalInvocationDeeplinkRow(
     entry: ExternalInvocationCatalog.DeeplinkEntry,
-    copiedMessage: String,
+    copiedMessage: String
 ) {
     val uri = ExternalInvocationCatalog.deeplinkUri(entry.path)
     val title = stringResource(entry.titleRes)
@@ -106,14 +105,14 @@ private fun SettingsCardScope.ExternalInvocationDeeplinkRow(
         title = title,
         subtitle = subtitle,
         copyText = uri,
-        copiedMessage = copiedMessage,
+        copiedMessage = copiedMessage
     )
 }
 
 @Composable
 private fun SettingsCardScope.ExternalInvocationActionRow(
     entry: ExternalInvocationCatalog.ActionEntry,
-    copiedMessage: String,
+    copiedMessage: String
 ) {
     val context = LocalContext.current
     val title = stringResource(entry.titleRes)
@@ -134,7 +133,7 @@ private fun SettingsCardScope.ExternalInvocationActionRow(
         title = title,
         subtitle = subtitle,
         copyText = adbCommand,
-        copiedMessage = copiedMessage,
+        copiedMessage = copiedMessage
     )
 }
 
@@ -143,7 +142,7 @@ private fun SettingsCardScope.ExternalInvocationCopyRow(
     title: String,
     subtitle: String,
     copyText: String,
-    copiedMessage: String,
+    copiedMessage: String
 ) {
     val context = LocalContext.current
     MiuixNavigationRow(
@@ -153,7 +152,7 @@ private fun SettingsCardScope.ExternalInvocationCopyRow(
             copyToClipboard(context, copyText)
             Toast.makeText(context, copiedMessage, Toast.LENGTH_SHORT).show()
         },
-        rowKey = copyText,
+        rowKey = copyText
     )
 }
 
@@ -163,7 +162,7 @@ fun SettingsCardScope.ExternalInvocationEntryCard(onClick: () -> Unit) {
         icon = { label -> Icon(Icons.Outlined.Link, contentDescription = label) },
         title = stringResource(R.string.external_invocation_entry_title),
         subtitle = stringResource(R.string.external_invocation_entry_desc),
-        onClick = onClick,
+        onClick = onClick
     )
 }
 

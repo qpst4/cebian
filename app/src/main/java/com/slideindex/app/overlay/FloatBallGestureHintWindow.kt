@@ -45,7 +45,7 @@ internal class FloatBallGestureHintWindow {
             fingerY: Float,
             dockSide: FloatBallSide,
             hintSizePx: Int,
-            gapPx: Int,
+            gapPx: Int
         ): Pair<Int, Int> {
             val x = when (dockSide) {
                 FloatBallSide.LEFT -> (fingerX + gapPx).roundToInt()
@@ -83,7 +83,7 @@ internal class FloatBallGestureHintWindow {
                     FloatBallGestureHintContent(
                         visibleState = visibleState,
                         iconState = iconState,
-                        tintArgbState = tintArgbState,
+                        tintArgbState = tintArgbState
                     )
                 }
             }
@@ -97,7 +97,7 @@ internal class FloatBallGestureHintWindow {
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                 WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
                 WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
-            PixelFormat.TRANSLUCENT,
+            PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.TOP or Gravity.START
             layoutInDisplayCutoutMode =
@@ -116,7 +116,7 @@ internal class FloatBallGestureHintWindow {
         fingerX: Float,
         fingerY: Float,
         dockSide: FloatBallSide,
-        density: Float,
+        density: Float
     ) {
         val view = hintView ?: return
         val params = hintParams ?: return
@@ -128,7 +128,7 @@ internal class FloatBallGestureHintWindow {
             fingerY = fingerY,
             dockSide = dockSide,
             hintSizePx = hintSizePx,
-            gapPx = gapPx,
+            gapPx = gapPx
         )
         val layoutUnchanged = lastAppliedAction == action &&
             lastAppliedTintArgb == themeColorArgb &&
@@ -214,7 +214,7 @@ internal class FloatBallGestureHintWindow {
 private fun FloatBallGestureHintContent(
     visibleState: MutableState<Boolean>,
     iconState: MutableState<ImageVector?>,
-    tintArgbState: IntState,
+    tintArgbState: IntState
 ) {
     val visible by visibleState
     val icon = iconState.value
@@ -225,13 +225,13 @@ private fun FloatBallGestureHintContent(
             .size(FloatBallGestureHintWindow.HINT_SIZE_DP.dp)
             .clip(CircleShape)
             .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.92f)),
-        contentAlignment = Alignment.Center,
+        contentAlignment = Alignment.Center
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
             modifier = Modifier.size(16.dp),
-            tint = tint,
+            tint = tint
         )
     }
 }

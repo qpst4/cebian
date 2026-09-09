@@ -74,7 +74,7 @@ internal object FloatBallLayout {
         metrics: DisplayMetrics,
         activeSide: FloatBallSide,
         screenWidthPx: Int = metrics.widthPixels,
-        screenHeightPx: Int = metrics.heightPixels,
+        screenHeightPx: Int = metrics.heightPixels
     ): Pair<Int, Int> {
         val density = metrics.density
         val ballSizePx = ballSizePx(settings, density)
@@ -89,7 +89,7 @@ internal object FloatBallLayout {
                 activeSide = activeSide,
                 ballSizePx = ballSizePx,
                 screenWidth = screenWidthPx,
-                visibleFraction = coerceVisibleFraction(settings.floatBallVisibleFraction),
+                visibleFraction = coerceVisibleFraction(settings.floatBallVisibleFraction)
             )
         }
         val top = (centerY - ballSizePx / 2f).roundToInt()
@@ -102,7 +102,7 @@ internal object FloatBallLayout {
         metrics: DisplayMetrics,
         activeSide: FloatBallSide,
         screenWidthPx: Int = metrics.widthPixels,
-        screenHeightPx: Int = metrics.heightPixels,
+        screenHeightPx: Int = metrics.heightPixels
     ): Pair<Float, Float> {
         val ballSizePx = ballSizePx(settings, metrics.density)
         val (left, top) = ballTopLeft(settings, metrics, activeSide, screenWidthPx, screenHeightPx)
@@ -114,7 +114,7 @@ internal object FloatBallLayout {
         metrics: DisplayMetrics,
         side: FloatBallSide,
         screenWidthPx: Int = metrics.widthPixels,
-        screenHeightPx: Int = metrics.heightPixels,
+        screenHeightPx: Int = metrics.heightPixels
     ): Rect {
         val ballSizePx = ballSizePx(settings, metrics.density)
         val (left, top) = ballTopLeft(settings, metrics, side, screenWidthPx, screenHeightPx)
@@ -126,7 +126,7 @@ internal object FloatBallLayout {
         metrics: DisplayMetrics,
         side: FloatBallSide,
         screenWidthPx: Int = metrics.widthPixels,
-        screenHeightPx: Int = metrics.heightPixels,
+        screenHeightPx: Int = metrics.heightPixels
     ): Rect {
         val density = metrics.density
         val width = lineTriggerWidthPx(settings, screenWidthPx, density)
@@ -151,7 +151,7 @@ internal object FloatBallLayout {
         activeSide: FloatBallSide,
         ballCenterX: Float,
         ballCenterY: Float,
-        screenHeightPx: Int = metrics.heightPixels,
+        screenHeightPx: Int = metrics.heightPixels
     ): Pair<Int, Int> {
         val ballSizePx = ballSizePx(settings, metrics.density)
         val windowX = (ballCenterX - ballSizePx / 2f).roundToInt()
@@ -167,7 +167,7 @@ internal object FloatBallLayout {
         activeSide: FloatBallSide,
         ballSizePx: Int,
         screenWidth: Int,
-        visibleFraction: Float,
+        visibleFraction: Float
     ): Int = when (activeSide) {
         FloatBallSide.LEFT -> (-ballSizePx * (1f - visibleFraction)).roundToInt()
         FloatBallSide.RIGHT -> (screenWidth - ballSizePx * visibleFraction).roundToInt()

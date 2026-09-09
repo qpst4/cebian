@@ -649,6 +649,17 @@
     <string name="gesture_angle_side_bottom">底部</string>
     <string name="gesture_angle_side_top">顶部</string>
     <string name="gesture_angle_live_preview_hint">拖动分界点可实时在边缘测试手势角度，点勾号才保存</string>
+    <string name="system_back_gesture_width_entry_title">系统返回手势宽度</string>
+    <string name="system_back_gesture_width_entry_desc">调节左右边缘系统返回手势触发区域</string>
+    <string name="system_back_gesture_width_title">系统返回手势宽度</string>
+    <string name="system_back_gesture_width_desc">调节系统全面屏手势下，左右边缘返回手势的触发宽度</string>
+    <string name="system_back_gesture_width_experimental_tip" formatted="false">实验性功能：部分机型或系统版本上可能无效或表现不同。某一侧设为 0% 时，相当于屏蔽该侧的系统返回手势；100% 为系统默认宽度。这与触钮设置里的「拦截系统返回手势」不是同一功能。</string>
+    <string name="system_back_gesture_width_not_gesture_nav">当前未使用全面屏手势导航，此设置通常不会生效。</string>
+    <string name="system_back_gesture_width_write_permission_desc">需要修改系统安全设置的权限，可通过 Shizuku 授权或使用 ADB 命令。</string>
+    <string name="system_back_gesture_width_left">左侧宽度</string>
+    <string name="system_back_gesture_width_right">右侧宽度</string>
+    <string name="system_back_gesture_width_reset">恢复默认</string>
+    <string name="system_back_gesture_width_reset_desc">将左右宽度恢复为 100%</string>
     <string name="accessibility_service_name">#边栏👈</string>
     <string name="accessibility_service_desc">开启后才能使用边缘手势与边栏面板，并执行返回、主屏幕、多任务等系统手势；未授权 Shizuku 时也可用于边缘单击穿透。</string>
     <string name="permission_accessibility_title">边栏</string>
@@ -2163,6 +2174,7 @@
     <string name="shell_panel_add">添加命令</string>
     <string name="shell_panel_edit">编辑命令</string>
     <string name="shell_panel_label_field">名称</string>
+    <string name="shell_panel_label_optional_hint">留空将根据命令内容自动生成名称</string>
     <string name="shell_panel_command_field">Shell 命令</string>
     <string name="shell_panel_edit_hint">支持管道与重定向，例如：dumpsys connectivity | grep wlan0</string>
     <string name="shell_panel_save">保存</string>

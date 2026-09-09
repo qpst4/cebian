@@ -40,5 +40,5 @@ class AppDependencies @Inject constructor(
     val searchHistoryRepository: SearchHistoryRepository,
     val stashRepository: StashRepository,
     val clipboardHistoryRepository: ClipboardHistoryRepository,
-    override val widgetPanelPersistence: WidgetPanelPersistence,
+    override val widgetPanelPersistence: WidgetPanelPersistence
 ) : OverlayDependencies

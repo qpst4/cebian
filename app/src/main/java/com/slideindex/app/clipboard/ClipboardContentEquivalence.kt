@@ -41,7 +41,7 @@ object ClipboardContentEquivalence {
         val imageCount = maxOf(
             rawHtmlSources.size,
             imageUris.size,
-            imageFileNames.size,
+            imageFileNames.size
         )
         val sources = when {
             rawHtmlSources.isNotEmpty() -> rawHtmlSources
@@ -58,7 +58,7 @@ object ClipboardContentEquivalence {
             text = payload.text,
             htmlText = payload.htmlText,
             imageFileNames = dummyFiles,
-            imageSources = sources,
+            imageSources = sources
         )
     }
 
@@ -83,7 +83,7 @@ object ClipboardContentEquivalence {
     private fun fingerprintBlocks(
         blocks: List<ClipboardContentBlock>,
         uri: String? = null,
-        sources: List<String> = emptyList(),
+        sources: List<String> = emptyList()
     ): String {
         if (blocks.isEmpty()) return ""
         val combinedText = blocks

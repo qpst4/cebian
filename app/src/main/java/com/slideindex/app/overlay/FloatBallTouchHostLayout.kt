@@ -19,7 +19,7 @@ internal class FloatBallTouchHostLayout(
     private val sceneState: FloatBallSceneState,
     private val settingsProvider: () -> AppSettings,
     private val activeSideProvider: () -> FloatBallSide,
-    private val screenSizeProvider: () -> Pair<Int, Int>,
+    private val screenSizeProvider: () -> Pair<Int, Int>
 ) : FrameLayout(context) {
 
     private val ballDetector = FloatBallGestureDetector()
@@ -66,8 +66,8 @@ internal class FloatBallTouchHostLayout(
                 view,
                 FrameLayout.LayoutParams(
                     FrameLayout.LayoutParams.MATCH_PARENT,
-                    FrameLayout.LayoutParams.MATCH_PARENT,
-                ),
+                    FrameLayout.LayoutParams.MATCH_PARENT
+                )
             )
         }
     }
@@ -93,7 +93,7 @@ internal class FloatBallTouchHostLayout(
             },
             onPickPreviewCancel = { onBallPickPreviewCancel?.invoke() },
             onLauncherCaptureMove = { x, y -> onLauncherCaptureMove?.invoke(x, y) },
-            onLauncherCaptureUp = { x, y -> onLauncherCaptureUp?.invoke(x, y) },
+            onLauncherCaptureUp = { x, y -> onLauncherCaptureUp?.invoke(x, y) }
         )
     }
 
@@ -109,7 +109,7 @@ internal class FloatBallTouchHostLayout(
         onPickPreviewMove: (touchDownX: Float, touchDownY: Float, fingerX: Float, fingerY: Float) -> Unit = { _, _, _, _ -> },
         onPickPreviewCancel: () -> Unit = {},
         onLauncherCaptureMove: (rawX: Float, rawY: Float) -> Unit = { _, _ -> },
-        onLauncherCaptureUp: (rawX: Float, rawY: Float) -> Unit = { _, _ -> },
+        onLauncherCaptureUp: (rawX: Float, rawY: Float) -> Unit = { _, _ -> }
     ) {
         onBallDragStart = onDragStart
         onBallDrag = onDrag
@@ -160,7 +160,7 @@ internal class FloatBallTouchHostLayout(
         onPickPreviewMove: (Float, Float, Float, Float) -> Unit,
         onPickPreviewCancel: () -> Unit,
         onLauncherCaptureMove: (Float, Float) -> Unit = { _, _ -> },
-        onLauncherCaptureUp: (Float, Float) -> Unit = { _, _ -> },
+        onLauncherCaptureUp: (Float, Float) -> Unit = { _, _ -> }
     ) {
         detector.bind(
             settings = settings,
@@ -176,7 +176,7 @@ internal class FloatBallTouchHostLayout(
             onPickPreviewMove = onPickPreviewMove,
             onPickPreviewCancel = onPickPreviewCancel,
             onLauncherCaptureMove = onLauncherCaptureMove,
-            onLauncherCaptureUp = onLauncherCaptureUp,
+            onLauncherCaptureUp = onLauncherCaptureUp
         )
     }
 

@@ -33,7 +33,7 @@ class FreezerAppLaunchTrampolineActivity : ComponentActivity() {
                     this@FreezerAppLaunchTrampolineActivity,
                     deps.appRepository,
                     settings,
-                    app,
+                    app
                 )
             }
             finish()

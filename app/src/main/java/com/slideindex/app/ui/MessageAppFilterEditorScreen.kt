@@ -1,7 +1,6 @@
 package com.slideindex.app.ui
 
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
-import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import top.yukonga.miuix.kmp.basic.SmallTitle
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -72,16 +71,19 @@ fun MessageAppFilterEditorScreen(
         },
     ) {
         MiuixHintText(editorSubtitle)
-        MiuixSmallTitle(modeSectionTitle)
+        SmallTitle(
+            text = modeSectionTitle,
+            modifier = Modifier.fillMaxWidth(),
+        )
         modeRadioGroup.RenderRows()
 
         when (mode) {
             MessageFilterMode.ONLY_MATCHING -> {
-                MiuixSmallTitle(
+                SmallTitle(
                     stringResource(R.string.message_filter_only_conditions),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = MiuixSmallTitleSectionTop),
+                        ,
                 )
                 MessageFilterConditionsEditor(
                     conditions = onlyConditions,
@@ -89,11 +91,11 @@ fun MessageAppFilterEditorScreen(
                 )
             }
             MessageFilterMode.BLOCK_MATCHING -> {
-                MiuixSmallTitle(
+                SmallTitle(
                     stringResource(R.string.message_filter_block_conditions),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = MiuixSmallTitleSectionTop),
+                        ,
                 )
                 MessageFilterConditionsEditor(
                     conditions = blockConditions,

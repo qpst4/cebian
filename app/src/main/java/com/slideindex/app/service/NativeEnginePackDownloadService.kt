@@ -45,8 +45,8 @@ class NativeEnginePackDownloadService : Service() {
                     NativeEnginePackDownloadState(
                         packId = requestedPackId,
                         phase = NativeEnginePackDownloadPhase.FAILED,
-                        errorMessage = "another_download_in_progress",
-                    ),
+                        errorMessage = "another_download_in_progress"
+                    )
                 )
             }
             return START_NOT_STICKY
@@ -63,8 +63,8 @@ class NativeEnginePackDownloadService : Service() {
         NativeEnginePackDownloadController.update(
             NativeEnginePackDownloadState(
                 packId = packId,
-                phase = NativeEnginePackDownloadPhase.DOWNLOADING,
-            ),
+                phase = NativeEnginePackDownloadPhase.DOWNLOADING
+            )
         )
 
         job = scope.launch {
@@ -96,7 +96,7 @@ class NativeEnginePackDownloadService : Service() {
             this,
             NativeEnginePackDownloadNotifications.NOTIFICATION_ID,
             notification,
-            ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC,
+            ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
         )
     }
 

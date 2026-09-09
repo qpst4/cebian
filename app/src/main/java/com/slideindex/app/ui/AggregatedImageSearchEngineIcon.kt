@@ -31,7 +31,7 @@ private const val AggregatedIconCornerFraction = 0.24f
 @Composable
 fun AggregatedImageSearchEngineIcon(
     engine: ImageSearchEngine,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current.applicationContext
     var bitmap by remember(engine) { mutableStateOf<android.graphics.Bitmap?>(null) }
@@ -49,7 +49,7 @@ fun AggregatedImageSearchEngineIcon(
                 .fillMaxSize()
                 .clip(shape)
                 .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)),
-            contentAlignment = Alignment.Center,
+            contentAlignment = Alignment.Center
         ) {
             val image = bitmap
             if (image != null) {
@@ -59,13 +59,13 @@ fun AggregatedImageSearchEngineIcon(
                     modifier = Modifier
                         .fillMaxSize()
                         .clip(shape),
-                    contentScale = ContentScale.Crop,
+                    contentScale = ContentScale.Crop
                 )
             } else {
                 Text(
                     text = engine.displayName.take(1),
                     style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }

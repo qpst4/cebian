@@ -108,6 +108,7 @@ sealed interface AppNavKey : NavKey {
     @Serializable data class HomeSideGesturesAppearance(val side: String, val handleId: String) : AppNavKey
     @Serializable data class HomeSideGesturesDesign(val side: String, val handleId: String) : AppNavKey
     @Serializable data object HomeGestureAngle : AppNavKey
+    @Serializable data object HomeSystemBackGestureWidth : AppNavKey
     @Serializable data object HomeAnimationStyleSelect : AppNavKey
     @Serializable data object HomeWaveAnimationStyle : AppNavKey
     @Serializable data object HomeCapsuleAnimationStyle : AppNavKey
@@ -192,6 +193,7 @@ sealed interface AppNavKey : NavKey {
     @Serializable data object ShakeGestureBlacklist : AppNavKey
     @Serializable data object ShakeGestureBlacklistPick : AppNavKey
     @Serializable data object ShakeLockScreenSettings : AppNavKey
+    @Serializable data object ShakeFaceDownSettings : AppNavKey
     @Serializable data object ShakeIndependentSensitivity : AppNavKey
     @Serializable data object ShakeIndependentAppSettings : AppNavKey
     @Serializable data object ShakeIndependentAppPick : AppNavKey

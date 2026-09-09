@@ -11,7 +11,7 @@ object OtpAutoFillUiLabels {
     fun formatRuntimeStatus(
         context: Context,
         settings: AppSettings,
-        accessibilityGranted: Boolean,
+        accessibilityGranted: Boolean
     ): String = when {
         !settings.otpAutoInputEnabled ->
             context.getString(R.string.otp_runtime_status_disabled)
@@ -33,7 +33,7 @@ object OtpAutoFillUiLabels {
     fun formatFillPipelineHint(
         context: Context,
         settings: AppSettings,
-        accessibilityGranted: Boolean,
+        accessibilityGranted: Boolean
     ): String? {
         if (!settings.otpAutoInputEnabled || !accessibilityGranted) return null
         return if (settings.otpLsposedSystemInjectEnabled) {
@@ -51,7 +51,7 @@ object OtpAutoFillUiLabels {
                 R.plurals.otp_autofill_stats_summary,
                 stats.totalAttempts,
                 stats.totalAttempts,
-                stats.successRatePercent,
+                stats.successRatePercent
             )
         }
 
@@ -123,7 +123,7 @@ object OtpAutoFillUiLabels {
     fun formatRecordFillDetail(
         context: Context,
         status: OtpRecordFillStatus,
-        reason: String?,
+        reason: String?
     ): String? {
         if (status != OtpRecordFillStatus.FAILED || reason.isNullOrBlank()) return null
         return formatReason(context, reason)

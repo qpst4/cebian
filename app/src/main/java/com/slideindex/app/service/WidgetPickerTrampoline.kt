@@ -28,7 +28,7 @@ object WidgetPickerTrampoline {
   private data class WidgetPanelAddContext(
     val appContext: Context,
     val pageIndex: Int,
-    val pagesProvider: () -> List<WidgetPanelPage>,
+    val pagesProvider: () -> List<WidgetPanelPage>
   )
 
   @Volatile
@@ -61,13 +61,13 @@ object WidgetPickerTrampoline {
     onShortcutAdded: ((packageName: String, shortcutId: String, label: String, intentUri: String) -> Unit)? = null,
     onActionAdded: ((actionPayload: String, label: String) -> Unit)? = null,
     onPagesChanged: ((List<WidgetPanelPage>) -> Unit)? = null,
-    onCancelled: () -> Unit = {},
+    onCancelled: () -> Unit = {}
   ) {
     Log.d(TAG, "launch")
     panelAddContext = WidgetPanelAddContext(
       appContext = context.applicationContext,
       pageIndex = pageIndex,
-      pagesProvider = pagesProvider,
+      pagesProvider = pagesProvider
     )
     onResult = onAdded
     onAppResult = onAppAdded
@@ -138,7 +138,7 @@ object WidgetPickerTrampoline {
           ctx.pageIndex,
           app.packageName,
           app.className,
-          app.appLabel,
+          app.appLabel
         )
         if (next != null) {
           currentPages = next
@@ -177,7 +177,7 @@ object WidgetPickerTrampoline {
           sc.packageName,
           sc.shortcutId,
           sc.label,
-          sc.intentUri,
+          sc.intentUri
         )
         if (next != null) {
           currentPages = next
@@ -291,7 +291,7 @@ object WidgetPickerTrampoline {
       ctx.appContext,
       ctx.pagesProvider(),
       ctx.pageIndex,
-      appWidgetId,
+      appWidgetId
     ) ?: return
     schedulePersist(ctx.appContext, updated)
   }
@@ -304,7 +304,7 @@ object WidgetPickerTrampoline {
       ctx.pageIndex,
       packageName,
       className,
-      label,
+      label
     ) ?: return
     schedulePersist(ctx.appContext, updated)
   }
@@ -313,7 +313,7 @@ object WidgetPickerTrampoline {
     packageName: String,
     shortcutId: String,
     label: String,
-    intentUri: String,
+    intentUri: String
   ) {
     val ctx = panelAddContext ?: return
     val updated = WidgetPanelMutator.addShortcutToPage(
@@ -323,7 +323,7 @@ object WidgetPickerTrampoline {
       packageName,
       shortcutId,
       label,
-      intentUri,
+      intentUri
     ) ?: return
     schedulePersist(ctx.appContext, updated)
   }
@@ -335,7 +335,7 @@ object WidgetPickerTrampoline {
       ctx.pagesProvider(),
       ctx.pageIndex,
       actionPayload,
-      label,
+      label
     ) ?: return
     schedulePersist(ctx.appContext, updated)
   }

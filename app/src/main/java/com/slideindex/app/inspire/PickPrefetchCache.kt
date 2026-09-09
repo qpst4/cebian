@@ -35,7 +35,7 @@ object PickPrefetchCache {
     fun startPreviewA11yPrefetch(
         service: AccessibilityService,
         rect: Rect,
-        generation: Int,
+        generation: Int
     ) {
         val normalized = Rect(rect)
         val cachedRect = prefetchRect

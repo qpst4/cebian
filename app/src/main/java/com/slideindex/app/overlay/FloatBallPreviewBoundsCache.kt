@@ -31,13 +31,13 @@ object FloatBallPreviewBoundsCache {
         return AccessibilityTextExtractor.hitTestPreviewBounds(
             entries = entriesRef.get(),
             px = rawX.toInt(),
-            py = rawY.toInt(),
+            py = rawY.toInt()
         )
     }
 
     fun refresh(
         service: AccessibilityService,
-        onReady: (() -> Unit)? = null,
+        onReady: (() -> Unit)? = null
     ) {
         val era = cacheEra
         scope.launch {

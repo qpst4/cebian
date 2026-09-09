@@ -143,7 +143,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
         lifecycleRegistry.currentState = Lifecycle.State.CREATED
         listController = ClipboardFloatListController(
             repository = ClipboardAccess.repository,
-            scope = lifecycleScope,
+            scope = lifecycleScope
         )
         registerScreenOffReceiver()
     }
@@ -320,7 +320,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
 
     private fun orientationGeometry(
         snapshot: com.slideindex.app.settings.AppSettings,
-        landscape: Boolean,
+        landscape: Boolean
     ): ClipboardFloatOrientationGeometry =
         if (landscape) snapshot.clipboardFloatLandscapeGeometry else snapshot.clipboardFloatPortraitGeometry
 
@@ -345,7 +345,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
             panelWidthDp = panelWidthDp,
             panelHeightDp = panelHeightDp,
             chipX = if (rememberPosition) persistableChipX() else ClipboardFloatWindowMetrics.UNSET_POSITION,
-            chipY = if (rememberPosition) persistableChipY() else ClipboardFloatWindowMetrics.UNSET_POSITION,
+            chipY = if (rememberPosition) persistableChipY() else ClipboardFloatWindowMetrics.UNSET_POSITION
         )
 
     private fun persistablePanelX(): Int = when {
@@ -479,7 +479,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
                     onEntryLongClick = ::onEntryLongClick,
                     onEntryDragStart = ::onEntryDragStart,
                     onEntryDragEnd = ::onEntryDragEnd,
-                    onUserInteraction = ::onUserInteraction,
+                    onUserInteraction = ::onUserInteraction
                 )
             }
             setOnTouchListener { _, event ->
@@ -541,7 +541,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
     }
 
     private fun applyWindowGeometry(
-        forceDefaultPosition: Boolean,
+        forceDefaultPosition: Boolean
     ) {
         if (isDraggingWindow) return
         if (!viewAdded && !::params.isInitialized) return
@@ -591,7 +591,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
         screenWidth: Int,
         screenHeight: Int,
         marginPx: Int,
-        density: Float,
+        density: Float
     ) {
         val aboveCenterPx =
             (ClipboardFloatWindowMetrics.PANEL_DEFAULT_ABOVE_CENTER_DP * density).roundToInt()
@@ -642,10 +642,10 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
         val density = resources.displayMetrics.density
         val insetPx = ClipboardFloatWindowMetrics.panelShadowInsetPx(density) * 2
         val nextWidthDp = ClipboardFloatWindowMetrics.coerceWidth(
-            ((params.width + dw.roundToInt() - insetPx) / density).roundToInt(),
+            ((params.width + dw.roundToInt() - insetPx) / density).roundToInt()
         )
         val nextHeightDp = ClipboardFloatWindowMetrics.coerceHeight(
-            ((params.height + dh.roundToInt() - insetPx) / density).roundToInt(),
+            ((params.height + dh.roundToInt() - insetPx) / density).roundToInt()
         )
         panelWidthDp = nextWidthDp
         panelHeightDp = nextHeightDp
@@ -679,7 +679,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
     private fun persistOrientationGeometry(
         landscape: Boolean,
         geometry: ClipboardFloatOrientationGeometry,
-        blocking: Boolean,
+        blocking: Boolean
     ) {
         val write: suspend () -> Unit = {
             val snapshot = deps.settingsRepository.readFreshSnapshot()
@@ -693,13 +693,13 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
             } else {
                 existing.copy(
                     panelWidthDp = geometry.panelWidthDp,
-                    panelHeightDp = geometry.panelHeightDp,
+                    panelHeightDp = geometry.panelHeightDp
                 )
             }
             deps.settingsRepository.setClipboardFloatOrientationGeometry(
                 landscape = landscape,
                 geometry = toWrite,
-                chipFollowIme = !rememberPosition,
+                chipFollowIme = !rememberPosition
             )
         }
         deps.applicationScope.launch(Dispatchers.IO) { write() }
@@ -720,20 +720,20 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
     private fun collapseWindow() {
         collapseToChip(
             retainWhenKeyboardHides = true,
-            anchorChipToPanelPosition = false,
+            anchorChipToPanelPosition = false
         )
     }
 
     private fun collapseAfterEntryAction() {
         collapseToChip(
             retainWhenKeyboardHides = false,
-            anchorChipToPanelPosition = false,
+            anchorChipToPanelPosition = false
         )
     }
 
     private fun collapseToChip(
         retainWhenKeyboardHides: Boolean,
-        anchorChipToPanelPosition: Boolean,
+        anchorChipToPanelPosition: Boolean
     ) {
         if (!showChipPref) {
             closeWindow()
@@ -752,7 +752,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
         }
         displayMode = ClipboardFloatDisplayMode.Chip
         applyWindowGeometry(
-            forceDefaultPosition = !anchorChipToPanelPosition && !shouldUseRememberedChipPosition(),
+            forceDefaultPosition = !anchorChipToPanelPosition && !shouldUseRememberedChipPosition()
         )
     }
 
@@ -870,7 +870,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
         FloatBallStashPanel.show(
             context = host,
             initialTab = StashPanelInitialTab.Clipboard,
-            searchQuery = query,
+            searchQuery = query
         )
     }
 
@@ -886,7 +886,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
                 service = service,
                 context = this,
                 entry = entry,
-                action = clickAction,
+                action = clickAction
             )
         ) {
             PasteResult.Success -> {
@@ -947,9 +947,9 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
                         screenshot = null,
                         screenRect = null,
                         activeSource = PickResultTextSource.A11Y,
-                        contentOrigin = PickResultContentOrigin.STASH_CLIPBOARD,
+                        contentOrigin = PickResultContentOrigin.STASH_CLIPBOARD
                     ),
-                    initialTextMode = PickResultTextMode.WORD_TAP,
+                    initialTextMode = PickResultTextMode.WORD_TAP
                 )
             }
         }
@@ -1051,7 +1051,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
                 Intent(context.applicationContext, ClipboardFloatService::class.java).apply {
                     action = ACTION_UPDATE_IME
                     putExtra(EXTRA_IME_TOP, imeTop)
-                },
+                }
             )
         }
     }

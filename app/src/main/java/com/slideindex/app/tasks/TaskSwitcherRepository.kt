@@ -92,13 +92,13 @@ object TaskSwitcherRepository {
             entries += RecentAppEntry(
                 app = appInfo.copy(
                     label = label,
-                    letter = PinyinHelper.firstLetter(label),
+                    letter = PinyinHelper.firstLetter(label)
                 ),
                 lastUsed = 0L,
                 isLocked = packageName in locked,
                 taskId = ref.taskId,
                 rawIdentifier = ref.identifier,
-                topComponent = ref.topComponent.orEmpty(),
+                topComponent = ref.topComponent.orEmpty()
             )
         }
 
@@ -110,7 +110,7 @@ object TaskSwitcherRepository {
 
     private fun resolvePackage(
         appRepository: AppRepository,
-        ref: TaskManagerUtil.RecentTaskRef,
+        ref: TaskManagerUtil.RecentTaskRef
     ): String? {
         if (RecentPackageResolver.isQuickShareIdentifier(ref.identifier) ||
             RecentPackageResolver.isQuickShareIdentifier(ref.topComponent.orEmpty())
@@ -135,7 +135,7 @@ object TaskSwitcherRepository {
         TaskActivityLabelResolver.resolveDisplayTitle(
             context,
             ref.topComponent.orEmpty(),
-            ref.title,
+            ref.title
         )?.let { return it }
         TaskActivityLabelResolver.resolveDisplayTitle(context, ref.identifier, null)?.let { return it }
         if (RecentPackageResolver.isSettingsAppInfoIdentifier(ref.identifier)) {

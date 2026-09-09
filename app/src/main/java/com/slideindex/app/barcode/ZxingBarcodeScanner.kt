@@ -40,15 +40,15 @@ object ZxingBarcodeScanner {
             BarcodeFormat.EAN_8,
             BarcodeFormat.UPC_A,
             BarcodeFormat.UPC_E,
-            BarcodeFormat.ITF,
-        ),
+            BarcodeFormat.ITF
+        )
     )
 
     private val qrHints = mapOf(
         DecodeHintType.POSSIBLE_FORMATS to listOf(
             BarcodeFormat.QR_CODE,
-            BarcodeFormat.DATA_MATRIX,
-        ),
+            BarcodeFormat.DATA_MATRIX
+        )
     )
 
     private val qrTryHarderHints = mapOf(
@@ -56,8 +56,8 @@ object ZxingBarcodeScanner {
         DecodeHintType.POSSIBLE_FORMATS to listOf(
             BarcodeFormat.QR_CODE,
             BarcodeFormat.DATA_MATRIX,
-            BarcodeFormat.AZTEC,
-        ),
+            BarcodeFormat.AZTEC
+        )
     )
 
     fun scanBitmap(bitmap: Bitmap, pickFastPath: Boolean = false): List<BarcodeScanResult> {
@@ -101,7 +101,7 @@ object ZxingBarcodeScanner {
         if (padX <= 0 && padY <= 0) return bitmap
         val padded = createBitmap(
             bitmap.width + padX * 2,
-            bitmap.height + padY * 2,
+            bitmap.height + padY * 2
         )
         Canvas(padded).apply {
             drawColor(Color.WHITE)
@@ -112,7 +112,7 @@ object ZxingBarcodeScanner {
 
     private fun decodeWithStrategies(
         bitmap: Bitmap,
-        hints: Map<DecodeHintType, Any>,
+        hints: Map<DecodeHintType, Any>
     ): List<BarcodeScanResult>? {
         val width = bitmap.width
         val height = bitmap.height
@@ -134,7 +134,7 @@ object ZxingBarcodeScanner {
             standard,
             invertLuminance(standard),
             contrast,
-            invertLuminance(contrast),
+            invertLuminance(contrast)
         )
     }
 
@@ -194,11 +194,11 @@ object ZxingBarcodeScanner {
     private fun tryDecode(
         source: LuminanceSource,
         hints: Map<DecodeHintType, Any>,
-        binarizer: BinarizerStrategy,
+        binarizer: BinarizerStrategy
     ): List<BarcodeScanResult> {
         val binaryBitmap = BinaryBitmap(binarizer.create(source))
         val reader = GenericMultipleBarcodeReader(
-            MultiFormatReader().apply { setHints(hints) },
+            MultiFormatReader().apply { setHints(hints) }
         )
         return try {
             reader.decodeMultiple(binaryBitmap)
@@ -207,7 +207,7 @@ object ZxingBarcodeScanner {
                     if (text.isEmpty()) return@mapNotNull null
                     BarcodeScanResult(
                         text = text,
-                        format = result.barcodeFormat.name,
+                        format = result.barcodeFormat.name
                     )
                 }
                 .distinctBy { "${it.format}:${it.text}" }
@@ -221,7 +221,7 @@ object ZxingBarcodeScanner {
         if (maxDim >= PICK_UPSCALE_MIN_DIMENSION) return bitmap
         val targetMax = min(
             (maxDim * PICK_UPSCALE_FACTOR).roundToInt(),
-            MAX_SCAN_DIMENSION,
+            MAX_SCAN_DIMENSION
         ).coerceAtLeast(maxDim)
         if (targetMax <= maxDim) return bitmap
         val scale = targetMax.toFloat() / maxDim
@@ -242,7 +242,7 @@ object ZxingBarcodeScanner {
     private class ByteArrayLuminanceSource(
         private val width: Int,
         private val height: Int,
-        private val luminance: ByteArray,
+        private val luminance: ByteArray
     ) : LuminanceSource(width, height) {
         override fun getRow(y: Int, row: ByteArray?): ByteArray {
             val output = row ?: ByteArray(width)
@@ -265,7 +265,7 @@ object ZxingBarcodeScanner {
                     (top + y) * rowStride + left,
                     cropped,
                     y * width,
-                    width,
+                    width
                 )
             }
             return ByteArrayLuminanceSource(width, height, cropped)

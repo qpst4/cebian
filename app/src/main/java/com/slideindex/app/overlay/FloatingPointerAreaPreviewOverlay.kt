@@ -73,7 +73,7 @@ object FloatingPointerAreaPreviewOverlay {
 
         val settingsHolder = mutableStateOf(deps.settingsRepository.readSnapshot())
         val triggerHolder = mutableStateOf(
-            Offset(0f, bounds.second * DEFAULT_TRIGGER_Y_NORM),
+            Offset(0f, bounds.second * DEFAULT_TRIGGER_Y_NORM)
         )
 
         val overlayContext = OverlayCompose.themedContext(hostContext)
@@ -88,7 +88,7 @@ object FloatingPointerAreaPreviewOverlay {
                         screenWidth = bounds.first,
                         screenHeight = bounds.second,
                         density = dm.density,
-                        triggerPosition = triggerPosition,
+                        triggerPosition = triggerPosition
                     )
                 }
             }
@@ -164,7 +164,7 @@ object FloatingPointerAreaPreviewOverlay {
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                 WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
                 WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
-            android.graphics.PixelFormat.TRANSLUCENT,
+            android.graphics.PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.TOP or Gravity.START
             layoutInDisplayCutoutMode =
@@ -187,7 +187,7 @@ private fun FloatingPointerAreaPreviewDisplay(
     screenWidth: Float,
     screenHeight: Float,
     density: Float,
-    triggerPosition: Offset,
+    triggerPosition: Offset
 ) {
     val labelStyle = MaterialTheme.typography.labelSmall
     val labelColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.78f)
@@ -197,7 +197,7 @@ private fun FloatingPointerAreaPreviewDisplay(
         screenWidth = screenWidth,
         screenHeight = screenHeight,
         triggerRawX = triggerPosition.x,
-        triggerRawY = triggerPosition.y,
+        triggerRawY = triggerPosition.y
     )
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -206,7 +206,7 @@ private fun FloatingPointerAreaPreviewDisplay(
                 layout = layout,
                 settings = settings,
                 screenWidth = screenWidth,
-                screenHeight = screenHeight,
+                screenHeight = screenHeight
             )
         }
         Text(
@@ -215,7 +215,7 @@ private fun FloatingPointerAreaPreviewDisplay(
             color = labelColor,
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(top = 12.dp, end = 12.dp),
+                .padding(top = 12.dp, end = 12.dp)
         )
     }
 }

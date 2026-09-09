@@ -34,7 +34,7 @@ class QuickLauncherAddTrampolineActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.dark(AndroidColor.TRANSPARENT),
-            navigationBarStyle = SystemBarStyle.dark(AndroidColor.TRANSPARENT),
+            navigationBarStyle = SystemBarStyle.dark(AndroidColor.TRANSPARENT)
         )
         super.onCreate(savedInstanceState)
         if (savedInstanceState?.getBoolean(STATE_DISMISSED, false) == true) {
@@ -90,9 +90,9 @@ class QuickLauncherAddTrampolineActivity : ComponentActivity() {
                                 context = this@QuickLauncherAddTrampolineActivity,
                                 host = host,
                                 onPrepare = { finishPicker() },
-                                onResult = onResult,
+                                onResult = onResult
                             )
-                        },
+                        }
                     )
                 }
             }
@@ -132,7 +132,7 @@ class QuickLauncherAddTrampolineActivity : ComponentActivity() {
             panelSide: PanelSide,
             configuredAppPackages: Set<String>,
             configuredShortcutKeys: Set<String>,
-            configuredActionKeys: Set<String>,
+            configuredActionKeys: Set<String>
         ): Intent =
             Intent(context, QuickLauncherAddTrampolineActivity::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

@@ -66,7 +66,7 @@ object InspireCoordinator {
         ocrFallbackEnabled: Boolean,
         ocrModelId: String,
         previewBoundsPick: Boolean = false,
-        onResult: (FloatBallPickResult) -> Unit,
+        onResult: (FloatBallPickResult) -> Unit
     ) {
         if (!pickInFlight.compareAndSet(false, true)) {
             PickPerf.mark("pick_rejected", "inFlight=true")
@@ -94,7 +94,7 @@ object InspireCoordinator {
                     previewBoundsPick = previewBoundsPick,
                     presentPickPanel = true,
                     deferOcr = deferOcr,
-                    ocrReady = ocrReady,
+                    ocrReady = ocrReady
                 )
                 PickPerf.mark("pick_onResult_post")
                 withContext(Dispatchers.Main.immediate) { onResult(result) }
@@ -105,7 +105,7 @@ object InspireCoordinator {
                         context = context,
                         ocrModelId = ocrModelId,
                         result = result,
-                        switchToOcrOnComplete = false,
+                        switchToOcrOnComplete = false
                     )
                 }
             } finally {
@@ -124,7 +124,7 @@ object InspireCoordinator {
         regionalRect: Boolean,
         ocrFallbackEnabled: Boolean,
         ocrModelId: String,
-        onResult: (FloatBallPickResult) -> Unit,
+        onResult: (FloatBallPickResult) -> Unit
     ) {
         if (!pickInFlight.compareAndSet(false, true)) {
             PickPerf.mark("pick_rejected", "inFlight=true")
@@ -160,7 +160,7 @@ object InspireCoordinator {
                     presentPickPanel = true,
                     regionalRectPick = regionalRect,
                     deferOcr = deferOcr,
-                    ocrReady = ocrReady,
+                    ocrReady = ocrReady
                 )
                 PickPerf.mark("pick_onResult_post")
                 withContext(Dispatchers.Main.immediate) { onResult(result) }
@@ -171,7 +171,7 @@ object InspireCoordinator {
                         context = context,
                         ocrModelId = ocrModelId,
                         result = result,
-                        switchToOcrOnComplete = result.ocrPreferSwitchOnComplete,
+                        switchToOcrOnComplete = result.ocrPreferSwitchOnComplete
                     )
                 }
             } finally {
@@ -190,11 +190,11 @@ object InspireCoordinator {
         presentPickPanel: Boolean = false,
         regionalRectPick: Boolean = false,
         deferOcr: Boolean = false,
-        ocrReady: Boolean? = null,
+        ocrReady: Boolean? = null
     ): FloatBallPickResult {
         PickPerf.mark(
             "processScreenContent_start",
-            "rect=$dragSelectRect preview=$previewBoundsPick regional=$regionalRectPick deferOcr=$deferOcr ocr=$ocrFallbackEnabled",
+            "rect=$dragSelectRect preview=$previewBoundsPick regional=$regionalRectPick deferOcr=$deferOcr ocr=$ocrFallbackEnabled"
         )
         InspireDataHolder.clear()
         InspireDataHolder.setDragRect(Rect(dragSelectRect))
@@ -213,7 +213,7 @@ object InspireCoordinator {
                     service = service,
                     dragSelectRect = dragSelectRect,
                     previewBoundsPick = true,
-                    regionalRectPick = regionalRectPick,
+                    regionalRectPick = regionalRectPick
                 )
             }
         } else {
@@ -222,7 +222,7 @@ object InspireCoordinator {
                 service = service,
                 dragSelectRect = dragSelectRect,
                 previewBoundsPick = previewBoundsPick,
-                regionalRectPick = regionalRectPick,
+                regionalRectPick = regionalRectPick
             )
         }
 
@@ -234,17 +234,17 @@ object InspireCoordinator {
                 PickPerf.markStepDuration(
                     "a11y_wait_done",
                     a11yWaitStart,
-                    "words=${prefetchedA11y.size}",
+                    "words=${prefetchedA11y.size}"
                 )
                 InspireDataHolder.setAccessibilityContent(prefetchedA11y)
                 val elapsedFast = SystemClock.uptimeMillis() - startUptimeMs
                 PickPerf.mark(
                     "preview_fast_path",
-                    "screenshot=deferred elapsed=${elapsedFast}ms",
+                    "screenshot=deferred elapsed=${elapsedFast}ms"
                 )
                 PickPerf.mark(
                     "transition_delay_skipped",
-                    "reason=prefetch_hit_fast_path elapsed=${elapsedFast}ms",
+                    "reason=prefetch_hit_fast_path elapsed=${elapsedFast}ms"
                 )
                 PickPerf.mark("buildPickResult_start")
                 val fastResult = buildPickResult(
@@ -256,7 +256,7 @@ object InspireCoordinator {
                     deferOcr = deferOcr,
                     previewBoundsPick = previewBoundsPick,
                     regionalRectPick = regionalRectPick,
-                    ocrReady = ocrReady,
+                    ocrReady = ocrReady
                 )
                 PickPerf.mark("buildPickResult_end", "source=${fastResult.activeSource}")
                 scheduleDeferredPreviewScreenshot(
@@ -266,7 +266,7 @@ object InspireCoordinator {
                     ocrFallbackEnabled = ocrFallbackEnabled,
                     ocrModelId = ocrModelId,
                     deferOcr = deferOcr,
-                    ocrReady = ocrReady,
+                    ocrReady = ocrReady
                 )
                 return fastResult
             }
@@ -282,7 +282,7 @@ object InspireCoordinator {
             PickPerf.markStepDuration(
                 "a11y_wait_timeout",
                 a11yWaitStart,
-                "limit=${A11Y_TIMEOUT_MS}ms",
+                "limit=${A11Y_TIMEOUT_MS}ms"
             )
         } else if (prefetchedA11y == null) {
             PickPerf.markStepDuration("a11y_wait_done", a11yWaitStart, "words=${collected.size}")
@@ -314,7 +314,7 @@ object InspireCoordinator {
             deferOcr = deferOcr,
             previewBoundsPick = previewBoundsPick,
             regionalRectPick = regionalRectPick,
-            ocrReady = ocrReady,
+            ocrReady = ocrReady
         )
         PickPerf.mark("buildPickResult_end", "source=${result.activeSource}")
         return result
@@ -324,7 +324,7 @@ object InspireCoordinator {
         service: AccessibilityService,
         dragSelectRect: Rect,
         previewBoundsPick: Boolean,
-        regionalRectPick: Boolean,
+        regionalRectPick: Boolean
     ): Deferred<List<String>> = a11yScope.async {
         val a11yStart = SystemClock.elapsedRealtime()
         val path = when {
@@ -359,7 +359,7 @@ object InspireCoordinator {
     private fun isOcrReady(
         context: Context,
         ocrFallbackEnabled: Boolean,
-        ocrModelId: String,
+        ocrModelId: String
     ): Boolean {
         if (!ocrFallbackEnabled || ocrModelId.isBlank()) return false
         val repository = OcrDependencyAccess.modelRepository(context) ?: return false
@@ -390,7 +390,7 @@ object InspireCoordinator {
                 PickPerf.markStepDuration(
                     "barcode_async_end",
                     scanStart,
-                    "count=${barcodeResults.size}",
+                    "count=${barcodeResults.size}"
                 )
                 if (barcodeResults.isEmpty()) return@launch
                 withContext(Dispatchers.Main.immediate) {
@@ -408,7 +408,7 @@ object InspireCoordinator {
         context: Context,
         ocrModelId: String,
         result: FloatBallPickResult,
-        switchToOcrOnComplete: Boolean,
+        switchToOcrOnComplete: Boolean
     ) {
         val bitmap = result.screenshot
         if (bitmap == null || bitmap.isRecycled) return
@@ -420,7 +420,7 @@ object InspireCoordinator {
                 val ocrResult = RegionalScreenshotOcr.recognizeBitmapPublic(
                     context,
                     ocrModelId,
-                    ocrCopy,
+                    ocrCopy
                 )
                 PickPerf.markStepDuration("ocr_async_end", ocrStart, "len=${ocrResult.textOrNull()?.length ?: 0}")
                 withContext(Dispatchers.Main.immediate) {
@@ -451,7 +451,7 @@ object InspireCoordinator {
         deferOcr: Boolean = false,
         previewBoundsPick: Boolean = false,
         regionalRectPick: Boolean = false,
-        ocrReady: Boolean? = null,
+        ocrReady: Boolean? = null
     ): FloatBallPickResult {
         val rawAccessibility = InspireDataHolder.accessibilityContent.orEmpty()
         val a11yText = rawAccessibility.joinToString(separator = "").trim().takeIf { it.isNotEmpty() }
@@ -468,7 +468,7 @@ object InspireCoordinator {
         PickPerf.markStepDuration(
             "buildPickResult_screenshot_acquire",
             screenshotStart,
-            "has=${screenshotHandle != null}",
+            "has=${screenshotHandle != null}"
         )
         val ocrText = if (resolvedOcrReady && !deferOcr) {
             val ocrStart = SystemClock.elapsedRealtime()
@@ -483,7 +483,7 @@ object InspireCoordinator {
         } else {
             PickPerf.mark(
                 "ocr_skipped",
-                "ocrFallback=$ocrFallbackEnabled model=$ocrModelId ocrOnly=$ocrOnly deferOcr=$deferOcr",
+                "ocrFallback=$ocrFallbackEnabled model=$ocrModelId ocrOnly=$ocrOnly deferOcr=$deferOcr"
             )
             null
         }
@@ -523,7 +523,7 @@ object InspireCoordinator {
             ocrAvailable = resolvedOcrReady,
             ocrPending = deferOcr && resolvedOcrReady,
             ocrPreferSwitchOnComplete = preferOcrOnDeferredComplete,
-            barcodeResults = emptyList(),
+            barcodeResults = emptyList()
         )
     }
 
@@ -534,7 +534,7 @@ object InspireCoordinator {
         ocrFallbackEnabled: Boolean,
         ocrModelId: String,
         deferOcr: Boolean,
-        ocrReady: Boolean? = null,
+        ocrReady: Boolean? = null
     ) {
         scope.launch(pickDispatcher) {
             val resolvedOcrReady = ocrReady ?: isOcrReady(context, ocrFallbackEnabled, ocrModelId)
@@ -559,7 +559,7 @@ object InspireCoordinator {
                 FloatBallPickResultPanel.updatePickScreenshot(
                     screenshot,
                     Rect(dragSelectRect),
-                    layoutMeta,
+                    layoutMeta
                 )
             }
             PickPerf.mark("screenshot_deferred_delivered", "bitmap=true")
@@ -571,7 +571,7 @@ object InspireCoordinator {
                 layoutMeta = layoutMeta,
                 ocrAvailable = resolvedOcrReady,
                 ocrPending = deferOcr && resolvedOcrReady,
-                ownsImages = false,
+                ownsImages = false
             )
             launchDeferredBarcodeScan(enriched)
             if (deferOcr) {
@@ -579,7 +579,7 @@ object InspireCoordinator {
                     context = context,
                     ocrModelId = ocrModelId,
                     result = enriched,
-                    switchToOcrOnComplete = false,
+                    switchToOcrOnComplete = false
                 )
             }
         }
@@ -588,7 +588,7 @@ object InspireCoordinator {
     private suspend fun captureScreenshotIntoHolder(
         service: AccessibilityService,
         dragSelectRect: Rect,
-        deferred: Boolean,
+        deferred: Boolean
     ) {
         PickPerf.mark("overlays_hide_start")
         withOverlaysHiddenForCapture {
@@ -600,17 +600,17 @@ object InspireCoordinator {
             val crop = RegionalScreenshotOcr.captureRectBitmap(
                 service = service,
                 screenRect = dragSelectRect,
-                edgePaddingPx = 0,
+                edgePaddingPx = 0
             )
             PickPerf.markStepDuration(
                 "${stepPrefix}_crop_done",
                 cropStart,
-                "cropped=${crop != null}",
+                "cropped=${crop != null}"
             )
             if (crop != null) {
                 InspireDataHolder.replaceScreenshotBitmap(
                     ManagedBitmap.from(crop.bitmap),
-                    crop.layoutMeta,
+                    crop.layoutMeta
                 )
                 PickPerf.markStepDuration("${stepPrefix}_end", shotStart)
             } else {
@@ -622,7 +622,7 @@ object InspireCoordinator {
     private suspend fun captureCroppedScreenshotCopy(
         service: AccessibilityService,
         dragSelectRect: Rect,
-        deferred: Boolean,
+        deferred: Boolean
     ): RegionalScreenshotCrop? {
         var crop: RegionalScreenshotCrop? = null
         PickPerf.mark("overlays_hide_start")
@@ -635,12 +635,12 @@ object InspireCoordinator {
             val captured = RegionalScreenshotOcr.captureRectBitmap(
                 service = service,
                 screenRect = dragSelectRect,
-                edgePaddingPx = 0,
+                edgePaddingPx = 0
             )
             PickPerf.markStepDuration(
                 "${stepPrefix}_crop_done",
                 cropStart,
-                "cropped=${captured != null}",
+                "cropped=${captured != null}"
             )
             if (captured != null) {
                 val copy = captured.bitmap.copy(captured.bitmap.config ?: Bitmap.Config.ARGB_8888, false)
@@ -658,7 +658,7 @@ object InspireCoordinator {
 
     private suspend fun <T> withOverlaysHiddenForCapture(
         deferOverlayRestore: Boolean = false,
-        block: suspend () -> T,
+        block: suspend () -> T
     ): T {
         withContext(Dispatchers.Main.immediate) {
             FloatingPointerOverlayWindow.suppressForScreenshotCapture()

@@ -22,12 +22,12 @@ data class ShellOutputHistoryEntry(
     val command: String,
     val exitCode: Int,
     val output: String,
-    val executedAtEpochMs: Long,
+    val executedAtEpochMs: Long
 )
 
 @Singleton
 class ShellOutputHistoryRepository @Inject constructor(
-    @ApplicationContext context: Context,
+    @ApplicationContext context: Context
 ) {
     private val appContext = context.applicationContext
     private val historyFile = File(appContext.filesDir, HISTORY_FILE_NAME)
@@ -45,7 +45,7 @@ class ShellOutputHistoryRepository @Inject constructor(
         label: String,
         command: String,
         exitCode: Int,
-        output: String,
+        output: String
     ) {
         mutex.withLock {
             val entry = ShellOutputHistoryEntry(
@@ -54,7 +54,7 @@ class ShellOutputHistoryRepository @Inject constructor(
                 command = command,
                 exitCode = exitCode,
                 output = output,
-                executedAtEpochMs = System.currentTimeMillis(),
+                executedAtEpochMs = System.currentTimeMillis()
             )
             val next = (listOf(entry) + readFromDisk()).take(MAX_ENTRIES)
             writeToDisk(next)

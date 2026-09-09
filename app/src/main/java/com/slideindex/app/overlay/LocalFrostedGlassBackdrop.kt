@@ -20,7 +20,7 @@ fun LocalFrostedGlassBackdrop(
     cornerRadiusPx: Float = 0f,
     blurRadiusPx: Int = 80,
     @ColorInt tintColor: Int = 0x331C1C1E,
-    enabled: Boolean = true,
+    enabled: Boolean = true
 ) {
     if (!enabled || Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
 
@@ -45,7 +45,7 @@ fun LocalFrostedGlassBackdrop(
         },
         update = { view ->
             setupBackgroundBlur(view, cornerRadiusPx, blurRadiusPx, tintColor)
-        },
+        }
     )
 }
 
@@ -111,7 +111,7 @@ internal class LocalFrostedGlassDrawable(private val viewProvider: () -> View?) 
         cornerRadiusPx: Float,
         blurRadiusPx: Int,
         @ColorInt tintColor: Int,
-        alpha: Float = 1f,
+        alpha: Float = 1f
     ): Boolean {
         if (!isSupported || bounds.isEmpty || alpha <= 0.001f) return false
         val drawable = ensureDrawable() ?: return false
@@ -126,7 +126,7 @@ internal class LocalFrostedGlassDrawable(private val viewProvider: () -> View?) 
                 bounds.left.toInt(),
                 bounds.top.toInt(),
                 bounds.right.toInt(),
-                bounds.bottom.toInt(),
+                bounds.bottom.toInt()
             )
             drawable.alpha = (alpha.coerceIn(0f, 1f) * 255).toInt()
             drawable.draw(canvas)

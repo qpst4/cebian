@@ -59,7 +59,7 @@ object ClipboardFocusReader {
             overlayType,
             WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
-            PixelFormat.RGBA_8888,
+            PixelFormat.RGBA_8888
         ).apply {
             screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
             gravity = Gravity.START or Gravity.TOP
@@ -94,7 +94,7 @@ object ClipboardFocusReader {
     private fun finishRead(
         appContext: Context,
         onResult: (ClipboardPayload?) -> Unit,
-        payload: ClipboardPayload?,
+        payload: ClipboardPayload?
     ) {
         inFlight = false
         onResult(payload)

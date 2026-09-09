@@ -91,7 +91,7 @@ object SideBubbleOverlayWindow {
         context: Context,
         plan: MessageDisplayPlan,
         onAction: (MessageAction) -> Unit,
-        onDismiss: () -> Unit,
+        onDismiss: () -> Unit
     ) {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             mainHandler.post { show(context, plan, onAction, onDismiss) }
@@ -121,7 +121,7 @@ object SideBubbleOverlayWindow {
             removeEntry(
                 entry = items.first(),
                 animate = true,
-                exitDirection = SideBubbleExitDirection.Top,
+                exitDirection = SideBubbleExitDirection.Top
             )
         }
 
@@ -131,7 +131,7 @@ object SideBubbleOverlayWindow {
             visible = mutableStateOf(true),
             entranceStarted = mutableStateOf(false),
             onAction = onAction,
-            onDismiss = onDismiss,
+            onDismiss = onDismiss
         )
         items.add(entry)
         scheduleAutoDismiss(entry)
@@ -211,7 +211,7 @@ object SideBubbleOverlayWindow {
         }
         applyWindowPlacement(
             hostContext = appContext ?: MessageOverlayHost.resolveHostContext(context) ?: return,
-            settings = settings,
+            settings = settings
         )
     }
 
@@ -241,7 +241,7 @@ object SideBubbleOverlayWindow {
                     onDismiss = { entry -> onEntryDismiss(entry) },
                     onClearAll = { dismiss() },
                     cancelAutoDismiss = ::cancelAutoDismiss,
-                    scheduleAutoDismiss = ::scheduleAutoDismiss,
+                    scheduleAutoDismiss = ::scheduleAutoDismiss
                 )
             }
         }
@@ -267,7 +267,7 @@ object SideBubbleOverlayWindow {
 
     private fun applyWindowPlacement(
         hostContext: Context,
-        settings: com.slideindex.app.message.MessageSettings,
+        settings: com.slideindex.app.message.MessageSettings
     ) {
         if (settings.sideBubbleHorizontalEdge == horizontalEdgeState.value &&
             settings.sideBubbleYFraction == sideBubbleYFraction
@@ -323,7 +323,7 @@ object SideBubbleOverlayWindow {
     private fun removeEntry(
         entry: SideBubbleEntry,
         animate: Boolean,
-        exitDirection: SideBubbleExitDirection = SideBubbleExitDirection.Side,
+        exitDirection: SideBubbleExitDirection = SideBubbleExitDirection.Side
     ) {
         entry.dismissRunnable?.let { mainHandler.removeCallbacks(it) }
         entry.dismissRunnable = null
@@ -391,7 +391,7 @@ private data class SideBubbleEntry(
     val onAction: (MessageAction) -> Unit,
     val onDismiss: () -> Unit,
     var exitDirection: SideBubbleExitDirection = SideBubbleExitDirection.Side,
-    var dismissRunnable: Runnable? = null,
+    var dismissRunnable: Runnable? = null
 ) {
     val plan: MessageDisplayPlan
         get() = planState.value
@@ -410,7 +410,7 @@ private fun SideBubbleStackContent(
     onDismiss: (SideBubbleEntry) -> Unit,
     onClearAll: () -> Unit,
     cancelAutoDismiss: (SideBubbleEntry) -> Unit,
-    scheduleAutoDismiss: (SideBubbleEntry) -> Unit,
+    scheduleAutoDismiss: (SideBubbleEntry) -> Unit
 ) {
     if (items.isEmpty()) return
 
@@ -429,7 +429,7 @@ private fun SideBubbleStackContent(
             modifier = Modifier.wrapContentSize(stackAlignment),
             horizontalAlignment = itemAlignment,
             verticalArrangement = Arrangement.spacedBy(6.dp),
-            userScrollEnabled = false,
+            userScrollEnabled = false
         ) {
             items(items, key = { it.id }) { entry ->
                 SideBubbleItem(
@@ -437,9 +437,9 @@ private fun SideBubbleStackContent(
                         fadeInSpec = tween(0),
                         placementSpec = tween(
                             durationMillis = SideBubbleOverlayWindow.REPOSITION_MS,
-                            easing = FastOutLinearInEasing,
+                            easing = FastOutLinearInEasing
                         ),
-                        fadeOutSpec = tween(0),
+                        fadeOutSpec = tween(0)
                     ),
                     entry = entry,
                     onAction = { action -> onAction(entry, action) },
@@ -447,7 +447,7 @@ private fun SideBubbleStackContent(
                     onClearAll = onClearAll,
                     onAutoDismissHoldChanged = { hold ->
                         if (hold) cancelAutoDismiss(entry) else scheduleAutoDismiss(entry)
-                    },
+                    }
                 )
             }
         }
@@ -461,7 +461,7 @@ private fun SideBubbleItem(
     onAction: (MessageAction) -> Unit,
     onDismiss: () -> Unit,
     onClearAll: () -> Unit,
-    onAutoDismissHoldChanged: (Boolean) -> Unit,
+    onAutoDismissHoldChanged: (Boolean) -> Unit
 ) {
     val plan = entry.planState.value
     val theme = plan.sideTheme ?: return
@@ -483,15 +483,15 @@ private fun SideBubbleItem(
                 targetValue = 0f,
                 animationSpec = tween(
                     durationMillis = SideBubbleOverlayWindow.EXIT_MS,
-                    easing = LinearEasing,
-                ),
+                    easing = LinearEasing
+                )
             )
             entranceStarted -> progress.animateTo(
                 targetValue = 1f,
                 animationSpec = tween(
                     durationMillis = SideBubbleOverlayWindow.ENTRANCE_MS,
-                    easing = FastOutSlowInEasing,
-                ),
+                    easing = FastOutSlowInEasing
+                )
             )
         }
     }
@@ -545,7 +545,7 @@ private fun SideBubbleItem(
         var rowModifier = bubbleModifier
             .messageThemeBackground(
                 theme = theme.copy(backgroundResId = theme.effectiveSideBackgroundResId()),
-                opacity = settings.sideBubbleOpacity,
+                opacity = settings.sideBubbleOpacity
             )
         if (!isPreview) {
             rowModifier = rowModifier.messageGestureActions(
@@ -553,35 +553,35 @@ private fun SideBubbleItem(
                 settings = settings,
                 onAction = onAction,
                 onLongPressMenu = { menuExpanded = true },
-                onLongPressHaptic = { MessageGestureHaptics.longPress(view) },
+                onLongPressHaptic = { MessageGestureHaptics.longPress(view) }
             )
         }
         Row(
             modifier = rowModifier
                 .padding(
                     horizontal = theme.paddingHorizontalDp.dp,
-                    vertical = theme.paddingVerticalDp.dp,
+                    vertical = theme.paddingVerticalDp.dp
                 ),
             horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalAlignment = Alignment.CenterVertically,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             if (!avatarOnRight) {
                 MessageNotificationIcon(
                     iconBitmap = data.largeIcon,
                     appIconBitmap = data.appIcon,
                     sizeDp = 28.dp,
-                    badgeAlignment = Alignment.BottomStart,
+                    badgeAlignment = Alignment.BottomStart
                 )
             }
             Column(
                 modifier = Modifier.weight(1f, fill = false),
-                verticalArrangement = Arrangement.spacedBy(0.dp),
+                verticalArrangement = Arrangement.spacedBy(0.dp)
             ) {
                 SideBubbleTitleText(
                     text = data.title.ifBlank { data.packageName },
                     color = Color(theme.contentColorArgb),
                     fontSize = fontMetrics.titleSize,
-                    lineHeight = fontMetrics.titleLineHeight,
+                    lineHeight = fontMetrics.titleLineHeight
                 )
                 if (data.content.isNotBlank()) {
                     SideBubbleContentText(
@@ -591,7 +591,7 @@ private fun SideBubbleItem(
                         contentColor = Color(theme.contentColorArgb),
                         maxLines = settings.sideMaxLines.coerceIn(1, 3),
                         fontSize = fontMetrics.contentSize,
-                        lineHeight = fontMetrics.contentLineHeight,
+                        lineHeight = fontMetrics.contentLineHeight
                     )
                 }
             }
@@ -600,7 +600,7 @@ private fun SideBubbleItem(
                     iconBitmap = data.largeIcon,
                     appIconBitmap = data.appIcon,
                     sizeDp = 28.dp,
-                    badgeAlignment = Alignment.BottomEnd,
+                    badgeAlignment = Alignment.BottomEnd
                 )
             }
         }
@@ -619,7 +619,7 @@ private fun SideBubbleItem(
                 onClearAll = {
                     menuExpanded = false
                     onClearAll()
-                },
+                }
             )
         }
     }

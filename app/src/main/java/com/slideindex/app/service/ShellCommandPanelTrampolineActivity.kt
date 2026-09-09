@@ -19,6 +19,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.lifecycleScope
 import com.slideindex.app.R
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.shell.ShellCommand
@@ -26,6 +27,7 @@ import com.slideindex.app.ui.ShellCommandPanelOverlaySheet
 import com.slideindex.app.ui.miuix.theme.ModuleTheme
 import com.slideindex.app.util.TaskManagerUtil
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import rikka.shizuku.Shizuku
 
 @dagger.hilt.android.AndroidEntryPoint
@@ -46,7 +48,7 @@ class ShellCommandPanelTrampolineActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.dark(AndroidColor.TRANSPARENT),
-            navigationBarStyle = SystemBarStyle.dark(AndroidColor.TRANSPARENT),
+            navigationBarStyle = SystemBarStyle.dark(AndroidColor.TRANSPARENT)
         )
         super.onCreate(savedInstanceState)
         if (savedInstanceState?.getBoolean(STATE_DISMISSED, false) == true) {
@@ -85,13 +87,16 @@ class ShellCommandPanelTrampolineActivity : ComponentActivity() {
                     onPersistCommands = { updated ->
                         commands = updated
                         ShellCommandPanelTrampoline.onCommandsPersist(updated)
+                        lifecycleScope.launch {
+                            deps.settingsRepository.setShellCommands(updated)
+                        }
                     },
                     onWindowReady = { ShellCommandPanelTrampoline.runPrepareIfNeeded() },
                     registerBackHandler = { dismissRequest = it },
                     registerContinuousDismissHandler = { handler ->
                         ShellCommandPanelTrampoline.registerContinuousDismissRequest(handler)
                     },
-                    onCopyOutput = { output -> copyOutput(output) },
+                    onCopyOutput = { output -> copyOutput(output) }
                 )
             }
         }

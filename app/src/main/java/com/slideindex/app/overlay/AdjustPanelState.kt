@@ -15,7 +15,7 @@ data class AdjustPanelState(
     var interruptionFilter: Int = android.app.NotificationManager.INTERRUPTION_FILTER_ALL,
     var autoBrightnessEnabled: Boolean = false,
     var darkModeEnabled: Boolean = false,
-    var dragTarget: VolumeDragTarget? = null,
+    var dragTarget: VolumeDragTarget? = null
 ) {
     fun isDraggingVolume(): Boolean = dragTarget != null
 }

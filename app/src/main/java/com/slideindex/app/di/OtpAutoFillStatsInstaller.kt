@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 class OtpAutoFillStatsInstaller @Inject constructor(
     private val statsRepository: OtpAutoFillStatsRepository,
     private val otpRecordsRepository: OtpRecordsRepository,
-    private val applicationScope: CoroutineScope,
+    private val applicationScope: CoroutineScope
 ) {
     fun install() {
         OtpAutoInputOrchestrator.setStatsRecorder { success, strategy, reason, recordId ->
@@ -20,14 +20,14 @@ class OtpAutoFillStatsInstaller @Inject constructor(
                 statsRepository.recordAttempt(
                     success = success,
                     strategy = strategy,
-                    reason = reason,
+                    reason = reason
                 )
                 recordId?.let { id ->
                     otpRecordsRepository.updateAutoFillOutcome(
                         id = id,
                         success = success,
                         strategy = strategy,
-                        reason = reason,
+                        reason = reason
                     )
                 }
             }

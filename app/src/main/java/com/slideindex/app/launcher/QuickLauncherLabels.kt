@@ -21,7 +21,7 @@ object QuickLauncherLabels {
     fun resolveLabel(
         context: Context,
         item: QuickLauncherItem,
-        appsByPackage: Map<String, AppInfo>,
+        appsByPackage: Map<String, AppInfo>
     ): String =
         when (item.type) {
             QuickLauncherItemType.APP ->

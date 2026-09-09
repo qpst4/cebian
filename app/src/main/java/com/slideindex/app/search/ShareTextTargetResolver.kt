@@ -17,7 +17,7 @@ object ShareTextTargetResolver {
             .distinctBy { "${it.packageName}/${it.activityClassName}" }
             .sortedWith(
                 compareBy<ShareImageTarget> { it.appLabel.lowercase() }
-                    .thenBy { it.label.lowercase() },
+                    .thenBy { it.label.lowercase() }
             )
     }
 
@@ -41,7 +41,7 @@ object ShareTextTargetResolver {
             activityClassName = activityInfo.name,
             label = label,
             appLabel = appLabel,
-            icon = runCatching { resolveInfo.loadIcon(pm) }.getOrNull(),
+            icon = runCatching { resolveInfo.loadIcon(pm) }.getOrNull()
         )
     }
 }

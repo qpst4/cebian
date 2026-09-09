@@ -45,7 +45,7 @@ import kotlin.math.roundToInt
 fun FreeWindowPreviewScreen(
     settings: AppSettings,
     onBack: () -> Unit,
-    onSave: (widthFraction: Float, heightFraction: Float, leftFraction: Float, topFraction: Float) -> Unit,
+    onSave: (widthFraction: Float, heightFraction: Float, leftFraction: Float, topFraction: Float) -> Unit
 ) {
     var widthFraction by remember(settings) { mutableFloatStateOf(settings.freeWindowWidthFraction) }
     var heightFraction by remember(settings) { mutableFloatStateOf(settings.freeWindowHeightFraction) }
@@ -64,21 +64,21 @@ fun FreeWindowPreviewScreen(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                    .padding(horizontal = 12.dp, vertical = 8.dp)
             ) {
                 Icon(Icons.Default.Check, contentDescription = stringResource(R.string.cd_action_confirm))
                 Text(
                     text = stringResource(R.string.free_window_preview_save),
-                    modifier = Modifier.padding(start = 8.dp),
+                    modifier = Modifier.padding(start = 8.dp)
                 )
             }
-        },
+        }
     ) {
         LazySettingsItem(key = "free-window-preview-body", fillParentMaxSize = true) {
         BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(8.dp),
+                .padding(8.dp)
         ) {
             val frameWidthPx = constraints.maxWidth.toFloat()
             val frameHeightPx = constraints.maxHeight.toFloat()
@@ -88,7 +88,7 @@ fun FreeWindowPreviewScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .clip(RoundedCornerShape(24.dp))
-                    .background(MaterialTheme.colorScheme.surfaceContainerHighest),
+                    .background(MaterialTheme.colorScheme.surfaceContainerHighest)
             ) {
                 Text(
                     text = stringResource(R.string.free_window_portrait_preview),
@@ -96,7 +96,7 @@ fun FreeWindowPreviewScreen(
                         .align(Alignment.TopCenter)
                         .padding(top = 12.dp),
                     style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 val windowWidthPx = frameWidthPx * widthFraction
@@ -111,7 +111,7 @@ fun FreeWindowPreviewScreen(
                         .offset { IntOffset(offsetXPx.roundToInt(), offsetYPx.roundToInt()) }
                         .size(
                             width = with(density) { windowWidthPx.toDp() },
-                            height = with(density) { windowHeightPx.toDp() },
+                            height = with(density) { windowHeightPx.toDp() }
                         )
                         .clip(RoundedCornerShape(16.dp))
                         .background(Color(0x334285F4))
@@ -131,12 +131,12 @@ fun FreeWindowPreviewScreen(
                                 topFraction = newTopPx / frameHeightPx
                             }
                         },
-                    contentAlignment = Alignment.Center,
+                    contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = "${(widthFraction * 100).roundToInt()}% × ${(heightFraction * 100).roundToInt()}%",
                         color = Color(0xFF1565C0),
-                        fontWeight = FontWeight.SemiBold,
+                        fontWeight = FontWeight.SemiBold
                     )
 
                     Box(
@@ -157,14 +157,14 @@ fun FreeWindowPreviewScreen(
                                     heightFraction = newHeight / frameHeightPx
                                     leftFraction = leftFraction.coerceIn(
                                         0f,
-                                        ((frameWidthPx - newWidth) / frameWidthPx).coerceAtLeast(0f),
+                                        ((frameWidthPx - newWidth) / frameWidthPx).coerceAtLeast(0f)
                                     )
                                     topFraction = topFraction.coerceIn(
                                         0f,
-                                        ((frameHeightPx - newHeight) / frameHeightPx).coerceAtLeast(0f),
+                                        ((frameHeightPx - newHeight) / frameHeightPx).coerceAtLeast(0f)
                                     )
                                 }
-                            },
+                            }
                     )
                 }
             }

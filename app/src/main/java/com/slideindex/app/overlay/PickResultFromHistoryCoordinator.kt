@@ -32,7 +32,7 @@ object PickResultFromHistoryCoordinator {
     fun openFromStash(
         context: Context,
         entry: StashEntry,
-        initialImageIndex: Int = 0,
+        initialImageIndex: Int = 0
     ) {
         scope.launch {
             val appContext = context.applicationContext
@@ -55,7 +55,7 @@ object PickResultFromHistoryCoordinator {
                 hostContext = hostContext,
                 text = text,
                 images = images,
-                initialImageIndex = initialImageIndex,
+                initialImageIndex = initialImageIndex
             )
         }
     }
@@ -63,7 +63,7 @@ object PickResultFromHistoryCoordinator {
     fun openFromClipboard(
         context: Context,
         entry: ClipboardEntry,
-        initialImageIndex: Int = 0,
+        initialImageIndex: Int = 0
     ) {
         scope.launch {
             val appContext = context.applicationContext
@@ -77,7 +77,7 @@ object PickResultFromHistoryCoordinator {
                 hostContext = hostContext,
                 text = text,
                 images = images,
-                initialImageIndex = initialImageIndex,
+                initialImageIndex = initialImageIndex
             )
         }
     }
@@ -85,7 +85,7 @@ object PickResultFromHistoryCoordinator {
     /** Opens pick panel from the current system clipboard payload (text / image / mixed). */
     fun openFromClipboardPayload(
         context: Context,
-        payload: ClipboardPayload?,
+        payload: ClipboardPayload?
     ) {
         scope.launch {
             val appContext = context.applicationContext
@@ -103,7 +103,7 @@ object PickResultFromHistoryCoordinator {
                 hostContext = hostContext,
                 text = text,
                 images = images,
-                initialImageIndex = 0,
+                initialImageIndex = 0
             )
         }
     }
@@ -113,7 +113,7 @@ object PickResultFromHistoryCoordinator {
         hostContext: Context,
         text: String?,
         images: List<Bitmap>,
-        initialImageIndex: Int,
+        initialImageIndex: Int
     ) {
         val kind = when {
             !text.isNullOrBlank() && images.isNotEmpty() -> PickContentKind.MIXED
@@ -149,7 +149,7 @@ object PickResultFromHistoryCoordinator {
             contentKind = kind,
             images = images,
             initialImageIndex = safeIndex,
-            ownsImages = images.isNotEmpty(),
+            ownsImages = images.isNotEmpty()
         )
         FloatBallStashPanel.dismiss()
         FloatBallPickResultPanel.showResult(hostContext, result = result)
@@ -160,7 +160,7 @@ object PickResultFromHistoryCoordinator {
 
     private fun loadStashImages(
         repo: com.slideindex.app.stash.StashRepository,
-        entry: StashEntry,
+        entry: StashEntry
     ): List<Bitmap> =
         entry.allImageFileNames().mapNotNull { fileName ->
             repo.loadBitmapByFileName(fileName)?.let { bitmap ->

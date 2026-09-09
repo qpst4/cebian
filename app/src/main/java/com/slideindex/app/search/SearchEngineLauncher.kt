@@ -34,7 +34,7 @@ object SearchEngineLauncher {
         return FloatBallTextPick.shareScreenshotTo(
             context,
             bitmap,
-            ComponentName(pkg, activity),
+            ComponentName(pkg, activity)
         )
     }
 
@@ -45,7 +45,7 @@ object SearchEngineLauncher {
         return FloatBallTextPick.shareTextTo(
             context,
             text,
-            ComponentName(pkg, activity),
+            ComponentName(pkg, activity)
         )
     }
 
@@ -54,7 +54,7 @@ object SearchEngineLauncher {
         engine: SearchEngineConfig,
         query: String,
         settings: AppSettings,
-        longPressTriggered: Boolean = false,
+        longPressTriggered: Boolean = false
     ): Boolean {
         val text = query.trim()
         if (text.isBlank()) {
@@ -75,7 +75,7 @@ object SearchEngineLauncher {
         context: Context,
         uri: String,
         settings: AppSettings,
-        longPressTriggered: Boolean = false,
+        longPressTriggered: Boolean = false
     ): Boolean {
         val normalized = PickResultUrl.normalizeOpenableUrl(uri) ?: uri.trim()
         if (normalized.isBlank()) {
@@ -88,7 +88,7 @@ object SearchEngineLauncher {
             intent = intent,
             settings = settings,
             longPressTriggered = longPressTriggered,
-            useTrampoline = PickResultUrl.isIntentUri(normalized),
+            useTrampoline = PickResultUrl.isIntentUri(normalized)
         )
     }
 
@@ -115,7 +115,7 @@ object SearchEngineLauncher {
         engine: SearchEngineConfig,
         query: String,
         settings: AppSettings,
-        longPressTriggered: Boolean,
+        longPressTriggered: Boolean
     ): Boolean {
         val template = engine.searchLink?.takeIf { it.isNotBlank() }
             ?: engine.externJumpLink?.takeIf { it.isNotBlank() }
@@ -129,7 +129,7 @@ object SearchEngineLauncher {
             intent,
             settings,
             longPressTriggered,
-            useTrampoline = isIntentUri(url),
+            useTrampoline = isIntentUri(url)
         )
         val hasPlaceholder = template.contains("%s") || template.contains("%q")
         if (started && engine.autoInputEnter && !hasPlaceholder) {
@@ -143,7 +143,7 @@ object SearchEngineLauncher {
         engine: SearchEngineConfig,
         query: String,
         settings: AppSettings,
-        longPressTriggered: Boolean,
+        longPressTriggered: Boolean
     ): Boolean = launchDirectLink(context, engine, query, settings, longPressTriggered)
 
     private fun launchJumpActivity(
@@ -151,7 +151,7 @@ object SearchEngineLauncher {
         engine: SearchEngineConfig,
         query: String,
         settings: AppSettings,
-        longPressTriggered: Boolean,
+        longPressTriggered: Boolean
     ): Boolean {
         val pkg = engine.targetPackage?.takeIf { it.isNotBlank() }
         val activity = engine.targetActivity?.takeIf { it.isNotBlank() }
@@ -174,7 +174,7 @@ object SearchEngineLauncher {
                 pkg,
                 activity,
                 query,
-                engine.autoInputEnter,
+                engine.autoInputEnter
             )
         }
         val intent = context.packageManager.getLaunchIntentForPackage(pkg)
@@ -192,7 +192,7 @@ object SearchEngineLauncher {
         pkg: String,
         activity: String,
         query: String,
-        autoInputEnter: Boolean,
+        autoInputEnter: Boolean
     ): Boolean {
         if (!TaskManagerUtil.hasPermission()) {
             Toast.makeText(context, PrivilegeUiStrings.privilegedAccessRequiredRes(), Toast.LENGTH_LONG).show()
@@ -205,7 +205,7 @@ object SearchEngineLauncher {
         NonExportedActivityLauncher.launch(
             context = context,
             packageName = pkg,
-            activityName = activity,
+            activityName = activity
         ) { success ->
             if (!success) {
                 Toast.makeText(context, R.string.float_ball_action_failed, Toast.LENGTH_SHORT).show()
@@ -221,7 +221,7 @@ object SearchEngineLauncher {
     private fun scheduleAutoInput(
         query: String,
         initialDelayMs: Long = 600L,
-        retryDelaysMs: List<Long> = listOf(500L, 800L, 1200L),
+        retryDelaysMs: List<Long> = listOf(500L, 800L, 1200L)
     ) {
         val delays = buildList {
             add(initialDelayMs)
@@ -240,7 +240,7 @@ object SearchEngineLauncher {
                 val result = OtpAutoInputNodeHelper.performAutoInput(
                     root = root,
                     code = query,
-                    autoEnter = true,
+                    autoEnter = true
                 )
                 if (result.success) {
                     filled = true
@@ -287,7 +287,7 @@ object SearchEngineLauncher {
         intent: Intent,
         settings: AppSettings,
         longPressTriggered: Boolean,
-        useTrampoline: Boolean = false,
+        useTrampoline: Boolean = false
     ): Boolean {
         return runCatching {
             val fullscreen = settings.shouldLaunchFullscreen(longPressTriggered)

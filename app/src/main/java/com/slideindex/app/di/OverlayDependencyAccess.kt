@@ -10,7 +10,7 @@ object OverlayDependencyAccess {
         runCatching {
             EntryPointAccessors.fromApplication(
                 context.applicationContext,
-                OverlayEntryPoint::class.java,
+                OverlayEntryPoint::class.java
             ).overlayDependencies()
         }.getOrNull()
 

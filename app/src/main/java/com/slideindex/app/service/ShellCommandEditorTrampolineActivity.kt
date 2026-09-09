@@ -41,7 +41,7 @@ class ShellCommandEditorTrampolineActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.dark(AndroidColor.TRANSPARENT),
-            navigationBarStyle = SystemBarStyle.dark(AndroidColor.TRANSPARENT),
+            navigationBarStyle = SystemBarStyle.dark(AndroidColor.TRANSPARENT)
         )
         super.onCreate(savedInstanceState)
         if (savedInstanceState?.getBoolean(STATE_DISMISSED, false) == true) {
@@ -101,7 +101,7 @@ class ShellCommandEditorTrampolineActivity : ComponentActivity() {
                     } else {
                         null
                     },
-                    registerBackHandler = { dismissRequest = it },
+                    registerBackHandler = { dismissRequest = it }
                 )
             }
         }
@@ -135,7 +135,7 @@ class ShellCommandEditorTrampolineActivity : ComponentActivity() {
         fun createIntent(
             context: Context,
             existing: ShellCommand?,
-            shizukuGranted: Boolean,
+            shizukuGranted: Boolean
         ): Intent =
             Intent(context, ShellCommandEditorTrampolineActivity::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

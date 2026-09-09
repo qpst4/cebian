@@ -17,7 +17,7 @@ fun Modifier.messageGestureActions(
     settings: MessageSettings,
     onAction: (MessageAction) -> Unit,
     onLongPressMenu: (() -> Unit)? = null,
-    onLongPressHaptic: (() -> Unit)? = null,
+    onLongPressHaptic: (() -> Unit)? = null
 ): Modifier = pointerInput(gestureKey, settings, onLongPressMenu, onLongPressHaptic) {
     val touchSlop = viewConfiguration.touchSlop
     val swipeThreshold = maxOf(MESSAGE_GESTURE_SWIPE_THRESHOLD_PX, touchSlop)
@@ -70,7 +70,7 @@ fun Modifier.messageGestureActions(
                         totalX,
                         totalY,
                         settings,
-                        swipeThreshold,
+                        swipeThreshold
                     )
                     when {
                         swipeAction != null -> onAction(swipeAction)

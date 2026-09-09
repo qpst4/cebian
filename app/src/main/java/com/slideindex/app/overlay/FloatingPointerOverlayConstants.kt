@@ -4,7 +4,7 @@ import androidx.compose.animation.core.Easing
 
 internal data class OverlayScreenBounds(
     val width: Float,
-    val height: Float,
+    val height: Float
 )
 
 internal const val FLOATING_POINTER_PRESENCE_ANIMATION_MS = 280L

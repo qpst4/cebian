@@ -21,7 +21,7 @@ class WebViewFileChooserTrampolineActivity : ComponentActivity() {
     private var pickerLaunched = false
 
     private val pickerLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult(),
+        ActivityResultContracts.StartActivityForResult()
     ) { result ->
         val uris = WebChromeClient.FileChooserParams.parseResult(result.resultCode, result.data)
         uris?.forEach { uri ->
@@ -29,7 +29,7 @@ class WebViewFileChooserTrampolineActivity : ComponentActivity() {
                 grantUriPermission(
                     packageName,
                     uri,
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
                 )
             }
         }
@@ -97,7 +97,7 @@ object WebViewFileChooserBridge {
     fun launch(
         context: Context,
         callback: ValueCallback<Array<Uri>>,
-        params: WebChromeClient.FileChooserParams,
+        params: WebChromeClient.FileChooserParams
     ): Boolean {
         cancelPending()
         pendingCallback = callback

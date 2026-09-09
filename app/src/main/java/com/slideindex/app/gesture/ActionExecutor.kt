@@ -55,7 +55,7 @@ class ActionExecutor(
     private val clickPassthroughHandler: ((Float, Float, () -> Unit) -> Unit)? = null,
     overlayBrightness: OverlayBrightnessControl? = null,
     private val side: PanelSide? = null,
-    onShellCommandsPersist: ((List<ShellCommand>) -> Unit)? = null,
+    onShellCommandsPersist: ((List<ShellCommand>) -> Unit)? = null
 ) {
     private val mainHandler = Handler(Looper.getMainLooper())
     private val mediaSystem = ActionExecutorMediaSystem(context, overlayBrightness)
@@ -76,7 +76,7 @@ class ActionExecutor(
     fun applyAdjustOnce(
         mode: ContinuousAdjustController.Mode,
         anchorRawY: Float,
-        targetRawY: Float,
+        targetRawY: Float
     ): Float? = mediaSystem.applyAdjustOnce(mode, anchorRawY, targetRawY)
 
     fun readCurrentAdjustFraction(mode: ContinuousAdjustController.Mode): Float =
@@ -124,7 +124,7 @@ class ActionExecutor(
         anchorRawX: Float? = null,
         anchorRawY: Float? = null,
         continueTouch: Boolean = false,
-        panelSide: PanelSide? = null,
+        panelSide: PanelSide? = null
     ): Boolean {
         val resolvedSide = panelSide ?: side
         return when (action) {
@@ -169,7 +169,7 @@ class ActionExecutor(
                         externalTracking = false,
                         onLaunch = { item, longPressArmed ->
                             launchQuickItem(item, settings, longPressArmed = longPressArmed, anchorRawY = y)
-                        },
+                        }
                     )
                 }
             GestureAction.AppSwitcher ->
@@ -183,7 +183,7 @@ class ActionExecutor(
                         externalTracking = continueTouch,
                         onLaunch = { item, longPressArmed ->
                             launchQuickItem(item, settings, longPressArmed = longPressArmed, anchorRawY = y)
-                        },
+                        }
                     )
                 }
             GestureAction.AppCarouselSwitcher -> {
@@ -194,7 +194,7 @@ class ActionExecutor(
                     settings,
                     x,
                     y,
-                    externalTracking = continueTouch,
+                    externalTracking = continueTouch
                 )
             }
             GestureAction.HolographicLauncher ->
@@ -202,7 +202,7 @@ class ActionExecutor(
                     HolographicLauncherOverlayWindow.show(
                         context = context,
                         settings = settings,
-                        actionExecutor = this,
+                        actionExecutor = this
                     )
                 }
             GestureAction.WidgetPopupOverlay ->
@@ -211,12 +211,12 @@ class ActionExecutor(
                 }
             GestureAction.StashPanel -> FloatBallStashPanel.show(
                 context = context,
-                panelSide = resolvedSide,
+                panelSide = resolvedSide
             )
             GestureAction.ClipboardPanel -> FloatBallStashPanel.show(
                 context = context,
                 initialTab = StashPanelInitialTab.Clipboard,
-                panelSide = resolvedSide,
+                panelSide = resolvedSide
             )
             GestureAction.ClipboardFloat -> {
                 ClipboardFloatLifecycle.showExpanded(context)
@@ -234,7 +234,7 @@ class ActionExecutor(
                     settings,
                     anchorRawX,
                     anchorRawY,
-                    continueTouch,
+                    continueTouch
                 )
                 true
             }
@@ -315,7 +315,7 @@ class ActionExecutor(
                 SlideIndexAccessibilityService.pickFullscreen(
                     context,
                     settings.floatBallOcrFallbackEnabled,
-                    settings.floatBallOcrModelId,
+                    settings.floatBallOcrModelId
                 )
             GestureAction.RegionalScreenshotPick -> {
                 if (!continueTouch) return false
@@ -324,7 +324,7 @@ class ActionExecutor(
                     appSettings = settings,
                     anchorRawX = anchorRawX,
                     anchorRawY = anchorRawY,
-                    continueTouch = continueTouch,
+                    continueTouch = continueTouch
                 )
                 true
             }
@@ -371,7 +371,7 @@ class ActionExecutor(
         item: QuickLauncherItem,
         settings: AppSettings,
         longPressArmed: Boolean = false,
-        anchorRawY: Float? = null,
+        anchorRawY: Float? = null
     ): Boolean = launchHelper.launchQuickItem(item, settings, longPressArmed, anchorRawY) { action, appSettings, armed, y ->
         execute(action, appSettings, armed, anchorRawX = null, anchorRawY = y)
     }
@@ -381,7 +381,7 @@ class ActionExecutor(
         rawIdentifier: String,
         topComponent: String,
         packageName: String,
-        settings: AppSettings,
+        settings: AppSettings
     ) = launchHelper.switchToRecentTask(taskId, rawIdentifier, topComponent, packageName, settings)
 
     fun dispatchClickPassthrough(rawX: Float, rawY: Float, onComplete: () -> Unit = {}) {
@@ -402,8 +402,8 @@ class ActionExecutor(
                 context = context,
                 command = ShellCommand(
                     label = "Gesture",
-                    command = commandLine,
-                ),
+                    command = commandLine
+                )
             )
         }.start()
         return true

@@ -22,7 +22,7 @@ internal object FloatBallEdgePickReplay {
         screenWidth: Float,
         screenHeight: Float,
         density: Float,
-        marginPx: Int,
+        marginPx: Int
     ) {
         session.reset()
         val ballSizePx = settings.floatBallSizeDp.coerceIn(36f, 72f) * density
@@ -32,7 +32,7 @@ internal object FloatBallEdgePickReplay {
             activeSide = edgeSide,
             ballSizePx = ballSizeInt,
             screenWidth = screenWidth.roundToInt(),
-            visibleFraction = visibleFraction,
+            visibleFraction = visibleFraction
         )
         val ballCenterX = dockLeft + ballSizePx / 2f
         val minCenterY = marginPx + ballSizePx / 2f
@@ -51,7 +51,7 @@ internal object FloatBallEdgePickReplay {
             screenWidth = screenWidth,
             screenHeight = screenHeight,
             density = density,
-            pickDockSide = edgeSide,
+            pickDockSide = edgeSide
         )
 
         val totalDistance = hypot(triggerRawX - ballCenterX, triggerRawY - ballCenterY)
@@ -63,7 +63,7 @@ internal object FloatBallEdgePickReplay {
                 screenWidth = screenWidth,
                 screenHeight = screenHeight,
                 density = density,
-                marginPx = marginPx,
+                marginPx = marginPx
             )
             return
         }
@@ -86,7 +86,7 @@ internal object FloatBallEdgePickReplay {
                 screenWidth = screenWidth,
                 screenHeight = screenHeight,
                 density = density,
-                marginPx = marginPx,
+                marginPx = marginPx
             )
         }
     }
@@ -98,7 +98,7 @@ internal object FloatBallEdgePickReplay {
         screenWidth: Float,
         screenHeight: Float,
         density: Float,
-        marginPx: Int,
+        marginPx: Int
     ) {
         session.computePick(
             settings = settings,
@@ -106,7 +106,7 @@ internal object FloatBallEdgePickReplay {
             screenWidth = screenWidth,
             screenHeight = screenHeight,
             density = density,
-            marginPx = marginPx,
+            marginPx = marginPx
         )
     }
 }

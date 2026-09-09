@@ -651,6 +651,17 @@
     <string name="gesture_angle_side_bottom">下</string>
     <string name="gesture_angle_side_top">上</string>
     <string name="gesture_angle_live_preview_hint">境界をドラッグして端のジェスチャ角度をライブプレビュー。チェックマークをタップして保存。</string>
+    <string name="system_back_gesture_width_entry_title">システム戻るジェスチャ幅</string>
+    <string name="system_back_gesture_width_entry_desc">左右端のシステム戻るジェスチャ領域を調整</string>
+    <string name="system_back_gesture_width_title">システム戻るジェスチャ幅</string>
+    <string name="system_back_gesture_width_desc">ジェスチャナビで左右端のシステム戻るジェスチャのトリガー幅を調整</string>
+    <string name="system_back_gesture_width_experimental_tip" formatted="false">実験機能：機種や OS バージョンによっては効かない、または挙動が異なる場合があります。片側を 0% にすると、その側のシステム戻るジェスチャを無効にします。100% はシステム既定の幅です。トリガー設定の「システム戻るジェスチャを遮断」とは別の機能です。</string>
+    <string name="system_back_gesture_width_not_gesture_nav">ジェスチャナビが有効ではないため、通常は効果がありません。</string>
+    <string name="system_back_gesture_width_write_permission_desc">システムのセキュア設定を変更する権限が必要です。Shizuku で付与するか ADB コマンドを使用してください。</string>
+    <string name="system_back_gesture_width_left">左側の幅</string>
+    <string name="system_back_gesture_width_right">右側の幅</string>
+    <string name="system_back_gesture_width_reset">デフォルトに戻す</string>
+    <string name="system_back_gesture_width_reset_desc">左右を 100% に戻す</string>
     <string name="accessibility_service_name">#Cebian👈</string>
     <string name="accessibility_service_desc">エッジジェスチャとサイドバーパネルに必要。Shizuku なしで戻る、ホーム、最近使ったアプリ、タップ透過にも使用します。</string>
     <string name="permission_accessibility_title">Cebian</string>
@@ -2171,6 +2182,7 @@
     <string name="shell_panel_add">コマンドを追加</string>
     <string name="shell_panel_edit">コマンドを編集</string>
     <string name="shell_panel_label_field">名前</string>
+    <string name="shell_panel_label_optional_hint">空欄の場合、コマンド内容から名前を自動生成します</string>
     <string name="shell_panel_command_field">シェルコマンド</string>
     <string name="shell_panel_edit_hint">パイプやリダイレクトも使用可能。例: dumpsys connectivity | grep wlan0</string>
     <string name="shell_panel_save">保存</string>

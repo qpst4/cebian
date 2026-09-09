@@ -22,8 +22,7 @@ import com.slideindex.app.launcher.QuickLauncherPanel
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.QuickLauncherDisplaySettings
 import com.slideindex.app.ui.miuix.MiuixHintText
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
-import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import top.yukonga.miuix.kmp.basic.SmallTitle
 import com.slideindex.app.ui.quicklauncher.QuickLauncherPanelManagementSection
 import com.slideindex.app.ui.quicklauncher.quickLauncherAppearanceCardItems
 import com.slideindex.app.ui.quicklauncher.quickLauncherAppearanceSettingsSection
@@ -134,11 +133,11 @@ fun QuickLauncherEditorContent(
                     onSelectedIndexChange = onSelectPanel,
                     modifier = Modifier.fillMaxWidth(),
                 )
-                MiuixSmallTitle(
+                SmallTitle(
                     stringResource(R.string.quick_launcher_items_section),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = MiuixSmallTitleSectionTop),
+                        ,
                 )
                 Box(
                     modifier = Modifier.fillMaxWidth(),

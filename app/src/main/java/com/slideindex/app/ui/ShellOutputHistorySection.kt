@@ -21,7 +21,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import com.slideindex.app.ui.miuix.MiuixConfirmDialog
-import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
 import top.yukonga.miuix.kmp.basic.TextButton as MiuixTextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -141,7 +140,6 @@ fun ShellOutputHistoryScreen(
             filtered.forEachIndexed { index, entry ->
                 groupedCardItems(
                     keyPrefix = "shell-hist-${entry.id}",
-                    outerTopPadding = if (index == 0) MiuixSmallTitleSectionTop else 0.dp,
                     items = listOf(
                         CardItem(key = "main") {
                             ShellHistoryEntryContent(

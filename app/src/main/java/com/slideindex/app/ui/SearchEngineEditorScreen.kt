@@ -51,7 +51,7 @@ import com.slideindex.app.overlay.searchpanel.SearchPanelAliasResolver
 import com.slideindex.app.ui.miuix.MiuixFormDialog
 import com.slideindex.app.ui.miuix.MiuixHintText
 import com.slideindex.app.ui.miuix.MiuixLabeledTextField
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import top.yukonga.miuix.kmp.basic.SmallTitle
 import com.slideindex.app.ui.miuix.MiuixSwitchRow
 import com.slideindex.app.ui.miuix.MiuixTabRowContourHost
 import com.slideindex.app.ui.miuix.MiuixTabRowWithContour
@@ -227,7 +227,7 @@ fun SearchEngineEditorScreen(
                 Column(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    MiuixSmallTitle(stringResource(R.string.search_engine_pick_icon))
+                    SmallTitle(stringResource(R.string.search_engine_pick_icon))
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -364,7 +364,7 @@ fun SearchEngineEditorScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     if (isShareImageType) {
-                        MiuixSmallTitle(stringResource(R.string.search_engine_share_image_target_section))
+                        SmallTitle(stringResource(R.string.search_engine_share_image_target_section))
                         val targetSummary = when {
                             targetPackage.isBlank() -> stringResource(R.string.search_engine_share_image_target_not_set)
                             targetActivity.isBlank() -> targetPackage
@@ -624,7 +624,7 @@ private fun EditorTypeFields(
         }
 
         SearchEngineType.SHARE_TO_APP -> {
-            MiuixSmallTitle(stringResource(R.string.search_engine_share_text_target_section))
+            SmallTitle(stringResource(R.string.search_engine_share_text_target_section))
             val targetSummary = when {
                 targetPackage.isBlank() -> stringResource(R.string.search_engine_share_text_target_not_set)
                 targetActivity.isBlank() -> targetPackage

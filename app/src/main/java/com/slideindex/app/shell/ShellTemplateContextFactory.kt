@@ -8,6 +8,6 @@ object ShellTemplateContextFactory {
         ShellTemplateContext(
             foregroundPackage = OverlayService.foregroundPackage
                 ?: SlideIndexAccessibilityService.currentForegroundPackage(),
-            timestampMs = timestampMs,
+            timestampMs = timestampMs
         )
 }

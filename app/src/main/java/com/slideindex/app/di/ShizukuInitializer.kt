@@ -19,7 +19,7 @@ import rikka.shizuku.Shizuku
 @Singleton
 class ShizukuInitializer @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val settingsRepository: SettingsRepository,
+    private val settingsRepository: SettingsRepository
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 

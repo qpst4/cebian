@@ -28,7 +28,7 @@ class EdgeSystemGestureExclusionView(context: Context) : View(context) {
         }
         ViewCompat.setSystemGestureExclusionRects(
             this,
-            listOf(Rect(0, 0, width, height)),
+            listOf(Rect(0, 0, width, height))
         )
     }
 }

@@ -59,7 +59,7 @@ fun WaveStyleSettingsScreen(
         title = stringResource(R.string.gesture_hint_style_wave),
         onBack = onBack,
     ) {
-        settingsLazySmallTitle(key = "wave-color-outline", title = colorOutlineTitle, sectionTop = true)
+        settingsLazySmallTitle(key = "wave-color-outline", title = colorOutlineTitle)
         groupedCardItems(
             keyPrefix = "wave-color-outline",
             items = buildList {
@@ -110,7 +110,7 @@ fun WaveStyleSettingsScreen(
                 )
             },
         )
-        settingsLazySmallTitle(key = "wave-shape-size", title = shapeSizeTitle, sectionTop = true)
+        settingsLazySmallTitle(key = "wave-shape-size", title = shapeSizeTitle)
         groupedCardItems(
             keyPrefix = "wave-shape-size",
             items = buildList {
@@ -181,7 +181,7 @@ fun WaveStyleSettingsScreen(
                 )
             },
         )
-        settingsLazySmallTitle(key = "wave-icon", title = iconTitle, sectionTop = true)
+        settingsLazySmallTitle(key = "wave-icon", title = iconTitle)
         groupedCardItems(
             keyPrefix = "wave-icon",
             items = buildList {
@@ -218,7 +218,7 @@ fun WaveStyleSettingsScreen(
                 )
             },
         )
-        settingsLazySmallTitle(key = "wave-custom-icon", title = customIconTitle, sectionTop = true)
+        settingsLazySmallTitle(key = "wave-custom-icon", title = customIconTitle)
         groupedCardItems(
             keyPrefix = "wave-icon-type",
             selectableGroup = true,

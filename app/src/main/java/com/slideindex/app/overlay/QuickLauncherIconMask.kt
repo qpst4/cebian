@@ -21,7 +21,7 @@ internal object QuickLauncherIconMask {
     fun pathFor(
         shape: Int,
         bounds: RectF,
-        out: Path,
+        out: Path
     ): Path {
         out.rewind()
         when (QuickLauncherDisplaySettings.coerceIconShape(shape)) {
@@ -52,7 +52,7 @@ internal object QuickLauncherIconMask {
         return runCatching {
             val drawable = AdaptiveIconDrawable(
                 Color.BLACK.toDrawable(),
-                Color.BLACK.toDrawable(),
+                Color.BLACK.toDrawable()
             )
             val viewport = 100
             drawable.setBounds(0, 0, viewport, viewport)

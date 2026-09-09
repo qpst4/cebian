@@ -20,7 +20,7 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.util.coerceSafe
 
 internal class IndexPanelRenderer(
-    private val host: Host,
+    private val host: Host
 ) {
     interface Host {
         val context: Context
@@ -83,7 +83,7 @@ internal class IndexPanelRenderer(
                 minOf(currentRect.left, prev.left),
                 minOf(currentRect.top, prev.top),
                 maxOf(currentRect.right, prev.right),
-                maxOf(currentRect.bottom, prev.bottom),
+                maxOf(currentRect.bottom, prev.bottom)
             )
         } ?: currentRect
         lastRenderedContentRect = RectF(currentRect)
@@ -126,7 +126,7 @@ internal class IndexPanelRenderer(
                             minOf(currentRect.left, prev.left),
                             minOf(currentRect.top, prev.top),
                             maxOf(currentRect.right, prev.right),
-                            maxOf(currentRect.bottom, prev.bottom),
+                            maxOf(currentRect.bottom, prev.bottom)
                         )
                     } ?: currentRect
                     lastRenderedContentRect = null
@@ -177,7 +177,7 @@ internal class IndexPanelRenderer(
                 minOf(rail.left, bubble.x - bubbleRadius),
                 minOf(rail.top, bubble.y - bubbleRadius),
                 maxOf(rail.right, bubble.x + bubbleRadius),
-                maxOf(rail.bottom, bubble.y + bubbleRadius),
+                maxOf(rail.bottom, bubble.y + bubbleRadius)
             )
         }
         val grid = gridPopupRect()
@@ -185,7 +185,7 @@ internal class IndexPanelRenderer(
             minOf(rail.left, grid.left, bubble.x - bubbleRadius),
             minOf(rail.top, grid.top, bubble.y - bubbleRadius),
             maxOf(rail.right, grid.right, bubble.x + bubbleRadius),
-            maxOf(rail.bottom, grid.bottom, bubble.y + bubbleRadius),
+            maxOf(rail.bottom, grid.bottom, bubble.y + bubbleRadius)
         )
     }
 
@@ -234,7 +234,7 @@ internal class IndexPanelRenderer(
             letter.toString(),
             center.x,
             center.y + host.sp(22f) * 0.35f,
-            bubbleLetterPaint,
+            bubbleLetterPaint
         )
     }
 

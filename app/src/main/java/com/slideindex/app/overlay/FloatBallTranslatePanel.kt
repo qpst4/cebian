@@ -141,7 +141,7 @@ object FloatBallTranslatePanel {
 
     private val panelHost = OverlayFullScreenPanelHost(
         tag = TAG,
-        onScreenOff = { dismiss() },
+        onScreenOff = { dismiss() }
     )
 
     private var phaseState: MutableState<FloatBallTranslatePanelPhase>? = null
@@ -288,7 +288,7 @@ object FloatBallTranslatePanel {
 
         updateWindowFocusable(
 
-            focusable = mode == PickResultTextMode.SELECT || mode == PickResultTextMode.EDIT,
+            focusable = mode == PickResultTextMode.SELECT || mode == PickResultTextMode.EDIT
 
         )
 
@@ -366,7 +366,7 @@ object FloatBallTranslatePanel {
                     } else {
                         value.trim()
                     }
-                },
+                }
             )
         }
         if (attached == null) {
@@ -406,7 +406,7 @@ private fun FloatBallTranslatePanelContent(
 
     onShare: (String) -> Unit,
 
-    onRemoveSpaces: (String, removeAll: Boolean) -> Unit,
+    onRemoveSpaces: (String, removeAll: Boolean) -> Unit
 
 ) {
 
@@ -426,9 +426,9 @@ private fun FloatBallTranslatePanelContent(
                 .clickable(
                     interactionSource = dismissInteraction,
                     indication = null,
-                    onClick = onDismiss,
+                    onClick = onDismiss
                 ),
-            contentAlignment = Alignment.Center,
+            contentAlignment = Alignment.Center
         ) {
             val isBlurSupported = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
             val density = LocalDensity.current
@@ -446,8 +446,8 @@ private fun FloatBallTranslatePanelContent(
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null,
-                        onClick = {},
-                    ),
+                        onClick = {}
+                    )
             ) {
                 if (isBlurSupported) {
                     LocalFrostedGlassBackdrop(
@@ -455,12 +455,12 @@ private fun FloatBallTranslatePanelContent(
                         cornerRadiusPx = cornerPx,
                         blurRadiusPx = blurRadiusPx,
                         tintColor = frostedTint,
-                        enabled = true,
+                        enabled = true
                     )
                 }
                 Column(
                     modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(0.dp),
+                    verticalArrangement = Arrangement.spacedBy(0.dp)
                 ) {
                     PickResultSectionHeader(
                         title = stringResource(R.string.float_ball_translate_panel_title),
@@ -469,7 +469,7 @@ private fun FloatBallTranslatePanelContent(
 
                     onToggle = {},
 
-                    collapsible = false,
+                    collapsible = false
 
                 )
 
@@ -487,7 +487,7 @@ private fun FloatBallTranslatePanelContent(
 
                             verticalAlignment = Alignment.CenterVertically,
 
-                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
 
                         ) {
 
@@ -495,7 +495,7 @@ private fun FloatBallTranslatePanelContent(
 
                                 modifier = Modifier.size(20.dp),
 
-                                strokeWidth = 2.dp,
+                                strokeWidth = 2.dp
 
                             )
 
@@ -503,7 +503,7 @@ private fun FloatBallTranslatePanelContent(
 
                                 text = stringResource(R.string.float_ball_translating),
 
-                                style = MaterialTheme.typography.bodyMedium,
+                                style = MaterialTheme.typography.bodyMedium
 
                             )
 
@@ -550,7 +550,7 @@ private fun FloatBallTranslatePanelContent(
 
                                 onTranslate = {},
 
-                                onRemoveSpaces = onRemoveSpaces,
+                                onRemoveSpaces = onRemoveSpaces
 
                             )
 
@@ -568,7 +568,7 @@ private fun FloatBallTranslatePanelContent(
 
                                 .padding(horizontal = 20.dp, vertical = 8.dp),
 
-                            verticalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
 
                         ) {
 
@@ -578,7 +578,7 @@ private fun FloatBallTranslatePanelContent(
 
                                 style = MaterialTheme.typography.bodyMedium,
 
-                                color = MaterialTheme.colorScheme.error,
+                                color = MaterialTheme.colorScheme.error
 
                             )
 
@@ -590,7 +590,7 @@ private fun FloatBallTranslatePanelContent(
 
                                     style = MaterialTheme.typography.bodySmall,
 
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
 
                                 )
 

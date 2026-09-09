@@ -17,7 +17,7 @@ object FloatBallTextPickCoordinator {
         ocrFallbackEnabled: Boolean,
         ocrModelId: String,
         previewBoundsPick: Boolean = false,
-        onResult: (FloatBallPickResult) -> Unit,
+        onResult: (FloatBallPickResult) -> Unit
     ) = InspireCoordinator.pickInRect(
         service,
         context,
@@ -25,7 +25,7 @@ object FloatBallTextPickCoordinator {
         ocrFallbackEnabled,
         ocrModelId,
         previewBoundsPick,
-        onResult,
+        onResult
     )
 
     fun pickOnRelease(
@@ -38,7 +38,7 @@ object FloatBallTextPickCoordinator {
         regionalRect: Boolean,
         ocrFallbackEnabled: Boolean,
         ocrModelId: String,
-        onResult: (FloatBallPickResult) -> Unit,
+        onResult: (FloatBallPickResult) -> Unit
     ) = InspireCoordinator.pickOnRelease(
         service,
         context,
@@ -49,6 +49,6 @@ object FloatBallTextPickCoordinator {
         regionalRect,
         ocrFallbackEnabled,
         ocrModelId,
-        onResult,
+        onResult
     )
 }

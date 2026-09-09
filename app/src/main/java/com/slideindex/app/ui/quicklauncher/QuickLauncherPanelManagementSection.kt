@@ -44,7 +44,7 @@ import com.slideindex.app.launcher.QuickLauncherPanel
 import com.slideindex.app.launcher.QuickLauncherPanelDefaults
 import com.slideindex.app.launcher.QuickLauncherPanelMutator
 import com.slideindex.app.ui.miuix.MiuixSliderRow
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import top.yukonga.miuix.kmp.basic.SmallTitle
 import com.slideindex.app.ui.miuix.MiuixTabRowContourHost
 import com.slideindex.app.ui.miuix.MiuixTabRowWithContour
 import top.yukonga.miuix.kmp.basic.Card
@@ -129,7 +129,7 @@ fun QuickLauncherPanelManagementSection(
     )
 
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        MiuixSmallTitle(stringResource(R.string.quick_launcher_panels_section))
+        SmallTitle(stringResource(R.string.quick_launcher_panels_section))
 
         val displayName = currentPanel.name.ifBlank {
             stringResource(R.string.quick_launcher_panel_default_name, safeIndex + 1)

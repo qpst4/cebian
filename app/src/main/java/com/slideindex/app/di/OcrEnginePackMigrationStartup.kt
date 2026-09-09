@@ -11,7 +11,7 @@ import kotlinx.coroutines.launch
 class OcrEnginePackMigrationStartup @Inject constructor(
     private val noticeHolder: OcrEnginePackMigrationNoticeHolder,
     private val migrationRunner: NativeEnginePackMigrationRunner,
-    private val applicationScope: CoroutineScope,
+    private val applicationScope: CoroutineScope
 ) {
     fun start() {
         applicationScope.launch(Dispatchers.IO) {

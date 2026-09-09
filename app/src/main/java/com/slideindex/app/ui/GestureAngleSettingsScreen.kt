@@ -76,7 +76,7 @@ fun GestureAngleSettingsScreen(
     onSave: suspend (GestureAngles) -> Boolean,
     onPreviewStart: (GestureAngles) -> Unit = {},
     onPreviewAnglesChange: (GestureAngles) -> Unit = {},
-    onPreviewStop: () -> Unit = {},
+    onPreviewStop: () -> Unit = {}
 ) {
     var draft by remember { mutableStateOf(angles) }
     var selectedSide by remember { mutableStateOf(PanelSide.LEFT) }
@@ -112,9 +112,9 @@ fun GestureAngleSettingsScreen(
                             PanelSide.BOTTOM -> GestureAngle.DEFAULT_BOTTOM
                             PanelSide.TOP -> GestureAngle.DEFAULT_TOP
                             else -> GestureAngle.DEFAULT_LEFT
-                        },
+                        }
                     )
-                },
+                }
             ) {
                 Icon(Icons.Default.History, contentDescription = stringResource(R.string.gesture_angle_reset))
             }
@@ -131,28 +131,28 @@ fun GestureAngleSettingsScreen(
                             saving = false
                         }
                     }
-                },
+                }
             ) {
                 Icon(Icons.Default.Check, contentDescription = stringResource(R.string.gesture_angle_save))
             }
-        },
+        }
     ) {
         item(key = "gesture-angle-body") {
             Column(
                 modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
                     listOf(
                         PanelSide.LEFT to stringResource(R.string.gesture_angle_side_left),
                         PanelSide.RIGHT to stringResource(R.string.gesture_angle_side_right),
                         PanelSide.BOTTOM to stringResource(R.string.gesture_angle_side_bottom),
-                        PanelSide.TOP to stringResource(R.string.gesture_angle_side_top),
+                        PanelSide.TOP to stringResource(R.string.gesture_angle_side_top)
                     ).forEachIndexed { index, (side, label) ->
                         SegmentedButton(
                             selected = selectedSide == side,
                             onClick = { selectedSide = side },
-                            shape = SegmentedButtonDefaults.itemShape(index = index, count = 4),
+                            shape = SegmentedButtonDefaults.itemShape(index = index, count = 4)
                         ) {
                             Text(label)
                         }
@@ -174,8 +174,8 @@ fun GestureAngleSettingsScreen(
                                 PanelSide.BOTTOM -> Modifier.navigationBarsPadding()
                                 PanelSide.TOP -> Modifier.padding(top = 8.dp)
                                 else -> Modifier
-                            },
-                        ),
+                            }
+                        )
                 )
             }
         }
@@ -186,7 +186,7 @@ fun GestureAngleSettingsScreen(
 fun SettingsCardScope.GestureAngleEntryCard(
     enabled: Boolean,
     outlinedLeadingIcons: Boolean = false,
-    onClick: () -> Unit,
+    onClick: () -> Unit
 ) {
     SettingNavigationRow(
         icon = { label ->
@@ -195,7 +195,7 @@ fun SettingsCardScope.GestureAngleEntryCard(
         title = stringResource(R.string.gesture_angle_entry_title),
         subtitle = stringResource(R.string.gesture_angle_entry_desc),
         enabled = enabled,
-        onClick = onClick,
+        onClick = onClick
     )
 }
 
@@ -204,14 +204,14 @@ private fun GestureAngleDiagram(
     side: PanelSide,
     angle: GestureAngle,
     onAngleChange: (GestureAngle) -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     val degrees = remember(angle) { List(angle.ps.size) { angle.getDegree(it) } }
     val arcDegrees = remember(angle) { angle.getArcDegrees() }
     val primary = MaterialTheme.colorScheme.primary
     val labelStyle = MaterialTheme.typography.labelLarge.copy(
         fontWeight = FontWeight.SemiBold,
-        fontSize = 15.sp,
+        fontSize = 15.sp
     )
     val textMeasurer = rememberTextMeasurer()
     val density = LocalDensity.current
@@ -244,11 +244,11 @@ private fun GestureAngleDiagram(
                                 side = latestSide,
                                 circleCenter = circleCenter,
                                 circleRadius = circleRadius,
-                                degree = degree,
+                                degree = degree
                             )
                             val bounds = Rect(
                                 center = handleOffset,
-                                radius = handleRadiusPx,
+                                radius = handleRadiusPx
                             )
                             bounds.contains(offset)
                         }
@@ -285,8 +285,8 @@ private fun GestureAngleDiagram(
                             latestAngle.copyPoint(
                                 field = point,
                                 newP = (newDegree / GESTURE_ANGLE_BASE).coerceIn(0f, 1f),
-                                minGapP = minGapP.toFloat(),
-                            ),
+                                minGapP = minGapP.toFloat()
+                            )
                         )
                     },
                     onDragEnd = {
@@ -298,9 +298,9 @@ private fun GestureAngleDiagram(
                         dragOffset = Offset.Zero
                         draggingPoint = -1
                         activePoint = -1
-                    },
+                    }
                 )
-            },
+            }
     ) {
         val radius = when (side) {
             PanelSide.LEFT, PanelSide.RIGHT -> size.minDimension / 2f
@@ -324,14 +324,14 @@ private fun GestureAngleDiagram(
                 color = primary,
                 radius = radius,
                 center = center,
-                alpha = 0.12f,
+                alpha = 0.12f
             )
             drawCircle(
                 color = primary,
                 radius = radius,
                 center = center,
                 alpha = 0.35f,
-                style = Stroke(width = 2.dp.toPx()),
+                style = Stroke(width = 2.dp.toPx())
             )
         }
 
@@ -342,19 +342,19 @@ private fun GestureAngleDiagram(
                 color = primary.copy(alpha = if (isActive) 1f else 0.7f),
                 start = center,
                 end = handleOffset,
-                strokeWidth = if (isActive) lineWidthPx * 1.2f else lineWidthPx,
+                strokeWidth = if (isActive) lineWidthPx * 1.2f else lineWidthPx
             )
             drawCircle(
                 color = primary,
                 radius = if (isActive) handleRadiusPx * 1.1f else handleRadiusPx,
-                center = handleOffset,
+                center = handleOffset
             )
         }
 
         drawCircle(
             color = primary,
             radius = lineWidthPx,
-            center = center,
+            center = center
         )
 
         val labels = SwipeDirection.ordered()
@@ -364,7 +364,7 @@ private fun GestureAngleDiagram(
                 side = side,
                 circleCenter = center,
                 circleRadius = radius + labelOffsetPx,
-                degree = boundaryDegree - (arcDegree / 2f),
+                degree = boundaryDegree - (arcDegree / 2f)
             )
             drawDirectionLabel(
                 direction = labels[index],
@@ -375,7 +375,7 @@ private fun GestureAngleDiagram(
                 color = primary,
                 side = side,
                 canvasWidth = size.width,
-                canvasHeight = size.height,
+                canvasHeight = size.height
             )
         }
     }
@@ -385,7 +385,7 @@ private fun calcDragHandleOffset(
     side: PanelSide,
     circleCenter: Offset,
     circleRadius: Float,
-    degree: Float,
+    degree: Float
 ): Offset {
     val transformedDegree = if (degree > 90f) {
         GESTURE_ANGLE_BASE - degree
@@ -430,7 +430,7 @@ private fun DrawScope.drawDirectionLabel(
     color: androidx.compose.ui.graphics.Color,
     side: PanelSide,
     canvasWidth: Float,
-    canvasHeight: Float,
+    canvasHeight: Float
 ) {
     val symbol = when (direction) {
         SwipeDirection.UP -> "↑"
@@ -458,6 +458,6 @@ private fun DrawScope.drawDirectionLabel(
     drawText(
         textLayoutResult = layout,
         topLeft = Offset(x, y),
-        color = color,
+        color = color
     )
 }

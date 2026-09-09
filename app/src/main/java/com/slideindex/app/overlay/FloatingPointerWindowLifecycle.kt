@@ -27,7 +27,7 @@ import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
 
 internal class FloatingPointerWindowLifecycle(
-    private val window: FloatingPointerOverlayWindow,
+    private val window: FloatingPointerOverlayWindow
 ) {
     private val mainHandler get() = window.mainHandler
 
@@ -37,7 +37,7 @@ internal class FloatingPointerWindowLifecycle(
         anchorRawX: Float?,
         anchorRawY: Float?,
         continueTouch: Boolean,
-        attachDeferred: Boolean = false,
+        attachDeferred: Boolean = false
     ) {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             mainHandler.post {
@@ -61,7 +61,7 @@ internal class FloatingPointerWindowLifecycle(
                     window.touchHost?.beginContinuedGesture(
                         x,
                         y,
-                        SystemClock.uptimeMillis(),
+                        SystemClock.uptimeMillis()
                     )
                 }
                 return
@@ -101,7 +101,7 @@ internal class FloatingPointerWindowLifecycle(
             density = dm.density,
             screenWidth = screenBounds.width,
             screenHeight = screenBounds.height,
-            settingsSource = { settingsHolder.value },
+            settingsSource = { settingsHolder.value }
         )
         if (anchorRawX != null && anchorRawY != null && !shouldContinueTouch) {
             pointerSession.placeAtTouch(anchorRawX, anchorRawY, settings)
@@ -117,7 +117,7 @@ internal class FloatingPointerWindowLifecycle(
                 FloatingPointerDisplay(
                     session = pointerSession,
                     settings = currentSettings,
-                    visible = isVisible,
+                    visible = isVisible
                 )
             }
         }
@@ -174,7 +174,7 @@ internal class FloatingPointerWindowLifecycle(
             onEnsureTouchOverlayInteractive = { setTouchOverlayPassthrough(false) },
             resolveFingerLocalInTouchOverlay = { rawX, rawY -> fingerLocalInTouchOverlay(rawX, rawY) },
             onFinishEdgeHandoffTouchCapture = { rawX, rawY -> finishEdgeHandoffTouchCapture(rawX, rawY) },
-            pointerTapInjectionActive = { window.isPointerTapInFlight },
+            pointerTapInjectionActive = { window.isPointerTapInFlight }
         )
 
         val displayParams = buildDisplayParams(hostContext)
@@ -237,7 +237,7 @@ internal class FloatingPointerWindowLifecycle(
                 window.overlayScope.launch {
                     deps.settingsRepository.setShellCommands(commands)
                 }
-            },
+            }
         )
         registerScreenOffReceiver(hostContext)
         OverlayPerformanceMonitorBinding.onOverlayShown(settings, hostContext)
@@ -251,7 +251,7 @@ internal class FloatingPointerWindowLifecycle(
             touchLayout.beginContinuedGesture(
                 anchorRawX,
                 anchorRawY,
-                SystemClock.uptimeMillis(),
+                SystemClock.uptimeMillis()
             )
             Log.i(TAG, "show: edge handoff ready at ($anchorRawX, $anchorRawY)")
         }
@@ -266,7 +266,7 @@ internal class FloatingPointerWindowLifecycle(
         settings: AppSettings,
         anchorRawX: Float?,
         anchorRawY: Float?,
-        continueTouch: Boolean,
+        continueTouch: Boolean
     ) {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             mainHandler.post { window.toggle(context, settings, anchorRawX, anchorRawY, continueTouch) }
@@ -298,7 +298,7 @@ internal class FloatingPointerWindowLifecycle(
             collapseTouchCapture(
                 it.joystickCenterX.floatValue,
                 it.joystickCenterY.floatValue,
-                forceCollapse = true,
+                forceCollapse = true
             )
         }
         visible.value = false
@@ -361,7 +361,7 @@ internal class FloatingPointerWindowLifecycle(
     fun collapseTouchCapture(
         centerX: Float,
         centerY: Float,
-        @Suppress("UNUSED_PARAMETER") forceCollapse: Boolean = false,
+        @Suppress("UNUSED_PARAMETER") forceCollapse: Boolean = false
     ) {
         val pointerSession = window.session ?: return
         if (pointerSession.radialMenuActive.value) return
@@ -428,7 +428,7 @@ internal class FloatingPointerWindowLifecycle(
         fingerRawX: Float,
         fingerRawY: Float,
         fingerLocalX: Float,
-        fingerLocalY: Float,
+        fingerLocalY: Float
     ) {
         val pointerSession = window.session ?: return
         if (pointerSession.radialMenuActive.value) return
@@ -617,7 +617,7 @@ internal class FloatingPointerWindowLifecycle(
                 collapseTouchCapture(
                     session.joystickCenterX.floatValue,
                     session.joystickCenterY.floatValue,
-                    forceCollapse = true,
+                    forceCollapse = true
                 )
             }
         }
@@ -640,7 +640,7 @@ internal class FloatingPointerWindowLifecycle(
                 collapseTouchCapture(
                     session.joystickCenterX.floatValue,
                     session.joystickCenterY.floatValue,
-                    forceCollapse = true,
+                    forceCollapse = true
                 )
             }
         }
@@ -652,7 +652,7 @@ internal class FloatingPointerWindowLifecycle(
         settings: AppSettings,
         anchorRawX: Float,
         anchorRawY: Float,
-        continueTouch: Boolean,
+        continueTouch: Boolean
     ) {
         cancelPendingCleanup()
         window.settingsSync.cancelIdleTimer()
@@ -698,7 +698,7 @@ internal class FloatingPointerWindowLifecycle(
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                 WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
                 WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
-            PixelFormat.TRANSLUCENT,
+            PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.TOP or Gravity.START
             applyCutoutMode()
@@ -714,7 +714,7 @@ internal class FloatingPointerWindowLifecycle(
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                 WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
                 WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
-            PixelFormat.TRANSLUCENT,
+            PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.TOP or Gravity.START
             x = 0
@@ -733,7 +733,7 @@ internal class FloatingPointerWindowLifecycle(
                 WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
                 WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH or
                 WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
-            PixelFormat.TRANSLUCENT,
+            PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.TOP or Gravity.START
             x = 0
@@ -745,7 +745,7 @@ internal class FloatingPointerWindowLifecycle(
     private fun buildCollapsedTouchParams(
         context: Context,
         pointerSession: FloatingPointerSession,
-        settings: AppSettings,
+        settings: AppSettings
     ): WindowManager.LayoutParams {
         val size = pointerSession.touchCaptureDiameterPx(settings).roundToInt()
         val radius = pointerSession.touchCaptureRadiusPx(settings)
@@ -760,7 +760,7 @@ internal class FloatingPointerWindowLifecycle(
                 WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
                 WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH or
                 WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
-            PixelFormat.TRANSLUCENT,
+            PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.TOP or Gravity.START
             x = (pointerSession.joystickCenterX.floatValue - radius)
@@ -786,7 +786,7 @@ internal class FloatingPointerWindowLifecycle(
         val bounds = wm.currentWindowMetrics.bounds
         return OverlayScreenBounds(
             width = bounds.width().toFloat(),
-            height = bounds.height().toFloat(),
+            height = bounds.height().toFloat()
         )
     }
 

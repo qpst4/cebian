@@ -14,7 +14,7 @@ object QuickToolsTileSettings {
         OhoTile.MOBILE_DATA,
         OhoTile.SOUND,
         OhoTile.BLUETOOTH,
-        OhoTile.DO_NOT_DISTURB,
+        OhoTile.DO_NOT_DISTURB
     )
 
     fun open(context: Context, tile: OhoTile): Boolean {
@@ -70,7 +70,7 @@ object QuickToolsTileSettings {
     private fun mobileDataIntents(context: Context, flags: Int): List<Intent> {
         val intents = mutableListOf(
             Intent(Settings.ACTION_DATA_USAGE_SETTINGS).addFlags(flags),
-            Intent(Settings.ACTION_WIRELESS_SETTINGS).addFlags(flags),
+            Intent(Settings.ACTION_WIRELESS_SETTINGS).addFlags(flags)
         )
         context.packageManager.getLaunchIntentForPackage(FLYME_SETTINGS_PACKAGE)
             ?.addFlags(flags)
@@ -82,7 +82,7 @@ object QuickToolsTileSettings {
         "am", "start",
         "-a", "android.settings.MMS_MESSAGE_SETTING",
         "-f", "0x10008000",
-        "-n", "com.android.settings/.Settings\$MobileNetworkActivity",
+        "-n", "com.android.settings/.Settings\$MobileNetworkActivity"
     )
 
     private const val FLYME_SETTINGS_PACKAGE = "com.meizu.flyme.settings"

@@ -10,7 +10,7 @@ import com.slideindex.app.util.ContinuousAdjustController
 import com.slideindex.app.util.VolumeControlHelper
 
 internal class AdjustPanelRenderer(
-    private val ctrl: AdjustPanelOverlayController,
+    private val ctrl: AdjustPanelOverlayController
 ) {
     private val host get() = ctrl.host
 
@@ -22,14 +22,14 @@ internal class AdjustPanelRenderer(
             canvas = canvas,
             mode = visual.mode,
             fraction = visual.fraction,
-            anchorRawY = visual.anchorRawY,
+            anchorRawY = visual.anchorRawY
         )
     }
 
     fun updateAdjustIndicatorLayout(
         anchorRawY: Float,
         forceFullScreenAnchor: Boolean = false,
-        mode: ContinuousAdjustController.Mode? = null,
+        mode: ContinuousAdjustController.Mode? = null
     ): AdjustLevelIndicator.Layout? {
         val density = host.density()
         val screenWidthPx = host.screenWidthPx()
@@ -52,7 +52,7 @@ internal class AdjustPanelRenderer(
                 null -> AdjustPanelChrome.NONE
             },
             volumeExpanded = ctrl.adjustPanelState?.volumeExpanded == true &&
-                adjustMode == ContinuousAdjustController.Mode.VOLUME,
+                adjustMode == ContinuousAdjustController.Mode.VOLUME
         )
         return ctrl.adjustIndicatorLayout
     }
@@ -64,7 +64,7 @@ internal class AdjustPanelRenderer(
         updateAdjustIndicatorLayout(
             anchorRawY,
             forceFullScreenAnchor = true,
-            mode = ctrl.adjustPanelState?.mode,
+            mode = ctrl.adjustPanelState?.mode
         )
         ctrl.adjustIndicatorFrozenLayout = ctrl.adjustIndicatorLayout
         val remaining = (1f - ctrl.adjustIndicatorProgress).coerceIn(0f, 1f)
@@ -72,7 +72,7 @@ internal class AdjustPanelRenderer(
         animateAdjustIndicatorTo(
             target = 1f,
             durationMs = durationMs,
-            interpolator = DecelerateInterpolator(),
+            interpolator = DecelerateInterpolator()
         ) {
             ctrl.adjustPanelEntering = false
             ctrl.adjustIndicatorFrozenLayout = null
@@ -91,13 +91,13 @@ internal class AdjustPanelRenderer(
         updateAdjustIndicatorLayout(
             anchorRawY,
             forceFullScreenAnchor = true,
-            mode = ctrl.adjustPanelState?.mode,
+            mode = ctrl.adjustPanelState?.mode
         )
         ctrl.adjustIndicatorFrozenLayout = ctrl.adjustIndicatorLayout
         animateAdjustIndicatorTo(
             target = 1f,
             durationMs = ADJUST_INDICATOR_ENTER_MS,
-            interpolator = DecelerateInterpolator(),
+            interpolator = DecelerateInterpolator()
         ) {
             ctrl.adjustPanelEntering = false
             ctrl.adjustIndicatorFrozenLayout = null
@@ -113,7 +113,7 @@ internal class AdjustPanelRenderer(
         animateAdjustIndicatorTo(
             target = 1f,
             durationMs = ADJUST_INDICATOR_ENTER_MS,
-            interpolator = DecelerateInterpolator(),
+            interpolator = DecelerateInterpolator()
         )
     }
 
@@ -138,7 +138,7 @@ internal class AdjustPanelRenderer(
         target: Float,
         durationMs: Long,
         interpolator: Interpolator = DecelerateInterpolator(),
-        onEnd: (() -> Unit)? = null,
+        onEnd: (() -> Unit)? = null
     ) {
         ctrl.adjustIndicatorAnimator?.cancel()
         val receding = target == 0f && ctrl.adjustIndicatorProgress > 0f
@@ -149,7 +149,7 @@ internal class AdjustPanelRenderer(
                     ?: host.gestureSession().adjustAnchorRawY(),
                 ctrl.adjustIndicatorHoldVisual?.mode
                     ?: ctrl.adjustPanelState?.mode
-                    ?: host.gestureSession().adjustModeOrNull(),
+                    ?: host.gestureSession().adjustModeOrNull()
             )
         } else if (target >= 1f) {
             ctrl.adjustIndicatorReceding = false
@@ -199,7 +199,7 @@ internal class AdjustPanelRenderer(
             return AdjustPanelOverlayController.AdjustIndicatorVisual(
                 mode = mode,
                 fraction = host.actionExecutor().adjustFraction(),
-                anchorRawY = host.gestureSession().adjustAnchorRawY(),
+                anchorRawY = host.gestureSession().adjustAnchorRawY()
             )
         }
         return ctrl.adjustIndicatorHoldVisual
@@ -209,14 +209,14 @@ internal class AdjustPanelRenderer(
         ctrl.adjustPanelState?.takeIf { it.mode == ContinuousAdjustController.Mode.BRIGHTNESS }?.let { state ->
             return BrightnessPanelVisual(
                 autoBrightnessEnabled = state.autoBrightnessEnabled,
-                darkModeEnabled = state.darkModeEnabled,
+                darkModeEnabled = state.darkModeEnabled
             )
         }
         if (host.gestureSession().adjustModeOrNull() != ContinuousAdjustController.Mode.BRIGHTNESS) return null
         val executor = host.actionExecutor()
         return BrightnessPanelVisual(
             autoBrightnessEnabled = executor.readAutoBrightnessEnabled(),
-            darkModeEnabled = executor.readDarkModeEnabled(),
+            darkModeEnabled = executor.readDarkModeEnabled()
         )
     }
 
@@ -227,7 +227,7 @@ internal class AdjustPanelRenderer(
                 ringFraction = state.ringFraction,
                 notificationFraction = state.notificationFraction,
                 ringerMode = state.ringerMode,
-                interruptionFilter = state.interruptionFilter,
+                interruptionFilter = state.interruptionFilter
             )
         }
         if (host.gestureSession().adjustModeOrNull() != ContinuousAdjustController.Mode.VOLUME) return null
@@ -237,7 +237,7 @@ internal class AdjustPanelRenderer(
             ringFraction = executor.readVolumeFraction(VolumeControlHelper.Stream.RING),
             notificationFraction = executor.readVolumeFraction(VolumeControlHelper.Stream.NOTIFICATION),
             ringerMode = executor.readRingerMode(),
-            interruptionFilter = executor.readInterruptionFilter(),
+            interruptionFilter = executor.readInterruptionFilter()
         )
     }
 
@@ -245,7 +245,7 @@ internal class AdjustPanelRenderer(
         canvas: Canvas,
         mode: ContinuousAdjustController.Mode,
         fraction: Float,
-        anchorRawY: Float,
+        anchorRawY: Float
     ) {
         val layout = if (ctrl.adjustIndicatorReceding || ctrl.adjustPanelEntering) {
             ctrl.adjustIndicatorFrozenLayout ?: run {
@@ -275,7 +275,7 @@ internal class AdjustPanelRenderer(
             recede = ctrl.adjustIndicatorReceding,
             volumePanel = volumePanel,
             brightnessPanel = brightnessPanel,
-            context = host.context,
+            context = host.context
         )
     }
 

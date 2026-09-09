@@ -31,7 +31,7 @@ class BackTapGestureHost @Inject constructor(
     @ApplicationContext private val appContext: Context,
     private val settingsRepository: SettingsRepository,
     private val actionPort: ShakeActionPort,
-    private val runtimePort: ShakeRuntimePort,
+    private val runtimePort: ShakeRuntimePort
 ) {
     private var detector: BackTapDetector? = null
     private var settingsJob: Job? = null
@@ -121,7 +121,7 @@ class BackTapGestureHost @Inject constructor(
             action = action,
             settings = settings,
             anchorRawX = runtimePort.screenCenterX(),
-            anchorRawY = runtimePort.screenCenterY(),
+            anchorRawY = runtimePort.screenCenterY()
         )
     }
 

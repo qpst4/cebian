@@ -8,7 +8,7 @@ import javax.inject.Singleton
 
 @Singleton
 class AppNotificationRuleUiStrings @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @ApplicationContext private val context: Context
 ) : NotificationRuleUiStrings {
     override val callNotifyChannelName: String
         get() = context.getString(R.string.notification_rule_action_call)

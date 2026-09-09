@@ -21,7 +21,7 @@ data class TaskSwitcherMenuItem(
     val intentUris: List<String>? = null,
     val useShellLaunch: Boolean = false,
     val kind: ShortcutKind? = null,
-    val targetComponent: String? = null,
+    val targetComponent: String? = null
 )
 
 data class TaskSwitcherContextMenuLayout(
@@ -30,7 +30,7 @@ data class TaskSwitcherContextMenuLayout(
     val menuRect: RectF,
     val items: List<TaskSwitcherMenuItem>,
     val itemRects: List<RectF>,
-    val inlineInPanel: Boolean = false,
+    val inlineInPanel: Boolean = false
 )
 
 internal object TaskSwitcherContextMenuLayoutFactory {
@@ -46,7 +46,7 @@ internal object TaskSwitcherContextMenuLayoutFactory {
         density: Float,
         anchorX: Float,
         anchorY: Float,
-        inlineInPanel: Boolean = false,
+        inlineInPanel: Boolean = false
     ): TaskSwitcherContextMenuLayout {
         val itemHeight = 44f * density
         val padV = 6f * density
@@ -75,17 +75,17 @@ internal object TaskSwitcherContextMenuLayoutFactory {
             edge = edge,
             viewWidth = viewWidth,
             clampMin = clampMin,
-            clampMax = clampMax,
+            clampMax = clampMax
         )
         val menuTop = if (inlineInPanel) {
             (anchorY - menuHeight / 2f).coerceIn(
                 listRect.top + inset,
-                (listRect.bottom - menuHeight - inset).coerceAtLeast(listRect.top + inset),
+                (listRect.bottom - menuHeight - inset).coerceAtLeast(listRect.top + inset)
             )
         } else {
             (anchorY - menuHeight / 2f).coerceIn(
                 edge,
-                (viewHeight - menuHeight - edge).coerceAtLeast(edge),
+                (viewHeight - menuHeight - edge).coerceAtLeast(edge)
             )
         }
         val menuRect = RectF(menuLeft, menuTop, menuLeft + resolvedWidth, menuTop + menuHeight)
@@ -99,7 +99,7 @@ internal object TaskSwitcherContextMenuLayoutFactory {
             menuRect = menuRect,
             items = items,
             itemRects = itemRects,
-            inlineInPanel = inlineInPanel,
+            inlineInPanel = inlineInPanel
         )
     }
 
@@ -112,7 +112,7 @@ internal object TaskSwitcherContextMenuLayoutFactory {
         edge: Float,
         viewWidth: Int,
         clampMin: Float,
-        clampMax: Float,
+        clampMax: Float
     ): Float {
         val preferred = when (side) {
             PanelSide.LEFT, PanelSide.BOTTOM, PanelSide.TOP -> anchorX + gap

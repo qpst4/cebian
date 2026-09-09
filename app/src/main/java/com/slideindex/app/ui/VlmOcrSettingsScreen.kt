@@ -37,6 +37,7 @@ import com.slideindex.app.ui.miuix.MiuixLabeledTextField
 import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import com.slideindex.app.ui.settings.components.settingsLazyHint
+import com.slideindex.app.ui.settings.components.settingsLazyTipCard
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.basic.Button
@@ -148,7 +149,6 @@ fun VlmOcrSettingsScreen(
         settingsLazySmallTitle(
             key = "section-api",
             title = sectionApiTitle,
-            sectionTop = false,
         )
 
         LazySettingsItem(key = "api-card") {
@@ -190,15 +190,13 @@ fun VlmOcrSettingsScreen(
             }
         }
 
-        settingsLazyHint(
-            key = "api-hint",
+        settingsLazyTipCard(key = "api-hint",
             text = defaultEndpointHint,
         )
 
         settingsLazySmallTitle(
             key = "section-model",
             title = sectionModelTitle,
-            sectionTop = true,
         )
 
         LazySettingsItem(key = "model-card") {
@@ -331,7 +329,6 @@ fun VlmOcrSettingsScreen(
         settingsLazySmallTitle(
             key = "section-prompt",
             title = sectionPromptTitle,
-            sectionTop = true,
         )
 
         LazySettingsItem(key = "prompt-card") {

@@ -26,7 +26,7 @@ object ShellCommandPanelTrampoline {
         continuousPick: Boolean,
         onPrepare: () -> Unit,
         onDismiss: () -> Unit,
-        onPersist: (List<ShellCommand>) -> Unit,
+        onPersist: (List<ShellCommand>) -> Unit
     ) {
         cancelPending()
         active = true
@@ -36,7 +36,7 @@ object ShellCommandPanelTrampoline {
         this.onPersist = onPersist
         runCatching {
             context.startActivity(
-                ShellCommandPanelTrampolineActivity.createIntent(context),
+                ShellCommandPanelTrampolineActivity.createIntent(context)
             )
         }.onFailure {
             deliverDismiss()

@@ -11,9 +11,8 @@ enum class ShakeActionPickTarget {
 }
 
 fun ShakeActionPickTarget.returnNavKey(packageName: String = ""): AppNavKey = when (this) {
-    ShakeActionPickTarget.BASIC,
-    ShakeActionPickTarget.FACE_DOWN,
-    -> AppNavKey.ShakeGestures
+    ShakeActionPickTarget.BASIC -> AppNavKey.ShakeGestures
+    ShakeActionPickTarget.FACE_DOWN -> AppNavKey.ShakeFaceDownSettings
     ShakeActionPickTarget.LOCK_SCREEN -> AppNavKey.ShakeLockScreenSettings
     ShakeActionPickTarget.PER_APP -> AppNavKey.ShakePerAppActions(packageName)
 }

@@ -19,7 +19,7 @@ internal object RootPrivilegedOperations {
     }
     private val tasks = TaskManagerTaskOperations(
         shell = shellRunner,
-        recents = ShellRecentsReader(shellPort),
+        recents = ShellRecentsReader(shellPort)
     )
     private val freeWindow = TaskManagerFreeWindowOperations(shell = shellPort, tasks = tasks)
 
@@ -68,14 +68,14 @@ internal object RootPrivilegedOperations {
         val success = !output.startsWith("Command timed out") && !output.contains("Execution failed")
         return com.slideindex.app.util.TaskManagerUtil.ShellCommandResult(
             exitCode = if (success) 0 else -1,
-            output = output,
+            output = output
         )
     }
 
     fun moveTaskToFreeWindow(
         taskId: String,
         settings: AppSettings,
-        context: android.content.Context,
+        context: android.content.Context
     ): Boolean {
         val bounds = FreeWindowLauncher.launchBounds(context, settings)
         val mode = settings.resolvedFreeWindowMode().windowingMode
@@ -85,7 +85,7 @@ internal object RootPrivilegedOperations {
             bounds.left,
             bounds.top,
             bounds.right,
-            bounds.bottom,
+            bounds.bottom
         )
     }
 }

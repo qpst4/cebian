@@ -9,7 +9,7 @@ import android.util.Log
 
 internal class TaskManagerFreeWindowOperations(
     private val shell: TaskShellPort = DefaultTaskShellPort,
-    private val tasks: TaskManagerTaskOperations = TaskManagerTaskOperations(),
+    private val tasks: TaskManagerTaskOperations = TaskManagerTaskOperations()
 ) {
 
     fun moveTaskToFreeWindow(
@@ -18,7 +18,7 @@ internal class TaskManagerFreeWindowOperations(
         left: Int,
         top: Int,
         right: Int,
-        bottom: Int,
+        bottom: Int
     ): Boolean {
         return try {
             val taskId = taskIdStr?.toIntOrNull()?.takeIf { it > 0 } ?: return false
@@ -27,7 +27,7 @@ internal class TaskManagerFreeWindowOperations(
             val isFrontTask = frontTaskId == taskId
             Log.i(
                 TAG,
-                "moveTaskToFreeWindow taskId=$taskId frontTaskId=$frontTaskId isFront=$isFrontTask mode=$windowingMode bounds=$bounds",
+                "moveTaskToFreeWindow taskId=$taskId frontTaskId=$frontTaskId isFront=$isFrontTask mode=$windowingMode bounds=$bounds"
             )
             if (isFrontTask) {
                 moveFrontTaskToFreeWindow(taskId, windowingMode, bounds)
@@ -119,7 +119,7 @@ internal class TaskManagerFreeWindowOperations(
                     "setTaskWindowingMode",
                     Int::class.javaPrimitiveType,
                     Int::class.javaPrimitiveType,
-                    Boolean::class.javaPrimitiveType,
+                    Boolean::class.javaPrimitiveType
                 ).invoke(atm, taskId, windowingMode, true)
                 windowingApplied = true
             }
@@ -128,7 +128,7 @@ internal class TaskManagerFreeWindowOperations(
                     "resizeTask",
                     Int::class.javaPrimitiveType,
                     Rect::class.java,
-                    Int::class.javaPrimitiveType,
+                    Int::class.javaPrimitiveType
                 ).invoke(atm, taskId, bounds, RESIZE_MODE_SYSTEM)
             }
             val options = ActivityOptions.makeBasic()
@@ -143,7 +143,7 @@ internal class TaskManagerFreeWindowOperations(
                     "moveTaskToFront",
                     Int::class.javaPrimitiveType,
                     Int::class.javaPrimitiveType,
-                    Bundle::class.java,
+                    Bundle::class.java
                 ).invoke(atm, taskId, 0, bundle) as? Boolean
             }.getOrNull() == true
             windowingApplied || movedToFront
@@ -166,7 +166,7 @@ internal class TaskManagerFreeWindowOperations(
             bounds.left.toString(),
             bounds.top.toString(),
             bounds.right.toString(),
-            bounds.bottom.toString(),
+            bounds.bottom.toString()
         )
     }
 
@@ -176,12 +176,12 @@ internal class TaskManagerFreeWindowOperations(
         val component = TaskShellParser.findComponentForTaskId(
             taskId,
             taskListDump,
-            activitiesDump,
+            activitiesDump
         ) ?: return false
         if (!shell.shellCommand(
                 "am", "start", "-n", component,
                 "--windowingMode", windowingMode.toString(),
-                "--activity-single-top", "--activity-clear-top",
+                "--activity-single-top", "--activity-clear-top"
             )
         ) {
             return false

@@ -24,7 +24,7 @@ import com.slideindex.app.util.ContinuousAdjustController
 import com.slideindex.app.util.VolumeControlHelper
 
 internal class AdjustPanelOverlayController(
-    internal val host: Host,
+    internal val host: Host
 ) {
     interface Host {
         val context: Context
@@ -53,7 +53,7 @@ internal class AdjustPanelOverlayController(
     internal data class AdjustIndicatorVisual(
         val mode: ContinuousAdjustController.Mode,
         val fraction: Float,
-        val anchorRawY: Float,
+        val anchorRawY: Float
     )
 
     private val touchHandler = AdjustPanelTouchHandler(this)
@@ -130,14 +130,14 @@ internal class AdjustPanelOverlayController(
     internal fun updateAdjustIndicatorLayout(
         anchorRawY: Float,
         forceFullScreenAnchor: Boolean = false,
-        mode: ContinuousAdjustController.Mode? = null,
+        mode: ContinuousAdjustController.Mode? = null
     ): AdjustLevelIndicator.Layout? =
         renderer.updateAdjustIndicatorLayout(anchorRawY, forceFullScreenAnchor, mode)
 
     fun showAdjustPanel(
         mode: ContinuousAdjustController.Mode,
         fraction: Float,
-        anchorRawY: Float,
+        anchorRawY: Float
     ) {
         if (mode == ContinuousAdjustController.Mode.BRIGHTNESS) {
             host.actionExecutor().clearBrightnessPreview()
@@ -152,7 +152,7 @@ internal class AdjustPanelOverlayController(
                 ringFraction = executor.readVolumeFraction(VolumeControlHelper.Stream.RING),
                 notificationFraction = executor.readVolumeFraction(VolumeControlHelper.Stream.NOTIFICATION),
                 ringerMode = executor.readRingerMode(),
-                interruptionFilter = executor.readInterruptionFilter(),
+                interruptionFilter = executor.readInterruptionFilter()
             )
         } else {
             AdjustPanelState(
@@ -160,7 +160,7 @@ internal class AdjustPanelOverlayController(
                 fraction = fraction,
                 anchorRawY = anchorRawY,
                 autoBrightnessEnabled = executor.readAutoBrightnessEnabled(),
-                darkModeEnabled = executor.readDarkModeEnabled(),
+                darkModeEnabled = executor.readDarkModeEnabled()
             )
         }
         adjustPanelDismissing = false
@@ -195,7 +195,7 @@ internal class AdjustPanelOverlayController(
         adjustIndicatorHoldVisual = renderer.captureAdjustIndicatorVisualForDismiss()
         renderer.freezeAdjustIndicatorLayout(
             adjustIndicatorHoldVisual?.anchorRawY,
-            adjustIndicatorHoldVisual?.mode,
+            adjustIndicatorHoldVisual?.mode
         )
         if (!animated || adjustIndicatorProgress <= 0f) {
             finishDismissAdjustPanel()
@@ -205,7 +205,7 @@ internal class AdjustPanelOverlayController(
         renderer.animateAdjustIndicatorTo(
             target = 0f,
             durationMs = AdjustPanelRenderer.ADJUST_INDICATOR_EXIT_MS,
-            interpolator = AccelerateInterpolator(),
+            interpolator = AccelerateInterpolator()
         ) {
             finishDismissAdjustPanel()
         }
@@ -229,7 +229,7 @@ internal class AdjustPanelOverlayController(
             renderer.animateAdjustIndicatorTo(
                 target = 0f,
                 durationMs = AdjustPanelRenderer.ADJUST_INDICATOR_EXIT_MS,
-                interpolator = AccelerateInterpolator(),
+                interpolator = AccelerateInterpolator()
             ) {
                 renderer.clearAdjustIndicatorExitState()
                 adjustIndicatorProgress = 0f
@@ -330,31 +330,31 @@ internal class AdjustPanelOverlayController(
         resolver.registerContentObserver(
             Settings.System.getUriFor(Settings.System.SCREEN_BRIGHTNESS_MODE),
             false,
-            observer,
+            observer
         )
         resolver.registerContentObserver(
             Settings.System.getUriFor(Settings.System.SCREEN_BRIGHTNESS),
             false,
-            observer,
+            observer
         )
         runCatching {
             resolver.registerContentObserver(
                 Settings.System.getUriFor("screen_brightness_float"),
                 false,
-                observer,
+                observer
             )
         }
         runCatching {
             resolver.registerContentObserver(
                 Settings.System.getUriFor("screen_auto_brightness_adj"),
                 false,
-                observer,
+                observer
             )
         }
         resolver.registerContentObserver(
             Settings.Secure.getUriFor(BrightnessControlHelper.UI_NIGHT_MODE_KEY),
             false,
-            observer,
+            observer
         )
     }
 

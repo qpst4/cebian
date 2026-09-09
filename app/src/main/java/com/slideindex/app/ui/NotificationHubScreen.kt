@@ -38,7 +38,6 @@ fun NotificationHubScreen(
 
     MiuixHubScaffold(
         title = stringResource(R.string.main_nav_notification),
-        subtitle = stringResource(R.string.notification_hub_subtitle),
         modifier = Modifier.fillMaxSize(),
         listState = listState,
         bottomContentPadding = bottomContentPadding,
@@ -60,7 +59,7 @@ fun NotificationHubScreen(
             },
         )
 
-        settingsLazySmallTitle(key = "tools_section", title = toolsTitle, sectionTop = true)
+        settingsLazySmallTitle(key = "tools_section", title = toolsTitle)
         groupedCardItems(
             keyPrefix = "notification_tools",
             items = buildList {

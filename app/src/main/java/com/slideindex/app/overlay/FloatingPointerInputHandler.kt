@@ -13,7 +13,7 @@ import kotlin.math.max
 internal class FloatingPointerInputHandler(
     private val session: FloatingPointerSession,
     private val settingsProvider: () -> AppSettings,
-    private val host: Host,
+    private val host: Host
 ) {
     interface Host {
         fun captureAllPointers()
@@ -22,7 +22,7 @@ internal class FloatingPointerInputHandler(
             fingerRawX: Float,
             fingerRawY: Float,
             fingerLocalX: Float,
-            fingerLocalY: Float,
+            fingerLocalY: Float
         )
         fun onPointerPositionChanged(pointerX: Float, pointerY: Float)
         fun onGestureEnd(centerX: Float, centerY: Float, isTap: Boolean)
@@ -330,7 +330,7 @@ internal class FloatingPointerInputHandler(
                     val highlightChanged = session.updateRadialHighlight(
                         event.rawX,
                         event.rawY,
-                        settings,
+                        settings
                     )
                     if (highlightChanged) {
                         host.onHaptic()
@@ -382,7 +382,7 @@ internal class FloatingPointerInputHandler(
                     hoverSelectController.onPointerMoved(
                         pointerX = session.pointerX.floatValue,
                         pointerY = session.pointerY.floatValue,
-                        density = session.density,
+                        density = session.density
                     )
                 }
                 lastRawX = event.rawX
@@ -462,12 +462,12 @@ internal class FloatingPointerInputHandler(
                 val elapsed = System.currentTimeMillis() - downTimeMs
                 val fingerDistance = hypot(
                     (event.rawX - downRawX).toDouble(),
-                    (event.rawY - downRawY).toDouble(),
+                    (event.rawY - downRawY).toDouble()
                 ).toFloat()
                 val joystickDistance = if (movedBeyondTap()) {
                     hypot(
                         (endX - restJoystickX).toDouble(),
-                        (endY - restJoystickY).toDouble(),
+                        (endY - restJoystickY).toDouble()
                     ).toFloat()
                 } else {
                     0f
@@ -505,7 +505,7 @@ internal class FloatingPointerInputHandler(
                     host.onGestureEnd(
                         session.joystickCenterX.floatValue,
                         session.joystickCenterY.floatValue,
-                        false,
+                        false
                     )
                     if (settingsProvider().floatingPointerReleaseClickAndDismiss ||
                         settingsProvider().floatingPointerHoverEnterSelect
@@ -667,7 +667,7 @@ internal class FloatingPointerInputHandler(
             fingerX = fingerX,
             fingerY = fingerY,
             innerRadius = inner,
-            outerRadius = outer,
+            outerRadius = outer
         ) ?: -1
     }
 

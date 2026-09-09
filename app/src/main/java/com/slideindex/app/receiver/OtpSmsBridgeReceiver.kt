@@ -42,7 +42,7 @@ class OtpSmsBridgeReceiver : BroadcastReceiver() {
     private suspend fun handleSms(context: Context, body: String, sender: String) {
         val deps = EntryPointAccessors.fromApplication(
             context.applicationContext,
-            AppGraphEntryPoint::class.java,
+            AppGraphEntryPoint::class.java
         ).dependencies()
         val settings = deps.settingsRepository.settings.first()
         if (!settings.otpLsposedSmsCaptureEnabled) return
@@ -51,13 +51,13 @@ class OtpSmsBridgeReceiver : BroadcastReceiver() {
             keywordsRegex = settings.otpKeywordsRegex,
             officialRules = officialRules,
             userRules = settings.otpUserMatchRules,
-            disabledOfficialRuleIds = settings.otpDisabledOfficialRuleIds,
+            disabledOfficialRuleIds = settings.otpDisabledOfficialRuleIds
         )
         val result = VerificationCodeExtractor.extract(
             packageName = sender,
             title = sender,
             text = body,
-            config = config,
+            config = config
         )
         val code = result.code ?: return
         if (!OtpCaptureDeduplicator.tryConsumeExtractedCode(code)) {
@@ -76,7 +76,7 @@ class OtpSmsBridgeReceiver : BroadcastReceiver() {
             title = sender,
             text = body,
             ruleName = result.ruleName,
-            autoFillStatus = fillStatus,
+            autoFillStatus = fillStatus
         ).getOrNull()
         if (settings.otpAutoInputEnabled) {
             OtpAutoFillController.queueCode(code)

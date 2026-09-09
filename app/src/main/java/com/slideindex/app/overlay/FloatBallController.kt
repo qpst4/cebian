@@ -17,7 +17,7 @@ import kotlinx.coroutines.launch
 class FloatBallController(
     private val context: Context,
     private val scope: CoroutineScope,
-    private val settingsRepository: SettingsRepository,
+    private val settingsRepository: SettingsRepository
 ) {
     private var styleAssetMigrationDone = false
 
@@ -49,7 +49,7 @@ class FloatBallController(
                     scope.launch(Dispatchers.IO) {
                         settingsRepository.setFloatBallActiveSide(side)
                     }
-                },
+                }
             )
         } else {
             if (!FloatBallOverlay.isShowing) {
@@ -79,7 +79,7 @@ class FloatBallController(
             settings = settings,
             context = context,
             foregroundPackage = OverlayService.foregroundPackage,
-            scope = OverlaySuppressionScope.FLOAT_BALL,
+            scope = OverlaySuppressionScope.FLOAT_BALL
         )
 
     private suspend fun migrateReadableStyleAssets(settings: AppSettings) {
@@ -105,7 +105,7 @@ class FloatBallController(
                 if (uris.isNotEmpty() && uris.all { it.startsWith("content://") }) {
                     val imported = FloatBallStyleAssetStore.importSlideshow(
                         context,
-                        uris.map { it.toUri() },
+                        uris.map { it.toUri() }
                     )
                     if (imported.isNotEmpty()) {
                         settingsRepository.setFloatBallSlideshowUris(imported)

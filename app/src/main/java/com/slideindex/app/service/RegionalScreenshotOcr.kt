@@ -57,7 +57,7 @@ object RegionalScreenshotOcr {
         service: AccessibilityService,
         screenRect: Rect,
         expandFraction: Float = 0f,
-        edgePaddingPx: Int = FloatBallOcrRegions.CROP_EDGE_PADDING_PX,
+        edgePaddingPx: Int = FloatBallOcrRegions.CROP_EDGE_PADDING_PX
     ): RegionalScreenshotCrop? {
         val (screenWidth, screenHeight) = logicalScreenSizePx(service)
         val fullBitmap = captureDisplayBitmap(service) ?: return null
@@ -67,7 +67,7 @@ object RegionalScreenshotOcr {
                 screenWidth = screenWidth,
                 screenHeight = screenHeight,
                 captureWidth = fullBitmap.width,
-                captureHeight = fullBitmap.height,
+                captureHeight = fullBitmap.height
             )
             cropped = cropBitmap(
                 fullBitmap = fullBitmap,
@@ -75,7 +75,7 @@ object RegionalScreenshotOcr {
                 screenWidth = screenWidth,
                 screenHeight = screenHeight,
                 expandFraction = expandFraction,
-                edgePaddingPx = edgePaddingPx,
+                edgePaddingPx = edgePaddingPx
             ) ?: return null
             RegionalScreenshotCrop(cropped, layoutMeta)
         } finally {
@@ -97,7 +97,7 @@ object RegionalScreenshotOcr {
 
         screenRect: Rect,
 
-        modelId: String,
+        modelId: String
 
     ): String? {
 
@@ -125,7 +125,7 @@ object RegionalScreenshotOcr {
 
         modelId: String,
 
-        bitmap: Bitmap,
+        bitmap: Bitmap
 
     ): OcrRecognizeResult {
 
@@ -146,8 +146,8 @@ object RegionalScreenshotOcr {
             OcrRecognizeResult.Failure(
                 context.getString(
                     R.string.ocr_error_recognition_failed,
-                    error.localizedMessage ?: error.message ?: context.getString(R.string.ocr_error_unknown),
-                ),
+                    error.localizedMessage ?: error.message ?: context.getString(R.string.ocr_error_unknown)
+                )
             )
 
         }
@@ -162,7 +162,7 @@ object RegionalScreenshotOcr {
 
     fun captureDisplayBitmapAsync(
         service: AccessibilityService,
-        onResult: (Bitmap?) -> Unit,
+        onResult: (Bitmap?) -> Unit
     ) {
         service.takeScreenshot(
             android.view.Display.DEFAULT_DISPLAY,
@@ -188,7 +188,7 @@ object RegionalScreenshotOcr {
                     Log.w(TAG, "takeScreenshot failed: $errorCode")
                     onResult(null)
                 }
-            },
+            }
         )
     }
 
@@ -206,14 +206,14 @@ object RegionalScreenshotOcr {
         screenWidth: Int,
         screenHeight: Int,
         expandFraction: Float = 0f,
-        edgePaddingPx: Int = FloatBallOcrRegions.CROP_EDGE_PADDING_PX,
+        edgePaddingPx: Int = FloatBallOcrRegions.CROP_EDGE_PADDING_PX
     ): Bitmap? {
         val expanded = if (expandFraction > 0f) {
             FloatBallOcrRegions.expandScreenRect(
                 screenRect,
                 expandFraction,
                 screenWidth,
-                screenHeight,
+                screenHeight
             )
         } else {
             Rect(screenRect)
@@ -230,7 +230,7 @@ object RegionalScreenshotOcr {
 
             bitmapWidth = fullBitmap.width,
 
-            bitmapHeight = fullBitmap.height,
+            bitmapHeight = fullBitmap.height
 
         )
 
@@ -240,7 +240,7 @@ object RegionalScreenshotOcr {
 
             fullBitmap.width,
 
-            fullBitmap.height,
+            fullBitmap.height
 
         )
 
@@ -256,7 +256,7 @@ object RegionalScreenshotOcr {
 
             cropRect.width(),
 
-            cropRect.height(),
+            cropRect.height()
 
         )
 
@@ -328,7 +328,7 @@ object RegionalScreenshotOcr {
 
                     }
 
-                },
+                }
 
             )
 

@@ -14,7 +14,7 @@ fun GestureAction.showsShellCommandBadge(shellCommands: List<ShellCommand>): Boo
 }
 
 fun GestureAction.LaunchShortcut.isShellActivityShortcut(
-    activityShortcuts: List<ActivityShortcut>,
+    activityShortcuts: List<ActivityShortcut>
 ): Boolean {
     activityShortcuts.findForLaunchShortcut(payloadKey)?.let { shortcut ->
         if (ActivityShortcutShellSupport.isShellShortcut(shortcut)) return true
@@ -31,7 +31,7 @@ fun GestureAction.LaunchShortcut.isShellActivityShortcut(
 
 /** Shell 应用内直达（cebianshell）：一律显示 Shell 角标。 */
 fun GestureAction.LaunchShortcut.showsShellActivityShortcutBadge(
-    activityShortcuts: List<ActivityShortcut>,
+    activityShortcuts: List<ActivityShortcut>
 ): Boolean = isShellActivityShortcut(activityShortcuts)
 
 fun QuickLauncherItem.showsShellCommandBadge(shellCommands: List<ShellCommand>): Boolean {

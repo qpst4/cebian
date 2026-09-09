@@ -52,8 +52,8 @@ class OcrModelDownloadService : Service() {
                     OcrModelDownloadState(
                         modelId = requestedModelId,
                         phase = OcrModelDownloadPhase.FAILED,
-                        errorMessage = "another_download_in_progress",
-                    ),
+                        errorMessage = "another_download_in_progress"
+                    )
                 )
             }
             return START_NOT_STICKY
@@ -70,8 +70,8 @@ class OcrModelDownloadService : Service() {
         OcrModelDownloadController.update(
             OcrModelDownloadState(
                 modelId = modelId,
-                phase = OcrModelDownloadPhase.DOWNLOADING,
-            ),
+                phase = OcrModelDownloadPhase.DOWNLOADING
+            )
         )
 
         job = scope.launch {
@@ -131,8 +131,8 @@ class OcrModelDownloadService : Service() {
                 OcrModelDownloadState(
                     modelId = modelId,
                     phase = OcrModelDownloadPhase.FAILED,
-                    errorMessage = "download_timeout",
-                ),
+                    errorMessage = "download_timeout"
+                )
             )
         }
         OcrModelDownloadController.clearActive()
@@ -153,7 +153,7 @@ class OcrModelDownloadService : Service() {
             this,
             OcrModelDownloadNotifications.NOTIFICATION_ID,
             notification,
-            ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC,
+            ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
         )
     }
 

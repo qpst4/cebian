@@ -13,7 +13,7 @@ object FreezerListOperations {
         context: Context,
         settingsRepository: SettingsRepository,
         packageName: String,
-        appRepository: AppRepository? = null,
+        appRepository: AppRepository? = null
     ): Boolean {
         if (FreezerOperations.isFrozen(context, packageName)) {
             withContext(Dispatchers.Main) {
@@ -30,7 +30,7 @@ object FreezerListOperations {
         context: Context,
         settingsRepository: SettingsRepository,
         packageName: String,
-        appRepository: AppRepository? = null,
+        appRepository: AppRepository? = null
     ): Boolean {
         if (FreezerOperations.isFrozen(context, packageName)) {
             if (!FreezerOperations.setFrozen(context, packageName, frozen = false)) {
@@ -44,7 +44,7 @@ object FreezerListOperations {
 
     suspend fun importFrozenApps(
         context: Context,
-        settingsRepository: SettingsRepository,
+        settingsRepository: SettingsRepository
     ): Int {
         val scanned = FreezerBootstrap.scanDisabledLauncherPackages(context)
         if (scanned.isEmpty()) return 0

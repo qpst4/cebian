@@ -11,7 +11,7 @@ import javax.inject.Singleton
 
 @Singleton
 class NotificationShadeHider @Inject constructor(
-    private val listenerPort: NotificationListenerPort,
+    private val listenerPort: NotificationListenerPort
 ) {
     private val mainHandler = Handler(Looper.getMainLooper())
 
@@ -41,14 +41,14 @@ class NotificationShadeHider @Inject constructor(
      */
     fun cancelDismissibleFromShade(
         listener: NotificationListenerService,
-        sbn: StatusBarNotification,
+        sbn: StatusBarNotification
     ): Boolean {
         if (sbn.packageName == listener.packageName) return false
         if (isOngoing(sbn) || !sbn.isClearable) {
             Log.d(
                 TAG,
                 "skip cancel for non-dismissible notification: key=${sbn.key} " +
-                    "ongoing=${isOngoing(sbn)} clearable=${sbn.isClearable}",
+                    "ongoing=${isOngoing(sbn)} clearable=${sbn.isClearable}"
             )
             return false
         }
@@ -57,7 +57,7 @@ class NotificationShadeHider @Inject constructor(
 
     fun cancelDismissibleFromShadeOnMain(
         listener: NotificationListenerService,
-        sbn: StatusBarNotification,
+        sbn: StatusBarNotification
     ) {
         if (Looper.myLooper() == Looper.getMainLooper()) {
             cancelDismissibleFromShade(listener, sbn)
@@ -70,7 +70,7 @@ class NotificationShadeHider @Inject constructor(
     fun hideFromShade(
         listener: NotificationListenerService,
         key: String,
-        sbn: StatusBarNotification? = null,
+        sbn: StatusBarNotification? = null
     ): Boolean {
         if (isHiddenInShade(listener, key)) {
             Log.d(TAG, "notification already hidden: key=$key")
@@ -94,7 +94,7 @@ class NotificationShadeHider @Inject constructor(
             Log.w(
                 TAG,
                 "snooze did not hide and notification is not cancelable: key=$key " +
-                    "ongoing=$ongoing clearable=${sbn?.isClearable}",
+                    "ongoing=$ongoing clearable=${sbn?.isClearable}"
             )
             return false
         }

@@ -15,7 +15,7 @@ import javax.inject.Singleton
 
 @Singleton
 class AppNotificationIntentLaunchPort @Inject constructor(
-    private val listenerPort: NotificationListenerPort,
+    private val listenerPort: NotificationListenerPort
 ) : NotificationIntentLaunchPort {
     override fun open(context: Context, data: NotificationData): Boolean {
         val appContext = context.applicationContext
@@ -50,7 +50,7 @@ class AppNotificationIntentLaunchPort @Inject constructor(
     private fun replayFromSbn(
         context: Context,
         sbn: StatusBarNotification,
-        launchOptions: Bundle? = null,
+        launchOptions: Bundle? = null
     ): Boolean {
         val notification = sbn.notification ?: return false
         if (sendPendingIntent(context, notification.contentIntent, launchOptions)) return true
@@ -65,7 +65,7 @@ class AppNotificationIntentLaunchPort @Inject constructor(
     private fun sendPendingIntent(
         context: Context,
         pendingIntent: PendingIntent?,
-        launchOptions: Bundle? = null,
+        launchOptions: Bundle? = null
     ): Boolean {
         if (pendingIntent == null) return false
         val options = launchOptions ?: createPendingIntentSendOptions()
@@ -85,7 +85,7 @@ class AppNotificationIntentLaunchPort @Inject constructor(
     private fun openAppInSmallWindow(
         context: Context,
         packageName: String,
-        settings: AppSettings,
+        settings: AppSettings
     ): Boolean {
         val launchIntent = context.packageManager.getLaunchIntentForPackage(packageName) ?: return false
         FreeWindowLauncher.launch(context, launchIntent, settings, fullscreen = false)

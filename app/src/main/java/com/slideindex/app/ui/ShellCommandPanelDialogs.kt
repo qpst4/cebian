@@ -48,6 +48,8 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.shell.ShellCommand
+import com.slideindex.app.shell.normalizeShellCommand
+import com.slideindex.app.shell.resolveShellCommandLabel
 import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
@@ -67,6 +69,24 @@ private fun copyShellOutputWithToast(context: Context, text: String) {
     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
     clipboard.setPrimaryClip(ClipData.newPlainText("shell_output", text))
     Toast.makeText(context, R.string.shell_panel_copied, Toast.LENGTH_SHORT).show()
+}
+
+private fun buildShellCommandDraft(
+    context: Context,
+    initial: ShellCommand?,
+    label: String,
+    command: String,
+    iconDraft: ShellCommandIconDraft,
+): ShellCommand {
+    val finalizedIcon = finalizeShellCommandIconDraft(context, initial, iconDraft)
+    return applyIconDraft(
+        ShellCommand(
+            id = initial?.id ?: java.util.UUID.randomUUID().toString(),
+            label = resolveShellCommandLabel(label, command),
+            command = normalizeShellCommand(command),
+        ),
+        finalizedIcon,
+    )
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -198,6 +218,11 @@ private fun ShellCommandEditorFields(
             onValueChange = onLabelChange,
             label = stringResource(R.string.shell_panel_label_field),
         )
+        Text(
+            text = stringResource(R.string.shell_panel_label_optional_hint),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
         MiuixLabeledTextField(
             value = command,
             onValueChange = onCommandChange,
@@ -231,7 +256,7 @@ fun ShellCommandEditorScreen(
     var isSavingAppIcon by remember { mutableStateOf(false) }
     var testing by remember { mutableStateOf(false) }
     var testResult by remember { mutableStateOf<ShellTestResultState?>(null) }
-    val canSave = label.isNotBlank() && command.isNotBlank()
+    val canSave = command.isNotBlank()
     val canTest = canSave && shizukuGranted && !testing
     val context = LocalContext.current
 
@@ -249,17 +274,13 @@ fun ShellCommandEditorScreen(
         return
     }
 
-    fun buildDraft(): ShellCommand {
-        val finalizedIcon = finalizeShellCommandIconDraft(context, initial, iconDraft)
-        return applyIconDraft(
-            ShellCommand(
-                id = initial?.id ?: java.util.UUID.randomUUID().toString(),
-                label = label.trim(),
-                command = command.trim(),
-            ),
-            finalizedIcon,
-        )
-    }
+    fun buildDraft(): ShellCommand = buildShellCommandDraft(
+        context = context,
+        initial = initial,
+        label = label,
+        command = command,
+        iconDraft = iconDraft,
+    )
 
     val title = if (initial == null) {
         stringResource(R.string.shell_panel_add)
@@ -628,21 +649,17 @@ private fun ShellCommandEditorOverlayBody(
 ) {
     var testing by remember { mutableStateOf(false) }
     var testResult by remember { mutableStateOf<ShellTestResultState?>(null) }
-    val canSave = label.isNotBlank() && command.isNotBlank()
+    val canSave = command.isNotBlank()
     val canTest = canSave && shizukuGranted && !testing
     val context = LocalContext.current
 
-    fun buildDraft(): ShellCommand {
-        val finalizedIcon = finalizeShellCommandIconDraft(context, initial, iconDraft)
-        return applyIconDraft(
-            ShellCommand(
-                id = initial?.id ?: java.util.UUID.randomUUID().toString(),
-                label = label.trim(),
-                command = command.trim(),
-            ),
-            finalizedIcon,
-        )
-    }
+    fun buildDraft(): ShellCommand = buildShellCommandDraft(
+        context = context,
+        initial = initial,
+        label = label,
+        command = command,
+        iconDraft = iconDraft,
+    )
 
     val title = if (initial == null) {
         stringResource(R.string.shell_panel_add)

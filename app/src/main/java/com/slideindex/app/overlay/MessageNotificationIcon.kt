@@ -25,22 +25,22 @@ internal fun MessageNotificationIcon(
     sizeDp: Dp,
     startPaddingDp: Dp = 0.dp,
     endPaddingDp: Dp = 0.dp,
-    badgeAlignment: Alignment = Alignment.BottomEnd,
+    badgeAlignment: Alignment = Alignment.BottomEnd
 ) {
     val displayIcon = iconBitmap ?: appIconBitmap
     Box(
-        modifier = Modifier.padding(start = startPaddingDp, end = endPaddingDp),
+        modifier = Modifier.padding(start = startPaddingDp, end = endPaddingDp)
     ) {
         if (displayIcon != null) {
             Image(
                 bitmap = displayIcon.asImageBitmap(),
                 contentDescription = stringResource(
-                    if (iconBitmap != null) R.string.cd_notification_icon else R.string.cd_app_icon,
+                    if (iconBitmap != null) R.string.cd_notification_icon else R.string.cd_app_icon
                 ),
                 modifier = Modifier
                     .size(sizeDp)
                     .clip(CircleShape),
-                contentScale = ContentScale.Crop,
+                contentScale = ContentScale.Crop
             )
             if (iconBitmap != null && appIconBitmap != null) {
                 Image(
@@ -50,7 +50,7 @@ internal fun MessageNotificationIcon(
                         .align(badgeAlignment)
                         .size(sizeDp * 0.34f)
                         .clip(CircleShape),
-                    contentScale = ContentScale.Crop,
+                    contentScale = ContentScale.Crop
                 )
             }
         } else {
@@ -60,7 +60,7 @@ internal fun MessageNotificationIcon(
                 modifier = Modifier
                     .size(sizeDp)
                     .clip(CircleShape),
-                contentScale = ContentScale.Crop,
+                contentScale = ContentScale.Crop
             )
         }
     }

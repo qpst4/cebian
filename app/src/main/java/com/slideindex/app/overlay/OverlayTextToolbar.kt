@@ -23,7 +23,7 @@ private object OverlayNoOpTextToolbar : TextToolbar {
         onCopyRequested: (() -> Unit)?,
         onPasteRequested: (() -> Unit)?,
         onCutRequested: (() -> Unit)?,
-        onSelectAllRequested: (() -> Unit)?,
+        onSelectAllRequested: (() -> Unit)?
     ) = Unit
 
     override fun showMenu(
@@ -32,14 +32,14 @@ private object OverlayNoOpTextToolbar : TextToolbar {
         onPasteRequested: (() -> Unit)?,
         onCutRequested: (() -> Unit)?,
         onSelectAllRequested: (() -> Unit)?,
-        onAutofillRequested: (() -> Unit)?,
+        onAutofillRequested: (() -> Unit)?
     ) = Unit
 }
 
 @Composable
 fun OverlayTextToolbarProvider(content: @Composable () -> Unit) {
     CompositionLocalProvider(
-        LocalTextToolbar provides remember { OverlayNoOpTextToolbar },
+        LocalTextToolbar provides remember { OverlayNoOpTextToolbar }
     ) {
         content()
     }

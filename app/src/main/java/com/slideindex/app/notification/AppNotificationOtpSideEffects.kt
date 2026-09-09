@@ -10,7 +10,7 @@ import javax.inject.Singleton
 
 @Singleton
 class AppNotificationOtpSideEffects @Inject constructor(
-    private val settingsRepository: SettingsRepository,
+    private val settingsRepository: SettingsRepository
 ) : NotificationOtpSideEffects {
     override fun onVerificationCodeExtracted(
         context: Context,
@@ -22,7 +22,7 @@ class AppNotificationOtpSideEffects @Inject constructor(
         ruleName: String?,
         copyToClipboard: Boolean,
         autoInputEnabled: Boolean,
-        recordId: String?,
+        recordId: String?
     ) {
         val appContext = context.applicationContext
         if (autoInputEnabled) {

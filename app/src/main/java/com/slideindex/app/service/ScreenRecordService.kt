@@ -77,7 +77,7 @@ class ScreenRecordService : Service() {
                     mainHandler.post { stopRecordingInternal(notify = true) }
                 }
             },
-            mainHandler,
+            mainHandler
         )
 
         val wm = getSystemService(WindowManager::class.java) ?: return
@@ -112,7 +112,7 @@ class ScreenRecordService : Service() {
             DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
             recorder.surface,
             null,
-            null,
+            null
         )
         runCatching { recorder.start() }.onFailure { error ->
             Log.e(TAG, "MediaRecorder start failed", error)
@@ -216,7 +216,7 @@ class ScreenRecordService : Service() {
         val channel = NotificationChannel(
             CHANNEL_ID,
             getString(R.string.screen_record_channel_name),
-            NotificationManager.IMPORTANCE_LOW,
+            NotificationManager.IMPORTANCE_LOW
         )
         manager.createNotificationChannel(channel)
     }

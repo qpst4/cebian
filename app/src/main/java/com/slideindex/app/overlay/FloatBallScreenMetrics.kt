@@ -10,7 +10,7 @@ import kotlin.math.roundToInt
 internal object FloatBallScreenMetrics {
     fun bounds(
         context: Context,
-        windowManager: WindowManager? = null,
+        windowManager: WindowManager? = null
     ): OverlayScreenBounds {
         val wm = windowManager ?: context.getSystemService(Context.WINDOW_SERVICE) as? WindowManager
         if (wm != null) {
@@ -18,20 +18,20 @@ internal object FloatBallScreenMetrics {
             if (rect != null) {
                 return OverlayScreenBounds(
                     width = rect.width().toFloat(),
-                    height = rect.height().toFloat(),
+                    height = rect.height().toFloat()
                 )
             }
         }
         val metrics = context.resources.displayMetrics
         return OverlayScreenBounds(
             width = metrics.widthPixels.toFloat(),
-            height = metrics.heightPixels.toFloat(),
+            height = metrics.heightPixels.toFloat()
         )
     }
 
     fun sizePx(
         context: Context,
-        windowManager: WindowManager? = null,
+        windowManager: WindowManager? = null
     ): Pair<Int, Int> {
         val b = bounds(context, windowManager)
         return b.width.roundToInt() to b.height.roundToInt()

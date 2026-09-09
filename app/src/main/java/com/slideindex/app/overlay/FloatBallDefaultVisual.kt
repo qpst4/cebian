@@ -45,7 +45,7 @@ internal object FloatBallDefaultVisual {
             radius * 1.05f,
             intArrayOf(inner, mid, outer),
             floatArrayOf(0f, 0.55f, 1f),
-            Shader.TileMode.CLAMP,
+            Shader.TileMode.CLAMP
         )
         canvas.drawCircle(cx, cy, radius, paint)
         paint.shader = null
@@ -71,7 +71,7 @@ internal object FloatBallDefaultVisual {
         Box(
             modifier = Modifier
                 .size(sizeDp)
-                .shadow(8.dp, CircleShape, ambientColor = Color.Black.copy(alpha = 0.18f)),
+                .shadow(8.dp, CircleShape, ambientColor = Color.Black.copy(alpha = 0.18f))
         ) {
             Canvas(modifier = Modifier.fillMaxSize()) {
                 val cx = size.width / 2f
@@ -82,21 +82,21 @@ internal object FloatBallDefaultVisual {
                     brush = Brush.radialGradient(
                         colors = listOf(inner, mid, outer),
                         center = Offset(cx - radius * 0.28f, cy - radius * 0.34f),
-                        radius = radius * 1.05f,
+                        radius = radius * 1.05f
                     ),
                     radius = radius,
-                    center = Offset(cx, cy),
+                    center = Offset(cx, cy)
                 )
                 drawCircle(
                     color = Color.White.copy(alpha = opacity * 0.38f),
                     radius = radius * 0.22f,
-                    center = Offset(cx - radius * 0.28f, cy - radius * 0.34f),
+                    center = Offset(cx - radius * 0.28f, cy - radius * 0.34f)
                 )
                 drawCircle(
                     color = Color.White.copy(alpha = opacity * 0.28f),
                     radius = radius * 0.98f,
                     center = Offset(cx, cy),
-                    style = Stroke(width = radius * 0.04f),
+                    style = Stroke(width = radius * 0.04f)
                 )
             }
         }
@@ -130,7 +130,7 @@ internal object FloatBallDefaultVisual {
             red = from.red + (toward.red - from.red) * t,
             green = from.green + (toward.green - from.green) * t,
             blue = from.blue + (toward.blue - from.blue) * t,
-            alpha = from.alpha,
+            alpha = from.alpha
         )
     }
 }

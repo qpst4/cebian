@@ -8,11 +8,11 @@ import com.slideindex.app.settings.SettingsRepository
 fun FreezerHomeScreen(
     settingsRepository: SettingsRepository,
     onBack: () -> Unit,
-    onOpenManageApps: () -> Unit,
+    onOpenManageApps: () -> Unit
 ) {
     FreezerPanelContent(
         settingsRepository = settingsRepository,
         onBack = onBack,
-        onManageApps = onOpenManageApps,
+        onManageApps = onOpenManageApps
     )
 }

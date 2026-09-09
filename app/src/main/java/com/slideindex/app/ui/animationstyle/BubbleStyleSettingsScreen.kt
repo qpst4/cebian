@@ -61,7 +61,6 @@ fun BubbleStyleSettingsScreen(
         settingsLazySmallTitle(
             key = "bubble-color-outline",
             title = colorOutlineTitle,
-            sectionTop = true,
         )
         groupedCardItems(
             keyPrefix = "bubble-color-outline",
@@ -116,7 +115,6 @@ fun BubbleStyleSettingsScreen(
         settingsLazySmallTitle(
             key = "bubble-shape-size",
             title = shapeSizeTitle,
-            sectionTop = true,
         )
         groupedCardItems(
             keyPrefix = "bubble-shape-size",
@@ -164,7 +162,6 @@ fun BubbleStyleSettingsScreen(
         settingsLazySmallTitle(
             key = "bubble-icon",
             title = iconTitle,
-            sectionTop = true,
         )
         groupedCardItems(
             keyPrefix = "bubble-icon",
@@ -205,7 +202,6 @@ fun BubbleStyleSettingsScreen(
         settingsLazySmallTitle(
             key = "bubble-custom-icon",
             title = customIconTitle,
-            sectionTop = true,
         )
         groupedCardItems(
             keyPrefix = "bubble-icon-type",

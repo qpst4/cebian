@@ -8,7 +8,7 @@ data class SideBubbleFontMetrics(
     val titleSize: TextUnit,
     val titleLineHeight: TextUnit,
     val contentSize: TextUnit,
-    val contentLineHeight: TextUnit,
+    val contentLineHeight: TextUnit
 )
 
 fun sideBubbleFontMetrics(level: Int): SideBubbleFontMetrics =
@@ -17,18 +17,18 @@ fun sideBubbleFontMetrics(level: Int): SideBubbleFontMetrics =
             titleSize = 8.sp,
             titleLineHeight = 9.sp,
             contentSize = 10.sp,
-            contentLineHeight = 12.sp,
+            contentLineHeight = 12.sp
         )
         SideBubbleFontSize.LARGE -> SideBubbleFontMetrics(
             titleSize = 12.sp,
             titleLineHeight = 13.sp,
             contentSize = 14.sp,
-            contentLineHeight = 16.sp,
+            contentLineHeight = 16.sp
         )
         else -> SideBubbleFontMetrics(
             titleSize = 10.sp,
             titleLineHeight = 11.sp,
             contentSize = 12.sp,
-            contentLineHeight = 14.sp,
+            contentLineHeight = 14.sp
         )
     }

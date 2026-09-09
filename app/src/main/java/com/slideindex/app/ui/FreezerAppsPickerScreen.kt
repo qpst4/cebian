@@ -34,8 +34,7 @@ import com.slideindex.app.settings.PrivilegeMode
 import com.slideindex.app.settings.SettingsRepository
 import com.slideindex.app.ui.compose.rememberAppRepository
 import com.slideindex.app.ui.miuix.MiuixHintText
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
-import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import top.yukonga.miuix.kmp.basic.SmallTitle
 import com.slideindex.app.ui.miuix.MiuixTabRowWithContour
 import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
@@ -57,12 +56,12 @@ private enum class FreezerPickerFilter {
 @Composable
 fun FreezerAppsPickerScreen(
     settingsRepository: SettingsRepository,
-    onBack: () -> Unit,
+    onBack: () -> Unit
 ) {
     val context = LocalContext.current
     val resources = LocalResources.current
     val settings by settingsRepository.settings.collectAsStateWithLifecycle(
-        initialValue = settingsRepository.readSnapshot(),
+        initialValue = settingsRepository.readSnapshot()
     )
     val appRepository = rememberAppRepository()
     var allApps by remember { mutableStateOf<List<AppInfo>>(emptyList()) }
@@ -124,14 +123,14 @@ fun FreezerAppsPickerScreen(
             }
             .sortedWith(
                 compareByDescending<AppInfo> { it.packageName in settings.freezerAppPackages }
-                    .thenBy { it.pinyinKey },
+                    .thenBy { it.pinyinKey }
             )
     }
 
     val filterTabs = listOf(
         stringResource(R.string.freezer_tab_all_count, allTabCount),
         stringResource(R.string.freezer_tab_frozen_count, frozenTabCount),
-        stringResource(R.string.freezer_tab_active_count, activeTabCount),
+        stringResource(R.string.freezer_tab_active_count, activeTabCount)
     )
     val selectedFilterTabIndex = when (listFilter) {
         FreezerPickerFilter.ALL -> 0
@@ -143,7 +142,7 @@ fun FreezerAppsPickerScreen(
         title = stringResource(R.string.freezer_manage_apps),
         searchQuery = searchQuery,
         onSearchQueryChange = { searchQuery = it },
-        onBack = onBack,
+        onBack = onBack
     ) {
         item(key = "freezer-picker-hint") {
             MiuixHintText(
@@ -160,7 +159,7 @@ fun FreezerAppsPickerScreen(
                         } else {
                             stringResource(R.string.privilege_mode_status_root_missing)
                         }
-                },
+                }
             )
         }
         item(key = "freezer-picker-launcher-hint") {
@@ -189,7 +188,7 @@ fun FreezerAppsPickerScreen(
                                     FreezerLauncherHelper.showUnpinHintToast(context)
                                 }
                             }
-                        },
+                        }
                     )
                 },
                 settingsCardScopeItem("show-system") {
@@ -197,7 +196,7 @@ fun FreezerAppsPickerScreen(
                         title = stringResource(R.string.freezer_show_system_apps),
                         checked = showSystemApps,
                         enabled = true,
-                        onCheckedChange = { showSystemApps = it },
+                        onCheckedChange = { showSystemApps = it }
                     )
                 },
                 settingsCardScopeItem("import-frozen") {
@@ -218,17 +217,17 @@ fun FreezerAppsPickerScreen(
                                 Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                                 reloadApps()
                             }
-                        },
+                        }
                     )
-                },
-            ),
+                }
+            )
         )
         item(key = "freezer-picker-apps-title") {
-            MiuixSmallTitle(
+            SmallTitle(
                 stringResource(R.string.freezer_apps_section_title, displayedApps.size),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = MiuixSmallTitleSectionTop),
+                    
             )
         }
         item(key = "freezer-picker-filter-tabs") {
@@ -242,7 +241,7 @@ fun FreezerAppsPickerScreen(
                         else -> FreezerPickerFilter.ACTIVE
                     }
                 },
-                contentHorizontalPadding = 12.dp,
+                contentHorizontalPadding = 12.dp
             )
         }
         when {
@@ -250,7 +249,7 @@ fun FreezerAppsPickerScreen(
                 item(key = "freezer-picker-loading") {
                     LoadingContent(
                         message = stringResource(R.string.loading),
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
             }
@@ -263,7 +262,7 @@ fun FreezerAppsPickerScreen(
                             stringResource(R.string.no_apps)
                         },
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 28.dp, vertical = 24.dp),
+                        modifier = Modifier.padding(horizontal = 28.dp, vertical = 24.dp)
                     )
                 }
             }
@@ -297,7 +296,7 @@ fun FreezerAppsPickerScreen(
                                             context = context,
                                             settingsRepository = settingsRepository,
                                             packageName = app.packageName,
-                                            appRepository = appRepository,
+                                            appRepository = appRepository
                                         )
                                     ) {
                                         reloadApps()
@@ -306,7 +305,7 @@ fun FreezerAppsPickerScreen(
                                     settingsRepository.addFreezerApp(app.packageName)
                                 }
                             }
-                        },
+                        }
                     )
                 }
             }

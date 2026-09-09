@@ -8,7 +8,7 @@ import com.slideindex.app.settings.effectiveLongPressDurationMs
 import com.slideindex.app.settings.resolvedLaunchPolicy
 
 internal class QuickLauncherPickResolver(
-    private val touch: QuickLauncherTouchHandler,
+    private val touch: QuickLauncherTouchHandler
 ) {
     private val ctrl get() = touch.ctrl
     private val host get() = touch.host
@@ -28,7 +28,7 @@ internal class QuickLauncherPickResolver(
         localY: Float,
         touchX: Float,
         eventTime: Long,
-        haptic: Boolean,
+        haptic: Boolean
     ) {
         if (scrollHandler.pageInteractionActive()) return
         val panelRect = ctrl.quickLauncherPanelRect()
@@ -79,7 +79,7 @@ internal class QuickLauncherPickResolver(
     fun isSelectableTouch(
         localX: Float,
         localY: Float,
-        panelRect: RectF,
+        panelRect: RectF
     ): Boolean {
         if (panelRect.isEmpty) return false
         val contentRect = ctrl.quickLauncherPanelController.combinedContentRect(panelRect)
@@ -108,7 +108,7 @@ internal class QuickLauncherPickResolver(
                         localY,
                         touchX,
                         android.os.SystemClock.uptimeMillis(),
-                        haptic = true,
+                        haptic = true
                     )
                 } else {
                     clearHighlight()
@@ -127,7 +127,7 @@ internal class QuickLauncherPickResolver(
         event: MotionEvent,
         touchX: Float,
         localX: Float,
-        localY: Float,
+        localY: Float
     ): Boolean {
         if (ctrl.quickLauncherPanelController.editMode) return false
         val panelRect = ctrl.quickLauncherPanelRect()
@@ -151,7 +151,7 @@ internal class QuickLauncherPickResolver(
                     localX,
                     localY,
                     event.rawY,
-                    confirmHaptic = longPress,
+                    confirmHaptic = longPress
                 )
             }
             else -> {
@@ -163,7 +163,7 @@ internal class QuickLauncherPickResolver(
                             item,
                             host.settings(),
                             longPressArmed = longPress,
-                            anchorRawY = event.rawY,
+                            anchorRawY = event.rawY
                         )
                     ) {
                         280L

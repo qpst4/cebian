@@ -170,7 +170,7 @@ fun SearchPanelSettingsScreen(
             },
         )
         if (false) {
-        settingsLazySmallTitle(key = "layout_section", title = layoutSectionTitle, sectionTop = true)
+        settingsLazySmallTitle(key = "layout_section", title = layoutSectionTitle)
         groupedCardItems(
             keyPrefix = "search_panel_layout",
             items = buildList {
@@ -220,7 +220,7 @@ fun SearchPanelSettingsScreen(
         )
 
         }
-        settingsLazySmallTitle(key = "engines_section", title = enginesSectionTitle, sectionTop = true)
+        settingsLazySmallTitle(key = "engines_section", title = enginesSectionTitle)
         groupedCardItems(
             keyPrefix = "search_panel_engines",
             items = buildList {
@@ -247,7 +247,7 @@ fun SearchPanelSettingsScreen(
             },
         )
 
-        settingsLazySmallTitle(key = "behavior_section", title = behaviorSectionTitle, sectionTop = true)
+        settingsLazySmallTitle(key = "behavior_section", title = behaviorSectionTitle)
         groupedCardItems(
             keyPrefix = "search_panel_behavior",
             items = buildList {
@@ -349,7 +349,7 @@ fun SearchPanelSettingsScreen(
         )
 
         if (false) {
-        settingsLazySmallTitle(key = "appearance_section", title = appearanceSectionTitle, sectionTop = true)
+        settingsLazySmallTitle(key = "appearance_section", title = appearanceSectionTitle)
         groupedCardItems(
             keyPrefix = "search_panel_appearance",
             items = buildList {
@@ -418,7 +418,7 @@ fun SearchPanelSettingsScreen(
         )
 
         }
-        settingsLazySmallTitle(key = "candidates_section", title = candidatesSectionTitle, sectionTop = true)
+        settingsLazySmallTitle(key = "candidates_section", title = candidatesSectionTitle)
         groupedCardItems(
             keyPrefix = "search_panel_candidates",
             items = buildList {

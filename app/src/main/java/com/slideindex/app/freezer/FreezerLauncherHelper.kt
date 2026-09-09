@@ -64,12 +64,12 @@ object FreezerLauncherHelper {
             pm.setComponentEnabledSetting(
                 legacy,
                 PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-                PackageManager.DONT_KILL_APP,
+                PackageManager.DONT_KILL_APP
             )
             pm.setComponentEnabledSetting(
                 legacy,
                 PackageManager.COMPONENT_ENABLED_STATE_DEFAULT,
-                PackageManager.DONT_KILL_APP,
+                PackageManager.DONT_KILL_APP
             )
         }.onFailure {
             // 新版本 manifest 已删除 alias，组件不存在时忽略

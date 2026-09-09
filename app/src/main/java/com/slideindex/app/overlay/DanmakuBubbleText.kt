@@ -10,7 +10,7 @@ internal fun applyDanmakuTitleText(
     textView: TextView,
     text: String,
     colorArgb: Int,
-    titleSp: Float = MessageBubbleTypography.TITLE_SP,
+    titleSp: Float = MessageBubbleTypography.TITLE_SP
 ) {
     textView.text = text
     textView.setTextColor(colorArgb)
@@ -27,7 +27,7 @@ internal fun applyDanmakuContentText(
     rawContent: String,
     titleColorArgb: Int,
     contentSp: Float = MessageBubbleTypography.CONTENT_SP,
-    maxLines: Int,
+    maxLines: Int
 ) {
     textView.text = resolveSideBubbleContent(title, rawContent)
     textView.setTextColor(titleColorArgb)
@@ -42,7 +42,7 @@ internal fun bubbleFontSizeLevelToSp(
     level: Int,
     normalSp: Float,
     smallSp: Float,
-    largeSp: Float,
+    largeSp: Float
 ): Float = when (com.slideindex.app.message.SideBubbleFontSize.coerce(level)) {
     com.slideindex.app.message.SideBubbleFontSize.SMALL -> smallSp
     com.slideindex.app.message.SideBubbleFontSize.LARGE -> largeSp

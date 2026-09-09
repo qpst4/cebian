@@ -36,7 +36,7 @@ internal object StashPinNotificationHelper {
         snapshot: PinNotificationSnapshot,
         displayBitmap: Bitmap,
         title: String,
-        richImageBitmaps: List<Bitmap> = emptyList(),
+        richImageBitmaps: List<Bitmap> = emptyList()
     ) {
         if (!NotificationManagerCompat.from(context).areNotificationsEnabled()) return
         saveSnapshot(context, snapshot, displayBitmap, richImageBitmaps)
@@ -47,7 +47,7 @@ internal object StashPinNotificationHelper {
             android.content.Intent(context, PinNotificationRestoreTrampolineActivity::class.java).apply {
                 action = ACTION_RESTORE_PIN
             },
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
@@ -79,7 +79,7 @@ internal object StashPinNotificationHelper {
             context = context,
             snapshot = snapshot,
             imageBitmap = imageBitmap,
-            richImageLoader = richImageLoader,
+            richImageLoader = richImageLoader
         ) { success ->
             NotificationManagerCompat.from(context).cancel(NOTIFICATION_ID)
             if (success) {
@@ -100,7 +100,7 @@ internal object StashPinNotificationHelper {
         context: Context,
         snapshot: PinNotificationSnapshot,
         displayBitmap: Bitmap,
-        richImageBitmaps: List<Bitmap>,
+        richImageBitmaps: List<Bitmap>
     ) {
         val dir = cacheDir(context)
         clearSnapshotFiles(context)
@@ -119,7 +119,7 @@ internal object StashPinNotificationHelper {
                 }
             }
             File(dir, SNAPSHOT_FILE_NAME).writeText(
-                json.encodeToString(PinNotificationSnapshot.serializer(), snapshot),
+                json.encodeToString(PinNotificationSnapshot.serializer(), snapshot)
             )
         }
     }
@@ -161,7 +161,7 @@ internal object StashPinNotificationHelper {
         val channel = NotificationChannel(
             CHANNEL_ID,
             context.getString(R.string.stash_pin_notification_channel_name),
-            NotificationManager.IMPORTANCE_LOW,
+            NotificationManager.IMPORTANCE_LOW
         ).apply {
             description = context.getString(R.string.stash_pin_notification_channel_desc)
             setShowBadge(false)

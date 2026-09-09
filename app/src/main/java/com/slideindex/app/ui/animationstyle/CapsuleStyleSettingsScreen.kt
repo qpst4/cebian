@@ -61,7 +61,6 @@ fun CapsuleStyleSettingsScreen(
         settingsLazySmallTitle(
             key = "capsule-color-outline",
             title = colorOutlineTitle,
-            sectionTop = true,
         )
         groupedCardItems(
             keyPrefix = "capsule-color-outline",
@@ -116,7 +115,6 @@ fun CapsuleStyleSettingsScreen(
         settingsLazySmallTitle(
             key = "capsule-shape-size",
             title = shapeSizeTitle,
-            sectionTop = true,
         )
         groupedCardItems(
             keyPrefix = "capsule-shape-size",
@@ -183,7 +181,6 @@ fun CapsuleStyleSettingsScreen(
         settingsLazySmallTitle(
             key = "capsule-icon",
             title = iconTitle,
-            sectionTop = true,
         )
         groupedCardItems(
             keyPrefix = "capsule-icon",
@@ -224,7 +221,6 @@ fun CapsuleStyleSettingsScreen(
         settingsLazySmallTitle(
             key = "capsule-custom-icon",
             title = customIconTitle,
-            sectionTop = true,
         )
         groupedCardItems(
             keyPrefix = "capsule-icon-type",

@@ -45,7 +45,7 @@ private data class FloatIconEntry(
     val visible: MutableState<Boolean>,
     val onAction: (MessageAction) -> Unit,
     val onDismiss: () -> Unit,
-    var dismissRunnable: Runnable? = null,
+    var dismissRunnable: Runnable? = null
 ) {
     val plan: MessageDisplayPlan
         get() = planState.value
@@ -81,7 +81,7 @@ object FloatIconOverlayWindow {
         context: Context,
         plan: MessageDisplayPlan,
         onAction: (MessageAction) -> Unit,
-        onDismiss: () -> Unit,
+        onDismiss: () -> Unit
     ) {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             mainHandler.post { show(context, plan, onAction, onDismiss) }
@@ -108,7 +108,7 @@ object FloatIconOverlayWindow {
             planState = mutableStateOf(plan),
             visible = mutableStateOf(false),
             onAction = onAction,
-            onDismiss = onDismiss,
+            onDismiss = onDismiss
         )
         items.add(entry)
         scheduleAutoDismiss(entry)
@@ -222,7 +222,7 @@ object FloatIconOverlayWindow {
                 FloatIconStackContent(
                     items = items,
                     onAction = { entry, action -> onEntryAction(entry, action) },
-                    onDismiss = { entry -> onEntryDismiss(entry) },
+                    onDismiss = { entry -> onEntryDismiss(entry) }
                 )
             }
         }
@@ -345,7 +345,7 @@ object FloatIconOverlayWindow {
 private fun FloatIconStackContent(
     items: SnapshotStateList<FloatIconEntry>,
     onAction: (FloatIconEntry, MessageAction) -> Unit,
-    onDismiss: (FloatIconEntry) -> Unit,
+    onDismiss: (FloatIconEntry) -> Unit
 ) {
     val entry = items.firstOrNull() ?: return
 
@@ -354,7 +354,7 @@ private fun FloatIconStackContent(
             FloatIconItem(
                 entry = entry,
                 onAction = { action -> onAction(entry, action) },
-                onDismiss = { onDismiss(entry) },
+                onDismiss = { onDismiss(entry) }
             )
         }
     }
@@ -364,7 +364,7 @@ private fun FloatIconStackContent(
 private fun FloatIconItem(
     entry: FloatIconEntry,
     onAction: (MessageAction) -> Unit,
-    onDismiss: () -> Unit,
+    onDismiss: () -> Unit
 ) {
     val plan = entry.planState.value
     val settings = plan.settings
@@ -374,12 +374,12 @@ private fun FloatIconItem(
     val presence by animateFloatAsState(
         targetValue = if (visible) 1f else 0f,
         animationSpec = tween(FloatIconOverlayWindow.ANIMATION_MS, easing = FastOutSlowInEasing),
-        label = "floatIconPresence",
+        label = "floatIconPresence"
     )
     val scalePulse by animateFloatAsState(
         targetValue = if (visible) 1f else 0.6f,
         animationSpec = tween(FloatIconOverlayWindow.ANIMATION_MS, easing = FastOutSlowInEasing),
-        label = "floatIconScale",
+        label = "floatIconScale"
     )
 
     if (presence <= 0.001f && !visible) return
@@ -401,18 +401,18 @@ private fun FloatIconItem(
             settings = settings,
             onAction = onAction,
             onLongPressMenu = onDismiss,
-            onLongPressHaptic = { MessageGestureHaptics.longPress(view) },
+            onLongPressHaptic = { MessageGestureHaptics.longPress(view) }
         )
     }
     Box(
         modifier = iconModifier
             .padding(2.dp),
-        contentAlignment = Alignment.Center,
+        contentAlignment = Alignment.Center
     ) {
         MessageNotificationIcon(
             iconBitmap = data.largeIcon,
             appIconBitmap = data.appIcon,
-            sizeDp = sizeDp - 4.dp,
+            sizeDp = sizeDp - 4.dp
         )
     }
 }

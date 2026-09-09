@@ -40,7 +40,7 @@ internal object FloatBallBuiltinAnimRenderer {
         sizePx: Int,
         alpha: Float,
         styleType: FloatBallStyleType,
-        timeMs: Long,
+        timeMs: Long
     ) {
         if (sizePx <= 0) return
         when (styleType) {
@@ -126,7 +126,7 @@ internal object FloatBallBuiltinAnimRenderer {
         sizePx: Int,
         alpha: Float,
         styleType: FloatBallStyleType,
-        timeMs: Long = 0L,
+        timeMs: Long = 0L
     ): android.graphics.Bitmap? {
         if (sizePx <= 0) return null
         val bitmap = createBitmap(sizePx, sizePx)

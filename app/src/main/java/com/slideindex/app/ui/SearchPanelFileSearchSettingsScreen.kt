@@ -50,6 +50,7 @@ import com.slideindex.app.ui.settings.components.SettingSwitchRow
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 import com.slideindex.app.ui.settings.components.settingsLazyHint
+import com.slideindex.app.ui.settings.components.settingsLazyTipCard
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -98,7 +99,7 @@ fun SearchPanelFileSearchSettingsScreen(
         subtitle = stringResource(R.string.search_panel_file_search_manage_desc),
         onBack = onBack,
     ) {
-        settingsLazySmallTitle(key = "file-types", title = fileTypesSectionTitle, sectionTop = true)
+        settingsLazySmallTitle(key = "file-types", title = fileTypesSectionTitle)
         groupedCardItems(
             keyPrefix = "file-types",
             items = buildList {
@@ -148,7 +149,7 @@ fun SearchPanelFileSearchSettingsScreen(
                 )
             },
         )
-        settingsLazySmallTitle(key = "file-previews", title = previewsSectionTitle, sectionTop = true)
+        settingsLazySmallTitle(key = "file-previews", title = previewsSectionTitle)
         groupedCardItems(
             keyPrefix = "file-previews",
             items = buildList {
@@ -166,8 +167,8 @@ fun SearchPanelFileSearchSettingsScreen(
                 )
             },
         )
-        settingsLazySmallTitle(key = "folder-filters", title = folderFiltersSectionTitle, sectionTop = true)
-        settingsLazyHint(key = "folder-filters-hint", text = folderFiltersHint)
+        settingsLazySmallTitle(key = "folder-filters", title = folderFiltersSectionTitle)
+        settingsLazyTipCard(key = "folder-filters-hint", text = folderFiltersHint)
         settingsLazyHint(key = "folder-whitelist-desc", text = whitelistDesc)
         folderFilterGroupedItems(
             keyPrefix = "folder-whitelist",

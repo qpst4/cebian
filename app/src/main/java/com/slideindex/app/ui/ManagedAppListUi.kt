@@ -15,8 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.ui.miuix.CardItem
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
-import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import top.yukonga.miuix.kmp.basic.SmallTitle
 import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.SettingLinkRow
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
@@ -37,20 +36,11 @@ fun LazyListScope.managedAppListDescription(
 fun LazyListScope.managedAppListSectionTitle(
     key: String,
     title: @Composable () -> String,
-    sectionTop: Boolean = false,
 ) {
     item(key = key) {
-        MiuixSmallTitle(
+        SmallTitle(
             title(),
-            modifier = Modifier
-                .fillMaxWidth()
-                .then(
-                    if (sectionTop) {
-                        Modifier.padding(top = MiuixSmallTitleSectionTop)
-                    } else {
-                        Modifier
-                    },
-                ),
+            modifier = Modifier.fillMaxWidth(),
         )
     }
 }
@@ -105,7 +95,6 @@ fun LazyListScope.managedAppListAddRow(
 ) {
     groupedCardItems(
         keyPrefix = key,
-        outerTopPadding = MiuixSmallTitleSectionTop,
         items = listOf(
             settingsCardScopeItem("nav") {
                 SettingNavigationRow(

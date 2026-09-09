@@ -20,11 +20,10 @@ import com.slideindex.app.nativeengine.NativeEnginePackIds
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.LazySettingsItem
+import com.slideindex.app.ui.settings.components.settingsLazyTipCard
 import com.slideindex.app.ui.settings.components.SettingSwitchRow
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import com.slideindex.app.ui.settings.components.settingsCardItems
-import com.slideindex.app.ui.settings.components.settingsCardScopeItem
-import com.slideindex.app.ui.settings.components.settingsLazyHint
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
@@ -75,7 +74,9 @@ fun NativeEnginePackSettingsScreen(
             }
         }
 
-        settingsLazySmallTitle(key = "native-engine-packs-section", title = packsSectionTitle, sectionTop = true)
+        settingsLazySmallTitle(key = "native-engine-packs-section", title = packsSectionTitle)
+
+        settingsLazyTipCard(key = "native-engine-packs-tip", text = packsHint)
 
         groupedCardItems(
             keyPrefix = "native-engine-packs",
@@ -92,11 +93,6 @@ fun NativeEnginePackSettingsScreen(
                     )
                 }
             },
-        )
-
-        settingsLazyHint(
-            key = "native-engine-packs-hint",
-            text = packsHint,
         )
     }
 }

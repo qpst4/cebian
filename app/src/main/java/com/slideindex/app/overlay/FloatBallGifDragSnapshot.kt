@@ -20,7 +20,7 @@ internal object FloatBallGifDragSnapshot {
                 val rendered = FloatBallGifFrameDecoder.renderStreamingFrame(
                     streaming = sequence,
                     elapsedMs = 0,
-                    reuse = null,
+                    reuse = null
                 )
                 val copy = rendered.copy(Bitmap.Config.ARGB_8888, false)
                 rendered.recycle()

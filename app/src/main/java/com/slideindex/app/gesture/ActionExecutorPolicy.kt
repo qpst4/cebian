@@ -22,7 +22,7 @@ internal object ActionExecutorPolicy {
     fun resolveFreeWindowTargetPackage(
         selfPackage: String,
         gestureForegroundPackage: String?,
-        foregroundPackage: String?,
+        foregroundPackage: String?
     ): String? =
         listOfNotNull(gestureForegroundPackage, foregroundPackage)
             .firstOrNull { !TaskExclusions.shouldSkipFreeWindow(it, selfPackage) }

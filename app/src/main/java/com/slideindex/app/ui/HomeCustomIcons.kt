@@ -22,7 +22,7 @@ internal object HomeCustomIcons {
       defaultWidth = 24.dp,
       defaultHeight = 24.dp,
       viewportWidth = 24f,
-      viewportHeight = 24f,
+      viewportHeight = 24f
     ).apply {
       val stroke = SolidColor(Color.Black)
       val w = 1.75f
@@ -44,7 +44,7 @@ internal object HomeCustomIcons {
           fill = transparent,
           stroke = stroke,
           strokeLineWidth = w,
-          strokeLineCap = StrokeCap.Round,
+          strokeLineCap = StrokeCap.Round
         ) {
           moveTo(cx + r, cy)
           arcTo(r, r, 0f, false, true, cx - r, cy)
@@ -57,7 +57,7 @@ internal object HomeCustomIcons {
         stroke = stroke,
         strokeLineWidth = w,
         strokeLineCap = StrokeCap.Round,
-        strokeLineJoin = StrokeJoin.Round,
+        strokeLineJoin = StrokeJoin.Round
       ) {
         moveTo(cornerX, cornerY - leg)
         verticalLineTo(cornerY)
@@ -80,7 +80,7 @@ internal object HomeCustomIcons {
       defaultWidth = 24.dp,
       defaultHeight = 24.dp,
       viewportWidth = 24f,
-      viewportHeight = 24f,
+      viewportHeight = 24f
     ).apply {
       val stroke = SolidColor(Color.Black)
       val w = 1.5f
@@ -90,7 +90,7 @@ internal object HomeCustomIcons {
         fill = transparent,
         stroke = stroke,
         strokeLineWidth = w,
-        strokeLineJoin = StrokeJoin.Round,
+        strokeLineJoin = StrokeJoin.Round
       ) {
         moveTo(7f, 8.25f)
         horizontalLineTo(12.5f)
@@ -107,7 +107,7 @@ internal object HomeCustomIcons {
         fill = transparent,
         stroke = stroke,
         strokeLineWidth = w,
-        strokeLineJoin = StrokeJoin.Round,
+        strokeLineJoin = StrokeJoin.Round
       ) {
         moveTo(14.5f, 10.5f)
         lineTo(18.25f, 9.25f)
@@ -120,7 +120,7 @@ internal object HomeCustomIcons {
         stroke = stroke,
         strokeLineWidth = w,
         strokeLineJoin = StrokeJoin.Round,
-        strokeLineCap = StrokeCap.Round,
+        strokeLineCap = StrokeCap.Round
       ) {
         moveTo(8.15f, 10.4f)
         lineTo(10.85f, 12.5f)
@@ -137,7 +137,7 @@ internal object HomeCustomIcons {
       defaultWidth = 24.dp,
       defaultHeight = 24.dp,
       viewportWidth = 24f,
-      viewportHeight = 24f,
+      viewportHeight = 24f
     ).apply {
       val fill = SolidColor(Color.Black)
       path(fill = fill) {
@@ -189,7 +189,7 @@ internal object HomeCustomIcons {
       defaultWidth = 24.dp,
       defaultHeight = 24.dp,
       viewportWidth = 24f,
-      viewportHeight = 24f,
+      viewportHeight = 24f
     ).apply {
       val stroke = SolidColor(Color.Black)
       val w = 1.5f
@@ -197,7 +197,7 @@ internal object HomeCustomIcons {
         fill = SolidColor(Color.Transparent),
         stroke = stroke,
         strokeLineWidth = w,
-        strokeLineJoin = StrokeJoin.Round,
+        strokeLineJoin = StrokeJoin.Round
       ) {
         moveTo(6.5f, 7.5f)
         horizontalLineTo(15.5f)
@@ -214,7 +214,7 @@ internal object HomeCustomIcons {
         fill = SolidColor(Color.Transparent),
         stroke = stroke,
         strokeLineWidth = w,
-        strokeLineCap = StrokeCap.Round,
+        strokeLineCap = StrokeCap.Round
       ) {
         moveTo(17.5f, 10.5f)
         horizontalLineTo(18.5f)
@@ -223,7 +223,7 @@ internal object HomeCustomIcons {
       }
       path(
         fill = SolidColor(Color.Black),
-        pathFillType = PathFillType.NonZero,
+        pathFillType = PathFillType.NonZero
       ) {
         moveTo(10.2f, 9.8f)
         lineTo(8.6f, 12.4f)
@@ -244,7 +244,7 @@ internal object HomeCustomIcons {
       defaultWidth = 24.dp,
       defaultHeight = 24.dp,
       viewportWidth = 24f,
-      viewportHeight = 24f,
+      viewportHeight = 24f
     ).apply {
       val stroke = SolidColor(Color.Black)
       val w = 1.5f
@@ -254,7 +254,7 @@ internal object HomeCustomIcons {
         stroke = stroke,
         strokeLineWidth = w,
         strokeLineJoin = StrokeJoin.Round,
-        strokeLineCap = StrokeCap.Round,
+        strokeLineCap = StrokeCap.Round
       ) {
         moveTo(8f, 7.5f)
         verticalLineTo(16.5f)
@@ -265,7 +265,7 @@ internal object HomeCustomIcons {
         fill = transparent,
         stroke = stroke,
         strokeLineWidth = w,
-        strokeLineCap = StrokeCap.Round,
+        strokeLineCap = StrokeCap.Round
       ) {
         moveTo(17f, 7.5f)
         verticalLineTo(16.5f)
@@ -282,7 +282,7 @@ internal object HomeCustomIcons {
       defaultWidth = 24.dp,
       defaultHeight = 24.dp,
       viewportWidth = 24f,
-      viewportHeight = 24f,
+      viewportHeight = 24f
     ).apply {
       val stroke = SolidColor(Color.Black)
       val w = 1.5f
@@ -292,7 +292,7 @@ internal object HomeCustomIcons {
         stroke = stroke,
         strokeLineWidth = w,
         strokeLineJoin = StrokeJoin.Round,
-        strokeLineCap = StrokeCap.Round,
+        strokeLineCap = StrokeCap.Round
       ) {
         moveTo(6.5f, 10.5f)
         horizontalLineTo(17.5f)
@@ -315,7 +315,7 @@ internal object HomeCustomIcons {
         stroke = stroke,
         strokeLineWidth = w,
         strokeLineCap = StrokeCap.Round,
-        strokeLineJoin = StrokeJoin.Round,
+        strokeLineJoin = StrokeJoin.Round
       ) {
         moveTo(15.5f, 14.5f)
         curveTo(15.5f, 13.4f, 16.4f, 12.5f, 17.5f, 12.5f)
@@ -339,7 +339,7 @@ internal object HomeCustomIcons {
       defaultWidth = 24.dp,
       defaultHeight = 24.dp,
       viewportWidth = 24f,
-      viewportHeight = 24f,
+      viewportHeight = 24f
     ).apply {
       val stroke = SolidColor(Color.Black)
       val w = 1.5f
@@ -349,7 +349,7 @@ internal object HomeCustomIcons {
         stroke = stroke,
         strokeLineWidth = w,
         strokeLineJoin = StrokeJoin.Round,
-        strokeLineCap = StrokeCap.Round,
+        strokeLineCap = StrokeCap.Round
       ) {
         moveTo(6.5f, 10.5f)
         horizontalLineTo(17.5f)
@@ -372,7 +372,7 @@ internal object HomeCustomIcons {
         stroke = stroke,
         strokeLineWidth = w,
         strokeLineCap = StrokeCap.Round,
-        strokeLineJoin = StrokeJoin.Round,
+        strokeLineJoin = StrokeJoin.Round
       ) {
         moveTo(14.5f, 12f)
         lineTo(12.25f, 14.25f)
@@ -398,7 +398,7 @@ internal object HomeCustomIcons {
       defaultWidth = 24.dp,
       defaultHeight = 24.dp,
       viewportWidth = 24f,
-      viewportHeight = 24f,
+      viewportHeight = 24f
     ).apply {
       val stroke = SolidColor(Color.Black)
       val w = 1.5f
@@ -408,7 +408,7 @@ internal object HomeCustomIcons {
         stroke = stroke,
         strokeLineWidth = w,
         strokeLineCap = StrokeCap.Round,
-        strokeLineJoin = StrokeJoin.Round,
+        strokeLineJoin = StrokeJoin.Round
       ) {
         moveTo(9.5f, 5.5f)
         verticalLineTo(12.5f)
@@ -426,7 +426,7 @@ internal object HomeCustomIcons {
         fill = transparent,
         stroke = stroke,
         strokeLineWidth = w,
-        strokeLineCap = StrokeCap.Round,
+        strokeLineCap = StrokeCap.Round
       ) {
         moveTo(17.5f, 3.5f)
         curveTo(20.5f, 3.5f, 22.5f, 5.5f, 22.5f, 8.5f)
@@ -438,7 +438,7 @@ internal object HomeCustomIcons {
         stroke = stroke,
         strokeLineWidth = w,
         strokeLineCap = StrokeCap.Round,
-        pathFillType = PathFillType.NonZero,
+        pathFillType = PathFillType.NonZero
       ) {
         moveTo(11f, 8.5f)
         lineTo(19f, 8.5f)

@@ -23,7 +23,7 @@ fun FloatBallTranslationSettingsScreen(
     onInstantTranslateChange: (Boolean) -> Unit,
     onEngineChange: (FloatBallTranslateEngine) -> Unit,
     onTargetLangChange: (String) -> Unit,
-    onOpenMlKitModels: () -> Unit,
+    onOpenMlKitModels: () -> Unit
 ) {
     val engineEntries = FloatBallTranslateEngine.entries
     val langOptions = TranslateLanguageCatalog.options
@@ -33,7 +33,7 @@ fun FloatBallTranslationSettingsScreen(
 
     SettingsScreenScaffold(
         title = stringResource(R.string.float_ball_translation_settings_title),
-        onBack = onBack,
+        onBack = onBack
     ) {
         groupedCardItems(
             keyPrefix = "fb-translation",
@@ -45,9 +45,9 @@ fun FloatBallTranslationSettingsScreen(
                             title = stringResource(R.string.float_ball_translate_engine),
                             items = engineEntries.map { translateEngineLabel(it) },
                             selectedIndex = engineEntries.indexOf(settings.floatBallTranslateEngine).coerceAtLeast(0),
-                            onSelectedIndexChange = { onEngineChange(engineEntries[it]) },
+                            onSelectedIndexChange = { onEngineChange(engineEntries[it]) }
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("target-lang") {
@@ -56,9 +56,9 @@ fun FloatBallTranslationSettingsScreen(
                             title = stringResource(R.string.float_ball_translate_target_lang),
                             items = langOptions.map { it.displayName },
                             selectedIndex = langIndex,
-                            onSelectedIndexChange = { onTargetLangChange(langOptions[it].code) },
+                            onSelectedIndexChange = { onTargetLangChange(langOptions[it].code) }
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("instant") {
@@ -67,11 +67,11 @@ fun FloatBallTranslationSettingsScreen(
                             subtitle = stringResource(R.string.float_ball_instant_translate_desc),
                             checked = settings.floatBallInstantTranslate,
                             enabled = true,
-                            onCheckedChange = onInstantTranslateChange,
+                            onCheckedChange = onInstantTranslateChange
                         )
-                    },
+                    }
                 )
-            },
+            }
         )
         if (settings.floatBallTranslateEngine == FloatBallTranslateEngine.ML_KIT) {
             groupedCardItems(
@@ -84,11 +84,11 @@ fun FloatBallTranslationSettingsScreen(
                                 title = stringResource(R.string.float_ball_translate_mlkit_models),
                                 subtitle = stringResource(R.string.float_ball_translate_mlkit_models_desc),
                                 enabled = true,
-                                onClick = onOpenMlKitModels,
+                                onClick = onOpenMlKitModels
                             )
-                        },
+                        }
                     )
-                },
+                }
             )
         }
     }

@@ -381,6 +381,17 @@
     <string name="gesture_angle_side_bottom">Bottom</string>
     <string name="gesture_angle_side_top">Top</string>
     <string name="gesture_angle_live_preview_hint">Drag boundaries to test gesture angles on the edges live; tap the checkmark to save.</string>
+    <string name="system_back_gesture_width_entry_title">System back gesture width</string>
+    <string name="system_back_gesture_width_entry_desc">Adjust the system back gesture area on left and right edges</string>
+    <string name="system_back_gesture_width_title">System back gesture width</string>
+    <string name="system_back_gesture_width_desc">Adjust how wide the system back gesture area is on each edge in gesture navigation</string>
+    <string name="system_back_gesture_width_experimental_tip" formatted="false">Experimental: results may vary by device or system version. Setting one side to 0% disables the system back gesture on that edge; 100% restores the default width. This is not the same as “Intercept system back gesture” in trigger settings.</string>
+    <string name="system_back_gesture_width_not_gesture_nav">Gesture navigation is not active; this setting usually has no effect.</string>
+    <string name="system_back_gesture_width_write_permission_desc">Requires permission to modify secure system settings. Grant via Shizuku or use the ADB command.</string>
+    <string name="system_back_gesture_width_left">Left width</string>
+    <string name="system_back_gesture_width_right">Right width</string>
+    <string name="system_back_gesture_width_reset">Restore defaults</string>
+    <string name="system_back_gesture_width_reset_desc">Reset both sides to 100%</string>
     <string name="layout_settings_title">App index</string>
     <string name="layout_settings_entry_title">App index</string>
     <string name="layout_settings_entry_desc">Adjust letter index height, columns, and panel opacity</string>
@@ -2262,6 +2273,7 @@
     <string name="shell_panel_add">Add command</string>
     <string name="shell_panel_edit">Edit command</string>
     <string name="shell_panel_label_field">Name</string>
+    <string name="shell_panel_label_optional_hint">Leave blank to auto-generate a name from the command</string>
     <string name="shell_panel_command_field">Shell command</string>
     <string name="shell_panel_edit_hint">Pipes and redirects work, e.g. dumpsys connectivity | grep wlan0</string>
     <string name="shell_panel_save">Save</string>

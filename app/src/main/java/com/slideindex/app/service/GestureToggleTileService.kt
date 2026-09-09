@@ -81,7 +81,7 @@ class GestureToggleTileService : TileService() {
         lastClickUptimeMs = SystemClock.uptimeMillis()
         Log.i(
             LOG_TAG,
-            "onClick: thread=${Thread.currentThread().name} locked=$isLocked uptime=$lastClickUptimeMs",
+            "onClick: thread=${Thread.currentThread().name} locked=$isLocked uptime=$lastClickUptimeMs"
         )
         val action = Runnable { handleClick() }
         if (isLocked) {
@@ -100,7 +100,7 @@ class GestureToggleTileService : TileService() {
         Log.i(
             LOG_TAG,
             "handleClick: elapsedSinceOnClick=${elapsedMs}ms current=$current newState=$newState " +
-                "a11yConnected=${SlideIndexAccessibilityService.isConnected()}",
+                "a11yConnected=${SlideIndexAccessibilityService.isConnected()}"
         )
         logTileState("handleClick/beforeFastPath")
         pendingUserToggle = true
@@ -117,13 +117,13 @@ class GestureToggleTileService : TileService() {
                     deps.settingsRepository.setServiceEnabled(newState)
                     OverlayServiceLifecycle.syncFromSettings(
                         applicationContext,
-                        deps.settingsRepository,
+                        deps.settingsRepository
                     )
                 }
                 Log.i(
                     LOG_TAG,
                     "handleClick: persist done persistMs=${SystemClock.uptimeMillis() - persistStartMs} " +
-                        "totalMs=${SystemClock.uptimeMillis() - lastClickUptimeMs}",
+                        "totalMs=${SystemClock.uptimeMillis() - lastClickUptimeMs}"
                 )
             } catch (error: Exception) {
                 Log.e(LOG_TAG, "handleClick: persist failed after ${SystemClock.uptimeMillis() - persistStartMs}ms", error)
@@ -144,7 +144,7 @@ class GestureToggleTileService : TileService() {
         Log.d(
             LOG_TAG,
             "readCurrentEnabled: enabled=$enabled fromMirror=$fromMirror " +
-                "qsTileState=${qsTile?.state} isServiceEnabled=$isServiceEnabled",
+                "qsTileState=${qsTile?.state} isServiceEnabled=$isServiceEnabled"
         )
         return enabled
     }
@@ -154,7 +154,7 @@ class GestureToggleTileService : TileService() {
             LOG_TAG,
             "$stage: isServiceEnabled=$isServiceEnabled mirrorHasValue=" +
                 "${ServiceEnabledStore.hasPersistedValue(applicationContext)} " +
-                "mirror=${ServiceEnabledStore.read(applicationContext)} qsTileState=${qsTile?.state}",
+                "mirror=${ServiceEnabledStore.read(applicationContext)} qsTileState=${qsTile?.state}"
         )
     }
 

@@ -137,7 +137,7 @@ private fun overlayBoundsToScreen(overlayView: android.view.View, boundsInOverla
         loc[0] + boundsInOverlay.left,
         loc[1] + boundsInOverlay.top,
         loc[0] + boundsInOverlay.right,
-        loc[1] + boundsInOverlay.bottom,
+        loc[1] + boundsInOverlay.bottom
     )
 }
 
@@ -145,7 +145,7 @@ private data class PinInitialPlacement(
     val x: Int,
     val y: Int,
     val expandedWidthPx: Int = 0,
-    val expandedHeightPx: Int = 0,
+    val expandedHeightPx: Int = 0
 )
 
 private class PinUiState {
@@ -166,7 +166,7 @@ private sealed class PinContent {
     data class Image(
         val bitmap: Bitmap,
         val screenRect: Rect? = null,
-        val layoutMeta: ScreenshotLayoutMeta? = null,
+        val layoutMeta: ScreenshotLayoutMeta? = null
     ) : PinContent()
     data class Rich(val blocks: List<PinDisplayBlock>) : PinContent()
 }
@@ -184,7 +184,7 @@ private class PinInstance(
     val params: WindowManager.LayoutParams,
     val uiState: PinUiState,
     var offsetX: Int,
-    var offsetY: Int,
+    var offsetY: Int
 )
 
 private class DropOverlayState {
@@ -215,7 +215,7 @@ object ScreenPinManager {
         context: Context,
         bitmap: Bitmap,
         screenRect: Rect? = null,
-        layoutMeta: ScreenshotLayoutMeta? = null,
+        layoutMeta: ScreenshotLayoutMeta? = null
     ) {
         val copy = bitmap.copy(bitmap.config ?: Bitmap.Config.ARGB_8888, false) ?: return
         val rectCopy = screenRect?.let { Rect(it) }
@@ -290,7 +290,7 @@ object ScreenPinManager {
         context: Context,
         bitmap: Bitmap,
         displayWidthPx: Int? = null,
-        displayHeightPx: Int? = null,
+        displayHeightPx: Int? = null
     ) {
         val copy = bitmap.copy(bitmap.config ?: Bitmap.Config.ARGB_8888, false) ?: return
         mainHandler.post {
@@ -304,8 +304,8 @@ object ScreenPinManager {
                         x = defaultPinX(context),
                         y = defaultPinY(context),
                         expandedWidthPx = preferredW,
-                        expandedHeightPx = preferredH,
-                    ),
+                        expandedHeightPx = preferredH
+                    )
                 )
             } else {
                 addPin(context, PinContent.Image(copy))
@@ -338,14 +338,14 @@ object ScreenPinManager {
         snapshot: PinNotificationSnapshot,
         imageBitmap: Bitmap?,
         richImageLoader: ((String) -> Bitmap?)? = null,
-        onResult: (Boolean) -> Unit = {},
+        onResult: (Boolean) -> Unit = {}
     ) {
         mainHandler.post {
             val placement = PinInitialPlacement(
                 x = snapshot.x,
                 y = snapshot.y,
                 expandedWidthPx = snapshot.expandedWidthPx,
-                expandedHeightPx = snapshot.expandedHeightPx,
+                expandedHeightPx = snapshot.expandedHeightPx
             )
             val success = when (snapshot.type) {
                 PinNotificationSnapshot.TYPE_IMAGE -> {
@@ -363,9 +363,9 @@ object ScreenPinManager {
                         PinContent.Image(
                             bitmap = bitmap,
                             screenRect = snapshot.toScreenRect(),
-                            layoutMeta = snapshot.toLayoutMeta(),
+                            layoutMeta = snapshot.toLayoutMeta()
                         ),
-                        placement = placement,
+                        placement = placement
                     )
                 }
                 PinNotificationSnapshot.TYPE_TEXT -> {
@@ -415,7 +415,7 @@ object ScreenPinManager {
     private fun addPin(
         context: Context,
         content: PinContent,
-        placement: PinInitialPlacement? = null,
+        placement: PinInitialPlacement? = null
     ): Boolean {
         val hostContext = OverlayDependencyAccess.overlayHostContext() ?: context.applicationContext
         ensureScreenOffReceiver(hostContext)
@@ -441,7 +441,7 @@ object ScreenPinManager {
                         screenRect = content.screenRect,
                         layoutMeta = content.layoutMeta,
                         screenWidthPx = metrics.widthPixels,
-                        screenHeightPx = metrics.heightPixels,
+                        screenHeightPx = metrics.heightPixels
                     )
                 }
             }
@@ -473,14 +473,14 @@ object ScreenPinManager {
             metrics = metrics,
             contentW = contentDisplaySize.first,
             contentH = contentDisplaySize.second,
-            edgeDocked = false,
+            edgeDocked = false
         )
         val params = WindowManager.LayoutParams(
             panelW,
             panelH,
             OverlayWindowTypes.overlayWindowType(hostContext),
             pinOverlayFlags(),
-            PixelFormat.TRANSLUCENT,
+            PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.TOP or Gravity.START
             if (placement != null) {
@@ -490,7 +490,7 @@ object ScreenPinManager {
                 val imageContent = content as? PinContent.Image
                 val placementRect = resolvePinPlacementRect(
                     imageContent?.screenRect,
-                    imageContent?.layoutMeta,
+                    imageContent?.layoutMeta
                 )
                 if (placementRect != null && !placementRect.isEmpty) {
                     val contentW = contentDisplaySize.first
@@ -514,7 +514,7 @@ object ScreenPinManager {
             params = params,
             uiState = uiState,
             offsetX = params.x,
-            offsetY = params.y,
+            offsetY = params.y
         )
         pins[id] = instance
         bindPinContent(instance)
@@ -578,7 +578,7 @@ object ScreenPinManager {
                         hideDropOverlay()
                     },
                     onClose = { removePin(instance.id) },
-                    onAlphaChange = { instance.uiState.contentAlpha.floatValue = it },
+                    onAlphaChange = { instance.uiState.contentAlpha.floatValue = it }
                 )
             }
         }
@@ -641,7 +641,7 @@ object ScreenPinManager {
             targetX = instance.params.x,
             targetY = instance.params.y,
             targetDisplayW = targetW,
-            targetDisplayH = targetH,
+            targetDisplayH = targetH
         )
     }
 
@@ -721,7 +721,7 @@ object ScreenPinManager {
     private fun screenDropBounds(
         overlayView: ComposeView?,
         boundsInOverlay: Rect,
-        fallback: Rect?,
+        fallback: Rect?
     ): Rect? {
         if (overlayView != null && !boundsInOverlay.isEmpty) {
             return overlayBoundsToScreen(overlayView, boundsInOverlay)
@@ -759,7 +759,7 @@ object ScreenPinManager {
                 StashCoordinator.addImage(
                     bitmap = content.bitmap,
                     pinDisplayWidthPx = displayW,
-                    pinDisplayHeightPx = displayH,
+                    pinDisplayHeightPx = displayH
                 ) { success ->
                     if (success) {
                         Toast.makeText(context, R.string.stash_saved, Toast.LENGTH_SHORT).show()
@@ -835,7 +835,7 @@ object ScreenPinManager {
                 layoutScreenWidth = layoutMeta?.screenWidth,
                 layoutScreenHeight = layoutMeta?.screenHeight,
                 layoutCaptureWidth = layoutMeta?.captureWidth,
-                layoutCaptureHeight = layoutMeta?.captureHeight,
+                layoutCaptureHeight = layoutMeta?.captureHeight
             )
             is PinContent.Text -> PinNotificationSnapshot(
                 type = PinNotificationSnapshot.TYPE_TEXT,
@@ -843,7 +843,7 @@ object ScreenPinManager {
                 x = instance.params.x,
                 y = instance.params.y,
                 expandedWidthPx = instance.uiState.expandedWidthPx,
-                expandedHeightPx = instance.uiState.expandedHeightPx,
+                expandedHeightPx = instance.uiState.expandedHeightPx
             )
             is PinContent.Rich -> PinNotificationSnapshot(
                 type = PinNotificationSnapshot.TYPE_TEXT,
@@ -851,7 +851,7 @@ object ScreenPinManager {
                 x = instance.params.x,
                 y = instance.params.y,
                 expandedWidthPx = instance.uiState.expandedWidthPx,
-                expandedHeightPx = instance.uiState.expandedHeightPx,
+                expandedHeightPx = instance.uiState.expandedHeightPx
             )
         }
     }
@@ -881,7 +881,7 @@ object ScreenPinManager {
         paint.getTextBounds(sample, 0, sample.length, bounds)
         val bmp = createBitmap(
             bounds.width().coerceAtLeast(1) + 32,
-            bounds.height().coerceAtLeast(1) + 32,
+            bounds.height().coerceAtLeast(1) + 32
         )
         val canvas = android.graphics.Canvas(bmp)
         canvas.drawColor(android.graphics.Color.WHITE)
@@ -925,7 +925,7 @@ object ScreenPinManager {
         instance: PinInstance,
         horizontal: Boolean,
         toStart: Boolean,
-        metrics: DisplayMetrics,
+        metrics: DisplayMetrics
     ) {
         if (instance.uiState.isEdgeDocked.value) return
         val screenW = metrics.widthPixels
@@ -990,7 +990,7 @@ object ScreenPinManager {
             targetX,
             targetY,
             instance.uiState.expandedWidthPx.coerceAtLeast(1),
-            instance.uiState.expandedHeightPx.coerceAtLeast(1),
+            instance.uiState.expandedHeightPx.coerceAtLeast(1)
         )
     }
 
@@ -999,7 +999,7 @@ object ScreenPinManager {
         targetX: Int,
         targetY: Int,
         targetDisplayW: Int,
-        targetDisplayH: Int,
+        targetDisplayH: Int
     ) {
         instance.uiState.animator?.cancel()
         val startX = instance.params.x
@@ -1072,7 +1072,7 @@ object ScreenPinManager {
         metrics: DisplayMetrics,
         contentW: Int,
         contentH: Int,
-        edgeDocked: Boolean,
+        edgeDocked: Boolean
     ): Pair<Int, Int> {
         val safeW = contentW.coerceAtLeast(1)
         val safeH = contentH.coerceAtLeast(1)
@@ -1092,7 +1092,7 @@ object ScreenPinManager {
             metrics = metrics,
             contentW = contentW,
             contentH = contentH,
-            edgeDocked = instance.uiState.isEdgeDocked.value,
+            edgeDocked = instance.uiState.isEdgeDocked.value
         )
         instance.params.width = panelW
         instance.params.height = panelH
@@ -1109,19 +1109,19 @@ object ScreenPinManager {
                 edge,
                 screenH / 2 - chipH / 2,
                 edge + chipW,
-                screenH / 2 + chipH / 2,
+                screenH / 2 + chipH / 2
             )
             deleteBounds = Rect(
                 screenW / 2 - chipW / 2,
                 screenH - edge - chipH,
                 screenW / 2 + chipW / 2,
-                screenH - edge,
+                screenH - edge
             )
             stashBounds = Rect(
                 screenW - edge - chipW,
                 screenH / 2 - chipH / 2,
                 screenW - edge,
-                screenH / 2 + chipH / 2,
+                screenH / 2 + chipH / 2
             )
         }
     }
@@ -1141,7 +1141,7 @@ object ScreenPinManager {
                     highlighted = highlighted,
                     onDeleteBounds = { state.deleteBounds = it },
                     onNotifyBounds = { state.notifyBounds = it },
-                    onStashBounds = { state.stashBounds = it },
+                    onStashBounds = { state.stashBounds = it }
                 )
             }
         }
@@ -1150,7 +1150,7 @@ object ScreenPinManager {
             WindowManager.LayoutParams.MATCH_PARENT,
             OverlayWindowTypes.overlayWindowType(context),
             pinOverlayFlags() or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
-            PixelFormat.TRANSLUCENT,
+            PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.TOP or Gravity.START
             x = 0
@@ -1213,7 +1213,7 @@ private fun ScreenPinContent(
     onDrag: (dx: Float, dy: Float, localX: Float, localY: Float) -> Unit,
     onDragEnd: (localX: Float, localY: Float) -> Unit,
     onClose: () -> Unit,
-    onAlphaChange: (Float) -> Unit,
+    onAlphaChange: (Float) -> Unit
 ) {
     val showControls by instance.uiState.showControls
     val alpha by instance.uiState.contentAlpha
@@ -1246,7 +1246,7 @@ private fun ScreenPinContent(
     androidx.compose.runtime.LaunchedEffect(
         scrollState.maxValue,
         scrollState.viewportSize,
-        supportsContentScroll,
+        supportsContentScroll
     ) {
         scrollEnabled = when {
             !supportsContentScroll -> false
@@ -1272,10 +1272,10 @@ private fun ScreenPinContent(
                     onTap = onTap,
                     onDoubleTap = onDoubleTap,
                     onZoom = onZoom,
-                    horizontalDragOnly = scrollEnabled && !isDocked,
+                    horizontalDragOnly = scrollEnabled && !isDocked
                 )
             },
-        horizontalAlignment = Alignment.CenterHorizontally,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         when (val content = instance.content) {
             is PinContent.Text -> {
@@ -1288,7 +1288,7 @@ private fun ScreenPinContent(
                         .shadow(6.dp, RoundedCornerShape(10.dp))
                         .clip(RoundedCornerShape(10.dp))
                         .background(MaterialTheme.colorScheme.surface)
-                        .padding(12.dp),
+                        .padding(12.dp)
                 ) {
                     Text(
                         text = content.body,
@@ -1296,7 +1296,7 @@ private fun ScreenPinContent(
                         color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier
                             .fillMaxSize()
-                            .verticalScroll(scrollState, enabled = scrollEnabled),
+                            .verticalScroll(scrollState, enabled = scrollEnabled)
                     )
                 }
             }
@@ -1313,7 +1313,7 @@ private fun ScreenPinContent(
                         ContentScale.FillBounds
                     } else {
                         ContentScale.Fit
-                    },
+                    }
                 )
             }
             is PinContent.Rich -> {
@@ -1326,13 +1326,13 @@ private fun ScreenPinContent(
                         .shadow(6.dp, RoundedCornerShape(10.dp))
                         .clip(RoundedCornerShape(10.dp))
                         .background(MaterialTheme.colorScheme.surface)
-                        .padding(12.dp),
+                        .padding(12.dp)
                 ) {
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
                             .verticalScroll(scrollState, enabled = scrollEnabled),
-                        verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
+                        verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)
                     ) {
                         content.blocks.forEach { block ->
                             when (block) {
@@ -1340,7 +1340,7 @@ private fun ScreenPinContent(
                                     Text(
                                         text = block.body,
                                         fontSize = 15.sp,
-                                        color = MaterialTheme.colorScheme.onSurface,
+                                        color = MaterialTheme.colorScheme.onSurface
                                     )
                                 }
                                 is PinDisplayBlock.Image -> {
@@ -1351,7 +1351,7 @@ private fun ScreenPinContent(
                                             .fillMaxWidth()
                                             .heightIn(max = RICH_PIN_IMAGE_MAX_HEIGHT_DP.dp)
                                             .clip(RoundedCornerShape(8.dp)),
-                                        contentScale = ContentScale.Fit,
+                                        contentScale = ContentScale.Fit
                                     )
                                 }
                             }
@@ -1366,14 +1366,14 @@ private fun ScreenPinContent(
                     .widthIn(min = barMinWidth)
                     .height(slotHeight)
                     .padding(top = 6.dp),
-                contentAlignment = Alignment.Center,
+                contentAlignment = Alignment.Center
             ) {
                 if (showControls) {
                     PinControlBar(
                         alpha = alpha,
                         onAlphaChange = onAlphaChange,
                         onClose = onClose,
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
             }
@@ -1386,7 +1386,7 @@ private fun PinControlBar(
     alpha: Float,
     onAlphaChange: (Float) -> Unit,
     onClose: () -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     val pillShape = RoundedCornerShape(20.dp)
     val surfaceColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.94f)
@@ -1398,7 +1398,7 @@ private fun PinControlBar(
             .border(0.5.dp, outlineColor, pillShape)
             .background(surfaceColor)
             .padding(start = 14.dp, end = 6.dp, top = 2.dp, bottom = 2.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Slider(
             value = alpha,
@@ -1410,8 +1410,8 @@ private fun PinControlBar(
             colors = SliderDefaults.colors(
                 thumbColor = MaterialTheme.colorScheme.primary,
                 activeTrackColor = MaterialTheme.colorScheme.primary,
-                inactiveTrackColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
-            ),
+                inactiveTrackColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+            )
         )
         Spacer(modifier = Modifier.width(6.dp))
         Box(
@@ -1420,13 +1420,13 @@ private fun PinControlBar(
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.92f))
                 .clickable(onClick = onClose),
-            contentAlignment = Alignment.Center,
+            contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = Icons.Default.Close,
                 contentDescription = stringResource(R.string.shell_panel_close),
                 modifier = Modifier.size(18.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -1439,7 +1439,7 @@ private suspend fun PointerInputScope.detectPinDragAndTap(
     onTap: () -> Unit,
     onDoubleTap: (() -> Unit)? = null,
     onZoom: ((zoomFactor: Float) -> Unit)? = null,
-    horizontalDragOnly: Boolean = false,
+    horizontalDragOnly: Boolean = false
 ) {
     var lastTapTime = 0L
     awaitEachGesture {
@@ -1528,7 +1528,7 @@ private fun ScreenPinDropTargets(
     highlighted: ScreenPinDropZone,
     onDeleteBounds: (Rect) -> Unit,
     onNotifyBounds: (Rect) -> Unit,
-    onStashBounds: (Rect) -> Unit,
+    onStashBounds: (Rect) -> Unit
 ) {
     val stashActive = highlighted == ScreenPinDropZone.STASH
     val deleteActive = highlighted == ScreenPinDropZone.DELETE
@@ -1540,7 +1540,7 @@ private fun ScreenPinDropTargets(
                 .align(Alignment.CenterStart)
                 .padding(start = 8.dp),
             active = notifyActive,
-            onBoundsInWindow = onNotifyBounds,
+            onBoundsInWindow = onNotifyBounds
         )
         DropTargetChip(
             text = stringResource(R.string.stash_drop_target_delete),
@@ -1548,7 +1548,7 @@ private fun ScreenPinDropTargets(
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 8.dp),
             active = deleteActive,
-            onBoundsInWindow = onDeleteBounds,
+            onBoundsInWindow = onDeleteBounds
         )
         DropTargetChip(
             text = stringResource(R.string.stash_drop_target_stash),
@@ -1556,7 +1556,7 @@ private fun ScreenPinDropTargets(
                 .align(Alignment.CenterEnd)
                 .padding(end = 8.dp),
             active = stashActive,
-            onBoundsInWindow = onStashBounds,
+            onBoundsInWindow = onStashBounds
         )
     }
 }
@@ -1566,7 +1566,7 @@ private fun DropTargetChip(
     text: String,
     modifier: Modifier = Modifier,
     active: Boolean,
-    onBoundsInWindow: (Rect) -> Unit,
+    onBoundsInWindow: (Rect) -> Unit
 ) {
     val bg = if (active) {
         MaterialTheme.colorScheme.primary
@@ -1586,17 +1586,17 @@ private fun DropTargetChip(
                     bounds.left.roundToInt(),
                     bounds.top.roundToInt(),
                     bounds.right.roundToInt(),
-                    bounds.bottom.roundToInt(),
-                ),
+                    bounds.bottom.roundToInt()
+                )
             )
-        },
+        }
     ) {
         Box(
             Modifier
                 .shadow(8.dp, RoundedCornerShape(20.dp))
                 .clip(RoundedCornerShape(20.dp))
                 .background(bg)
-                .padding(horizontal = 16.dp, vertical = 10.dp),
+                .padding(horizontal = 16.dp, vertical = 10.dp)
         ) {
             Text(text = text, color = fg, fontSize = 14.sp)
         }

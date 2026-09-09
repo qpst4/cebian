@@ -30,7 +30,7 @@ object TriggerHandleRenderer {
         design: TriggerHandleDesign,
         density: Float,
         widthPx: Int,
-        heightPx: Int,
+        heightPx: Int
     ) {
         if (!design.isVisible) return
         when (design.kind) {
@@ -42,7 +42,7 @@ object TriggerHandleRenderer {
                 design = design,
                 density = density,
                 widthPx = widthPx,
-                heightPx = heightPx,
+                heightPx = heightPx
             )
         }
     }
@@ -53,7 +53,7 @@ object TriggerHandleRenderer {
         design: TriggerHandleDesign,
         density: Float,
         widthPx: Int,
-        heightPx: Int,
+        heightPx: Int
     ) {
         val size = dp(design.sizeDp, density)
         val halo = dp(design.haloSizeDp, density)
@@ -70,7 +70,7 @@ object TriggerHandleRenderer {
             top = top,
             bottom = bottom,
             widthPx = widthPx,
-            heightPx = heightPx,
+            heightPx = heightPx
         )
 
         if (halo > 0f) {
@@ -81,7 +81,7 @@ object TriggerHandleRenderer {
                 top = 0f,
                 bottom = heightPx.toFloat(),
                 haloSize = halo,
-                widthPx = widthPx,
+                widthPx = widthPx
             )
         }
 
@@ -91,7 +91,7 @@ object TriggerHandleRenderer {
             side = side,
             mode = design.cornerMode,
             radius = radius,
-            bounds = bodyRect,
+            bounds = bodyRect
         )
         path.reset()
         path.addRoundRect(bodyRect, radii, Path.Direction.CW)
@@ -114,7 +114,7 @@ object TriggerHandleRenderer {
         top: Float,
         bottom: Float,
         widthPx: Int,
-        heightPx: Int,
+        heightPx: Int
     ): RectF {
         val maxSize = max(size, heightPx.toFloat())
         val edgeInset = min(0f, maxSize - size)
@@ -123,25 +123,25 @@ object TriggerHandleRenderer {
                 edgeInset,
                 top,
                 (edgeInset + size).coerceAtMost(widthPx.toFloat()),
-                bottom,
+                bottom
             )
             PanelSide.RIGHT -> RectF(
                 (widthPx - edgeInset - size).coerceAtLeast(0f),
                 top,
                 widthPx - edgeInset,
-                bottom,
+                bottom
             )
             PanelSide.BOTTOM -> RectF(
                 0f,
                 (heightPx - edgeInset - size).coerceAtLeast(0f),
                 widthPx.toFloat(),
-                heightPx - edgeInset,
+                heightPx - edgeInset
             )
             PanelSide.TOP -> RectF(
                 0f,
                 edgeInset,
                 widthPx.toFloat(),
-                (edgeInset + size).coerceAtMost(heightPx.toFloat()),
+                (edgeInset + size).coerceAtMost(heightPx.toFloat())
             )
         }
     }
@@ -158,7 +158,7 @@ object TriggerHandleRenderer {
         top: Float,
         bottom: Float,
         haloSize: Float,
-        widthPx: Int,
+        widthPx: Int
     ) {
         if (Color.alpha(color) <= 0) return
 
@@ -167,25 +167,25 @@ object TriggerHandleRenderer {
                 0f,
                 top,
                 (haloSize * 2f).coerceAtMost(widthPx.toFloat()),
-                bottom,
+                bottom
             )
             PanelSide.RIGHT -> RectF(
                 (widthPx - haloSize * 2f).coerceAtLeast(0f),
                 top,
                 widthPx.toFloat(),
-                bottom,
+                bottom
             )
             PanelSide.BOTTOM -> RectF(
                 0f,
                 (bottom - haloSize * 2f).coerceAtLeast(0f),
                 widthPx.toFloat(),
-                bottom,
+                bottom
             )
             PanelSide.TOP -> RectF(
                 0f,
                 top,
                 widthPx.toFloat(),
-                (top + haloSize * 2f).coerceAtMost(bottom),
+                (top + haloSize * 2f).coerceAtMost(bottom)
             )
         }
 
@@ -206,7 +206,7 @@ object TriggerHandleRenderer {
                     PanelSide.BOTTOM -> -glowRect.height() / 2f
                     PanelSide.TOP -> glowRect.height() / 2f
                     else -> 0f
-                },
+                }
             )
         }
 
@@ -216,7 +216,7 @@ object TriggerHandleRenderer {
             gradientRadius,
             color,
             Color.TRANSPARENT,
-            Shader.TileMode.CLAMP,
+            Shader.TileMode.CLAMP
         ).apply {
             setLocalMatrix(matrix)
         }
@@ -235,25 +235,25 @@ object TriggerHandleRenderer {
         side: PanelSide,
         mode: TriggerCornerMode,
         radius: Float,
-        bounds: RectF,
+        bounds: RectF
     ): FloatArray {
         val capped = radius.coerceAtMost(min(bounds.width(), bounds.height()) / 2f)
         return when (mode) {
             TriggerCornerMode.ALL -> floatArrayOf(
-                capped, capped, capped, capped, capped, capped, capped, capped,
+                capped, capped, capped, capped, capped, capped, capped, capped
             )
             TriggerCornerMode.OUTER -> when (side) {
                 PanelSide.LEFT -> floatArrayOf(
-                    0f, 0f, capped, capped, capped, capped, 0f, 0f,
+                    0f, 0f, capped, capped, capped, capped, 0f, 0f
                 )
                 PanelSide.RIGHT -> floatArrayOf(
-                    capped, capped, 0f, 0f, 0f, 0f, capped, capped,
+                    capped, capped, 0f, 0f, 0f, 0f, capped, capped
                 )
                 PanelSide.BOTTOM -> floatArrayOf(
-                    capped, capped, capped, capped, 0f, 0f, 0f, 0f,
+                    capped, capped, capped, capped, 0f, 0f, 0f, 0f
                 )
                 PanelSide.TOP -> floatArrayOf(
-                    0f, 0f, 0f, 0f, capped, capped, capped, capped,
+                    0f, 0f, 0f, 0f, capped, capped, capped, capped
                 )
             }
         }

@@ -7,7 +7,7 @@ internal data class FloatingPointerTrailThresholds(
     val minTimeMs: Long,
     val maxTimeMs: Long,
     val minDistPx: Float,
-    val maxDistPx: Float,
+    val maxDistPx: Float
 )
 
 internal object FloatingPointerTrailSampler {
@@ -19,13 +19,13 @@ internal object FloatingPointerTrailSampler {
                 minTimeMs = 2L,
                 maxTimeMs = 50L,
                 minDistPx = 3f * density,
-                maxDistPx = 18f * density,
+                maxDistPx = 18f * density
             )
             FloatingPointerTrailType.HIGH_DETAIL -> FloatingPointerTrailThresholds(
                 minTimeMs = 1L,
                 maxTimeMs = 25L,
                 minDistPx = 1f,
-                maxDistPx = 2f * density,
+                maxDistPx = 2f * density
             )
         }
 
@@ -39,7 +39,7 @@ internal object FloatingPointerTrailSampler {
         y: Float,
         nowMs: Long,
         type: FloatingPointerTrailType,
-        density: Float,
+        density: Float
     ) {
         if (type == FloatingPointerTrailType.OFF) return
         val thresholds = thresholdsFor(type, density) ?: return
@@ -55,7 +55,7 @@ internal object FloatingPointerTrailSampler {
         val elapsedMs = nowMs - head.timeMs
         val distancePx = hypot(
             (anchor.x - head.x).toDouble(),
-            (anchor.y - head.y).toDouble(),
+            (anchor.y - head.y).toDouble()
         ).toFloat()
 
         val shouldExtend = elapsedMs <= thresholds.minTimeMs ||

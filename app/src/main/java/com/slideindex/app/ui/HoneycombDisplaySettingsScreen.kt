@@ -30,7 +30,7 @@ import kotlin.math.roundToInt
 fun HoneycombDisplaySettingsScreen(
     display: HoneycombDisplaySettings,
     onBack: () -> Unit,
-    onDisplayChange: (HoneycombDisplaySettings) -> Unit,
+    onDisplayChange: (HoneycombDisplaySettings) -> Unit
 ) {
     val context = LocalContext.current
     var localDisplay by remember { mutableStateOf(display) }
@@ -51,7 +51,7 @@ fun HoneycombDisplaySettingsScreen(
     val backgroundStyles = listOf(
         HoneycombDisplaySettings.BACKGROUND_BLUR,
         HoneycombDisplaySettings.BACKGROUND_WALLPAPER_BLUR,
-        HoneycombDisplaySettings.BACKGROUND_BLACK,
+        HoneycombDisplaySettings.BACKGROUND_BLACK
     )
     val blurEnabled = localDisplay.backgroundStyle == HoneycombDisplaySettings.BACKGROUND_BLUR
         || localDisplay.backgroundStyle == HoneycombDisplaySettings.BACKGROUND_WALLPAPER_BLUR
@@ -60,22 +60,21 @@ fun HoneycombDisplaySettingsScreen(
         stringResource(R.string.honeycomb_speed_fast),
         stringResource(R.string.honeycomb_speed_normal),
         stringResource(R.string.honeycomb_speed_soft),
-        stringResource(R.string.honeycomb_speed_slow),
+        stringResource(R.string.honeycomb_speed_slow)
     )
     val inertiaLabels = listOf(
         stringResource(R.string.honeycomb_inertia_low),
         stringResource(R.string.honeycomb_inertia_medium),
-        stringResource(R.string.honeycomb_inertia_high),
+        stringResource(R.string.honeycomb_inertia_high)
     )
 
     SettingsScreenScaffold(
         title = stringResource(R.string.honeycomb_display_settings_title),
-        onBack = onBack,
+        onBack = onBack
     ) {
         settingsLazySmallTitle(
             key = "section-mode",
-            title = modeSectionTitle,
-            sectionTop = true,
+            title = modeSectionTitle
         )
         groupedCardItems(
             keyPrefix = "honeycomb-mode-radio",
@@ -89,9 +88,9 @@ fun HoneycombDisplaySettingsScreen(
                             selected = localDisplay.mode == HoneycombDisplaySettings.MODE_HOLD,
                             onClick = {
                                 updateDisplay(localDisplay.copy(mode = HoneycombDisplaySettings.MODE_HOLD))
-                            },
+                            }
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("mode-browse") {
@@ -101,11 +100,11 @@ fun HoneycombDisplaySettingsScreen(
                             selected = localDisplay.mode == HoneycombDisplaySettings.MODE_BROWSE,
                             onClick = {
                                 updateDisplay(localDisplay.copy(mode = HoneycombDisplaySettings.MODE_BROWSE))
-                            },
+                            }
                         )
-                    },
+                    }
                 )
-            },
+            }
         )
         groupedCardItems(
             keyPrefix = "honeycomb-mode",
@@ -117,9 +116,9 @@ fun HoneycombDisplaySettingsScreen(
                             title = stringResource(R.string.honeycomb_empty_tap_close),
                             subtitle = stringResource(R.string.honeycomb_empty_tap_close_desc),
                             checked = localDisplay.emptyTapClose,
-                            onCheckedChange = { updateDisplay(localDisplay.copy(emptyTapClose = it)) },
+                            onCheckedChange = { updateDisplay(localDisplay.copy(emptyTapClose = it)) }
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("show-selected-name") {
@@ -128,9 +127,9 @@ fun HoneycombDisplaySettingsScreen(
                             title = stringResource(R.string.honeycomb_show_selected_name),
                             subtitle = stringResource(R.string.honeycomb_show_selected_name_desc),
                             checked = localDisplay.showSelectedName,
-                            onCheckedChange = { updateDisplay(localDisplay.copy(showSelectedName = it)) },
+                            onCheckedChange = { updateDisplay(localDisplay.copy(showSelectedName = it)) }
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("selected-hint-icon-size") {
@@ -143,20 +142,19 @@ fun HoneycombDisplaySettingsScreen(
                             enabled = localDisplay.showSelectedName,
                             label = stringResource(
                                 R.string.selected_hint_icon_size_value,
-                                localDisplay.selectedHintIconSizeDp,
+                                localDisplay.selectedHintIconSizeDp
                             ),
                             onValueChange = {
                                 updateDisplay(localDisplay.copy(selectedHintIconSizeDp = it.roundToInt()))
-                            },
+                            }
                         )
-                    },
+                    }
                 )
-            },
+            }
         )
         settingsLazySmallTitle(
             key = "section-position",
-            title = positionSectionTitle,
-            sectionTop = true,
+            title = positionSectionTitle
         )
         groupedCardItems(
             keyPrefix = "honeycomb-position",
@@ -168,9 +166,9 @@ fun HoneycombDisplaySettingsScreen(
                             title = stringResource(R.string.honeycomb_follow_finger),
                             subtitle = stringResource(R.string.honeycomb_follow_finger_desc),
                             checked = localDisplay.followFinger,
-                            onCheckedChange = { updateDisplay(localDisplay.copy(followFinger = it)) },
+                            onCheckedChange = { updateDisplay(localDisplay.copy(followFinger = it)) }
                         )
-                    },
+                    }
                 )
                 if (!localDisplay.followFinger) {
                     add(
@@ -182,14 +180,14 @@ fun HoneycombDisplaySettingsScreen(
                                 enabled = true,
                                 label = stringResource(
                                     R.string.floating_pointer_percent_value,
-                                    localDisplay.fixedXPercent,
+                                    localDisplay.fixedXPercent
                                 ),
                                 keyPoints = SETTINGS_SLIDER_PERCENT_KEY_POINTS_100,
                                 onValueChange = {
                                     updateDisplay(localDisplay.copy(fixedXPercent = it.roundToInt()))
-                                },
+                                }
                             )
-                        },
+                        }
                     )
                     add(
                         settingsCardScopeItem("fixed-y") {
@@ -200,22 +198,21 @@ fun HoneycombDisplaySettingsScreen(
                                 enabled = true,
                                 label = stringResource(
                                     R.string.floating_pointer_percent_value,
-                                    localDisplay.fixedYPercent,
+                                    localDisplay.fixedYPercent
                                 ),
                                 keyPoints = SETTINGS_SLIDER_PERCENT_KEY_POINTS_100,
                                 onValueChange = {
                                     updateDisplay(localDisplay.copy(fixedYPercent = it.roundToInt()))
-                                },
+                                }
                             )
-                        },
+                        }
                     )
                 }
-            },
+            }
         )
         settingsLazySmallTitle(
             key = "section-layout",
-            title = layoutSectionTitle,
-            sectionTop = true,
+            title = layoutSectionTitle
         )
         groupedCardItems(
             keyPrefix = "honeycomb-layout",
@@ -230,9 +227,9 @@ fun HoneycombDisplaySettingsScreen(
                             steps = 16,
                             enabled = true,
                             label = stringResource(R.string.corner_gesture_zone_dp_value, localDisplay.iconSizeDp),
-                            onValueChange = { updateDisplay(localDisplay.copy(iconSizeDp = it.roundToInt())) },
+                            onValueChange = { updateDisplay(localDisplay.copy(iconSizeDp = it.roundToInt())) }
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("spacing") {
@@ -244,9 +241,9 @@ fun HoneycombDisplaySettingsScreen(
                             steps = 24,
                             enabled = true,
                             label = stringResource(R.string.corner_gesture_zone_dp_value, localDisplay.spacingDp),
-                            onValueChange = { updateDisplay(localDisplay.copy(spacingDp = it.roundToInt())) },
+                            onValueChange = { updateDisplay(localDisplay.copy(spacingDp = it.roundToInt())) }
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("disc-size") {
@@ -259,18 +256,17 @@ fun HoneycombDisplaySettingsScreen(
                             enabled = true,
                             label = stringResource(
                                 R.string.floating_pointer_percent_value,
-                                localDisplay.discSizePercent,
+                                localDisplay.discSizePercent
                             ),
-                            onValueChange = { updateDisplay(localDisplay.copy(discSizePercent = it.roundToInt())) },
+                            onValueChange = { updateDisplay(localDisplay.copy(discSizePercent = it.roundToInt())) }
                         )
-                    },
+                    }
                 )
-            },
+            }
         )
         settingsLazySmallTitle(
             key = "section-background",
-            title = backgroundSectionTitle,
-            sectionTop = true,
+            title = backgroundSectionTitle
         )
         groupedCardItems(
             keyPrefix = "honeycomb-background",
@@ -282,7 +278,7 @@ fun HoneycombDisplaySettingsScreen(
                             items = listOf(
                                 stringResource(R.string.honeycomb_background_blur),
                                 stringResource(R.string.honeycomb_background_wallpaper_blur),
-                                stringResource(R.string.honeycomb_background_black),
+                                stringResource(R.string.honeycomb_background_black)
                             ),
                             selectedIndex = backgroundStyles.indexOf(localDisplay.backgroundStyle).coerceAtLeast(0),
                             onSelectedIndexChange = { index ->
@@ -293,9 +289,9 @@ fun HoneycombDisplaySettingsScreen(
                                 ) {
                                     ensureWallpaperPermission()
                                 }
-                            },
+                            }
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("blur-strength") {
@@ -307,9 +303,9 @@ fun HoneycombDisplaySettingsScreen(
                             steps = 16,
                             enabled = blurEnabled,
                             label = stringResource(R.string.corner_gesture_zone_dp_value, localDisplay.blurDp),
-                            onValueChange = { updateDisplay(localDisplay.copy(blurDp = it.roundToInt())) },
+                            onValueChange = { updateDisplay(localDisplay.copy(blurDp = it.roundToInt())) }
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("dim-percent") {
@@ -322,18 +318,17 @@ fun HoneycombDisplaySettingsScreen(
                             enabled = true,
                             label = stringResource(
                                 R.string.floating_pointer_percent_value,
-                                localDisplay.dimPercent,
+                                localDisplay.dimPercent
                             ),
-                            onValueChange = { updateDisplay(localDisplay.copy(dimPercent = it.roundToInt())) },
+                            onValueChange = { updateDisplay(localDisplay.copy(dimPercent = it.roundToInt())) }
                         )
-                    },
+                    }
                 )
-            },
+            }
         )
         settingsLazySmallTitle(
             key = "section-animation",
-            title = animationSectionTitle,
-            sectionTop = true,
+            title = animationSectionTitle
         )
         groupedCardItems(
             keyPrefix = "honeycomb-animation",
@@ -348,9 +343,9 @@ fun HoneycombDisplaySettingsScreen(
                             steps = 4,
                             enabled = true,
                             label = speedLabels[localDisplay.animationSpeed.coerceIn(0, speedLabels.lastIndex)],
-                            onValueChange = { updateDisplay(localDisplay.copy(animationSpeed = it.roundToInt())) },
+                            onValueChange = { updateDisplay(localDisplay.copy(animationSpeed = it.roundToInt())) }
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("inertia") {
@@ -362,9 +357,9 @@ fun HoneycombDisplaySettingsScreen(
                             steps = 2,
                             enabled = true,
                             label = inertiaLabels[localDisplay.inertia.coerceIn(0, inertiaLabels.lastIndex)],
-                            onValueChange = { updateDisplay(localDisplay.copy(inertia = it.roundToInt())) },
+                            onValueChange = { updateDisplay(localDisplay.copy(inertia = it.roundToInt())) }
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("center-scale") {
@@ -377,11 +372,11 @@ fun HoneycombDisplaySettingsScreen(
                             enabled = true,
                             label = stringResource(
                                 R.string.floating_pointer_percent_value,
-                                localDisplay.centerScale,
+                                localDisplay.centerScale
                             ),
-                            onValueChange = { updateDisplay(localDisplay.copy(centerScale = it.roundToInt())) },
+                            onValueChange = { updateDisplay(localDisplay.copy(centerScale = it.roundToInt())) }
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("edge-scale") {
@@ -394,11 +389,11 @@ fun HoneycombDisplaySettingsScreen(
                             enabled = true,
                             label = stringResource(
                                 R.string.floating_pointer_percent_value,
-                                localDisplay.edgeScale,
+                                localDisplay.edgeScale
                             ),
-                            onValueChange = { updateDisplay(localDisplay.copy(edgeScale = it.roundToInt())) },
+                            onValueChange = { updateDisplay(localDisplay.copy(edgeScale = it.roundToInt())) }
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("selection-scale") {
@@ -411,13 +406,13 @@ fun HoneycombDisplaySettingsScreen(
                             enabled = true,
                             label = stringResource(
                                 R.string.floating_pointer_percent_value,
-                                localDisplay.selectionScale,
+                                localDisplay.selectionScale
                             ),
-                            onValueChange = { updateDisplay(localDisplay.copy(selectionScale = it.roundToInt())) },
+                            onValueChange = { updateDisplay(localDisplay.copy(selectionScale = it.roundToInt())) }
                         )
-                    },
+                    }
                 )
-            },
+            }
         )
     }
 }

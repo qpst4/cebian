@@ -15,7 +15,7 @@ import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
-import com.slideindex.app.ui.settings.components.settingsLazyHint
+import com.slideindex.app.ui.settings.components.settingsLazyTipCard
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -27,7 +27,7 @@ fun CornerGestureSlotsSettingsScreen(
     onUnifiedSlotsChange: (Boolean) -> Unit,
     onOpenInnerZoneActionPick: () -> Unit,
     onOpenLeftSlotActionPick: (Int) -> Unit,
-    onOpenRightSlotActionPick: (Int) -> Unit,
+    onOpenRightSlotActionPick: (Int) -> Unit
 ) {
     val corner = settings.cornerGestureSettings
     val slotsEnabled = serviceEnabled && corner.enabled
@@ -42,7 +42,7 @@ fun CornerGestureSlotsSettingsScreen(
     val layerTitles = listOf(
         cornerLayerTitle(0),
         cornerLayerTitle(1),
-        cornerLayerTitle(2),
+        cornerLayerTitle(2)
     )
     val unifiedLayer0 = cornerLayerCardItems(0, corner.leftSlots, slotsEnabled, onOpenLeftSlotActionPick)
     val unifiedLayer1 = cornerLayerCardItems(1, corner.leftSlots, slotsEnabled, onOpenLeftSlotActionPick)
@@ -57,16 +57,14 @@ fun CornerGestureSlotsSettingsScreen(
     SettingsScreenScaffold(
         title = stringResource(R.string.corner_gesture_slots_section),
         subtitle = stringResource(R.string.corner_gesture_slots_entry_desc),
-        onBack = onBack,
+        onBack = onBack
     ) {
         settingsLazySmallTitle(
             key = "corner-slots-section",
-            title = slotsSectionTitle,
-            sectionTop = true,
+            title = slotsSectionTitle
         )
-        settingsLazyHint(
-            key = "corner-launch-policy-hint",
-            text = launchPolicyHint,
+        settingsLazyTipCard(key = "corner-launch-policy-hint",
+            text = launchPolicyHint
         )
         groupedCardItems(
             keyPrefix = "corner-unified-slots",
@@ -78,38 +76,36 @@ fun CornerGestureSlotsSettingsScreen(
                             subtitle = stringResource(R.string.corner_gesture_unified_slots_desc),
                             checked = corner.unifiedSlots,
                             enabled = serviceEnabled && corner.enabled,
-                            onCheckedChange = onUnifiedSlotsChange,
+                            onCheckedChange = onUnifiedSlotsChange
                         )
-                    },
+                    }
                 )
-            },
+            }
         )
         if (corner.unifiedSlots) {
             emitCornerLayerSlots(
                 keyPrefix = "corner-unified",
                 layerTitles = layerTitles,
-                layerItems = listOf(unifiedLayer0, unifiedLayer1, unifiedLayer2),
+                layerItems = listOf(unifiedLayer0, unifiedLayer1, unifiedLayer2)
             )
         } else {
             settingsLazySmallTitle(
                 key = "corner-left-slots-section",
-                title = leftSlotsSectionTitle,
-                sectionTop = true,
+                title = leftSlotsSectionTitle
             )
             emitCornerLayerSlots(
                 keyPrefix = "corner-left",
                 layerTitles = layerTitles,
-                layerItems = listOf(leftLayer0, leftLayer1, leftLayer2),
+                layerItems = listOf(leftLayer0, leftLayer1, leftLayer2)
             )
             settingsLazySmallTitle(
                 key = "corner-right-slots-section",
-                title = rightSlotsSectionTitle,
-                sectionTop = true,
+                title = rightSlotsSectionTitle
             )
             emitCornerLayerSlots(
                 keyPrefix = "corner-right",
                 layerTitles = layerTitles,
-                layerItems = listOf(rightLayer0, rightLayer1, rightLayer2),
+                layerItems = listOf(rightLayer0, rightLayer1, rightLayer2)
             )
         }
         groupedCardItems(
@@ -121,17 +117,17 @@ fun CornerGestureSlotsSettingsScreen(
                             icon = { label ->
                                 Icon(
                                     imageVector = gestureActionIcon(corner.innerZoneAction, outlined = true),
-                                    contentDescription = label,
+                                    contentDescription = label
                                 )
                             },
                             title = stringResource(R.string.corner_gesture_inner_zone_action),
                             subtitle = gestureActionLabel(corner.innerZoneAction),
                             enabled = serviceEnabled && corner.enabled,
-                            onClick = onOpenInnerZoneActionPick,
+                            onClick = onOpenInnerZoneActionPick
                         )
-                    },
+                    }
                 )
-            },
+            }
         )
     }
 }
@@ -148,7 +144,7 @@ private fun cornerLayerCardItems(
     layer: Int,
     slots: List<GestureAction>,
     enabled: Boolean,
-    onOpenSlotActionPick: (Int) -> Unit,
+    onOpenSlotActionPick: (Int) -> Unit
 ): List<CardItem> {
     val start = CornerRadialMenuCodec.layerStartIndex(layer)
     val count = CornerRadialMenuCodec.slotCountInLayer(layer)
@@ -162,7 +158,7 @@ private fun cornerLayerCardItems(
                         icon = { label ->
                             Icon(
                                 imageVector = gestureActionIcon(action, outlined = true),
-                                contentDescription = label,
+                                contentDescription = label
                             )
                         },
                         title = stringResource(R.string.corner_gesture_slot_title, index + 1),
@@ -172,9 +168,9 @@ private fun cornerLayerCardItems(
                             gestureActionLabel(action)
                         },
                         enabled = enabled,
-                        onClick = { onOpenSlotActionPick(index) },
+                        onClick = { onOpenSlotActionPick(index) }
                     )
-                },
+                }
             )
         }
     }
@@ -183,13 +179,12 @@ private fun cornerLayerCardItems(
 private fun LazyListScope.emitCornerLayerSlots(
     keyPrefix: String,
     layerTitles: List<String>,
-    layerItems: List<List<CardItem>>,
+    layerItems: List<List<CardItem>>
 ) {
     layerTitles.forEachIndexed { index, title ->
         settingsLazySmallTitle(
             key = "$keyPrefix-layer-$index-title",
-            title = title,
-            sectionTop = true,
+            title = title
         )
         groupedCardItems("$keyPrefix-layer-$index", layerItems[index])
     }

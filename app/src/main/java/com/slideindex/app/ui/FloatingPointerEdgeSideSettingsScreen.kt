@@ -18,7 +18,7 @@ import com.slideindex.app.settings.FloatingPointerEdgeActionsCodec
 import com.slideindex.app.settings.FloatingPointerEdgeSide
 import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
-import com.slideindex.app.ui.settings.components.settingsLazyHint
+import com.slideindex.app.ui.settings.components.settingsLazyTipCard
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -31,22 +31,22 @@ fun FloatingPointerEdgeSideSettingsScreen(
     onOpenActionPick: (Int) -> Unit,
     onOpenShellCommand: (Int, String) -> Unit,
     onAddSlot: () -> Unit,
-    onRemoveSlot: (Int) -> Unit,
+    onRemoveSlot: (Int) -> Unit
 ) {
     val bar = settings.floatingPointerEdgeActionsConfig.bar(side)
     val slots = bar.layoutSlots()
     val enabledDesc = stringResource(R.string.floating_pointer_edge_side_enabled_desc)
     val zonesSectionTitle = stringResource(
         R.string.floating_pointer_edge_section_zones_count,
-        slots.size,
+        slots.size
     )
     val canRemoveZone = slots.size > 1
 
     SettingsScreenScaffold(
         title = edgeSideTitle(side),
-        onBack = onBack,
+        onBack = onBack
     ) {
-        settingsLazyHint(key = "edge-enabled-desc", text = enabledDesc)
+        settingsLazyTipCard(key = "edge-enabled-desc", text = enabledDesc)
         groupedCardItems(
             keyPrefix = "edge-enabled-${side.name}",
             items = buildList {
@@ -58,17 +58,16 @@ fun FloatingPointerEdgeSideSettingsScreen(
                             icon = { label -> Icon(edgeSideIcon(side), contentDescription = label) },
                             checked = bar.enabled,
                             enabled = true,
-                            onCheckedChange = onEnabledChange,
+                            onCheckedChange = onEnabledChange
                         )
-                    },
+                    }
                 )
-            },
+            }
         )
 
         settingsLazySmallTitle(
             key = "edge-zones-section-${side.name}",
-            title = zonesSectionTitle,
-            sectionTop = true,
+            title = zonesSectionTitle
         )
         slots.forEachIndexed { index, slot ->
             groupedCardItems(
@@ -79,8 +78,8 @@ fun FloatingPointerEdgeSideSettingsScreen(
                     canRemove = canRemoveZone,
                     onPickAction = { onOpenActionPick(index) },
                     onOpenShellCommand = { onOpenShellCommand(index, it) },
-                    onRemove = { onRemoveSlot(index) },
-                ),
+                    onRemove = { onRemoveSlot(index) }
+                )
             )
         }
         if (slots.size < FloatingPointerEdgeActionsCodec.MAX_SLOTS_PER_EDGE) {
@@ -93,11 +92,11 @@ fun FloatingPointerEdgeSideSettingsScreen(
                                 icon = { label -> Icon(Icons.Default.Add, contentDescription = label) },
                                 title = stringResource(R.string.floating_pointer_edge_add_zone),
                                 subtitle = stringResource(R.string.floating_pointer_edge_add_zone_desc),
-                                onClick = onAddSlot,
+                                onClick = onAddSlot
                             )
-                        },
+                        }
                     )
-                },
+                }
             )
         }
     }
@@ -109,7 +108,7 @@ private fun edgeZoneCardItems(
     canRemove: Boolean,
     onPickAction: () -> Unit,
     onOpenShellCommand: (String) -> Unit,
-    onRemove: () -> Unit,
+    onRemove: () -> Unit
 ) = buildList {
     add(
         settingsCardScopeItem("action") {
@@ -124,15 +123,15 @@ private fun edgeZoneCardItems(
                             Icon(
                                 imageVector = Icons.Default.Delete,
                                 contentDescription = stringResource(R.string.floating_pointer_edge_remove_zone),
-                                tint = MaterialTheme.colorScheme.error,
+                                tint = MaterialTheme.colorScheme.error
                             )
                         }
                     }
                 } else {
                     null
-                },
+                }
             )
-        },
+        }
     )
     if (slot.action is GestureAction.ExecuteShellCommand) {
         val shellAction = slot.action as GestureAction.ExecuteShellCommand
@@ -142,9 +141,9 @@ private fun edgeZoneCardItems(
                     icon = { label -> Icon(gestureActionIcon(shellAction), contentDescription = label) },
                     title = gestureExecuteShellCommandPreview(shellAction.command),
                     subtitle = stringResource(R.string.gesture_shell_command_config_title),
-                    onClick = { onOpenShellCommand(shellAction.command) },
+                    onClick = { onOpenShellCommand(shellAction.command) }
                 )
-            },
+            }
         )
     }
 }

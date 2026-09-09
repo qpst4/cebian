@@ -41,7 +41,7 @@ object FloatBallStashPanel {
         sideHost.attachHidden(
             context = context,
             initialGravityEnd = true,
-            content = ::PanelContent,
+            content = ::PanelContent
         )
     }
 
@@ -49,7 +49,7 @@ object FloatBallStashPanel {
         context: android.content.Context,
         initialTab: StashPanelInitialTab = StashPanelInitialTab.Stash,
         panelSide: PanelSide? = null,
-        searchQuery: String? = null,
+        searchQuery: String? = null
     ): Boolean {
         pendingInitialTab = initialTab.toHistoryFloatingTab()
         requestedTabOrdinal.intValue = pendingInitialTab.ordinal
@@ -59,12 +59,12 @@ object FloatBallStashPanel {
         val shown = sideHost.show(
             context = context,
             initialGravityEnd = panelSide.toStashPanelGravityEnd(),
-            content = ::PanelContent,
+            content = ::PanelContent
         )
         if (shown && q != null) {
             StashPanelLaunchState.setPendingSearch(
                 tabOrdinal = pendingInitialTab.ordinal,
-                query = q,
+                query = q
             )
             searchBootstrapEpoch.intValue = StashPanelLaunchState.epoch
         }
@@ -97,7 +97,7 @@ object FloatBallStashPanel {
         gravityEnd: Boolean,
         panelTargetVisible: Boolean,
         onToggleSide: () -> Unit,
-        onDismiss: () -> Unit,
+        onDismiss: () -> Unit
     ) {
         val context = LocalContext.current
         var settings by remember { mutableStateOf(AppSettings()) }
@@ -125,7 +125,7 @@ object FloatBallStashPanel {
                 },
                 onRegisterBackInterceptor = { interceptor ->
                     sideHost.setPanelBackInterceptor(interceptor)
-                },
+                }
             )
             DisposableEffect(Unit) {
                 onDispose {

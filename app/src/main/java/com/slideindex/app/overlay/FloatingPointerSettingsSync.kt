@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 internal class FloatingPointerSettingsSync(
-    private val window: FloatingPointerOverlayWindow,
+    private val window: FloatingPointerOverlayWindow
 ) {
     private val mainHandler get() = window.mainHandler
 
@@ -41,7 +41,7 @@ internal class FloatingPointerSettingsSync(
             window.windowLifecycle.collapseTouchCapture(
                 it.joystickCenterX.floatValue,
                 it.joystickCenterY.floatValue,
-                forceCollapse = true,
+                forceCollapse = true
             )
         }
         resetIdleTimer()

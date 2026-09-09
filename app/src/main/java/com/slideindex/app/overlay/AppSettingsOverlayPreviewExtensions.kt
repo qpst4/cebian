@@ -34,7 +34,7 @@ fun AppSettings.withOverlayLayoutPreview(): AppSettings {
                 side = side,
                 handleId = handleId,
                 shortSwipeDistanceDp = preview.shortSwipeDistanceDp,
-                longSwipeDistanceDp = preview.longSwipeDistanceDp,
+                longSwipeDistanceDp = preview.longSwipeDistanceDp
             )
         }
         if (preview.design != null) {

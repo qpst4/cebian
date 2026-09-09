@@ -29,7 +29,7 @@ internal class FloatingPointerGestureRecorder(
     private val points: CopyOnWriteArrayList<GestureRecorderTrailPoint>,
     private val onPointsChanged: () -> Unit,
     private val onReplayPrepare: (replayDurationMs: Long) -> Unit,
-    private val onFinished: () -> Unit,
+    private val onFinished: () -> Unit
 ) {
     private val executor = ScheduledThreadPoolExecutor(1)
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -61,7 +61,7 @@ internal class FloatingPointerGestureRecorder(
             sampler,
             SAMPLE_INTERVAL_MS,
             SAMPLE_INTERVAL_MS,
-            TimeUnit.MILLISECONDS,
+            TimeUnit.MILLISECONDS
         )
     }
 
@@ -115,13 +115,13 @@ internal class FloatingPointerGestureRecorder(
         val last = points.last()
         val travelPx = hypot(
             (last.x - first.x).toDouble(),
-            (last.y - first.y).toDouble(),
+            (last.y - first.y).toDouble()
         )
         val totalDurationMs = totalDuration(points)
         Log.i(
             TAG,
             "finish: replay from (${first.x},${first.y}) to (${last.x},${last.y}) " +
-                "travel=${travelPx.toInt()}px duration=${totalDurationMs}ms",
+                "travel=${travelPx.toInt()}px duration=${totalDurationMs}ms"
         )
         val canReplay = travelPx >= MIN_REPLAY_TRAVEL_PX ||
             totalDurationMs >= MIN_HOLD_REPLAY_MS
@@ -143,7 +143,7 @@ internal class FloatingPointerGestureRecorder(
                     GesturePlaybackDispatcher(
                         service = service,
                         points = replayPoints,
-                        onFinished = { mainHandler.post { onFinished() } },
+                        onFinished = { mainHandler.post { onFinished() } }
                     )
                 }
             }
@@ -164,12 +164,12 @@ internal class FloatingPointerGestureRecorder(
     private fun replayHold(
         points: CopyOnWriteArrayList<GestureRecorderTrailPoint>,
         totalDurationMs: Long,
-        onComplete: () -> Unit,
+        onComplete: () -> Unit
     ) {
         val first = points.first()
         val durationMs = totalDurationMs.coerceIn(
             MIN_HOLD_REPLAY_MS,
-            SlideIndexAccessibilityGestureInjector.MAX_HOLD_DURATION_MS,
+            SlideIndexAccessibilityGestureInjector.MAX_HOLD_DURATION_MS
         )
         Log.i(TAG, "replayHold at (${first.x},${first.y}) duration=${durationMs}ms")
         InputTapUtil.dispatchPointerHoldAsync(
@@ -179,13 +179,13 @@ internal class FloatingPointerGestureRecorder(
             onFinished = { ok ->
                 Log.i(TAG, "replayHold finished ok=$ok")
                 onComplete()
-            },
+            }
         )
     }
 
     private fun replaySinglePath(
         points: CopyOnWriteArrayList<GestureRecorderTrailPoint>,
-        onComplete: () -> Unit,
+        onComplete: () -> Unit
     ) {
         val built = buildReplayPath(points) ?: run {
             Log.w(TAG, "replaySinglePath: empty path")
@@ -204,7 +204,7 @@ internal class FloatingPointerGestureRecorder(
             onFinished = { ok ->
                 Log.i(TAG, "replaySinglePath finished ok=$ok")
                 onComplete()
-            },
+            }
         )
     }
 
@@ -214,7 +214,7 @@ internal class FloatingPointerGestureRecorder(
     private class GesturePlaybackDispatcher(
         private val service: AccessibilityService,
         private val points: CopyOnWriteArrayList<GestureRecorderTrailPoint>,
-        private val onFinished: () -> Unit,
+        private val onFinished: () -> Unit
     ) : AccessibilityService.GestureResultCallback() {
 
         private val mainHandler = Handler(Looper.getMainLooper())
@@ -261,14 +261,14 @@ internal class FloatingPointerGestureRecorder(
                     path,
                     pendingOffsetMs,
                     segmentDuration,
-                    segmentWillContinue,
+                    segmentWillContinue
                 )
             } else {
                 currentStroke.continueStroke(
                     path,
                     pendingOffsetMs,
                     segmentDuration,
-                    segmentWillContinue,
+                    segmentWillContinue
                 )
             }
             stroke = nextStroke
@@ -306,7 +306,7 @@ internal class FloatingPointerGestureRecorder(
                 path = path,
                 durationMs = durationMs,
                 maxDurationMs = SlideIndexAccessibilityGestureInjector.MAX_RECORDED_GESTURE_DURATION_MS,
-                onFinished = { finishPlayback() },
+                onFinished = { finishPlayback() }
             )
         }
 
@@ -349,7 +349,7 @@ internal class FloatingPointerGestureRecorder(
             points.sumOf { point -> if (point.durationMs > 0L) point.durationMs else 0L }
 
         private fun buildReplayPath(
-            points: CopyOnWriteArrayList<GestureRecorderTrailPoint>,
+            points: CopyOnWriteArrayList<GestureRecorderTrailPoint>
         ): Pair<Path, Long>? {
             if (points.size < 2) return null
             val path = Path()
@@ -376,7 +376,7 @@ internal class FloatingPointerGestureRecorder(
             if (!hasSegment) return null
             return path to totalDuration.coerceIn(
                 MIN_HOLD_REPLAY_MS,
-                SlideIndexAccessibilityGestureInjector.MAX_RECORDED_GESTURE_DURATION_MS,
+                SlideIndexAccessibilityGestureInjector.MAX_RECORDED_GESTURE_DURATION_MS
             )
         }
     }

@@ -13,7 +13,7 @@ class PanelRootView(
     context: Context,
     private val side: PanelSide,
     private var panelWidthPx: Int,
-    private val onScrimClick: () -> Unit,
+    private val onScrimClick: () -> Unit
 ) : FrameLayout(context) {
 
     private val scrim = View(context).apply {
@@ -36,7 +36,7 @@ class PanelRootView(
         panelContainer.removeAllViews()
         panelContainer.addView(
             view,
-            LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT),
+            LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT)
         )
     }
 

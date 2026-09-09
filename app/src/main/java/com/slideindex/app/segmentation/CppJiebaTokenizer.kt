@@ -12,7 +12,7 @@ import kotlinx.coroutines.runBlocking
  * Local cppjieba MixSegment wrapper used by pick-result word chips.
  */
 class CppJiebaTokenizer private constructor(
-    private val appContext: Context,
+    private val appContext: Context
 ) {
     private var initialized = false
 
@@ -108,7 +108,7 @@ class CppJiebaTokenizer private constructor(
         text: String,
         start: Int,
         end: Int,
-        out: ArrayList<Int>,
+        out: ArrayList<Int>
     ) {
         if (start < end) {
             appendPunctuation(text, start, end, out)
@@ -119,7 +119,7 @@ class CppJiebaTokenizer private constructor(
         text: String,
         start: Int,
         end: Int,
-        out: ArrayList<Int>,
+        out: ArrayList<Int>
     ) {
         var index = start
         while (index < end) {
@@ -153,7 +153,7 @@ class CppJiebaTokenizer private constructor(
         private val REQUIRED_DICT_FILES = arrayOf(
             "jieba.dict.utf8",
             "hmm_model.utf8",
-            "user.dict.utf8",
+            "user.dict.utf8"
         )
 
         @Volatile

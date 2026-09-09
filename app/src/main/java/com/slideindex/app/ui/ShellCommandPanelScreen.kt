@@ -2,7 +2,7 @@ package com.slideindex.app.ui
 
 
 
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import top.yukonga.miuix.kmp.basic.SmallTitle
 import android.content.ClipData
 
 import android.content.ClipboardManager
@@ -342,7 +342,7 @@ fun ShellCommandPanelScreen(
                         verticalArrangement = Arrangement.spacedBy(16.dp),
                     ) {
 
-                        MiuixSmallTitle(if (commands.isEmpty()) {
+                        SmallTitle(if (commands.isEmpty()) {
 
                                 stringResource(R.string.shell_panel_commands_section)
 

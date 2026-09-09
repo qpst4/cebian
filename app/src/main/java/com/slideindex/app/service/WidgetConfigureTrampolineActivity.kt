@@ -15,7 +15,7 @@ class WidgetConfigureTrampolineActivity : ComponentActivity() {
   private var appWidgetId: Int = AppWidgetManager.INVALID_APPWIDGET_ID
 
   private val configureLauncher = registerForActivityResult(
-    ActivityResultContracts.StartActivityForResult(),
+    ActivityResultContracts.StartActivityForResult()
   ) {
     finish()
   }

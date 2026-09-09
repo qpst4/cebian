@@ -27,11 +27,11 @@ internal data class TaskSwitcherRenderState(
     val contextMenuActive: Boolean,
     val contextMenu: TaskSwitcherContextMenuLayout?,
     val menuHighlight: Int,
-    val menuEnterProgress: Float,
+    val menuEnterProgress: Float
 )
 
 internal class TaskSwitcherRenderer(
-    private val host: TaskSwitcherOverlayController.Host,
+    private val host: TaskSwitcherOverlayController.Host
 ) {
     private val elevatedCardPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val elevatedShadowPaint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -44,7 +44,7 @@ internal class TaskSwitcherRenderer(
     fun drawPanelContent(
         canvas: Canvas,
         layout: TaskSwitcherPanelLayout,
-        state: TaskSwitcherRenderState,
+        state: TaskSwitcherRenderState
     ) {
         val theme = OverlayPanelTheme.colors(host.context)
         val rowHighlightPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = theme.rowHighlight }
@@ -75,7 +75,7 @@ internal class TaskSwitcherRenderer(
                 bounds = panel,
                 cornerRadiusPx = panelCorner,
                 blurRadiusPx = host.dp(57f).toInt(),
-                tintColor = theme.cardBackground,
+                tintColor = theme.cardBackground
             )
             if (!blurDrawn) {
                 elevatedCardPaint.color = theme.cardBackground
@@ -105,7 +105,7 @@ internal class TaskSwitcherRenderer(
                 panel.centerX(),
                 panel.top + (panel.height() - layout.closeAllRect.height()) / 2f -
                     (hintPaint.descent() + hintPaint.ascent()) / 2f,
-                hintPaint,
+                hintPaint
             )
         }
 
@@ -131,7 +131,7 @@ internal class TaskSwitcherRenderer(
                         layout,
                         panelCorner,
                         roundTopLeading = true,
-                        roundTopTrailing = true,
+                        roundTopTrailing = true
                     )
                 }
                 if (index == state.closeHighlight) {
@@ -142,7 +142,7 @@ internal class TaskSwitcherRenderer(
                         layout,
                         panelCorner,
                         roundTopLeading = host.side() == PanelSide.LEFT,
-                        roundTopTrailing = host.side() == PanelSide.RIGHT,
+                        roundTopTrailing = host.side() == PanelSide.RIGHT
                     )
                 }
                 if (index == state.freeWindowHighlight) {
@@ -151,7 +151,7 @@ internal class TaskSwitcherRenderer(
                         TaskSwitcherLayoutEngine.handleColumnRect(host, row.rowRect),
                         rowHighlightPaint,
                         layout,
-                        panelCorner,
+                        panelCorner
                     )
                 }
                 val iconSize = host.dp(30f)
@@ -169,7 +169,7 @@ internal class TaskSwitcherRenderer(
                     this,
                     TaskSwitcherLayoutEngine.closeIconRect(host, row.rowRect),
                     entry.isLocked,
-                    closeIconPaint,
+                    closeIconPaint
                 )
                 if (index < layout.rows.lastIndex) {
                     val dividerBottom = row.rowRect.bottom
@@ -179,7 +179,7 @@ internal class TaskSwitcherRenderer(
                             dividerBottom,
                             row.rowRect.right - host.dp(10f),
                             dividerBottom,
-                            dividerPaint,
+                            dividerPaint
                         )
                     }
                 }
@@ -194,7 +194,7 @@ internal class TaskSwitcherRenderer(
             closeAllText,
             layout.closeAllRect.centerX(),
             layout.closeAllRect.centerY() - (closeAllPaint.descent() + closeAllPaint.ascent()) / 2f,
-            closeAllPaint,
+            closeAllPaint
         )
         drawContextMenu(canvas, state)
     }
@@ -256,7 +256,7 @@ internal class TaskSwitcherRenderer(
                     x + col * gapX,
                     centerY + row * gapY,
                     radius,
-                    paint,
+                    paint
                 )
             }
         }
@@ -290,7 +290,7 @@ internal class TaskSwitcherRenderer(
             180f,
             180f,
             false,
-            paint,
+            paint
         )
         canvas.drawRoundRect(
             cx - bodyHalfWidth,
@@ -299,7 +299,7 @@ internal class TaskSwitcherRenderer(
             bodyBottom,
             host.dp(1.2f),
             host.dp(1.2f),
-            paint,
+            paint
         )
     }
 
@@ -310,7 +310,7 @@ internal class TaskSwitcherRenderer(
         layout: TaskSwitcherPanelLayout,
         panelCorner: Float,
         roundTopLeading: Boolean = false,
-        roundTopTrailing: Boolean = false,
+        roundTopTrailing: Boolean = false
     ) {
         val bounds = RectF()
         if (!bounds.setIntersect(rect, layout.listRect)) return
@@ -324,7 +324,7 @@ internal class TaskSwitcherRenderer(
         canvas: Canvas,
         rect: RectF,
         paint: Paint,
-        panelCorner: Float,
+        panelCorner: Float
     ) {
         drawRoundedHighlight(
             canvas,
@@ -333,7 +333,7 @@ internal class TaskSwitcherRenderer(
             topLeading = 0f,
             topTrailing = 0f,
             bottomTrailing = panelCorner,
-            bottomLeading = panelCorner,
+            bottomLeading = panelCorner
         )
     }
 
@@ -344,7 +344,7 @@ internal class TaskSwitcherRenderer(
         topLeading: Float,
         topTrailing: Float,
         bottomTrailing: Float,
-        bottomLeading: Float,
+        bottomLeading: Float
     ) {
         if (topLeading <= 0f && topTrailing <= 0f && bottomLeading <= 0f && bottomTrailing <= 0f) {
             canvas.drawRect(bounds, paint)
@@ -357,9 +357,9 @@ internal class TaskSwitcherRenderer(
                 topLeading, topLeading,
                 topTrailing, topTrailing,
                 bottomTrailing, bottomTrailing,
-                bottomLeading, bottomLeading,
+                bottomLeading, bottomLeading
             ),
-            Path.Direction.CW,
+            Path.Direction.CW
         )
         canvas.drawPath(highlightPath, paint)
     }
@@ -367,7 +367,7 @@ internal class TaskSwitcherRenderer(
     private fun drawElevationShadow(
         canvas: Canvas,
         rect: RectF,
-        cornerRadius: Float,
+        cornerRadius: Float
     ) {
         val shadowBlur = host.dp(3f)
         val shadowLayers = 3
@@ -384,7 +384,7 @@ internal class TaskSwitcherRenderer(
                 rect.bottom + spread,
                 cornerRadius + spread * 0.2f,
                 cornerRadius + spread * 0.2f,
-                elevatedShadowPaint,
+                elevatedShadowPaint
             )
         }
     }
@@ -393,7 +393,7 @@ internal class TaskSwitcherRenderer(
         canvas: Canvas,
         rect: RectF,
         cornerRadius: Float,
-        fillColor: Int,
+        fillColor: Int
     ) {
         drawElevationShadow(canvas, rect, cornerRadius)
         elevatedCardPaint.color = fillColor

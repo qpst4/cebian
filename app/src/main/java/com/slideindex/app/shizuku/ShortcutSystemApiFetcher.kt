@@ -25,7 +25,7 @@ object ShortcutSystemApiFetcher {
         if (uid != Process.ROOT_UID && uid != Process.SYSTEM_UID) {
             Log.w(
                 TAG,
-                "ensureSystemUid skipped for uid=$uid (Shizuku shell cannot become system UID)",
+                "ensureSystemUid skipped for uid=$uid (Shizuku shell cannot become system UID)"
             )
             return false
         }

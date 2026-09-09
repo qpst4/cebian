@@ -70,7 +70,7 @@ sealed interface OhoPanelEvent {
  */
 class OhoQuickToolsPanelState(
     context: Context,
-    private val listenerPort: NotificationListenerPort? = null,
+    private val listenerPort: NotificationListenerPort? = null
 ) {
     private val appContext = context.applicationContext
     private val continuousAdjust = ContinuousAdjustController(appContext, overlayBrightness = null)
@@ -292,7 +292,7 @@ class OhoQuickToolsPanelState(
         continuousAdjust.setFraction(
             ContinuousAdjustController.Mode.BRIGHTNESS,
             clamped,
-            previewOnly = previewOnly,
+            previewOnly = previewOnly
         )
         if (previewOnly) return
         val runnable = Runnable {
@@ -348,15 +348,15 @@ class OhoQuickToolsPanelState(
                 QuickToolsHelper.toggleAutoRotate(appContext)?.let { activeStates[OhoTile.AUTO_ROTATE] = it }
             OhoTile.QUICK_PANEL ->
                 com.slideindex.app.service.SlideIndexAccessibilityService.perform(
-                    com.slideindex.app.gesture.GestureAction.OpenNotifications,
+                    com.slideindex.app.gesture.GestureAction.OpenNotifications
                 )
             OhoTile.SCREENSHOT ->
                 com.slideindex.app.service.SlideIndexAccessibilityService.perform(
-                    com.slideindex.app.gesture.GestureAction.Screenshot,
+                    com.slideindex.app.gesture.GestureAction.Screenshot
                 )
             OhoTile.LOCK ->
                 com.slideindex.app.service.SlideIndexAccessibilityService.perform(
-                    com.slideindex.app.gesture.GestureAction.LockScreen,
+                    com.slideindex.app.gesture.GestureAction.LockScreen
                 )
             OhoTile.FLASHLIGHT -> FlashlightHelper.toggle(appContext)
             OhoTile.DO_NOT_DISTURB -> {
@@ -446,7 +446,7 @@ class OhoQuickToolsPanelState(
         appContext.contentResolver.registerContentObserver(
             Settings.Global.getUriFor(MOBILE_DATA_SETTING_KEY),
             false,
-            observer,
+            observer
         )
     }
 
@@ -472,25 +472,25 @@ class OhoQuickToolsPanelState(
         resolver.registerContentObserver(
             Settings.System.getUriFor(Settings.System.SCREEN_BRIGHTNESS_MODE),
             true,
-            observer,
+            observer
         )
         resolver.registerContentObserver(
             Settings.System.getUriFor(Settings.System.SCREEN_BRIGHTNESS),
             true,
-            observer,
+            observer
         )
         runCatching {
             resolver.registerContentObserver(
                 Settings.System.getUriFor("screen_brightness_float"),
                 true,
-                observer,
+                observer
             )
         }
         runCatching {
             resolver.registerContentObserver(
                 Settings.System.getUriFor("screen_auto_brightness_adj"),
                 true,
-                observer,
+                observer
             )
         }
     }
@@ -551,7 +551,7 @@ class OhoQuickToolsPanelState(
             OhoTile.QUICK_PANEL,
             OhoTile.SCREENSHOT,
             OhoTile.LOCK,
-            OhoTile.CLOSE,
+            OhoTile.CLOSE
         )
     }
 }

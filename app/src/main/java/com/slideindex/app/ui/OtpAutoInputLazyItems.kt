@@ -24,7 +24,7 @@ import com.slideindex.app.ui.miuix.CardItem
 import com.slideindex.app.ui.miuix.MiuixHintText
 import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
-import com.slideindex.app.ui.settings.components.settingsLazyHint
+import com.slideindex.app.ui.settings.components.settingsLazyTipCard
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import kotlin.math.roundToInt
 
@@ -302,7 +302,6 @@ fun LazyListScope.emitOtpAutoInputSettingsItems(
     settingsLazySmallTitle(
         key = "otp_runtime_section",
         title = runtimeSectionTitle,
-        sectionTop = true,
     )
     groupedCardItems(
         keyPrefix = "otp-runtime-status",
@@ -312,7 +311,6 @@ fun LazyListScope.emitOtpAutoInputSettingsItems(
     settingsLazySmallTitle(
         key = "otp_auto_fill_section",
         title = autoFillSectionTitle,
-        sectionTop = true,
     )
     groupedCardItems(
         keyPrefix = "otp-auto-fill",
@@ -329,9 +327,8 @@ fun LazyListScope.emitOtpAutoInputSettingsItems(
     settingsLazySmallTitle(
         key = "otp_lsposed_section",
         title = lsposedSectionTitle,
-        sectionTop = true,
     )
-    settingsLazyHint(key = "otp_lsposed_desc", text = lsposedSectionDesc)
+    settingsLazyTipCard(key = "otp_lsposed_desc", text = lsposedSectionDesc)
     groupedCardItems(
         keyPrefix = "otp-lsposed",
         items = groups.lsposed,
@@ -340,7 +337,6 @@ fun LazyListScope.emitOtpAutoInputSettingsItems(
     settingsLazySmallTitle(
         key = "otp_diagnostics_section",
         title = diagnosticsSectionTitle,
-        sectionTop = true,
     )
     groupedCardItems(
         keyPrefix = "otp-diagnostics",
@@ -350,7 +346,6 @@ fun LazyListScope.emitOtpAutoInputSettingsItems(
     settingsLazySmallTitle(
         key = "otp_timing_section",
         title = timingSectionTitle,
-        sectionTop = true,
     )
     groupedCardItems(
         keyPrefix = "otp-timing",

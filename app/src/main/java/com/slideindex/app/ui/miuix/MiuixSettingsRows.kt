@@ -39,7 +39,7 @@ fun MiuixHintText(
 ) {
     Text(
         text = text,
-        modifier = modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+        modifier = modifier.padding(horizontal = 28.dp, vertical = 8.dp),
         fontSize = MiuixTheme.textStyles.body2.fontSize,
         color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
     )

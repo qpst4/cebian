@@ -10,7 +10,7 @@ import android.view.animation.DecelerateInterpolator
 internal class OverlayPanelEnterAnimator(
     private val side: PanelSide,
     private val dp: (Float) -> Float,
-    private val invalidate: () -> Unit,
+    private val invalidate: () -> Unit
 ) {
     var progress: Float = 1f
         private set
@@ -53,7 +53,7 @@ internal class OverlayPanelEnterAnimator(
     fun startEnter(
         panelMode: OverlayPanelMode,
         onShellEnterEnded: () -> Unit,
-        onQuickLauncherEnterEnded: () -> Unit,
+        onQuickLauncherEnterEnded: () -> Unit
     ) {
         cancel()
         progress = 0f

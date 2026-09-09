@@ -10,7 +10,7 @@ import androidx.core.view.ViewCompat
 /** Routes system back (key + gesture) to overlay [ComposeView] windows. */
 internal class OverlayViewBackHandler(
     private val view: View,
-    private val onBack: () -> Unit,
+    private val onBack: () -> Unit
 ) {
     private var backInvokedCallback: OnBackInvokedCallback? = null
     private var unhandledKeyListener: ViewCompat.OnUnhandledKeyEventListenerCompat? = null
@@ -47,7 +47,7 @@ internal class OverlayViewBackHandler(
             backInvokedCallback = callback
             view.findOnBackInvokedDispatcher()?.registerOnBackInvokedCallback(
                 OnBackInvokedDispatcher.PRIORITY_OVERLAY,
-                callback,
+                callback
             )
         }
     }

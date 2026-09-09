@@ -34,7 +34,7 @@ internal object EdgeContinuedOverlayLaunchCoordinator {
         gestureStartRawY: Float,
         edgeSide: FloatBallSide,
         rawX: Float,
-        rawY: Float,
+        rawY: Float
     ) {
         Log.i(TAG, "scheduleRegionalPick startY=$gestureStartRawY at ($rawX, $rawY) side=$edgeSide")
         armHandoff()
@@ -47,7 +47,7 @@ internal object EdgeContinuedOverlayLaunchCoordinator {
                 gestureStartRawY = gestureStartRawY,
                 edgeSide = edgeSide,
                 rawX = rawX,
-                rawY = rawY,
+                rawY = rawY
             )
         }
     }
@@ -56,7 +56,7 @@ internal object EdgeContinuedOverlayLaunchCoordinator {
         context: android.content.Context,
         settings: AppSettings,
         rawX: Float,
-        rawY: Float,
+        rawY: Float
     ) {
         Log.i(TAG, "scheduleFloatingPointer at ($rawX, $rawY)")
         armHandoff()

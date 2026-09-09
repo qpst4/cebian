@@ -29,7 +29,6 @@ fun LazyListScope.sideStyleSettingsSection(
     settingsLazySmallTitle(
         key = "message-side-theme",
         title = themeSectionTitle,
-        sectionTop = true,
     )
     LazySettingsItem(key = "message-side-theme-grid") {
         MessageThemeGrid(

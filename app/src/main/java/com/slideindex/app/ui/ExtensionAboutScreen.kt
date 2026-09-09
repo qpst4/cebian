@@ -111,7 +111,7 @@ fun ExtensionAboutScreen(
     onOpenThirdPartyNotices: () -> Unit,
     onCheckUpdate: () -> Unit,
     autoCheckUpdate: Boolean,
-    onAutoCheckUpdateChange: (Boolean) -> Unit,
+    onAutoCheckUpdateChange: (Boolean) -> Unit
 ) {
     val scrollBehavior = MiuixScrollBehavior()
     val lazyListState = rememberLazyListState()
@@ -146,7 +146,7 @@ fun ExtensionAboutScreen(
             MiuixBlurredTopBar(
                 backdrop = backdrop,
                 enabled = blurActive,
-                scrollBehavior = scrollBehavior,
+                scrollBehavior = scrollBehavior
             ) {
                 SmallTopAppBar(
                     title = stringResource(R.string.about_section_title),
@@ -156,13 +156,13 @@ fun ExtensionAboutScreen(
                     defaultWindowInsetsPadding = false,
                     navigationIcon = {
                         MiuixBackNavigationIcon(onBack)
-                    },
+                    }
                 )
             }
         },
         contentWindowInsets = WindowInsets.systemBars
             .add(WindowInsets.displayCutout)
-            .only(WindowInsetsSides.Horizontal),
+            .only(WindowInsetsSides.Horizontal)
     ) { innerPadding ->
         Box(modifier = if (backdrop != null) Modifier.layerBackdrop(backdrop) else Modifier) {
             AboutContent(
@@ -174,7 +174,7 @@ fun ExtensionAboutScreen(
                 onOpenThirdPartyNotices = onOpenThirdPartyNotices,
                 onCheckUpdate = onCheckUpdate,
                 autoCheckUpdate = autoCheckUpdate,
-                onAutoCheckUpdateChange = onAutoCheckUpdateChange,
+                onAutoCheckUpdateChange = onAutoCheckUpdateChange
             )
         }
     }
@@ -190,7 +190,7 @@ private fun AboutContent(
     onOpenThirdPartyNotices: () -> Unit,
     onCheckUpdate: () -> Unit,
     autoCheckUpdate: Boolean,
-    onAutoCheckUpdateChange: (Boolean) -> Unit,
+    onAutoCheckUpdateChange: (Boolean) -> Unit
 ) {
     val context = LocalContext.current
     val layoutDirection = LocalLayoutDirection.current
@@ -209,13 +209,13 @@ private fun AboutContent(
             listOf(
                 BlendColorEntry(Color(0xe6a1a1a1.toInt()), BlurBlendMode.ColorDodge),
                 BlendColorEntry(Color(0x4de6e6e6), BlurBlendMode.LinearLight),
-                BlendColorEntry(Color(0xff1af500.toInt()), BlurBlendMode.Lab),
+                BlendColorEntry(Color(0xff1af500.toInt()), BlurBlendMode.Lab)
             )
         } else {
             listOf(
                 BlendColorEntry(Color(0xcc4a4a4a.toInt()), BlurBlendMode.ColorBurn),
                 BlendColorEntry(Color(0xff4f4f4f.toInt()), BlurBlendMode.LinearLight),
-                BlendColorEntry(Color(0xff1af200.toInt()), BlurBlendMode.Lab),
+                BlendColorEntry(Color(0xff1af200.toInt()), BlurBlendMode.Lab)
             )
         }
     }
@@ -229,12 +229,12 @@ private fun AboutContent(
     val scrollPadding = PaddingValues(
         top = innerPadding.calculateTopPadding(),
         start = innerPadding.calculateStartPadding(layoutDirection),
-        end = innerPadding.calculateEndPadding(layoutDirection),
+        end = innerPadding.calculateEndPadding(layoutDirection)
     )
     val logoPadding = PaddingValues(
         top = innerPadding.calculateTopPadding() + 32.dp,
         start = innerPadding.calculateStartPadding(layoutDirection),
-        end = innerPadding.calculateEndPadding(layoutDirection),
+        end = innerPadding.calculateEndPadding(layoutDirection)
     )
 
     val projectUrl = stringResource(R.string.about_project_url_desc)
@@ -250,7 +250,7 @@ private fun AboutContent(
         bgModifier = Modifier.layerBackdrop(backdrop),
         isFullSize = true,
         effectBackground = blurEnabled,
-        alpha = { 1f - scrollProgress() },
+        alpha = { 1f - scrollProgress() }
     ) {
         Column(
             modifier = Modifier
@@ -258,12 +258,12 @@ private fun AboutContent(
                 .padding(
                     top = logoPadding.calculateTopPadding() + 44.dp,
                     start = logoPadding.calculateStartPadding(layoutDirection),
-                    end = logoPadding.calculateEndPadding(layoutDirection),
+                    end = logoPadding.calculateEndPadding(layoutDirection)
                 )
                 .onSizeChanged { size ->
                     with(density) { logoHeightDp = size.height.toDp() }
                 },
-            horizontalAlignment = Alignment.CenterHorizontally,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Box(
                 contentAlignment = Alignment.Center,
@@ -274,7 +274,7 @@ private fun AboutContent(
                         alpha = 1 - p
                         scaleX = 1 - (p * 0.05f)
                         scaleY = 1 - (p * 0.05f)
-                    },
+                    }
             ) {
                 Image(
                     modifier = Modifier
@@ -287,13 +287,13 @@ private fun AboutContent(
                                     blurRadius = 120f,
                                     colors = BlurColors(blendColors = logoBlend),
                                     contentBlendMode = BlendMode.DstIn,
-                                    enabled = true,
+                                    enabled = true
                                 )
                             } else Modifier
                         ),
                     painter = painterResource(R.drawable.app_logo),
                     colorFilter = ColorFilter.tint(MiuixTheme.colorScheme.onBackground),
-                    contentDescription = stringResource(R.string.cd_app_icon),
+                    contentDescription = stringResource(R.string.cd_app_icon)
                 )
             }
             Text(
@@ -313,16 +313,16 @@ private fun AboutContent(
                                 blurRadius = 150f,
                                 colors = BlurColors(blendColors = logoBlend),
                                 contentBlendMode = BlendMode.DstIn,
-                                enabled = true,
+                                enabled = true
                             )
                         } else {
                             Modifier
-                        },
+                        }
                     ),
                 text = stringResource(R.string.app_name),
                 color = MiuixTheme.colorScheme.onBackground,
                 fontWeight = FontWeight.Bold,
-                fontSize = 32.sp,
+                fontSize = 32.sp
             )
             Box(
                 modifier = Modifier
@@ -333,16 +333,16 @@ private fun AboutContent(
                         scaleX = 1 - (p * 0.05f)
                         scaleY = 1 - (p * 0.05f)
                     },
-                contentAlignment = Alignment.Center,
+                contentAlignment = Alignment.Center
             ) {
                 Text(
                     color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                     text = stringResource(
                         R.string.about_version_format,
                         BuildConfig.VERSION_NAME,
-                        BuildConfig.VERSION_CODE,
+                        BuildConfig.VERSION_CODE
                     ),
-                    fontSize = 14.sp,
+                    fontSize = 14.sp
                 )
             }
         }
@@ -357,36 +357,36 @@ private fun AboutContent(
             contentPadding = PaddingValues(
                 top = scrollPadding.calculateTopPadding(),
                 start = scrollPadding.calculateStartPadding(layoutDirection),
-                end = scrollPadding.calculateEndPadding(layoutDirection),
-            ),
+                end = scrollPadding.calculateEndPadding(layoutDirection)
+            )
         ) {
             item(key = "logoSpacer") {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(
-                            logoHeightDp + 44.dp + logoPadding.calculateTopPadding() - scrollPadding.calculateTopPadding() + 96.dp,
+                            logoHeightDp + 44.dp + logoPadding.calculateTopPadding() - scrollPadding.calculateTopPadding() + 96.dp
                         ),
-                    contentAlignment = Alignment.TopCenter,
+                    contentAlignment = Alignment.TopCenter
                 ) {
                     Box(
                         modifier = Modifier
                             .padding(
-                                top = logoPadding.calculateTopPadding() + 44.dp - scrollPadding.calculateTopPadding(),
+                                top = logoPadding.calculateTopPadding() + 44.dp - scrollPadding.calculateTopPadding()
                             )
                             .size(90.dp)
                             .clip(RoundedCornerShape(20.dp))
                             .clickable(
                                 indication = null,
-                                interactionSource = remember { MutableInteractionSource() },
+                                interactionSource = remember { MutableInteractionSource() }
                             ) {
                                 showIconPicker = true
-                            },
+                            }
                     )
                 }
             }
 
-            settingsLazySmallTitle(key = "app_info_section", title = appInfoTitle, sectionTop = true)
+            settingsLazySmallTitle(key = "app_info_section", title = appInfoTitle)
             groupedCardItems(
                 keyPrefix = "about_app_info",
                 items = buildList {
@@ -396,9 +396,9 @@ private fun AboutContent(
                                 icon = { label -> Icon(MiuixIcons.Update, contentDescription = label) },
                                 title = stringResource(R.string.about_check_update_title),
                                 subtitle = stringResource(R.string.about_check_update_subtitle),
-                                onClick = onCheckUpdate,
+                                onClick = onCheckUpdate
                             )
-                        },
+                        }
                     )
                     add(
                         settingsCardScopeItem("auto-check-update") {
@@ -407,9 +407,9 @@ private fun AboutContent(
                                 title = stringResource(R.string.auto_check_update_title),
                                 subtitle = stringResource(R.string.auto_check_update_hint),
                                 checked = autoCheckUpdate,
-                                onCheckedChange = onAutoCheckUpdateChange,
+                                onCheckedChange = onAutoCheckUpdateChange
                             )
-                        },
+                        }
                     )
                     add(
                         settingsCardScopeItem("release-notes") {
@@ -420,14 +420,14 @@ private fun AboutContent(
                                 onClick = {
                                     val uri = (projectUrl + "/releases").toUri()
                                     context.startActivity(Intent(Intent.ACTION_VIEW, uri))
-                                },
+                                }
                             )
-                        },
+                        }
                     )
-                },
+                }
             )
 
-            settingsLazySmallTitle(key = "community_section", title = communityTitle, sectionTop = true)
+            settingsLazySmallTitle(key = "community_section", title = communityTitle)
             groupedCardItems(
                 keyPrefix = "about_community",
                 items = buildList {
@@ -438,7 +438,7 @@ private fun AboutContent(
                                     Icon(
                                         Icons.Filled.Star,
                                         contentDescription = label,
-                                        tint = Color(0xFFFFB800),
+                                        tint = Color(0xFFFFB800)
                                     )
                                 },
                                 title = stringResource(R.string.about_star_github_title),
@@ -446,9 +446,9 @@ private fun AboutContent(
                                 onClick = {
                                     val uri = projectUrl.toUri()
                                     context.startActivity(Intent(Intent.ACTION_VIEW, uri))
-                                },
+                                }
                             )
-                        },
+                        }
                     )
                     add(
                         settingsCardScopeItem("issues-feedback") {
@@ -459,9 +459,9 @@ private fun AboutContent(
                                 onClick = {
                                     val uri = (projectUrl + "/issues").toUri()
                                     context.startActivity(Intent(Intent.ACTION_VIEW, uri))
-                                },
+                                }
                             )
-                        },
+                        }
                     )
                     add(
                         settingsCardScopeItem("help-translate") {
@@ -472,9 +472,9 @@ private fun AboutContent(
                                 onClick = {
                                     val uri = weblateUrl.toUri()
                                     context.startActivity(Intent(Intent.ACTION_VIEW, uri))
-                                },
+                                }
                             )
-                        },
+                        }
                     )
                     add(
                         settingsCardScopeItem("qq-group") {
@@ -485,21 +485,21 @@ private fun AboutContent(
                                 onClick = {
                                     val uri = qqGroupUrl.toUri()
                                     context.startActivity(Intent(Intent.ACTION_VIEW, uri))
-                                },
+                                }
                             )
-                        },
+                        }
                     )
-                },
+                }
             )
 
-            settingsLazySmallTitle(key = "open_source_section", title = openSourceTitle, sectionTop = true)
+            settingsLazySmallTitle(key = "open_source_section", title = openSourceTitle)
             groupedCardItems(
                 keyPrefix = "about_open_source",
                 items = buildList {
                     add(
                         settingsCardScopeItem("privacy-policy") {
                             PrivacyPolicyEntryCard(onClick = onOpenPrivacyPolicy)
-                        },
+                        }
                     )
                     add(
                         settingsCardScopeItem("open-source-license") {
@@ -507,30 +507,30 @@ private fun AboutContent(
                                 onClick = {
                                     val uri = (projectUrl + "/blob/HEAD/LICENSE").toUri()
                                     context.startActivity(Intent(Intent.ACTION_VIEW, uri))
-                                },
+                                }
                             )
-                        },
+                        }
                     )
                     add(
                         settingsCardScopeItem("third-party-notices") {
                             ThirdPartyNoticesEntryCard(onClick = onOpenThirdPartyNotices)
-                        },
+                        }
                     )
-                },
+                }
             )
 
             item(key = "about-footer") {
                 Text(
                     text = stringResource(
                         R.string.about_copyright_notice,
-                        Calendar.getInstance().get(Calendar.YEAR),
+                        Calendar.getInstance().get(Calendar.YEAR)
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 16.dp, bottom = 16.dp),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
+                    textAlign = TextAlign.Center
                 )
             }
 
@@ -548,7 +548,7 @@ private fun AboutContent(
                 selectedIconTheme = theme
                 AppIconTheme.applyIconTheme(context, theme)
                 showIconPicker = false
-            },
+            }
         )
     }
 }
@@ -558,19 +558,19 @@ private fun AppIconPickerBottomSheet(
     show: Boolean,
     selected: AppIconTheme,
     onDismissRequest: () -> Unit,
-    onSelect: (AppIconTheme) -> Unit,
+    onSelect: (AppIconTheme) -> Unit
 ) {
     if (!show) return
     MiuixBottomSheet(
         show = true,
         title = stringResource(R.string.app_icon_theme_title),
-        onDismissRequest = onDismissRequest,
+        onDismissRequest = onDismissRequest
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             AppIconTheme.entries.forEach { theme ->
                 val isSelected = theme == selected
@@ -580,18 +580,18 @@ private fun AppIconPickerBottomSheet(
                         .clip(RoundedCornerShape(16.dp))
                         .background(
                             if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
-                            else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+                            else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
                         )
                         .clickable { onSelect(theme) }
                         .padding(horizontal = 14.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Image(
                         painter = painterResource(theme.iconRes),
                         contentDescription = null,
                         modifier = Modifier
                             .size(54.dp)
-                            .clip(RoundedCornerShape(14.dp)),
+                            .clip(RoundedCornerShape(14.dp))
                     )
                     Spacer(modifier = Modifier.width(14.dp))
                     Column(modifier = Modifier.weight(1f)) {
@@ -599,13 +599,13 @@ private fun AppIconPickerBottomSheet(
                             text = stringResource(theme.titleRes),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                         )
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
                             text = stringResource(theme.descRes),
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     if (isSelected) {
@@ -613,7 +613,7 @@ private fun AppIconPickerBottomSheet(
                             imageVector = Icons.Filled.CheckCircle,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(24.dp),
+                            modifier = Modifier.size(24.dp)
                         )
                     }
                 }

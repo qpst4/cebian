@@ -28,7 +28,7 @@ internal object FloatingPointerRadialMenu {
         fingerX: Float,
         fingerY: Float,
         innerRadius: Float,
-        outerRadius: Float,
+        outerRadius: Float
     ): Int? {
         val dx = fingerX - centerX
         val dy = fingerY - centerY
@@ -44,14 +44,14 @@ internal object FloatingPointerRadialMenu {
         center: Offset,
         slotIndex: Int,
         innerRadius: Float,
-        outerRadius: Float,
+        outerRadius: Float
     ): Offset {
         val sweep = 360f / SLOT_COUNT
         val angleRad = Math.toRadians((slotIndex * sweep).toDouble())
         val ringMid = (innerRadius + outerRadius) / 2f
         return Offset(
             x = center.x + (sin(angleRad) * ringMid).toFloat(),
-            y = center.y - (cos(angleRad) * ringMid).toFloat(),
+            y = center.y - (cos(angleRad) * ringMid).toFloat()
         )
     }
 }
@@ -61,7 +61,7 @@ internal fun DrawScope.drawFloatingPointerRadialMenu(
     settings: AppSettings,
     slots: List<GestureAction>,
     highlightedSlot: Int,
-    visibilityProgress: Float = 1f,
+    visibilityProgress: Float = 1f
 ) {
     val alphaScale = visibilityProgress.coerceIn(0f, 1f)
     if (alphaScale <= 0.01f) return
@@ -90,21 +90,21 @@ internal fun DrawScope.drawFloatingPointerRadialMenu(
             outerRadius = outerRadius,
             startAngle = startAngle,
             sweepAngle = sweep,
-            color = fill,
+            color = fill
         )
         val dividerStart = polarOffset(center, outerRadius, startAngle)
         drawLine(
             color = dividerColor,
             start = polarOffset(center, innerRadius, startAngle),
             end = dividerStart,
-            strokeWidth = dividerWidth,
+            strokeWidth = dividerWidth
         )
     }
 
     drawCircle(
         color = innerColor,
         radius = innerRadius,
-        center = center,
+        center = center
     )
 
     drawIntoCanvas { canvas ->
@@ -119,7 +119,7 @@ internal fun DrawScope.drawFloatingPointerRadialMenu(
                 center = center,
                 slotIndex = slot,
                 innerRadius = innerRadius,
-                outerRadius = outerRadius,
+                outerRadius = outerRadius
             )
             val bitmap = GestureActionIconBitmap.get(action, iconSizePx, iconTint)
             val left = iconCenter.x - bitmap.width / 2f
@@ -137,7 +137,7 @@ private fun DrawScope.drawRingSector(
     outerRadius: Float,
     startAngle: Float,
     sweepAngle: Float,
-    color: Color,
+    color: Color
 ) {
     val path = Path().apply {
         addRingSector(
@@ -145,7 +145,7 @@ private fun DrawScope.drawRingSector(
             innerRadius = innerRadius,
             outerRadius = outerRadius,
             startAngle = startAngle,
-            sweepAngle = sweepAngle,
+            sweepAngle = sweepAngle
         )
     }
     drawPath(path = path, color = color)
@@ -157,31 +157,31 @@ private fun Path.addRingSector(
     innerRadius: Float,
     outerRadius: Float,
     startAngle: Float,
-    sweepAngle: Float,
+    sweepAngle: Float
 ) {
     val outerRect = Rect(
         left = center.x - outerRadius,
         top = center.y - outerRadius,
         right = center.x + outerRadius,
-        bottom = center.y + outerRadius,
+        bottom = center.y + outerRadius
     )
     val innerRect = Rect(
         left = center.x - innerRadius,
         top = center.y - innerRadius,
         right = center.x + innerRadius,
-        bottom = center.y + innerRadius,
+        bottom = center.y + innerRadius
     )
     arcTo(
         rect = outerRect,
         startAngleDegrees = startAngle,
         sweepAngleDegrees = sweepAngle,
-        forceMoveTo = true,
+        forceMoveTo = true
     )
     arcTo(
         rect = innerRect,
         startAngleDegrees = startAngle + sweepAngle,
         sweepAngleDegrees = -sweepAngle,
-        forceMoveTo = false,
+        forceMoveTo = false
     )
     close()
 }
@@ -190,6 +190,6 @@ private fun polarOffset(center: Offset, radius: Float, angleDegrees: Float): Off
     val radians = Math.toRadians(angleDegrees.toDouble())
     return Offset(
         x = center.x + (cos(radians) * radius).toFloat(),
-        y = center.y + (sin(radians) * radius).toFloat(),
+        y = center.y + (sin(radians) * radius).toFloat()
     )
 }

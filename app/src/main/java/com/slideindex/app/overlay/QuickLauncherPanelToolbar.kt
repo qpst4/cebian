@@ -10,7 +10,7 @@ import com.slideindex.app.R
 
 internal class QuickLauncherPanelToolbar(
     private val controller: QuickLauncherPanelController,
-    private val host: QuickLauncherPanelController.Host,
+    private val host: QuickLauncherPanelController.Host
 ) {
     enum class ToolbarAction { ADD, SWITCH, EDIT }
 
@@ -19,7 +19,7 @@ internal class QuickLauncherPanelToolbar(
         val toolbarPanelGap: Float,
         val edgeInset: Float,
         val buttonHeight: Float,
-        val buttonGap: Float,
+        val buttonGap: Float
     )
 
     private val addButtonRect = RectF()
@@ -74,7 +74,7 @@ internal class QuickLauncherPanelToolbar(
         toolbarPanelGap = host.dp(8f),
         edgeInset = host.dp(8f),
         buttonHeight = host.dp(28f),
-        buttonGap = host.dp(4f),
+        buttonGap = host.dp(4f)
     )
 
     fun contentReserveWidth(): Float = 0f
@@ -91,7 +91,7 @@ internal class QuickLauncherPanelToolbar(
             minOf(panelRect.left, toolbarRect.left),
             minOf(panelRect.top, toolbarRect.top),
             maxOf(panelRect.right, toolbarRect.right),
-            maxOf(panelRect.bottom, toolbarRect.bottom),
+            maxOf(panelRect.bottom, toolbarRect.bottom)
         )
     }
 
@@ -167,11 +167,11 @@ internal class QuickLauncherPanelToolbar(
                 toolbarRect.left + host.dp(0.5f),
                 toolbarRect.top + host.dp(0.5f),
                 toolbarRect.right - host.dp(0.5f),
-                toolbarRect.bottom - host.dp(0.5f),
+                toolbarRect.bottom - host.dp(0.5f)
             ),
             corner - host.dp(0.5f),
             corner - host.dp(0.5f),
-            toolbarBorderPaint,
+            toolbarBorderPaint
         )
 
         drawToolbarButton(canvas, addButtonRect, ToolbarAction.ADD, theme.accent, active = false)
@@ -183,7 +183,7 @@ internal class QuickLauncherPanelToolbar(
             editButtonRect,
             ToolbarAction.EDIT,
             if (controller.editMode) theme.accent else Color.argb(230, 255, 255, 255),
-            active = controller.editMode,
+            active = controller.editMode
         )
     }
 
@@ -197,7 +197,7 @@ internal class QuickLauncherPanelToolbar(
                 cell.left + host.dp(2f),
                 cell.top + host.dp(2f),
                 cell.left + host.dp(2f) + radius * 2f,
-                cell.top + host.dp(2f) + radius * 2f,
+                cell.top + host.dp(2f) + radius * 2f
             )
         }
     }
@@ -229,7 +229,7 @@ internal class QuickLauncherPanelToolbar(
         panelRect: RectF,
         tapGesture: Boolean,
         toolbarCommitAllowed: Boolean,
-        allowSlideRelease: Boolean = false,
+        allowSlideRelease: Boolean = false
     ): Boolean {
         if (!toolbarCommitAllowed || !shouldShowToolbar()) return false
         layoutToolbar(panelRect)
@@ -271,7 +271,7 @@ internal class QuickLauncherPanelToolbar(
         rect: RectF,
         action: ToolbarAction,
         color: Int,
-        active: Boolean,
+        active: Boolean
     ) {
         if (rect.isEmpty) return
         val buttonCorner = rect.height() / 2f
@@ -291,7 +291,7 @@ internal class QuickLauncherPanelToolbar(
                     "+",
                     rect.centerX(),
                     rect.centerY() - (toolbarIconPaint.descent() + toolbarIconPaint.ascent()) / 2f,
-                    toolbarIconPaint,
+                    toolbarIconPaint
                 )
             }
             ToolbarAction.SWITCH -> {
@@ -313,7 +313,7 @@ internal class QuickLauncherPanelToolbar(
                     displayLabel,
                     rect.centerX(),
                     rect.centerY() - (toolbarIconPaint.descent() + toolbarIconPaint.ascent()) / 2f,
-                    toolbarIconPaint,
+                    toolbarIconPaint
                 )
             }
             ToolbarAction.EDIT -> {
@@ -324,7 +324,7 @@ internal class QuickLauncherPanelToolbar(
                     glyph,
                     rect.centerX(),
                     rect.centerY() - (toolbarIconPaint.descent() + toolbarIconPaint.ascent()) / 2f,
-                    toolbarIconPaint,
+                    toolbarIconPaint
                 )
             }
         }
@@ -344,7 +344,7 @@ internal class QuickLauncherPanelToolbar(
             val candidates = listOf(
                 ToolbarAction.ADD to kotlin.math.abs(localX - addButtonRect.centerX()),
                 ToolbarAction.SWITCH to kotlin.math.abs(localX - switchButtonRect.centerX()),
-                ToolbarAction.EDIT to kotlin.math.abs(localX - editButtonRect.centerX()),
+                ToolbarAction.EDIT to kotlin.math.abs(localX - editButtonRect.centerX())
             )
             return candidates.minByOrNull { it.second }?.first
         } else {
@@ -358,13 +358,13 @@ internal class QuickLauncherPanelToolbar(
         if (!addButtonRect.isEmpty) {
             nodes += OverlayVirtualNode(
                 description = context.getString(R.string.quick_launcher_add),
-                boundsInParent = RectF(addButtonRect),
+                boundsInParent = RectF(addButtonRect)
             )
         }
         if (!switchButtonRect.isEmpty) {
             nodes += OverlayVirtualNode(
                 description = context.getString(R.string.quick_launcher_panel_switch),
-                boundsInParent = RectF(switchButtonRect),
+                boundsInParent = RectF(switchButtonRect)
             )
         }
         if (!editButtonRect.isEmpty) {
@@ -375,7 +375,7 @@ internal class QuickLauncherPanelToolbar(
             }
             nodes += OverlayVirtualNode(
                 description = label,
-                boundsInParent = RectF(editButtonRect),
+                boundsInParent = RectF(editButtonRect)
             )
         }
         return nodes

@@ -80,7 +80,7 @@ object WidgetPopupOverlayWindow {
     context: Context,
     settings: AppSettings,
     side: PanelSide? = null,
-    anchorRawY: Float? = null,
+    anchorRawY: Float? = null
   ): Boolean {
     if (Looper.myLooper() != Looper.getMainLooper()) {
       var result = false
@@ -121,7 +121,7 @@ object WidgetPopupOverlayWindow {
     val initialMetrics = WidgetPanelLayoutMetrics.compute(
       screenWidthPx = screenWidthPx,
       page = initialPage,
-      density = density,
+      density = density
     )
     val panelWidthPx = initialMetrics.panelWidthPx
     val panelPaddingPx = (12f * density).roundToInt() * 2
@@ -137,7 +137,7 @@ object WidgetPopupOverlayWindow {
       deps = deps,
       settings = settings,
       onDismiss = { dismiss() },
-      onSavePages = { pages -> savePages(pages) },
+      onSavePages = { pages -> savePages(pages) }
     )
     root.cardView = card
 
@@ -362,7 +362,7 @@ object WidgetPopupOverlayWindow {
       WindowManager.LayoutParams.MATCH_PARENT,
       OverlayWindowTypes.contentPanelWindowType(context),
       flags,
-      PixelFormat.TRANSLUCENT,
+      PixelFormat.TRANSLUCENT
     ).apply {
       gravity = Gravity.TOP or Gravity.START
       windowAnimations = android.R.style.Animation_Dialog

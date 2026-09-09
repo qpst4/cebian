@@ -18,21 +18,21 @@ internal class EdgeGestureTouchDispatcher(
         Float,
         Float,
         Boolean,
-        (Float, Float, Float, Float) -> Unit,
+        (Float, Float, Float, Float) -> Unit
     ) -> Unit,
     private val onGestureTrackingStart: () -> Unit,
     private val onSyncZoneLayout: () -> Unit,
     private val onForceRecoverInteractionState: () -> Unit,
     private val edgeCaptureTouchActive: () -> Boolean,
     private val setEdgeCaptureTouchActive: (Boolean) -> Unit,
-    private val composeOverlayDialogShowing: () -> Boolean,
+    private val composeOverlayDialogShowing: () -> Boolean
 ) {
     fun beginCaptureStripTouch(
         handleId: String,
         rawX: Float,
         rawY: Float,
         localX: Float,
-        localY: Float,
+        localY: Float
     ): Boolean {
         if (UniversalCopyOverlay.isShowing) return false
         if (composeOverlayDialogShowing()) return false

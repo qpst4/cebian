@@ -35,7 +35,7 @@ object AdjustLevelIndicator {
         viewScreenX: Int = 0,
         screenWidthPx: Int = viewWidth,
         chrome: AdjustPanelChrome = AdjustPanelChrome.NONE,
-        volumeExpanded: Boolean = false,
+        volumeExpanded: Boolean = false
     ): Layout = AdjustLevelIndicatorLayoutEngine.layout(
         viewWidth = viewWidth,
         viewHeight = viewHeight,
@@ -45,7 +45,7 @@ object AdjustLevelIndicator {
         viewScreenX = viewScreenX,
         screenWidthPx = screenWidthPx,
         chrome = chrome,
-        volumeExpanded = volumeExpanded,
+        volumeExpanded = volumeExpanded
     )
 
     fun hitBounds(layout: Layout, side: PanelSide, density: Float): RectF =
@@ -56,7 +56,7 @@ object AdjustLevelIndicator {
         side: PanelSide,
         localX: Float,
         localY: Float,
-        density: Float,
+        density: Float
     ): Boolean = AdjustLevelIndicatorLayoutEngine.containsTouch(layout, side, localX, localY, density)
 
     fun hitVolumeTarget(
@@ -64,7 +64,7 @@ object AdjustLevelIndicator {
         side: PanelSide,
         localX: Float,
         localY: Float,
-        density: Float,
+        density: Float
     ): VolumeHitTarget = AdjustLevelIndicatorLayoutEngine.hitVolumeTarget(layout, side, localX, localY, density)
 
     fun hitBrightnessTarget(
@@ -72,7 +72,7 @@ object AdjustLevelIndicator {
         side: PanelSide,
         localX: Float,
         localY: Float,
-        density: Float,
+        density: Float
     ): BrightnessHitTarget = AdjustLevelIndicatorLayoutEngine.hitBrightnessTarget(layout, side, localX, localY, density)
 
     fun draw(
@@ -86,7 +86,7 @@ object AdjustLevelIndicator {
         recede: Boolean = false,
         volumePanel: VolumePanelVisual? = null,
         brightnessPanel: BrightnessPanelVisual? = null,
-        context: Context? = null,
+        context: Context? = null
     ) = AdjustLevelIndicatorRenderer.draw(
         canvas = canvas,
         layout = layout,
@@ -98,6 +98,6 @@ object AdjustLevelIndicator {
         recede = recede,
         volumePanel = volumePanel,
         brightnessPanel = brightnessPanel,
-        context = context,
+        context = context
     )
 }

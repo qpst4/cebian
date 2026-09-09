@@ -21,7 +21,7 @@ object OverlayPassthrough {
         rawY: Float,
         onComplete: () -> Unit,
         framesBeforeInject: Int = DEFAULT_FRAMES_BEFORE_INJECT,
-        restoreDelayMs: Long = DEFAULT_RESTORE_DELAY_MS,
+        restoreDelayMs: Long = DEFAULT_RESTORE_DELAY_MS
     ) {
         hideTriggers()
         val restored = AtomicBoolean(false)

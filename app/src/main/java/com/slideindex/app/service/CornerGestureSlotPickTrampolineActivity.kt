@@ -33,7 +33,7 @@ class CornerGestureSlotPickTrampolineActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.dark(AndroidColor.TRANSPARENT),
-            navigationBarStyle = SystemBarStyle.dark(AndroidColor.TRANSPARENT),
+            navigationBarStyle = SystemBarStyle.dark(AndroidColor.TRANSPARENT)
         )
         super.onCreate(savedInstanceState)
         if (savedInstanceState?.getBoolean(STATE_DISMISSED, false) == true) {
@@ -70,7 +70,7 @@ class CornerGestureSlotPickTrampolineActivity : ComponentActivity() {
                         slotIndex = slotIndex,
                         cornerTitle = getString(cornerTitleRes),
                         onExit = { finishPicker() },
-                        settingsRepository = deps.settingsRepository,
+                        settingsRepository = deps.settingsRepository
                     )
                 }
             }

@@ -4,7 +4,7 @@ internal class GestureSessionThresholdTracker(
     private val pathRecognizer: SwipePathRecognizer,
     private val callbacks: GestureSession.Callbacks,
     private val cancelLongPressCheck: () -> Unit,
-    private val isTriggerConfigured: (GestureTriggerType) -> Boolean = { true },
+    private val isTriggerConfigured: (GestureTriggerType) -> Boolean = { true }
 ) {
     private var wasAboveShortThreshold = false
     private var wasAboveLongThreshold = false

@@ -37,7 +37,7 @@ fun AppKeepAliveSettingsScreen(
     onRequestAutoStart: () -> Unit,
     onHideFromRecentsChange: (Boolean) -> Unit,
     onAccessibilityKeepAliveChange: (Boolean) -> Unit,
-    onRequestSecureSettingsGrant: () -> Boolean,
+    onRequestSecureSettingsGrant: () -> Boolean
 ) {
     val context = LocalContext.current
     var showAdbDialog by remember { mutableStateOf(false) }
@@ -47,7 +47,7 @@ fun AppKeepAliveSettingsScreen(
     SettingsScreenScaffold(
         title = stringResource(R.string.app_keep_alive_title),
         subtitle = stringResource(R.string.app_keep_alive_desc),
-        onBack = onBack,
+        onBack = onBack
     ) {
         groupedCardItems(
             keyPrefix = "app-keep-alive",
@@ -59,18 +59,18 @@ fun AppKeepAliveSettingsScreen(
                             subtitle = stringResource(R.string.battery_optimization_desc),
                             checked = batteryOptimizationExempt,
                             enabled = true,
-                            onCheckedChange = { onRequestBatteryOptimization() },
+                            onCheckedChange = { onRequestBatteryOptimization() }
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("auto-start") {
                         SettingLinkRow(
                             title = stringResource(R.string.auto_start_title),
                             subtitle = stringResource(R.string.auto_start_desc),
-                            onClick = onRequestAutoStart,
+                            onClick = onRequestAutoStart
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("hide-from-recents") {
@@ -79,9 +79,9 @@ fun AppKeepAliveSettingsScreen(
                             subtitle = stringResource(R.string.hide_from_recents_desc),
                             checked = hideFromRecents,
                             enabled = true,
-                            onCheckedChange = onHideFromRecentsChange,
+                            onCheckedChange = onHideFromRecentsChange
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("secure-settings") {
@@ -109,11 +109,11 @@ fun AppKeepAliveSettingsScreen(
                                 } else {
                                     showAdbDialog = true
                                 }
-                            },
+                            }
                         )
-                    },
+                    }
                 )
-            },
+            }
         )
     }
 
@@ -129,10 +129,10 @@ fun AppKeepAliveSettingsScreen(
             Toast.makeText(
                 context,
                 copiedMessage,
-                Toast.LENGTH_SHORT,
+                Toast.LENGTH_SHORT
             ).show()
         },
-        dismissText = stringResource(R.string.confirm),
+        dismissText = stringResource(R.string.confirm)
     )
 }
 
@@ -142,7 +142,7 @@ fun SettingsCardScope.AppKeepAliveEntryCard(
     hideFromRecents: Boolean,
     accessibilityKeepAliveEnabled: Boolean,
     outlinedLeadingIcons: Boolean = false,
-    onClick: () -> Unit,
+    onClick: () -> Unit
 ) {
     val subtitle = when {
         batteryOptimizationExempt && hideFromRecents && accessibilityKeepAliveEnabled ->
@@ -163,7 +163,7 @@ fun SettingsCardScope.AppKeepAliveEntryCard(
         },
         title = stringResource(R.string.app_keep_alive_title),
         subtitle = subtitle,
-        onClick = onClick,
+        onClick = onClick
     )
 }
 

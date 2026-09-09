@@ -36,7 +36,7 @@ internal object SlideIndexAccessibilityGestureInjector {
 
     private fun performOnMain(
         action: GestureAction,
-        serviceProvider: () -> SlideIndexAccessibilityService?,
+        serviceProvider: () -> SlideIndexAccessibilityService?
     ): Boolean {
         val service = serviceProvider()
         if (service == null) {
@@ -95,7 +95,7 @@ internal object SlideIndexAccessibilityGestureInjector {
         rawX: Float,
         rawY: Float,
         onFinished: (Boolean) -> Unit,
-        preferNodeClick: Boolean = false,
+        preferNodeClick: Boolean = false
     ) {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             mainHandler.post { dispatchPointerTap(service, rawX, rawY, onFinished, preferNodeClick) }
@@ -136,7 +136,7 @@ internal object SlideIndexAccessibilityGestureInjector {
         rawX: Float,
         rawY: Float,
         onFinished: (Boolean) -> Unit,
-        durationMs: Long = TAP_DURATION_MS,
+        durationMs: Long = TAP_DURATION_MS
     ) {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             mainHandler.post { dispatchTap(service, rawX, rawY, onFinished, durationMs) }
@@ -169,7 +169,7 @@ internal object SlideIndexAccessibilityGestureInjector {
         startX: Float,
         startY: Float,
         config: PointerSwipeConfig,
-        onFinished: (Boolean) -> Unit = {},
+        onFinished: (Boolean) -> Unit = {}
     ) {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             mainHandler.post { dispatchPointerSwipe(service, startX, startY, config, onFinished) }
@@ -196,7 +196,7 @@ internal object SlideIndexAccessibilityGestureInjector {
             endY = endY,
             screenWidth = screenWidth,
             screenHeight = screenHeight,
-            minDistancePx = 24f * density,
+            minDistancePx = 24f * density
         )
         if (sanitized == null) {
             Log.w(TAG, "dispatchPointerSwipe: invalid path at ($startX, $startY)")
@@ -225,13 +225,13 @@ internal object SlideIndexAccessibilityGestureInjector {
                 endY = safeEndY + offsetY,
                 screenWidth = screenWidth,
                 screenHeight = screenHeight,
-                minDistancePx = 8f * density,
+                minDistancePx = 8f * density
             ) ?: continue
             val path = buildSwipePath(
                 startX = strokeEndpoints.startX,
                 startY = strokeEndpoints.startY,
                 endX = strokeEndpoints.endX,
-                endY = strokeEndpoints.endY,
+                endY = strokeEndpoints.endY
             )
             val stroke = runCatching {
                 GestureDescription.StrokeDescription(path, 0, durationMs)
@@ -262,7 +262,7 @@ internal object SlideIndexAccessibilityGestureInjector {
                     onFinished(scrolled)
                 }
             },
-            null,
+            null
         )
         if (!accepted) {
             Log.w(TAG, "dispatchPointerSwipe rejected at ($startX, $startY)")
@@ -276,7 +276,7 @@ internal object SlideIndexAccessibilityGestureInjector {
         rawX: Float,
         rawY: Float,
         durationMs: Long,
-        onFinished: (Boolean) -> Unit = {},
+        onFinished: (Boolean) -> Unit = {}
     ) {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             mainHandler.post {
@@ -301,7 +301,7 @@ internal object SlideIndexAccessibilityGestureInjector {
         path: Path,
         durationMs: Long,
         maxDurationMs: Long = DEFAULT_SWIPE_MAX_DURATION_MS,
-        onFinished: (Boolean) -> Unit = {},
+        onFinished: (Boolean) -> Unit = {}
     ) {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             mainHandler.post {
@@ -312,7 +312,7 @@ internal object SlideIndexAccessibilityGestureInjector {
                     path,
                     durationMs,
                     maxDurationMs,
-                    onFinished,
+                    onFinished
                 )
             }
             return
@@ -347,7 +347,7 @@ internal object SlideIndexAccessibilityGestureInjector {
                     onFinished(false)
                 }
             },
-            null,
+            null
         )
         if (!accepted) {
             Log.w(TAG, "dispatchPointerSwipePath rejected at ($startX, $startY)")
@@ -385,7 +385,7 @@ internal object SlideIndexAccessibilityGestureInjector {
                 val t = step / steps.toFloat()
                 lineTo(
                     startX + (endX - startX) * t,
-                    startY + (endY - startY) * t,
+                    startY + (endY - startY) * t
                 )
             }
         }
@@ -395,7 +395,7 @@ internal object SlideIndexAccessibilityGestureInjector {
         val startX: Float,
         val startY: Float,
         val endX: Float,
-        val endY: Float,
+        val endY: Float
     )
 
     internal fun sanitizeSwipeEndpoints(
@@ -405,7 +405,7 @@ internal object SlideIndexAccessibilityGestureInjector {
         endY: Float,
         screenWidth: Float,
         screenHeight: Float,
-        minDistancePx: Float,
+        minDistancePx: Float
     ): SwipeEndpoints? {
         if (!startX.isFinite() || !startY.isFinite() || !endX.isFinite() || !endY.isFinite()) {
             return null
@@ -440,7 +440,7 @@ internal object SlideIndexAccessibilityGestureInjector {
         service: AccessibilityService,
         rawX: Float,
         rawY: Float,
-        direction: PointerSwipeDirection,
+        direction: PointerSwipeDirection
     ): Boolean {
         val scrollAction = when (direction) {
             PointerSwipeDirection.UP -> AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD
@@ -494,7 +494,7 @@ internal object SlideIndexAccessibilityGestureInjector {
         rawX: Float,
         rawY: Float,
         durationMs: Long,
-        onFinished: (Boolean) -> Unit,
+        onFinished: (Boolean) -> Unit
     ) {
         val path = Path().apply {
             moveTo(rawX, rawY)
@@ -514,7 +514,7 @@ internal object SlideIndexAccessibilityGestureInjector {
                     onFinished(false)
                 }
             },
-            null,
+            null
         )
         if (!accepted) {
             Log.w(TAG, "dispatchGesture rejected at ($rawX, $rawY)")
@@ -583,7 +583,7 @@ internal object SlideIndexAccessibilityGestureInjector {
     private fun findDeepestNodeAt(
         root: AccessibilityNodeInfo,
         rawX: Float,
-        rawY: Float,
+        rawY: Float
     ): AccessibilityNodeInfo? {
         val rect = Rect()
         val stack = ArrayDeque<AccessibilityNodeInfo>()

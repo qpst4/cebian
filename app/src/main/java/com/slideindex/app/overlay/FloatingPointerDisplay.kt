@@ -55,16 +55,16 @@ import kotlinx.coroutines.launch
 internal fun FloatingPointerDisplay(
     session: FloatingPointerSession,
     settings: AppSettings,
-    visible: Boolean,
+    visible: Boolean
 ) {
     SlideIndexTheme(settings = settings) {
         val presence by animateFloatAsState(
             targetValue = if (visible) 1f else 0f,
             animationSpec = tween(
                 durationMillis = FLOATING_POINTER_PRESENCE_ANIMATION_MS.toInt(),
-                easing = FastOutSlowInEasing,
+                easing = FastOutSlowInEasing
             ),
-            label = "floatingPointerPresence",
+            label = "floatingPointerPresence"
         )
         if (presence <= 0.001f && !visible) return@SlideIndexTheme
 
@@ -102,18 +102,18 @@ internal fun FloatingPointerDisplay(
             targetValue = radialMenuTargetProgress,
             animationSpec = tween(
                 durationMillis = FLOATING_POINTER_RADIAL_MENU_ANIMATION_MS.toInt(),
-                easing = FastOutSlowInEasing,
+                easing = FastOutSlowInEasing
             ),
-            label = "radialMenuProgress",
+            label = "radialMenuProgress"
         )
         val edgePreviewTarget = if (session.edgePreviewVisible.value) 1f else 0f
         val edgePreviewAlpha by animateFloatAsState(
             targetValue = edgePreviewTarget,
             animationSpec = tween(
                 durationMillis = FLOATING_POINTER_EDGE_PREVIEW_ANIMATION_MS.toInt(),
-                easing = if (edgePreviewTarget > 0f) FastOutSlowInEasing else LinearOutSlowInEasing,
+                easing = if (edgePreviewTarget > 0f) FastOutSlowInEasing else LinearOutSlowInEasing
             ),
-            label = "edgePreviewAlpha",
+            label = "edgePreviewAlpha"
         )
         val suppressPointerForGestureAftermath =
             gestureRecordingActive ||
@@ -128,7 +128,7 @@ internal fun FloatingPointerDisplay(
         val pointerBitmap = rememberFloatingPointerDesignBitmap(
             context = context,
             design = pointerDesign,
-            sizePx = settings.floatingPointerPointerDiameterPx.roundToInt().coerceAtLeast(1),
+            sizePx = settings.floatingPointerPointerDiameterPx.roundToInt().coerceAtLeast(1)
         )
         val presenceScale = 0.72f + 0.28f * presence
         val rippleProgress = remember { Animatable(0f) }
@@ -144,8 +144,8 @@ internal fun FloatingPointerDisplay(
                     targetValue = 1f,
                     animationSpec = tween(
                         durationMillis = GESTURE_RECORDER_POINTER_ANIMATION_MS,
-                        easing = FastOutLinearInEasing,
-                    ),
+                        easing = FastOutLinearInEasing
+                    )
                 )
             } else if (gestureReplayActive) {
                 gestureRecorderProgress.snapTo(0f)
@@ -154,8 +154,8 @@ internal fun FloatingPointerDisplay(
                     targetValue = 0f,
                     animationSpec = tween(
                         durationMillis = GESTURE_RECORDER_POINTER_ANIMATION_MS,
-                        easing = LinearOutSlowInEasing,
-                    ),
+                        easing = LinearOutSlowInEasing
+                    )
                 )
             }
         }
@@ -172,8 +172,8 @@ internal fun FloatingPointerDisplay(
                             targetValue = 1f,
                             animationSpec = tween(
                                 durationMillis = 400,
-                                easing = FastOutSlowInEasing,
-                            ),
+                                easing = FastOutSlowInEasing
+                            )
                         )
                     }
                     launch {
@@ -182,8 +182,8 @@ internal fun FloatingPointerDisplay(
                             targetValue = 1f,
                             animationSpec = spring(
                                 dampingRatio = 0.42f,
-                                stiffness = Spring.StiffnessMediumLow,
-                            ),
+                                stiffness = Spring.StiffnessMediumLow
+                            )
                         )
                     }
                 }
@@ -193,8 +193,8 @@ internal fun FloatingPointerDisplay(
                         targetValue = 0f,
                         animationSpec = tween(
                             durationMillis = 300,
-                            easing = LinearOutSlowInEasing,
-                        ),
+                            easing = LinearOutSlowInEasing
+                        )
                     )
                 }
                 launch {
@@ -202,8 +202,8 @@ internal fun FloatingPointerDisplay(
                         targetValue = 0f,
                         animationSpec = tween(
                             durationMillis = 500,
-                            easing = FastOutSlowInEasing,
-                        ),
+                            easing = FastOutSlowInEasing
+                        )
                     )
                 }
             }
@@ -218,8 +218,8 @@ internal fun FloatingPointerDisplay(
                 targetValue = 1f,
                 animationSpec = tween(
                     durationMillis = floatingPointerClickAnimDurationMs(settings, session.density),
-                    easing = QcPointerClickEasing,
-                ),
+                    easing = QcPointerClickEasing
+                )
             )
             if (session.pointerClickGeneration.intValue == generation) {
                 pointerClickAnim.snapTo(0f)
@@ -235,8 +235,8 @@ internal fun FloatingPointerDisplay(
                     targetValue = 1f,
                     animationSpec = tween(
                         durationMillis = settings.floatingPointerRippleDurationMs,
-                        easing = FastOutSlowInEasing,
-                    ),
+                        easing = FastOutSlowInEasing
+                    )
                 )
             } finally {
                 if (session.rippleGeneration.intValue == generation) {
@@ -300,7 +300,7 @@ internal fun FloatingPointerDisplay(
                             selectionStart = if (hoverSelectChrome.hasSelectionStart) {
                                 Offset(
                                     hoverSelectChrome.selectionStartX,
-                                    hoverSelectChrome.selectionStartY,
+                                    hoverSelectChrome.selectionStartY
                                 )
                             } else {
                                 null
@@ -308,17 +308,17 @@ internal fun FloatingPointerDisplay(
                             selectionPreviewBounds = hoverSelectChrome.previewBoundsOrNull(),
                             pickAnchor = Offset(
                                 hoverSelectChrome.pickAnchorX,
-                                hoverSelectChrome.pickAnchorY,
+                                hoverSelectChrome.pickAnchorY
                             ),
                             regionalDragActive = hoverSelectChrome.regionalActive,
                             crossVisible = hoverSelectChrome.paused || hoverSelectChrome.regionalActive,
                             crossAlpha = 1f,
                             crossPaused = hoverSelectChrome.paused,
                             crossArmDp = settings.floatBallPickCrossArmDp,
-                            hintMode = hoverSelectChrome.hintMode,
+                            hintMode = hoverSelectChrome.hintMode
                         )
                     },
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxSize()
                 )
             }
             Box(
@@ -331,12 +331,12 @@ internal fun FloatingPointerDisplay(
                     val height = size.height.coerceAtLeast(1f)
                     transformOrigin = TransformOrigin(
                         pivotFractionX = (anchorX / width).coerceIn(0f, 1f),
-                        pivotFractionY = (anchorY / height).coerceIn(0f, 1f),
+                        pivotFractionY = (anchorY / height).coerceIn(0f, 1f)
                     )
                     scaleX = presenceScale
                     scaleY = presenceScale
                     alpha = presence
-                },
+                }
         ) {
             val isBlurSupported = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
             val localDensity = LocalDensity.current
@@ -350,14 +350,14 @@ internal fun FloatingPointerDisplay(
                     modifier = Modifier
                         .offset { IntOffset((joystickX - radiusPx).roundToInt(), (joystickY - radiusPx).roundToInt()) }
                         .size(diameterDp)
-                        .clip(CircleShape),
+                        .clip(CircleShape)
                 ) {
                     LocalFrostedGlassBackdrop(
                         modifier = Modifier.matchParentSize(),
                         cornerRadiusPx = radiusPx,
                         blurRadiusPx = blurRadiusPx,
                         tintColor = 0x30000000,
-                        enabled = true,
+                        enabled = true
                     )
                 }
             }
@@ -381,14 +381,14 @@ internal fun FloatingPointerDisplay(
                             scaleY = radialScale
                             alpha = radialMenuProgress
                         }
-                        .clip(CircleShape),
+                        .clip(CircleShape)
                 ) {
                     LocalFrostedGlassBackdrop(
                         modifier = Modifier.matchParentSize(),
                         cornerRadiusPx = outerRadius,
                         blurRadiusPx = radialBlurRadiusPx,
                         tintColor = 0x40000000,
-                        enabled = true,
+                        enabled = true
                     )
                 }
             }
@@ -403,7 +403,7 @@ internal fun FloatingPointerDisplay(
                         settings = settings,
                         segments = session.edgeActionSegments,
                         previewAlpha = edgePreviewAlpha,
-                        density = density,
+                        density = density
                     )
                 }
                 if (session.trailPoints.size >= 2 &&
@@ -419,7 +419,7 @@ internal fun FloatingPointerDisplay(
                         settings = settings,
                         lifespanMs = lifespanMs,
                         nowMs = now,
-                        trailColorArgb = settings.floatingPointerTrailColorArgb,
+                        trailColorArgb = settings.floatingPointerTrailColorArgb
                     )
                 }
                 if (settings.floatingPointerClickVisualFeedbackEnabled && rippleProgress.value > 0.001f) {
@@ -428,7 +428,7 @@ internal fun FloatingPointerDisplay(
                         center = Offset(session.rippleCenterX.floatValue, session.rippleCenterY.floatValue),
                         progress = rippleProgress.value,
                         rippleColor = Color(settings.floatingPointerRippleColorArgb),
-                        rippleSizePx = rippleSizePx,
+                        rippleSizePx = rippleSizePx
                     )
                 }
                 val recorderProgress = gestureRecorderProgress.value
@@ -447,7 +447,7 @@ internal fun FloatingPointerDisplay(
                             fillColor = Color(settings.floatingPointerFillColorArgb),
                             dotColor = Color(settings.floatingPointerDotColorArgb),
                             visibilityAlpha = 1f,
-                            sizeScale = 1f,
+                            sizeScale = 1f
                         )
                     }
                     showPointer || pointerDrawAlpha.value > 0.001f -> {
@@ -462,7 +462,7 @@ internal fun FloatingPointerDisplay(
                                 pointerClickAnim.value
                             } else {
                                 0f
-                            },
+                            }
                         )
                     }
                 }
@@ -473,7 +473,7 @@ internal fun FloatingPointerDisplay(
                         innerColor = Color(settings.floatingPointerJoystickInnerColorArgb),
                         outerColor = Color(settings.floatingPointerJoystickOuterColorArgb),
                         gradientRadiusFraction = settings.floatingPointerJoystickGradientRadiusFraction,
-                        pressed = joystickActive && !radialMenuActive,
+                        pressed = joystickActive && !radialMenuActive
                     )
                 }
                 if (radialMenuProgress > 0.01f) {
@@ -494,7 +494,7 @@ internal fun FloatingPointerDisplay(
                             settings = settings,
                             slots = settings.floatingPointerRadialSlotActions,
                             highlightedSlot = highlightedSlot,
-                            visibilityProgress = radialMenuProgress,
+                            visibilityProgress = radialMenuProgress
                         )
                     }
                 }
@@ -511,7 +511,7 @@ internal fun FloatingPointerDisplay(
                     drawGestureRecorderTrail(
                         trailPoints = recorderTrailPoints,
                         color = Color(DefaultGestureRecorderColorArgb),
-                        strokeWidthPx = settings.floatingPointerDotDiameterPx,
+                        strokeWidthPx = settings.floatingPointerDotDiameterPx
                     )
                 }
             }

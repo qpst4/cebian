@@ -52,7 +52,7 @@ fun CornerGestureSlotEditorHost(
     slotIndex: Int,
     cornerTitle: String,
     onExit: () -> Unit,
-    settingsRepository: SettingsRepository,
+    settingsRepository: SettingsRepository
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -114,8 +114,8 @@ fun CornerGestureSlotEditorHost(
             saveSubMenuConfig(
                 subMenuConfig.copy(
                     enabled = true,
-                    items = subMenuConfig.items + shortcut,
-                ),
+                    items = subMenuConfig.items + shortcut
+                )
             )
         }
     }
@@ -180,12 +180,12 @@ fun CornerGestureSlotEditorHost(
                         saveSubMenuConfig(
                             subMenuConfig.copy(
                                 enabled = true,
-                                items = subMenuConfig.items + shortcuts,
-                            ),
+                                items = subMenuConfig.items + shortcuts
+                            )
                         )
                     }
                 },
-                canImportFromHost = hostPackage != null,
+                canImportFromHost = hostPackage != null
             )
         }
 
@@ -205,7 +205,7 @@ fun CornerGestureSlotEditorHost(
                 onOpenPickApp = { page = CornerSlotEditorPage.ActionPickPickApp },
                 onOpenExecuteShellCommand = { command ->
                     page = CornerSlotEditorPage.ShellCommand(command)
-                },
+                }
             )
         }
 
@@ -216,7 +216,7 @@ fun CornerGestureSlotEditorHost(
                 onBrowseNewShortcut = { page = CornerSlotEditorPage.ActionPickPickApp },
                 currentAction = currentAction,
                 onSelectRadio = { action -> saveCornerAction(action) },
-                overlayMode = true,
+                overlayMode = true
             )
         }
 
@@ -229,7 +229,7 @@ fun CornerGestureSlotEditorHost(
                         saveCornerAction(action)
                     }
                 },
-                overlayMode = true,
+                overlayMode = true
             )
         }
 
@@ -239,7 +239,7 @@ fun CornerGestureSlotEditorHost(
                 onBack = { page = CornerSlotEditorPage.ActionPick },
                 onSelectApp = { app ->
                     page = CornerSlotEditorPage.ActionPickPickActivity(app.packageName)
-                },
+                }
             )
         }
 
@@ -251,9 +251,9 @@ fun CornerGestureSlotEditorHost(
                 onSelectActivity = { activity ->
                     val component = "${activity.packageName}/${activity.className}"
                     saveCornerAction(
-                        GestureAction.LaunchShortcut.component(component, activity.label),
+                        GestureAction.LaunchShortcut.component(component, activity.label)
                     )
-                },
+                }
             )
         }
 
@@ -265,7 +265,7 @@ fun CornerGestureSlotEditorHost(
                 onAddShortcut = appendSubMenuShortcut,
                 onOpenMyShortcuts = { page = CornerSlotEditorPage.SubMenuMyShortcuts },
                 onOpenPresetShortcuts = { page = CornerSlotEditorPage.SubMenuPresetShortcuts },
-                onBrowseActivityShortcut = { page = CornerSlotEditorPage.SubMenuPickApp },
+                onBrowseActivityShortcut = { page = CornerSlotEditorPage.SubMenuPickApp }
             )
         }
 
@@ -283,7 +283,7 @@ fun CornerGestureSlotEditorHost(
                         }
                     }
                 },
-                overlayMode = true,
+                overlayMode = true
             )
         }
 
@@ -308,7 +308,7 @@ fun CornerGestureSlotEditorHost(
                         }
                     }
                 },
-                overlayMode = true,
+                overlayMode = true
             )
         }
 
@@ -318,7 +318,7 @@ fun CornerGestureSlotEditorHost(
                 onBack = { page = CornerSlotEditorPage.SubMenuShortcutPick },
                 onSelectApp = { app ->
                     page = CornerSlotEditorPage.SubMenuPickActivity(app.packageName)
-                },
+                }
             )
         }
 
@@ -330,9 +330,9 @@ fun CornerGestureSlotEditorHost(
                 onSelectActivity = { activity ->
                     val component = "${activity.packageName}/${activity.className}"
                     appendSubMenuShortcut(
-                        GestureAction.LaunchShortcut.component(component, activity.label),
+                        GestureAction.LaunchShortcut.component(component, activity.label)
                     )
-                },
+                }
             )
         }
 
@@ -344,7 +344,7 @@ fun CornerGestureSlotEditorHost(
                 onBack = { page = CornerSlotEditorPage.ActionPick },
                 onConfirm = { command ->
                     saveCornerAction(GestureAction.ExecuteShellCommand(command))
-                },
+                }
             )
         }
     }

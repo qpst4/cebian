@@ -9,7 +9,7 @@ object ShareImageOcrDependencyAccess {
         runCatching {
             EntryPointAccessors.fromApplication(
                 context.applicationContext,
-                AppGraphEntryPoint::class.java,
+                AppGraphEntryPoint::class.java
             ).dependencies().shareImageOcrHistoryRepository
         }.getOrNull()
 }

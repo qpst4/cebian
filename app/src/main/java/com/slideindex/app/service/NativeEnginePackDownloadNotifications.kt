@@ -24,14 +24,14 @@ object NativeEnginePackDownloadNotifications {
             NotificationChannel(
                 CHANNEL_ID,
                 context.getString(R.string.native_engine_download_channel),
-                NotificationManager.IMPORTANCE_LOW,
-            ),
+                NotificationManager.IMPORTANCE_LOW
+            )
         )
     }
 
     fun buildDownloadNotification(
         context: Context,
-        state: NativeEnginePackDownloadState?,
+        state: NativeEnginePackDownloadState?
     ): Notification {
         ensureChannel(context)
         val title = context.getString(R.string.native_engine_download_title)
@@ -60,8 +60,8 @@ object NativeEnginePackDownloadNotifications {
                     context,
                     0,
                     Intent(context, MainActivity::class.java),
-                    PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
-                ),
+                    PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+                )
             )
             .setOngoing(true)
             .setOnlyAlertOnce(true)

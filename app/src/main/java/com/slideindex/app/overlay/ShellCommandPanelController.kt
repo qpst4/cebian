@@ -22,7 +22,7 @@ import com.slideindex.app.util.TaskManagerUtil
 import kotlin.math.ceil
 
 class ShellCommandPanelController(
-    private val host: Host,
+    private val host: Host
 ) {
     interface Host {
         val context: Context
@@ -35,14 +35,14 @@ class ShellCommandPanelController(
             onDismissComplete: () -> Unit,
             onSave: (ShellCommand) -> Unit,
             onDelete: (() -> Unit)?,
-            onTest: (ShellCommand, (Int, String) -> Unit) -> Unit,
+            onTest: (ShellCommand, (Int, String) -> Unit) -> Unit
         )
         fun showResultDialog(
             label: String,
             command: String,
             exitCode: Int,
             output: String,
-            onDismissComplete: () -> Unit,
+            onDismissComplete: () -> Unit
         )
         fun dismissDialogs()
         fun viewWidth(): Int
@@ -60,7 +60,7 @@ class ShellCommandPanelController(
         val command: ShellCommand,
         val cellRect: RectF,
         val bodyRect: RectF,
-        val runRect: RectF,
+        val runRect: RectF
     )
 
     val panelContentRect = RectF()
@@ -116,7 +116,7 @@ class ShellCommandPanelController(
             host.viewHeight().toFloat(),
             Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = Color.argb(scrimAlpha, 0, 0, 0)
-            },
+            }
         )
         val corner = host.dp(24f)
         val scale = 0.9f + 0.1f * progress
@@ -140,7 +140,7 @@ class ShellCommandPanelController(
         event: MotionEvent,
         localX: Float,
         localY: Float,
-        releaseImmediateLock: () -> Boolean,
+        releaseImmediateLock: () -> Boolean
     ): Boolean {
         if (host.isDialogShowing()) return true
         rebuildLayout()
@@ -208,7 +208,7 @@ class ShellCommandPanelController(
                     command = outcome.expandedCommand,
                     exitCode = outcome.exitCode,
                     output = outcome.output,
-                    onDismissComplete = { host.invalidate() },
+                    onDismissComplete = { host.invalidate() }
                 )
             }
         }.start()
@@ -241,7 +241,7 @@ class ShellCommandPanelController(
                     val outcome = ShellCommandRunner.execute(host.context, command)
                     host.post { callback(outcome.exitCode, outcome.output) }
                 }.start()
-            },
+            }
         )
     }
 
@@ -273,7 +273,7 @@ class ShellCommandPanelController(
             panelRect.left + host.dp(16f),
             panelRect.bottom - host.dp(40f),
             panelRect.right - host.dp(16f),
-            panelRect.bottom - host.dp(10f),
+            panelRect.bottom - host.dp(10f)
         )
 
         val gridTop = panelRect.top + headerH + gridTopPad
@@ -291,7 +291,7 @@ class ShellCommandPanelController(
                 command = command,
                 cellRect = cellRect,
                 bodyRect = RectF(cellLeft, cellTop, cellLeft + cellW - runW, cellTop + cellH),
-                runRect = RectF(cellRect.right - runW, cellTop, cellRect.right, cellTop + cellH),
+                runRect = RectF(cellRect.right - runW, cellTop, cellRect.right, cellTop + cellH)
             )
         }
     }
@@ -315,7 +315,7 @@ class ShellCommandPanelController(
                 host.context.getString(R.string.shell_panel_overlay_empty),
                 panelRect.left + host.dp(16f),
                 gridTop + host.dp(24f) - hintPaint.ascent(),
-                hintPaint,
+                hintPaint
             )
         } else {
             cellLayouts.forEachIndexed { index, layout ->
@@ -340,7 +340,7 @@ class ShellCommandPanelController(
             host.context.getString(PrivilegeUiStrings.shellPanelLabelRes()),
             panelRect.left + host.dp(16f),
             panelRect.top + host.dp(22f) - titlePaint.ascent(),
-            titlePaint,
+            titlePaint
         )
         val privileged = TaskManagerUtil.hasPermission()
         val status = if (privileged) {
@@ -352,7 +352,7 @@ class ShellCommandPanelController(
             status,
             panelRect.left + host.dp(16f),
             panelRect.top + host.dp(40f) - statusPaint.ascent(),
-            statusPaint,
+            statusPaint
         )
     }
 
@@ -369,7 +369,7 @@ class ShellCommandPanelController(
             host.context.getString(R.string.shell_panel_add),
             addButtonRect.centerX(),
             addButtonRect.centerY() - (paint.descent() + paint.ascent()) / 2f,
-            paint,
+            paint
         )
     }
 
@@ -379,7 +379,7 @@ class ShellCommandPanelController(
             cell.left + host.dp(2f),
             cell.top + host.dp(2f),
             cell.right - host.dp(2f),
-            cell.bottom - host.dp(2f),
+            cell.bottom - host.dp(2f)
         )
         val corner = host.dp(14f)
         val shadow = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = theme.panelShadow }
@@ -387,7 +387,7 @@ class ShellCommandPanelController(
             RectF(inner.left, inner.top + host.dp(1.5f), inner.right, inner.bottom + host.dp(1.5f)),
             corner,
             corner,
-            shadow,
+            shadow
         )
         val cardBg = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = theme.cardBackground }
         canvas.drawRoundRect(inner, corner, corner, cardBg)
@@ -434,7 +434,7 @@ class ShellCommandPanelController(
             ellipsize(layout.command.label, bodyRight - labelLeft, labelPaint),
             labelLeft,
             cell.top + host.dp(16f) - labelPaint.ascent(),
-            labelPaint,
+            labelPaint
         )
         val cmdMaxWidth = bodyRight - labelLeft
         val cmdLineHeight = cmdPaint.textSize + host.dp(2f)
@@ -449,7 +449,7 @@ class ShellCommandPanelController(
             layout.runRect.left + host.dp(4f),
             layout.runRect.top + host.dp(6f),
             layout.runRect.right - host.dp(4f),
-            layout.runRect.bottom - host.dp(6f),
+            layout.runRect.bottom - host.dp(6f)
         )
         canvas.drawRoundRect(runInner, host.dp(10f), host.dp(10f), runBg)
         val arrowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -462,7 +462,7 @@ class ShellCommandPanelController(
             "›",
             layout.runRect.centerX(),
             layout.runRect.centerY() - (arrowPaint.descent() + arrowPaint.ascent()) / 2f,
-            arrowPaint,
+            arrowPaint
         )
     }
 
@@ -480,14 +480,14 @@ class ShellCommandPanelController(
         rect: RectF,
         corner: Float,
         color: Int,
-        shadowColor: Int,
+        shadowColor: Int
     ) {
         val shadow = Paint(Paint.ANTI_ALIAS_FLAG).apply { this.color = shadowColor }
         canvas.drawRoundRect(
             RectF(rect.left, rect.top + host.dp(2f), rect.right, rect.bottom + host.dp(2f)),
             corner,
             corner,
-            shadow,
+            shadow
         )
         val fill = Paint(Paint.ANTI_ALIAS_FLAG).apply { this.color = color }
         canvas.drawRoundRect(rect, corner, corner, fill)
@@ -546,13 +546,13 @@ class ShellCommandPanelController(
             val label = layout.command.label.ifBlank { layout.command.command }
             nodes += OverlayVirtualNode(
                 description = context.getString(R.string.cd_overlay_shell_command_run, label),
-                boundsInParent = RectF(layout.cellRect),
+                boundsInParent = RectF(layout.cellRect)
             )
         }
         if (!addButtonRect.isEmpty) {
             nodes += OverlayVirtualNode(
                 description = context.getString(R.string.shell_panel_add),
-                boundsInParent = RectF(addButtonRect),
+                boundsInParent = RectF(addButtonRect)
             )
         }
         return nodes

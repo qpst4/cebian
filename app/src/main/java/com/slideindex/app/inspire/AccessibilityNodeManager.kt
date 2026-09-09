@@ -26,7 +26,7 @@ object AccessibilityNodeManager {
 
     suspend fun getScreenContent(
         service: AccessibilityService,
-        rect: Rect,
+        rect: Rect
     ): List<ScreenContentNode> = processAccessibilityNodesInParallel(
         service = service,
         nodeProcessor = { node, bounds ->
@@ -41,13 +41,13 @@ object AccessibilityNodeManager {
         },
         nodeFilter = { _, bounds ->
             Rect.intersects(rect, bounds) || bounds.contains(rect)
-        },
+        }
     )
 
     private suspend fun <T> processAccessibilityNodesInParallel(
         service: AccessibilityService,
         nodeProcessor: suspend (AccessibilityNodeInfo, Rect) -> T?,
-        nodeFilter: (AccessibilityNodeInfo, Rect) -> Boolean,
+        nodeFilter: (AccessibilityNodeInfo, Rect) -> Boolean
     ): List<T> = withContext(Dispatchers.Default) {
         val roots = getNeedWindowsRoot(service)
         val workerCount = min(max(Runtime.getRuntime().availableProcessors(), 1), 4)
@@ -66,7 +66,7 @@ object AccessibilityNodeManager {
         workerCount: Int,
         computeDispatcher: kotlinx.coroutines.CoroutineDispatcher,
         nodeProcessor: suspend (AccessibilityNodeInfo, Rect) -> T?,
-        nodeFilter: (AccessibilityNodeInfo, Rect) -> Boolean,
+        nodeFilter: (AccessibilityNodeInfo, Rect) -> Boolean
     ): List<T> = coroutineScope {
         val results = List(workerCount) { mutableListOf<T>() }
         val nodeChannel = Channel<Pair<AccessibilityNodeInfo, Rect>>(capacity = Channel.UNLIMITED)
@@ -124,16 +124,16 @@ object AccessibilityNodeManager {
         extras.putInt(AccessibilityNodeInfoCompat.EXTRA_DATA_TEXT_CHARACTER_LOCATION_ARG_START_INDEX, 0)
         extras.putInt(
             AccessibilityNodeInfoCompat.EXTRA_DATA_TEXT_CHARACTER_LOCATION_ARG_LENGTH,
-            text.length,
+            text.length
         )
         nodeInfo.refreshWithExtraData(
             AccessibilityNodeInfoCompat.EXTRA_DATA_TEXT_CHARACTER_LOCATION_KEY,
-            extras,
+            extras
         )
         val builder = StringBuilder()
         val parcelableArray = BundleParcelCompat.getParcelableArray(
             nodeInfo.extras,
-            AccessibilityNodeInfoCompat.EXTRA_DATA_TEXT_CHARACTER_LOCATION_KEY,
+            AccessibilityNodeInfoCompat.EXTRA_DATA_TEXT_CHARACTER_LOCATION_KEY
         )
         if (parcelableArray != null) {
             parcelableArray.forEachIndexed { index, parcelable ->
@@ -166,7 +166,7 @@ object AccessibilityNodeManager {
             rect.left.coerceIn(0, bitmap.width),
             rect.top.coerceIn(0, bitmap.height),
             rect.right.coerceIn(0, bitmap.width),
-            rect.bottom.coerceIn(0, bitmap.height),
+            rect.bottom.coerceIn(0, bitmap.height)
         )
         if (safe.width() <= 0 || safe.height() <= 0) return null
         return try {

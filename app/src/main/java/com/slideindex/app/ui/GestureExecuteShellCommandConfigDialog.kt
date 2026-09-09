@@ -25,8 +25,7 @@ import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.shell.ShellCommand
 import com.slideindex.app.ui.miuix.MiuixHintText
 import com.slideindex.app.ui.miuix.MiuixLabeledTextField
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
-import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import top.yukonga.miuix.kmp.basic.SmallTitle
 import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingsCardRow
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
@@ -47,7 +46,7 @@ fun GestureExecuteShellCommandScreen(
     onConfirm: (String) -> Unit,
     embedInParentChrome: Boolean = false,
     overlayMode: Boolean = false,
-    enableBackHandler: Boolean = true,
+    enableBackHandler: Boolean = true
 ) {
     var command by remember(initialCommand) { mutableStateOf(initialCommand) }
     val canSave = command.isNotBlank()
@@ -62,7 +61,7 @@ fun GestureExecuteShellCommandScreen(
     val shortcutPickCard = settingsCardItems(shellCommands) {
         ShellCommandPanelShortcutPickSection(
             shellCommands = shellCommands,
-            onPick = handlePickPreset,
+            onPick = handlePickPreset
         )
     }
 
@@ -77,7 +76,7 @@ fun GestureExecuteShellCommandScreen(
                 maxLines = 6,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 6.dp),
+                    .padding(horizontal = 12.dp, vertical = 6.dp)
             )
         }
     }
@@ -88,23 +87,19 @@ fun GestureExecuteShellCommandScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             if (shellCommands.isNotEmpty()) {
-                MiuixSmallTitle(
+                SmallTitle(
                     text = stringResource(R.string.quick_launcher_shell_shortcuts_section),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 4.dp),
+                    modifier = Modifier.fillMaxWidth(),
                 )
                 shortcutPickCard.RenderRows()
             }
 
-            MiuixSmallTitle(
+            SmallTitle(
                 text = stringResource(R.string.shell_panel_command_field),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = if (shellCommands.isNotEmpty()) MiuixSmallTitleSectionTop else 4.dp),
+                modifier = Modifier.fillMaxWidth(),
             )
             MiuixCard(modifier = Modifier.fillMaxWidth()) {
                 MiuixLabeledTextField(
@@ -114,12 +109,12 @@ fun GestureExecuteShellCommandScreen(
                     singleLine = false,
                     minLines = 3,
                     maxLines = 6,
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
                 )
             }
             MiuixHintText(
                 text = stringResource(R.string.gesture_shell_command_config_hint),
-                modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
+                modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
             )
 
             Button(
@@ -127,11 +122,11 @@ fun GestureExecuteShellCommandScreen(
                 enabled = canSave,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 12.dp, bottom = 16.dp),
+                    .padding(top = 12.dp, bottom = 16.dp)
             ) {
                 Text(
                     text = stringResource(R.string.shell_panel_save),
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Bold
                 )
             }
         }
@@ -149,20 +144,19 @@ fun GestureExecuteShellCommandScreen(
         actions = {
             top.yukonga.miuix.kmp.basic.IconButton(
                 onClick = { onConfirm(command.trim()) },
-                enabled = canSave,
+                enabled = canSave
             ) {
                 top.yukonga.miuix.kmp.basic.Icon(
                     imageVector = Icons.Default.Check,
-                    contentDescription = stringResource(R.string.shell_panel_save),
+                    contentDescription = stringResource(R.string.shell_panel_save)
                 )
             }
-        },
+        }
     ) {
         if (shellCommands.isNotEmpty()) {
             settingsLazySmallTitle(
                 key = "shell_shortcuts_title",
-                title = shortcutsSectionTitle,
-                sectionTop = false,
+                title = shortcutsSectionTitle
             )
             LazySettingsItem(key = "shell-panel-shortcuts") {
                 shortcutPickCard.RenderRows()
@@ -171,8 +165,7 @@ fun GestureExecuteShellCommandScreen(
 
         settingsLazySmallTitle(
             key = "custom_shell_command_title",
-            title = customSectionTitle,
-            sectionTop = shellCommands.isNotEmpty(),
+            title = customSectionTitle
         )
         LazySettingsItem(key = "gesture-shell-command-config") {
             customCommandCard.RenderRows()
@@ -180,7 +173,7 @@ fun GestureExecuteShellCommandScreen(
         LazySettingsItem(key = "gesture-shell-command-hint") {
             MiuixHintText(
                 text = stringResource(R.string.gesture_shell_command_config_hint),
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
             )
         }
     }
@@ -190,7 +183,7 @@ fun GestureExecuteShellCommandScreen(
 fun GestureExecuteShellCommandConfigSection(
     command: String,
     onCommandChange: (String) -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         MiuixLabeledTextField(
@@ -199,13 +192,13 @@ fun GestureExecuteShellCommandConfigSection(
             label = stringResource(R.string.shell_panel_command_field),
             singleLine = false,
             minLines = 3,
-            maxLines = 6,
+            maxLines = 6
         )
         Text(
             text = stringResource(R.string.gesture_shell_command_config_hint),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = 8.dp),
+            modifier = Modifier.padding(top = 8.dp)
         )
     }
 }
@@ -215,5 +208,5 @@ fun gestureActionNeedsShellCommandConfig(action: GestureAction): Boolean =
 
 fun gestureExecuteShellCommandPreview(command: String, maxLength: Int = 40): String =
     command.lineSequence().firstOrNull().orEmpty().trim().let { line ->
-        if (line.length <= maxLength) line else line.take(maxLength) + "…"
+        if (line.length <= maxLength) line else line.take(maxLength) + "?"
     }

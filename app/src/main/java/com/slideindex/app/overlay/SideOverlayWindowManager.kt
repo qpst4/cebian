@@ -13,7 +13,7 @@ import com.slideindex.app.settings.triggerHandles
 import com.slideindex.app.util.OverlayBrightnessControl
 
 internal class SideOverlayWindowManager(
-    private val ctrl: SideOverlayController,
+    private val ctrl: SideOverlayController
 ) {
     private val context get() = ctrl.context
     private val side get() = ctrl.side
@@ -148,14 +148,14 @@ internal class SideOverlayWindowManager(
         syncCaptureWindows(
             presentation = presentation,
             forceLayout = true,
-            applyToWindowManager = !edgeOverlayDetached,
+            applyToWindowManager = !edgeOverlayDetached
         )
         ctrl.syncRuntimeVisuals()
     }
 
     private fun captureTouchHandler(
         presentation: EdgeGestureOverlayView,
-        triggerIndex: Int,
+        triggerIndex: Int
     ): (android.view.MotionEvent) -> Boolean = { event ->
         if (ctrl.settings.triggerHandles(side).isEmpty()) {
             false
@@ -329,7 +329,7 @@ internal class SideOverlayWindowManager(
     fun syncCaptureWindows(
         presentation: EdgeGestureOverlayView,
         forceLayout: Boolean = false,
-        applyToWindowManager: Boolean = true,
+        applyToWindowManager: Boolean = true
     ) {
         if (!forceLayout && overlayLayoutSuspended()) return
         if (presentation.presentationShouldPassthroughTouches()) {
@@ -369,7 +369,7 @@ internal class SideOverlayWindowManager(
 
     private fun syncTouchCaptureWindows(
         presentation: EdgeGestureOverlayView,
-        applyToWindowManager: Boolean = true,
+        applyToWindowManager: Boolean = true
     ) {
         val bounds = computeCaptureWindowBounds()
         val handles = ctrl.settings.triggerHandles(side)
@@ -416,10 +416,10 @@ internal class SideOverlayWindowManager(
     private fun applyCaptureChrome(capture: EdgeTouchCaptureView, design: TriggerHandleDesign?) {
         capture.applyVisual(
             design = design ?: TriggerHandleDesign(),
-            visible = ctrl.shouldShowRuntimeVisuals(),
+            visible = ctrl.shouldShowRuntimeVisuals()
         )
         capture.setExcludeSystemGestures(
-            !side.isVerticalEdge && ctrl.settings.interceptSystemBackGesture,
+            !side.isVerticalEdge && ctrl.settings.interceptSystemBackGesture
         )
     }
 
@@ -442,12 +442,12 @@ internal class SideOverlayWindowManager(
             side = side,
             screenWidthPx = ctrl.screenWidthPx,
             screenHeightPx = ctrl.screenHeightPx,
-            density = ctrl.density,
+            density = ctrl.density
         )
 
     private fun applyPresentationTouchFlags(
         view: EdgeGestureOverlayView,
-        params: WindowManager.LayoutParams,
+        params: WindowManager.LayoutParams
     ) {
         if (view.needsPresentationDirectTouch()) {
             val panelOpen = view.panelMode() != OverlayPanelMode.NONE
@@ -468,7 +468,7 @@ internal class SideOverlayWindowManager(
 
     private fun applyCaptureLayout(
         params: WindowManager.LayoutParams,
-        bounds: CollapsedWindowBounds,
+        bounds: CollapsedWindowBounds
     ) {
         params.width = bounds.widthPx
         params.height = bounds.heightPx
@@ -544,7 +544,7 @@ internal class SideOverlayWindowManager(
     private fun bringWindowToFront(
         view: View,
         params: WindowManager.LayoutParams,
-        forceReAdd: Boolean,
+        forceReAdd: Boolean
     ) {
         OverlayWindowTypes.ensureNoBrightnessOverride(params)
         if (!view.isAttachedToWindow) {
@@ -578,7 +578,7 @@ internal class SideOverlayWindowManager(
 
     internal data class CaptureWindow(
         val view: View,
-        var params: WindowManager.LayoutParams,
+        var params: WindowManager.LayoutParams
     )
 
     companion object {

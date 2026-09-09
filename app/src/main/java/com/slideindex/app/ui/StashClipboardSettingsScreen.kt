@@ -46,6 +46,7 @@ import com.slideindex.app.ui.settings.components.SettingSwitchRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 import com.slideindex.app.ui.settings.components.settingsLazyHint
+import com.slideindex.app.ui.settings.components.settingsLazyTipCard
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import kotlin.math.roundToInt
 
@@ -75,10 +76,8 @@ fun StashClipboardSettingsScreen(
         settingsLazySmallTitle(
             key = "stash-section",
             title = stashSectionTitle,
-            sectionTop = true,
         )
-        settingsLazyHint(
-            key = "stash-desc",
+        settingsLazyTipCard(key = "stash-desc",
             text = stashDesc,
         )
         groupedCardItems(
@@ -101,7 +100,6 @@ fun StashClipboardSettingsScreen(
         settingsLazySmallTitle(
             key = "stash-clipboard-nav-section",
             title = navSectionTitle,
-            sectionTop = true,
         )
         groupedCardItems(
             keyPrefix = "stash-clipboard-nav",
@@ -244,7 +242,6 @@ fun ClipboardHistorySettingsScreen(
         settingsLazySmallTitle(
             key = "clipboard-history-section",
             title = historySectionTitle,
-            sectionTop = true,
         )
         groupedCardItems(
             keyPrefix = "clipboard-history",
@@ -279,7 +276,6 @@ fun ClipboardHistorySettingsScreen(
         settingsLazySmallTitle(
             key = "clipboard-screenshot-section",
             title = screenshotSectionTitle,
-            sectionTop = true,
         )
         groupedCardItems(
             keyPrefix = "clipboard-screenshot",
@@ -331,7 +327,6 @@ fun ClipboardHistorySettingsScreen(
         settingsLazySmallTitle(
             key = "clipboard-background-section",
             title = backgroundSectionTitle,
-            sectionTop = true,
         )
         groupedCardItems(
             keyPrefix = "clipboard-background",
@@ -474,7 +469,6 @@ fun StashPanelSettingsScreen(
         settingsLazySmallTitle(
             key = "stash-appearance-section",
             title = appearanceSectionTitle,
-            sectionTop = true,
         )
         groupedCardItems(
             keyPrefix = "stash-appearance",
@@ -507,7 +501,6 @@ fun StashPanelSettingsScreen(
         settingsLazySmallTitle(
             key = "clipboard-float-section",
             title = floatSectionTitle,
-            sectionTop = true,
         )
         if (!overlayPermissionGranted) {
             settingsLazyHint(

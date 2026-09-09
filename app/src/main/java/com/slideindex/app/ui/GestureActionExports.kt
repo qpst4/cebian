@@ -28,7 +28,7 @@ fun gestureActionRequirementHint(action: GestureAction): String? =
 fun filterGestureActions(
     context: Context,
     actions: List<GestureAction>,
-    query: String,
+    query: String
 ): List<GestureAction> = com.slideindex.app.ui.gesturepicker.filterGestureActions(context, actions, query)
 
 fun requestPermissionForAdjustAction(context: Context, action: GestureAction) =

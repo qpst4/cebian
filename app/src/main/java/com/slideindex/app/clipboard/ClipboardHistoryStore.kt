@@ -13,7 +13,7 @@ import kotlinx.serialization.json.Json
  */
 internal class ClipboardHistoryStore(
     context: Context,
-    private val json: Json,
+    private val json: Json
 ) {
     private val openHelper = StoreOpenHelper(context.applicationContext, json)
 
@@ -42,7 +42,7 @@ internal class ClipboardHistoryStore(
             null,
             null,
             "$COL_CREATED DESC",
-            pageSize.toString(),
+            pageSize.toString()
         ).use { cursor ->
             buildList {
                 while (cursor.moveToNext()) {
@@ -66,7 +66,7 @@ internal class ClipboardHistoryStore(
             null,
             null,
             null,
-            "1",
+            "1"
         ).use { cursor ->
             if (!cursor.moveToFirst()) null else decodeEntry(cursor.getString(0))
         }
@@ -84,7 +84,7 @@ internal class ClipboardHistoryStore(
             null,
             null,
             null,
-            null,
+            null
         ).use { cursor ->
             buildMap {
                 while (cursor.moveToNext()) {
@@ -174,7 +174,7 @@ internal class ClipboardHistoryStore(
                     LIMIT -1 OFFSET ?
                 )
                 """.trimIndent(),
-            arrayOf(max.toString()),
+            arrayOf(max.toString())
         ).use { cursor ->
             buildList {
                 while (cursor.moveToNext()) {
@@ -209,7 +209,7 @@ internal class ClipboardHistoryStore(
         val db = readableDatabase
         val ids = db.rawQuery(
             "SELECT $FTS_COL_ENTRY_ID FROM $FTS_TABLE WHERE $FTS_COL_SEARCH_TEXT MATCH ? LIMIT ?",
-            arrayOf(match, limit.toString()),
+            arrayOf(match, limit.toString())
         ).use { cursor ->
             buildList {
                 while (cursor.moveToNext()) {
@@ -231,7 +231,7 @@ internal class ClipboardHistoryStore(
             null,
             null,
             "$COL_CREATED DESC",
-            limit.toString(),
+            limit.toString()
         ).use { cursor ->
             buildList {
                 while (cursor.moveToNext()) {
@@ -289,7 +289,7 @@ internal class ClipboardHistoryStore(
             null,
             null,
             "$COL_CREATED DESC",
-            limit?.toString(),
+            limit?.toString()
         ).use { cursor ->
             buildList {
                 while (cursor.moveToNext()) {
@@ -334,12 +334,12 @@ internal class ClipboardHistoryStore(
 
     private class StoreOpenHelper(
         context: Context,
-        private val json: Json,
+        private val json: Json
     ) : SQLiteOpenHelper(
         context,
         DB_NAME,
         null,
-        DB_VERSION,
+        DB_VERSION
     ) {
         var ftsEnabled: Boolean = false
             private set
@@ -389,7 +389,7 @@ internal class ClipboardHistoryStore(
                     $COL_HAS_IMAGE INTEGER NOT NULL DEFAULT 0,
                     $COL_JSON TEXT NOT NULL
                 )
-                """.trimIndent(),
+                """.trimIndent()
             )
         }
 
@@ -400,7 +400,7 @@ internal class ClipboardHistoryStore(
                     $META_COL_KEY TEXT PRIMARY KEY NOT NULL,
                     $META_COL_VALUE TEXT NOT NULL
                 )
-                """.trimIndent(),
+                """.trimIndent()
             )
         }
 
@@ -412,7 +412,7 @@ internal class ClipboardHistoryStore(
                     $FTS_COL_SEARCH_TEXT,
                     tokenize='unicode61'
                 )
-                """.trimIndent(),
+                """.trimIndent()
             )
         }
 
@@ -425,11 +425,11 @@ internal class ClipboardHistoryStore(
         private fun createDedupIndexes(db: SQLiteDatabase) {
             db.execSQL(
                 "CREATE INDEX IF NOT EXISTS idx_${TABLE}_fingerprint_created " +
-                    "ON $TABLE($COL_FINGERPRINT, $COL_CREATED DESC)",
+                    "ON $TABLE($COL_FINGERPRINT, $COL_CREATED DESC)"
             )
             db.execSQL(
                 "CREATE INDEX IF NOT EXISTS idx_${TABLE}_content_key_created " +
-                    "ON $TABLE($COL_CONTENT_KEY, $COL_CREATED DESC)",
+                    "ON $TABLE($COL_CONTENT_KEY, $COL_CREATED DESC)"
             )
         }
 
@@ -490,7 +490,7 @@ internal class ClipboardHistoryStore(
                 null,
                 null,
                 null,
-                "1",
+                "1"
             ).use { cursor ->
                 if (!cursor.moveToFirst()) return false
                 return cursor.getString(0) == META_VALUE_TRUE
@@ -500,7 +500,7 @@ internal class ClipboardHistoryStore(
         private fun metaTableExists(db: SQLiteDatabase): Boolean =
             db.rawQuery(
                 "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
-                arrayOf(META_TABLE),
+                arrayOf(META_TABLE)
             ).use { it.moveToFirst() }
 
         private fun backfillDedupColumns(db: SQLiteDatabase) {

@@ -12,7 +12,7 @@ object ShellCommandResultTrampoline {
         val label: String,
         val command: String,
         val exitCode: Int,
-        val output: String,
+        val output: String
     )
 
     @Volatile
@@ -28,7 +28,7 @@ object ShellCommandResultTrampoline {
         context: Context,
         result: Payload,
         onPrepare: () -> Unit,
-        onDismiss: () -> Unit,
+        onDismiss: () -> Unit
     ) {
         cancelPending()
         active = true
@@ -37,7 +37,7 @@ object ShellCommandResultTrampoline {
         this.onDismiss = onDismiss
         runCatching {
             context.startActivity(
-                ShellCommandResultTrampolineActivity.createIntent(context),
+                ShellCommandResultTrampolineActivity.createIntent(context)
             )
         }.onFailure {
             deliverDismiss()

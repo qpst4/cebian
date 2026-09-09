@@ -20,14 +20,14 @@ object ActivityShortcutLauncher {
         context: Context,
         shortcut: ActivityShortcut,
         settings: AppSettings,
-        longPressTriggered: Boolean = false,
+        longPressTriggered: Boolean = false
     ): Boolean = when (shortcut.kind) {
         ActivityShortcutKind.COMPONENT -> launch(
             context = context,
             packageName = shortcut.packageName,
             activityClassName = shortcut.activityClassName,
             settings = settings,
-            longPressTriggered = longPressTriggered,
+            longPressTriggered = longPressTriggered
         )
         ActivityShortcutKind.DYNAMIC -> launchDynamic(context, shortcut, settings, longPressTriggered)
         ActivityShortcutKind.INTENT -> launchIntents(context, shortcut, settings, longPressTriggered)
@@ -38,7 +38,7 @@ object ActivityShortcutLauncher {
         packageName: String,
         activityClassName: String,
         settings: AppSettings,
-        longPressTriggered: Boolean = false,
+        longPressTriggered: Boolean = false
     ): Boolean {
         if (packageName.isBlank() || activityClassName.isBlank()) return false
         return if (PackageActivityResolver.isActivityExported(context, packageName, activityClassName)) {
@@ -55,12 +55,12 @@ object ActivityShortcutLauncher {
         context: Context,
         shortcut: ActivityShortcut,
         settings: AppSettings,
-        longPressTriggered: Boolean,
+        longPressTriggered: Boolean
     ): Boolean {
         val item = QuickLauncherItem.dynamicShortcut(
             packageName = shortcut.packageName,
             shortcutId = shortcut.shortcutId,
-            label = shortcut.label,
+            label = shortcut.label
         )
         AppShortcutLoader.warmQuickLauncherShortcuts(context, listOf(item))
         val resolved = AppShortcutLoader.peekResolvedShortcut(shortcut.packageName, shortcut.shortcutId)
@@ -79,7 +79,7 @@ object ActivityShortcutLauncher {
         context: Context,
         shortcut: ActivityShortcut,
         settings: AppSettings,
-        longPressTriggered: Boolean,
+        longPressTriggered: Boolean
     ): Boolean {
         for (uri in shortcut.intentUris) {
             if (ActivityShortcutShellSupport.isShellUri(uri)) {
@@ -89,8 +89,8 @@ object ActivityShortcutLauncher {
                         context = context,
                         command = com.slideindex.app.shell.ShellCommand(
                             label = shortcut.label,
-                            command = command,
-                        ),
+                            command = command
+                        )
                     )
                     return true
                 }
@@ -114,7 +114,7 @@ object ActivityShortcutLauncher {
         NonExportedActivityLauncher.launch(
             context = context,
             packageName = packageName,
-            activityName = activityClassName,
+            activityName = activityClassName
         ) { success ->
             if (!success) {
                 Toast.makeText(context, R.string.float_ball_action_failed, Toast.LENGTH_SHORT).show()
@@ -127,7 +127,7 @@ object ActivityShortcutLauncher {
         context: Context,
         intent: Intent,
         settings: AppSettings,
-        longPressTriggered: Boolean,
+        longPressTriggered: Boolean
     ): Boolean {
         return runCatching {
             val fullscreen = settings.shouldLaunchFullscreen(longPressTriggered)

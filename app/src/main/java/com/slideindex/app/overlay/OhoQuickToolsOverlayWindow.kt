@@ -72,7 +72,7 @@ object OhoQuickToolsOverlayWindow {
         context: Context,
         settings: AppSettings,
         side: PanelSide? = null,
-        anchorRawY: Float? = null,
+        anchorRawY: Float? = null
     ): Boolean {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             var result = false
@@ -123,7 +123,7 @@ object OhoQuickToolsOverlayWindow {
                     side = panelSide.value,
                     anchorRawY = anchorY.value,
                     onDismissOutside = { dismiss() },
-                    onEvent = { event -> handleEvent(settingsHolder.value, event) },
+                    onEvent = { event -> handleEvent(settingsHolder.value, event) }
                 )
             }
         }
@@ -217,7 +217,7 @@ object OhoQuickToolsOverlayWindow {
             WindowManager.LayoutParams.MATCH_PARENT,
             OverlayWindowTypes.overlayWindowType(context),
             flags,
-            PixelFormat.TRANSLUCENT,
+            PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.TOP or Gravity.START
             layoutInDisplayCutoutMode =
@@ -270,7 +270,7 @@ object OhoQuickToolsOverlayWindow {
         side: PanelSide?,
         anchorRawY: Float?,
         onDismissOutside: () -> Unit,
-        onEvent: (OhoPanelEvent) -> Unit,
+        onEvent: (OhoPanelEvent) -> Unit
     ) {
         SlideIndexTheme(settings = settings) {
             val density = LocalDensity.current
@@ -310,12 +310,12 @@ object OhoQuickToolsOverlayWindow {
                                     Modifier.clickable(
                                         interactionSource = remember { MutableInteractionSource() },
                                         indication = null,
-                                        onClick = onDismissOutside,
+                                        onClick = onDismissOutside
                                     )
                                 } else {
                                     Modifier
-                                },
-                            ),
+                                }
+                            )
                     )
                 }
 
@@ -337,22 +337,22 @@ object OhoQuickToolsOverlayWindow {
                                 PanelSide.BOTTOM -> Modifier.padding(bottom = horizontalPadding)
                                 PanelSide.TOP -> Modifier.padding(top = horizontalPadding)
                                 null -> Modifier
-                            },
+                            }
                         )
                         .then(
                             if (side != null && anchorRawY != null) {
                                 Modifier.offset { IntOffset(0, topOffsetPx) }
                             } else {
                                 Modifier
-                            },
+                            }
                         )
-                        .onSizeChanged { panelHeightPx = it.height },
+                        .onSizeChanged { panelHeightPx = it.height }
                 ) {
                     OhoQuickToolsPanel(
                         state = state,
                         visible = visible,
                         side = side,
-                        onEvent = onEvent,
+                        onEvent = onEvent
                     )
                 }
             }

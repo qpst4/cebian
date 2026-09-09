@@ -50,7 +50,7 @@ data class ActivityHistoryRecord(
     val timeFormatted: String,
     val packageName: String,
     val className: String,
-    var appLabel: String,
+    var appLabel: String
 )
 
 /**
@@ -145,7 +145,7 @@ object ForegroundActivityInspectorOverlayWindow {
         val cardLayout = buildCardView(app, dp)
         root.addView(cardLayout, FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.MATCH_PARENT,
-            FrameLayout.LayoutParams.WRAP_CONTENT,
+            FrameLayout.LayoutParams.WRAP_CONTENT
         ))
 
         // 绑定平滑拖拽
@@ -168,7 +168,7 @@ object ForegroundActivityInspectorOverlayWindow {
                 pkg = app.getString(R.string.foreground_activity_inspector_waiting),
                 cls = "",
                 label = app.getString(R.string.foreground_activity_inspector_title),
-                icon = null,
+                icon = null
             )
         }
     }
@@ -200,7 +200,7 @@ object ForegroundActivityInspectorOverlayWindow {
             pkg = packageName,
             cls = "",
             label = initialLabel,
-            icon = cachedIcon,
+            icon = cachedIcon
         )
 
         if (cached == null) {
@@ -278,7 +278,7 @@ object ForegroundActivityInspectorOverlayWindow {
             pkg = packageName,
             cls = className,
             label = initialLabel,
-            icon = cachedIcon,
+            icon = cachedIcon
         )
 
         // 6. 记录到历史队列中（仅记录真实有效的 Activity）
@@ -287,7 +287,7 @@ object ForegroundActivityInspectorOverlayWindow {
                 timeFormatted = timeFormat.format(Date()),
                 packageName = packageName,
                 className = className,
-                appLabel = initialLabel,
+                appLabel = initialLabel
             )
             if (historyRecords.size >= 25) {
                 historyRecords.removeFirst()

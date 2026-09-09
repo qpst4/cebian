@@ -33,7 +33,7 @@ class GestureAnimationCoordinator(
 
     private val settingsProvider: () -> AppSettings,
 
-    private val post: (() -> Unit) -> Unit,
+    private val post: (() -> Unit) -> Unit
 
 ) {
 
@@ -223,7 +223,7 @@ class GestureAnimationCoordinator(
         val preferLenientTap = settings.actionFor(
             side,
             GestureTriggerType.SHORT_SINGLE_TAP,
-            handleId,
+            handleId
         ) is GestureAction.ClickPassthrough
         val base = if (preferLenientTap) {
             SwipePathRecognizer.ClassifyOptions.LENIENT_SINGLE_TAP
@@ -233,7 +233,7 @@ class GestureAnimationCoordinator(
         return base.copy(
             isTriggerConfigured = { trigger ->
                 settings.actionFor(side, trigger, handleId) !is GestureAction.None
-            },
+            }
         )
     }
 
@@ -266,7 +266,7 @@ class GestureAnimationCoordinator(
             swipeDirection = direction,
             inwardPx = recognizer.currentInwardPx(),
             currentTrigger = classification?.trigger,
-            currentDistancePx = recognizer.currentSwipeDistancePx(),
+            currentDistancePx = recognizer.currentSwipeDistancePx()
         )
 
     }

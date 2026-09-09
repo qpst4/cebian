@@ -46,7 +46,7 @@ class TaskManagerUserService() : ITaskManagerService.Stub() {
     override fun switchToTask(
         taskIdStr: String?,
         identifier: String?,
-        topComponentStr: String?,
+        topComponentStr: String?
     ): Boolean = tasks.switchToTask(taskIdStr, identifier, topComponentStr)
 
     override fun showVoiceAssistant(): Boolean =
@@ -95,7 +95,7 @@ class TaskManagerUserService() : ITaskManagerService.Stub() {
         left: Int,
         top: Int,
         right: Int,
-        bottom: Int,
+        bottom: Int
     ): Boolean = freeWindow.moveTaskToFreeWindow(taskIdStr, windowingMode, left, top, right, bottom)
 
     companion object {

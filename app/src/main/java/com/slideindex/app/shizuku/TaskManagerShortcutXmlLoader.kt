@@ -10,11 +10,11 @@ import kotlin.math.min
 
 internal class TaskManagerShortcutXmlLoader(
     private val shell: TaskManagerShellExecutor = TaskManagerShellExecutor,
-    private val dumpsysLoader: TaskManagerShortcutDumpsysLoader,
+    private val dumpsysLoader: TaskManagerShortcutDumpsysLoader
 ) {
     fun absorbSystemShortcutXml(
         merged: LinkedHashMap<String, LinkedHashMap<String, String>>,
-        useRoot: Boolean,
+        useRoot: Boolean
     ) {
         val shellRunner = { command: String, root: Boolean, timeout: Long ->
             shortcutShellRead(root, timeout, command)
@@ -71,7 +71,7 @@ internal class TaskManagerShortcutXmlLoader(
 
     fun collectPackageXmlShortcuts(
         packageName: String,
-        useRoot: Boolean,
+        useRoot: Boolean
     ): List<Pair<String, String>> {
         val packageXml = readRootFileBytes(ShortcutSystemXmlParser.packageXmlPath(packageName), useRoot)
             ?: return emptyList()
@@ -82,7 +82,7 @@ internal class TaskManagerShortcutXmlLoader(
 
     private fun readPackageXmlDocumentsParallel(
         paths: List<String>,
-        useRoot: Boolean,
+        useRoot: Boolean
     ): Map<String, ByteArray> {
         if (paths.isEmpty()) return emptyMap()
         val documents = java.util.concurrent.ConcurrentHashMap<String, ByteArray>()
@@ -107,7 +107,7 @@ internal class TaskManagerShortcutXmlLoader(
         Log.i(
             TAG,
             "readPackageXmlDocumentsParallel paths=${paths.size} read=${documents.size} " +
-                "ms=${System.currentTimeMillis() - startedAt}",
+                "ms=${System.currentTimeMillis() - startedAt}"
         )
         return documents.toMap()
     }
@@ -118,7 +118,7 @@ internal class TaskManagerShortcutXmlLoader(
             timeoutMs = ROOT_FILE_READ_TIMEOUT_MS,
             "sh",
             "-c",
-            "ls -1 ${ShortcutSystemXmlParser.SHORTCUT_PACKAGES_DIR}/*.xml 2>/dev/null",
+            "ls -1 ${ShortcutSystemXmlParser.SHORTCUT_PACKAGES_DIR}/*.xml 2>/dev/null"
         ).trim()
         if (output.isBlank() || output.contains("No such file", ignoreCase = true)) return emptyList()
         return output.lineSequence()
@@ -134,19 +134,19 @@ internal class TaskManagerShortcutXmlLoader(
             path = path,
             runner = { command, root, timeout -> shortcutShellRead(root, timeout, command) },
             useRoot = useRoot,
-            timeoutMs = ROOT_FILE_READ_TIMEOUT_MS,
+            timeoutMs = ROOT_FILE_READ_TIMEOUT_MS
         )
 
     fun shellRead(
         useRoot: Boolean,
         timeoutMs: Long,
-        command: String,
+        command: String
     ): ShortcutSystemFileReader.ShellReadResult = shortcutShellRead(useRoot, timeoutMs, command)
 
     private fun shortcutShellRead(
         useRoot: Boolean,
         timeoutMs: Long,
-        command: String,
+        command: String
     ): ShortcutSystemFileReader.ShellReadResult {
         val result = if (useRoot) {
             shell.runAsRootUser(command, timeoutMs)

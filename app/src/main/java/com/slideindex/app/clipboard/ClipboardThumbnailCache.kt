@@ -21,7 +21,7 @@ object ClipboardThumbnailCache {
     fun loadEntryThumbnailsForPreview(
         context: Context,
         entry: ClipboardEntry,
-        maxSidePx: Int,
+        maxSidePx: Int
     ): List<Bitmap> {
         val fileNames = entry.resolvedImageFileNames()
         if (fileNames.isNotEmpty()) {
@@ -40,7 +40,7 @@ object ClipboardThumbnailCache {
         context: Context,
         entry: ClipboardEntry,
         targetWidthPx: Int,
-        maxVisibleHeightPx: Int,
+        maxVisibleHeightPx: Int
     ): List<Bitmap> {
         val fileNames = entry.resolvedImageFileNames()
         if (fileNames.isNotEmpty()) {
@@ -58,7 +58,7 @@ object ClipboardThumbnailCache {
         context: Context,
         fileName: String,
         targetWidthPx: Int,
-        maxVisibleHeightPx: Int,
+        maxVisibleHeightPx: Int
     ): Bitmap? = getOrLoadFileForCard(context, fileName, targetWidthPx, maxVisibleHeightPx)
 
     fun evictEntry(entry: ClipboardEntry) {
@@ -95,7 +95,7 @@ object ClipboardThumbnailCache {
         context: Context,
         fileName: String,
         targetWidthPx: Int,
-        maxVisibleHeightPx: Int,
+        maxVisibleHeightPx: Int
     ): Bitmap? {
         val key = fileCardKey(fileName, targetWidthPx, maxVisibleHeightPx)
         bitmapCache.get(key)?.let { return it }
@@ -103,7 +103,7 @@ object ClipboardThumbnailCache {
             context,
             fileName,
             targetWidthPx,
-            maxVisibleHeightPx,
+            maxVisibleHeightPx
         ) ?: return null
         bitmapCache.put(key, loaded)
         return loaded
@@ -113,7 +113,7 @@ object ClipboardThumbnailCache {
         context: Context,
         uri: String,
         targetWidthPx: Int,
-        maxVisibleHeightPx: Int,
+        maxVisibleHeightPx: Int
     ): Bitmap? {
         val key = uriCardKey(uri, targetWidthPx, maxVisibleHeightPx)
         bitmapCache.get(key)?.let { return it }
@@ -121,7 +121,7 @@ object ClipboardThumbnailCache {
             context,
             uri,
             targetWidthPx,
-            maxVisibleHeightPx,
+            maxVisibleHeightPx
         ) ?: return null
         bitmapCache.put(key, loaded)
         return loaded

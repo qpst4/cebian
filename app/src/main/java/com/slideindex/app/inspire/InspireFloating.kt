@@ -23,7 +23,7 @@ import kotlinx.coroutines.withContext
  */
 @SuppressLint("StaticFieldLeak")
 class InspireFloating private constructor(
-    private val service: SlideIndexAccessibilityService,
+    private val service: SlideIndexAccessibilityService
 ) : BaseFloatingWindow(service, scope, TAG) {
 
     private val layoutParams = WindowManager.LayoutParams()
@@ -32,7 +32,7 @@ class InspireFloating private constructor(
         LayoutInflater.from(service).inflate(
             com.slideindex.app.R.layout.inspire_view,
             parent,
-            false,
+            false
         ) as InspireView
     }
     private var taskJob: Job? = null
@@ -58,7 +58,7 @@ class InspireFloating private constructor(
                         context = service,
                         dragSelectRect = targetRect,
                         ocrFallbackEnabled = appSettings.floatBallOcrFallbackEnabled,
-                        ocrModelId = appSettings.floatBallOcrModelId,
+                        ocrModelId = appSettings.floatBallOcrModelId
                     )
                     val anchorX = targetRect.centerX().toFloat()
                     val anchorY = targetRect.bottom.toFloat()

@@ -1,8 +1,7 @@
 package com.slideindex.app.ui
 
 import com.slideindex.app.ui.miuix.MiuixHintText
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
-import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import top.yukonga.miuix.kmp.basic.SmallTitle
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
@@ -81,7 +80,7 @@ fun MessageReminderAllowedAppsScreen(
                 MiuixHintText(stringResource(R.string.message_reminder_allowed_apps_desc))
             }
             item(key = "section-configured") {
-                MiuixSmallTitle(stringResource(R.string.message_reminder_allowed_apps_section_configured))
+                SmallTitle(stringResource(R.string.message_reminder_allowed_apps_section_configured))
             }
             if (configuredEntries.isEmpty()) {
                 item(key = "configured-empty") {
@@ -114,7 +113,7 @@ fun MessageReminderAllowedAppsScreen(
                 }
             }
             item(key = "section-add") {
-                MiuixSmallTitle(stringResource(R.string.message_reminder_allowed_apps_section_add), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
+                SmallTitle(stringResource(R.string.message_reminder_allowed_apps_section_add), modifier = Modifier.fillMaxWidth())
             }
             when {
                 isLoading -> {

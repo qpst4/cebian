@@ -13,7 +13,7 @@ object ClipboardContentKey {
             intentUri = payload.intentUri,
             htmlText = payload.htmlText,
             mimeType = payload.mimeType,
-            imageUris = payload.resolvedImageUris(),
+            imageUris = payload.resolvedImageUris()
         )
     }
 
@@ -30,7 +30,7 @@ object ClipboardContentKey {
             mimeType = entry.mimeType,
             imageUris = entry.resolvedImageFileNames().ifEmpty {
                 entry.uri?.takeIf { it.isNotBlank() }?.let { listOf(it) } ?: emptyList()
-            },
+            }
         )
     }
 
@@ -47,7 +47,7 @@ object ClipboardContentKey {
             text = payload.text,
             htmlText = payload.htmlText,
             imageFileNames = dummyFiles,
-            imageSources = sources,
+            imageSources = sources
         )
         if (blocks.isEmpty()) return null
         return structuralKey(blocks, payload.uri, sources)
@@ -56,7 +56,7 @@ object ClipboardContentKey {
     private fun structuralKey(
         blocks: List<ClipboardContentBlock>,
         uri: String? = null,
-        sources: List<String> = emptyList(),
+        sources: List<String> = emptyList()
     ): String {
         val imageIdentity = uri
             ?: sources.firstOrNull { it.isNotBlank() }
@@ -78,7 +78,7 @@ object ClipboardContentKey {
         intentUri: String?,
         htmlText: String?,
         mimeType: String?,
-        imageUris: List<String>,
+        imageUris: List<String>
     ): String {
         val normalizedText = textForKey(text)
         val imageIdentity = stableImageIdentity(uri, htmlText, mimeType, imageUris)
@@ -89,7 +89,7 @@ object ClipboardContentKey {
                     ClipboardEntryType.URI -> "u"
                     ClipboardEntryType.INTENT -> "i"
                     ClipboardEntryType.HTML -> "h"
-                },
+                }
             )
             append(':')
             append(normalizedText)
@@ -116,7 +116,7 @@ object ClipboardContentKey {
         uri: String?,
         htmlText: String?,
         mimeType: String?,
-        imageUris: List<String>,
+        imageUris: List<String>
     ): String? {
         val htmlSources = htmlText?.let { ClipboardHtmlParser.imageSources(it) }.orEmpty()
         val allSources = (imageUris + htmlSources).distinct()

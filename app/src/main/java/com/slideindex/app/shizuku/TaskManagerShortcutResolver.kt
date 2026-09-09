@@ -9,7 +9,7 @@ import com.slideindex.app.util.ShortcutSystemFileReader
 
 internal class TaskManagerShortcutResolver(
     private val shell: TaskManagerShellExecutor = TaskManagerShellExecutor,
-    private val preferRoot: Boolean = false,
+    private val preferRoot: Boolean = false
 ) {
     private val dumpsysLoader = TaskManagerShortcutDumpsysLoader(shell)
     private val xmlLoader = TaskManagerShortcutXmlLoader(shell, dumpsysLoader)
@@ -81,12 +81,12 @@ internal class TaskManagerShortcutResolver(
                 useRoot = useRoot,
                 timeoutMs = DUMP_SHORTCUT_FULL_TIMEOUT_MS,
                 "dumpsys",
-                "shortcut",
+                "shortcut"
             )
             val fullHasInfo = fullDump.contains("ShortcutInfo", ignoreCase = true)
             Log.i(
                 TAG,
-                "getAllPublishedShortcuts dumpsys shortcut bytes=${fullDump.length} hasInfo=$fullHasInfo",
+                "getAllPublishedShortcuts dumpsys shortcut bytes=${fullDump.length} hasInfo=$fullHasInfo"
             )
             if (fullHasInfo) {
                 ShortcutShellParser.parseAllPackages(fullDump).forEach { (pkg, entries) ->
@@ -124,13 +124,13 @@ internal class TaskManagerShortcutResolver(
                                 ?: info.longLabel?.toString()?.takeIf { it.isNotBlank() }
                                 ?: id
                             id to label
-                        },
+                        }
                     )
                 }
                 Log.i(
                     TAG,
                     "getAllPublishedShortcuts via system API -> packages=${merged.size} " +
-                        "shortcuts=${merged.values.sumOf { it.size }}",
+                        "shortcuts=${merged.values.sumOf { it.size }}"
                 )
             }
         }
@@ -141,14 +141,14 @@ internal class TaskManagerShortcutResolver(
                 Log.i(
                     TAG,
                     "getAllPublishedShortcuts via system XML (late) -> packages=${merged.size} " +
-                        "shortcuts=${merged.values.sumOf { it.size }}",
+                        "shortcuts=${merged.values.sumOf { it.size }}"
                 )
             }
         }
 
         Log.i(
             TAG,
-            "getAllPublishedShortcuts(root=$useRoot, packages=${merged.size}) -> ${merged.values.sumOf { it.size }}",
+            "getAllPublishedShortcuts(root=$useRoot, packages=${merged.size}) -> ${merged.values.sumOf { it.size }}"
         )
         return toRows()
     }

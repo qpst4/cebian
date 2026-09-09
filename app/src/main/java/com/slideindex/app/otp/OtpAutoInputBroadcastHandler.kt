@@ -29,14 +29,14 @@ object OtpAutoInputBroadcastHandler {
                 root = root,
                 code = request.code,
                 autoEnter = request.autoEnter,
-                inputIntervalMs = request.inputIntervalMs,
+                inputIntervalMs = request.inputIntervalMs
             )
             sendResult(
                 service = service,
                 attemptId = request.attemptId,
                 success = result.success,
                 strategy = result.strategy,
-                reason = result.reason,
+                reason = result.reason
             )
         } finally {
             releaseNode(root)
@@ -48,10 +48,10 @@ object OtpAutoInputBroadcastHandler {
         attemptId: Long,
         success: Boolean,
         strategy: String,
-        reason: String,
+        reason: String
     ) {
         service.sendBroadcast(
-            OtpAutoInputBroadcastContract.buildResultIntent(attemptId, success, strategy, reason),
+            OtpAutoInputBroadcastContract.buildResultIntent(attemptId, success, strategy, reason)
         )
     }
 

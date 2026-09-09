@@ -23,7 +23,7 @@ data class OtpAutoFillStats(
     val lastAttemptAtEpochMs: Long? = null,
     val lastSuccess: Boolean? = null,
     val lastStrategy: String? = null,
-    val lastReason: String? = null,
+    val lastReason: String? = null
 ) {
     val successRatePercent: Int
         get() = if (totalAttempts <= 0) {
@@ -35,7 +35,7 @@ data class OtpAutoFillStats(
 
 @Singleton
 class OtpAutoFillStatsRepository @Inject constructor(
-    @ApplicationContext context: Context,
+    @ApplicationContext context: Context
 ) {
     private val appContext = context.applicationContext
     private val statsFile = File(appContext.filesDir, STATS_FILE_NAME)
@@ -52,7 +52,7 @@ class OtpAutoFillStatsRepository @Inject constructor(
     suspend fun recordAttempt(
         success: Boolean,
         strategy: String,
-        reason: String = "",
+        reason: String = ""
     ) {
         mutex.withLock {
             val current = readFromDisk()
@@ -63,7 +63,7 @@ class OtpAutoFillStatsRepository @Inject constructor(
                 lastAttemptAtEpochMs = System.currentTimeMillis(),
                 lastSuccess = success,
                 lastStrategy = strategy,
-                lastReason = reason.takeIf { it.isNotBlank() },
+                lastReason = reason.takeIf { it.isNotBlank() }
             )
             writeToDisk(updated)
             _stats.value = updated

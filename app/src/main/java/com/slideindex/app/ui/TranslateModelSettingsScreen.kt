@@ -98,7 +98,7 @@ fun TranslateModelSettingsScreen(
             }
         }
 
-        settingsLazySmallTitle(key = "translate-languages-section", title = languagesSectionTitle, sectionTop = true)
+        settingsLazySmallTitle(key = "translate-languages-section", title = languagesSectionTitle)
 
         groupedCardItems(
             keyPrefix = "translate-languages",

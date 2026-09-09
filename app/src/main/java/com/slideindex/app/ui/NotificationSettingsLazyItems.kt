@@ -20,7 +20,7 @@ import com.slideindex.app.ui.miuix.CardItem
 import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.SettingSwitchRow
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
-import com.slideindex.app.ui.settings.components.settingsLazyHint
+import com.slideindex.app.ui.settings.components.settingsLazyTipCard
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import kotlin.math.roundToInt
 
@@ -170,5 +170,5 @@ fun LazyListScope.emitNotificationSettingsItems(
         keyPrefix = "notification-history-max",
         items = groups.historyMaxCount,
     )
-    settingsLazyHint(key = "settings_hint", text = rulesHint)
+    settingsLazyTipCard(key = "settings_hint", text = rulesHint)
 }

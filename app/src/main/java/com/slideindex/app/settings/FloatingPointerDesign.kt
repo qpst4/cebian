@@ -9,11 +9,11 @@ enum class FloatingPointerDesign(
     @DrawableRes val drawableResId: Int = 0,
     val tipXFraction: Float = 0f,
     val tipYFraction: Float = 0f,
-    @StringRes val labelResId: Int,
+    @StringRes val labelResId: Int
 ) {
     RING(
         id = "ring",
-        labelResId = R.string.floating_pointer_design_ring,
+        labelResId = R.string.floating_pointer_design_ring
     ),
     ARROW1("arrow1", R.drawable.qc_cursor_arrow1, 0.032f, 0.025f, R.string.floating_pointer_design_arrow_1),
     ARROW2("arrow2", R.drawable.qc_cursor_arrow2, 0.0992f, 0.04f, R.string.floating_pointer_design_arrow_2),

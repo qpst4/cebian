@@ -18,7 +18,7 @@ class GestureSession(
     private val indexSession: SlideAlongRailSession,
     private val pathRecognizer: SwipePathRecognizer,
     private val actionExecutor: ActionExecutor,
-    private val callbacks: Callbacks,
+    private val callbacks: Callbacks
 ) {
 
     interface Callbacks {
@@ -30,7 +30,7 @@ class GestureSession(
             continuousPick: Boolean,
             rawX: Float,
             rawY: Float,
-            forceBrowseMode: Boolean = false,
+            forceBrowseMode: Boolean = false
         ): Boolean
         fun onHoneycombLauncherPointerMove(rawX: Float, rawY: Float)
         fun onHoneycombLauncherContinuousRelease(rawX: Float, rawY: Float)
@@ -44,7 +44,7 @@ class GestureSession(
             mode: ContinuousAdjustController.Mode,
             fraction: Float,
             anchorRawY: Float,
-            deferWindowLayout: Boolean = false,
+            deferWindowLayout: Boolean = false
         )
         fun onSessionEnd()
         fun onRequestInvalidate()
@@ -89,7 +89,7 @@ class GestureSession(
             cancelLongPressCheck = { callbacks.cancelDelayed(longPressCheckRunnable) },
             isTriggerConfigured = { trigger ->
                 sessionSettings.actionFor(side, trigger, sessionActiveHandleId) !is GestureAction.None
-            },
+            }
         )
         longPressCheckRunnable = Runnable {
             if (!active || sessionPanelMode != OverlayPanelMode.NONE) return@Runnable
@@ -105,7 +105,7 @@ class GestureSession(
                             classification.trigger,
                             lastRawX,
                             lastRawY,
-                            classifyOptions(),
+                            classifyOptions()
                         )
                     ) {
                         dispatchMoveTimeGesture(
@@ -113,7 +113,7 @@ class GestureSession(
                             lastRawX,
                             lastRawY,
                             lastLocalX,
-                            lastLocalY,
+                            lastLocalY
                         )
                     }
                 }
@@ -123,7 +123,7 @@ class GestureSession(
                         rawX = lastRawX,
                         rawY = lastRawY,
                         localX = lastLocalX,
-                        localY = lastLocalY,
+                        localY = lastLocalY
                     )
                 }
                 GestureTriggerMode.ON_RELEASE, GestureTriggerMode.DEFAULT -> Unit
@@ -142,7 +142,7 @@ class GestureSession(
         pathRecognizer.applyAngles(newSettings.gestureAngles)
         pathRecognizer.applyHoverSettings(
             durationMs = newSettings.swipeHoverDurationMs.toLong(),
-            inwardCompoundEnabled = newSettings.inwardHoverCompoundEnabled,
+            inwardCompoundEnabled = newSettings.inwardHoverCompoundEnabled
         )
         applyActiveHandleDistances()
     }
@@ -268,7 +268,7 @@ class GestureSession(
         rawX: Float,
         rawY: Float,
         localX: Float,
-        localY: Float,
+        localY: Float
     ): Boolean {
         if (active) return false
         if (sessionSettings.triggerHandles(side).isEmpty()) return false
@@ -281,7 +281,7 @@ class GestureSession(
         rawX: Float,
         rawY: Float,
         localX: Float,
-        localY: Float,
+        localY: Float
     ): Boolean {
         sessionActiveHandleId = handleId
         applyActiveHandleDistances()
@@ -361,7 +361,7 @@ class GestureSession(
                         classification.trigger,
                         rawX,
                         rawY,
-                        classifyOptions(),
+                        classifyOptions()
                     )
                 ) {
                     dispatchMoveTimeGesture(classification, rawX, rawY, localX, localY)
@@ -389,7 +389,7 @@ class GestureSession(
                     actionExecutor.execute(
                         GestureAction.LaunchApp(it.packageName),
                         sessionSettings,
-                        longPressArmed,
+                        longPressArmed
                     )
                 }
             }
@@ -416,7 +416,7 @@ class GestureSession(
                     sessionContinuousPick.clearAppCarouselSwitcher()
                     com.slideindex.app.overlay.carousel.AppCarouselSwitcherOverlay.confirmContinuousRelease(
                         rawX,
-                        rawY,
+                        rawY
                     )
                     endSession()
                     return
@@ -506,7 +506,7 @@ class GestureSession(
     internal fun openQuickLauncherPanel(action: GestureAction.QuickLauncher) {
         sessionQuickLauncherPanelId = QuickLauncherPanelDefaults.resolvePanelId(
             sessionSettings.quickLauncherPanels,
-            action.panelId,
+            action.panelId
         )
         openPanel(OverlayPanelMode.QUICK_LAUNCHER)
     }
@@ -516,7 +516,7 @@ class GestureSession(
         localX: Float,
         localY: Float,
         rawX: Float,
-        rawY: Float,
+        rawY: Float
     ) {
         forceReset(notifySessionEnd = false)
         pathRecognizer.seedExternalAnchor(rawX, rawY)
@@ -556,7 +556,7 @@ class GestureSession(
                     sessionSettings,
                     x,
                     y,
-                    externalTracking = false,
+                    externalTracking = false
                 )
             }
             GestureAction.HolographicLauncher -> {
@@ -565,7 +565,7 @@ class GestureSession(
                     action,
                     sessionSettings,
                     anchorRawX = rawX,
-                    anchorRawY = rawY,
+                    anchorRawY = rawY
                 )
             }
             GestureAction.AdjustVolume -> {
@@ -622,7 +622,7 @@ class GestureSession(
         val preferLenientTap = sessionSettings.actionFor(
             side,
             GestureTriggerType.SHORT_SINGLE_TAP,
-            sessionActiveHandleId,
+            sessionActiveHandleId
         ) is GestureAction.ClickPassthrough
         val base = if (preferLenientTap) {
             SwipePathRecognizer.ClassifyOptions.LENIENT_SINGLE_TAP
@@ -632,7 +632,7 @@ class GestureSession(
         return base.copy(
             isTriggerConfigured = { trigger ->
                 sessionSettings.actionFor(side, trigger, sessionActiveHandleId) !is GestureAction.None
-            },
+            }
         )
     }
 
@@ -671,14 +671,14 @@ class GestureSession(
                 rawX = lastRawX,
                 rawY = lastRawY,
                 localX = lastLocalX,
-                localY = lastLocalY,
+                localY = lastLocalY
             )
             GestureTriggerMode.IMMEDIATE -> {
                 if (pathRecognizer.hasMetThreshold(
                         classification.trigger,
                         lastRawX,
                         lastRawY,
-                        classifyOptions(),
+                        classifyOptions()
                     )
                 ) {
                     dispatchMoveTimeGesture(
@@ -686,7 +686,7 @@ class GestureSession(
                         lastRawX,
                         lastRawY,
                         lastLocalX,
-                        lastLocalY,
+                        lastLocalY
                     )
                 }
             }
@@ -734,6 +734,6 @@ class GestureSession(
         localX: Float,
         localY: Float,
         rawY: Float,
-        confirmHaptic: Boolean = true,
+        confirmHaptic: Boolean = true
     ): Boolean = dispatchQuickLauncherAction(action, localX, localY, rawY, confirmHaptic)
 }

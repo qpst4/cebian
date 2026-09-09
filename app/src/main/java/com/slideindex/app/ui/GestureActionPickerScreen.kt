@@ -58,7 +58,7 @@ fun GestureActionPickerScreen(
     onOpenSimulateKeyEvent: (GestureAction.SimulateKeyEvent) -> Unit = {},
     includePointerGestureActions: Boolean = false,
     includeCornerInnerZoneActions: Boolean = false,
-    pinNoneAtTop: Boolean = true,
+    pinNoneAtTop: Boolean = true
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
     var searchQuery by remember { mutableStateOf("") }
@@ -76,7 +76,7 @@ fun GestureActionPickerScreen(
                 expanded = searchExpanded,
                 query = searchQuery,
                 onExpandedChange = { searchExpanded = it },
-                onQueryChange = { searchQuery = it },
+                onQueryChange = { searchQuery = it }
             )
         ) {
             onDismiss()
@@ -99,7 +99,7 @@ fun GestureActionPickerScreen(
         searchQuery = searchQuery,
         includePointerGestureActions = includePointerGestureActions,
         includeCornerInnerZoneActions = includeCornerInnerZoneActions,
-        pinNoneAtTop = pinNoneAtTop,
+        pinNoneAtTop = pinNoneAtTop
     )
     val filteredApps = rememberActionPickerFilteredApps(allApps, searchQuery)
     val loadedCatalog = rememberLoadedShortcutCatalog(allApps)
@@ -109,7 +109,7 @@ fun GestureActionPickerScreen(
     val appsByPackage = remember(allApps) { allApps.associateBy { it.packageName } }
     var pendingCreateHost by remember { mutableStateOf<AppShortcutLoader.CreateShortcutHost?>(null) }
     val createLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.StartActivityForResult(),
+        ActivityResultContracts.StartActivityForResult()
     ) { result ->
         val host = pendingCreateHost
         pendingCreateHost = null
@@ -142,7 +142,7 @@ fun GestureActionPickerScreen(
                     expanded = searchExpanded,
                     query = searchQuery,
                     onExpandedChange = { searchExpanded = it },
-                    onQueryChange = { searchQuery = it },
+                    onQueryChange = { searchQuery = it }
                 )
             },
             bottomContent = {
@@ -157,14 +157,14 @@ fun GestureActionPickerScreen(
                             tabs = listOf(
                                 stringResource(R.string.action_picker_tab_actions),
                                 stringResource(R.string.action_picker_tab_apps),
-                                stringResource(R.string.action_picker_tab_shortcuts),
+                                stringResource(R.string.action_picker_tab_shortcuts)
                             ),
                             selectedTabIndex = selectedTab,
-                            onTabSelected = { selectedTab = it },
+                            onTabSelected = { selectedTab = it }
                         )
-                    },
+                    }
                 )
-            },
+            }
         ) {
             when (ActionPickerTab.entries[selectedTab]) {
                 ActionPickerTab.ACTIONS -> {
@@ -179,14 +179,14 @@ fun GestureActionPickerScreen(
                             onOpenSimulateKeyEvent(
                                 current as? GestureAction.SimulateKeyEvent ?: GestureAction.SimulateKeyEvent()
                             )
-                        },
+                        }
                     )
                 }
                 ActionPickerTab.APPS -> {
                     actionPickerAppItems(
                         filtered = filteredApps,
                         current = current,
-                        onSelect = { app -> safeSelect(GestureAction.LaunchApp(app.packageName)) },
+                        onSelect = { app -> safeSelect(GestureAction.LaunchApp(app.packageName)) }
                     )
                 }
                 ActionPickerTab.SHORTCUTS -> {
@@ -214,9 +214,9 @@ fun GestureActionPickerScreen(
                                 segmentIndex = segmentIndex,
                                 segmentCount = segmentCount,
                                 current = current,
-                                onSelect = safeSelect,
+                                onSelect = safeSelect
                             )
-                        },
+                        }
                     )
                 }
             }
