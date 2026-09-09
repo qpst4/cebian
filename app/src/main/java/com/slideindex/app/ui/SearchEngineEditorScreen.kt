@@ -54,8 +54,7 @@ import com.slideindex.app.ui.miuix.MiuixInsetCardComponentMargin
 import com.slideindex.app.ui.miuix.MiuixLabeledTextField
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import com.slideindex.app.ui.miuix.MiuixSwitchRow
-import com.slideindex.app.ui.miuix.MiuixTabRowContourHost
-import com.slideindex.app.ui.miuix.MiuixTabRowWithContourInCard
+import com.slideindex.app.ui.miuix.MiuixTabSettingsCard
 import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import com.slideindex.app.ui.viewmodel.SearchEngineDraft
@@ -356,18 +355,18 @@ fun SearchEngineEditorScreen(
                 }
             }
 
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.defaultColors(
-                    color = MiuixTheme.colorScheme.surfaceContainer,
-                    contentColor = MiuixTheme.colorScheme.onSurfaceContainer,
-                ),
-                insideMargin = PaddingValues(16.dp),
-            ) {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
+            if (isShareImageType) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.defaultColors(
+                        color = MiuixTheme.colorScheme.surfaceContainer,
+                        contentColor = MiuixTheme.colorScheme.onSurfaceContainer,
+                    ),
+                    insideMargin = PaddingValues(16.dp),
                 ) {
-                    if (isShareImageType) {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
                         SmallTitle(
                             text = stringResource(R.string.search_engine_share_image_target_section),
                             insideMargin = PaddingValues(bottom = 8.dp),
@@ -384,51 +383,51 @@ fun SearchEngineEditorScreen(
                         ) {
                             Text(stringResource(R.string.search_engine_pick_share_image_target))
                         }
-                    } else {
-                        EditorTypeFields(
-                            engineType = engineType,
-                            onEngineTypeChange = { onUpdateDraft { d -> d.copy(engineType = it) } },
-                            searchLink = searchLink,
-                            onSearchLinkChange = { onUpdateDraft { d -> d.copy(searchLink = it) } },
-                            externJumpLink = externJumpLink,
-                            onExternJumpLinkChange = { onUpdateDraft { d -> d.copy(externJumpLink = it) } },
-                            externJumpPackage = externJumpPackage,
-                            onExternJumpPackageChange = { onUpdateDraft { d -> d.copy(externJumpPackage = it) } },
-                            targetPackage = targetPackage,
-                            onTargetPackageChange = { onUpdateDraft { d -> d.copy(targetPackage = it) } },
-                            targetActivity = targetActivity,
-                            onTargetActivityChange = { onUpdateDraft { d -> d.copy(targetActivity = it) } },
-                            autoInputEnter = autoInputEnter,
-                            onAutoInputEnterChange = { onUpdateDraft { d -> d.copy(autoInputEnter = it) } },
-                            onPickTargetApp = {
-                                onPickApp(
-                                    "TARGET",
-                                    R.string.search_engine_pick_app_title,
-                                    targetPackage,
-                                )
-                            },
-                            onPickExternApp = {
-                                onPickApp(
-                                    "EXTERN",
-                                    R.string.search_engine_pick_app_title,
-                                    externJumpPackage,
-                                )
-                            },
-                            onPickActivity = {
-                                if (targetPackage.isBlank()) {
-                                    Toast.makeText(
-                                        context,
-                                        pickActivityRequiresPackageMessage,
-                                        Toast.LENGTH_SHORT,
-                                    ).show()
-                                } else {
-                                    onPickActivity(targetPackage, targetActivity)
-                                }
-                            },
-                            onPickShareTarget = { onPickShareTarget(targetPackage, targetActivity) },
-                        )
                     }
                 }
+            } else {
+                EditorTypeFields(
+                    engineType = engineType,
+                    onEngineTypeChange = { onUpdateDraft { d -> d.copy(engineType = it) } },
+                    searchLink = searchLink,
+                    onSearchLinkChange = { onUpdateDraft { d -> d.copy(searchLink = it) } },
+                    externJumpLink = externJumpLink,
+                    onExternJumpLinkChange = { onUpdateDraft { d -> d.copy(externJumpLink = it) } },
+                    externJumpPackage = externJumpPackage,
+                    onExternJumpPackageChange = { onUpdateDraft { d -> d.copy(externJumpPackage = it) } },
+                    targetPackage = targetPackage,
+                    onTargetPackageChange = { onUpdateDraft { d -> d.copy(targetPackage = it) } },
+                    targetActivity = targetActivity,
+                    onTargetActivityChange = { onUpdateDraft { d -> d.copy(targetActivity = it) } },
+                    autoInputEnter = autoInputEnter,
+                    onAutoInputEnterChange = { onUpdateDraft { d -> d.copy(autoInputEnter = it) } },
+                    onPickTargetApp = {
+                        onPickApp(
+                            "TARGET",
+                            R.string.search_engine_pick_app_title,
+                            targetPackage,
+                        )
+                    },
+                    onPickExternApp = {
+                        onPickApp(
+                            "EXTERN",
+                            R.string.search_engine_pick_app_title,
+                            externJumpPackage,
+                        )
+                    },
+                    onPickActivity = {
+                        if (targetPackage.isBlank()) {
+                            Toast.makeText(
+                                context,
+                                pickActivityRequiresPackageMessage,
+                                Toast.LENGTH_SHORT,
+                            ).show()
+                        } else {
+                            onPickActivity(targetPackage, targetActivity)
+                        }
+                    },
+                    onPickShareTarget = { onPickShareTarget(targetPackage, targetActivity) },
+                )
             }
         }
         }
@@ -508,20 +507,21 @@ private fun EditorTypeFields(
         SearchEngineType.JUMP_TO_ACTIVITY to stringResource(R.string.search_engine_editor_tab_activity),
         SearchEngineType.SHARE_TO_APP to stringResource(R.string.search_engine_editor_tab_share),
     )
+    val selectedIndex = engineTypes.indexOfFirst { it.first == engineType }.coerceAtLeast(0)
 
-    MiuixTabRowWithContourInCard(
+    MiuixTabSettingsCard(
         tabs = engineTypes.map { it.second },
-        selectedTabIndex = engineTypes.indexOfFirst { it.first == engineType }.coerceAtLeast(0),
+        selectedTabIndex = selectedIndex,
         onTabSelected = { index ->
             if (index in engineTypes.indices) {
                 onEngineTypeChange(engineTypes[index].first)
             }
         },
-        modifier = Modifier.fillMaxWidth(),
-        contourHost = MiuixTabRowContourHost.SurfaceContainer,
-    )
-
-    when (engineType) {
+        outerHorizontalPadding = 0.dp,
+        outerBottomPadding = 0.dp,
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            when (engineType) {
         SearchEngineType.DIRECT_LINK -> {
             MiuixLabeledTextField(
                 value = searchLink,
@@ -668,6 +668,8 @@ private fun EditorTypeFields(
         }
 
         SearchEngineType.SHARE_IMAGE_TO_APP -> Unit
+            }
+        }
     }
 }
 

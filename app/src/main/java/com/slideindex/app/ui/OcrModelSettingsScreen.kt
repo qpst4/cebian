@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -39,8 +38,11 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.ui.miuix.CardItem
 import com.slideindex.app.ui.miuix.MiuixFormDialog
 import com.slideindex.app.ui.miuix.MiuixLabeledTextField
+import com.slideindex.app.ui.miuix.MiuixListSettingsCard
+import com.slideindex.app.ui.miuix.MiuixProgressCard
 import com.slideindex.app.ui.miuix.MiuixTabRowWithContour
 import com.slideindex.app.ui.miuix.groupedCardItems
+import com.slideindex.app.ui.miuix.miuixGroupedRowInsets
 import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import top.yukonga.miuix.kmp.preference.SwitchPreference
@@ -49,7 +51,6 @@ import com.slideindex.app.ui.settings.components.settingsLazyTipCard
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
-import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
 import top.yukonga.miuix.kmp.basic.LinearProgressIndicator
 import top.yukonga.miuix.kmp.basic.RadioButton
@@ -129,97 +130,33 @@ fun OcrModelSettingsScreen(
 
         if (selectedTabIndex == 0) {
             // ==================== 本地 (离线) TAB ====================
-            LazySettingsItem(key = "ocr-download-header") {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    // 合并为标准的 Miuix 分组卡片：下载网络控制 + 引擎状态
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 12.dp),
-                    ) {
-                        Column {
-                            SwitchPreference(
-                                title = stringResource(R.string.ocr_download_wifi_only),
-                                summary = stringResource(R.string.ocr_download_wifi_only_desc),
-                                checked = settings.ocrDownloadWifiOnly,
-                                enabled = true,
-                                onCheckedChange = onWifiOnlyChange,
-                            )
+            MiuixListSettingsCard(
+                keyPrefix = "ocr-local-download",
+                items = listOf(
+                    CardItem("wifi-only") {
+                        SwitchPreference(
+                            title = stringResource(R.string.ocr_download_wifi_only),
+                            summary = stringResource(R.string.ocr_download_wifi_only_desc),
+                            checked = settings.ocrDownloadWifiOnly,
+                            enabled = true,
+                            onCheckedChange = onWifiOnlyChange,
+                        )
+                    },
+                    CardItem("ocr-engine") {
+                        OcrEngineStatusRow(
+                            ocrEngineInstalled = ocrEngineInstalled,
+                            ocrEngineSizeBytes = ocrEngineSizeBytes,
+                            ocrEngineVersionState = ocrEngineVersionState,
+                            onOpenEngineManagement = onOpenEngineManagement,
+                        )
+                    },
+                ),
+            )
 
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable { onOpenEngineManagement() }
-                                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                            ) {
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    ) {
-                                        Text(
-                                            text = stringResource(R.string.native_engine_pack_ocr),
-                                            style = MiuixTheme.textStyles.title4,
-                                        )
-                                        val statusText = if (ocrEngineInstalled) {
-                                            stringResource(R.string.ocr_engine_status_ready)
-                                        } else {
-                                            stringResource(R.string.ocr_engine_status_not_installed)
-                                        }
-                                        val statusColor = if (ocrEngineInstalled) MiuixTheme.colorScheme.primary else MiuixTheme.colorScheme.error
-                                        Text(
-                                            text = statusText,
-                                            style = MiuixTheme.textStyles.footnote1,
-                                            color = statusColor,
-                                            modifier = Modifier
-                                                .background(
-                                                    color = statusColor.copy(alpha = 0.12f),
-                                                    shape = RoundedCornerShape(4.dp),
-                                                )
-                                                .padding(horizontal = 6.dp, vertical = 2.dp),
-                                        )
-                                    }
-                                    Spacer(modifier = Modifier.height(2.dp))
-                                    val revisionStr = ocrEngineVersionState?.installedRevision?.let { " (v$it)" } ?: ""
-                                    Text(
-                                        text = if (ocrEngineInstalled) {
-                                            stringResource(
-                                                R.string.ocr_engine_installed_summary,
-                                                formatMegabytes(ocrEngineSizeBytes),
-                                                revisionStr,
-                                            )
-                                        } else {
-                                            stringResource(
-                                                R.string.ocr_engine_not_installed_summary,
-                                                formatMegabytes(ocrEngineSizeBytes),
-                                            )
-                                        },
-                                        style = MiuixTheme.textStyles.body2,
-                                        color = MiuixTheme.colorScheme.onSurfaceSecondary,
-                                    )
-                                }
-                                Button(
-                                    onClick = onOpenEngineManagement,
-                                    colors = if (ocrEngineInstalled) ButtonDefaults.buttonColors() else ButtonDefaults.buttonColorsPrimary(),
-                                ) {
-                                    Text(
-                                        if (ocrEngineInstalled) {
-                                            stringResource(R.string.ocr_engine_manage)
-                                        } else {
-                                            stringResource(R.string.ocr_engine_install)
-                                        },
-                                    )
-                                }
-                            }
-                        }
-                    }
-
-                    downloadState?.let { state ->
-                        if (state.phase != OcrModelDownloadPhase.READY && state.modelId != "vlm-formula-qwen") {
-                            OcrModelDownloadProgressCard(state = state)
-                        }
+            downloadState?.let { state ->
+                if (state.phase != OcrModelDownloadPhase.READY && state.modelId != "vlm-formula-qwen") {
+                    LazySettingsItem(key = "ocr-download-progress") {
+                        OcrModelDownloadProgressCard(state = state)
                     }
                 }
             }
@@ -306,52 +243,25 @@ fun OcrModelSettingsScreen(
                 title = cloudCommonConfigTitle,
             )
 
-            // 通用提示词设置卡片
-            LazySettingsItem(key = "ocr-cloud-prompt-card") {
-                val commonPromptSummary = if (vlmConfigManager?.isCommonPromptCustomized() == true) {
-                    stringResource(R.string.ocr_common_prompt_customized)
-                } else {
-                    stringResource(R.string.ocr_common_prompt_default)
-                }
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 12.dp),
-                    insideMargin = PaddingValues(16.dp),
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
+            MiuixListSettingsCard(
+                keyPrefix = "ocr-cloud-prompt",
+                items = listOf(
+                    CardItem("common-prompt") {
+                        val commonPromptSummary = if (vlmConfigManager?.isCommonPromptCustomized() == true) {
+                            stringResource(R.string.ocr_common_prompt_customized)
+                        } else {
+                            stringResource(R.string.ocr_common_prompt_default)
+                        }
+                        OcrCommonPromptRow(
+                            summary = commonPromptSummary,
+                            onEdit = {
                                 editingPrompt = vlmConfigManager?.commonPrompt ?: defaultSystemPrompt
                                 showPromptDialog = true
                             },
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = stringResource(R.string.ocr_global_system_prompt),
-                                style = MiuixTheme.textStyles.title4,
-                            )
-                            Spacer(modifier = Modifier.height(2.dp))
-                            Text(
-                                text = commonPromptSummary,
-                                style = MiuixTheme.textStyles.body2,
-                                color = MiuixTheme.colorScheme.onSurfaceSecondary,
-                            )
-                        }
-                        Button(
-                            onClick = {
-                                editingPrompt = vlmConfigManager?.commonPrompt ?: defaultSystemPrompt
-                                showPromptDialog = true
-                            },
-                        ) {
-                            Text(stringResource(R.string.ocr_edit))
-                        }
-                    }
-                }
-            }
+                        )
+                    },
+                ),
+            )
 
             settingsLazyHint(
                 key = "ocr-cloud-models-hint",
@@ -397,15 +307,8 @@ fun OcrModelSettingsScreen(
 
 @Composable
 private fun OcrModelDownloadProgressCard(state: OcrModelDownloadState) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 12.dp),
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
+    MiuixProgressCard {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
             val fraction = state.progress
             if (fraction != null) {
                 LinearProgressIndicator(
@@ -422,6 +325,121 @@ private fun OcrModelDownloadProgressCard(state: OcrModelDownloadState) {
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis,
             )
+        }
+    }
+}
+
+@Composable
+private fun OcrEngineStatusRow(
+    ocrEngineInstalled: Boolean,
+    ocrEngineSizeBytes: Long,
+    ocrEngineVersionState: NativeEnginePackVersionState?,
+    onOpenEngineManagement: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onOpenEngineManagement)
+            .miuixGroupedRowInsets(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(
+                    text = stringResource(R.string.native_engine_pack_ocr),
+                    style = MiuixTheme.textStyles.title4,
+                )
+                val statusText = if (ocrEngineInstalled) {
+                    stringResource(R.string.ocr_engine_status_ready)
+                } else {
+                    stringResource(R.string.ocr_engine_status_not_installed)
+                }
+                val statusColor = if (ocrEngineInstalled) {
+                    MiuixTheme.colorScheme.primary
+                } else {
+                    MiuixTheme.colorScheme.error
+                }
+                Text(
+                    text = statusText,
+                    style = MiuixTheme.textStyles.footnote1,
+                    color = statusColor,
+                    modifier = Modifier
+                        .background(
+                            color = statusColor.copy(alpha = 0.12f),
+                            shape = RoundedCornerShape(4.dp),
+                        )
+                        .padding(horizontal = 6.dp, vertical = 2.dp),
+                )
+            }
+            Spacer(modifier = Modifier.height(2.dp))
+            val revisionStr = ocrEngineVersionState?.installedRevision?.let { " (v$it)" } ?: ""
+            Text(
+                text = if (ocrEngineInstalled) {
+                    stringResource(
+                        R.string.ocr_engine_installed_summary,
+                        formatMegabytes(ocrEngineSizeBytes),
+                        revisionStr,
+                    )
+                } else {
+                    stringResource(
+                        R.string.ocr_engine_not_installed_summary,
+                        formatMegabytes(ocrEngineSizeBytes),
+                    )
+                },
+                style = MiuixTheme.textStyles.body2,
+                color = MiuixTheme.colorScheme.onSurfaceSecondary,
+            )
+        }
+        Button(
+            onClick = onOpenEngineManagement,
+            colors = if (ocrEngineInstalled) {
+                ButtonDefaults.buttonColors()
+            } else {
+                ButtonDefaults.buttonColorsPrimary()
+            },
+        ) {
+            Text(
+                if (ocrEngineInstalled) {
+                    stringResource(R.string.ocr_engine_manage)
+                } else {
+                    stringResource(R.string.ocr_engine_install)
+                },
+            )
+        }
+    }
+}
+
+@Composable
+private fun OcrCommonPromptRow(
+    summary: String,
+    onEdit: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onEdit)
+            .miuixGroupedRowInsets(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = stringResource(R.string.ocr_global_system_prompt),
+                style = MiuixTheme.textStyles.title4,
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = summary,
+                style = MiuixTheme.textStyles.body2,
+                color = MiuixTheme.colorScheme.onSurfaceSecondary,
+            )
+        }
+        Button(onClick = onEdit) {
+            Text(stringResource(R.string.ocr_edit))
         }
     }
 }
@@ -448,7 +466,7 @@ private fun OcrModelRow(
         modifier = Modifier
             .fillMaxWidth()
             .then(rowClickableModifier)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .miuixGroupedRowInsets(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
@@ -523,7 +541,7 @@ private fun OcrCloudProviderRow(
         modifier = Modifier
             .fillMaxWidth()
             .then(rowClickableModifier)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .miuixGroupedRowInsets(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {

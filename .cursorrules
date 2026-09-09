@@ -44,3 +44,8 @@
   ```text
   1. [步骤] → 验证: [检查项]
   2. [步骤] → 验证: [检查项]
+  ```
+
+## 5. Miuix 设置页 UI
+- 新增或修改设置子页前，先阅读 `app/src/main/java/com/slideindex/app/ui/miuix/README.md`。
+- 列表用 `MiuixListSettingsCard`；Tab 在白 Card 内用 `MiuixTabSettingsCard`；禁止手拼 `Card { Preference… }` 列表。

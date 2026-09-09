@@ -44,8 +44,7 @@ import com.slideindex.app.settings.triggerHandle
 import com.slideindex.app.ui.miuix.CardItem
 import com.slideindex.app.ui.miuix.MiuixHintText
 import com.slideindex.app.ui.miuix.MiuixInsetCardComponentMargin
-import com.slideindex.app.ui.miuix.MiuixTabRowContourHost
-import com.slideindex.app.ui.miuix.MiuixTabRowWithContourInCard
+import com.slideindex.app.ui.miuix.MiuixTabSettingsCard
 import top.yukonga.miuix.kmp.basic.BasicComponentDefaults
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import com.slideindex.app.ui.miuix.groupedCardItems
@@ -57,7 +56,6 @@ import com.slideindex.app.ui.settings.components.SettingsSliderRow
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import kotlin.math.roundToInt
-import top.yukonga.miuix.kmp.basic.Card
 
 private enum class SideGestureDistanceTab {
     Short,
@@ -223,102 +221,86 @@ fun SideGestureSettingsScreen(
         )
 
         item(key = "swipe-distance-tab-card") {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp)
-                    .padding(bottom = 12.dp),
-                insideMargin = PaddingValues(16.dp),
+            val distanceTabs = SideGestureDistanceTab.entries.map { tab ->
+                stringResource(
+                    when (tab) {
+                        SideGestureDistanceTab.Short -> R.string.side_gestures_tab_short_distance
+                        SideGestureDistanceTab.Long -> R.string.side_gestures_tab_long_distance
+                        SideGestureDistanceTab.Compound -> R.string.side_gestures_tab_compound
+                    },
+                )
+            }
+            MiuixTabSettingsCard(
+                tabs = distanceTabs,
+                selectedTabIndex = selectedTab.ordinal,
+                onTabSelected = { selectedTab = SideGestureDistanceTab.entries[it] },
             ) {
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    MiuixTabRowWithContourInCard(
-                        tabs = SideGestureDistanceTab.entries.map { tab ->
-                            stringResource(
-                                when (tab) {
-                                    SideGestureDistanceTab.Short -> R.string.side_gestures_tab_short_distance
-                                    SideGestureDistanceTab.Long -> R.string.side_gestures_tab_long_distance
-                                    SideGestureDistanceTab.Compound -> R.string.side_gestures_tab_compound
-                                },
-                            )
-                        },
-                        selectedTabIndex = selectedTab.ordinal,
-                        onTabSelected = { selectedTab = SideGestureDistanceTab.entries[it] },
-                        contourHost = MiuixTabRowContourHost.SurfaceContainer,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 12.dp),
-                    ) {
-                    when (selectedTab) {
-                        SideGestureDistanceTab.Short -> {
-                            SmallTitle(
-                                text = straightSectionTitle,
-                                insideMargin = PaddingValues(bottom = 4.dp),
-                            )
-                            RenderSideGestureSlotItems(
-                                sideGestureSlotCardItems(
-                                    settings = settings,
-                                    slotSide = slotSide,
-                                    handleId = handleId,
-                                    side = side,
-                                    triggers = SwipeDirectionFamily.orderedEntries().map { it.shortTrigger },
-                                    titleStyle = SideGestureSlotTitleStyle.SlotLabel,
-                                    onOpenSlotConfig = onOpenSlotConfig,
-                                    rowInsideMargin = MiuixInsetCardComponentMargin,
-                                ),
-                            )
-                            SmallTitle(
-                                text = hoverSectionTitle,
-                                insideMargin = PaddingValues(top = 8.dp, bottom = 4.dp),
-                            )
-                            RenderSideGestureSlotItems(
-                                sideGestureSlotCardItems(
-                                    settings = settings,
-                                    slotSide = slotSide,
-                                    handleId = handleId,
-                                    side = side,
-                                    triggers = SwipeDirectionFamily.orderedEntries().map { it.hoverTrigger },
-                                    titleStyle = SideGestureSlotTitleStyle.TriggerLabel,
-                                    onOpenSlotConfig = onOpenSlotConfig,
-                                    rowInsideMargin = MiuixInsetCardComponentMargin,
-                                ),
-                            )
-                        }
-
-                        SideGestureDistanceTab.Long -> {
-                            RenderSideGestureSlotItems(
-                                sideGestureSlotCardItems(
-                                    settings = settings,
-                                    slotSide = slotSide,
-                                    handleId = handleId,
-                                    side = side,
-                                    triggers = SwipeDirectionFamily.orderedEntries().map { it.longTrigger },
-                                    titleStyle = SideGestureSlotTitleStyle.SlotLabel,
-                                    onOpenSlotConfig = onOpenSlotConfig,
-                                    rowInsideMargin = MiuixInsetCardComponentMargin,
-                                ),
-                            )
-                        }
-
-                        SideGestureDistanceTab.Compound -> {
-                            MiuixHintText(
-                                text = compoundHint,
-                                horizontalPadding = 0.dp,
-                                modifier = Modifier.padding(bottom = 8.dp),
-                            )
-                            RenderSideGestureSlotItems(
-                                sideGestureCompoundSlotItems(
-                                    settings = settings,
-                                    slotSide = slotSide,
-                                    handleId = handleId,
-                                    side = side,
-                                    onOpenSlotConfig = onOpenSlotConfig,
-                                ),
-                            )
-                        }
+                when (selectedTab) {
+                    SideGestureDistanceTab.Short -> {
+                        SmallTitle(
+                            text = straightSectionTitle,
+                            insideMargin = PaddingValues(bottom = 4.dp),
+                        )
+                        RenderSideGestureSlotItems(
+                            sideGestureSlotCardItems(
+                                settings = settings,
+                                slotSide = slotSide,
+                                handleId = handleId,
+                                side = side,
+                                triggers = SwipeDirectionFamily.orderedEntries().map { it.shortTrigger },
+                                titleStyle = SideGestureSlotTitleStyle.SlotLabel,
+                                onOpenSlotConfig = onOpenSlotConfig,
+                                rowInsideMargin = MiuixInsetCardComponentMargin,
+                            ),
+                        )
+                        SmallTitle(
+                            text = hoverSectionTitle,
+                            insideMargin = PaddingValues(top = 8.dp, bottom = 4.dp),
+                        )
+                        RenderSideGestureSlotItems(
+                            sideGestureSlotCardItems(
+                                settings = settings,
+                                slotSide = slotSide,
+                                handleId = handleId,
+                                side = side,
+                                triggers = SwipeDirectionFamily.orderedEntries().map { it.hoverTrigger },
+                                titleStyle = SideGestureSlotTitleStyle.TriggerLabel,
+                                onOpenSlotConfig = onOpenSlotConfig,
+                                rowInsideMargin = MiuixInsetCardComponentMargin,
+                            ),
+                        )
                     }
+
+                    SideGestureDistanceTab.Long -> {
+                        RenderSideGestureSlotItems(
+                            sideGestureSlotCardItems(
+                                settings = settings,
+                                slotSide = slotSide,
+                                handleId = handleId,
+                                side = side,
+                                triggers = SwipeDirectionFamily.orderedEntries().map { it.longTrigger },
+                                titleStyle = SideGestureSlotTitleStyle.SlotLabel,
+                                onOpenSlotConfig = onOpenSlotConfig,
+                                rowInsideMargin = MiuixInsetCardComponentMargin,
+                            ),
+                        )
+                    }
+
+                    SideGestureDistanceTab.Compound -> {
+                        MiuixHintText(
+                            text = compoundHint,
+                            horizontalPadding = 0.dp,
+                            modifier = Modifier.padding(bottom = 8.dp),
+                        )
+                        RenderSideGestureSlotItems(
+                            sideGestureCompoundSlotItems(
+                                settings = settings,
+                                slotSide = slotSide,
+                                handleId = handleId,
+                                side = side,
+                                onOpenSlotConfig = onOpenSlotConfig,
+                            ),
+                        )
                     }
                 }
             }

@@ -14,16 +14,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.ExtensionHubSettings
+import com.slideindex.app.ui.miuix.CardItem
 import com.slideindex.app.ui.miuix.MiuixArrowRow
 import com.slideindex.app.ui.miuix.MiuixBackNavigationIcon
-import com.slideindex.app.ui.miuix.MiuixBackNavigationIcon
 import com.slideindex.app.ui.miuix.MiuixListScaffold
+import com.slideindex.app.ui.miuix.MiuixListSettingsCard
 import com.slideindex.app.ui.miuix.MiuixSliderRow
 import com.slideindex.app.ui.miuix.MiuixSwitchRow
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
@@ -52,8 +52,6 @@ fun LayoutSettingsScreen(
         }
     }
 
-    val panelSliderCount = 3
-
     val layoutDesc = stringResource(R.string.layout_settings_entry_desc)
     val previewHint = stringResource(R.string.live_preview_hint)
 
@@ -67,72 +65,84 @@ fun LayoutSettingsScreen(
             SmallTitle(stringResource(R.string.settings_section_panel), modifier = Modifier.fillMaxWidth())
         }
 
-        item(key = "panel_sliders_card") {
-            top.yukonga.miuix.kmp.basic.Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)) {
-                MiuixSwitchRow(
-                    title = stringResource(R.string.hide_empty_index_letters),
-                    summary = stringResource(R.string.hide_empty_index_letters_desc),
-                    checked = settings.hideEmptyIndexLetters,
-                    enabled = serviceEnabled,
-                    onCheckedChange = onHideEmptyIndexLettersChange,
-                )
-                MiuixSliderRow(
-                    title = stringResource(R.string.index_height),
-                    value = settings.indexHeightFraction,
-                    valueRange = 0.25f..0.65f,
-                    enabled = serviceEnabled,
-                    label = "",
-                    formatLabel = { "${(it * 100).roundToInt()}%" },
-                    triggersLayoutPreview = true,
-                    onLayoutPreviewStart = onLayoutPreviewStart,
-                    onLayoutPreviewStop = onLayoutPreviewStop,
-                    onLayoutPreviewValueChange = onIndexHeightPreviewChange,
-                    onValueChange = onIndexHeightChange,
-                )
-                MiuixSliderRow(
-                    title = stringResource(R.string.apps_per_row),
-                    value = settings.appsPerRow.toFloat(),
-                    valueRange = 2f..5f,
-                    steps = 2,
-                    enabled = serviceEnabled,
-                    label = pluralStringResource(
-                        R.plurals.apps_per_row_value_label,
-                        settings.appsPerRow,
-                        settings.appsPerRow,
-                    ),
-                    onValueChange = { onAppsPerRowChange(it.roundToInt()) },
-                )
-                MiuixSliderRow(
-                    title = stringResource(R.string.panel_opacity),
-                    value = settings.panelOpacity,
-                    valueRange = 0.75f..1f,
-                    enabled = serviceEnabled,
-                    label = "",
-                    formatLabel = { "${(it * 100).roundToInt()}%" },
-                    onValueChange = onPanelOpacityChange,
-                )
-            }
-        }
+        MiuixListSettingsCard(
+            keyPrefix = "layout-panel",
+            items = listOf(
+                CardItem("hide-empty-letters") {
+                    MiuixSwitchRow(
+                        title = stringResource(R.string.hide_empty_index_letters),
+                        summary = stringResource(R.string.hide_empty_index_letters_desc),
+                        checked = settings.hideEmptyIndexLetters,
+                        enabled = serviceEnabled,
+                        onCheckedChange = onHideEmptyIndexLettersChange,
+                    )
+                },
+                CardItem("index-height") {
+                    MiuixSliderRow(
+                        title = stringResource(R.string.index_height),
+                        value = settings.indexHeightFraction,
+                        valueRange = 0.25f..0.65f,
+                        enabled = serviceEnabled,
+                        label = "",
+                        formatLabel = { "${(it * 100).roundToInt()}%" },
+                        triggersLayoutPreview = true,
+                        onLayoutPreviewStart = onLayoutPreviewStart,
+                        onLayoutPreviewStop = onLayoutPreviewStop,
+                        onLayoutPreviewValueChange = onIndexHeightPreviewChange,
+                        onValueChange = onIndexHeightChange,
+                    )
+                },
+                CardItem("apps-per-row") {
+                    MiuixSliderRow(
+                        title = stringResource(R.string.apps_per_row),
+                        value = settings.appsPerRow.toFloat(),
+                        valueRange = 2f..5f,
+                        steps = 2,
+                        enabled = serviceEnabled,
+                        label = pluralStringResource(
+                            R.plurals.apps_per_row_value_label,
+                            settings.appsPerRow,
+                            settings.appsPerRow,
+                        ),
+                        onValueChange = { onAppsPerRowChange(it.roundToInt()) },
+                    )
+                },
+                CardItem("panel-opacity") {
+                    MiuixSliderRow(
+                        title = stringResource(R.string.panel_opacity),
+                        value = settings.panelOpacity,
+                        valueRange = 0.75f..1f,
+                        enabled = serviceEnabled,
+                        label = "",
+                        formatLabel = { "${(it * 100).roundToInt()}%" },
+                        onValueChange = onPanelOpacityChange,
+                    )
+                },
+            ),
+        )
 
         item(key = "hidden_section") {
             SmallTitle(stringResource(R.string.hidden_apps_section_in_index), modifier = Modifier.fillMaxWidth())
         }
 
-        item(key = "hidden_apps") {
-            val hiddenCount = settings.hiddenAppPackages.size
-            val hiddenSubtitle = if (hiddenCount > 0) {
-                stringResource(R.string.hidden_apps_entry_count, hiddenCount)
-            } else {
-                stringResource(R.string.hidden_apps_entry_desc)
-            }
-            top.yukonga.miuix.kmp.basic.Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)) {
-                MiuixArrowRow(
-                    title = stringResource(R.string.hidden_apps_entry_title),
-                    summary = hiddenSubtitle,
-                    onClick = onOpenHiddenAppsSettings,
-                )
-            }
-        }
+        MiuixListSettingsCard(
+            keyPrefix = "layout-hidden-apps",
+            items = listOf(
+                CardItem("hidden-apps-entry") {
+                    val hiddenCount = settings.hiddenAppPackages.size
+                    val hiddenSubtitle = if (hiddenCount > 0) {
+                        stringResource(R.string.hidden_apps_entry_count, hiddenCount)
+                    } else {
+                        stringResource(R.string.hidden_apps_entry_desc)
+                    }
+                    MiuixArrowRow(
+                        title = stringResource(R.string.hidden_apps_entry_title),
+                        summary = hiddenSubtitle,
+                        onClick = onOpenHiddenAppsSettings,
+                    )
+                },
+            ),
+        )
 
         item(key = "bottom_spacer") {
             Spacer(modifier = Modifier.height(8.dp))

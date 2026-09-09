@@ -18,7 +18,9 @@ import com.slideindex.app.nativeengine.NativeEnginePackDownloadState
 import com.slideindex.app.ui.viewmodel.NativeEnginePackRowState
 import com.slideindex.app.nativeengine.NativeEnginePackIds
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.ui.miuix.MiuixProgressCard
 import com.slideindex.app.ui.miuix.groupedCardItems
+import com.slideindex.app.ui.miuix.miuixGroupedRowInsets
 import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.settingsLazyTipCard
 import com.slideindex.app.ui.settings.components.SettingSwitchRow
@@ -27,7 +29,6 @@ import com.slideindex.app.ui.settings.components.settingsCardItems
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
-import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.LinearProgressIndicator
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -108,7 +109,7 @@ private fun NativeEnginePackRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .miuixGroupedRowInsets(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
@@ -164,15 +165,8 @@ private fun NativeEnginePackRow(
 
 @Composable
 private fun NativeEnginePackDownloadProgressCard(state: NativeEnginePackDownloadState) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 12.dp),
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
+    MiuixProgressCard {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 text = packTitle(state.packId),
                 style = MiuixTheme.textStyles.title4,

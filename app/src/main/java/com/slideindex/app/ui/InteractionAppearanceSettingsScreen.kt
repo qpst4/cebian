@@ -2,13 +2,11 @@ package com.slideindex.app.ui
 
 import android.os.Build
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.HomeMainSettings
@@ -16,6 +14,7 @@ import com.slideindex.app.settings.TopAppBarBlurStyle
 import com.slideindex.app.ui.HomeLeadingIcons
 import com.slideindex.app.ui.miuix.MiuixBackNavigationIcon
 import com.slideindex.app.ui.miuix.MiuixListScaffold
+import com.slideindex.app.ui.miuix.MiuixListSettingsCard
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.miuix.appLanguageSettingsCardItems
@@ -25,6 +24,7 @@ import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.SettingSwitchRow
 import com.slideindex.app.ui.settings.components.SettingsCardScopeContent
 import com.slideindex.app.ui.settings.components.SettingsSliderRow
+import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 import com.slideindex.app.util.HapticHelper
 import kotlin.math.roundToInt
 
@@ -140,13 +140,10 @@ fun InteractionAppearanceSettingsScreen(
                     ,
             )
         }
-        item(key = "haptic_card") {
-            top.yukonga.miuix.kmp.basic.Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp),
-            ) {
-                SettingsCardScopeContent {
+        MiuixListSettingsCard(
+            keyPrefix = "interaction-haptic",
+            items = listOf(
+                settingsCardScopeItem("haptic") {
                     SettingExpandableSwitchRow(
                         title = stringResource(R.string.haptic_enabled),
                         checked = settings.hapticEnabled,
@@ -175,9 +172,9 @@ fun InteractionAppearanceSettingsScreen(
                             onValueChange = { onHapticStrengthChange(it.roundToInt()) },
                         )
                     }
-                }
-            }
-        }
+                },
+            ),
+        )
 
         item(key = "navigation_back_section") {
             SmallTitle(
@@ -188,32 +185,35 @@ fun InteractionAppearanceSettingsScreen(
             )
         }
 
-        item(key = "navigation_back_card") {
-            top.yukonga.miuix.kmp.basic.Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp),
-            ) {
-                SettingsCardScopeContent {
-                    SettingSwitchRow(
-                        title = stringResource(R.string.settings_swipe_dismiss),
-                        subtitle = stringResource(R.string.settings_swipe_dismiss_summary),
-                        checked = settings.swipeDismissEnabled,
-                        enabled = true,
-                        onCheckedChange = onSwipeDismissEnabledChange,
-                    )
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+        MiuixListSettingsCard(
+            keyPrefix = "interaction-nav-back",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("swipe-dismiss") {
                         SettingSwitchRow(
-                            title = stringResource(R.string.settings_predictive_back),
-                            subtitle = stringResource(R.string.settings_predictive_back_summary),
-                            checked = settings.predictiveBackEnabled,
+                            title = stringResource(R.string.settings_swipe_dismiss),
+                            subtitle = stringResource(R.string.settings_swipe_dismiss_summary),
+                            checked = settings.swipeDismissEnabled,
                             enabled = true,
-                            onCheckedChange = onPredictiveBackEnabledChange,
+                            onCheckedChange = onSwipeDismissEnabledChange,
                         )
-                    }
+                    },
+                )
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                    add(
+                        settingsCardScopeItem("predictive-back") {
+                            SettingSwitchRow(
+                                title = stringResource(R.string.settings_predictive_back),
+                                subtitle = stringResource(R.string.settings_predictive_back_summary),
+                                checked = settings.predictiveBackEnabled,
+                                enabled = true,
+                                onCheckedChange = onPredictiveBackEnabledChange,
+                            )
+                        },
+                    )
                 }
-            }
-        }
+            },
+        )
 
     }
 }
