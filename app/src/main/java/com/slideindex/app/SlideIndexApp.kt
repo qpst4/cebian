@@ -19,6 +19,7 @@ import com.slideindex.app.segmentation.SegmentationEngineProvisioner
 import com.slideindex.app.service.ClipboardFloatLifecycle
 import com.slideindex.app.service.GestureToggleTileWarmup
 import com.slideindex.app.service.HistoryFloatLifecycle
+import com.slideindex.app.service.OverlayServiceLifecycle
 import com.slideindex.app.util.HiddenApiBootstrap
 import com.slideindex.app.util.AppLocaleApplier
 import com.slideindex.app.util.PredictiveBackHelper
@@ -91,6 +92,7 @@ class SlideIndexApp : Application() {
         deps.applicationScope.launch {
             HistoryFloatLifecycle.syncFromSettings(this@SlideIndexApp, deps.settingsRepository)
             ClipboardFloatLifecycle.syncFromSettings(this@SlideIndexApp, deps.settingsRepository)
+            OverlayServiceLifecycle.syncFromSettings(this@SlideIndexApp, deps.settingsRepository)
         }
         GestureToggleTileWarmup.requestListening(this, "appOnCreate")
         deps.applicationScope.launch {

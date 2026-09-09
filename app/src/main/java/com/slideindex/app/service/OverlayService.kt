@@ -55,7 +55,7 @@ class OverlayService : LifecycleService() {
                 if (!settings.accessibilityKeepAliveEnabled) continue
                 if (!settings.serviceEnabled) continue
                 if (!SecureSettingsHelper.hasWriteSecureSettings(this@OverlayService)) continue
-                SecureSettingsHelper.ensureAccessibilityEnabled(this@OverlayService)
+                OverlayServiceLifecycle.recoverAccessibilityBinding(this@OverlayService, settings)
             }
         }
     }

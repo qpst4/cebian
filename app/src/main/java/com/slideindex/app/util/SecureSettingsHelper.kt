@@ -67,4 +67,48 @@ object SecureSettingsHelper {
         )
         return PermissionHelper.isAccessibilityServiceEnabled(context)
     }
+
+    /**
+     * Toggles our accessibility entry in Secure settings so the system re-binds the service.
+     * Use when settings show enabled but [SlideIndexAccessibilityService] is not connected yet.
+     */
+    fun nudgeAccessibilityRebind(context: Context): Boolean {
+        if (!hasWriteSecureSettings(context)) return false
+        if (!PermissionHelper.isAccessibilityServiceEnabled(context)) return false
+        if (SlideIndexAccessibilityService.isConnected()) return true
+
+        val component = ComponentName(context, SlideIndexAccessibilityService::class.java)
+        val serviceId = component.flattenToString()
+        val shortId = component.flattenToShortString()
+        val resolver = context.contentResolver
+        val enabledServices = Settings.Secure.getString(
+            resolver,
+            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES,
+        ).orEmpty()
+        val others = enabledServices.split(':')
+            .filter { it.isNotBlank() }
+            .filterNot {
+                it.equals(serviceId, ignoreCase = true) ||
+                    it.equals(shortId, ignoreCase = true)
+            }
+
+        Settings.Secure.putString(
+            resolver,
+            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES,
+            if (others.isEmpty()) "" else TextUtils.join(":", others),
+        )
+        if (others.isEmpty()) {
+            Settings.Secure.putInt(resolver, Settings.Secure.ACCESSIBILITY_ENABLED, 0)
+        }
+
+        val restored = others.toMutableSet()
+        restored.add(serviceId)
+        Settings.Secure.putString(
+            resolver,
+            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES,
+            TextUtils.join(":", restored),
+        )
+        Settings.Secure.putInt(resolver, Settings.Secure.ACCESSIBILITY_ENABLED, 1)
+        return PermissionHelper.isAccessibilityServiceEnabled(context)
+    }
 }
