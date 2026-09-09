@@ -77,7 +77,7 @@ class MainActivity : ComponentActivity() {
         accessibilityGranted = mutableStateOf(false),
         batteryOptimizationExempt = mutableStateOf(false),
         writeSecureSettingsGranted = mutableStateOf(false),
-        notificationListenerEnabled = mutableStateOf(false),
+        notificationListenerEnabled = mutableStateOf(false)
     )
 
     private val currentIntentAction = mutableStateOf<String?>(null)
@@ -101,7 +101,7 @@ class MainActivity : ComponentActivity() {
                 retryIndex++
                 permissionRefreshHandler.postDelayed(
                     this,
-                    PERMISSION_REFRESH_RETRY_DELAYS_MS[retryIndex],
+                    PERMISSION_REFRESH_RETRY_DELAYS_MS[retryIndex]
                 )
             }
         }
@@ -116,7 +116,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private val notificationPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission(),
+        ActivityResultContracts.RequestPermission()
     ) { granted ->
         permissionStates.notificationGranted.value =
             granted || PermissionHelper.hasNotificationPermission(this)
@@ -130,7 +130,7 @@ class MainActivity : ComponentActivity() {
             context = this,
             permissionStates = permissionStates,
             scope = lifecycleScope,
-            settingsRepository = deps.settingsRepository,
+            settingsRepository = deps.settingsRepository
         )
         Shizuku.addRequestPermissionResultListener(shizukuPermissionListener)
         lifecycle.addObserver(
@@ -140,7 +140,7 @@ class MainActivity : ComponentActivity() {
                     Lifecycle.Event.ON_STOP -> UpdateAppForeground.isInForeground = false
                     else -> Unit
                 }
-            },
+            }
         )
         enableEdgeToEdge()
         refreshPermissionState()
@@ -160,7 +160,7 @@ class MainActivity : ComponentActivity() {
                 initialNavRoute = initialNavRoute,
                 showUpdateFromIntent = showUpdate,
                 onNavRouteConsumed = { pendingNavRoute.value = null },
-                onShowUpdateConsumed = { pendingShowUpdate.value = false },
+                onShowUpdateConsumed = { pendingShowUpdate.value = false }
             )
         }
     }
@@ -188,7 +188,7 @@ class MainActivity : ComponentActivity() {
                 when (uri.pathSegments.firstOrNull()?.lowercase()) {
                     PATH_NOTIFICATION_HISTORY -> {
                         NotificationHistoryLaunchState.setPendingSearchQuery(
-                            uri.getQueryParameter(QUERY_PARAM),
+                            uri.getQueryParameter(QUERY_PARAM)
                         )
                         return ACTION_OPEN_NOTIFICATION_HISTORY
                     }
@@ -231,7 +231,7 @@ class MainActivity : ComponentActivity() {
 
         val stashPanelShortcut = ShortcutInfoCompat.Builder(
             this,
-            StashClipboardTrampolineActivity.SHORTCUT_ID_STASH,
+            StashClipboardTrampolineActivity.SHORTCUT_ID_STASH
         )
             .setShortLabel(getString(R.string.shortcut_stash_panel))
             .setLongLabel(getString(R.string.gesture_action_stash_panel))
@@ -241,7 +241,7 @@ class MainActivity : ComponentActivity() {
 
         val clipboardPanelShortcut = ShortcutInfoCompat.Builder(
             this,
-            StashClipboardTrampolineActivity.SHORTCUT_ID_CLIPBOARD,
+            StashClipboardTrampolineActivity.SHORTCUT_ID_CLIPBOARD
         )
             .setShortLabel(getString(R.string.shortcut_clipboard_panel))
             .setLongLabel(getString(R.string.gesture_action_clipboard_panel))
@@ -256,8 +256,8 @@ class MainActivity : ComponentActivity() {
                 notificationHubShortcut,
                 shellPanelShortcut,
                 stashPanelShortcut,
-                clipboardPanelShortcut,
-            ),
+                clipboardPanelShortcut
+            )
         )
     }
 
@@ -315,7 +315,7 @@ class MainActivity : ComponentActivity() {
         permissionRefreshRetryRunnable.reset()
         permissionRefreshHandler.postDelayed(
             permissionRefreshRetryRunnable,
-            PERMISSION_REFRESH_RETRY_DELAYS_MS[0],
+            PERMISSION_REFRESH_RETRY_DELAYS_MS[0]
         )
     }
 
@@ -336,12 +336,12 @@ class MainActivity : ComponentActivity() {
         resolver.registerContentObserver(
             Settings.Secure.getUriFor(Settings.Secure.ACCESSIBILITY_ENABLED),
             false,
-            observer,
+            observer
         )
         resolver.registerContentObserver(
             Settings.Secure.getUriFor(Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES),
             false,
-            observer,
+            observer
         )
         accessibilitySettingsObserver = observer
     }
@@ -362,7 +362,7 @@ class MainActivity : ComponentActivity() {
     internal fun sendOverlayPreviewIntent(
         action: String,
         content: LayoutPreviewContent = LayoutPreviewContent.TRIGGER_ONLY,
-        focus: LayoutPreviewFocus? = null,
+        focus: LayoutPreviewFocus? = null
     ) {
         overlayServiceController.sendPreviewIntent(action, content, focus)
     }

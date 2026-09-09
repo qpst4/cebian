@@ -18,7 +18,7 @@ import com.slideindex.app.settings.FloatBallStyleType
  */
 internal class FloatBallBuiltinAnimView @JvmOverloads constructor(
     context: Context,
-    attrs: AttributeSet? = null,
+    attrs: AttributeSet? = null
 ) : View(context, attrs) {
 
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -71,7 +71,7 @@ internal class FloatBallBuiltinAnimView @JvmOverloads constructor(
             sizePx = sizePx,
             alpha = viewOpacity(),
             styleType = type,
-            timeMs = elapsedMs(),
+            timeMs = elapsedMs()
         )
     }
 
@@ -107,7 +107,7 @@ internal class FloatBallBuiltinAnimView @JvmOverloads constructor(
                 sizePx = width.coerceAtMost(height).coerceAtLeast(1),
                 alpha = viewOpacity(),
                 styleType = type,
-                timeMs = elapsedMs(),
+                timeMs = elapsedMs()
             )
         }
     }

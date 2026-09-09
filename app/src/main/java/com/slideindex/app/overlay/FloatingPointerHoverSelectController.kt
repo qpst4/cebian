@@ -25,7 +25,7 @@ import kotlinx.coroutines.withContext
  */
 internal class FloatingPointerHoverSelectController(
     private val session: FloatingPointerSession,
-    private val mainHandler: Handler = Handler(Looper.getMainLooper()),
+    private val mainHandler: Handler = Handler(Looper.getMainLooper())
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var active = false
@@ -136,7 +136,7 @@ internal class FloatingPointerHoverSelectController(
         scope.launch(Dispatchers.Default) {
             val bounds = SlideIndexAccessibilityService.findControlBoundsAt(
                 rawX = anchor.x,
-                rawY = anchor.y,
+                rawY = anchor.y
             )
             withContext(Dispatchers.Main) {
                 if (generation != boundsLookupGeneration) return@withContext
@@ -160,7 +160,7 @@ internal class FloatingPointerHoverSelectController(
         }
         val bounds = SlideIndexAccessibilityService.findControlBoundsAt(
             rawX = anchor.x,
-            rawY = anchor.y,
+            rawY = anchor.y
         )
         if (bounds != null) {
             selectionPreviewBounds = bounds
@@ -174,7 +174,7 @@ internal class FloatingPointerHoverSelectController(
         PickPrefetchCache.startPreviewA11yPrefetch(
             service = service,
             rect = bounds,
-            generation = boundsLookupGeneration,
+            generation = boundsLookupGeneration
         )
     }
 
@@ -201,7 +201,7 @@ internal class FloatingPointerHoverSelectController(
                     host,
                     panelAnchorX,
                     panelAnchorY,
-                    PickResultTextSource.OCR,
+                    PickResultTextSource.OCR
                 )
                 SlideIndexAccessibilityService.pickFloatBallOnRelease(
                     context = host,
@@ -211,7 +211,7 @@ internal class FloatingPointerHoverSelectController(
                     endY = end.y,
                     regionalRect = true,
                     ocrFallbackEnabled = ocrFallbackEnabled,
-                    ocrModelId = ocrModelId,
+                    ocrModelId = ocrModelId
                 ) { result ->
                     FloatBallPickResultPanel.showResult(host, panelAnchorX, panelAnchorY, result)
                     PickPerf.endSession("END", "fp_hover_regional")
@@ -227,14 +227,14 @@ internal class FloatingPointerHoverSelectController(
                     host,
                     panelAnchorX,
                     panelAnchorY,
-                    PickResultTextSource.A11Y,
+                    PickResultTextSource.A11Y
                 )
                 SlideIndexAccessibilityService.pickFloatBallTextInRect(
                     context = host,
                     rect = bounds,
                     ocrFallbackEnabled = ocrFallbackEnabled,
                     ocrModelId = ocrModelId,
-                    previewBoundsPick = true,
+                    previewBoundsPick = true
                 ) { result ->
                     FloatBallPickResultPanel.showResult(host, panelAnchorX, panelAnchorY, result)
                     PickPerf.endSession("END", "fp_hover_preview")
@@ -280,7 +280,7 @@ internal class FloatingPointerHoverSelectController(
                     if (!active) return@refresh
                     applyPreviewBoundsFromCache()
                     publishChrome()
-                },
+                }
             )
         }
         initialCacheRunnable = runnable
@@ -322,7 +322,7 @@ internal class FloatingPointerHoverSelectController(
             hasPreviewBounds = selectionPreviewBounds != null,
             pickAnchorX = pickAnchor.x,
             pickAnchorY = pickAnchor.y,
-            hintMode = hintMode,
+            hintMode = hintMode
         )
     }
 
@@ -368,7 +368,7 @@ internal data class FloatingPointerHoverSelectChrome(
     val hasPreviewBounds: Boolean = false,
     val pickAnchorX: Float = 0f,
     val pickAnchorY: Float = 0f,
-    val hintMode: FloatBallCursorPreviewView.HintMode = FloatBallCursorPreviewView.HintMode.HIDDEN,
+    val hintMode: FloatBallCursorPreviewView.HintMode = FloatBallCursorPreviewView.HintMode.HIDDEN
 ) {
     fun previewBoundsOrNull(): Rect? =
         if (hasPreviewBounds) Rect(previewLeft, previewTop, previewRight, previewBottom) else null

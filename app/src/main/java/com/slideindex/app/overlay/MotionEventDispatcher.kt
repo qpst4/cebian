@@ -41,7 +41,7 @@ fun DragGestureHandler(
     onDragStart: (Offset) -> Unit = {},
     onDragEnd: () -> Unit = {},
     onDragCancel: () -> Unit = {},
-    onDrag: (dragAmount: Offset) -> Unit,
+    onDrag: (dragAmount: Offset) -> Unit
 ) {
     val curOnDragStart by rememberUpdatedState(newValue = onDragStart)
     val curOnDragEnd by rememberUpdatedState(newValue = onDragEnd)

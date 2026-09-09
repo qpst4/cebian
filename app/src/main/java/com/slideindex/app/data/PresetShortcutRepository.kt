@@ -19,14 +19,14 @@ data class PresetShortcutItem(
     val evoScheme: String,
     val pinyinName: String = "",
     val initialName: String = "",
-    val pinyinIntro: String = "",
+    val pinyinIntro: String = ""
 )
 
 data class PresetShortcutAppGroup(
     val packageName: String,
     val appLabel: String,
     val shortcuts: List<PresetShortcutItem>,
-    val pinyinLabel: String = "",
+    val pinyinLabel: String = ""
 )
 
 object PresetShortcutRepository {
@@ -75,7 +75,7 @@ object PresetShortcutRepository {
                         evoScheme = scheme,
                         pinyinName = PinyinHelper.sortKey(name),
                         initialName = PinyinHelper.initialKey(name),
-                        pinyinIntro = PinyinHelper.sortKey(intro),
+                        pinyinIntro = PinyinHelper.sortKey(intro)
                     )
                 )
             }
@@ -106,7 +106,7 @@ object PresetShortcutRepository {
         items: List<PresetShortcutItem>,
         pm: PackageManager,
         context: Context,
-        keep: (String) -> Boolean = { true },
+        keep: (String) -> Boolean = { true }
     ): List<PresetShortcutAppGroup> {
         val grouped = LinkedHashMap<String, MutableList<PresetShortcutItem>>()
         for (item in items) {
@@ -129,7 +129,7 @@ object PresetShortcutRepository {
                 packageName = pkg,
                 appLabel = appLabel,
                 shortcuts = shortcutList.sortedBy { it.pinyinName },
-                pinyinLabel = pinyinLabel,
+                pinyinLabel = pinyinLabel
             )
         }.sortedBy { it.pinyinLabel }
     }
@@ -146,7 +146,7 @@ object PresetShortcutRepository {
 
     fun filterGroups(
         groups: List<PresetShortcutAppGroup>,
-        query: String,
+        query: String
     ): List<PresetShortcutAppGroup> {
         val q = query.trim().lowercase()
         if (q.isEmpty()) return groups

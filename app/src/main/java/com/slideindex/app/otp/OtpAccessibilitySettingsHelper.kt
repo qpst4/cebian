@@ -28,7 +28,7 @@ object OtpAccessibilitySettingsHelper {
         val resolver = context.contentResolver
         val enabledServices = Settings.Secure.getString(
             resolver,
-            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES,
+            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
         ).orEmpty()
         if (enabledServices.isBlank()) return
         val services = enabledServices.split(':').filter { it.isNotBlank() }.toMutableList()
@@ -49,7 +49,7 @@ object OtpAccessibilitySettingsHelper {
         Settings.Secure.putString(
             resolver,
             Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES,
-            TextUtils.join(":", services),
+            TextUtils.join(":", services)
         )
         Settings.Secure.putInt(resolver, Settings.Secure.ACCESSIBILITY_ENABLED, 1)
     }

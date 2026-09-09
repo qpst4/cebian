@@ -72,7 +72,7 @@ object FloatingPointerOverlayWindow {
 
     internal data class PendingPointerTap(
         val rawX: Float,
-        val rawY: Float,
+        val rawY: Float
     )
 
     val isShowing: Boolean get() = displayView != null
@@ -171,7 +171,7 @@ object FloatingPointerOverlayWindow {
         settings: AppSettings,
         anchorRawX: Float? = null,
         anchorRawY: Float? = null,
-        continueTouch: Boolean = false,
+        continueTouch: Boolean = false
     ) {
         windowLifecycle.show(context, settings, anchorRawX, anchorRawY, continueTouch)
     }
@@ -218,7 +218,7 @@ object FloatingPointerOverlayWindow {
         context: Context,
         settings: AppSettings,
         rawX: Float,
-        rawY: Float,
+        rawY: Float
     ) {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             mainHandler.post { launchContinuedFromEdge(context, settings, rawX, rawY) }
@@ -232,7 +232,7 @@ object FloatingPointerOverlayWindow {
             touchHost?.beginContinuedGesture(
                 rawX,
                 rawY,
-                SystemClock.uptimeMillis(),
+                SystemClock.uptimeMillis()
             )
             Log.i(TAG, "launchContinuedFromEdge: reused visible window")
             return
@@ -243,7 +243,7 @@ object FloatingPointerOverlayWindow {
             anchorRawX = rawX,
             anchorRawY = rawY,
             continueTouch = true,
-            attachDeferred = true,
+            attachDeferred = true
         )
     }
 
@@ -270,7 +270,7 @@ object FloatingPointerOverlayWindow {
         settings: AppSettings,
         anchorRawX: Float? = null,
         anchorRawY: Float? = null,
-        continueTouch: Boolean = false,
+        continueTouch: Boolean = false
     ) {
         windowLifecycle.toggle(context, settings, anchorRawX, anchorRawY, continueTouch)
     }
@@ -304,7 +304,7 @@ object FloatingPointerOverlayWindow {
             action = action,
             settings = settings,
             anchorRawX = pointerSession.pointerX.floatValue,
-            anchorRawY = pointerSession.pointerY.floatValue,
+            anchorRawY = pointerSession.pointerY.floatValue
         )
     }
 
@@ -358,11 +358,11 @@ object FloatingPointerOverlayWindow {
         when (action) {
             is GestureAction.PointerGestureRecorder -> startGestureRecorder(
                 session?.pointerX?.floatValue ?: return,
-                session?.pointerY?.floatValue ?: return,
+                session?.pointerY?.floatValue ?: return
             )
             is GestureAction.PointerRealtimeGesture -> startRealtimeGesture(
                 session?.pointerX?.floatValue ?: return,
-                session?.pointerY?.floatValue ?: return,
+                session?.pointerY?.floatValue ?: return
             )
             else -> Unit
         }
@@ -388,7 +388,7 @@ object FloatingPointerOverlayWindow {
                 windowLifecycle.collapseTouchCapture(
                     pointerSession.joystickCenterX.floatValue,
                     pointerSession.joystickCenterY.floatValue,
-                    forceCollapse = true,
+                    forceCollapse = true
                 )
                 windowLifecycle.setTouchOverlayPassthrough(true)
             },
@@ -406,10 +406,10 @@ object FloatingPointerOverlayWindow {
                 windowLifecycle.collapseTouchCapture(
                     dockX,
                     dockY,
-                    forceCollapse = true,
+                    forceCollapse = true
                 )
                 settingsSync.resetIdleTimer()
-            },
+            }
         )
     }
 
@@ -443,10 +443,10 @@ object FloatingPointerOverlayWindow {
                 windowLifecycle.collapseTouchCapture(
                     dockX,
                     dockY,
-                    forceCollapse = true,
+                    forceCollapse = true
                 )
                 settingsSync.resetIdleTimer()
-            },
+            }
         )
     }
 
@@ -454,7 +454,7 @@ object FloatingPointerOverlayWindow {
         action: GestureAction,
         settings: AppSettings,
         anchorRawX: Float,
-        anchorRawY: Float,
+        anchorRawY: Float
     ) {
         if (action is GestureAction.None) return
         onHaptic(settings)
@@ -467,7 +467,7 @@ object FloatingPointerOverlayWindow {
             action = action,
             settings = settings,
             anchorRawX = anchorRawX,
-            anchorRawY = anchorRawY,
+            anchorRawY = anchorRawY
         )
     }
 
@@ -528,7 +528,7 @@ object FloatingPointerOverlayWindow {
         if (isPointerTapInFlight || isPointerSwipeInFlight) {
             mainHandler.postDelayed(
                 { enqueuePointerSwipe(startX, startY, config) },
-                SlideIndexAccessibilityService.POINTER_TAP_CHAIN_GAP_MS,
+                SlideIndexAccessibilityService.POINTER_TAP_CHAIN_GAP_MS
             )
             return
         }
@@ -582,7 +582,7 @@ object FloatingPointerOverlayWindow {
             preferNodeClick = insideTouchOverlay,
             onFinished = { _ ->
                 onPointerTapComplete(insideTouchOverlay)
-            },
+            }
         )
     }
 
@@ -593,7 +593,7 @@ object FloatingPointerOverlayWindow {
             pointerTapEchoGuard.arm(next.rawX, next.rawY, injectEchoSlopPx())
             mainHandler.postDelayed(
                 { injectPointerTap(next.rawX, next.rawY) },
-                SlideIndexAccessibilityService.POINTER_TAP_CHAIN_GAP_MS,
+                SlideIndexAccessibilityService.POINTER_TAP_CHAIN_GAP_MS
             )
             return
         }

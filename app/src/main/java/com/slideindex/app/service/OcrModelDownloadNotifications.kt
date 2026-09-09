@@ -30,8 +30,8 @@ object OcrModelDownloadNotifications {
             NotificationChannel(
                 CHANNEL_ID,
                 context.getString(R.string.ocr_download_notification_channel),
-                NotificationManager.IMPORTANCE_LOW,
-            ),
+                NotificationManager.IMPORTANCE_LOW
+            )
         )
     }
 
@@ -43,7 +43,7 @@ object OcrModelDownloadNotifications {
             context,
             0,
             intent,
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
     }
 

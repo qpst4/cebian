@@ -1,7 +1,6 @@
 package com.slideindex.app.ui
 
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
-import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import top.yukonga.miuix.kmp.basic.SmallTitle
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -68,7 +67,7 @@ fun FloatingPointerRadialMenuSettingsScreen(
     onDividerColorChange: (Int) -> Unit,
     onIconSizeFractionChange: (Float) -> Unit,
     onIconColorChange: (Int) -> Unit,
-    onResetDesignDefaults: () -> Unit,
+    onResetDesignDefaults: () -> Unit
 ) {
     var selectedTab by remember { mutableStateOf(RadialMenuTab.Settings) }
     var colorTarget by remember { mutableStateOf<RadialColorTarget?>(null) }
@@ -91,7 +90,7 @@ fun FloatingPointerRadialMenuSettingsScreen(
         settings.floatingPointerRadialOuterDiameterPx,
         settings.floatingPointerRadialInnerDiameterPx,
         settings.floatingPointerRadialDividerThicknessPx,
-        settings.floatingPointerRadialIconSizeFraction,
+        settings.floatingPointerRadialIconSizeFraction
     ) {
         if (!radialDesignPreviewDragging) {
             previewOuterDiameterPx = settings.floatingPointerRadialOuterDiameterPx
@@ -106,8 +105,8 @@ fun FloatingPointerRadialMenuSettingsScreen(
             floatingPointerRadialOuterDiameterPx = previewOuterDiameterPx,
             floatingPointerRadialInnerDiameterPx = previewInnerDiameterPx,
             floatingPointerRadialDividerThicknessPx = previewDividerThicknessPx,
-            floatingPointerRadialIconSizeFraction = previewIconSizeFraction,
-        ),
+            floatingPointerRadialIconSizeFraction = previewIconSizeFraction
+        )
     )
 
     if (colorTarget != null) {
@@ -123,7 +122,7 @@ fun FloatingPointerRadialMenuSettingsScreen(
                     null -> Unit
                 }
                 colorTarget = null
-            },
+            }
         )
     }
 
@@ -138,24 +137,24 @@ fun FloatingPointerRadialMenuSettingsScreen(
             icon = { label ->
                 Icon(
                     imageVector = Icons.Default.Visibility,
-                    contentDescription = label,
+                    contentDescription = label
                 )
             },
             checked = settings.floatingPointerRadialAlwaysVisible,
             enabled = true,
-            onCheckedChange = onAlwaysVisibleChange,
+            onCheckedChange = onAlwaysVisibleChange
         )
         val longPressAction = settings.floatingPointerJoystickLongPressAction
         SettingNavigationRow(
             icon = { label ->
                 Icon(
                     imageVector = gestureActionIcon(longPressAction),
-                    contentDescription = label,
+                    contentDescription = label
                 )
             },
             title = stringResource(R.string.floating_pointer_joystick_long_press_action),
             subtitle = gestureActionLabel(longPressAction),
-            onClick = onOpenLongPressActionPick,
+            onClick = onOpenLongPressActionPick
         )
         SettingsSliderRow(
             title = stringResource(R.string.floating_pointer_radial_long_press_ms),
@@ -165,9 +164,9 @@ fun FloatingPointerRadialMenuSettingsScreen(
             enabled = true,
             label = stringResource(
                 R.string.floating_pointer_radial_long_press_ms_value,
-                settings.floatingPointerRadialLongPressMs,
+                settings.floatingPointerRadialLongPressMs
             ),
-            onValueChange = { onLongPressMsChange(it.roundToInt()) },
+            onValueChange = { onLongPressMsChange(it.roundToInt()) }
         )
     }
 
@@ -180,7 +179,7 @@ fun FloatingPointerRadialMenuSettingsScreen(
                 icon = { label ->
                     Icon(
                         imageVector = gestureActionIcon(action),
-                        contentDescription = label,
+                        contentDescription = label
                     )
                 },
                 title = radialSlotDirectionLabel(index),
@@ -198,20 +197,20 @@ fun FloatingPointerRadialMenuSettingsScreen(
                                         is GestureAction.ExecuteShellCommand ->
                                             onOpenShellCommand(index, current.command)
                                     }
-                                },
+                                }
                             ) {
                                 Icon(
                                     Icons.Outlined.Settings,
                                     contentDescription = stringResource(
-                                        R.string.cd_radial_menu_settings,
+                                        R.string.cd_radial_menu_settings
                                     ),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
                     }
                     else -> null
-                },
+                }
             )
         }
     }
@@ -222,7 +221,7 @@ fun FloatingPointerRadialMenuSettingsScreen(
         previewOuterDiameterPx,
         previewInnerDiameterPx,
         previewDividerThicknessPx,
-        previewIconSizeFraction,
+        previewIconSizeFraction
     ) {
         SettingsSliderRow(
             title = stringResource(R.string.floating_pointer_radial_outer_size),
@@ -232,14 +231,14 @@ fun FloatingPointerRadialMenuSettingsScreen(
             enabled = true,
             label = stringResource(
                 R.string.floating_pointer_size_px_value,
-                settings.floatingPointerRadialOuterDiameterPx.roundToInt(),
+                settings.floatingPointerRadialOuterDiameterPx.roundToInt()
             ),
             triggersLayoutPreview = true,
             commitOnFinish = true,
             onLayoutPreviewStart = { radialDesignPreviewDragging = true },
             onLayoutPreviewStop = { radialDesignPreviewDragging = false },
             onLayoutPreviewValueChange = { previewOuterDiameterPx = it },
-            onValueChange = onOuterDiameterChange,
+            onValueChange = onOuterDiameterChange
         )
         AnimationStyleColorRow(
             title = stringResource(R.string.floating_pointer_radial_outer_color),
@@ -248,7 +247,7 @@ fun FloatingPointerRadialMenuSettingsScreen(
             onClick = {
                 pickerInitialColor = settings.floatingPointerRadialOuterColorArgb
                 colorTarget = RadialColorTarget.Outer
-            },
+            }
         )
         SettingsSliderRow(
             title = stringResource(R.string.floating_pointer_radial_inner_size),
@@ -258,14 +257,14 @@ fun FloatingPointerRadialMenuSettingsScreen(
             enabled = true,
             label = stringResource(
                 R.string.floating_pointer_size_px_value,
-                settings.floatingPointerRadialInnerDiameterPx.roundToInt(),
+                settings.floatingPointerRadialInnerDiameterPx.roundToInt()
             ),
             triggersLayoutPreview = true,
             commitOnFinish = true,
             onLayoutPreviewStart = { radialDesignPreviewDragging = true },
             onLayoutPreviewStop = { radialDesignPreviewDragging = false },
             onLayoutPreviewValueChange = { previewInnerDiameterPx = it },
-            onValueChange = onInnerDiameterChange,
+            onValueChange = onInnerDiameterChange
         )
         AnimationStyleColorRow(
             title = stringResource(R.string.floating_pointer_radial_inner_color),
@@ -274,7 +273,7 @@ fun FloatingPointerRadialMenuSettingsScreen(
             onClick = {
                 pickerInitialColor = settings.floatingPointerRadialInnerColorArgb
                 colorTarget = RadialColorTarget.Inner
-            },
+            }
         )
         SettingsSliderRow(
             title = stringResource(R.string.floating_pointer_radial_divider_thickness),
@@ -284,14 +283,14 @@ fun FloatingPointerRadialMenuSettingsScreen(
             enabled = true,
             label = stringResource(
                 R.string.floating_pointer_size_px_value,
-                settings.floatingPointerRadialDividerThicknessPx.roundToInt(),
+                settings.floatingPointerRadialDividerThicknessPx.roundToInt()
             ),
             triggersLayoutPreview = true,
             commitOnFinish = true,
             onLayoutPreviewStart = { radialDesignPreviewDragging = true },
             onLayoutPreviewStop = { radialDesignPreviewDragging = false },
             onLayoutPreviewValueChange = { previewDividerThicknessPx = it },
-            onValueChange = onDividerThicknessChange,
+            onValueChange = onDividerThicknessChange
         )
         AnimationStyleColorRow(
             title = stringResource(R.string.floating_pointer_radial_divider_color),
@@ -300,7 +299,7 @@ fun FloatingPointerRadialMenuSettingsScreen(
             onClick = {
                 pickerInitialColor = settings.floatingPointerRadialDividerColorArgb
                 colorTarget = RadialColorTarget.Divider
-            },
+            }
         )
         SettingsSliderRow(
             title = stringResource(R.string.floating_pointer_radial_icon_size),
@@ -310,14 +309,14 @@ fun FloatingPointerRadialMenuSettingsScreen(
             enabled = true,
             label = stringResource(
                 R.string.floating_pointer_percent_value,
-                (settings.floatingPointerRadialIconSizeFraction * 100).roundToInt(),
+                (settings.floatingPointerRadialIconSizeFraction * 100).roundToInt()
             ),
             triggersLayoutPreview = true,
             commitOnFinish = true,
             onLayoutPreviewStart = { radialDesignPreviewDragging = true },
             onLayoutPreviewStop = { radialDesignPreviewDragging = false },
             onLayoutPreviewValueChange = { previewIconSizeFraction = it },
-            onValueChange = onIconSizeFractionChange,
+            onValueChange = onIconSizeFractionChange
         )
         AnimationStyleColorRow(
             title = stringResource(R.string.floating_pointer_radial_icon_color),
@@ -326,14 +325,14 @@ fun FloatingPointerRadialMenuSettingsScreen(
             onClick = {
                 pickerInitialColor = settings.floatingPointerRadialIconColorArgb
                 colorTarget = RadialColorTarget.Icon
-            },
+            }
         )
     }
 
     val designResetCard = settingsCardItems {
         SettingLinkRow(
             title = resetDesignTitle,
-            onClick = onResetDesignDefaults,
+            onClick = onResetDesignDefaults
         )
     }
 
@@ -350,14 +349,14 @@ fun FloatingPointerRadialMenuSettingsScreen(
                                 RadialMenuTab.Settings -> R.string.floating_pointer_radial_tab_settings
                                 RadialMenuTab.Functions -> R.string.floating_pointer_radial_tab_functions
                                 RadialMenuTab.Design -> R.string.floating_pointer_radial_tab_design
-                            },
+                            }
                         )
                     },
                     selectedTabIndex = selectedTab.ordinal,
-                    onTabSelected = { selectedTab = RadialMenuTab.entries[it] },
+                    onTabSelected = { selectedTab = RadialMenuTab.entries[it] }
                 )
             }
-        },
+        }
     ) {
         item(key = "radial-body") {
         Column(modifier = Modifier.fillMaxWidth()) {
@@ -367,11 +366,11 @@ fun FloatingPointerRadialMenuSettingsScreen(
                 }
 
                 RadialMenuTab.Functions -> {
-                    MiuixSmallTitle(
+                    SmallTitle(
                         functionsSectionTitle,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = MiuixSmallTitleSectionTop),
+                            
                     )
                     functionsTabCard.RenderRows()
                 }
@@ -382,21 +381,21 @@ fun FloatingPointerRadialMenuSettingsScreen(
                 }
             }
 
-            MiuixSmallTitle(
+            SmallTitle(
                 previewSectionTitle,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = MiuixSmallTitleSectionTop),
+                    
             )
             Surface(
                 modifier = Modifier.padding(bottom = 4.dp),
                 shape = MaterialTheme.shapes.large,
-                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                color = MaterialTheme.colorScheme.surfaceContainerHigh
             ) {
                 FloatingPointerRadialMenuPreview(
                     settings = previewSettings,
                     slots = settings.floatingPointerRadialSlotActions,
-                    highlightedSlot = 2,
+                    highlightedSlot = 2
                 )
             }
         }
@@ -425,7 +424,7 @@ private fun radialSlotActionSubtitle(action: GestureAction): String {
     } else if (action is GestureAction.ExecuteShellCommand && action.command.isNotBlank()) {
         stringResource(
             R.string.gesture_action_execute_shell_command_named,
-            gestureExecuteShellCommandPreview(action.command),
+            gestureExecuteShellCommandPreview(action.command)
         )
     } else {
         base

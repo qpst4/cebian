@@ -260,11 +260,10 @@ fun MiuixSettingsScreenScaffold(
     }
 }
 
-/** 首页 Hub：大标题顶栏 + LazyColumn 内容区。 */
+/** 首页 Hub：大标题顶栏 + LazyColumn 内容区（对齐 Mishka：大标题下直接进内容）。 */
 @Composable
 fun MiuixHubScaffold(
     title: String,
-    subtitle: String,
     modifier: Modifier = Modifier,
     listState: LazyListState = rememberLazyListState(),
     bottomContentPadding: Dp = 0.dp,
@@ -275,12 +274,8 @@ fun MiuixHubScaffold(
         modifier = modifier,
         listState = listState,
         bottomContentPadding = 8.dp + bottomContentPadding,
-    ) {
-        item(key = "hub-subtitle") {
-            MiuixHintText(subtitle)
-        }
-        content()
-    }
+        content = content,
+    )
 }
 
 @Composable

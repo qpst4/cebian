@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit
 import kotlin.math.min
 
 internal class TaskManagerShortcutDumpsysLoader(
-    private val shell: TaskManagerShellExecutor = TaskManagerShellExecutor,
+    private val shell: TaskManagerShellExecutor = TaskManagerShellExecutor
 ) {
     fun queryCmdPublishedShortcuts(packageName: String, useRoot: Boolean): List<Pair<String, String>> {
         val merged = linkedMapOf<String, String>()
@@ -19,7 +19,7 @@ internal class TaskManagerShortcutDumpsysLoader(
         }
         val dump = shortcutCommandOutput(
             useRoot = useRoot,
-            "cmd", "shortcut", "get-shortcuts", "--user", "0", "--flags", "4095", packageName,
+            "cmd", "shortcut", "get-shortcuts", "--user", "0", "--flags", "4095", packageName
         )
         absorb(ShortcutShellParser.parse(dump, packageName))
         return merged.filter { (id, label) -> ShortcutDisplayRules.isDisplayable(id, label) }
@@ -62,7 +62,7 @@ internal class TaskManagerShortcutDumpsysLoader(
             useRoot = useRoot,
             timeoutMs = DUMP_SHORTCUT_FULL_TIMEOUT_MS,
             "dumpsys",
-            "shortcut",
+            "shortcut"
         )
         if (plain.contains("ShortcutInfo", ignoreCase = true)) {
             Log.i(TAG, "loadAllPackagesShortcutDump via dumpsys shortcut -> ${plain.length} bytes")
@@ -72,7 +72,7 @@ internal class TaskManagerShortcutDumpsysLoader(
             if (dump.contains("ShortcutInfo", ignoreCase = true)) {
                 Log.i(
                     TAG,
-                    "loadAllPackagesShortcutDump via temp file -> ${dump.length} bytes",
+                    "loadAllPackagesShortcutDump via temp file -> ${dump.length} bytes"
                 )
                 return dump
             }
@@ -84,12 +84,12 @@ internal class TaskManagerShortcutDumpsysLoader(
             "shortcut",
             "--user",
             "0",
-            "-n",
+            "-n"
         )
         if (full.contains("ShortcutInfo", ignoreCase = true)) {
             Log.i(
                 TAG,
-                "loadAllPackagesShortcutDump via dumpsys shortcut --user 0 -n -> ${full.length} bytes",
+                "loadAllPackagesShortcutDump via dumpsys shortcut --user 0 -n -> ${full.length} bytes"
             )
             return full
         }
@@ -98,13 +98,13 @@ internal class TaskManagerShortcutDumpsysLoader(
             Log.i(
                 TAG,
                 "loadAllPackagesShortcutDump via dumpsys -p '$DUMP_SHORTCUT_ALL_PACKAGES_REGEX' -> " +
-                    "${bulk.length} bytes",
+                    "${bulk.length} bytes"
             )
             return bulk
         }
         Log.w(
             TAG,
-            "loadAllPackagesShortcutDump: bulk dumpsys returned no ShortcutInfo",
+            "loadAllPackagesShortcutDump: bulk dumpsys returned no ShortcutInfo"
         )
         return ""
     }
@@ -117,7 +117,7 @@ internal class TaskManagerShortcutDumpsysLoader(
             "shortcut",
             "--user",
             "0",
-            "-n",
+            "-n"
         )
 
     fun collectAllShortcutsParallel(useRoot: Boolean): Map<String, Map<String, String>> {
@@ -149,7 +149,7 @@ internal class TaskManagerShortcutDumpsysLoader(
         Log.i(
             TAG,
             "collectAllShortcutsParallel done packages=${merged.size} " +
-                "shortcuts=${merged.values.sumOf { it.size }}",
+                "shortcuts=${merged.values.sumOf { it.size }}"
         )
         return merged.mapValues { (_, entries) -> entries.toMap() }
     }
@@ -187,7 +187,7 @@ internal class TaskManagerShortcutDumpsysLoader(
             "--user",
             "0",
             "-p",
-            packageName,
+            packageName
         )
 
     private fun loadBulkDumpsysViaFile(useRoot: Boolean): String? {
@@ -198,7 +198,7 @@ internal class TaskManagerShortcutDumpsysLoader(
             timeoutMs = DUMP_SHORTCUT_ALL_PACKAGES_TIMEOUT_MS,
             "sh",
             "-c",
-            script,
+            script
         )
         if (output.isBlank()) return null
         return output
@@ -213,7 +213,7 @@ internal class TaskManagerShortcutDumpsysLoader(
             "--user",
             "0",
             "-p",
-            DUMP_SHORTCUT_ALL_PACKAGES_REGEX,
+            DUMP_SHORTCUT_ALL_PACKAGES_REGEX
         )
 
     private fun listInstalledPackageNames(useRoot: Boolean): List<String> {
@@ -231,8 +231,8 @@ internal class TaskManagerShortcutDumpsysLoader(
                 "pm",
                 "list",
                 "packages",
-                "-3",
-            ),
+                "-3"
+            )
         )
         if (thirdParty.isNotEmpty()) {
             val systemWithShortcuts = parsePmList(
@@ -242,8 +242,8 @@ internal class TaskManagerShortcutDumpsysLoader(
                     "pm",
                     "list",
                     "packages",
-                    "-s",
-                ),
+                    "-s"
+                )
             ).filter { pkg ->
                 pkg.startsWith("com.google.") || pkg == "com.android.vending"
             }
@@ -255,8 +255,8 @@ internal class TaskManagerShortcutDumpsysLoader(
                 timeoutMs = TaskManagerShellExecutor.SHELL_COMMAND_TIMEOUT_MS,
                 "pm",
                 "list",
-                "packages",
-            ),
+                "packages"
+            )
         )
     }
 

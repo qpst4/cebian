@@ -18,7 +18,7 @@ object OverlayPanelSystemGestureExclusion {
 
     fun attach(
         view: View,
-        excludeLeftBackEdge: Boolean = true,
+        excludeLeftBackEdge: Boolean = true
     ) {
         view.setTag(configTagKey, excludeLeftBackEdge)
         val layoutListener = View.OnLayoutChangeListener { target, _, _, _, _, _, _, _, _ ->
@@ -36,7 +36,7 @@ object OverlayPanelSystemGestureExclusion {
                     v.setTag(configTagKey, null)
                     ViewCompat.setSystemGestureExclusionRects(v, emptyList())
                 }
-            },
+            }
         )
         if (view.isAttachedToWindow) {
             updateExclusionRects(view)

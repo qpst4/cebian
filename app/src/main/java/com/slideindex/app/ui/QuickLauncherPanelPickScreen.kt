@@ -12,8 +12,7 @@ import com.slideindex.app.R
 import com.slideindex.app.launcher.QuickLauncherPanel
 import com.slideindex.app.launcher.QuickLauncherPanelDefaults
 import com.slideindex.app.settings.AppSettings
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
-import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import top.yukonga.miuix.kmp.basic.SmallTitle
 import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
@@ -35,11 +34,11 @@ fun QuickLauncherPanelPickScreen(
         onBack = onBack,
     ) {
         item(key = "quick-launcher-panel-pick-desc") {
-            MiuixSmallTitle(
+            SmallTitle(
                 pickDesc,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = MiuixSmallTitleSectionTop),
+                    ,
             )
         }
         groupedCardItems(

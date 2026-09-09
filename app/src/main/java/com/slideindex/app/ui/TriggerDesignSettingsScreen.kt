@@ -1,7 +1,6 @@
 package com.slideindex.app.ui
 
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
-import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import top.yukonga.miuix.kmp.basic.SmallTitle
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.Modifier
@@ -164,7 +163,7 @@ fun TriggerDesignSettingsScreen(
         subtitle = stringResource(R.string.trigger_design_desc) + pairSuffix,
         onBack = onBack,
     ) {
-        settingsLazySmallTitle(key = "trigger-design-section", title = designSectionTitle, sectionTop = true)
+        settingsLazySmallTitle(key = "trigger-design-section", title = designSectionTitle)
         groupedCardItems(
             keyPrefix = "trigger-design-kind",
             items = buildList {
@@ -212,7 +211,6 @@ fun TriggerDesignSettingsScreen(
             settingsLazySmallTitle(
                 key = "trigger-design-customize-$customizeLayoutEpoch",
                 title = customizeSectionTitle,
-                sectionTop = true,
             )
             groupedCardItems(
                 keyPrefix = "trigger-design-customize-$customizeLayoutEpoch",

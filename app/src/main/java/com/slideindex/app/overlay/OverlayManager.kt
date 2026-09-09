@@ -18,7 +18,7 @@ class OverlayManager(
     private val appRepository: AppRepository,
     private val scope: CoroutineScope,
     private val onShellCommandsPersist: (List<com.slideindex.app.shell.ShellCommand>) -> Unit = {},
-    private val onQuickLauncherPanelItemsPersist: (String, List<QuickLauncherItem>) -> Unit = { _, _ -> },
+    private val onQuickLauncherPanelItemsPersist: (String, List<QuickLauncherItem>) -> Unit = { _, _ -> }
 ) {
     private val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
     private var leftController: SideOverlayController? = null
@@ -103,7 +103,7 @@ class OverlayManager(
     fun setPreviewMode(
         enabled: Boolean,
         content: LayoutPreviewContent = LayoutPreviewContent.TRIGGER_ONLY,
-        focus: LayoutPreviewFocus? = null,
+        focus: LayoutPreviewFocus? = null
     ) {
         previewMode = enabled
         previewContent = content
@@ -130,7 +130,7 @@ class OverlayManager(
                 clickPassthroughHandler = ::performClickPassthrough,
                 onShellCommandsPersist = onShellCommandsPersist,
                 onQuickLauncherPanelItemsPersist = onQuickLauncherPanelItemsPersist,
-                onComposeOverlayDialogStateChanged = ::onComposeOverlayDialogStateChanged,
+                onComposeOverlayDialogStateChanged = ::onComposeOverlayDialogStateChanged
             )
         }
         leftController?.updateSettings(settings, screenWidth)
@@ -145,7 +145,7 @@ class OverlayManager(
                 clickPassthroughHandler = ::performClickPassthrough,
                 onShellCommandsPersist = onShellCommandsPersist,
                 onQuickLauncherPanelItemsPersist = onQuickLauncherPanelItemsPersist,
-                onComposeOverlayDialogStateChanged = ::onComposeOverlayDialogStateChanged,
+                onComposeOverlayDialogStateChanged = ::onComposeOverlayDialogStateChanged
             )
         }
         rightController?.updateSettings(settings, screenWidth)
@@ -160,7 +160,7 @@ class OverlayManager(
                 clickPassthroughHandler = ::performClickPassthrough,
                 onShellCommandsPersist = onShellCommandsPersist,
                 onQuickLauncherPanelItemsPersist = onQuickLauncherPanelItemsPersist,
-                onComposeOverlayDialogStateChanged = ::onComposeOverlayDialogStateChanged,
+                onComposeOverlayDialogStateChanged = ::onComposeOverlayDialogStateChanged
             )
         }
         bottomController?.updateSettings(settings, screenWidth)
@@ -175,7 +175,7 @@ class OverlayManager(
                 clickPassthroughHandler = ::performClickPassthrough,
                 onShellCommandsPersist = onShellCommandsPersist,
                 onQuickLauncherPanelItemsPersist = onQuickLauncherPanelItemsPersist,
-                onComposeOverlayDialogStateChanged = ::onComposeOverlayDialogStateChanged,
+                onComposeOverlayDialogStateChanged = ::onComposeOverlayDialogStateChanged
             )
         }
         topController?.updateSettings(settings, screenWidth)
@@ -289,7 +289,7 @@ class OverlayManager(
         return TriggerVisibility.shouldSuppress(
             settings = currentSettings,
             context = context,
-            foregroundPackage = foregroundPackage,
+            foregroundPackage = foregroundPackage
         )
     }
 
@@ -301,34 +301,34 @@ class OverlayManager(
             leftController?.setPreviewMode(
                 enabled = previewMode,
                 content = content,
-                focus = focus.copy(side = PanelSide.LEFT),
+                focus = focus.copy(side = PanelSide.LEFT)
             )
             rightController?.setPreviewMode(
                 enabled = previewMode,
                 content = content,
-                focus = focus.copy(side = PanelSide.RIGHT),
+                focus = focus.copy(side = PanelSide.RIGHT)
             )
             return
         }
         leftController?.setPreviewMode(
             enabled = previewMode && (focus == null || focus.side == PanelSide.LEFT),
             content = content,
-            focus = focus?.takeIf { it.side == PanelSide.LEFT },
+            focus = focus?.takeIf { it.side == PanelSide.LEFT }
         )
         rightController?.setPreviewMode(
             enabled = previewMode && (focus == null || focus.side == PanelSide.RIGHT),
             content = content,
-            focus = focus?.takeIf { it.side == PanelSide.RIGHT },
+            focus = focus?.takeIf { it.side == PanelSide.RIGHT }
         )
         bottomController?.setPreviewMode(
             enabled = previewMode && (focus == null || focus.side == PanelSide.BOTTOM),
             content = content,
-            focus = focus?.takeIf { it.side == PanelSide.BOTTOM },
+            focus = focus?.takeIf { it.side == PanelSide.BOTTOM }
         )
         topController?.setPreviewMode(
             enabled = previewMode && (focus == null || focus.side == PanelSide.TOP),
             content = content,
-            focus = focus?.takeIf { it.side == PanelSide.TOP },
+            focus = focus?.takeIf { it.side == PanelSide.TOP }
         )
     }
 
@@ -371,7 +371,7 @@ class OverlayManager(
     fun dispatchExternalGestureAction(
         action: com.slideindex.app.gesture.GestureAction,
         anchorRawY: Float,
-        panelSide: PanelSide? = null,
+        panelSide: PanelSide? = null
     ): Boolean {
         if (!currentSettings.serviceEnabled) return false
         refreshTriggerVisibility()
@@ -455,7 +455,7 @@ class OverlayManager(
             showTriggers = ::resumeEdgeCapturesAfterPassthrough,
             rawX = rawX,
             rawY = rawY,
-            onComplete = onComplete,
+            onComplete = onComplete
         )
     }
 }

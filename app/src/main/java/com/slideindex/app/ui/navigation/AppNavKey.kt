@@ -193,6 +193,7 @@ sealed interface AppNavKey : NavKey {
     @Serializable data object ShakeGestureBlacklist : AppNavKey
     @Serializable data object ShakeGestureBlacklistPick : AppNavKey
     @Serializable data object ShakeLockScreenSettings : AppNavKey
+    @Serializable data object ShakeFaceDownSettings : AppNavKey
     @Serializable data object ShakeIndependentSensitivity : AppNavKey
     @Serializable data object ShakeIndependentAppSettings : AppNavKey
     @Serializable data object ShakeIndependentAppPick : AppNavKey

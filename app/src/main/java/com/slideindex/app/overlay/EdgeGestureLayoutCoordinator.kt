@@ -25,7 +25,7 @@ internal class EdgeGestureLayoutCoordinator(
     private val settingsProvider: () -> AppSettings,
     private val previewModeProvider: () -> Boolean,
     private val viewSizeProvider: () -> Pair<Int, Int>,
-    private val onSessionEnd: () -> Unit,
+    private val onSessionEnd: () -> Unit
 ) {
     var overlayTouchLayout: OverlayTouchLayout = OverlayTouchLayout.FullScreen
         private set
@@ -62,7 +62,7 @@ internal class EdgeGestureLayoutCoordinator(
             layoutHeight = layoutH,
             windowOffsetY = 0f,
             screenWidthPx = screenW,
-            screenHeightPx = screenH,
+            screenHeightPx = screenH
         )
     }
 

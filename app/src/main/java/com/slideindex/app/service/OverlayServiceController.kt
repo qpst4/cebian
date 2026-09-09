@@ -18,12 +18,12 @@ class OverlayServiceController(
     private val context: Context,
     private val permissionStates: NavPermissionStates,
     private val scope: CoroutineScope,
-    private val settingsRepository: SettingsRepository,
+    private val settingsRepository: SettingsRepository
 ) {
     fun sendPreviewIntent(
         action: String,
         content: LayoutPreviewContent = LayoutPreviewContent.TRIGGER_ONLY,
-        focus: LayoutPreviewFocus? = null,
+        focus: LayoutPreviewFocus? = null
     ) {
         if (!permissionStates.accessibilityGranted.value) return
         when (action) {

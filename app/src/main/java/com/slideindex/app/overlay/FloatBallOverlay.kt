@@ -109,7 +109,7 @@ object FloatBallOverlay {
         val visibleFraction: Float,
         val lineHeightFraction: Float,
         val lineWidthFraction: Float,
-        val lineOpacity: Float,
+        val lineOpacity: Float
     )
 
     private var sceneState: FloatBallSceneState? = null
@@ -217,7 +217,7 @@ object FloatBallOverlay {
     /** 拖出当帧刷新拖拽布局与光标层。 */
     private fun applyImmediateDragStartVisual(
         deferBallWindowMutation: Boolean,
-        showCursorLayers: Boolean = true,
+        showCursorLayers: Boolean = true
     ) {
         cancelDeferredDragStart()
         if (!isDragging) return
@@ -491,7 +491,7 @@ object FloatBallOverlay {
         visibleFraction: Float? = null,
         lineHeightFraction: Float? = null,
         lineWidthFraction: Float? = null,
-        lineOpacity: Float? = null,
+        lineOpacity: Float? = null
     ) {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             mainHandler.post {
@@ -501,7 +501,7 @@ object FloatBallOverlay {
                     visibleFraction,
                     lineHeightFraction,
                     lineWidthFraction,
-                    lineOpacity,
+                    lineOpacity
                 )
             }
             return
@@ -515,7 +515,7 @@ object FloatBallOverlay {
                 visibleFraction = current.floatBallVisibleFraction,
                 lineHeightFraction = current.floatBallLineHeightFraction,
                 lineWidthFraction = current.floatBallLineWidthFraction,
-                lineOpacity = current.floatBallLineOpacity,
+                lineOpacity = current.floatBallLineOpacity
             )
         }
         val current = state.value
@@ -529,8 +529,8 @@ object FloatBallOverlay {
                     ?: current.floatBallLineHeightFraction,
                 floatBallLineWidthFraction = lineWidthFraction?.coerceIn(0.01f, 0.50f)
                     ?: current.floatBallLineWidthFraction,
-                floatBallLineOpacity = lineOpacity?.coerceIn(0f, 1f) ?: current.floatBallLineOpacity,
-            ),
+                floatBallLineOpacity = lineOpacity?.coerceIn(0f, 1f) ?: current.floatBallLineOpacity
+            )
         )
         state.value = updated
         invalidateChrome()
@@ -559,8 +559,8 @@ object FloatBallOverlay {
                     floatBallVisibleFraction = baseline.visibleFraction,
                     floatBallLineHeightFraction = baseline.lineHeightFraction,
                     floatBallLineWidthFraction = baseline.lineWidthFraction,
-                    floatBallLineOpacity = baseline.lineOpacity,
-                ),
+                    floatBallLineOpacity = baseline.lineOpacity
+                )
             )
         }
         state.value = restored
@@ -610,7 +610,7 @@ object FloatBallOverlay {
         context: Context,
         settings: AppSettings,
         onPositionPersisted: (xFraction: Float, yFraction: Float) -> Unit,
-        onActiveSidePersisted: (FloatBallSide) -> Unit = {},
+        onActiveSidePersisted: (FloatBallSide) -> Unit = {}
     ) {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             mainHandler.post { showOrUpdate(context, settings, onPositionPersisted, onActiveSidePersisted) }
@@ -663,13 +663,13 @@ object FloatBallOverlay {
                         floatBallVisibleFraction = current.floatBallVisibleFraction,
                         floatBallLineHeightFraction = current.floatBallLineHeightFraction,
                         floatBallLineWidthFraction = current.floatBallLineWidthFraction,
-                        floatBallLineOpacity = current.floatBallLineOpacity,
-                    ),
+                        floatBallLineOpacity = current.floatBallLineOpacity
+                    )
                 )
                 isDragging &&
                     current != null &&
                     incoming.floatBallActiveSide != current.floatBallActiveSide -> incoming.copy(
-                    floatBall = incoming.floatBall.copy(floatBallActiveSide = current.floatBallActiveSide),
+                    floatBall = incoming.floatBall.copy(floatBallActiveSide = current.floatBallActiveSide)
                 )
                 else -> incoming
             }
@@ -769,7 +769,7 @@ object FloatBallOverlay {
             dragSession.refreshPointerTravel(
                 settings = currentSettings,
                 screenWidth = dragScreenBounds!!.width,
-                screenHeight = dragScreenBounds!!.height,
+                screenHeight = dragScreenBounds!!.height
             )
             updatePickAndBallFromFinger(moveBallWindow = true)
         } else {
@@ -891,7 +891,7 @@ object FloatBallOverlay {
             metrics = metrics,
             activeSide = activeSide,
             screenWidthPx = screenWidthPx,
-            screenHeightPx = screenHeightPx,
+            screenHeightPx = screenHeightPx
         )
         return centerX to centerY
     }
@@ -905,7 +905,7 @@ object FloatBallOverlay {
         val layoutMetrics = OverlayDisplayMetrics.resolve(
             context = view.context,
             windowManager = wm,
-            densityHint = ballDensityHint ?: viewMetrics.density,
+            densityHint = ballDensityHint ?: viewMetrics.density
         )
         val screenWidth = OverlayDisplayMetrics.screenWidthPx(view.context, wm, layoutMetrics)
         return layoutMetrics.density to screenWidth
@@ -1006,14 +1006,14 @@ object FloatBallOverlay {
                 touchDownY: Float,
                 fingerX: Float,
                 fingerY: Float,
-                fromLineStrip: Boolean,
+                fromLineStrip: Boolean
             ) {
                 updateSlopPhaseBallFollow(
                     fromLineStrip = fromLineStrip,
                     touchDownX = touchDownX,
                     touchDownY = touchDownY,
                     fingerX = fingerX,
-                    fingerY = fingerY,
+                    fingerY = fingerY
                 )
             }
 
@@ -1035,7 +1035,7 @@ object FloatBallOverlay {
                     touchDownY = touchDownY,
                     fingerX = fingerX,
                     fingerY = fingerY,
-                    deferBallWindowMutation = true,
+                    deferBallWindowMutation = true
                 )
             }
 
@@ -1064,7 +1064,7 @@ object FloatBallOverlay {
             context = overlayContext,
             lineChromeOwner = displayDialogOwner,
             ballIconView = ballIcon,
-            cursorPreviewView = cursorPreview,
+            cursorPreviewView = cursorPreview
         ).apply {
             isClickable = false
             isFocusable = false
@@ -1072,7 +1072,7 @@ object FloatBallOverlay {
             lineChromeComposeView.setContent {
                 FloatBallLineChrome(
                     sceneState = state,
-                    dragActiveSideOverrideState = dragActiveSideOverrideState!!,
+                    dragActiveSideOverrideState = dragActiveSideOverrideState!!
                 )
             }
         }
@@ -1082,7 +1082,7 @@ object FloatBallOverlay {
             sceneState = state,
             settingsProvider = { state.settingsState.value },
             activeSideProvider = { effectiveActiveSide(state.settingsState.value) },
-            screenSizeProvider = { FloatBallScreenMetrics.sizePx(overlayContext, wm) },
+            screenSizeProvider = { FloatBallScreenMetrics.sizePx(overlayContext, wm) }
         ).apply {
             updateSettings(settings)
             bindBallCallbacks(
@@ -1111,9 +1111,9 @@ object FloatBallOverlay {
                         rawX = x,
                         rawY = y,
                         fromLineStrip = false,
-                        settings = state.settingsState.value,
+                        settings = state.settingsState.value
                     )
-                },
+                }
             )
         }
 
@@ -1122,7 +1122,7 @@ object FloatBallOverlay {
             sceneState = state,
             settingsProvider = { state.settingsState.value },
             activeSideProvider = { effectiveActiveSide(state.settingsState.value) },
-            screenSizeProvider = { FloatBallScreenMetrics.sizePx(overlayContext, wm) },
+            screenSizeProvider = { FloatBallScreenMetrics.sizePx(overlayContext, wm) }
         ).apply {
             updateSettings(settings)
             bindDragCallbacks(
@@ -1171,9 +1171,9 @@ object FloatBallOverlay {
                         rawX = x,
                         rawY = y,
                         fromLineStrip = true,
-                        settings = state.settingsState.value,
+                        settings = state.settingsState.value
                     )
-                },
+                }
             )
         }
 
@@ -1273,7 +1273,7 @@ object FloatBallOverlay {
                 setContent {
                     FloatBallIdleBallChrome(
                         sceneState = state,
-                        dragActiveSideOverrideState = dragActiveSideOverrideState!!,
+                        dragActiveSideOverrideState = dragActiveSideOverrideState!!
                     )
                 }
             }
@@ -1346,7 +1346,7 @@ object FloatBallOverlay {
                 metrics = metrics,
                 inactiveSide = inactiveSide,
                 screenWidthPx = screenW,
-                screenHeightPx = screenH,
+                screenHeightPx = screenH
             )
             params.x = bounds.left
             params.y = bounds.top
@@ -1384,7 +1384,7 @@ object FloatBallOverlay {
 
     private fun expandTouchHostToFullscreen(
         view: View?,
-        params: WindowManager.LayoutParams?,
+        params: WindowManager.LayoutParams?
     ) {
         val wm = windowManager ?: return
         if (view == null || params == null) return
@@ -1475,7 +1475,7 @@ object FloatBallOverlay {
             metrics = metrics,
             activeSide = activeSide,
             screenWidthPx = screenW,
-            screenHeightPx = screenH,
+            screenHeightPx = screenH
         )
         if (captureSuppressed || passthroughRestorePending) {
             params.flags = params.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
@@ -1518,7 +1518,7 @@ object FloatBallOverlay {
             metrics = metrics,
             inactiveSide = inactiveSide,
             screenWidthPx = screenW,
-            screenHeightPx = screenH,
+            screenHeightPx = screenH
         )
         view.visibility = View.VISIBLE
         params.flags = params.flags and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE.inv()
@@ -1544,7 +1544,7 @@ object FloatBallOverlay {
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                 WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
                 WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
-            PixelFormat.TRANSLUCENT,
+            PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.TOP or Gravity.START
             layoutInDisplayCutoutMode =
@@ -1563,7 +1563,7 @@ object FloatBallOverlay {
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                 WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
                 WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
-            PixelFormat.TRANSLUCENT,
+            PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.TOP or Gravity.START
             layoutInDisplayCutoutMode =
@@ -1601,7 +1601,7 @@ object FloatBallOverlay {
             fingerX = dragSession.dragFingerX,
             fingerY = dragSession.dragFingerY,
             dockSide = effectiveActiveSide(settings),
-            density = density,
+            density = density
         )
     }
 
@@ -1610,7 +1610,7 @@ object FloatBallOverlay {
 
     private fun createFloatBallActionExecutor(
         hostContext: Context,
-        deps: com.slideindex.app.di.OverlayDependencies,
+        deps: com.slideindex.app.di.OverlayDependencies
     ): ActionExecutor = ActionExecutor(
         context = hostContext,
         appRepository = deps.appRepository,
@@ -1618,7 +1618,7 @@ object FloatBallOverlay {
             overlayScope.launch {
                 deps.settingsRepository.setShellCommands(commands)
             }
-        },
+        }
     )
 
     private fun handleFloatBallLauncherCaptureMove(rawX: Float, rawY: Float) {
@@ -1630,7 +1630,7 @@ object FloatBallOverlay {
         rawX: Float,
         rawY: Float,
         fromLineStrip: Boolean,
-        settings: AppSettings,
+        settings: AppSettings
     ) {
         val hostContext = OverlayDependencyAccess.overlayHostContext()
             ?: displayView?.context?.applicationContext
@@ -1648,7 +1648,7 @@ object FloatBallOverlay {
                     rawX = rawX,
                     rawY = rawY,
                     actionExecutor = actionExecutor,
-                    settings = settings,
+                    settings = settings
                 )
             }
             HoneycombAppPickerOverlayWindow.isShowing -> {
@@ -1656,7 +1656,7 @@ object FloatBallOverlay {
                     rawX = rawX,
                     rawY = rawY,
                     actionExecutor = actionExecutor,
-                    settings = settings,
+                    settings = settings
                 )
             }
         }
@@ -1736,7 +1736,7 @@ object FloatBallOverlay {
         externalTracking: Boolean,
         fromLineStrip: Boolean,
         actionExecutor: ActionExecutor,
-        hostContext: Context,
+        hostContext: Context
     ) {
         cancelCursorPickPreview()
         clearSplitIdleChrome()
@@ -1763,7 +1763,7 @@ object FloatBallOverlay {
                 anchorRawX = anchorX,
                 anchorRawY = anchorY,
                 externalTracking = externalTracking,
-                onLaunch = onLaunch,
+                onLaunch = onLaunch
             )
             GestureAction.HoneycombLauncher -> HoneycombAppPickerOverlayWindow.show(
                 context = hostContext,
@@ -1771,7 +1771,7 @@ object FloatBallOverlay {
                 anchorRawX = anchorX,
                 anchorRawY = anchorY,
                 externalTracking = externalTracking,
-                onLaunch = onLaunch,
+                onLaunch = onLaunch
             )
             else -> false
         }
@@ -1789,7 +1789,7 @@ object FloatBallOverlay {
         gestureType: FloatBallGestureType,
         rawX: Float,
         rawY: Float,
-        fromLineStrip: Boolean = false,
+        fromLineStrip: Boolean = false
     ) {
         val action = settings.floatBallGestureActions[gestureType] ?: GestureAction.None
         if (action is GestureAction.None) return
@@ -1802,7 +1802,7 @@ object FloatBallOverlay {
                 rawY = rawY,
                 onComplete = {},
                 framesBeforeInject = FLOAT_BALL_PASSTHROUGH_FRAMES_BEFORE_INJECT,
-                restoreDelayMs = FLOAT_BALL_PASSTHROUGH_RESTORE_DELAY_MS,
+                restoreDelayMs = FLOAT_BALL_PASSTHROUGH_RESTORE_DELAY_MS
             )
             return
         }
@@ -1822,7 +1822,7 @@ object FloatBallOverlay {
                 overlayScope.launch {
                     deps.settingsRepository.setShellCommands(commands)
                 }
-            },
+            }
         )
         if (gestureType == FloatBallGestureType.LONG_PRESS && isOverlayLauncherAction(action)) {
             val (anchorX, anchorY) = if (fromLineStrip) {
@@ -1838,7 +1838,7 @@ object FloatBallOverlay {
                 externalTracking = true,
                 fromLineStrip = fromLineStrip,
                 actionExecutor = actionExecutor,
-                hostContext = hostContext,
+                hostContext = hostContext
             )
             return
         }
@@ -1847,7 +1847,7 @@ object FloatBallOverlay {
             settings = settings,
             anchorRawX = rawX,
             anchorRawY = rawY,
-            panelSide = panelSide,
+            panelSide = panelSide
         )
     }
 
@@ -1916,7 +1916,7 @@ object FloatBallOverlay {
             crossAlpha = crossAlpha,
             crossPaused = cursorPausedState?.value == true,
             crossArmDp = settings?.floatBallPickCrossArmDp?.coerceIn(4f, 16f) ?: 7.5f,
-            hintMode = resolveCursorHintMode(),
+            hintMode = resolveCursorHintMode()
         )
     }
 
@@ -1943,7 +1943,7 @@ object FloatBallOverlay {
         settings: AppSettings,
         @Suppress("UNUSED_PARAMETER") fixZOrder: Boolean = true,
         deferLineRestore: Boolean = false,
-        skipBallLayout: Boolean = false,
+        skipBallLayout: Boolean = false
     ) {
         setBallTouchable(true)
         if (!skipBallLayout) {
@@ -1989,7 +1989,7 @@ object FloatBallOverlay {
             settings = settings,
             fixZOrder = false,
             deferLineRestore = true,
-            skipBallLayout = true,
+            skipBallLayout = true
         )
         releaseAllTouchCaptures()
         syncTouchCaptureLayouts()
@@ -2007,7 +2007,7 @@ object FloatBallOverlay {
     private fun bringOverlayToFront(
         view: View,
         params: WindowManager.LayoutParams,
-        forceReAdd: Boolean = false,
+        forceReAdd: Boolean = false
     ) {
         val wm = windowManager ?: return
         if (!view.isAttachedToWindow) {
@@ -2051,7 +2051,7 @@ object FloatBallOverlay {
     private fun syncDisplayBallLayout(
         settings: AppSettings,
         layoutOnly: Boolean = false,
-        overrideCenter: Offset? = null,
+        overrideCenter: Offset? = null
     ) {
         val host = displayView ?: return
         val state = sceneState ?: return
@@ -2063,7 +2063,7 @@ object FloatBallOverlay {
             metrics,
             activeSide,
             screenWidthPx,
-            screenHeightPx,
+            screenHeightPx
         )
         val (left, top) = state.ballWindowTopLeft(settings, metrics, activeSide, center, screenHeightPx)
         val sizePx = FloatBallLayout.ballSizePx(settings, metrics.density)
@@ -2073,7 +2073,7 @@ object FloatBallOverlay {
             ballIconView?.bind(
                 settings = settings,
                 activeSide = activeSide,
-                styleGeneration = state.styleVisualGeneration.intValue,
+                styleGeneration = state.styleVisualGeneration.intValue
             )
         }
         ballIconView?.setDragging(state.ballDragging.value)
@@ -2121,7 +2121,7 @@ object FloatBallOverlay {
         touchDownX: Float,
         touchDownY: Float,
         fingerX: Float,
-        fingerY: Float,
+        fingerY: Float
     ) {
         val settings = settingsState?.value ?: return
         val dockedSide = FloatBallLayout.resolvedActiveSide(settings)
@@ -2142,7 +2142,7 @@ object FloatBallOverlay {
             touchDownY = touchDownY,
             fingerX = fingerX,
             fingerY = fingerY,
-            deferBallWindowMutation = true,
+            deferBallWindowMutation = true
         )
         if (isDragging && dragOriginatedFromLine) {
             setBallTouchable(false)
@@ -2265,7 +2265,7 @@ object FloatBallOverlay {
             PickPerf.beginSession(sessionTag)
             PickPerf.mark(
                 "ACTION_UP",
-                "regional=true ocr=$ocrFallbackEnabled",
+                "regional=true ocr=$ocrFallbackEnabled"
             )
             val panelAnchorX = pickRect.centerX().toFloat()
             val panelAnchorY = pickRect.bottom.toFloat()
@@ -2273,7 +2273,7 @@ object FloatBallOverlay {
                 host,
                 panelAnchorX,
                 panelAnchorY,
-                PickResultTextSource.OCR,
+                PickResultTextSource.OCR
             )
             SlideIndexAccessibilityService.pickFloatBallOnRelease(
                 context = host,
@@ -2283,7 +2283,7 @@ object FloatBallOverlay {
                 endY = pickRect.bottom.toFloat(),
                 regionalRect = true,
                 ocrFallbackEnabled = ocrFallbackEnabled,
-                ocrModelId = ocrModelId,
+                ocrModelId = ocrModelId
             ) { result ->
                 PickPerf.mark("showResultPanel_callback")
                 FloatBallPickResultPanel.showResult(host, panelAnchorX, panelAnchorY, result)
@@ -2303,14 +2303,14 @@ object FloatBallOverlay {
                 host,
                 panelAnchorX,
                 panelAnchorY,
-                PickResultTextSource.A11Y,
+                PickResultTextSource.A11Y
             )
             SlideIndexAccessibilityService.pickFloatBallTextInRect(
                 context = host,
                 rect = bounds,
                 ocrFallbackEnabled = ocrFallbackEnabled,
                 ocrModelId = ocrModelId,
-                previewBoundsPick = true,
+                previewBoundsPick = true
             ) { result ->
                 FloatBallPickResultPanel.showResult(host, panelAnchorX, panelAnchorY, result)
                 PickPerf.endSession("END", "preview_bounds")
@@ -2335,7 +2335,7 @@ object FloatBallOverlay {
             metrics,
             activeSide,
             screenWidthPx,
-            screenHeightPx,
+            screenHeightPx
         )
         val customCenterXFraction = FloatBallLayout.coerceCustomCenterXFraction(centerX / screenWidthPx)
         val yFraction = FloatBallLayout.coercePositionYFraction(centerY / screenHeightPx)
@@ -2381,7 +2381,7 @@ object FloatBallOverlay {
         screenWidth: Float,
         screenHeight: Float,
         screenWidthPx: Int,
-        screenHeightPx: Int,
+        screenHeightPx: Int
     ): Pair<Float, Float> {
         val activeSide = if (fromEdgeGesture) {
             if (fingerX < screenWidth / 2f) FloatBallSide.LEFT else FloatBallSide.RIGHT
@@ -2401,7 +2401,7 @@ object FloatBallOverlay {
                 metrics,
                 activeSide,
                 screenWidthPx,
-                screenHeightPx,
+                screenHeightPx
             )
         }
     }
@@ -2413,7 +2413,7 @@ object FloatBallOverlay {
         touchDownY: Float,
         fingerX: Float,
         fingerY: Float,
-        fromEdgeGesture: Boolean,
+        fromEdgeGesture: Boolean
     ) {
         val density = metrics.density
         val bounds = FloatBallScreenMetrics.bounds(displayView!!.context, windowManager)
@@ -2435,7 +2435,7 @@ object FloatBallOverlay {
             screenWidth = screenWidth,
             screenHeight = screenHeight,
             screenWidthPx = screenWidthPx,
-            screenHeightPx = screenHeightPx,
+            screenHeightPx = screenHeightPx
         )
         val pickDockSide = when {
             fromEdgeGesture -> if (fingerX < screenWidth / 2f) FloatBallSide.LEFT else FloatBallSide.RIGHT
@@ -2453,7 +2453,7 @@ object FloatBallOverlay {
             screenWidth = screenWidth,
             screenHeight = screenHeight,
             density = density,
-            pickDockSide = pickDockSide,
+            pickDockSide = pickDockSide
         )
         dragScreenBounds = bounds
     }
@@ -2463,7 +2463,7 @@ object FloatBallOverlay {
         touchDownX: Float,
         touchDownY: Float,
         fingerX: Float,
-        fingerY: Float,
+        fingerY: Float
     ) {
         val view = displayView ?: return
         val settings = settingsState?.value ?: return
@@ -2486,7 +2486,7 @@ object FloatBallOverlay {
                 touchDownY = touchDownY,
                 fingerX = fingerX,
                 fingerY = fingerY,
-                fromEdgeGesture = false,
+                fromEdgeGesture = false
             )
             flushDragChromeLayout(syncAnchorState = true)
         } else {
@@ -2537,7 +2537,7 @@ object FloatBallOverlay {
             metrics,
             activeSide,
             screenWidthPx,
-            screenHeightPx,
+            screenHeightPx
         )
         return FloatBallPickAnchor.pickPointForBallCenter(
             settings = settings,
@@ -2547,7 +2547,7 @@ object FloatBallOverlay {
             screenWidth = bounds.width,
             screenHeight = bounds.height,
             density = density,
-            dockSide = activeSide,
+            dockSide = activeSide
         )
     }
 
@@ -2563,7 +2563,7 @@ object FloatBallOverlay {
         fingerX: Float,
         fingerY: Float,
         deferBallWindowMutation: Boolean = false,
-        fromEdgeGesture: Boolean = false,
+        fromEdgeGesture: Boolean = false
     ) {
         val view = displayView ?: return
         val settings = settingsState?.value ?: return
@@ -2585,7 +2585,7 @@ object FloatBallOverlay {
                 touchDownY = touchDownY,
                 fingerX = fingerX,
                 fingerY = fingerY,
-                fromEdgeGesture = fromEdgeGesture,
+                fromEdgeGesture = fromEdgeGesture
             )
             setDragging(true)
         } else {
@@ -2788,7 +2788,7 @@ object FloatBallOverlay {
             onReady = {
                 if (!isDragging || cursorVisibleState?.value != true) return@refresh
                 applyPreviewBoundsFromCache()
-            },
+            }
         )
     }
 
@@ -2904,7 +2904,7 @@ object FloatBallOverlay {
         overlayScope.launch(Dispatchers.Default) {
             val bounds = SlideIndexAccessibilityService.findControlBoundsAt(
                 rawX = x,
-                rawY = y,
+                rawY = y
             )
             withContext(Dispatchers.Main) {
                 if (generation != boundsLookupGeneration) return@withContext
@@ -2947,7 +2947,7 @@ object FloatBallOverlay {
         }
         val bounds = SlideIndexAccessibilityService.findControlBoundsAt(
             rawX = anchor.x,
-            rawY = anchor.y,
+            rawY = anchor.y
         )
         if (bounds != null) {
             selectionPreviewBoundsState?.value = bounds
@@ -2964,7 +2964,7 @@ object FloatBallOverlay {
         PickPrefetchCache.startPreviewA11yPrefetch(
             service = service,
             rect = bounds,
-            generation = boundsLookupGeneration,
+            generation = boundsLookupGeneration
         )
     }
 
@@ -3063,7 +3063,7 @@ object FloatBallOverlay {
             ballSizePx = ballSizePx.toFloat(),
             marginPx = marginPx,
             screenWidth = screenBounds.width.roundToInt(),
-            screenHeight = screenBounds.height.roundToInt(),
+            screenHeight = screenBounds.height.roundToInt()
         )
         syncDisplayBallLayout(settings, layoutOnly = true, overrideCenter = center)
     }
@@ -3086,7 +3086,7 @@ object FloatBallOverlay {
             screenWidth = screenWidth,
             screenHeight = screenHeight,
             density = density,
-            marginPx = marginPx,
+            marginPx = marginPx
         )
         applyPickAnchor(pick)
 

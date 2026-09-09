@@ -2,7 +2,7 @@ package com.slideindex.app.ui
 
 import android.content.res.Configuration
 import androidx.activity.compose.LocalActivity
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import top.yukonga.miuix.kmp.basic.SmallTitle
 import androidx.compose.material.icons.filled.ScreenRotation
 import androidx.compose.material3.IconButton
 import com.slideindex.app.settings.forLandscapeEditing
@@ -231,7 +231,7 @@ fun TriggerCollectionScreen(
         }
         LazySettingsItem(key = "trigger-bottom-section-${bottomHandles.joinToString { it.id }}") {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                MiuixSmallTitle(
+                SmallTitle(
                     text = stringResource(R.string.trigger_collection_bottom),
                 )
                 bottomHandles.forEach { handle ->
@@ -265,7 +265,7 @@ fun TriggerCollectionScreen(
         }
         LazySettingsItem(key = "trigger-top-section-${topHandles.joinToString { it.id }}") {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                MiuixSmallTitle(
+                SmallTitle(
                     text = stringResource(R.string.trigger_collection_top),
                 )
                 topHandles.forEach { handle ->
@@ -630,6 +630,6 @@ private fun triggerHandleActionSummary(
     return if (labels.isEmpty()) {
         stringResource(R.string.trigger_summary_none)
     } else {
-        labels.take(5).joinToString("、")
+        labels.take(5).joinToString("?")
     }
 }

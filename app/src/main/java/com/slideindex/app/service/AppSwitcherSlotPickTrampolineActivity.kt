@@ -42,7 +42,7 @@ class AppSwitcherSlotPickTrampolineActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.dark(AndroidColor.TRANSPARENT),
-            navigationBarStyle = SystemBarStyle.dark(AndroidColor.TRANSPARENT),
+            navigationBarStyle = SystemBarStyle.dark(AndroidColor.TRANSPARENT)
         )
         super.onCreate(savedInstanceState)
         if (savedInstanceState?.getBoolean(STATE_DISMISSED, false) == true) {
@@ -93,13 +93,13 @@ class AppSwitcherSlotPickTrampolineActivity : ComponentActivity() {
                                             deps.settingsRepository.setFvAppSwitcherSlot(
                                                 AppSwitcherOverlayWindow.currentAxis(),
                                                 slotIndex,
-                                                shortcut.toQuickLauncherItem(),
+                                                shortcut.toQuickLauncherItem()
                                             )
                                             AppSwitcherOverlayWindow.refreshFromSettings()
                                         }
                                     }
                                     onResult(created)
-                                },
+                                }
                             )
                         },
                         onAdd = { item ->
@@ -107,12 +107,12 @@ class AppSwitcherSlotPickTrampolineActivity : ComponentActivity() {
                                 deps.settingsRepository.setFvAppSwitcherSlot(
                                     AppSwitcherOverlayWindow.currentAxis(),
                                     slotIndex,
-                                    item,
+                                    item
                                 )
                                 AppSwitcherOverlayWindow.refreshFromSettings()
                                 finishPicker()
                             }
-                        },
+                        }
                     )
                 }
             }

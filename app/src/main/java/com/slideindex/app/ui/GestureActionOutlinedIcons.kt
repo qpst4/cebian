@@ -12,7 +12,7 @@ internal fun panelSideSwipeOutlinedIcon(side: PanelSide): ImageVector = when (si
 }
 
 internal fun pointerSwipeDirectionOutlinedIcon(
-    direction: com.slideindex.app.gesture.PointerSwipeDirection,
+    direction: com.slideindex.app.gesture.PointerSwipeDirection
 ): ImageVector = when (direction) {
     com.slideindex.app.gesture.PointerSwipeDirection.LEFT -> ThinActionIcons.Back
     com.slideindex.app.gesture.PointerSwipeDirection.RIGHT -> ThinActionIcons.ArrowRight

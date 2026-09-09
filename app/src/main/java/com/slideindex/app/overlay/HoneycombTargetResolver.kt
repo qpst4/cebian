@@ -21,7 +21,7 @@ internal object HoneycombTargetResolver {
         appsByPackage: Map<String, AppInfo>,
         appRepository: AppRepository? = null,
         activityShortcuts: List<ActivityShortcut> = emptyList(),
-        shellCommands: List<ShellCommand> = emptyList(),
+        shellCommands: List<ShellCommand> = emptyList()
     ): List<HoneycombRuntimeTarget> =
         items.mapNotNull { item ->
             if (item.type != QuickLauncherItemType.APP &&
@@ -49,7 +49,7 @@ internal object HoneycombTargetResolver {
                         appsByPackage,
                         context,
                         activityShortcuts,
-                        shellCommands,
+                        shellCommands
                     )
                 else -> null
             }

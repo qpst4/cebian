@@ -66,7 +66,7 @@ data class OverlaySelectionToolbarActions(
     val onSelectAll: (() -> Unit)? = null,
     val onSearch: ((String) -> Unit)? = null,
     val onShare: ((String) -> Unit)? = null,
-    val onTranslate: ((String) -> Unit)? = null,
+    val onTranslate: ((String) -> Unit)? = null
 )
 
 internal fun Modifier.suppressSystemTextContextMenu(): Modifier =
@@ -97,8 +97,8 @@ internal fun LayoutCoordinates.boundsInWindow(): Rect? {
     val bottomRight = localToWindow(
         Offset(
             size.width.toFloat(),
-            size.height.toFloat(),
-        ),
+            size.height.toFloat()
+        )
     )
     return Rect(topLeft, bottomRight)
 }
@@ -107,7 +107,7 @@ internal fun selectionRectInWindow(
     layoutResult: TextLayoutResult,
     selection: TextRange,
     fieldCoordinates: LayoutCoordinates,
-    scrollOffsetY: Int = 0,
+    scrollOffsetY: Int = 0
 ): Rect? {
     val localRect = layoutResult.selectionBounds(selection) ?: return null
     if (!fieldCoordinates.isAttached) return null
@@ -120,7 +120,7 @@ internal fun selectionRectInWindow(
 internal fun TextLayoutResult.selectionAnchorRect(
     selection: TextRange,
     scrollOffsetY: Int = 0,
-    viewportHeightPx: Float = Float.MAX_VALUE,
+    viewportHeightPx: Float = Float.MAX_VALUE
 ): Rect? {
     if (selection.collapsed || layoutInput.text.isEmpty()) return null
     val start = selection.min.coerceIn(0, layoutInput.text.length)
@@ -142,7 +142,7 @@ internal fun TextLayoutResult.selectionAnchorRect(
         left = anchorBox.left,
         top = anchorBox.top,
         right = anchorBox.right,
-        bottom = anchorBox.bottom,
+        bottom = anchorBox.bottom
     )
 }
 
@@ -151,7 +151,7 @@ internal fun selectionAnchorRectInWindow(
     selection: TextRange,
     fieldCoordinates: LayoutCoordinates,
     scrollOffsetY: Int = 0,
-    viewportHeightPx: Float = Float.MAX_VALUE,
+    viewportHeightPx: Float = Float.MAX_VALUE
 ): Rect? {
     val localRect = layoutResult.selectionAnchorRect(selection, scrollOffsetY, viewportHeightPx) ?: return null
     if (!fieldCoordinates.isAttached) return null
@@ -163,7 +163,7 @@ internal fun selectionAnchorRectInWindow(
 internal fun selectionRectInField(
     layoutResult: TextLayoutResult,
     selection: TextRange,
-    scrollOffsetY: Int = 0,
+    scrollOffsetY: Int = 0
 ): Rect? {
     val localRect = layoutResult.selectionBounds(selection) ?: return null
     if (scrollOffsetY == 0) return localRect
@@ -172,14 +172,14 @@ internal fun selectionRectInField(
         left = localRect.left,
         top = localRect.top - scrollY,
         right = localRect.right,
-        bottom = localRect.bottom - scrollY,
+        bottom = localRect.bottom - scrollY
     )
 }
 
 internal fun selectionBoundsInWindow(
     layoutResult: TextLayoutResult,
     selection: TextRange,
-    fieldCoordinates: LayoutCoordinates,
+    fieldCoordinates: LayoutCoordinates
 ): Rect? {
     val localRect = layoutResult.selectionBounds(selection) ?: return null
     if (!fieldCoordinates.isAttached) return null
@@ -196,7 +196,7 @@ internal fun Rect.intersectsVertically(other: Rect, gapPx: Int = 0): Boolean {
 internal data class OverlaySelectionToolbarPlacement(
     val anchorRect: Rect,
     val selectionRect: Rect?,
-    val viewportRect: Rect,
+    val viewportRect: Rect
 )
 
 internal fun overlaySelectionToolbarPlacement(
@@ -206,7 +206,7 @@ internal fun overlaySelectionToolbarPlacement(
     viewportCoordinates: LayoutCoordinates?,
     scrollOffsetY: Int,
     viewportHeightPx: Float,
-    windowSize: IntSize,
+    windowSize: IntSize
 ): OverlaySelectionToolbarPlacement? {
     val anchorRect = if (layoutResult != null) {
         selectionAnchorRectInWindow(
@@ -214,7 +214,7 @@ internal fun overlaySelectionToolbarPlacement(
             selection,
             fieldCoordinates,
             scrollOffsetY,
-            viewportHeightPx,
+            viewportHeightPx
         )
     } else {
         fieldCenterSelectionRect(fieldCoordinates)
@@ -227,12 +227,12 @@ internal fun overlaySelectionToolbarPlacement(
             left = 0f,
             top = 0f,
             right = windowSize.width.toFloat(),
-            bottom = windowSize.height.toFloat(),
+            bottom = windowSize.height.toFloat()
         )
     return OverlaySelectionToolbarPlacement(
         anchorRect = anchorRect,
         selectionRect = selectionRect,
-        viewportRect = viewportRect,
+        viewportRect = viewportRect
     )
 }
 
@@ -241,7 +241,7 @@ internal fun selectionRectForToolbar(
     selection: TextRange,
     fieldCoordinates: LayoutCoordinates,
     scrollOffsetY: Int = 0,
-    viewportHeightPx: Float = Float.MAX_VALUE,
+    viewportHeightPx: Float = Float.MAX_VALUE
 ): Rect? {
     if (layoutResult != null) {
         selectionAnchorRectInWindow(
@@ -249,7 +249,7 @@ internal fun selectionRectForToolbar(
             selection,
             fieldCoordinates,
             scrollOffsetY,
-            viewportHeightPx,
+            viewportHeightPx
         )?.let { return it }
     }
     return fieldCenterSelectionRect(fieldCoordinates)
@@ -261,8 +261,8 @@ internal fun fieldCenterSelectionRect(fieldCoordinates: LayoutCoordinates): Rect
     val bottomRight = fieldCoordinates.localToWindow(
         Offset(
             fieldCoordinates.size.width.toFloat(),
-            fieldCoordinates.size.height.toFloat(),
-        ),
+            fieldCoordinates.size.height.toFloat()
+        )
     )
     val midY = (topLeft.y + bottomRight.y) / 2f
     val insetX = (bottomRight.x - topLeft.x) * 0.2f
@@ -270,7 +270,7 @@ internal fun fieldCenterSelectionRect(fieldCoordinates: LayoutCoordinates): Rect
         left = topLeft.x + insetX,
         top = midY - 12f,
         right = bottomRight.x - insetX,
-        bottom = midY + 12f,
+        bottom = midY + 12f
     )
 }
 
@@ -284,7 +284,7 @@ internal fun selectedText(text: String, selection: TextRange): String? {
 
 internal fun cutTextFieldValue(
     value: TextFieldValue,
-    onCopy: (String) -> Unit,
+    onCopy: (String) -> Unit
 ): TextFieldValue {
     val selected = selectedText(value.text, value.selection) ?: return value
     onCopy(selected)
@@ -299,7 +299,7 @@ internal fun cutTextFieldValue(
 
 internal fun pasteIntoTextFieldValue(
     context: android.content.Context,
-    value: TextFieldValue,
+    value: TextFieldValue
 ): TextFieldValue {
     val clipboard = context.getSystemService(ClipboardManager::class.java) ?: return value
     val clipText = clipboard.primaryClip?.getItemAt(0)?.coerceToText(context)?.toString().orEmpty()
@@ -330,7 +330,7 @@ internal fun OverlaySelectionToolbarOverlay(
     viewportCoordinates: LayoutCoordinates?,
     scrollOffsetYProvider: () -> Int,
     viewportHeightPx: Float,
-    actions: OverlaySelectionToolbarActions,
+    actions: OverlaySelectionToolbarActions
 ) {
     OverlaySelectionToolbarPopup(
         visible = visible,
@@ -341,7 +341,7 @@ internal fun OverlaySelectionToolbarOverlay(
         viewportCoordinates = viewportCoordinates,
         actions = actions,
         scrollOffsetYProvider = scrollOffsetYProvider,
-        viewportHeightPx = viewportHeightPx,
+        viewportHeightPx = viewportHeightPx
     )
 }
 
@@ -355,7 +355,7 @@ internal fun OverlaySelectionToolbarPopup(
     viewportCoordinates: LayoutCoordinates?,
     actions: OverlaySelectionToolbarActions,
     scrollOffsetYProvider: () -> Int = { 0 },
-    viewportHeightPx: Float = Float.MAX_VALUE,
+    viewportHeightPx: Float = Float.MAX_VALUE
 ) {
     if (!visible || selection.collapsed || fieldCoordinates == null) return
     val selected = selectedText(text, selection) ?: return
@@ -371,10 +371,10 @@ internal fun OverlaySelectionToolbarPopup(
                 viewportCoordinates = viewportCoordinates,
                 scrollOffsetY = scrollOffsetYProvider(),
                 viewportHeightPx = viewportHeightPx,
-                windowSize = windowSize,
+                windowSize = windowSize
             )
         },
-        gapPx = gapPx,
+        gapPx = gapPx
     )
     Popup(
         popupPositionProvider = popupPositionProvider,
@@ -383,8 +383,8 @@ internal fun OverlaySelectionToolbarPopup(
             focusable = false,
             dismissOnBackPress = false,
             dismissOnClickOutside = false,
-            clippingEnabled = true,
-        ),
+            clippingEnabled = true
+        )
     ) {
         OverlaySelectionToolbarBar(
             actions = actions,
@@ -410,7 +410,7 @@ internal fun OverlaySelectionToolbarPopup(
             },
             onTranslate = {
                 actions.onTranslate?.invoke(selected)
-            },
+            }
         )
     }
 }
@@ -425,7 +425,7 @@ private fun OverlaySelectionToolbarBar(
     onSelectAll: () -> Unit,
     onSearch: () -> Unit,
     onShare: () -> Unit,
-    onTranslate: () -> Unit,
+    onTranslate: () -> Unit
 ) {
     val isDark = LocalAppDarkTheme.current
     val backgroundColor = if (isDark) Color(0xFF2A2A2C) else Color.White
@@ -435,59 +435,59 @@ private fun OverlaySelectionToolbarBar(
         color = backgroundColor,
         shadowElevation = 8.dp,
         tonalElevation = 2.dp,
-        modifier = Modifier.border(1.dp, borderColor, RoundedCornerShape(22.dp)),
+        modifier = Modifier.border(1.dp, borderColor, RoundedCornerShape(22.dp))
     ) {
         Row(
             modifier = Modifier
                 .height(44.dp)
                 .padding(horizontal = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(2.dp),
+            horizontalArrangement = Arrangement.spacedBy(2.dp)
         ) {
             OverlaySelectionToolbarIcon(
                 icon = Icons.Outlined.ContentCopy,
                 contentDescription = stringResource(android.R.string.copy),
-                onClick = onCopy,
+                onClick = onCopy
             )
             if (actions.editable) {
                 OverlaySelectionToolbarIcon(
                     icon = Icons.Outlined.ContentCut,
                     contentDescription = stringResource(android.R.string.cut),
                     enabled = selectedText.isNotEmpty(),
-                    onClick = onCut,
+                    onClick = onCut
                 )
                 OverlaySelectionToolbarIcon(
                     icon = Icons.Outlined.ContentPaste,
                     contentDescription = stringResource(android.R.string.paste),
-                    onClick = onPaste,
+                    onClick = onPaste
                 )
             }
             if (actions.onSelectAll != null) {
                 OverlaySelectionToolbarIcon(
                     icon = Icons.Outlined.SelectAll,
                     contentDescription = stringResource(R.string.float_ball_action_select_all),
-                    onClick = onSelectAll,
+                    onClick = onSelectAll
                 )
             }
             if (actions.showSearch && actions.onSearch != null) {
                 OverlaySelectionToolbarIcon(
                     icon = Icons.Outlined.Search,
                     contentDescription = stringResource(R.string.gesture_action_search_panel),
-                    onClick = onSearch,
+                    onClick = onSearch
                 )
             }
             if (actions.showShare && actions.onShare != null) {
                 OverlaySelectionToolbarIcon(
                     icon = Icons.Outlined.Share,
                     contentDescription = stringResource(R.string.float_ball_action_share),
-                    onClick = onShare,
+                    onClick = onShare
                 )
             }
             if (actions.showTranslate && actions.onTranslate != null) {
                 OverlaySelectionToolbarIcon(
                     icon = Icons.Outlined.Translate,
                     contentDescription = stringResource(R.string.float_ball_translate_panel_title),
-                    onClick = onTranslate,
+                    onClick = onTranslate
                 )
             }
         }
@@ -499,12 +499,12 @@ private fun OverlaySelectionToolbarIcon(
     icon: ImageVector,
     contentDescription: String,
     onClick: () -> Unit,
-    enabled: Boolean = true,
+    enabled: Boolean = true
 ) {
     IconButton(
         onClick = onClick,
         enabled = enabled,
-        modifier = Modifier.size(36.dp),
+        modifier = Modifier.size(36.dp)
     ) {
         Icon(
             imageVector = icon,
@@ -514,20 +514,20 @@ private fun OverlaySelectionToolbarIcon(
                 MaterialTheme.colorScheme.onSurface
             } else {
                 MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-            },
+            }
         )
     }
 }
 
 private class OverlaySelectionToolbarPositionProvider(
     private val placementProvider: (IntSize) -> OverlaySelectionToolbarPlacement?,
-    private val gapPx: Int,
+    private val gapPx: Int
 ) : PopupPositionProvider {
     override fun calculatePosition(
         anchorBounds: IntRect,
         windowSize: IntSize,
         layoutDirection: LayoutDirection,
-        popupContentSize: IntSize,
+        popupContentSize: IntSize
     ): IntOffset {
         val placement = placementProvider(windowSize) ?: return IntOffset.Zero
         val anchorRect = placement.anchorRect
@@ -550,7 +550,7 @@ private class OverlaySelectionToolbarPositionProvider(
                 left = centerX.toFloat(),
                 top = y,
                 right = centerX + popupContentSize.width.toFloat(),
-                bottom = y + toolbarHeight,
+                bottom = y + toolbarHeight
             )
             return toolbarRect.intersectsVertically(selectionRect, gapPx)
         }

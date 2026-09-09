@@ -82,7 +82,7 @@ internal class FloatBallIconView(context: Context) : FrameLayout(context) {
     fun bind(
         settings: AppSettings,
         activeSide: FloatBallSide,
-        styleGeneration: Int,
+        styleGeneration: Int
     ) {
         val density = resources.displayMetrics.density
         val sizePx = (settings.floatBallSizeDp.coerceIn(36f, 72f) * density).roundToInt().coerceAtLeast(1)
@@ -160,7 +160,7 @@ internal class FloatBallIconView(context: Context) : FrameLayout(context) {
         settings: AppSettings,
         activeSide: FloatBallSide,
         styleGeneration: Int,
-        sizePx: Int,
+        sizePx: Int
     ): String = buildString {
         append(styleGeneration)
         append('|')

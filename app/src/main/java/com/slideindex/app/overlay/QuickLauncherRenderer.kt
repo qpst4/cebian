@@ -25,7 +25,7 @@ import com.slideindex.app.util.GestureActionIconBitmap
 import com.slideindex.app.util.QuickLauncherIconResolver
 
 internal class QuickLauncherRenderer(
-    private val ctrl: QuickLauncherOverlayController,
+    private val ctrl: QuickLauncherOverlayController
 ) {
     private val host get() = ctrl.host
 
@@ -105,7 +105,7 @@ internal class QuickLauncherRenderer(
                 panelRect = panelRect,
                 pageIndex = ctrl.quickLauncherPageIndex,
                 translateX = if (pagingActive) dragOffset else 0f,
-                recordCells = recordCells,
+                recordCells = recordCells
             )
             if (pagingActive && kotlin.math.abs(dragOffset) > host.dp(0.5f)) {
                 QuickLauncherScrollHandler.adjacentPagesForDrag(
@@ -113,14 +113,14 @@ internal class QuickLauncherRenderer(
                     currentPageIndex = ctrl.quickLauncherPageIndex,
                     pageCount = ctrl.quickLauncherPageCount,
                     pageWidth = panelWidth,
-                    side = host.side(),
+                    side = host.side()
                 ).forEach { layer ->
                     drawQuickLauncherPageCells(
                         canvas = this,
                         panelRect = panelRect,
                         pageIndex = layer.pageIndex,
                         translateX = layer.translateX,
-                        recordCells = false,
+                        recordCells = false
                     )
                 }
             }
@@ -167,7 +167,7 @@ internal class QuickLauncherRenderer(
                 sizePx = size,
                 tintArgb = Color.WHITE,
                 outlined = true,
-                withPlate = true,
+                withPlate = true
             ).also { ctrl.quickLauncherIconCache[key] = it }
         }
         return QuickLauncherIconResolver.iconBitmap(
@@ -176,7 +176,7 @@ internal class QuickLauncherRenderer(
             size = size,
             context = host.context,
             activityShortcuts = host.settings().activityShortcuts,
-            shellCommands = shellCommands,
+            shellCommands = shellCommands
         )?.also { ctrl.quickLauncherIconCache[key] = it }
     }
 
@@ -228,7 +228,7 @@ internal class QuickLauncherRenderer(
 
     private fun drawQuickLauncherPanelChrome(canvas: Canvas, grid: RectF) {
         val alpha = QuickLauncherDisplaySettings.backgroundAlphaArgb(
-            host.settings().quickLauncherDisplay.backgroundOpacityPercent,
+            host.settings().quickLauncherDisplay.backgroundOpacityPercent
         )
         val blurRadiusDp = host.settings().quickLauncherDisplay.blurRadiusDp
         val blurDrawn = if (blurRadiusDp <= 0) {
@@ -239,7 +239,7 @@ internal class QuickLauncherRenderer(
                 bounds = grid,
                 cornerRadiusPx = panelCorner,
                 blurRadiusPx = host.dp(blurRadiusDp.toFloat()).toInt(),
-                tintColor = Color.argb(alpha, 48, 48, 52),
+                tintColor = Color.argb(alpha, 48, 48, 52)
             )
         }
         if (!blurDrawn) {
@@ -253,7 +253,7 @@ internal class QuickLauncherRenderer(
         panelRect: RectF,
         pageIndex: Int,
         translateX: Float,
-        recordCells: Boolean,
+        recordCells: Boolean
     ) {
         val entries = ctrl.quickLauncherItemsForPage(pageIndex)
         val rootItems = ctrl.quickLauncherRootItems()
@@ -279,7 +279,7 @@ internal class QuickLauncherRenderer(
                 dragFrom = fromGlobal,
                 dragSlotGlobal = toGlobal,
                 mappingSize = mappingSize,
-                mergeTargetGlobal = mergeTargetGlobal,
+                mergeTargetGlobal = mergeTargetGlobal
             )
         } else {
             null
@@ -292,7 +292,7 @@ internal class QuickLauncherRenderer(
             quickLauncherDragLocalIndexOnPage(
                 globalIndex = fromGlobal,
                 pageStart = pageStart,
-                pageItemCount = pageSize,
+                pageItemCount = pageSize
             )
         } else {
             -1
@@ -351,7 +351,7 @@ internal class QuickLauncherRenderer(
                 iconSize = quickLauncherGridIconSize,
                 iconTopInset = quickLauncherGridIconTopInset,
                 iconLabelGap = quickLauncherGridIconLabelGap,
-                labelMaxWidth = ctrl.quickLauncherCellWidth - gridCellInset * 2,
+                labelMaxWidth = ctrl.quickLauncherCellWidth - gridCellInset * 2
             )
             if (offsetX != 0f || offsetY != 0f) {
                 canvas.restore()
@@ -373,7 +373,7 @@ internal class QuickLauncherRenderer(
     private fun quickLauncherDragLocalIndexOnPage(
         globalIndex: Int,
         pageStart: Int,
-        pageItemCount: Int,
+        pageItemCount: Int
     ): Int {
         if (globalIndex < 0 || pageItemCount <= 0) return -1
         if (globalIndex !in pageStart until pageStart + pageItemCount) return -1
@@ -404,7 +404,7 @@ internal class QuickLauncherRenderer(
                 cell.left - spread,
                 cell.top - spread + host.dp(3f),
                 cell.right + spread,
-                cell.bottom + spread + host.dp(3f),
+                cell.bottom + spread + host.dp(3f)
             )
             canvas.drawRoundRect(shadowRect, host.dp(14f), host.dp(14f), cellHighlightPaint)
         }
@@ -420,7 +420,7 @@ internal class QuickLauncherRenderer(
             iconSize = quickLauncherGridIconSize * scale,
             iconTopInset = quickLauncherGridIconTopInset * scale,
             iconLabelGap = quickLauncherGridIconLabelGap * scale,
-            labelMaxWidth = (ctrl.quickLauncherCellWidth - gridCellInset * 2) * scale,
+            labelMaxWidth = (ctrl.quickLauncherCellWidth - gridCellInset * 2) * scale
         )
     }
 
@@ -430,7 +430,7 @@ internal class QuickLauncherRenderer(
             rect = grid,
             pageIndex = ctrl.quickLauncherPageIndex,
             pageCount = ctrl.quickLauncherPageCount,
-            bottomInset = host.dp(10f),
+            bottomInset = host.dp(10f)
         )
     }
 
@@ -439,7 +439,7 @@ internal class QuickLauncherRenderer(
         rect: RectF,
         pageIndex: Int,
         pageCount: Int,
-        bottomInset: Float,
+        bottomInset: Float
     ) {
         if (pageCount <= 1 || rect.isEmpty) return
         val dotRadius = host.dp(2.5f)
@@ -478,14 +478,14 @@ internal class QuickLauncherRenderer(
         iconSize: Float = quickLauncherGridIconSize,
         iconTopInset: Float = quickLauncherGridIconTopInset,
         iconLabelGap: Float = quickLauncherGridIconLabelGap,
-        labelMaxWidth: Float = ctrl.quickLauncherCellWidth - gridCellInset * 2,
+        labelMaxWidth: Float = ctrl.quickLauncherCellWidth - gridCellInset * 2
     ) {
         if (index == host.panelGridSession().highlightedIndex) {
             tmpRect.set(
                 cell.left + host.dp(3f),
                 cell.top + host.dp(2f),
                 cell.right - host.dp(3f),
-                cell.bottom - host.dp(2f),
+                cell.bottom - host.dp(2f)
             )
             val paint = if (longPressArmed) cellLongPressHighlightPaint else cellHighlightPaint
             canvas.drawRoundRect(tmpRect, host.dp(10f), host.dp(10f), paint)
@@ -500,12 +500,12 @@ internal class QuickLauncherRenderer(
             iconCenterX - iconSize / 2f,
             iconTop,
             iconCenterX + iconSize / 2f,
-            iconTop + iconSize,
+            iconTop + iconSize
         )
         QuickLauncherIconMask.pathFor(
             shape = quickLauncherIconShape,
             bounds = tmpRect,
-            out = iconClipPath,
+            out = iconClipPath
         )
         if (icon != null) {
             if (quickLauncherIconShape == QuickLauncherDisplaySettings.ICON_SHAPE_DEFAULT) {
@@ -532,7 +532,7 @@ internal class QuickLauncherRenderer(
                 initial,
                 iconCenterX,
                 iconCenterY - (cellInitialPaint.descent() + cellInitialPaint.ascent()) / 2f,
-                cellInitialPaint,
+                cellInitialPaint
             )
         }
         if (showShortcutBadge) {
@@ -542,7 +542,7 @@ internal class QuickLauncherRenderer(
                 iconCenterY,
                 iconSize,
                 1f,
-                host.dp(1f),
+                host.dp(1f)
             )
         } else if (showShellCommandBadge) {
             ShellCommandBadgeRenderer.draw(
@@ -551,7 +551,7 @@ internal class QuickLauncherRenderer(
                 iconCenterY,
                 iconSize,
                 1f,
-                host.dp(1f),
+                host.dp(1f)
             )
         }
         canvas.drawText(displayLabel, iconCenterX, labelBaseline, appLabelPaint)
@@ -581,7 +581,7 @@ internal class QuickLauncherRenderer(
                 bounds = ctrl.folderRect,
                 cornerRadiusPx = folderCorner,
                 blurRadiusPx = host.dp(blurRadiusDp.toFloat()).toInt(),
-                tintColor = Color.argb(235, 34, 34, 38),
+                tintColor = Color.argb(235, 34, 34, 38)
             )
         }
         if (!blurDrawn) {
@@ -613,7 +613,7 @@ internal class QuickLauncherRenderer(
             closeCenterX - closeBtnR - host.dp(4f),
             closeCenterY - closeBtnR - host.dp(4f),
             closeCenterX + closeBtnR + host.dp(4f),
-            closeCenterY + closeBtnR + host.dp(4f),
+            closeCenterY + closeBtnR + host.dp(4f)
         )
         cellHighlightPaint.color = Color.argb(60, 255, 255, 255)
         canvas.drawCircle(closeCenterX, closeCenterY, closeBtnR, cellHighlightPaint)
@@ -637,7 +637,7 @@ internal class QuickLauncherRenderer(
                 localizedContext().getString(R.string.quick_launcher_folder_add),
                 ctrl.folderAddButtonBounds.centerX(),
                 ctrl.folderAddButtonBounds.centerY() - (folderButtonPaint.descent() + folderButtonPaint.ascent()) / 2f,
-                folderButtonPaint,
+                folderButtonPaint
             )
         } else {
             ctrl.folderAddButtonBounds.setEmpty()
@@ -651,7 +651,7 @@ internal class QuickLauncherRenderer(
             folderLayout.rect.left,
             folderLayout.contentStartY,
             folderLayout.rect.right,
-            folderLayout.rect.bottom - folderLayout.indicatorHeight,
+            folderLayout.rect.bottom - folderLayout.indicatorHeight
         )
         canvas.save()
         canvas.clipRect(contentClip)
@@ -660,7 +660,7 @@ internal class QuickLauncherRenderer(
             folderLayout = folderLayout,
             pageIndex = folderHandler.pageIndex,
             translateX = if (pagingActive) dragOffset else 0f,
-            recordCells = recordCells,
+            recordCells = recordCells
         )
         if (pagingActive && kotlin.math.abs(dragOffset) > host.dp(0.5f)) {
             QuickLauncherScrollHandler.adjacentPagesForDrag(
@@ -668,14 +668,14 @@ internal class QuickLauncherRenderer(
                 currentPageIndex = folderHandler.pageIndex,
                 pageCount = folderHandler.pageCount,
                 pageWidth = folderWidth,
-                side = host.side(),
+                side = host.side()
             ).forEach { layer ->
                 drawFolderPageCells(
                     canvas = canvas,
                     folderLayout = folderLayout,
                     pageIndex = layer.pageIndex,
                     translateX = layer.translateX,
-                    recordCells = false,
+                    recordCells = false
                 )
             }
         }
@@ -695,7 +695,7 @@ internal class QuickLauncherRenderer(
         folderLayout: QuickLauncherFolderHandler.FolderLayout,
         pageIndex: Int,
         translateX: Float,
-        recordCells: Boolean,
+        recordCells: Boolean
     ) {
         val children = ctrl.folderSubPanelItems
         if (children.isEmpty()) {
@@ -706,7 +706,7 @@ internal class QuickLauncherRenderer(
                 emptyText,
                 folderLayout.rect.centerX() + translateX,
                 folderLayout.rect.centerY() + host.dp(10f),
-                folderEmptyPaint,
+                folderEmptyPaint
             )
             return
         }
@@ -727,7 +727,7 @@ internal class QuickLauncherRenderer(
                 dragFrom = fromGlobal,
                 dragSlotGlobal = toGlobal,
                 pageStart = pageStart,
-                pageSize = pageSize,
+                pageSize = pageSize
             )
         } else {
             null
@@ -776,7 +776,7 @@ internal class QuickLauncherRenderer(
                 showShortcutBadge = child.showsShortcutBadge(),
                 showShellCommandBadge = child.showsShellCommandBadge(host.settings().shellCommands),
                 longPressArmed = childGlobalIndex == ctrl.folderHighlightLocalIndex && ctrl.folderLongPressArmed,
-                labelMaxWidth = folderLayout.cellW - gridCellInset * 2,
+                labelMaxWidth = folderLayout.cellW - gridCellInset * 2
             )
 
             if (ctrl.quickLauncherPanelController.editMode) {
@@ -800,14 +800,14 @@ internal class QuickLauncherRenderer(
         canvas: Canvas,
         folderLayout: QuickLauncherFolderHandler.FolderLayout,
         pageIndex: Int,
-        pageCount: Int,
+        pageCount: Int
     ) {
         drawPageIndicator(
             canvas = canvas,
             rect = folderLayout.rect,
             pageIndex = pageIndex,
             pageCount = pageCount,
-            bottomInset = host.dp(8f),
+            bottomInset = host.dp(8f)
         )
     }
 
@@ -834,7 +834,7 @@ internal class QuickLauncherRenderer(
                 cell.left - spread,
                 cell.top - spread + host.dp(3f),
                 cell.right + spread,
-                cell.bottom + spread + host.dp(3f),
+                cell.bottom + spread + host.dp(3f)
             )
             canvas.drawRoundRect(shadowRect, host.dp(14f), host.dp(14f), cellHighlightPaint)
         }
@@ -850,7 +850,7 @@ internal class QuickLauncherRenderer(
             iconSize = quickLauncherGridIconSize * scale,
             iconTopInset = quickLauncherGridIconTopInset * scale,
             iconLabelGap = quickLauncherGridIconLabelGap * scale,
-            labelMaxWidth = (ctrl.quickLauncherCellWidth - gridCellInset * 2) * scale,
+            labelMaxWidth = (ctrl.quickLauncherCellWidth - gridCellInset * 2) * scale
         )
     }
 

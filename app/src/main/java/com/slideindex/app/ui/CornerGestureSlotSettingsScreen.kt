@@ -22,6 +22,7 @@ import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.SettingSwitchRow
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 import com.slideindex.app.ui.settings.components.settingsLazyHint
+import com.slideindex.app.ui.settings.components.settingsLazyTipCard
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -38,7 +39,7 @@ fun CornerGestureSlotSettingsScreen(
     onRemoveSubMenuItem: (Int) -> Unit,
     onAddSubMenuShortcut: () -> Unit,
     onImportFromApp: () -> Unit,
-    canImportFromHost: Boolean,
+    canImportFromHost: Boolean
 ) {
     val slotTitle = stringResource(R.string.corner_gesture_slot_title, slotIndex + 1)
     val mainActionTitle = stringResource(R.string.corner_gesture_slot_main_action)
@@ -55,11 +56,11 @@ fun CornerGestureSlotSettingsScreen(
 
     SettingsScreenScaffold(
         title = slotTitle,
-        onBack = onBack,
+        onBack = onBack
     ) {
         settingsLazyHint(
             key = "corner-slot-corner-hint",
-            text = cornerTitle,
+            text = cornerTitle
         )
         groupedCardItems(
             keyPrefix = "corner-slot-main-action",
@@ -70,21 +71,19 @@ fun CornerGestureSlotSettingsScreen(
                             icon = { label -> Icon(gestureActionIcon(currentAction), contentDescription = label) },
                             title = mainActionTitle,
                             subtitle = mainActionLabel,
-                            onClick = onPickMainAction,
+                            onClick = onPickMainAction
                         )
-                    },
+                    }
                 )
-            },
+            }
         )
 
         settingsLazySmallTitle(
             key = "corner-slot-submenu-section",
-            title = subMenuSectionTitle,
-            sectionTop = true,
+            title = subMenuSectionTitle
         )
-        settingsLazyHint(
-            key = "corner-slot-submenu-hint",
-            text = subMenuHint,
+        settingsLazyTipCard(key = "corner-slot-submenu-hint",
+            text = subMenuHint
         )
         groupedCardItems(
             keyPrefix = "corner-slot-submenu-enabled",
@@ -96,11 +95,11 @@ fun CornerGestureSlotSettingsScreen(
                             subtitle = subMenuEnabledDesc,
                             checked = subMenuConfig.enabled,
                             enabled = true,
-                            onCheckedChange = onSubMenuEnabledChange,
+                            onCheckedChange = onSubMenuEnabledChange
                         )
-                    },
+                    }
                 )
-            },
+            }
         )
 
         if (subMenuConfig.enabled) {
@@ -114,7 +113,7 @@ fun CornerGestureSlotSettingsScreen(
                                     icon = { _ ->
                                         Md3PickerLaunchShortcutLeading(
                                             action = shortcut,
-                                            activityShortcuts = appSettings.activityShortcuts,
+                                            activityShortcuts = appSettings.activityShortcuts
                                         )
                                     },
                                     title = launchShortcutDisplayLabel(shortcut).ifBlank {
@@ -127,14 +126,14 @@ fun CornerGestureSlotSettingsScreen(
                                             Icon(
                                                 imageVector = Icons.Default.Delete,
                                                 contentDescription = subMenuRemoveItem,
-                                                tint = MaterialTheme.colorScheme.error,
+                                                tint = MaterialTheme.colorScheme.error
                                             )
                                         }
-                                    },
+                                    }
                                 )
-                            },
+                            }
                         )
-                    },
+                    }
                 )
             }
             groupedCardItems(
@@ -146,9 +145,9 @@ fun CornerGestureSlotSettingsScreen(
                                 icon = { label -> Icon(Icons.Default.Add, contentDescription = label) },
                                 title = subMenuAddTitle,
                                 subtitle = subMenuAddDesc,
-                                onClick = onAddSubMenuShortcut,
+                                onClick = onAddSubMenuShortcut
                             )
-                        },
+                        }
                     )
                     if (canImportFromHost) {
                         add(
@@ -157,12 +156,12 @@ fun CornerGestureSlotSettingsScreen(
                                     icon = { label -> Icon(Icons.Default.FileDownload, contentDescription = label) },
                                     title = subMenuImportTitle,
                                     subtitle = subMenuImportDesc,
-                                    onClick = onImportFromApp,
+                                    onClick = onImportFromApp
                                 )
-                            },
+                            }
                         )
                     }
-                },
+                }
             )
         }
     }
@@ -170,7 +169,7 @@ fun CornerGestureSlotSettingsScreen(
 
 internal fun taskSwitcherItemToLaunchShortcut(
     shortcut: TaskSwitcherMenuItem,
-    packageName: String,
+    packageName: String
 ): GestureAction.LaunchShortcut {
     val uris = shortcut.intentUris
     if (!uris.isNullOrEmpty()) {
@@ -184,7 +183,7 @@ internal fun taskSwitcherItemToLaunchShortcut(
     if (intent != null) {
         return GestureAction.LaunchShortcut.intent(
             intent.toUri(android.content.Intent.URI_INTENT_SCHEME),
-            shortcut.label,
+            shortcut.label
         )
     }
     val component = shortcut.targetComponent?.takeIf { it.isNotBlank() }

@@ -13,7 +13,7 @@ internal class SlideIndexAccessibilityForegroundTracker(
     private val onMaybeOtp: () -> Unit,
     private val onSyncLockScreen: () -> Unit,
     /** 用户配置的“切换上一应用”黑名单包名。 */
-    private val excludedPackageProvider: () -> Set<String>,
+    private val excludedPackageProvider: () -> Set<String>
 ) {
     var prevPackageName: String? = null
         private set
@@ -34,7 +34,7 @@ internal class SlideIndexAccessibilityForegroundTracker(
             resolvedPackage = resolvedPackage,
             eventPackage = eventPackage,
             selfPackage = selfPackage,
-            hasLaunchIntent = ::hasLaunchIntent,
+            hasLaunchIntent = ::hasLaunchIntent
         )
         if (packageName.isNullOrBlank() || packageName == selfPackage) {
             overlayHost()?.refreshOverlaySuppression()
@@ -55,7 +55,7 @@ internal class SlideIndexAccessibilityForegroundTracker(
                 prevPackageName = prevPackageName,
                 currPackageName = currPackageName,
                 hasLaunchIntent = hasLaunchIntent(packageName),
-                excludedPackages = excludedPackages(),
+                excludedPackages = excludedPackages()
             )) {
             null,
             is WindowStatePackageUpdate.ForegroundOnly,
@@ -96,9 +96,9 @@ internal class SlideIndexAccessibilityForegroundTracker(
                 resolvedHostPackage = AccessibilityForegroundResolver.resolveHostPackage(service),
                 rootActivePackage = service.rootInActiveWindow?.packageName?.toString(),
                 selfPackage = service.applicationContext.packageName,
-                hasLaunchIntent = ::hasLaunchIntent,
+                hasLaunchIntent = ::hasLaunchIntent
             ),
-            excludedPackages = excludedPackages(),
+            excludedPackages = excludedPackages()
         ) ?: return false
         return when (plan) {
             is LaunchPreviousAppPlan.LaunchCurrent -> {
@@ -176,7 +176,7 @@ internal sealed interface WindowStatePackageUpdate {
     data class Tracked(
         val prevPackageName: String?,
         val currPackageName: String?,
-        val packageName: String,
+        val packageName: String
     ) : WindowStatePackageUpdate
 }
 
@@ -186,7 +186,7 @@ internal fun computeWindowStatePackageUpdate(
     prevPackageName: String?,
     currPackageName: String?,
     hasLaunchIntent: Boolean,
-    excludedPackages: Set<String> = emptySet(),
+    excludedPackages: Set<String> = emptySet()
 ): WindowStatePackageUpdate? {
     if (packageName.isBlank() || packageName == selfPackageName) return null
     if (packageName in excludedPackages) return null
@@ -204,7 +204,7 @@ internal fun computeWindowStatePackageUpdate(
     return WindowStatePackageUpdate.Tracked(
         prevPackageName = newPrev,
         currPackageName = newCurr,
-        packageName = packageName,
+        packageName = packageName
     )
 }
 
@@ -213,7 +213,7 @@ internal sealed interface LaunchPreviousAppPlan {
     data class SwapToPrevious(
         val targetPackage: String,
         val newPrevPackageName: String?,
-        val newCurrPackageName: String?,
+        val newCurrPackageName: String?
     ) : LaunchPreviousAppPlan
 }
 
@@ -221,7 +221,7 @@ internal fun resolveForegroundPackageForTracking(
     resolvedPackage: String?,
     eventPackage: String?,
     selfPackage: String,
-    hasLaunchIntent: (String) -> Boolean,
+    hasLaunchIntent: (String) -> Boolean
 ): String? {
     val resolved = resolvedPackage
         ?.takeIf { it.isNotBlank() && it != selfPackage && hasLaunchIntent(it) }
@@ -239,7 +239,7 @@ internal fun resolveActivePackageForPreviousApp(
     resolvedHostPackage: String?,
     rootActivePackage: String?,
     selfPackage: String,
-    hasLaunchIntent: (String) -> Boolean,
+    hasLaunchIntent: (String) -> Boolean
 ): String? {
     val resolved = resolvedHostPackage
         ?.takeIf { it.isNotBlank() && it != selfPackage && hasLaunchIntent(it) }
@@ -257,7 +257,7 @@ internal fun computeLaunchPreviousAppPlan(
     prevPackageName: String?,
     currPackageName: String?,
     activePackageName: String?,
-    excludedPackages: Set<String> = emptySet(),
+    excludedPackages: Set<String> = emptySet()
 ): LaunchPreviousAppPlan? {
     val prevPkgName = prevPackageName?.takeIf { it !in excludedPackages }
     val curPkgName = currPackageName?.takeIf { it !in excludedPackages }
@@ -269,6 +269,6 @@ internal fun computeLaunchPreviousAppPlan(
     return LaunchPreviousAppPlan.SwapToPrevious(
         targetPackage = prevPkgName,
         newPrevPackageName = curPkgName,
-        newCurrPackageName = prevPkgName,
+        newCurrPackageName = prevPkgName
     )
 }

@@ -45,6 +45,7 @@ import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import top.yukonga.miuix.kmp.preference.SwitchPreference
 import com.slideindex.app.ui.settings.components.settingsLazyHint
+import com.slideindex.app.ui.settings.components.settingsLazyTipCard
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
@@ -226,7 +227,6 @@ fun OcrModelSettingsScreen(
             settingsLazySmallTitle(
                 key = "ocr-local-models-section",
                 title = localSectionTitle,
-                sectionTop = true,
             )
 
             groupedCardItems(
@@ -259,8 +259,7 @@ fun OcrModelSettingsScreen(
                 }
             }
 
-            settingsLazyHint(
-                key = "ocr-local-models-hint",
+            settingsLazyTipCard(key = "ocr-local-models-hint",
                 text = localHint,
             )
         } else {
@@ -268,7 +267,6 @@ fun OcrModelSettingsScreen(
             settingsLazySmallTitle(
                 key = "ocr-cloud-providers-section",
                 title = cloudSectionTitle,
-                sectionTop = false,
             )
 
             groupedCardItems(
@@ -306,7 +304,6 @@ fun OcrModelSettingsScreen(
             settingsLazySmallTitle(
                 key = "ocr-cloud-prompt-section",
                 title = cloudCommonConfigTitle,
-                sectionTop = true,
             )
 
             // 通用提示词设置卡片

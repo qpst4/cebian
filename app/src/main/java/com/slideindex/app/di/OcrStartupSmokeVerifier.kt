@@ -22,7 +22,7 @@ import kotlinx.coroutines.withContext
 class OcrStartupSmokeVerifier @Inject constructor(
     @ApplicationContext private val context: Context,
     private val settingsRepository: SettingsRepository,
-    private val applicationScope: CoroutineScope,
+    private val applicationScope: CoroutineScope
 ) {
     fun start() {
         if (!BuildConfig.DEBUG) return

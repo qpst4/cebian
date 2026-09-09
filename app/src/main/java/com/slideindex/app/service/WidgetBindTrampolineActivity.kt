@@ -23,7 +23,7 @@ class WidgetBindTrampolineActivity : ComponentActivity() {
   private var bindingInProgress = false
 
   private val bindLauncher = registerForActivityResult(
-    ActivityResultContracts.StartActivityForResult(),
+    ActivityResultContracts.StartActivityForResult()
   ) { result ->
     bindingInProgress = false
     if (result.resultCode != Activity.RESULT_OK) {
@@ -34,7 +34,7 @@ class WidgetBindTrampolineActivity : ComponentActivity() {
   }
 
   private val configureLauncher = registerForActivityResult(
-    ActivityResultContracts.StartActivityForResult(),
+    ActivityResultContracts.StartActivityForResult()
   ) { result ->
     if (result.resultCode == Activity.RESULT_OK) {
       finishSuccess()

@@ -21,7 +21,7 @@ internal object FloatBallStyleAssetStore {
         importReplacing(
             context = context,
             sourceUri = sourceUri,
-            destName = CUSTOM_IMAGE_FILE + extensionFor(context, sourceUri),
+            destName = CUSTOM_IMAGE_FILE + extensionFor(context, sourceUri)
         )
 
     fun importSlideshow(context: Context, sourceUris: List<Uri>): List<String> {
@@ -35,7 +35,7 @@ internal object FloatBallStyleAssetStore {
                 context = context,
                 sourceUri = uri,
                 destName = "$SLIDE_PREFIX$index${extensionFor(context, uri)}",
-                reuseDir = dir,
+                reuseDir = dir
             )
         }
     }
@@ -67,7 +67,7 @@ internal object FloatBallStyleAssetStore {
         context: Context,
         sourceUri: Uri,
         destName: String,
-        reuseDir: File? = null,
+        reuseDir: File? = null
     ): String? = runCatching {
         val dir = reuseDir ?: assetDir(context)
         dir.mkdirs()

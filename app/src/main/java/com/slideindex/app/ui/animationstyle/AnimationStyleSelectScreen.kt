@@ -29,7 +29,7 @@ import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 import com.slideindex.app.ui.settings.components.SettingsHintText
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
-import com.slideindex.app.ui.settings.components.settingsLazyHint
+import com.slideindex.app.ui.settings.components.settingsLazyTipCard
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import kotlin.math.roundToInt
 
@@ -94,7 +94,7 @@ fun AnimationStyleSelectScreen(
         subtitle = stringResource(R.string.animation_style_select_desc),
         onBack = onBack,
     ) {
-        settingsLazyHint(key = "animation-style-select-hint", text = selectHint)
+        settingsLazyTipCard(key = "animation-style-select-hint", text = selectHint)
         settingsLazySmallTitle(key = "animation-style-cards-title", title = styleTitle)
         LazySettingsItem(key = "animation-style-cards") {
             Column(
@@ -131,7 +131,7 @@ fun AnimationStyleSelectScreen(
                 }
             }
         }
-        settingsLazySmallTitle(key = "gesture-animation-offset", title = gestureTitle, sectionTop = true)
+        settingsLazySmallTitle(key = "gesture-animation-offset", title = gestureTitle)
         groupedCardItems(
             keyPrefix = "gesture-finger-offset",
             items = buildList {

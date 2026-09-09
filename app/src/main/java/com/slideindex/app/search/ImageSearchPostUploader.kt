@@ -25,7 +25,7 @@ object ImageSearchPostUploader {
 
     suspend fun searchParallel(
         bitmap: Bitmap,
-        engines: List<ImageSearchEngine>,
+        engines: List<ImageSearchEngine>
     ): Map<ImageSearchEngine, ImageSearchPostResult?> = withContext(Dispatchers.IO) {
         val postEngines = engines.filter { it.usesDirectPost }
         if (postEngines.isEmpty()) return@withContext emptyMap()
@@ -100,7 +100,7 @@ object ImageSearchPostUploader {
         dos: DataOutputStream,
         engine: ImageSearchEngine,
         fileName: String,
-        imageBytes: ByteArray,
+        imageBytes: ByteArray
     ) {
         writeFileField(dos, "file", fileName, imageBytes)
         dos.writeBytes("--$BOUNDARY--$LINE_BREAK")
@@ -110,11 +110,11 @@ object ImageSearchPostUploader {
         dos: DataOutputStream,
         fieldName: String,
         fileName: String,
-        imageBytes: ByteArray,
+        imageBytes: ByteArray
     ) {
         dos.writeBytes("--$BOUNDARY$LINE_BREAK")
         dos.writeBytes(
-            "Content-Disposition: form-data; name=\"$fieldName\"; filename=\"$fileName\"$LINE_BREAK",
+            "Content-Disposition: form-data; name=\"$fieldName\"; filename=\"$fileName\"$LINE_BREAK"
         )
         dos.writeBytes("Content-Type: image/png$LINE_BREAK")
         dos.writeBytes(LINE_BREAK)

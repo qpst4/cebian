@@ -133,7 +133,7 @@ class LaunchTrampolineActivity : Activity() {
             "-n",
             "${component.packageName}/${component.className}",
             "-f",
-            "0x${Integer.toHexString(Intent.FLAG_ACTIVITY_NEW_TASK)}",
+            "0x${Integer.toHexString(Intent.FLAG_ACTIVITY_NEW_TASK)}"
         )
         if (started) {
             Log.i(TAG, "launched via shell fallback: ${component.flattenToShortString()}")
@@ -152,7 +152,7 @@ class LaunchTrampolineActivity : Activity() {
                     shortcutId,
                     null,
                     launchOptions,
-                    Process.myUserHandle(),
+                    Process.myUserHandle()
                 )
             }.onFailure { error ->
                 Log.e(TAG, "startShortcut($packageName, $shortcutId) failed", error)
@@ -195,7 +195,7 @@ class LaunchTrampolineActivity : Activity() {
         fun createPendingIntentIntent(
             context: Context,
             pendingIntentBase64: String,
-            fallbackIntent: Intent? = null,
+            fallbackIntent: Intent? = null
         ): Intent =
             Intent(context, LaunchTrampolineActivity::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -225,7 +225,7 @@ class LaunchTrampolineActivity : Activity() {
             context: Context,
             packageName: String,
             shortcutId: String,
-            launchOptions: Bundle? = null,
+            launchOptions: Bundle? = null
         ): Intent =
             Intent(context, LaunchTrampolineActivity::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

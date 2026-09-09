@@ -2,8 +2,7 @@
 
 package com.slideindex.app.ui
 
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
-import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import top.yukonga.miuix.kmp.basic.SmallTitle
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -173,7 +172,6 @@ fun SearchEngineSettingsScreen(
         settingsLazySmallTitle(
             key = "import_section_title",
             title = importSectionTitle,
-            sectionTop = true,
         )
         groupedCardItems(
             keyPrefix = "import_action",

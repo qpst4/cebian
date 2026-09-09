@@ -32,22 +32,22 @@ fun FloatBallStyleSettingsScreen(
     onStyleTypeChange: (FloatBallStyleType) -> Unit,
     onCustomImageUriChange: (String) -> Unit,
     onSlideshowUrisChange: (List<String>) -> Unit,
-    onGifUriChange: (String) -> Unit,
+    onGifUriChange: (String) -> Unit
 ) {
     val imagePicker = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent(),
+        contract = ActivityResultContracts.GetContent()
     ) { uri ->
         uri?.let { onCustomImageUriChange(it.toString()) }
     }
     val slideshowPicker = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.OpenMultipleDocuments(),
+        contract = ActivityResultContracts.OpenMultipleDocuments()
     ) { uris ->
         if (uris.isNotEmpty()) {
             onSlideshowUrisChange(uris.map { it.toString() })
         }
     }
     val gifPicker = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent(),
+        contract = ActivityResultContracts.GetContent()
     ) { uri ->
         uri?.let { onGifUriChange(it.toString()) }
     }
@@ -55,7 +55,7 @@ fun FloatBallStyleSettingsScreen(
     SettingsScreenScaffold(
         title = stringResource(R.string.float_ball_style_picker_title),
         subtitle = stringResource(R.string.float_ball_style_picker_summary),
-        onBack = onBack,
+        onBack = onBack
     ) {
         groupedCardItems(
             keyPrefix = "fb-style-type",
@@ -68,12 +68,12 @@ fun FloatBallStyleSettingsScreen(
                                 title = floatBallStyleLabel(style),
                                 selected = settings.floatBallStyleType == style,
                                 enabled = enabled,
-                                onClick = { if (enabled) onStyleTypeChange(style) },
+                                onClick = { if (enabled) onStyleTypeChange(style) }
                             )
-                        },
+                        }
                     )
                 }
-            },
+            }
         )
 
         item(key = "float-ball-style-extra") {
@@ -93,10 +93,10 @@ fun FloatBallStyleSettingsScreen(
                                 Icon(
                                     Icons.Outlined.Image,
                                     contentDescription = null,
-                                    tint = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                                    tint = MiuixTheme.colorScheme.onSurfaceVariantSummary
                                 )
                             },
-                            onClick = { imagePicker.launch("image/*") },
+                            onClick = { imagePicker.launch("image/*") }
                         )
                     }
                 }
@@ -106,8 +106,8 @@ fun FloatBallStyleSettingsScreen(
                             pluralStringResource(
                                 R.plurals.float_ball_style_slideshow_hint,
                                 settings.floatBallSlideshowUris.size,
-                                settings.floatBallSlideshowUris.size,
-                            ),
+                                settings.floatBallSlideshowUris.size
+                            )
                         )
                         BasicComponent(
                             title = stringResource(R.string.float_ball_style_pick_slideshow),
@@ -117,10 +117,10 @@ fun FloatBallStyleSettingsScreen(
                                 Icon(
                                     Icons.Outlined.Image,
                                     contentDescription = null,
-                                    tint = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                                    tint = MiuixTheme.colorScheme.onSurfaceVariantSummary
                                 )
                             },
-                            onClick = { slideshowPicker.launch(arrayOf("image/*")) },
+                            onClick = { slideshowPicker.launch(arrayOf("image/*")) }
                         )
                     }
                 }
@@ -137,10 +137,10 @@ fun FloatBallStyleSettingsScreen(
                                 Icon(
                                     Icons.Outlined.Image,
                                     contentDescription = null,
-                                    tint = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                                    tint = MiuixTheme.colorScheme.onSurfaceVariantSummary
                                 )
                             },
-                            onClick = { gifPicker.launch("image/*") },
+                            onClick = { gifPicker.launch("image/*") }
                         )
                     }
                 }

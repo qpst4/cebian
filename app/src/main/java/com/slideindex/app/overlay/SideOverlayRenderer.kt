@@ -10,7 +10,7 @@ import com.slideindex.app.settings.triggerHandles
  * (SideGesture-style one window per handle); this type only syncs draw state.
  */
 internal class SideOverlayRenderer(
-    private val ctrl: SideOverlayController,
+    private val ctrl: SideOverlayController
 ) {
     private val windowManager get() = ctrl.windowManager
     private val androidWindowManager get() = ctrl.androidWindowManager

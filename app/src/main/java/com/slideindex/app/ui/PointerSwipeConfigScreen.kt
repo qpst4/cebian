@@ -1,6 +1,6 @@
 package com.slideindex.app.ui
 
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import top.yukonga.miuix.kmp.basic.SmallTitle
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -12,6 +12,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -96,7 +97,10 @@ fun PointerSwipeConfigScreen(
             )
         },
     ) {
-        MiuixSmallTitle(directionSectionTitle)
+        SmallTitle(
+            text = directionSectionTitle,
+            modifier = Modifier.fillMaxWidth(),
+        )
         directionCard.RenderRows()
         optionsCard.RenderRows()
     }

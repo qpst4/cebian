@@ -53,7 +53,7 @@ class MediaNotificationListener : NotificationListenerService() {
             val notifications = runCatching { activeNotifications }.getOrNull() ?: emptyArray()
             deps.notificationHistoryRecorder.onListenerConnected(
                 this@MediaNotificationListener,
-                notifications,
+                notifications
             )
         }
     }
@@ -70,7 +70,7 @@ class MediaNotificationListener : NotificationListenerService() {
         runCatching {
             registerReceiver(
                 unlockReceiver,
-                IntentFilter(Intent.ACTION_USER_PRESENT),
+                IntentFilter(Intent.ACTION_USER_PRESENT)
             )
             unlockReceiverRegistered = true
         }
@@ -94,7 +94,7 @@ class MediaNotificationListener : NotificationListenerService() {
     override fun onNotificationRemoved(
         sbn: StatusBarNotification,
         rankingMap: NotificationListenerService.RankingMap,
-        reason: Int,
+        reason: Int
     ) {
         super.onNotificationRemoved(sbn, rankingMap, reason)
         mainHandler.post { MediaSessionTracker.onNotificationsChanged(this) }

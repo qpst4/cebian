@@ -12,7 +12,7 @@ internal object AdjustLevelIndicatorLayoutEngine {
         viewScreenX: Int = 0,
         screenWidthPx: Int = viewWidth,
         chrome: AdjustPanelChrome = AdjustPanelChrome.NONE,
-        volumeExpanded: Boolean = false,
+        volumeExpanded: Boolean = false
     ): AdjustLevelIndicatorLayout {
         val pillWidth = AdjustLevelIndicator.PILL_WIDTH_DP * density
         val pillHeight = AdjustLevelIndicator.PILL_HEIGHT_DP * density
@@ -37,7 +37,7 @@ internal object AdjustLevelIndicatorLayoutEngine {
         val marginY = 24f * density
         val centerY = anchorY.coerceIn(
             marginY + totalHeight / 2f,
-            viewHeight - marginY - totalHeight / 2f,
+            viewHeight - marginY - totalHeight / 2f
         )
         val left = when (side) {
             PanelSide.LEFT, PanelSide.BOTTOM, PanelSide.TOP -> edgeInset - viewScreenX
@@ -58,7 +58,7 @@ internal object AdjustLevelIndicatorLayoutEngine {
             bounds.left + inset,
             bounds.top + iconArea,
             bounds.right - inset,
-            bounds.bottom - labelArea,
+            bounds.bottom - labelArea
         )
 
         var cursor = bounds.bottom
@@ -108,7 +108,7 @@ internal object AdjustLevelIndicatorLayoutEngine {
             topPill = topPill,
             bottomPill = bottomPill,
             ringerButton = ringerButton,
-            expandButton = expandButton,
+            expandButton = expandButton
         )
     }
 
@@ -136,7 +136,7 @@ internal object AdjustLevelIndicatorLayoutEngine {
         side: PanelSide,
         localX: Float,
         localY: Float,
-        density: Float,
+        density: Float
     ): Boolean = hitVolumeTarget(layout, side, localX, localY, density) == VolumeHitTarget.MEDIA
 
     fun hitVolumeTarget(
@@ -144,7 +144,7 @@ internal object AdjustLevelIndicatorLayoutEngine {
         side: PanelSide,
         localX: Float,
         localY: Float,
-        density: Float,
+        density: Float
     ): VolumeHitTarget {
         val touchPad = 8f * density
         layout.topPill?.let { pill ->
@@ -189,7 +189,7 @@ internal object AdjustLevelIndicatorLayoutEngine {
         side: PanelSide,
         localX: Float,
         localY: Float,
-        density: Float,
+        density: Float
     ): BrightnessHitTarget {
         layout.topPill?.let { pill ->
             if (pill.contains(localX, localY)) {
@@ -215,7 +215,7 @@ internal object AdjustLevelIndicatorLayoutEngine {
             pill.left + inset,
             pill.top + iconArea,
             pill.right - inset,
-            pill.bottom - labelArea,
+            pill.bottom - labelArea
         )
     }
 
@@ -228,7 +228,7 @@ internal object AdjustLevelIndicatorLayoutEngine {
         side: PanelSide,
         x: Float,
         y: Float,
-        pad: Float,
+        pad: Float
     ): Boolean {
         if (x < pill.left || x > pill.right) return false
         var left = track.left

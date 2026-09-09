@@ -33,18 +33,18 @@ internal object FloatingPointerBounds {
     fun effectivePointerTravel(
         settings: AppSettings,
         screenWidth: Float,
-        screenHeight: Float,
+        screenHeight: Float
     ): Pair<Float, Float> = effectivePointerTravelForSpeed(
         speedFraction = sensitivityFraction(settings),
         screenWidth = screenWidth,
-        screenHeight = screenHeight,
+        screenHeight = screenHeight
     )
 
     /** Same mapping as edge floating pointer, but takes an explicit speed fraction. */
     fun effectivePointerTravelForSpeed(
         speedFraction: Float,
         screenWidth: Float,
-        screenHeight: Float,
+        screenHeight: Float
     ): Pair<Float, Float> {
         val travelFraction = travelFractionFromSpeed(speedFraction)
         return (screenWidth * travelFraction) to (screenHeight * travelFraction)
@@ -53,7 +53,7 @@ internal object FloatingPointerBounds {
     /** Migrates legacy width/zoom area prefs to the unified speed fraction. */
     fun migrateLegacySensitivityFraction(
         legacyWidthPx: Float,
-        legacyZoomFraction: Float,
+        legacyZoomFraction: Float
     ): Float {
         val travelPx = legacyWidthPx.coerceIn(120f, 800f) * legacyZoomFraction.coerceIn(0.1f, 1f)
         val travelFraction =
@@ -70,13 +70,13 @@ internal object FloatingPointerBounds {
         screenWidth: Float,
         screenHeight: Float,
         pointerAnchorX: Float,
-        pointerAnchorY: Float,
+        pointerAnchorY: Float
     ): Offset {
         val normDeltaX = if (travelWidth > 0f) deltaX / travelWidth else 0f
         val normDeltaY = if (travelHeight > 0f) deltaY / travelHeight else 0f
         return Offset(
             x = (pointerAnchorX + normDeltaX * screenWidth).coerceIn(0f, screenWidth),
-            y = (pointerAnchorY + normDeltaY * screenHeight).coerceIn(0f, screenHeight),
+            y = (pointerAnchorY + normDeltaY * screenHeight).coerceIn(0f, screenHeight)
         )
     }
 
@@ -89,7 +89,7 @@ internal object FloatingPointerBounds {
         rawY: Float,
         screenWidth: Float,
         screenHeight: Float,
-        edgeThresholdPx: Float,
+        edgeThresholdPx: Float
     ): Offset {
         if (screenWidth <= 0f || screenHeight <= 0f) {
             return Offset(screenWidth / 2f, screenHeight / 2f)
@@ -122,7 +122,7 @@ internal object FloatingPointerBounds {
         travelHeight: Float,
         screenWidth: Float,
         screenHeight: Float,
-        density: Float,
+        density: Float
     ): Offset {
         val margin = 16f * density
         val insetX = maxOf(joystickRadiusPx, travelWidth / 2f) + margin
@@ -148,7 +148,7 @@ internal object FloatingPointerBounds {
         val travelHeight: Float,
         val travelRect: Rect,
         val travelRectOnScreen: Rect,
-        val pointerPosition: Offset,
+        val pointerPosition: Offset
     )
 
     fun computeAreaPreviewLayout(
@@ -157,7 +157,7 @@ internal object FloatingPointerBounds {
         screenWidth: Float,
         screenHeight: Float,
         triggerRawX: Float,
-        triggerRawY: Float,
+        triggerRawY: Float
     ): AreaPreviewLayout {
         val joystickRadiusPx = settings.floatingPointerJoystickDiameterPx / 2f
         val (travelWidth, travelHeight) = effectivePointerTravel(settings, screenWidth, screenHeight)
@@ -169,7 +169,7 @@ internal object FloatingPointerBounds {
             travelHeight = travelHeight,
             screenWidth = screenWidth,
             screenHeight = screenHeight,
-            density = density,
+            density = density
         )
         val travelLeft = joystickCenter.x - travelWidth / 2f
         val travelTop = joystickCenter.y - travelHeight / 2f
@@ -177,7 +177,7 @@ internal object FloatingPointerBounds {
             left = travelLeft,
             top = travelTop,
             right = travelLeft + travelWidth,
-            bottom = travelTop + travelHeight,
+            bottom = travelTop + travelHeight
         )
         val screenRect = Rect(0f, 0f, screenWidth, screenHeight)
         val edgeThresholdPx = 48f * density
@@ -186,7 +186,7 @@ internal object FloatingPointerBounds {
             rawY = triggerRawY,
             screenWidth = screenWidth,
             screenHeight = screenHeight,
-            edgeThresholdPx = edgeThresholdPx,
+            edgeThresholdPx = edgeThresholdPx
         )
         return AreaPreviewLayout(
             trigger = Offset(triggerRawX, triggerRawY),
@@ -196,7 +196,7 @@ internal object FloatingPointerBounds {
             travelHeight = travelHeight,
             travelRect = travelRect,
             travelRectOnScreen = travelRect.intersect(screenRect),
-            pointerPosition = pointerPosition,
+            pointerPosition = pointerPosition
         )
     }
 
@@ -205,7 +205,7 @@ internal object FloatingPointerBounds {
         normalized: Float,
         min: Float,
         max: Float,
-        curvePower: Float,
+        curvePower: Float
     ): Float {
         val curved = applyDeflectionCurve(normalized, curvePower)
         return when {
@@ -224,11 +224,11 @@ internal object FloatingPointerBounds {
     fun clamp(
         position: Offset,
         screenWidth: Float,
-        screenHeight: Float,
+        screenHeight: Float
     ): Offset {
         return Offset(
             x = position.x.coerceIn(0f, screenWidth),
-            y = position.y.coerceIn(0f, screenHeight),
+            y = position.y.coerceIn(0f, screenHeight)
         )
     }
 }

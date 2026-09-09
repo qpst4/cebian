@@ -29,7 +29,7 @@ import kotlinx.coroutines.launch
 class EdgeOverlayHost(
     private val context: Context,
     private val scope: CoroutineScope,
-    private val deps: AppDependencies,
+    private val deps: AppDependencies
 ) {
     private var overlayManager: OverlayManager? = null
     private var floatBallController: FloatBallController? = null
@@ -43,7 +43,7 @@ class EdgeOverlayHost(
         if (overlayManager != null) return
         OverlayPerformanceMonitorBinding.onOverlayShown(
             deps.settingsRepository.readSnapshot(),
-            context,
+            context
         )
         overlayManager = OverlayManager(
             context = context,
@@ -54,7 +54,7 @@ class EdgeOverlayHost(
             },
             onQuickLauncherPanelItemsPersist = { panelId, items ->
                 scope.launch { deps.settingsRepository.updateQuickLauncherPanelItems(panelId, items) }
-            },
+            }
         )
         scope.launch(Dispatchers.Default) {
             deps.appRepository.loadApps()
@@ -70,7 +70,7 @@ class EdgeOverlayHost(
         settingsJob = scope.launch {
             combine(
                 deps.settingsRepository.gestureSettings,
-                deps.settingsRepository.overlaySettings,
+                deps.settingsRepository.overlaySettings
             ) { _, _ ->
                 deps.settingsRepository.readSnapshot()
             }.collectLatest { settings ->
@@ -128,7 +128,7 @@ class EdgeOverlayHost(
     fun setPreviewMode(
         enabled: Boolean,
         content: LayoutPreviewContent = LayoutPreviewContent.TRIGGER_ONLY,
-        focus: LayoutPreviewFocus? = null,
+        focus: LayoutPreviewFocus? = null
     ) {
         previewActive = enabled
         previewContent = content
@@ -169,13 +169,13 @@ class EdgeOverlayHost(
         verticalEdgeWidthDp: Float,
         verticalEdgeHeightDp: Float,
         horizontalEdgeWidthDp: Float,
-        horizontalEdgeHeightDp: Float,
+        horizontalEdgeHeightDp: Float
     ) {
         cornerGestureHost?.applyZonePreviewDimensions(
             verticalEdgeWidthDp,
             verticalEdgeHeightDp,
             horizontalEdgeWidthDp,
-            horizontalEdgeHeightDp,
+            horizontalEdgeHeightDp
         )
     }
 
@@ -243,7 +243,7 @@ class EdgeOverlayHost(
     fun dispatchExternalGestureAction(
         action: com.slideindex.app.gesture.GestureAction,
         anchorRawY: Float,
-        panelSide: com.slideindex.app.overlay.PanelSide? = null,
+        panelSide: com.slideindex.app.overlay.PanelSide? = null
     ): Boolean =
         overlayManager?.dispatchExternalGestureAction(action, anchorRawY, panelSide) == true
 
@@ -278,7 +278,7 @@ class EdgeOverlayHost(
         bottomFraction: Float? = null,
         shortSwipeDistanceDp: Float? = null,
         longSwipeDistanceDp: Float? = null,
-        design: com.slideindex.app.gesture.TriggerHandleDesign? = null,
+        design: com.slideindex.app.gesture.TriggerHandleDesign? = null
     ) {
         OverlayLayoutPreviewStore.mergeTriggerHandlePreview(
             side = side,
@@ -288,7 +288,7 @@ class EdgeOverlayHost(
             bottomFraction = bottomFraction,
             shortSwipeDistanceDp = shortSwipeDistanceDp,
             longSwipeDistanceDp = longSwipeDistanceDp,
-            design = design,
+            design = design
         )
         applyOverlayLayoutPreviewSettings()
     }

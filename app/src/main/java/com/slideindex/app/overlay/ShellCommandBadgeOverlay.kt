@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.Dp
 fun ShellCommandBadgeOverlay(
     iconSize: Dp,
     modifier: Modifier = Modifier,
-    alpha: Float = 1f,
+    alpha: Float = 1f
 ) {
     val densityScale = LocalDensity.current.density
     Box(modifier = modifier.size(iconSize)) {
@@ -29,7 +29,7 @@ fun ShellCommandBadgeOverlay(
                 iconCenterY = size.height / 2f,
                 iconDiameter = iconDiameter,
                 alpha = alpha,
-                density = densityScale,
+                density = densityScale
             )
         }
     }
@@ -40,7 +40,7 @@ internal fun DrawScope.drawShellCommandBadge(
     iconCenterY: Float,
     iconDiameter: Float,
     alpha: Float,
-    density: Float,
+    density: Float
 ) {
     ShellCommandBadgeRenderer.draw(
         canvas = drawContext.canvas.nativeCanvas,
@@ -48,6 +48,6 @@ internal fun DrawScope.drawShellCommandBadge(
         iconCenterY = iconCenterY,
         iconDiameter = iconDiameter,
         alpha = alpha,
-        density = density,
+        density = density
     )
 }

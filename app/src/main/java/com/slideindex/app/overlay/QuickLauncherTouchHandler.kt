@@ -4,7 +4,7 @@ import android.graphics.RectF
 import android.view.MotionEvent
 
 internal class QuickLauncherTouchHandler(
-    internal val ctrl: QuickLauncherOverlayController,
+    internal val ctrl: QuickLauncherOverlayController
 ) {
     internal val host get() = ctrl.host
     internal val pickResolver = QuickLauncherPickResolver(this)
@@ -73,7 +73,7 @@ internal class QuickLauncherTouchHandler(
                 localY,
                 panelRect,
                 tapGesture = tapGesture,
-                toolbarCommitAllowed = toolbarCommitAllowed,
+                toolbarCommitAllowed = toolbarCommitAllowed
             )
         ) {
             return true
@@ -99,7 +99,7 @@ internal class QuickLauncherTouchHandler(
                             localY,
                             touchX,
                             event.eventTime,
-                            haptic = true,
+                            haptic = true
                         )
                     }
                     host.invalidate()

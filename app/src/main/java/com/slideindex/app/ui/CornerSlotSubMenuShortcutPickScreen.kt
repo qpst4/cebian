@@ -53,7 +53,7 @@ fun CornerSlotSubMenuShortcutPickScreen(
     onAddShortcut: (GestureAction.LaunchShortcut) -> Unit,
     onOpenMyShortcuts: () -> Unit,
     onOpenPresetShortcuts: () -> Unit,
-    onBrowseActivityShortcut: () -> Unit,
+    onBrowseActivityShortcut: () -> Unit
 ) {
     val context = LocalContext.current
     val appRepository = rememberAppRepository()
@@ -67,7 +67,7 @@ fun CornerSlotSubMenuShortcutPickScreen(
                 expanded = searchExpanded,
                 query = searchQuery,
                 onExpandedChange = { searchExpanded = it },
-                onQueryChange = { searchQuery = it },
+                onQueryChange = { searchQuery = it }
             )
         ) {
             onBack()
@@ -99,7 +99,7 @@ fun CornerSlotSubMenuShortcutPickScreen(
 
     var pendingCreateHost by remember { mutableStateOf<AppShortcutLoader.CreateShortcutHost?>(null) }
     val createLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.StartActivityForResult(),
+        ActivityResultContracts.StartActivityForResult()
     ) { result ->
         val host = pendingCreateHost
         pendingCreateHost = null
@@ -128,7 +128,7 @@ fun CornerSlotSubMenuShortcutPickScreen(
                 expanded = searchExpanded,
                 query = searchQuery,
                 onExpandedChange = { searchExpanded = it },
-                onQueryChange = { searchQuery = it },
+                onQueryChange = { searchQuery = it }
             )
         },
         bottomContent = {
@@ -137,15 +137,15 @@ fun CornerSlotSubMenuShortcutPickScreen(
                 searchQuery = searchQuery,
                 onSearchQueryChange = { searchQuery = it },
                 focusRequester = searchFocusRequester,
-                hintResId = R.string.search_hint,
+                hintResId = R.string.search_hint
             )
-        },
+        }
     ) {
         if (searchQuery.isBlank()) {
             shortcutFolderCardsSection(
                 activityShortcutsCount = activityShortcuts.size,
                 onOpenMyShortcuts = onOpenMyShortcuts,
-                onOpenPresetShortcuts = onOpenPresetShortcuts,
+                onOpenPresetShortcuts = onOpenPresetShortcuts
             )
         } else if (activityShortcuts.isNotEmpty()) {
             activityShortcutPickerToggleSection(
@@ -155,7 +155,7 @@ fun CornerSlotSubMenuShortcutPickScreen(
                     if (!added) addFromQuickLauncherItem(item)
                 },
                 onBrowse = onBrowseActivityShortcut,
-                searchQuery = searchQuery,
+                searchQuery = searchQuery
             )
         }
         systemShortcutCatalogItems(
@@ -182,9 +182,9 @@ fun CornerSlotSubMenuShortcutPickScreen(
                             AppShortcutLoader.cacheShortcutForLaunch(group.app.packageName, shortcut)
                             onAddShortcut(action)
                         }
-                    },
+                    }
                 )
-            },
+            }
         )
     }
 }
@@ -196,7 +196,7 @@ private fun CornerSlotSubMenuShortcutRow(
     segmentIndex: Int,
     segmentCount: Int,
     alreadyAdded: Boolean,
-    onClick: () -> Unit,
+    onClick: () -> Unit
 ) {
     Md3PickerListRow(
         segmentIndex = segmentIndex,
@@ -209,10 +209,10 @@ private fun CornerSlotSubMenuShortcutRow(
             Md3PickerAppShortcutLeading(
                 packageName = app.packageName,
                 contentDescription = shortcut.label,
-                selected = alreadyAdded,
+                selected = alreadyAdded
             )
         },
         trailingMode = PickerTrailingMode.Toggle,
-        onTrailingClick = onClick,
+        onTrailingClick = onClick
     )
 }

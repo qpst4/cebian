@@ -11,7 +11,7 @@ import com.slideindex.app.service.AccessibilityTextExtractor
 
 data class UniversalCopyBlock(
     val text: String,
-    val bounds: Rect,
+    val bounds: Rect
 )
 
 object UniversalCopyCollector {

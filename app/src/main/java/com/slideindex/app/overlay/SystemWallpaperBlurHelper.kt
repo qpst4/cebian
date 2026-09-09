@@ -39,7 +39,7 @@ object SystemWallpaperBlurHelper {
         val width: Int,
         val height: Int,
         val radius: Int,
-        val bitmap: Bitmap,
+        val bitmap: Bitmap
     )
 
     /**
@@ -63,11 +63,11 @@ object SystemWallpaperBlurHelper {
 
         val appSpecificIntent = Intent(
             android.provider.Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
-            android.net.Uri.parse("package:${context.packageName}"),
+            android.net.Uri.parse("package:${context.packageName}")
         ).applyContextFlags()
 
         val generalIntent = Intent(
-            android.provider.Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION,
+            android.provider.Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION
         ).applyContextFlags()
 
         runCatching {
@@ -108,7 +108,7 @@ object SystemWallpaperBlurHelper {
 
     suspend fun loadBlurred(
         context: Context,
-        blurDp: Int,
+        blurDp: Int
     ): Bitmap? = withContext(Dispatchers.IO) {
         loadBlurredInternal(context.applicationContext, blurDp)
     }
@@ -182,7 +182,7 @@ object SystemWallpaperBlurHelper {
             ?.let { return it }
         Log.w(
             TAG,
-            "Unable to decode system wallpaper bitmap (filesAccess=${hasWallpaperAccessPermission(context)})",
+            "Unable to decode system wallpaper bitmap (filesAccess=${hasWallpaperAccessPermission(context)})"
         )
         return null
     }
@@ -196,8 +196,8 @@ object SystemWallpaperBlurHelper {
                 MAX_SOURCE_DIMENSION.toFloat() / sourceWidth,
                 MAX_SOURCE_DIMENSION.toFloat() / sourceHeight,
                 sqrt(
-                    MAX_SOURCE_PIXELS.toFloat() / (sourceWidth.toFloat() * sourceHeight.toFloat()),
-                ).coerceAtMost(1f),
+                    MAX_SOURCE_PIXELS.toFloat() / (sourceWidth.toFloat() * sourceHeight.toFloat())
+                ).coerceAtMost(1f)
             )
             val width = max(1, (sourceWidth * scale).roundToInt())
             val height = max(1, (sourceHeight * scale).roundToInt())
@@ -240,7 +240,7 @@ object SystemWallpaperBlurHelper {
         target: IntArray,
         width: Int,
         height: Int,
-        radius: Int,
+        radius: Int
     ) {
         val samples = radius * 2 + 1
         for (y in 0 until height) {
@@ -273,7 +273,7 @@ object SystemWallpaperBlurHelper {
         target: IntArray,
         width: Int,
         height: Int,
-        radius: Int,
+        radius: Int
     ) {
         val samples = radius * 2 + 1
         for (x in 0 until width) {

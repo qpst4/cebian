@@ -73,7 +73,7 @@ object ClipboardImageStore {
     fun collectImageSources(payload: ClipboardPayload): List<String> =
         collectImageSources(
             htmlText = payload.htmlText,
-            imageUris = payload.resolvedImageUris(),
+            imageUris = payload.resolvedImageUris()
         )
 
     fun collectImageSourcesForEntry(entry: ClipboardEntry): List<String> =
@@ -81,12 +81,12 @@ object ClipboardImageStore {
             htmlText = entry.htmlText,
             imageUris = entry.resolvedImageFileNames().ifEmpty {
                 entry.uri?.takeIf { it.isNotBlank() }?.let { listOf(it) } ?: emptyList()
-            },
+            }
         )
 
     private fun collectImageSources(
         htmlText: String?,
-        imageUris: List<String>,
+        imageUris: List<String>
     ): List<String> {
         val result = linkedSetOf<String>()
         htmlText
@@ -159,7 +159,7 @@ object ClipboardImageStore {
         context: Context,
         fileName: String?,
         targetWidthPx: Int,
-        maxVisibleHeightPx: Int,
+        maxVisibleHeightPx: Int
     ): Bitmap? {
         if (fileName.isNullOrBlank() || targetWidthPx <= 0 || maxVisibleHeightPx <= 0) return null
         val file = imageFile(context, fileName)
@@ -171,7 +171,7 @@ object ClipboardImageStore {
         context: Context,
         uriString: String,
         targetWidthPx: Int,
-        maxVisibleHeightPx: Int,
+        maxVisibleHeightPx: Int
     ): Bitmap? {
         if (uriString.isBlank() || targetWidthPx <= 0 || maxVisibleHeightPx <= 0) return null
         return runCatching {
@@ -179,7 +179,7 @@ object ClipboardImageStore {
                 scaleAndCropThumbnailForCard(
                     BitmapFactory.decodeStream(stream) ?: return@use null,
                     targetWidthPx,
-                    maxVisibleHeightPx,
+                    maxVisibleHeightPx
                 )
             }
         }.getOrNull()
@@ -191,7 +191,7 @@ object ClipboardImageStore {
     fun loadEntryThumbnailsForPreview(
         context: Context,
         entry: ClipboardEntry,
-        maxSidePx: Int = PREVIEW_MAX_SIDE_PX,
+        maxSidePx: Int = PREVIEW_MAX_SIDE_PX
     ): List<Bitmap> = ClipboardThumbnailCache.loadEntryThumbnailsForPreview(context, entry, maxSidePx)
 
     fun loadUriBitmapScaled(context: Context, uriString: String, maxSidePx: Int): Bitmap? {
@@ -242,7 +242,7 @@ object ClipboardImageStore {
             FileProvider.getUriForFile(
                 context,
                 "${context.packageName}.fileprovider",
-                file,
+                file
             )
         }.getOrNull()
     }
@@ -303,7 +303,7 @@ object ClipboardImageStore {
         entryId: String,
         urlString: String,
         index: Int,
-        total: Int,
+        total: Int
     ): String? {
         return runCatching {
             val connection = (URL(urlString).openConnection() as HttpURLConnection).apply {
@@ -334,7 +334,7 @@ object ClipboardImageStore {
     private fun decodeThumbnailForCardFromFile(
         file: File,
         targetWidthPx: Int,
-        maxVisibleHeightPx: Int,
+        maxVisibleHeightPx: Int
     ): Bitmap? {
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         BitmapFactory.decodeFile(file.absolutePath, bounds)
@@ -359,7 +359,7 @@ object ClipboardImageStore {
     private fun scaleAndCropThumbnailForCard(
         source: Bitmap,
         targetWidthPx: Int,
-        maxVisibleHeightPx: Int,
+        maxVisibleHeightPx: Int
     ): Bitmap {
         var bitmap = source
         if (bitmap.width != targetWidthPx) {

@@ -26,7 +26,7 @@ internal object HoneycombIconLoader {
     fun warmAppIcons(
         appRepository: AppRepository,
         items: List<QuickLauncherItem>,
-        sizePx: Int,
+        sizePx: Int
     ) {
         val packages = items.asSequence()
             .filter { it.type == QuickLauncherItemType.APP }
@@ -44,7 +44,7 @@ internal object HoneycombIconLoader {
         appRepository: AppRepository,
         activityShortcuts: List<ActivityShortcut> = emptyList(),
         shellCommands: List<ShellCommand> = emptyList(),
-        onIconsReady: () -> Unit,
+        onIconsReady: () -> Unit
     ) {
         if (targets.none { it.icon == null }) return
         val appContext = context.applicationContext ?: context
@@ -58,7 +58,7 @@ internal object HoneycombIconLoader {
                     appsByPackage,
                     appRepository,
                     activityShortcuts,
-                    shellCommands,
+                    shellCommands
                 )
                 if (drawable != null) {
                     target.icon = drawable
@@ -77,7 +77,7 @@ internal object HoneycombIconLoader {
         appsByPackage: Map<String, AppInfo>,
         appRepository: AppRepository,
         activityShortcuts: List<ActivityShortcut>,
-        shellCommands: List<ShellCommand>,
+        shellCommands: List<ShellCommand>
     ): Drawable? {
         val item = target.item
         return when (item.type) {
@@ -89,7 +89,7 @@ internal object HoneycombIconLoader {
                     appsByPackage,
                     context,
                     activityShortcuts,
-                    shellCommands,
+                    shellCommands
                 )
             else -> null
         }

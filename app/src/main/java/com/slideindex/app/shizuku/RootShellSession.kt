@@ -25,7 +25,7 @@ internal object RootShellSession {
         if (android.os.Process.myUid() == 0) {
             return TaskManagerShellExecutor.shellCommandWithOutput(
                 timeoutMs,
-                *TaskManagerShellExecutor.buildPlainShellArgs(command),
+                *TaskManagerShellExecutor.buildPlainShellArgs(command)
             )
         }
         synchronized(lock) {
@@ -144,7 +144,7 @@ internal object RootShellSession {
         val sh = TaskManagerShellExecutor.resolveShPath()
         val scripts = listOf(
             "$su -c $q",
-            "$su 0 sh -c $q",
+            "$su 0 sh -c $q"
         )
         var last = TaskManagerShellExecutor.ShellExecResult(-1, "su 执行失败")
         for (script in scripts) {

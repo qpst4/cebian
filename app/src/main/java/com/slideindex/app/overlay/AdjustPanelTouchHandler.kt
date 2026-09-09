@@ -9,7 +9,7 @@ import com.slideindex.app.util.PermissionHelper
 import com.slideindex.app.util.VolumeControlHelper
 
 internal class AdjustPanelTouchHandler(
-    private val ctrl: AdjustPanelOverlayController,
+    private val ctrl: AdjustPanelOverlayController
 ) {
     private val host get() = ctrl.host
 
@@ -40,7 +40,7 @@ internal class AdjustPanelTouchHandler(
                                     Toast.makeText(
                                         host.context.applicationContext,
                                         R.string.gesture_action_toggle_dnd_failed,
-                                        Toast.LENGTH_SHORT,
+                                        Toast.LENGTH_SHORT
                                     ).show()
                                 }
                             }

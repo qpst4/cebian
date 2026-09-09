@@ -20,7 +20,7 @@ internal data class FloatingPointerEdgeActionSegment(
     val segmentEnd: Offset,
     val iconAnchor: Offset,
     val colorArgb: Int,
-    var proximity: Float = 0f,
+    var proximity: Float = 0f
 )
 
 internal object FloatingPointerEdgeActionsEngine {
@@ -44,7 +44,7 @@ internal object FloatingPointerEdgeActionsEngine {
         settings: AppSettings,
         screenWidth: Float,
         screenHeight: Float,
-        density: Float,
+        density: Float
     ): List<FloatingPointerEdgeActionSegment> {
         val config = settings.floatingPointerEdgeActionsConfig
         val glowWidth = previewGlowWidthPx(settings, density)
@@ -61,7 +61,7 @@ internal object FloatingPointerEdgeActionsEngine {
             alongAxis: (start: Float, end: Float) -> Pair<Offset, Offset>,
             wedgeForRange: (start: Float, end: Float) -> Rect,
             glowForRange: (start: Float, end: Float) -> Rect,
-            iconForMidpoint: (mid: Float) -> Offset,
+            iconForMidpoint: (mid: Float) -> Offset
         ) {
             if (!bar.enabled) return
             val slots = bar.layoutSlots()
@@ -82,7 +82,7 @@ internal object FloatingPointerEdgeActionsEngine {
                     segmentStart = segmentStart,
                     segmentEnd = segmentEnd,
                     iconAnchor = iconForMidpoint((start + end) / 2f),
-                    colorArgb = color,
+                    colorArgb = color
                 )
             }
         }
@@ -99,13 +99,13 @@ internal object FloatingPointerEdgeActionsEngine {
                     left = -wedgeWidth,
                     top = if (start <= edgeInset) cornerInset else start + edgeInset,
                     right = wedgeWidth,
-                    bottom = if (end >= screenHeight - edgeInset) screenHeight - cornerInset else end - edgeInset,
+                    bottom = if (end >= screenHeight - edgeInset) screenHeight - cornerInset else end - edgeInset
                 )
             },
             glowForRange = { start, end ->
                 Rect(left = -glowWidth, top = start, right = 0f, bottom = end)
             },
-            iconForMidpoint = { mid -> Offset(0f, mid) },
+            iconForMidpoint = { mid -> Offset(0f, mid) }
         )
 
         appendBar(
@@ -120,7 +120,7 @@ internal object FloatingPointerEdgeActionsEngine {
                     left = screenWidth - wedgeWidth,
                     top = if (start <= edgeInset) cornerInset else start + edgeInset,
                     right = screenWidth + wedgeWidth,
-                    bottom = if (end >= screenHeight - edgeInset) screenHeight - cornerInset else end - edgeInset,
+                    bottom = if (end >= screenHeight - edgeInset) screenHeight - cornerInset else end - edgeInset
                 )
             },
             glowForRange = { start, end ->
@@ -128,10 +128,10 @@ internal object FloatingPointerEdgeActionsEngine {
                     left = screenWidth,
                     top = start,
                     right = screenWidth + glowWidth,
-                    bottom = end,
+                    bottom = end
                 )
             },
-            iconForMidpoint = { mid -> Offset(screenWidth, mid) },
+            iconForMidpoint = { mid -> Offset(screenWidth, mid) }
         )
 
         appendBar(
@@ -146,13 +146,13 @@ internal object FloatingPointerEdgeActionsEngine {
                     left = if (start <= edgeInset) cornerInset else start + edgeInset,
                     top = -wedgeWidth,
                     right = if (end >= screenWidth - edgeInset) screenWidth - cornerInset else end - edgeInset,
-                    bottom = wedgeWidth,
+                    bottom = wedgeWidth
                 )
             },
             glowForRange = { start, end ->
                 Rect(left = start, top = -glowWidth, right = end, bottom = 0f)
             },
-            iconForMidpoint = { mid -> Offset(mid, 0f) },
+            iconForMidpoint = { mid -> Offset(mid, 0f) }
         )
 
         appendBar(
@@ -167,7 +167,7 @@ internal object FloatingPointerEdgeActionsEngine {
                     left = if (start <= edgeInset) cornerInset else start + edgeInset,
                     top = screenHeight - wedgeWidth,
                     right = if (end >= screenWidth - edgeInset) screenWidth - cornerInset else end - edgeInset,
-                    bottom = screenHeight + wedgeWidth,
+                    bottom = screenHeight + wedgeWidth
                 )
             },
             glowForRange = { start, end ->
@@ -175,10 +175,10 @@ internal object FloatingPointerEdgeActionsEngine {
                     left = start,
                     top = screenHeight,
                     right = end,
-                    bottom = screenHeight + glowWidth,
+                    bottom = screenHeight + glowWidth
                 )
             },
-            iconForMidpoint = { mid -> Offset(mid, screenHeight) },
+            iconForMidpoint = { mid -> Offset(mid, screenHeight) }
         )
 
         return segments
@@ -188,7 +188,7 @@ internal object FloatingPointerEdgeActionsEngine {
         segments: List<FloatingPointerEdgeActionSegment>,
         rawX: Float,
         rawY: Float,
-        previewRadiusPx: Float,
+        previewRadiusPx: Float
     ) {
         if (previewRadiusPx <= 0f) {
             segments.forEach { it.proximity = 0f }
@@ -199,7 +199,7 @@ internal object FloatingPointerEdgeActionsEngine {
             val nearest = nearestPointOnSegment(point, segment.segmentStart, segment.segmentEnd)
             val distance = hypot(
                 (point.x - nearest.x).toDouble(),
-                (point.y - nearest.y).toDouble(),
+                (point.y - nearest.y).toDouble()
             ).toFloat()
             segment.proximity = if (distance > previewRadiusPx) {
                 0f
@@ -214,7 +214,7 @@ internal object FloatingPointerEdgeActionsEngine {
         segments: List<FloatingPointerEdgeActionSegment>,
         gestureCaptureActive: Boolean,
         gestureReplayActive: Boolean,
-        armedAction: GestureAction?,
+        armedAction: GestureAction?
     ): Boolean {
         if (gestureCaptureActive || gestureReplayActive) return false
         if (previewRadiusPx(settings, 1f) <= 0f && previewGlowWidthPx(settings, 1f) <= 0f) return false
@@ -230,7 +230,7 @@ internal object FloatingPointerEdgeActionsEngine {
         clampedY: Float,
         rawX: Float,
         rawY: Float,
-        density: Float,
+        density: Float
     ): GestureAction? {
         val threshold = thresholdPx(settings, density)
         val overscrollX = clampedX - rawX

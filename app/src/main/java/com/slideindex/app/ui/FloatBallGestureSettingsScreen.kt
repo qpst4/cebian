@@ -60,7 +60,7 @@ fun FloatBallGestureSettingsScreen(
 
     onSideSwipeShortPercentChange: (Float) -> Unit,
 
-    onUpSwipeShortPercentChange: (Float) -> Unit,
+    onUpSwipeShortPercentChange: (Float) -> Unit
 
 ) {
 
@@ -69,12 +69,11 @@ fun FloatBallGestureSettingsScreen(
 
     SettingsScreenScaffold(
         title = stringResource(R.string.float_ball_gesture_settings_title),
-        onBack = onBack,
+        onBack = onBack
     ) {
         settingsLazySmallTitle(
             key = "section-distance",
-            title = distanceSectionTitle,
-            sectionTop = true,
+            title = distanceSectionTitle
         )
         groupedCardItems(
             keyPrefix = "float-ball-gesture-distance",
@@ -89,11 +88,11 @@ fun FloatBallGestureSettingsScreen(
                             enabled = true,
                             label = stringResource(
                                 R.string.floating_pointer_percent_value,
-                                settings.floatBallDownSwipeShortPercent.roundToInt(),
+                                settings.floatBallDownSwipeShortPercent.roundToInt()
                             ),
-                            onValueChange = onDownSwipeShortPercentChange,
+                            onValueChange = onDownSwipeShortPercentChange
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("side-swipe-distance") {
@@ -105,11 +104,11 @@ fun FloatBallGestureSettingsScreen(
                             enabled = true,
                             label = stringResource(
                                 R.string.floating_pointer_percent_value,
-                                settings.floatBallSideSwipeShortPercent.roundToInt(),
+                                settings.floatBallSideSwipeShortPercent.roundToInt()
                             ),
-                            onValueChange = onSideSwipeShortPercentChange,
+                            onValueChange = onSideSwipeShortPercentChange
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("up-swipe-distance") {
@@ -121,19 +120,18 @@ fun FloatBallGestureSettingsScreen(
                             enabled = true,
                             label = stringResource(
                                 R.string.floating_pointer_percent_value,
-                                settings.floatBallUpSwipeShortPercent.roundToInt(),
+                                settings.floatBallUpSwipeShortPercent.roundToInt()
                             ),
-                            onValueChange = onUpSwipeShortPercentChange,
+                            onValueChange = onUpSwipeShortPercentChange
                         )
-                    },
+                    }
                 )
-            },
+            }
         )
 
         settingsLazySmallTitle(
             key = "section-actions",
-            title = actionsSectionTitle,
-            sectionTop = true,
+            title = actionsSectionTitle
         )
         groupedCardItems(
             keyPrefix = "float-ball-gesture-actions",
@@ -157,12 +155,12 @@ fun FloatBallGestureSettingsScreen(
                                     { onOpenShellCommand(type, action.command) }
                                 } else {
                                     null
-                                },
+                                }
                             )
-                        },
+                        }
                     )
                 }
-            },
+            }
         )
 
     }
@@ -189,7 +187,7 @@ private fun SettingsCardScope.FloatBallGestureActionRow(
 
     onClick: () -> Unit,
 
-    onSettingsClick: (() -> Unit)? = null,
+    onSettingsClick: (() -> Unit)? = null
 
 ) {
 
@@ -205,7 +203,7 @@ private fun SettingsCardScope.FloatBallGestureActionRow(
 
                 contentDescription = label,
 
-                modifier = Modifier.size(22.dp),
+                modifier = Modifier.size(22.dp)
 
             )
 
@@ -231,11 +229,11 @@ private fun SettingsCardScope.FloatBallGestureActionRow(
 
                 onSettingsClick = onSettingsClick,
 
-                onClick = onClick,
+                onClick = onClick
 
             )
 
-        },
+        }
 
     )
 

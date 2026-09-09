@@ -31,7 +31,7 @@ class TriggerVisualOverlayView(context: Context) : View(context) {
             design = handleDesign,
             density = resources.displayMetrics.density,
             widthPx = width,
-            heightPx = height,
+            heightPx = height
         )
     }
 

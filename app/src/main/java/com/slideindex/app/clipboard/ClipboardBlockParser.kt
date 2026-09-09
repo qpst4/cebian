@@ -5,14 +5,14 @@ import java.util.regex.Pattern
 internal object ClipboardBlockParser {
     private val IMG_TAG_PATTERN = Pattern.compile(
         """<img\b[^>]*\bsrc\s*=\s*["']([^"']+)["'][^>]*>""",
-        Pattern.CASE_INSENSITIVE,
+        Pattern.CASE_INSENSITIVE
     )
 
     fun buildBlocks(
         text: String,
         htmlText: String?,
         imageFileNames: List<String>,
-        imageSources: List<String>,
+        imageSources: List<String>
     ): List<ClipboardContentBlock> {
         if (!htmlText.isNullOrBlank() && imageFileNames.isNotEmpty()) {
             val parsed = parseFromHtml(htmlText, imageFileNames, imageSources)
@@ -24,7 +24,7 @@ internal object ClipboardBlockParser {
     private fun parseFromHtml(
         html: String,
         imageFileNames: List<String>,
-        imageSources: List<String>,
+        imageSources: List<String>
     ): List<ClipboardContentBlock> {
         val srcToFileName = buildSrcToFileNameMap(imageSources, imageFileNames)
         val blocks = mutableListOf<ClipboardContentBlock>()
@@ -45,7 +45,7 @@ internal object ClipboardBlockParser {
 
     private fun buildSrcToFileNameMap(
         imageSources: List<String>,
-        imageFileNames: List<String>,
+        imageFileNames: List<String>
     ): Map<String, String> {
         val map = linkedMapOf<String, String>()
         imageSources.forEachIndexed { index, src ->
@@ -62,7 +62,7 @@ internal object ClipboardBlockParser {
         normalizedSrc: String,
         srcToFileName: Map<String, String>,
         imageSources: List<String>,
-        imageFileNames: List<String>,
+        imageFileNames: List<String>
     ): String? {
         srcToFileName[normalizedSrc]?.let { return it }
         val index = imageSources.indexOfFirst {
@@ -92,7 +92,7 @@ internal object ClipboardBlockParser {
                     val last = merged.lastOrNull()
                     if (last?.kind == ClipboardBlockKind.TEXT) {
                         merged[merged.lastIndex] = ClipboardContentBlock.text(
-                            "${last.text}\n${block.text}".trim(),
+                            "${last.text}\n${block.text}".trim()
                         )
                     } else {
                         merged += block
@@ -107,7 +107,7 @@ internal object ClipboardBlockParser {
     private fun buildFallbackBlocks(
         text: String,
         imageFileNames: List<String>,
-        imageSources: List<String>,
+        imageSources: List<String>
     ): List<ClipboardContentBlock> {
         val blocks = mutableListOf<ClipboardContentBlock>()
         val trimmed = text.trim()

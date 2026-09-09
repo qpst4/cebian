@@ -8,7 +8,7 @@ import android.os.SystemClock
  * FV-style GIF playback: Handler tick + lightweight View invalidate.
  */
 internal class FloatBallGifPlayer(
-    looper: Looper = Looper.getMainLooper(),
+    looper: Looper = Looper.getMainLooper()
 ) {
     private val handler = Handler(looper)
     private var gifView: FloatBallGifView? = null
@@ -37,7 +37,7 @@ internal class FloatBallGifPlayer(
                         movie = seq.movie,
                         elapsedMs = elapsed,
                         outW = seq.width,
-                        outH = seq.height,
+                        outH = seq.height
                     )
                     handler.postDelayed(this, STREAMING_TICK_MS.toLong())
                 }
@@ -103,7 +103,7 @@ internal class FloatBallGifPlayer(
                     movie = seq.movie,
                     elapsedMs = 0,
                     outW = seq.width,
-                    outH = seq.height,
+                    outH = seq.height
                 )
             }
         }

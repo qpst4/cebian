@@ -48,7 +48,7 @@ class ShellCommandPanelTrampolineActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.dark(AndroidColor.TRANSPARENT),
-            navigationBarStyle = SystemBarStyle.dark(AndroidColor.TRANSPARENT),
+            navigationBarStyle = SystemBarStyle.dark(AndroidColor.TRANSPARENT)
         )
         super.onCreate(savedInstanceState)
         if (savedInstanceState?.getBoolean(STATE_DISMISSED, false) == true) {
@@ -96,7 +96,7 @@ class ShellCommandPanelTrampolineActivity : ComponentActivity() {
                     registerContinuousDismissHandler = { handler ->
                         ShellCommandPanelTrampoline.registerContinuousDismissRequest(handler)
                     },
-                    onCopyOutput = { output -> copyOutput(output) },
+                    onCopyOutput = { output -> copyOutput(output) }
                 )
             }
         }

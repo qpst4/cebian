@@ -43,7 +43,7 @@ import com.slideindex.app.settings.triggerCollectionEntries
 import com.slideindex.app.settings.triggerHandle
 import com.slideindex.app.ui.miuix.CardItem
 import com.slideindex.app.ui.miuix.MiuixHintText
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import top.yukonga.miuix.kmp.basic.SmallTitle
 import com.slideindex.app.ui.miuix.MiuixTabRowContourHost
 import com.slideindex.app.ui.miuix.MiuixTabRowWithContour
 import com.slideindex.app.ui.miuix.groupedCardItems
@@ -141,7 +141,6 @@ fun SideGestureSettingsScreen(
         settingsLazySmallTitle(
             key = "section-behavior",
             title = behaviorSectionTitle,
-            sectionTop = true,
         )
         groupedCardItems(
             keyPrefix = "side-gesture-behavior",
@@ -219,7 +218,6 @@ fun SideGestureSettingsScreen(
         settingsLazySmallTitle(
             key = "section-swipe-directions",
             title = swipeDirectionsSectionTitle,
-            sectionTop = true,
         )
 
         item(key = "swipe-distance-tab-card") {
@@ -250,7 +248,7 @@ fun SideGestureSettingsScreen(
                     )
                     when (selectedTab) {
                         SideGestureDistanceTab.Short -> {
-                            MiuixSmallTitle(
+                            SmallTitle(
                                 text = straightSectionTitle,
                                 insideMargin = PaddingValues(bottom = 4.dp),
                             )
@@ -265,7 +263,7 @@ fun SideGestureSettingsScreen(
                                     onOpenSlotConfig = onOpenSlotConfig,
                                 ),
                             )
-                            MiuixSmallTitle(
+                            SmallTitle(
                                 text = hoverSectionTitle,
                                 insideMargin = PaddingValues(top = 8.dp, bottom = 4.dp),
                             )
@@ -319,7 +317,6 @@ fun SideGestureSettingsScreen(
         settingsLazySmallTitle(
             key = "section-press-tap",
             title = pressTapSectionTitle,
-            sectionTop = true,
         )
         groupedCardItems("side-gesture-press-tap", pressTapItems)
 

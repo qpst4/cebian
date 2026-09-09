@@ -14,7 +14,7 @@ internal object WeipopSideThemes {
             titleColor = "#FFFFFF",
             paddingH = 12f,
             paddingV = 5f,
-            cornerRadius = 10f,
+            cornerRadius = 10f
         ),
         weipopSideTheme(
             id = "side_weipop_round_white",
@@ -24,7 +24,7 @@ internal object WeipopSideThemes {
             titleColor = "#474747",
             paddingH = 12f,
             paddingV = 5f,
-            cornerRadius = 10f,
+            cornerRadius = 10f
         ),
         weipopSideTheme(
             id = "side_weipop_tail3_black",
@@ -34,7 +34,7 @@ internal object WeipopSideThemes {
             titleColor = "#FFFFFF",
             paddingH = 14f,
             paddingV = 10f,
-            cornerRadius = 0f,
+            cornerRadius = 0f
         ),
         weipopSideTheme(
             id = "side_weipop_tail3_white",
@@ -44,7 +44,7 @@ internal object WeipopSideThemes {
             titleColor = "#474747",
             paddingH = 14f,
             paddingV = 10f,
-            cornerRadius = 0f,
+            cornerRadius = 0f
         ),
         weipopSideTheme(
             id = "side_weipop_tail4_black",
@@ -54,7 +54,7 @@ internal object WeipopSideThemes {
             titleColor = "#FFFFFF",
             paddingH = 12f,
             paddingV = 10f,
-            cornerRadius = 0f,
+            cornerRadius = 0f
         ),
         weipopSideTheme(
             id = "side_weipop_tail4_white",
@@ -64,7 +64,7 @@ internal object WeipopSideThemes {
             titleColor = "#474747",
             paddingH = 12f,
             paddingV = 10f,
-            cornerRadius = 0f,
+            cornerRadius = 0f
         ),
         weipopSideTheme(
             id = "side_weipop_compact_black",
@@ -74,7 +74,7 @@ internal object WeipopSideThemes {
             titleColor = "#FFFFFF",
             paddingH = 12f,
             paddingV = 8f,
-            cornerRadius = 0f,
+            cornerRadius = 0f
         ),
         weipopSideTheme(
             id = "side_weipop_compact_white",
@@ -84,8 +84,8 @@ internal object WeipopSideThemes {
             titleColor = "#474747",
             paddingH = 12f,
             paddingV = 8f,
-            cornerRadius = 0f,
-        ),
+            cornerRadius = 0f
+        )
     )
 
     private val colorSkinThemes = listOf(
@@ -111,7 +111,7 @@ internal object WeipopSideThemes {
         weipopSkinTheme(20),
         weipopSkinTheme(21),
         weipopSkinTheme(22),
-        weipopSkinTheme(23),
+        weipopSkinTheme(23)
     )
 
     private fun weipopSkinTheme(index: Int): MessageThemeSpec {
@@ -199,7 +199,7 @@ internal object WeipopSideThemes {
             titleColor = "#474747",
             paddingH = 14f,
             paddingV = 8f,
-            cornerRadius = 0f,
+            cornerRadius = 0f
         )
     }
 
@@ -211,7 +211,7 @@ internal object WeipopSideThemes {
         titleColor: String,
         paddingH: Float,
         paddingV: Float,
-        cornerRadius: Float,
+        cornerRadius: Float
     ): MessageThemeSpec {
         val titleArgb = MessageThemeColors.parseHex(titleColor)
         return MessageThemeSpec(
@@ -226,7 +226,7 @@ internal object WeipopSideThemes {
             cornerRadiusDp = cornerRadius,
             paddingHorizontalDp = paddingH,
             paddingVerticalDp = paddingV,
-            avatarStartPaddingDp = 8f,
+            avatarStartPaddingDp = 8f
         )
     }
 }

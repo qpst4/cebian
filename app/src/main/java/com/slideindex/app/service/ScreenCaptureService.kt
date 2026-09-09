@@ -120,7 +120,7 @@ class ScreenCaptureService : Service() {
                     }
                 }
             },
-            mainHandler,
+            mainHandler
         )
 
         val (width, height) = FloatBallOcrRegions.accessibilityScreenSizePx(this)
@@ -131,7 +131,7 @@ class ScreenCaptureService : Service() {
             captureWidth,
             captureHeight,
             PixelFormat.RGBA_8888,
-            IMAGE_READER_MAX_IMAGES,
+            IMAGE_READER_MAX_IMAGES
         )
         imageReader = reader
         virtualDisplay = projection.createVirtualDisplay(
@@ -142,7 +142,7 @@ class ScreenCaptureService : Service() {
             DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
             reader.surface,
             null,
-            null,
+            null
         )
         SessionState.bindInstance(this)
         SessionState.markReady()
@@ -207,7 +207,7 @@ class ScreenCaptureService : Service() {
         val channel = NotificationChannel(
             CHANNEL_ID,
             getString(R.string.screen_capture_channel_name),
-            NotificationManager.IMPORTANCE_LOW,
+            NotificationManager.IMPORTANCE_LOW
         )
         manager.createNotificationChannel(channel)
     }
@@ -272,7 +272,7 @@ class ScreenCaptureService : Service() {
             if (!sessionActive || ScreenRecordService.isRecording) {
                 PickPerf.mark(
                     "screenCapture_frame_skip",
-                    "active=$sessionActive recording=${ScreenRecordService.isRecording}",
+                    "active=$sessionActive recording=${ScreenRecordService.isRecording}"
                 )
                 return null
             }
@@ -288,7 +288,7 @@ class ScreenCaptureService : Service() {
                 PickPerf.markStepDuration(
                     "screenCapture_frame_done",
                     frameStart,
-                    "bitmap=${bitmap != null}",
+                    "bitmap=${bitmap != null}"
                 )
                 PickPerf.markStepDuration("screenCapture_service_end", start, "bitmap=${bitmap != null}")
                 bitmap
@@ -350,7 +350,7 @@ private fun imageToBitmap(image: Image): Bitmap {
     val bitmap = createBitmap(
         image.width + rowPadding / pixelStride,
         image.height,
-        Bitmap.Config.ARGB_8888,
+        Bitmap.Config.ARGB_8888
     )
     bitmap.copyPixelsFromBuffer(buffer)
     return if (bitmap.width == image.width) {

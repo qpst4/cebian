@@ -28,7 +28,7 @@ object QuickLauncherAddTrampoline {
         onPrepare: () -> Unit,
         onDismiss: () -> Unit,
         onAdd: (QuickLauncherItem) -> Unit,
-        onRemove: (QuickLauncherItem) -> Unit,
+        onRemove: (QuickLauncherItem) -> Unit
     ) {
         cancelPending()
         active = true
@@ -44,8 +44,8 @@ object QuickLauncherAddTrampoline {
                     panelSide = panelSide,
                     configuredAppPackages = configuredAppPackages,
                     configuredShortcutKeys = configuredShortcutKeys,
-                    configuredActionKeys = configuredActionKeys,
-                ),
+                    configuredActionKeys = configuredActionKeys
+                )
             )
         }.onFailure {
             deliverDismiss()

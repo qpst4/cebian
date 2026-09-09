@@ -82,7 +82,7 @@ internal class FloatBallCursorPreviewView(context: Context) : View(context) {
         crossAlpha: Float,
         crossPaused: Boolean,
         crossArmDp: Float,
-        hintMode: HintMode,
+        hintMode: HintMode
     ) {
         val start = selectionStart
         val nextHasStart = start != null
@@ -218,7 +218,7 @@ internal class FloatBallCursorPreviewView(context: Context) : View(context) {
             (centerX - half).roundToInt(),
             (centerY - half).roundToInt(),
             (centerX + half).roundToInt(),
-            (centerY + half).roundToInt(),
+            (centerY + half).roundToInt()
         )
         icon.draw(canvas)
     }

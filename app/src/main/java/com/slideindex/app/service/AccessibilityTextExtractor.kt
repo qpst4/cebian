@@ -192,14 +192,14 @@ object AccessibilityTextExtractor {
         service: AccessibilityService,
         preview: Rect,
         px: Int,
-        py: Int,
+        py: Int
     ): String? {
         var best: TextEntry? = null
         val windowBounds = Rect()
         fun consider(root: AccessibilityNodeInfo) {
             best = pickBetterBoundsTextEntry(
                 best,
-                findTextEntryAtPointInPreview(root, px, py, preview),
+                findTextEntryAtPointInPreview(root, px, py, preview)
             )
         }
         for (window in service.windows) {
@@ -232,7 +232,7 @@ object AccessibilityTextExtractor {
         node: AccessibilityNodeInfo,
         px: Int,
         py: Int,
-        preview: Rect,
+        preview: Rect
     ): TextEntry? {
         var best: TextEntry? = null
         val bounds = Rect()
@@ -269,7 +269,7 @@ object AccessibilityTextExtractor {
         rawX: Float,
         rawY: Float,
         activeWindowOnly: Boolean = false,
-        maxNodes: Int = DEFAULT_MAX_TRAVERSAL_NODES,
+        maxNodes: Int = DEFAULT_MAX_TRAVERSAL_NODES
     ): Rect? {
         val px = rawX.toInt()
         val py = rawY.toInt()
@@ -301,7 +301,7 @@ object AccessibilityTextExtractor {
             try {
                 best = pickBetterBoundsCandidate(
                     best,
-                    findControlBoundsInNode(root, px, py, nodeBounds, budget),
+                    findControlBoundsInNode(root, px, py, nodeBounds, budget)
                 )
             } finally {
                 releaseNode(root)
@@ -313,7 +313,7 @@ object AccessibilityTextExtractor {
             try {
                 best = pickBetterBoundsCandidate(
                     best,
-                    findControlBoundsInNode(active, px, py, nodeBounds, budget),
+                    findControlBoundsInNode(active, px, py, nodeBounds, budget)
                 )
             } finally {
                 releaseNode(active)
@@ -324,12 +324,12 @@ object AccessibilityTextExtractor {
 
     data class PreviewBoundsEntry(
         val rect: Rect,
-        val score: Int,
+        val score: Int
     )
 
     data class ScreenTextBlock(
         val text: String,
-        val bounds: Rect,
+        val bounds: Rect
     )
 
     /**
@@ -338,7 +338,7 @@ object AccessibilityTextExtractor {
      */
     fun collectAllScreenTextBlocks(
         service: AccessibilityService,
-        excludePackageNames: Set<String> = emptySet(),
+        excludePackageNames: Set<String> = emptySet()
     ): List<ScreenTextBlock> {
         val (screenW, screenH) = FloatBallOcrRegions.accessibilityScreenSizePx(service)
         if (screenW <= 0 || screenH <= 0) return emptyList()
@@ -350,7 +350,7 @@ object AccessibilityTextExtractor {
     /** Text blocks from a single accessibility root (active window is a foreign app). */
     fun collectScreenTextBlocksFromRoot(
         root: AccessibilityNodeInfo?,
-        service: AccessibilityService,
+        service: AccessibilityService
     ): List<ScreenTextBlock> {
         if (root == null) return emptyList()
         val (screenW, screenH) = FloatBallOcrRegions.accessibilityScreenSizePx(service)
@@ -364,7 +364,7 @@ object AccessibilityTextExtractor {
             entries,
             seen,
             ::includeNodeForPickTraversal,
-            ::nodeText,
+            ::nodeText
         )
         return entriesToScreenTextBlocks(entries)
     }
@@ -405,7 +405,7 @@ object AccessibilityTextExtractor {
     fun hitTestPreviewBounds(
         entries: List<PreviewBoundsEntry>,
         px: Int,
-        py: Int,
+        py: Int
     ): Rect? {
         var best: PreviewBoundsEntry? = null
         for (entry in entries) {
@@ -421,7 +421,7 @@ object AccessibilityTextExtractor {
         node: AccessibilityNodeInfo,
         results: MutableList<PreviewBoundsEntry>,
         bounds: Rect,
-        budget: NodeTraversalBudget,
+        budget: NodeTraversalBudget
     ) {
         val stack = ArrayDeque<AccessibilityNodeInfo>()
         stack.addLast(node)
@@ -451,12 +451,12 @@ object AccessibilityTextExtractor {
 
     private data class BoundsCandidate(
         val rect: Rect,
-        val score: Int,
+        val score: Int
     )
 
     private fun pickBetterBoundsCandidate(
         current: BoundsCandidate?,
-        next: BoundsCandidate?,
+        next: BoundsCandidate?
     ): BoundsCandidate? {
         if (next == null) return current
         if (current == null) return next
@@ -477,7 +477,7 @@ object AccessibilityTextExtractor {
         px: Int,
         py: Int,
         bounds: Rect,
-        budget: NodeTraversalBudget,
+        budget: NodeTraversalBudget
     ): BoundsCandidate? {
         var best: BoundsCandidate? = null
         val stack = ArrayDeque<AccessibilityNodeInfo>()
@@ -559,7 +559,7 @@ object AccessibilityTextExtractor {
                 exactText = exactEntry?.text,
                 exactMatchesPreview = exactMatchesPreview,
                 previewArea = previewArea,
-                exactArea = exactEntry?.area ?: 0,
+                exactArea = exactEntry?.area ?: 0
             )
         ) {
             scan.deepestNode?.let { releaseNode(it) }
@@ -590,7 +590,7 @@ object AccessibilityTextExtractor {
             centerMetadata = scan.centerMetadata,
             parentChainMetadata = parentChainMetadata,
             intersectingLongest = longestIntersecting,
-            primaryContainedJoined = strictContainedText.takeIf { it.isNotEmpty() },
+            primaryContainedJoined = strictContainedText.takeIf { it.isNotEmpty() }
         )?.let { matched ->
             return dedupeTextLines(matched)
         }
@@ -611,7 +611,7 @@ object AccessibilityTextExtractor {
      */
     internal fun collectPrimaryTextEntriesForPreview(
         service: AccessibilityService,
-        preview: Rect,
+        preview: Rect
     ): List<TextEntry> {
         val intersecting = collectIntersectingTextEntries(service, preview)
         return filterOutAncestorTextEntries(filterPrimaryTextEntriesForPreview(intersecting, preview))
@@ -619,7 +619,7 @@ object AccessibilityTextExtractor {
 
     internal fun filterPrimaryTextEntriesForPreview(
         entries: List<TextEntry>,
-        preview: Rect,
+        preview: Rect
     ): List<TextEntry> {
         if (entries.isEmpty()) return entries
         if (isPreviewNarrowBand(preview)) {
@@ -642,7 +642,7 @@ object AccessibilityTextExtractor {
     internal fun entryOverlapsPreviewBand(
         entry: TextEntry,
         preview: Rect,
-        minOverlapFraction: Float = 0.35f,
+        minOverlapFraction: Float = 0.35f
     ): Boolean {
         val overlapTop = maxOf(entry.top, preview.top)
         val overlapBottom = minOf(entry.bottom, preview.bottom)
@@ -661,7 +661,7 @@ object AccessibilityTextExtractor {
     internal fun shouldAllowPreviewDescendantAggregate(
         nodeBounds: Rect,
         preview: Rect,
-        previewArea: Int,
+        previewArea: Int
     ): Boolean {
         if (boundsNearlyMatch(nodeBounds, preview)) return true
         if (!rectContains(nodeBounds, preview)) return false
@@ -679,7 +679,7 @@ object AccessibilityTextExtractor {
     internal fun shouldRejectExpandedPreviewMetadata(
         candidate: String,
         primaryContainedJoined: String?,
-        previewArea: Int,
+        previewArea: Int
     ): Boolean {
         if (previewMetadataLikelyBeyondRect(candidate, previewArea)) return true
         val primary = primaryContainedJoined?.trim().orEmpty()
@@ -699,7 +699,7 @@ object AccessibilityTextExtractor {
         val intersectingEntries: List<TextEntry>,
         val centerMetadata: String?,
         val deepestNode: AccessibilityNodeInfo?,
-        val smallestContaining: TextEntry?,
+        val smallestContaining: TextEntry?
     )
 
     private fun scanPreviewRect(
@@ -707,7 +707,7 @@ object AccessibilityTextExtractor {
         preview: Rect,
         px: Int,
         py: Int,
-        previewArea: Int,
+        previewArea: Int
     ): PreviewRectScanResult {
         var exactEntry: TextEntry? = null
         var smallestContaining: TextEntry? = null
@@ -733,7 +733,7 @@ object AccessibilityTextExtractor {
                 nodeText(node)?.trim()?.takeIf { it.isNotEmpty() }?.let { text ->
                     exactEntry = pickBetterBoundsTextEntry(
                         exactEntry,
-                        TextEntry(text, bounds.top, bounds.left, bounds.right, bounds.bottom),
+                        TextEntry(text, bounds.top, bounds.left, bounds.right, bounds.bottom)
                     )
                     exactEntry?.let { entry ->
                         if (boundsNearlyMatch(entry, preview) && entry.area >= previewArea / 2) {
@@ -749,7 +749,7 @@ object AccessibilityTextExtractor {
                         val text = raw.trim()
                         if (text.isNotEmpty() && intersectSeen.add(text)) {
                             intersectingEntries.add(
-                                TextEntry(text, bounds.top, bounds.left, bounds.right, bounds.bottom),
+                                TextEntry(text, bounds.top, bounds.left, bounds.right, bounds.bottom)
                             )
                         }
                     }
@@ -760,7 +760,7 @@ object AccessibilityTextExtractor {
                         if (text.isNotEmpty()) {
                             smallestContaining = pickBetterBoundsTextEntry(
                                 smallestContaining,
-                                TextEntry(text, bounds.top, bounds.left, bounds.right, bounds.bottom),
+                                TextEntry(text, bounds.top, bounds.left, bounds.right, bounds.bottom)
                             )
                         }
                     }
@@ -830,14 +830,14 @@ object AccessibilityTextExtractor {
             intersectingEntries = intersectingEntries,
             centerMetadata = centerMetadata,
             deepestNode = deepestNode,
-            smallestContaining = smallestContaining,
+            smallestContaining = smallestContaining
         )
     }
 
     internal fun filterEntriesContainedInPreview(
         entries: List<TextEntry>,
         preview: Rect,
-        slackPx: Int = 3,
+        slackPx: Int = 3
     ): List<TextEntry> {
         val left = preview.left - slackPx
         val top = preview.top - slackPx
@@ -855,7 +855,7 @@ object AccessibilityTextExtractor {
         return boundsNearlyMatch(
             Rect(entry.left, entry.top, entry.right, entry.bottom),
             target,
-            slackPx,
+            slackPx
         )
     }
 
@@ -869,7 +869,7 @@ object AccessibilityTextExtractor {
         exactText: String?,
         exactMatchesPreview: Boolean,
         previewArea: Int,
-        exactArea: Int = 0,
+        exactArea: Int = 0
     ): Boolean {
         val joined = joinSortedTexts(leafContained).trim()
         if (joined.isEmpty()) return true
@@ -894,7 +894,7 @@ object AccessibilityTextExtractor {
                 exact,
                 joined.takeIf { it.length > exact.length },
                 previewArea,
-                exactArea,
+                exactArea
             )
         ) {
             return true
@@ -907,7 +907,7 @@ object AccessibilityTextExtractor {
         exactText: String,
         longestText: String?,
         previewArea: Int,
-        exactArea: Int,
+        exactArea: Int
     ): Boolean {
         if (longestText.isNullOrBlank()) return false
         if (longestText.length < exactText.length + PREVIEW_LONGEST_UPGRADE_MIN_EXTRA) return false
@@ -924,7 +924,7 @@ object AccessibilityTextExtractor {
         centerMetadata: String?,
         parentChainMetadata: String? = null,
         intersectingLongest: String?,
-        primaryContainedJoined: String? = null,
+        primaryContainedJoined: String? = null
     ): String? {
         val exact = exactText?.trim()?.takeIf { it.isNotEmpty() }
         fun filtered(value: String?): String? {
@@ -953,7 +953,7 @@ object AccessibilityTextExtractor {
     internal data class TextCandidate(
         val text: String,
         val area: Int,
-        val isPrimaryText: Boolean,
+        val isPrimaryText: Boolean
     )
 
     internal fun pickBetterCandidate(current: TextCandidate?, next: TextCandidate?): TextCandidate? {
@@ -973,7 +973,7 @@ object AccessibilityTextExtractor {
     internal fun findTextCandidateAtNode(
         node: AccessibilityNodeInfo,
         px: Int,
-        py: Int,
+        py: Int
     ): TextCandidate? {
         var best: TextCandidate? = null
         val bounds = Rect()
@@ -1017,7 +1017,7 @@ object AccessibilityTextExtractor {
         val top: Int,
         val left: Int,
         val right: Int,
-        val bottom: Int,
+        val bottom: Int
     ) {
         val area: Int get() = (right - left).coerceAtLeast(1) * (bottom - top).coerceAtLeast(1)
     }
@@ -1051,7 +1051,7 @@ object AccessibilityTextExtractor {
     private fun collectScreenTextEntries(
         service: AccessibilityService,
         rect: Rect,
-        excludePackageNames: Set<String>,
+        excludePackageNames: Set<String>
     ): List<TextEntry> {
         val entries = ArrayList<TextEntry>()
         val seen = LinkedHashSet<String>()
@@ -1068,7 +1068,7 @@ object AccessibilityTextExtractor {
                 entries,
                 seen,
                 ::includeNodeForPickTraversal,
-                ::nodeText,
+                ::nodeText
             )
         }
         for (window in service.windows) {
@@ -1103,7 +1103,7 @@ object AccessibilityTextExtractor {
         out: MutableList<TextEntry>,
         seen: MutableSet<String>,
         includeNode: (AccessibilityNodeInfo) -> Boolean,
-        readNodeText: (AccessibilityNodeInfo) -> String?,
+        readNodeText: (AccessibilityNodeInfo) -> String?
     ) {
         val stack = ArrayDeque<AccessibilityNodeInfo>()
         stack.add(root)
@@ -1127,8 +1127,8 @@ object AccessibilityTextExtractor {
                                     top = bounds.top,
                                     left = bounds.left,
                                     right = bounds.right,
-                                    bottom = bounds.bottom,
-                                ),
+                                    bottom = bounds.bottom
+                                )
                             )
                         }
                     }
@@ -1160,7 +1160,7 @@ object AccessibilityTextExtractor {
         service: AccessibilityService,
         rect: Rect,
         includeNode: (AccessibilityNodeInfo) -> Boolean = ::includeNodeForPickTraversal,
-        readNodeText: (AccessibilityNodeInfo) -> String? = ::nodeText,
+        readNodeText: (AccessibilityNodeInfo) -> String? = ::nodeText
     ): List<TextEntry> {
         val entries = ArrayList<TextEntry>()
         val seen = LinkedHashSet<String>()
@@ -1199,7 +1199,7 @@ object AccessibilityTextExtractor {
 
     private fun findExactBoundsMatchEntry(
         service: AccessibilityService,
-        target: Rect,
+        target: Rect
     ): TextEntry? {
         var best: TextEntry? = null
         val windowBounds = Rect()
@@ -1213,8 +1213,8 @@ object AccessibilityTextExtractor {
                     root,
                     target,
                     ::includeNodeForPickTraversal,
-                    ::nodeText,
-                ) { nodeBounds, preview -> boundsNearlyMatch(nodeBounds, preview) },
+                    ::nodeText
+                ) { nodeBounds, preview -> boundsNearlyMatch(nodeBounds, preview) }
             )
         }
         for (window in service.windows) {
@@ -1249,7 +1249,7 @@ object AccessibilityTextExtractor {
     private fun findLongestMetadataOnParentChain(
         leaf: AccessibilityNodeInfo,
         previewArea: Int,
-        preview: Rect,
+        preview: Rect
     ): String? {
         var best: String? = null
         val owned = ArrayList<AccessibilityNodeInfo>()
@@ -1277,7 +1277,7 @@ object AccessibilityTextExtractor {
         node: AccessibilityNodeInfo,
         bounds: Rect,
         preview: Rect,
-        previewArea: Int,
+        previewArea: Int
     ): String? {
         return if (shouldAllowPreviewDescendantAggregate(bounds, preview, previewArea)) {
             nodePreviewMetadata(node, preview)
@@ -1300,7 +1300,7 @@ object AccessibilityTextExtractor {
         bounds: Rect,
         preview: Rect? = null,
         previewArea: Int,
-        maxAreaMultiplier: Int = 40,
+        maxAreaMultiplier: Int = 40
     ): Boolean {
         val area = bounds.width().coerceAtLeast(1) * bounds.height().coerceAtLeast(1)
         if (area > previewArea * maxAreaMultiplier) return false
@@ -1332,7 +1332,7 @@ object AccessibilityTextExtractor {
         target: Rect,
         includeNode: (AccessibilityNodeInfo) -> Boolean,
         readNodeText: (AccessibilityNodeInfo) -> String?,
-        boundsMatch: (nodeBounds: Rect, preview: Rect) -> Boolean,
+        boundsMatch: (nodeBounds: Rect, preview: Rect) -> Boolean
     ): TextEntry? {
         var best: TextEntry? = null
         val stack = ArrayDeque<AccessibilityNodeInfo>()
@@ -1354,7 +1354,7 @@ object AccessibilityTextExtractor {
                                 top = bounds.top,
                                 left = bounds.left,
                                 right = bounds.right,
-                                bottom = bounds.bottom,
+                                bottom = bounds.bottom
                             )
                             best = pickBetterBoundsTextEntry(best, entry)
                         }
@@ -1376,7 +1376,7 @@ object AccessibilityTextExtractor {
         out: MutableList<TextEntry>,
         seen: MutableSet<String>,
         includeNode: (AccessibilityNodeInfo) -> Boolean = ::includeNodeForPickTraversal,
-        readNodeText: (AccessibilityNodeInfo) -> String? = ::nodeText,
+        readNodeText: (AccessibilityNodeInfo) -> String? = ::nodeText
     ) {
         val stack = ArrayDeque<AccessibilityNodeInfo>()
         stack.add(root)
@@ -1398,8 +1398,8 @@ object AccessibilityTextExtractor {
                                 top = bounds.top,
                                 left = bounds.left,
                                 right = bounds.right,
-                                bottom = bounds.bottom,
-                            ),
+                                bottom = bounds.bottom
+                            )
                         )
                     }
                 }
@@ -1419,7 +1419,7 @@ object AccessibilityTextExtractor {
             return TextCandidate(
                 text = text,
                 area = bounds.width().coerceAtLeast(1) * bounds.height().coerceAtLeast(1),
-                isPrimaryText = true,
+                isPrimaryText = true
             )
         }
         val description = node.contentDescription?.toString()?.trim().orEmpty()
@@ -1427,7 +1427,7 @@ object AccessibilityTextExtractor {
             return TextCandidate(
                 text = description,
                 area = bounds.width().coerceAtLeast(1) * bounds.height().coerceAtLeast(1),
-                isPrimaryText = false,
+                isPrimaryText = false
             )
         }
         val stateDescription = node.stateDescription?.toString()?.trim().orEmpty()
@@ -1435,7 +1435,7 @@ object AccessibilityTextExtractor {
             return TextCandidate(
                 text = stateDescription,
                 area = bounds.width().coerceAtLeast(1) * bounds.height().coerceAtLeast(1),
-                isPrimaryText = false,
+                isPrimaryText = false
             )
         }
         return null
@@ -1464,7 +1464,7 @@ object AccessibilityTextExtractor {
     private fun aggregateDescendantPreviewTexts(
         root: AccessibilityNodeInfo,
         maxDepth: Int = 6,
-        clipToPreview: Rect? = null,
+        clipToPreview: Rect? = null
     ): String? {
         val entries = ArrayList<TextEntry>()
         val seen = LinkedHashSet<String>()
@@ -1496,8 +1496,8 @@ object AccessibilityTextExtractor {
                                     top = bounds.top,
                                     left = bounds.left,
                                     right = bounds.right,
-                                    bottom = bounds.bottom,
-                                ),
+                                    bottom = bounds.bottom
+                                )
                             )
                         }
                     }

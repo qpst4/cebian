@@ -22,7 +22,7 @@ import kotlin.math.hypot
  * 黄框暂停（[lockPickFromPause]）与超时锁定等价：抬手仅取词，不触发滑动手势。
  */
 internal class FloatBallGestureDetector(
-    private val handler: Handler = Handler(Looper.getMainLooper()),
+    private val handler: Handler = Handler(Looper.getMainLooper())
 ) {
     internal enum class LockedSwipeAxis {
         UP,
@@ -139,7 +139,7 @@ internal class FloatBallGestureDetector(
         onPickPreviewMove: (touchDownX: Float, touchDownY: Float, fingerX: Float, fingerY: Float) -> Unit = { _, _, _, _ -> },
         onPickPreviewCancel: () -> Unit = {},
         onLauncherCaptureMove: (rawX: Float, rawY: Float) -> Unit = { _, _ -> },
-        onLauncherCaptureUp: (rawX: Float, rawY: Float) -> Unit = { _, _ -> },
+        onLauncherCaptureUp: (rawX: Float, rawY: Float) -> Unit = { _, _ -> }
     ) {
         this.density = density
         downSwipeShortPx = swipeThresholdPx(settings.floatBallDownSwipeShortPercent, density)
@@ -403,7 +403,7 @@ internal class FloatBallGestureDetector(
         incrementalDx: Float,
         incrementalDy: Float,
         lockedAxis: LockedSwipeAxis? = lockedSwipeAxis,
-        forwardSign: Float = lockedAxisForwardSign,
+        forwardSign: Float = lockedAxisForwardSign
     ) {
         val axis = lockedAxis ?: run {
             gestureArmed = false
@@ -440,7 +440,7 @@ internal class FloatBallGestureDetector(
         axis: LockedSwipeAxis,
         projDx: Float,
         projDy: Float,
-        forwardSign: Float,
+        forwardSign: Float
     ): Float {
         val axisValue = when (axis) {
             LockedSwipeAxis.UP, LockedSwipeAxis.DOWN -> projDy
@@ -475,7 +475,7 @@ internal class FloatBallGestureDetector(
     internal fun projectedDisplacement(
         totalDx: Float,
         totalDy: Float,
-        lockedAxis: LockedSwipeAxis?,
+        lockedAxis: LockedSwipeAxis?
     ): Pair<Float, Float> {
         return when (lockedAxis) {
             LockedSwipeAxis.UP, LockedSwipeAxis.DOWN -> 0f to totalDy

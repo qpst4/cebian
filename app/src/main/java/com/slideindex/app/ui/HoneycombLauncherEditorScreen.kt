@@ -34,7 +34,7 @@ fun HoneycombLauncherEditorScreen(
     viewModel: HoneycombLauncherEditorViewModel,
     onBack: () -> Unit,
     onOpenDisplaySettings: () -> Unit,
-    onAdd: () -> Unit,
+    onAdd: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     HoneycombLauncherEditorContent(
@@ -43,7 +43,7 @@ fun HoneycombLauncherEditorScreen(
         onSaveItems = viewModel::setItems,
         onOpenDisplaySettings = onOpenDisplaySettings,
         onAdd = onAdd,
-        onInteractionActiveChange = viewModel::setLayoutEditing,
+        onInteractionActiveChange = viewModel::setLayoutEditing
     )
 }
 
@@ -54,11 +54,11 @@ fun HoneycombLauncherEditorScreen(
     onBack: () -> Unit,
     onSaveItems: (List<QuickLauncherItem>) -> Unit,
     onOpenDisplaySettings: () -> Unit,
-    onAdd: () -> Unit,
+    onAdd: () -> Unit
 ) {
     val uiState = HoneycombLauncherUiState(
         items = settings.honeycombLauncher.honeycombRuntimeItems(),
-        displaySettings = settings.honeycombDisplay,
+        displaySettings = settings.honeycombDisplay
     )
     HoneycombLauncherEditorContent(
         uiState = uiState,
@@ -66,7 +66,7 @@ fun HoneycombLauncherEditorScreen(
         onSaveItems = onSaveItems,
         onOpenDisplaySettings = onOpenDisplaySettings,
         onAdd = onAdd,
-        onInteractionActiveChange = {},
+        onInteractionActiveChange = {}
     )
 }
 
@@ -78,13 +78,13 @@ fun HoneycombLauncherEditorContent(
     onSaveItems: (List<QuickLauncherItem>) -> Unit,
     onOpenDisplaySettings: () -> Unit,
     onAdd: () -> Unit,
-    onInteractionActiveChange: (Boolean) -> Unit,
+    onInteractionActiveChange: (Boolean) -> Unit
 ) {
     SettingsLazyScreenScaffold(
         title = stringResource(R.string.honeycomb_launcher_editor_title),
         onBack = onBack,
         modifier = Modifier.fillMaxSize(),
-        userScrollEnabled = !uiState.isLayoutEditing,
+        userScrollEnabled = !uiState.isLayoutEditing
     ) {
         groupedCardItems(
             keyPrefix = "honeycomb-display-entry",
@@ -96,15 +96,15 @@ fun HoneycombLauncherEditorContent(
                         },
                         title = stringResource(R.string.honeycomb_display_settings_entry),
                         subtitle = stringResource(R.string.honeycomb_display_settings_entry_desc),
-                        onClick = onOpenDisplaySettings,
+                        onClick = onOpenDisplaySettings
                     )
-                },
-            ),
+                }
+            )
         )
         LazySettingsItem(key = "honeycomb-launcher-items") {
             Box(
                 modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center,
+                contentAlignment = Alignment.Center
             ) {
                 HoneycombLauncherItemsSection(
                     modifier = Modifier
@@ -116,7 +116,7 @@ fun HoneycombLauncherEditorContent(
                     appsByPackage = uiState.appsByPackage,
                     onItemsChange = onSaveItems,
                     onAdd = onAdd,
-                    onInteractionActiveChange = onInteractionActiveChange,
+                    onInteractionActiveChange = onInteractionActiveChange
                 )
             }
         }

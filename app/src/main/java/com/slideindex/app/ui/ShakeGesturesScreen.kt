@@ -2,8 +2,7 @@
 
 package com.slideindex.app.ui
 
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
-import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import top.yukonga.miuix.kmp.basic.SmallTitle
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -41,10 +40,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
-import com.slideindex.app.ui.settings.components.SETTINGS_SLIDER_PERCENT_KEY_POINTS_100
-import kotlin.math.roundToInt
 import com.slideindex.app.gesture.GestureAction
-import com.slideindex.app.shake.FaceDownGestureSettings
 import com.slideindex.app.shake.ShakeGestureSettings
 import com.slideindex.app.shake.ShakeGestureType
 import com.slideindex.app.shake.ShakeSensitivityScale
@@ -55,7 +51,6 @@ import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 import com.slideindex.app.ui.settings.components.SettingsCardScopeContent
 import com.slideindex.app.ui.settings.components.settingsCardItem
-import com.slideindex.app.ui.settings.components.SettingExpandableSwitchRow
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 import com.slideindex.app.ui.settings.components.settingsLazyHint
@@ -65,7 +60,6 @@ import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 @Composable
 fun ShakeGesturesScreen(
     settings: ShakeGestureSettings,
-    faceDownSettings: FaceDownGestureSettings,
     bottomContentPadding: Dp = 0.dp,
     bottomNavReselectCount: Int = 0,
     onEnabledChange: (Boolean) -> Unit,
@@ -78,18 +72,11 @@ fun ShakeGesturesScreen(
     onVibrationFeedbackEnabledChange: (Boolean) -> Unit,
     onAnimationColorChange: (Int) -> Unit,
     onDisableInLandscapeChange: (Boolean) -> Unit,
-    onFaceDownEnabledChange: (Boolean) -> Unit,
-    onFaceDownHoldDurationChange: (Long) -> Unit,
-    onFaceDownRequireProximityChange: (Boolean) -> Unit,
-    onFaceDownDisableInLandscapeChange: (Boolean) -> Unit,
-    onFaceDownVibrationFeedbackChange: (Boolean) -> Unit,
-    onFaceDownAudioFeedbackChange: (Boolean) -> Unit,
-    onFaceDownAudioFeedbackVolumeChange: (Int) -> Unit,
     onOpenLockScreenShakeSettings: () -> Unit = {},
     onOpenIndependentAppShakeSettings: () -> Unit = {},
     onOpenAppBlacklist: () -> Unit = {},
     onOpenBasicActionPick: (ShakeGestureType) -> Unit = {},
-    onOpenFaceDownActionPick: () -> Unit = {},
+    onOpenFaceDownSettings: () -> Unit = {},
     onOpenBackTapSettings: () -> Unit = {},
 ) {
     val listState = rememberLazyListState()
@@ -98,13 +85,6 @@ fun ShakeGesturesScreen(
         listState = listState,
     )
     var showColorPicker by remember { mutableStateOf(false) }
-    val resources = androidx.compose.ui.platform.LocalResources.current
-    val formatFaceDownHoldDuration: (Float) -> String = remember(resources) {
-        { seconds -> resources.getString(R.string.face_down_gestures_hold_duration_value, seconds) }
-    }
-    val formatFaceDownAudioVolume: (Float) -> String = remember(resources) {
-        { percent -> resources.getString(R.string.face_down_gestures_audio_feedback_volume_value, percent.toInt()) }
-    }
 
     if (showColorPicker) {
         AnimationStyleColorPickerDialog(
@@ -119,7 +99,6 @@ fun ShakeGesturesScreen(
 
     val basicSectionTitle = stringResource(R.string.shake_gestures_section_basic)
     val faceDownSectionTitle = stringResource(R.string.face_down_gestures_title)
-    val faceDownBlacklistHint = stringResource(R.string.face_down_gestures_blacklist_hint)
     val backTapSectionTitle = stringResource(R.string.extension_back_tap_title)
     val advancedSectionTitle = stringResource(R.string.shake_gestures_section_advanced)
     val sensitivitySectionTitle = stringResource(R.string.shake_gestures_section_sensitivity)
@@ -129,7 +108,6 @@ fun ShakeGesturesScreen(
 
     MiuixHubScaffold(
         title = stringResource(R.string.shake_gestures_title),
-        subtitle = stringResource(R.string.shake_gestures_subtitle),
         modifier = Modifier.fillMaxSize(),
         listState = listState,
         bottomContentPadding = bottomContentPadding,
@@ -141,7 +119,7 @@ fun ShakeGesturesScreen(
                     SettingsCardScopeContent {
                         SettingSwitchRow(
                             title = stringResource(R.string.shake_gestures_title),
-                            subtitle = stringResource(R.string.shake_gestures_subtitle),
+                            subtitle = null,
                             icon = { label -> Icon(Icons.Default.ScreenRotation, contentDescription = label) },
                             checked = settings.enabled,
                             enabled = true,
@@ -151,7 +129,7 @@ fun ShakeGesturesScreen(
                 },
             ),
         )
-        settingsLazySmallTitle(key = "shake-basic", title = basicSectionTitle, sectionTop = true)
+        settingsLazySmallTitle(key = "shake-basic", title = basicSectionTitle)
         groupedCardItems(
             keyPrefix = "shake-basic-actions",
             items = buildList {
@@ -171,115 +149,27 @@ fun ShakeGesturesScreen(
                 }
             },
         )
-        settingsLazySmallTitle(key = "shake-face-down", title = faceDownSectionTitle, sectionTop = true)
+        settingsLazySmallTitle(key = "shake-face-down", title = faceDownSectionTitle)
         groupedCardItems(
             keyPrefix = "shake-face-down",
-            items = buildList {
-                add(
-                    settingsCardScopeItem("face-down-enabled") {
-                        SettingSwitchRow(
-                            title = stringResource(R.string.face_down_gestures_title),
-                            subtitle = stringResource(R.string.face_down_gestures_subtitle),
-                            icon = { label ->
-                                ColoredSettingIcon(
-                                    icon = Icons.Default.PhoneAndroid,
-                                    background = Color(0xFF78909C),
-                                    contentDescription = label,
-                                )
-                            },
-                            checked = faceDownSettings.enabled,
-                            enabled = true,
-                            onCheckedChange = onFaceDownEnabledChange,
-                        )
-                    },
-                )
-                add(
-                    settingsCardScopeItem("face-down-action") {
-                        ShakeActionRow(
-                            icon = Icons.Default.Lock,
-                            iconTint = Color(0xFF5C6BC0),
-                            title = stringResource(R.string.face_down_gestures_action),
-                            action = faceDownSettings.action,
-                            enabled = true,
-                            onClick = onOpenFaceDownActionPick,
-                        )
-                    },
-                )
-                add(
-                    settingsCardScopeItem("face-down-hold-duration") {
-                        SettingsSliderRow(
-                            title = stringResource(R.string.face_down_gestures_hold_duration),
-                            value = faceDownSettings.holdDurationMs / 1000f,
-                            valueRange = 0.5f..1.5f,
-                            enabled = faceDownSettings.enabled,
-                            label = formatFaceDownHoldDuration(faceDownSettings.holdDurationMs / 1000f),
-                            formatLabel = formatFaceDownHoldDuration,
-                            keyPoints = FaceDownGestureSettings.HOLD_DURATION_KEY_POINTS_SECONDS,
-                            onValueChange = { seconds ->
-                                onFaceDownHoldDurationChange((seconds * 1000f).toLong())
-                            },
-                        )
-                    },
-                )
-                add(
-                    settingsCardScopeItem("face-down-require-proximity") {
-                        SettingSwitchRow(
-                            title = stringResource(R.string.face_down_gestures_require_proximity),
-                            subtitle = stringResource(R.string.face_down_gestures_require_proximity_desc),
-                            checked = faceDownSettings.requireProximity,
-                            enabled = faceDownSettings.enabled,
-                            onCheckedChange = onFaceDownRequireProximityChange,
-                        )
-                    },
-                )
-                add(
-                    settingsCardScopeItem("face-down-disable-landscape") {
-                        SettingSwitchRow(
-                            title = stringResource(R.string.face_down_gestures_disable_landscape),
-                            checked = faceDownSettings.disableInLandscape,
-                            enabled = faceDownSettings.enabled,
-                            onCheckedChange = onFaceDownDisableInLandscapeChange,
-                        )
-                    },
-                )
-                add(
-                    settingsCardScopeItem("face-down-vibration") {
-                        SettingSwitchRow(
-                            title = stringResource(R.string.face_down_gestures_vibration_feedback),
-                            checked = faceDownSettings.vibrationFeedbackEnabled,
-                            enabled = faceDownSettings.enabled,
-                            onCheckedChange = onFaceDownVibrationFeedbackChange,
-                        )
-                    },
-                )
-                add(
-                    settingsCardScopeItem("face-down-audio") {
-                        SettingExpandableSwitchRow(
-                            title = stringResource(R.string.face_down_gestures_audio_feedback),
-                            subtitle = stringResource(R.string.face_down_gestures_audio_feedback_desc),
-                            checked = faceDownSettings.audioFeedbackEnabled,
-                            enabled = faceDownSettings.enabled,
-                            onCheckedChange = onFaceDownAudioFeedbackChange,
-                        ) {
-                            SettingsSliderRow(
-                                title = stringResource(R.string.face_down_gestures_audio_feedback_volume),
-                                value = faceDownSettings.audioFeedbackVolume.toFloat(),
-                                valueRange = 0f..100f,
-                                enabled = faceDownSettings.enabled,
-                                label = formatFaceDownAudioVolume(faceDownSettings.audioFeedbackVolume.toFloat()),
-                                formatLabel = formatFaceDownAudioVolume,
-                                keyPoints = SETTINGS_SLIDER_PERCENT_KEY_POINTS_100,
-                                onValueChange = { volume ->
-                                    onFaceDownAudioFeedbackVolumeChange(volume.roundToInt())
-                                },
+            items = listOf(
+                settingsCardScopeItem("face-down-settings") {
+                    SettingNavigationRow(
+                        icon = { label ->
+                            ColoredSettingIcon(
+                                icon = Icons.Default.PhoneAndroid,
+                                background = Color(0xFF78909C),
+                                contentDescription = label,
                             )
-                        }
-                    },
-                )
-            },
+                        },
+                        title = stringResource(R.string.face_down_gestures_title),
+                        subtitle = stringResource(R.string.face_down_gestures_subtitle),
+                        onClick = onOpenFaceDownSettings,
+                    )
+                },
+            ),
         )
-        settingsLazyHint(key = "shake-face-down-hint", text = faceDownBlacklistHint)
-        settingsLazySmallTitle(key = "shake-back-tap", title = backTapSectionTitle, sectionTop = true)
+        settingsLazySmallTitle(key = "shake-back-tap", title = backTapSectionTitle)
         groupedCardItems(
             keyPrefix = "shake-back-tap",
             items = listOf(
@@ -299,7 +189,7 @@ fun ShakeGesturesScreen(
                 },
             ),
         )
-        settingsLazySmallTitle(key = "shake-advanced", title = advancedSectionTitle, sectionTop = true)
+        settingsLazySmallTitle(key = "shake-advanced", title = advancedSectionTitle)
         groupedCardItems(
             keyPrefix = "shake-advanced",
             items = buildList {
@@ -343,7 +233,7 @@ fun ShakeGesturesScreen(
                 )
             },
         )
-        settingsLazySmallTitle(key = "shake-sensitivity", title = sensitivitySectionTitle, sectionTop = true)
+        settingsLazySmallTitle(key = "shake-sensitivity", title = sensitivitySectionTitle)
         groupedCardItems(
             keyPrefix = "shake-sensitivity",
             items = buildList {
@@ -385,7 +275,7 @@ fun ShakeGesturesScreen(
             },
         )
         settingsLazyHint(key = "shake-sensitivity-hint", text = sensitivityHint)
-        settingsLazySmallTitle(key = "shake-feedback", title = feedbackSectionTitle, sectionTop = true)
+        settingsLazySmallTitle(key = "shake-feedback", title = feedbackSectionTitle)
         groupedCardItems(
             keyPrefix = "shake-feedback",
             items = buildList {
@@ -423,7 +313,7 @@ fun ShakeGesturesScreen(
                 }
             },
         )
-        settingsLazySmallTitle(key = "shake-advanced-features", title = advancedFeaturesSectionTitle, sectionTop = true)
+        settingsLazySmallTitle(key = "shake-advanced-features", title = advancedFeaturesSectionTitle)
         groupedCardItems(
             keyPrefix = "shake-advanced-features",
             items = buildList {

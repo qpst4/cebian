@@ -145,20 +145,20 @@ object FreezerOverlayWindow {
         val appDeps = runCatching {
             EntryPointAccessors.fromApplication(
                 context.applicationContext,
-                AppGraphEntryPoint::class.java,
+                AppGraphEntryPoint::class.java
             ).dependencies()
         }.getOrNull()
         val view = OverlayCompose.createComposeView(overlayContext, composeOwner).apply {
             setContent {
                 CompositionLocalProvider(
                     *(listOfNotNull(
-                        appDeps?.let { LocalAppDependencies provides it },
-                    ).toTypedArray()),
+                        appDeps?.let { LocalAppDependencies provides it }
+                    ).toTypedArray())
                 ) {
                     OverlayAwareModuleTheme {
                         FreezerOverlayRoot(
                             visibilityState = visibilityState,
-                            onDismiss = ::dismiss,
+                            onDismiss = ::dismiss
                         )
                     }
                 }
@@ -171,7 +171,7 @@ object FreezerOverlayWindow {
             OverlayWindowTypes.contentPanelWindowType(context),
             WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
                 WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
-            PixelFormat.TRANSLUCENT,
+            PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.TOP or Gravity.START
             title = TAG
@@ -201,14 +201,14 @@ object FreezerOverlayWindow {
 @Composable
 private fun FreezerOverlayRoot(
     visibilityState: MutableTransitionState<Boolean>,
-    onDismiss: () -> Unit,
+    onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
     val appDeps = remember(context) {
         runCatching {
             EntryPointAccessors.fromApplication(
                 context.applicationContext,
-                AppGraphEntryPoint::class.java,
+                AppGraphEntryPoint::class.java
             ).dependencies()
         }.getOrNull()
     } ?: return
@@ -218,13 +218,13 @@ private fun FreezerOverlayRoot(
 
     Box(
         modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.BottomCenter,
+        contentAlignment = Alignment.BottomCenter
     ) {
         AnimatedVisibility(
             visibleState = visibilityState,
             enter = fadeIn(scrimAnimSpec),
             exit = fadeOut(scrimAnimSpec),
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize()
         ) {
             Box(
                 modifier = Modifier
@@ -233,8 +233,8 @@ private fun FreezerOverlayRoot(
                     .clickable(
                         interactionSource = dismissInteraction,
                         indication = null,
-                        onClick = onDismiss,
-                    ),
+                        onClick = onDismiss
+                    )
             )
         }
         AnimatedVisibility(
@@ -243,7 +243,7 @@ private fun FreezerOverlayRoot(
             exit = fadeOut(scrimAnimSpec) + slideOutVertically(panelSlideSpringSpec) { it },
             modifier = Modifier
                 .overlayBottomPanelWidth()
-                .fillMaxWidth(),
+                .fillMaxWidth()
         ) {
             Surface(
                 modifier = Modifier
@@ -253,11 +253,11 @@ private fun FreezerOverlayRoot(
                     .clickable(
                         interactionSource = panelInteraction,
                         indication = null,
-                        onClick = {},
+                        onClick = {}
                     ),
                 shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
                 color = MaterialTheme.colorScheme.surface,
-                tonalElevation = 2.dp,
+                tonalElevation = 2.dp
             ) {
                 Box(modifier = Modifier.navigationBarsPadding()) {
                     FreezerPanelContent(
@@ -269,7 +269,7 @@ private fun FreezerOverlayRoot(
                             context.startActivity(FreezerPanelIntents.manageApps(context))
                         },
                         onAppLaunched = onDismiss,
-                        overlayMode = true,
+                        overlayMode = true
                     )
                 }
             }

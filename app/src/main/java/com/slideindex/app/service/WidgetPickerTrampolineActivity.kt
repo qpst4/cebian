@@ -27,7 +27,7 @@ class WidgetPickerTrampolineActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     enableEdgeToEdge(
       statusBarStyle = SystemBarStyle.dark(AndroidColor.TRANSPARENT),
-      navigationBarStyle = SystemBarStyle.dark(AndroidColor.TRANSPARENT),
+      navigationBarStyle = SystemBarStyle.dark(AndroidColor.TRANSPARENT)
     )
     super.onCreate(savedInstanceState)
 
@@ -49,7 +49,7 @@ class WidgetPickerTrampolineActivity : ComponentActivity() {
             WidgetPickerTrampoline.deliverShortcutSuccess(sc.packageName, sc.shortcutId, sc.label, sc.intentUri)
             finish()
           },
-          enableBackHandler = true,
+          enableBackHandler = true
         )
       }
     }

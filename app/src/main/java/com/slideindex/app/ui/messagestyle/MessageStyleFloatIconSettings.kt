@@ -77,7 +77,6 @@ fun LazyListScope.floatIconSettingsSection(
         settingsLazySmallTitle(
             key = "message-float-settings",
             title = sectionTitle,
-            sectionTop = true,
         )
     }
     groupedCardItems("message-float-icon", items)

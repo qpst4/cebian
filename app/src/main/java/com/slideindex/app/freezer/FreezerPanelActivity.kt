@@ -22,12 +22,12 @@ class FreezerPanelActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.dark(AndroidColor.TRANSPARENT),
-            navigationBarStyle = SystemBarStyle.dark(AndroidColor.TRANSPARENT),
+            navigationBarStyle = SystemBarStyle.dark(AndroidColor.TRANSPARENT)
         )
         super.onCreate(savedInstanceState)
         setContent {
             val appSettings by deps.settingsRepository.settings.collectAsStateWithLifecycle(
-                initialValue = deps.settingsRepository.readSnapshot(),
+                initialValue = deps.settingsRepository.readSnapshot()
             )
             CompositionLocalProvider(LocalAppDependencies provides deps) {
                 ModuleTheme(settings = appSettings) {
@@ -37,7 +37,7 @@ class FreezerPanelActivity : ComponentActivity() {
                         onManageApps = {
                             startActivity(FreezerPanelIntents.manageApps(this@FreezerPanelActivity))
                         },
-                        onAppLaunched = { finish() },
+                        onAppLaunched = { finish() }
                     )
                 }
             }

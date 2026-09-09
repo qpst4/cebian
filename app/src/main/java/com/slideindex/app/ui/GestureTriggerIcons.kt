@@ -22,7 +22,7 @@ fun GestureTriggerIcon(
     side: PanelSide,
     trigger: GestureTriggerType,
     contentDescription: String,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     Icon(
         imageVector = gestureTriggerIconImageVector(side, trigger),
@@ -30,7 +30,7 @@ fun GestureTriggerIcon(
         tint = LocalContentColor.current,
         modifier = modifier.graphicsLayer {
             rotationZ = gestureTriggerIconRotationZ(side, trigger)
-        },
+        }
     )
 }
 
@@ -182,7 +182,7 @@ fun FloatBallGestureIcon(
     type: FloatBallGestureType,
     settings: AppSettings,
     contentDescription: String,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     val trigger = type.toGestureTriggerType()
     if (trigger != null) {
@@ -190,7 +190,7 @@ fun FloatBallGestureIcon(
             side = settings.floatBallGestureIconSide(),
             trigger = trigger,
             contentDescription = contentDescription,
-            modifier = modifier,
+            modifier = modifier
         )
     } else if (type.isReturnGesture) {
         val rotation = when (type) {
@@ -206,14 +206,14 @@ fun FloatBallGestureIcon(
             tint = LocalContentColor.current,
             modifier = modifier.graphicsLayer {
                 rotationZ = rotation
-            },
+            }
         )
     } else {
         Icon(
             imageVector = MaterialTouchIcons.DoubleTap,
             contentDescription = contentDescription,
             tint = LocalContentColor.current,
-            modifier = modifier,
+            modifier = modifier
         )
     }
 }

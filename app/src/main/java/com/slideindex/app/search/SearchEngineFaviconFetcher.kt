@@ -26,7 +26,7 @@ object SearchEngineFaviconFetcher {
     private fun fetchFaviconBytes(host: String): ByteArray? {
         val candidates = listOf(
             "https://www.google.com/s2/favicons?domain=$host&sz=128",
-            "https://$host/favicon.ico",
+            "https://$host/favicon.ico"
         )
         for (url in candidates) {
             val bytes = downloadBytes(url) ?: continue

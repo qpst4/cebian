@@ -10,7 +10,7 @@ import com.slideindex.app.util.queryIntentActivitiesCompat
 data class ImageViewTarget(
     val packageName: String,
     val label: String,
-    val icon: Drawable?,
+    val icon: Drawable?
 )
 
 object ImageViewTargetResolver {
@@ -39,7 +39,7 @@ object ImageViewTargetResolver {
         return ImageViewTarget(
             packageName = packageName,
             label = appLabel,
-            icon = icon,
+            icon = icon
         )
     }
 }

@@ -57,7 +57,7 @@ class ShareImageOcrTrampolineActivity : ComponentActivity() {
         if (!SlideIndexAccessibilityService.isConnected()) {
             Toast.makeText(this, R.string.share_image_ocr_service_required, Toast.LENGTH_LONG).show()
             startActivity(
-                Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             )
             return
         }
@@ -71,7 +71,7 @@ class ShareImageOcrTrampolineActivity : ComponentActivity() {
         ShareImageOcrCoordinator.handleSharedImage(
             context = this@ShareImageOcrTrampolineActivity,
             uri = uri,
-            modelId = modelId,
+            modelId = modelId
         )
     }
 }

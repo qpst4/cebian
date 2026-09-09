@@ -28,7 +28,7 @@ object NonExportedActivityLauncher {
         packageName: String,
         activityName: String,
         options: Bundle? = null,
-        onComplete: ((Boolean) -> Unit)? = null,
+        onComplete: ((Boolean) -> Unit)? = null
     ): Boolean {
         if (packageName.isBlank() || activityName.isBlank()) {
             onComplete?.let { mainHandler.post { it(false) } }
@@ -49,7 +49,7 @@ object NonExportedActivityLauncher {
                 context = appContext,
                 packageName = packageName,
                 activityName = activityName,
-                privilegedOnly = true,
+                privilegedOnly = true
             ).isEmpty()
             onComplete?.let { callback ->
                 mainHandler.post { callback(success) }

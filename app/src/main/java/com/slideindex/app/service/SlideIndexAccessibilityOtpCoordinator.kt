@@ -9,7 +9,7 @@ import com.slideindex.app.otp.OtpAutoInputBroadcastReceiver
 
 internal class SlideIndexAccessibilityOtpCoordinator(
     private val service: SlideIndexAccessibilityService,
-    private val deps: AppDependencies,
+    private val deps: AppDependencies
 ) {
     private var lastOtpCheckUptime = 0L
     private var otpAutoInputReceiver: BroadcastReceiver? = null

@@ -82,7 +82,7 @@ fun DiagnosticLogScreen(
     readLogsGranted: Boolean,
     onBack: () -> Unit,
     onRequestShizuku: () -> Unit,
-    onRequestReadLogs: () -> Unit,
+    onRequestReadLogs: () -> Unit
 ) {
     val context = LocalContext.current
     val connectionState by viewModel.connectionState.collectAsStateWithLifecycle()
@@ -121,10 +121,10 @@ fun DiagnosticLogScreen(
                 IconButton(onClick = { copyDiagnosticText(context, content) }) {
                     Icon(
                         imageVector = Icons.Default.ContentCopy,
-                        contentDescription = stringResource(R.string.diagnostic_log_copy),
+                        contentDescription = stringResource(R.string.diagnostic_log_copy)
                     )
                 }
-            },
+            }
         ) {
             item(key = "crash-detail") {
                 Surface(
@@ -134,13 +134,13 @@ fun DiagnosticLogScreen(
                         .verticalScroll(rememberScrollState())
                         .padding(horizontal = 12.dp, vertical = 8.dp),
                     shape = MaterialTheme.shapes.medium,
-                    color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                    color = MaterialTheme.colorScheme.surfaceContainerHighest
                 ) {
                     Text(
                         text = content.ifBlank { stringResource(R.string.diagnostic_log_crash_empty) },
                         modifier = Modifier.padding(12.dp),
                         style = MaterialTheme.typography.bodySmall,
-                        fontFamily = FontFamily.Monospace,
+                        fontFamily = FontFamily.Monospace
                     )
                 }
             }
@@ -156,14 +156,14 @@ fun DiagnosticLogScreen(
             IconButton(onClick = { DiagnosticReportExporter.shareOrCopy(context) }) {
                 Icon(
                     imageVector = Icons.Default.Share,
-                    contentDescription = stringResource(R.string.diagnostic_log_share),
+                    contentDescription = stringResource(R.string.diagnostic_log_share)
                 )
             }
             if (selectedTab == DiagnosticLogTab.Runtime.ordinal && logs.isNotEmpty()) {
                 IconButton(onClick = { showClearLogsConfirm = true }) {
                     MiuixText(
                         text = stringResource(R.string.diagnostic_log_clear),
-                        style = MiuixTheme.textStyles.body2,
+                        style = MiuixTheme.textStyles.body2
                     )
                 }
             }
@@ -171,22 +171,22 @@ fun DiagnosticLogScreen(
                 IconButton(onClick = { showClearCrashesConfirm = true }) {
                     MiuixText(
                         text = stringResource(R.string.diagnostic_log_clear),
-                        style = MiuixTheme.textStyles.body2,
+                        style = MiuixTheme.textStyles.body2
                     )
                 }
             }
-        },
+        }
     ) {
         item(key = "tabs") {
             MiuixTabRowWithContour(
                 tabs = listOf(
                     stringResource(R.string.diagnostic_log_tab_crashes),
-                    stringResource(R.string.diagnostic_log_tab_runtime),
+                    stringResource(R.string.diagnostic_log_tab_runtime)
                 ),
                 selectedTabIndex = selectedTab,
                 onTabSelected = { selectedTab = it },
                 contentHorizontalPadding = 12.dp,
-                modifier = Modifier.padding(bottom = 8.dp),
+                modifier = Modifier.padding(bottom = 8.dp)
             )
         }
 
@@ -198,12 +198,12 @@ fun DiagnosticLogScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 48.dp),
-                            contentAlignment = Alignment.Center,
+                            contentAlignment = Alignment.Center
                         ) {
                             Text(
                                 text = stringResource(R.string.diagnostic_log_crash_empty_list),
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
@@ -214,10 +214,10 @@ fun DiagnosticLogScreen(
                             settingsCardScopeItem(entry.fileName) {
                                 CrashReportRow(
                                     entry = entry,
-                                    onClick = { selectedCrashFile = entry.fileName },
+                                    onClick = { selectedCrashFile = entry.fileName }
                                 )
                             }
-                        },
+                        }
                     )
                 }
             }
@@ -228,7 +228,7 @@ fun DiagnosticLogScreen(
                             shizukuGranted = shizukuGranted,
                             readLogsGranted = readLogsGranted,
                             onRequestShizuku = onRequestShizuku,
-                            onRequestReadLogs = onRequestReadLogs,
+                            onRequestReadLogs = onRequestReadLogs
                         )
                     }
                 }
@@ -236,7 +236,7 @@ fun DiagnosticLogScreen(
                     item(key = "runtime-empty") {
                         RuntimeLogEmptyState(
                             permissionReady = shizukuGranted && readLogsGranted,
-                            connectionState = connectionState,
+                            connectionState = connectionState
                         )
                     }
                 } else {
@@ -263,7 +263,7 @@ fun DiagnosticLogScreen(
         onConfirm = {
             viewModel.clearLogs()
             showClearLogsConfirm = false
-        },
+        }
     )
 
     MiuixConfirmDialog(
@@ -275,14 +275,14 @@ fun DiagnosticLogScreen(
         onConfirm = {
             viewModel.clearCrashReports()
             showClearCrashesConfirm = false
-        },
+        }
     )
 }
 
 @Composable
 private fun RuntimeLogEmptyState(
     permissionReady: Boolean,
-    connectionState: DiagnosticLogConnectionState,
+    connectionState: DiagnosticLogConnectionState
 ) {
     val message = when {
         !permissionReady -> stringResource(R.string.diagnostic_log_permission_required)
@@ -296,12 +296,12 @@ private fun RuntimeLogEmptyState(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 48.dp, horizontal = 24.dp),
-        contentAlignment = Alignment.Center,
+        contentAlignment = Alignment.Center
     ) {
         Text(
             text = message,
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -313,7 +313,7 @@ private fun DiagnosticLogLineCard(line: String) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp, vertical = 4.dp),
-        insideMargin = PaddingValues(10.dp),
+        insideMargin = PaddingValues(10.dp)
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -326,7 +326,7 @@ private fun DiagnosticLogLineCard(line: String) {
                         fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
@@ -334,7 +334,7 @@ private fun DiagnosticLogLineCard(line: String) {
                 text = parsed.message.ifBlank { line },
                 fontSize = 12.sp,
                 fontFamily = FontFamily.Monospace,
-                color = MaterialTheme.colorScheme.onSurface,
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
     }
@@ -344,7 +344,7 @@ private fun DiagnosticLogLineCard(line: String) {
 private fun LogLevelBadge(level: LogLevel) {
     Surface(
         shape = MaterialTheme.shapes.extraSmall,
-        color = level.color,
+        color = level.color
     ) {
         Text(
             text = level.label,
@@ -352,7 +352,7 @@ private fun LogLevelBadge(level: LogLevel) {
             fontSize = 9.sp,
             fontWeight = FontWeight.Bold,
             fontFamily = FontFamily.Monospace,
-            color = Color.White,
+            color = Color.White
         )
     }
 }
@@ -360,7 +360,7 @@ private fun LogLevelBadge(level: LogLevel) {
 @Composable
 private fun SettingsCardScope.CrashReportRow(
     entry: LocalCrashHandler.CrashReportEntry,
-    onClick: () -> Unit,
+    onClick: () -> Unit
 ) {
     val timeLabel = remember(entry.timestampMs) {
         DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(Date(entry.timestampMs))
@@ -375,7 +375,7 @@ private fun SettingsCardScope.CrashReportRow(
                 append(entry.previewLine)
             }
         },
-        onClick = onClick,
+        onClick = onClick
     )
 }
 
@@ -384,7 +384,7 @@ private fun DiagnosticLogPermissionCard(
     shizukuGranted: Boolean,
     readLogsGranted: Boolean,
     onRequestShizuku: () -> Unit,
-    onRequestReadLogs: () -> Unit,
+    onRequestReadLogs: () -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -392,27 +392,27 @@ private fun DiagnosticLogPermissionCard(
             .padding(horizontal = 12.dp, vertical = 8.dp),
         colors = CardDefaults.defaultColors(
             color = MiuixTheme.colorScheme.errorContainer,
-            contentColor = MiuixTheme.colorScheme.onErrorContainer,
-        ),
+            contentColor = MiuixTheme.colorScheme.onErrorContainer
+        )
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 14.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             MiuixText(
                 text = stringResource(R.string.diagnostic_log_permission_title),
-                style = MiuixTheme.textStyles.title4,
+                style = MiuixTheme.textStyles.title4
             )
             MiuixText(
                 text = stringResource(R.string.diagnostic_log_permission_desc),
-                style = MiuixTheme.textStyles.body1,
+                style = MiuixTheme.textStyles.body1
             )
             if (!shizukuGranted) {
                 Button(
                     onClick = onRequestShizuku,
-                    colors = ButtonDefaults.buttonColorsPrimary(),
+                    colors = ButtonDefaults.buttonColorsPrimary()
                 ) {
                     MiuixText(stringResource(R.string.diagnostic_log_grant_shizuku))
                 }
@@ -420,7 +420,7 @@ private fun DiagnosticLogPermissionCard(
             if (shizukuGranted && !readLogsGranted) {
                 Button(
                     onClick = onRequestReadLogs,
-                    colors = ButtonDefaults.buttonColorsPrimary(),
+                    colors = ButtonDefaults.buttonColorsPrimary()
                 ) {
                     MiuixText(stringResource(R.string.diagnostic_log_grant_read_logs))
                 }
@@ -442,7 +442,7 @@ private enum class LogLevel(val label: String, val color: Color) {
 private data class ParsedLogLine(
     val level: LogLevel,
     val tag: String,
-    val message: String,
+    val message: String
 )
 
 private fun parseLogcatLine(line: String): ParsedLogLine {

@@ -23,7 +23,7 @@ object BrightnessIconRenderer {
         cy: Float,
         sizePx: Float,
         enabled: Boolean,
-        alphaScale: Float,
+        alphaScale: Float
     ) {
         drawAutoSunIcon(
             canvas = canvas,
@@ -31,7 +31,7 @@ object BrightnessIconRenderer {
             cy = cy,
             sizePx = sizePx,
             enabled = enabled,
-            alphaScale = alphaScale,
+            alphaScale = alphaScale
         )
     }
 
@@ -41,7 +41,7 @@ object BrightnessIconRenderer {
         cy: Float,
         sizePx: Float,
         enabled: Boolean,
-        alphaScale: Float,
+        alphaScale: Float
     ) {
         val alpha = alphaScale.coerceIn(0f, 1f)
         val iconAlpha = (255f * alpha).roundToInt()
@@ -71,7 +71,7 @@ object BrightnessIconRenderer {
                 rayCx - rayWidth / 2f,
                 rayCy - rayLength / 2f,
                 rayCx + rayWidth / 2f,
-                rayCy + rayLength / 2f,
+                rayCy + rayLength / 2f
             )
             canvas.withRotation(index * 45f, rayCx, rayCy) {
                 drawRoundRect(rayRect, rayCorner, rayCorner, rayPaint)
@@ -110,7 +110,7 @@ object BrightnessIconRenderer {
         cy: Float,
         sizePx: Float,
         darkModeEnabled: Boolean,
-        alphaScale: Float,
+        alphaScale: Float
     ) {
         ensureDarkIcons(context)
         drawIcon(
@@ -119,7 +119,7 @@ object BrightnessIconRenderer {
             cx = cx,
             cy = cy,
             sizePx = sizePx,
-            alphaScale = alphaScale,
+            alphaScale = alphaScale
         )
     }
 
@@ -129,7 +129,7 @@ object BrightnessIconRenderer {
         cx: Float,
         cy: Float,
         sizePx: Float,
-        alphaScale: Float,
+        alphaScale: Float
     ) {
         val icon = drawable ?: return
         val alpha = (235f * alphaScale.coerceIn(0f, 1f)).roundToInt()

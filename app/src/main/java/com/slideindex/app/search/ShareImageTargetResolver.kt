@@ -14,7 +14,7 @@ data class ShareImageTarget(
     val label: String,
     /** 所属应用的名称，如「淘宝」。 */
     val appLabel: String,
-    val icon: Drawable?,
+    val icon: Drawable?
 )
 
 object ShareImageTargetResolver {
@@ -26,7 +26,7 @@ object ShareImageTargetResolver {
         "image/gif",
         "image/bmp",
         "image/heic",
-        "image/heif",
+        "image/heif"
     )
 
     fun listTargets(context: Context): List<ShareImageTarget> {
@@ -44,7 +44,7 @@ object ShareImageTargetResolver {
             .distinctBy { "${it.packageName}/${it.activityClassName}" }
             .sortedWith(
                 compareBy<ShareImageTarget> { it.appLabel.lowercase() }
-                    .thenBy { it.label.lowercase() },
+                    .thenBy { it.label.lowercase() }
             )
     }
 
@@ -82,7 +82,7 @@ object ShareImageTargetResolver {
             activityClassName = activityInfo.name,
             label = label,
             appLabel = appLabel,
-            icon = runCatching { resolveInfo.loadIcon(pm) }.getOrNull(),
+            icon = runCatching { resolveInfo.loadIcon(pm) }.getOrNull()
         )
     }
 }

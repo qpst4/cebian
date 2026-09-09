@@ -21,7 +21,7 @@ data class PinNotificationSnapshot(
     val layoutScreenWidth: Int? = null,
     val layoutScreenHeight: Int? = null,
     val layoutCaptureWidth: Int? = null,
-    val layoutCaptureHeight: Int? = null,
+    val layoutCaptureHeight: Int? = null
 ) {
     fun toScreenRect(): Rect? {
         val left = screenRectLeft ?: return null
@@ -40,7 +40,7 @@ data class PinNotificationSnapshot(
             screenWidth = screenWidth,
             screenHeight = screenHeight,
             captureWidth = captureWidth,
-            captureHeight = captureHeight,
+            captureHeight = captureHeight
         )
     }
 

@@ -16,8 +16,7 @@ import com.slideindex.app.settings.TopAppBarBlurStyle
 import com.slideindex.app.ui.HomeLeadingIcons
 import com.slideindex.app.ui.miuix.MiuixBackNavigationIcon
 import com.slideindex.app.ui.miuix.MiuixListScaffold
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
-import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import top.yukonga.miuix.kmp.basic.SmallTitle
 import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.miuix.appLanguageSettingsCardItems
 import com.slideindex.app.ui.miuix.themeAppearanceSettingsCardItems
@@ -106,11 +105,11 @@ fun InteractionAppearanceSettingsScreen(
         navigationIcon = { MiuixBackNavigationIcon(onBack) },
     ) {
         item(key = "general_section") {
-            MiuixSmallTitle(
+            SmallTitle(
                 text = stringResource(R.string.settings_section_general),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = MiuixSmallTitleSectionTop),
+                    ,
             )
         }
         groupedCardItems(
@@ -119,11 +118,11 @@ fun InteractionAppearanceSettingsScreen(
         )
 
         item(key = "theme_section") {
-            MiuixSmallTitle(
+            SmallTitle(
                 text = stringResource(R.string.settings_section_theme_appearance),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = MiuixSmallTitleSectionTop),
+                    ,
             )
         }
         groupedCardItems(
@@ -132,11 +131,11 @@ fun InteractionAppearanceSettingsScreen(
         )
 
         item(key = "interaction_feedback_section") {
-            MiuixSmallTitle(
+            SmallTitle(
                 text = stringResource(R.string.settings_section_interaction_feedback),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = MiuixSmallTitleSectionTop),
+                    ,
             )
         }
         item(key = "haptic_card") {
@@ -179,11 +178,11 @@ fun InteractionAppearanceSettingsScreen(
         }
 
         item(key = "navigation_back_section") {
-            MiuixSmallTitle(
+            SmallTitle(
                 text = stringResource(R.string.settings_section_navigation_back),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = MiuixSmallTitleSectionTop),
+                    ,
             )
         }
 

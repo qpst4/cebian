@@ -56,7 +56,7 @@ class RemindAlarmService : Service() {
         val channelId = "gesture_remind_ring"
         val nm = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         nm.createNotificationChannel(
-            NotificationChannel(channelId, getString(R.string.gesture_remind_channel_name), NotificationManager.IMPORTANCE_LOW),
+            NotificationChannel(channelId, getString(R.string.gesture_remind_channel_name), NotificationManager.IMPORTANCE_LOW)
         )
         val notification = NotificationCompat.Builder(this, channelId)
             .setContentTitle(getString(R.string.gesture_remind_notify_title))
@@ -86,7 +86,7 @@ class RemindAlarmService : Service() {
                 WindowManager.LayoutParams.MATCH_PARENT,
                 WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
                 WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
-                PixelFormat.TRANSLUCENT,
+                PixelFormat.TRANSLUCENT
             )
             val root = LinearLayout(this).apply {
                 gravity = Gravity.CENTER
@@ -130,7 +130,7 @@ class RemindAlarmService : Service() {
         runCatching {
             val vm = getSystemService(VIBRATOR_MANAGER_SERVICE) as VibratorManager
             vm.defaultVibrator.vibrate(
-                VibrationEffect.createWaveform(longArrayOf(0, 1000, 500), intArrayOf(1, 0), 2),
+                VibrationEffect.createWaveform(longArrayOf(0, 1000, 500), intArrayOf(1, 0), 2)
             )
         }
     }

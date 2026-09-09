@@ -17,6 +17,7 @@ import com.slideindex.app.settings.SearchEngineStore
 import com.slideindex.app.ui.searchengine.SearchEngineSortableGrid
 import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.settingsLazyHint
+import com.slideindex.app.ui.settings.components.settingsLazyTipCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,7 +40,7 @@ fun SearchEnginePreviewSortScreen(
         if (panelEngines.isEmpty()) {
             settingsLazyHint(key = "search-preview-sort-empty", text = emptyHint)
         } else {
-            settingsLazyHint(key = "search-preview-sort-hint", text = sortHint)
+            settingsLazyTipCard(key = "search-preview-sort-hint", text = sortHint)
             LazySettingsItem(key = "search-preview-sort-grid") {
                 SearchEngineSortableGrid(
                     engines = panelEngines,

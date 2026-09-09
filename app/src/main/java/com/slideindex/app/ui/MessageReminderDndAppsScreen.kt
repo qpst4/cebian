@@ -1,8 +1,7 @@
 package com.slideindex.app.ui
 
 import com.slideindex.app.ui.miuix.MiuixHintText
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
-import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import top.yukonga.miuix.kmp.basic.SmallTitle
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
@@ -76,7 +75,7 @@ fun MessageReminderDndAppsScreen(
                 MiuixHintText(stringResource(R.string.message_reminder_dnd_apps_desc))
             }
             item(key = "section-blocked") {
-                MiuixSmallTitle(stringResource(R.string.message_reminder_dnd_apps_section_blocked))
+                SmallTitle(stringResource(R.string.message_reminder_dnd_apps_section_blocked))
             }
             if (blockedEntries.isEmpty()) {
                 item(key = "blocked-empty") {
@@ -104,7 +103,7 @@ fun MessageReminderDndAppsScreen(
                 }
             }
             item(key = "section-add") {
-                MiuixSmallTitle(stringResource(R.string.message_reminder_dnd_apps_section_add), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
+                SmallTitle(stringResource(R.string.message_reminder_dnd_apps_section_add), modifier = Modifier.fillMaxWidth())
             }
             when {
                 isLoading -> {

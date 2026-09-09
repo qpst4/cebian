@@ -11,12 +11,12 @@ object ShellOutputHistoryRecorder {
         label: String,
         command: String,
         exitCode: Int,
-        output: String,
+        output: String
     ) {
         val deps = runCatching {
             EntryPointAccessors.fromApplication(
                 context.applicationContext,
-                AppGraphEntryPoint::class.java,
+                AppGraphEntryPoint::class.java
             ).dependencies()
         }.getOrNull() ?: return
         deps.applicationScope.launch {
@@ -24,7 +24,7 @@ object ShellOutputHistoryRecorder {
                 label = label,
                 command = command,
                 exitCode = exitCode,
-                output = output,
+                output = output
             )
         }
     }

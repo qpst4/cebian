@@ -35,7 +35,7 @@ object PickPerf {
         val suffix = if (detail.isEmpty()) "" else " | $detail"
         Log.i(
             TAG,
-            "[$sessionId] +${elapsedMs}ms | $step | step=${stepMs}ms | thread=$thread$suffix",
+            "[$sessionId] +${elapsedMs}ms | $step | step=${stepMs}ms | thread=$thread$suffix"
         )
     }
 

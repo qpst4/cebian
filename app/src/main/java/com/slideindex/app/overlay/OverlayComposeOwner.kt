@@ -79,7 +79,7 @@ object OverlayCompose {
         }
         val windowTypes = listOf(
             OverlayWindowTypes.overlayWindowType(unwrapThemeContext(context)),
-            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
         ).distinct()
         for (windowType in windowTypes) {
             createWindowContextOrNull(context, display, windowType)?.let { return it }
@@ -93,7 +93,7 @@ object OverlayCompose {
             createWindowContextOrNull(
                 appContext,
                 display,
-                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
             )?.let { return it }
         }
         Log.e(TAG, "resolveUiContext: all createWindowContext attempts failed for ${context.javaClass.name}")
@@ -103,7 +103,7 @@ object OverlayCompose {
     private fun createWindowContextOrNull(
         context: Context,
         display: Display,
-        windowType: Int,
+        windowType: Int
     ): Context? = runCatching {
         context.createWindowContext(display, windowType, null)
     }.onFailure { error ->
@@ -181,7 +181,7 @@ object OverlayCompose {
                     view.removeOnAttachStateChangeListener(this)
                     dialogOwner?.destroy()
                 }
-            },
+            }
         )
     }
 }

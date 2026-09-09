@@ -31,7 +31,7 @@ internal object SystemRecentsAccess {
         val taskId: Int,
         val packageName: String,
         val component: String,
-        val title: String?,
+        val title: String?
     )
 
     fun listTasks(): List<Task> {
@@ -100,7 +100,7 @@ internal object SystemRecentsAccess {
             taskId = task.taskId,
             packageName = task.packageName,
             rawIdentifier = task.component,
-            taskTitle = task.title,
+            taskTitle = task.title
         )
 
     private fun queryManager(manager: Any, out: LinkedHashMap<Int, Task>) {
@@ -113,7 +113,7 @@ internal object SystemRecentsAccess {
             { getTasks3(manager, MAX_TASKS, false, true) },
             { getTasks2(manager, MAX_TASKS, 1) },
             { getTasks2(manager, MAX_TASKS, 0) },
-            { getTasks1(manager, MAX_TASKS) },
+            { getTasks1(manager, MAX_TASKS) }
         )
         for (query in queries) {
             val raw = runCatching { query() }.getOrNull() ?: continue
@@ -144,7 +144,7 @@ internal object SystemRecentsAccess {
             "topActivity",
             "realActivity",
             "baseActivity",
-            "origActivity",
+            "origActivity"
         )
             ?: SystemReflect.readComponentFromInfo(raw, "topActivityInfo", "baseActivityInfo")
             ?: (SystemReflect.readField(raw, "baseIntent") as? Intent)?.component
@@ -169,14 +169,14 @@ internal object SystemRecentsAccess {
 
     private fun getRecentTasks(manager: Any, maxNum: Int, flags: Int, userId: Int): List<Any>? =
         SystemReflect.unwrapList(
-            SystemReflect.invoke(manager, "getRecentTasks", maxNum, flags, userId),
+            SystemReflect.invoke(manager, "getRecentTasks", maxNum, flags, userId)
         )
 
     private fun getTasks3(
         manager: Any,
         maxNum: Int,
         filterOnlyVisibleRecents: Boolean,
-        keepIntentExtra: Boolean,
+        keepIntentExtra: Boolean
     ): List<Any>? =
         SystemReflect.unwrapList(
             SystemReflect.invoke(
@@ -184,8 +184,8 @@ internal object SystemRecentsAccess {
                 "getTasks",
                 maxNum,
                 filterOnlyVisibleRecents,
-                keepIntentExtra,
-            ),
+                keepIntentExtra
+            )
         )
 
     private fun getTasks2(manager: Any, maxNum: Int, flags: Int): List<Any>? =

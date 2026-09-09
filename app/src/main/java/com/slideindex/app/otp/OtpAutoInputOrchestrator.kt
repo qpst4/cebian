@@ -71,7 +71,7 @@ object OtpAutoInputOrchestrator {
         context: Context,
         code: String,
         settings: AppSettings,
-        recordId: String? = null,
+        recordId: String? = null
     ) {
         if (!settings.otpAutoInputEnabled) return
         if (!OtpCaptureDeduplicator.tryConsumeAutoFillRequest(code)) {
@@ -92,13 +92,13 @@ object OtpAutoInputOrchestrator {
             autoEnter = settings.otpAutoConfirmEnabled,
             inputIntervalMs = settings.otpAutoInputIntervalMs.toLong(),
             attemptId = attemptId,
-            allowSystemInject = settings.otpLsposedSystemInjectEnabled,
+            allowSystemInject = settings.otpLsposedSystemInjectEnabled
         )
         val delayMs = settings.otpAutoInputDelayMs.coerceAtLeast(0).toLong()
         mainHandler.postDelayed({
             appContext.sendOrderedBroadcast(
                 OtpAutoInputBroadcastContract.buildRequestIntent(request),
-                null,
+                null
             )
             mainHandler.postDelayed({
                 if (pendingAttemptId == attemptId) {

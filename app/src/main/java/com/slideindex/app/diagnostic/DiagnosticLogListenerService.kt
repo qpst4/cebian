@@ -25,7 +25,7 @@ open class DiagnosticLogListenerService : IDiagnosticLogService.Stub() {
             timeStamp,
             "-v",
             "threadtime",
-            "--uid=$uid",
+            "--uid=$uid"
         )
         Log.d(tag, "startListening uid=$uid cmd=${commands.joinToString(" ")}")
         var reader: BufferedReader? = null

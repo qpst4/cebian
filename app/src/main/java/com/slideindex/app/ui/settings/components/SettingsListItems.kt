@@ -14,9 +14,9 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.slideindex.app.ui.miuix.CardItem
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
-import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import com.slideindex.app.ui.miuix.MiuixSettingsTipCard
 import com.slideindex.app.ui.miuix.groupedCardItems
+import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.theme.LocalContentColor
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
@@ -129,20 +129,11 @@ fun LazyListScope.LazySettingsItem(
 fun LazyListScope.settingsLazySmallTitle(
     key: String,
     title: String,
-    sectionTop: Boolean = false,
 ) {
     item(key = key) {
-        MiuixSmallTitle(
-            title,
-            modifier = Modifier
-                .fillMaxWidth()
-                .then(
-                    if (sectionTop) {
-                        Modifier.padding(top = MiuixSmallTitleSectionTop)
-                    } else {
-                        Modifier
-                    },
-                ),
+        SmallTitle(
+            text = title,
+            modifier = Modifier.fillMaxWidth(),
         )
     }
 }
@@ -153,5 +144,14 @@ fun LazyListScope.settingsLazyHint(
 ) {
     item(key = key) {
         com.slideindex.app.ui.miuix.MiuixHintText(text)
+    }
+}
+
+fun LazyListScope.settingsLazyTipCard(
+    key: String,
+    text: String,
+) {
+    item(key = key) {
+        MiuixSettingsTipCard(text = text)
     }
 }

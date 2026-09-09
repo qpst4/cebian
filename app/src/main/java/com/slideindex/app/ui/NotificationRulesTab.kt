@@ -1,7 +1,7 @@
 package com.slideindex.app.ui
 
 import com.slideindex.app.ui.miuix.CardItem
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import top.yukonga.miuix.kmp.basic.SmallTitle
 import com.slideindex.app.ui.miuix.groupedCardItems
 import android.content.Intent
 import androidx.compose.foundation.clickable
@@ -54,7 +54,7 @@ fun LazyListScope.notificationRulesItems(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            MiuixSmallTitle(stringResource(R.string.notification_rule_section_title))
+            SmallTitle(stringResource(R.string.notification_rule_section_title))
             TextButton(
                 text = stringResource(R.string.notification_rule_export),
                 onClick = {

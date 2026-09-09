@@ -51,7 +51,7 @@ fun FloatBallPickSettingsScreen(
     onShareImageOcrHistoryEnabledChange: (Boolean) -> Unit,
     onDefaultImageViewerPackageChange: (String?) -> Unit,
     onOpenOcrModels: () -> Unit,
-    onOpenShareImageOcrHistory: () -> Unit,
+    onOpenShareImageOcrHistory: () -> Unit
 ) {
     val askEveryTimeLabel = stringResource(R.string.image_viewer_ask_every_time)
     val readyOptions = (imageViewerOptions as? ImageViewerOptionsState.Ready)?.options
@@ -82,12 +82,11 @@ fun FloatBallPickSettingsScreen(
 
     SettingsScreenScaffold(
         title = stringResource(R.string.float_ball_pick_settings_title),
-        onBack = onBack,
+        onBack = onBack
     ) {
         settingsLazySmallTitle(
             key = "recognition-image-section",
-            title = recognitionImageSectionTitle,
-            sectionTop = true,
+            title = recognitionImageSectionTitle
         )
         groupedCardItems(
             keyPrefix = "fb-pick-recognition-image",
@@ -99,9 +98,9 @@ fun FloatBallPickSettingsScreen(
                             subtitle = stringResource(R.string.float_ball_ocr_fallback_desc),
                             checked = settings.floatBallOcrFallbackEnabled,
                             enabled = true,
-                            onCheckedChange = onOcrFallbackChange,
+                            onCheckedChange = onOcrFallbackChange
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("ocr-models") {
@@ -110,9 +109,9 @@ fun FloatBallPickSettingsScreen(
                             title = stringResource(R.string.float_ball_ocr_models),
                             subtitle = ocrModelSelectionSubtitle(settings.floatBallOcrModelId),
                             enabled = true,
-                            onClick = onOpenOcrModels,
+                            onClick = onOpenOcrModels
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("history-enabled") {
@@ -121,18 +120,18 @@ fun FloatBallPickSettingsScreen(
                             subtitle = stringResource(R.string.share_image_ocr_history_enabled_desc),
                             checked = settings.shareImageOcrHistoryEnabled,
                             enabled = true,
-                            onCheckedChange = onShareImageOcrHistoryEnabledChange,
+                            onCheckedChange = onShareImageOcrHistoryEnabledChange
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("history-entry") {
                         ShareImageOcrHistoryEntryRow(
                             historyCount = historyCount,
                             enabled = true,
-                            onClick = onOpenShareImageOcrHistory,
+                            onClick = onOpenShareImageOcrHistory
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("image-viewer") {
@@ -147,17 +146,16 @@ fun FloatBallPickSettingsScreen(
                             onSelectedIndexChange = { index ->
                                 val option = readyOptions?.getOrNull(index) ?: return@SettingSpinnerRow
                                 onDefaultImageViewerPackageChange(option.packageName)
-                            },
+                            }
                         )
-                    },
+                    }
                 )
-            },
+            }
         )
 
         settingsLazySmallTitle(
             key = "panel-section",
-            title = panelSectionTitle,
-            sectionTop = true,
+            title = panelSectionTitle
         )
         groupedCardItems(
             keyPrefix = "fb-pick-panel",
@@ -169,9 +167,9 @@ fun FloatBallPickSettingsScreen(
                             subtitle = stringResource(R.string.float_ball_pick_text_first_panel_desc),
                             checked = settings.floatBallPickTextFirstPanel,
                             enabled = true,
-                            onCheckedChange = onPickTextFirstPanelChange,
+                            onCheckedChange = onPickTextFirstPanelChange
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("text-size") {
@@ -182,9 +180,9 @@ fun FloatBallPickSettingsScreen(
                             steps = 9,
                             enabled = true,
                             label = stringResource(R.string.float_ball_text_size_value, settings.floatBallPickTextSizeSp),
-                            onValueChange = onPickTextSizeChange,
+                            onValueChange = onPickTextSizeChange
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("enter-animation") {
@@ -197,11 +195,11 @@ fun FloatBallPickSettingsScreen(
                             enabled = true,
                             label = stringResource(
                                 R.string.float_ball_pick_panel_animation_ms_value,
-                                settings.floatBallPickPanelEnterAnimationMs,
+                                settings.floatBallPickPanelEnterAnimationMs
                             ),
-                            onValueChange = { onPickPanelEnterAnimationMsChange(it.roundToInt()) },
+                            onValueChange = { onPickPanelEnterAnimationMsChange(it.roundToInt()) }
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("exit-animation") {
@@ -214,19 +212,18 @@ fun FloatBallPickSettingsScreen(
                             enabled = true,
                             label = stringResource(
                                 R.string.float_ball_pick_panel_animation_ms_value,
-                                settings.floatBallPickPanelExitAnimationMs,
+                                settings.floatBallPickPanelExitAnimationMs
                             ),
-                            onValueChange = { onPickPanelExitAnimationMsChange(it.roundToInt()) },
+                            onValueChange = { onPickPanelExitAnimationMsChange(it.roundToInt()) }
                         )
-                    },
+                    }
                 )
-            },
+            }
         )
 
         settingsLazySmallTitle(
             key = "operation-section",
-            title = pickOperationSectionTitle,
-            sectionTop = true,
+            title = pickOperationSectionTitle
         )
         groupedCardItems(
             keyPrefix = "fb-pick-operation",
@@ -241,11 +238,11 @@ fun FloatBallPickSettingsScreen(
                             enabled = true,
                             label = stringResource(
                                 R.string.float_ball_pick_cross_arm_value,
-                                settings.floatBallPickCrossArmDp,
+                                settings.floatBallPickCrossArmDp
                             ),
-                            onValueChange = onPickCrossArmChange,
+                            onValueChange = onPickCrossArmChange
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("offset") {
@@ -256,9 +253,9 @@ fun FloatBallPickSettingsScreen(
                             steps = 10,
                             enabled = true,
                             label = stringResource(R.string.float_ball_size_value, settings.floatBallPickOffsetDp),
-                            onValueChange = onPickOffsetChange,
+                            onValueChange = onPickOffsetChange
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("advanced-pick") {
@@ -266,7 +263,7 @@ fun FloatBallPickSettingsScreen(
                             title = advancedPickSectionTitle,
                             checked = advancedPickExpanded.value,
                             enabled = true,
-                            onCheckedChange = { advancedPickExpanded.value = it },
+                            onCheckedChange = { advancedPickExpanded.value = it }
                         ) {
                             SettingsSliderRow(
                                 title = stringResource(R.string.float_ball_pick_bottom_transition),
@@ -276,9 +273,9 @@ fun FloatBallPickSettingsScreen(
                                 enabled = true,
                                 label = stringResource(
                                     R.string.floating_pointer_percent_value,
-                                    (settings.floatBallPickBottomTransitionFraction * 100).roundToInt(),
+                                    (settings.floatBallPickBottomTransitionFraction * 100).roundToInt()
                                 ),
-                                onValueChange = onPickBottomTransitionChange,
+                                onValueChange = onPickBottomTransitionChange
                             )
                             SettingsSliderRow(
                                 title = stringResource(R.string.float_ball_pointer_speed),
@@ -288,9 +285,9 @@ fun FloatBallPickSettingsScreen(
                                 enabled = true,
                                 label = stringResource(
                                     R.string.floating_pointer_percent_value,
-                                    (settings.floatBallPointerSpeedFraction * 100).roundToInt(),
+                                    (settings.floatBallPointerSpeedFraction * 100).roundToInt()
                                 ),
-                                onValueChange = onPointerSpeedChange,
+                                onValueChange = onPointerSpeedChange
                             )
                             SettingsSliderRow(
                                 title = stringResource(R.string.float_ball_pointer_speed_vertical),
@@ -300,9 +297,9 @@ fun FloatBallPickSettingsScreen(
                                 enabled = true,
                                 label = stringResource(
                                     R.string.floating_pointer_percent_value,
-                                    (settings.floatBallPointerSpeedVerticalFraction * 100).roundToInt(),
+                                    (settings.floatBallPointerSpeedVerticalFraction * 100).roundToInt()
                                 ),
-                                onValueChange = onPointerSpeedVerticalChange,
+                                onValueChange = onPointerSpeedVerticalChange
                             )
                             SettingsSliderRow(
                                 title = stringResource(R.string.float_ball_pointer_slop),
@@ -311,7 +308,7 @@ fun FloatBallPickSettingsScreen(
                                 steps = 6,
                                 enabled = true,
                                 label = stringResource(R.string.float_ball_size_value, settings.floatBallPointerSlopDp),
-                                onValueChange = onPointerSlopChange,
+                                onValueChange = onPointerSlopChange
                             )
                             SettingsSliderRow(
                                 title = stringResource(R.string.float_ball_hover_pause_delay),
@@ -321,9 +318,9 @@ fun FloatBallPickSettingsScreen(
                                 enabled = true,
                                 label = stringResource(
                                     R.string.float_ball_pick_panel_animation_ms_value,
-                                    settings.floatBallHoverPauseDelayMs,
+                                    settings.floatBallHoverPauseDelayMs
                                 ),
-                                onValueChange = { onHoverPauseDelayMsChange(it.roundToInt()) },
+                                onValueChange = { onHoverPauseDelayMsChange(it.roundToInt()) }
                             )
                             SettingsSliderRow(
                                 title = stringResource(R.string.float_ball_regional_cancel_slop),
@@ -332,12 +329,12 @@ fun FloatBallPickSettingsScreen(
                                 steps = 26,
                                 enabled = true,
                                 label = stringResource(R.string.float_ball_size_value, settings.floatBallRegionalCancelSlopDp),
-                                onValueChange = onRegionalCancelSlopDpChange,
+                                onValueChange = onRegionalCancelSlopDpChange
                             )
                         }
-                    },
+                    }
                 )
-            },
+            }
         )
     }
 }
@@ -350,10 +347,10 @@ private fun ImageViewerDropdownOption.toDropdownItem(): DropdownItem =
                 Image(
                     bitmap = bitmap,
                     contentDescription = null,
-                    modifier = modifier.size(24.dp),
+                    modifier = modifier.size(24.dp)
                 )
             }
-        },
+        }
     )
 
 @Composable

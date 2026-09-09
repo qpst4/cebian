@@ -18,7 +18,7 @@ interface IndexSessionHost {
 class SlideAlongRailSession(
     private val side: com.slideindex.app.overlay.PanelSide,
     private val zoneLayout: GestureZoneLayout,
-    private val host: IndexSessionHost,
+    private val host: IndexSessionHost
 ) {
     private var settings = AppSettings()
     private var apps: List<AppInfo> = emptyList()
@@ -144,7 +144,7 @@ class SlideAlongRailSession(
     private fun recomputeRailLetters() {
         railLetters = IndexRailLetters.resolve(
             presentLetters = appsByLetter.filterValues { it.isNotEmpty() }.keys,
-            hideEmpty = settings.hideEmptyIndexLetters,
+            hideEmpty = settings.hideEmptyIndexLetters
         )
     }
 

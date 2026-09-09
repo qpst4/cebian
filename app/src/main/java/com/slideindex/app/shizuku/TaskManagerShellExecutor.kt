@@ -63,7 +63,7 @@ internal object TaskManagerShellExecutor {
 
     fun runAsRootUser(
         command: String,
-        timeoutMs: Long = SHELL_COMMAND_TIMEOUT_MS,
+        timeoutMs: Long = SHELL_COMMAND_TIMEOUT_MS
     ): ShellExecResult {
         if (Process.myUid() == 0) {
             return shellCommandWithOutput(timeoutMs, *buildPlainShellArgs(command))
@@ -73,7 +73,7 @@ internal object TaskManagerShellExecutor {
 
     fun runPrivilegedCommand(
         command: String,
-        timeoutMs: Long = SHELL_COMMAND_TIMEOUT_MS,
+        timeoutMs: Long = SHELL_COMMAND_TIMEOUT_MS
     ): ShellExecResult {
         if (Process.myUid() == Process.SHELL_UID) {
             return shellCommandWithOutput(timeoutMs, *buildPlainShellArgs(command))
@@ -87,10 +87,10 @@ internal object TaskManagerShellExecutor {
         val asShell = runFirstSuccessfulShellScript(
             listOf(
                 "$su shell -c $q",
-                "$su 2000 $sh -c $q",
+                "$su 2000 $sh -c $q"
             ),
             timeoutMs,
-            context = null,
+            context = null
         )
         return if (hasUsableOutput(asShell)) asShell else root
     }
@@ -112,13 +112,13 @@ internal object TaskManagerShellExecutor {
             ?: return ShellExecResult(
                 exitCode = -1,
                 output = context?.getString(R.string.shell_downgrade_failed)
-                    ?: "Cannot downgrade to adb/shell identity.",
+                    ?: "Cannot downgrade to adb/shell identity."
             )
         val result = shellCommandWithOutput(resolveShPath(), "-c", wrapper(command))
         val hint = context?.let(::shellDowngradeHint).orEmpty()
         return ShellExecResult(
             exitCode = result.exitCode,
-            output = hint + result.output,
+            output = hint + result.output
         )
     }
 
@@ -145,7 +145,7 @@ internal object TaskManagerShellExecutor {
             SYSTEM_SU,
             "/vendor/bin/su",
             "/debug_ramdisk/su",
-            "/data/adb/magisk/magisk",
+            "/data/adb/magisk/magisk"
         )
         return candidates.firstOrNull { java.io.File(it).exists() } ?: "su"
     }
@@ -169,7 +169,7 @@ internal object TaskManagerShellExecutor {
             { cmd: String -> "$su -c \"$sh -c ${shellQuote(cmd)}\" shell" },
             { cmd: String -> "$su 2000 $sh -c ${shellQuote(cmd)}" },
             { cmd: String -> "/data/adb/ap/bin/apd su shell -c ${shellQuote(cmd)}" },
-            { cmd: String -> "/data/adb/ksud su shell -c ${shellQuote(cmd)}" },
+            { cmd: String -> "/data/adb/ksud su shell -c ${shellQuote(cmd)}" }
         )
         for (wrap in candidates) {
             val probe = shellCommandWithOutput(sh, "-c", wrap("id -u"))
@@ -184,7 +184,7 @@ internal object TaskManagerShellExecutor {
     private fun runFirstSuccessfulShellScript(
         scripts: List<String>,
         timeoutMs: Long = SHELL_COMMAND_TIMEOUT_MS,
-        context: Context? = null,
+        context: Context? = null
     ): ShellExecResult {
         val fallback = context?.getString(R.string.shell_su_exec_failed) ?: "su execution failed"
         var last = ShellExecResult(-1, fallback)

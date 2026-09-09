@@ -82,7 +82,7 @@ class SlideIndexAccessibilityService : AccessibilityService() {
         fun dispatchExternalGestureAction(
             action: GestureAction,
             anchorRawY: Float,
-            panelSide: com.slideindex.app.overlay.PanelSide? = null,
+            panelSide: com.slideindex.app.overlay.PanelSide? = null
         ): Boolean {
             val service = instance ?: return false
             return service.dispatchExternalGestureAction(action, anchorRawY, panelSide)
@@ -138,27 +138,27 @@ class SlideIndexAccessibilityService : AccessibilityService() {
             rawX: Float,
             rawY: Float,
             onFinished: (Boolean) -> Unit,
-            preferNodeClick: Boolean = false,
+            preferNodeClick: Boolean = false
         ) = SlideIndexAccessibilityGestureInjector.dispatchPointerTap(
             instance,
             rawX,
             rawY,
             onFinished,
-            preferNodeClick,
+            preferNodeClick
         )
 
         fun dispatchTap(
             rawX: Float,
             rawY: Float,
             onFinished: (Boolean) -> Unit,
-            durationMs: Long = TAP_DURATION_MS,
+            durationMs: Long = TAP_DURATION_MS
         ) = SlideIndexAccessibilityGestureInjector.dispatchTap(instance, rawX, rawY, onFinished, durationMs)
 
         fun dispatchPointerSwipe(
             startX: Float,
             startY: Float,
             config: PointerSwipeConfig,
-            onFinished: (Boolean) -> Unit = {},
+            onFinished: (Boolean) -> Unit = {}
         ) = SlideIndexAccessibilityGestureInjector.dispatchPointerSwipe(instance, startX, startY, config, onFinished)
 
         fun dispatchPointerSwipePath(
@@ -167,7 +167,7 @@ class SlideIndexAccessibilityService : AccessibilityService() {
             path: Path,
             durationMs: Long,
             maxDurationMs: Long = SlideIndexAccessibilityGestureInjector.DEFAULT_SWIPE_MAX_DURATION_MS,
-            onFinished: (Boolean) -> Unit = {},
+            onFinished: (Boolean) -> Unit = {}
         ) = SlideIndexAccessibilityGestureInjector.dispatchPointerSwipePath(
             instance,
             startX,
@@ -175,14 +175,14 @@ class SlideIndexAccessibilityService : AccessibilityService() {
             path,
             durationMs,
             maxDurationMs,
-            onFinished,
+            onFinished
         )
 
         fun dispatchPointerHold(
             rawX: Float,
             rawY: Float,
             durationMs: Long,
-            onFinished: (Boolean) -> Unit = {},
+            onFinished: (Boolean) -> Unit = {}
         ) = SlideIndexAccessibilityGestureInjector.dispatchPointerHold(instance, rawX, rawY, durationMs, onFinished)
 
 
@@ -219,7 +219,7 @@ class SlideIndexAccessibilityService : AccessibilityService() {
             visibleFraction: Float? = null,
             lineHeightFraction: Float? = null,
             lineWidthFraction: Float? = null,
-            lineOpacity: Float? = null,
+            lineOpacity: Float? = null
         ) {
             com.slideindex.app.overlay.FloatBallOverlay.previewAppearance(
                 sizeDp = sizeDp,
@@ -227,7 +227,7 @@ class SlideIndexAccessibilityService : AccessibilityService() {
                 visibleFraction = visibleFraction,
                 lineHeightFraction = lineHeightFraction,
                 lineWidthFraction = lineWidthFraction,
-                lineOpacity = lineOpacity,
+                lineOpacity = lineOpacity
             )
         }
 
@@ -247,13 +247,13 @@ class SlideIndexAccessibilityService : AccessibilityService() {
             verticalEdgeWidthDp: Float,
             verticalEdgeHeightDp: Float,
             horizontalEdgeWidthDp: Float,
-            horizontalEdgeHeightDp: Float,
+            horizontalEdgeHeightDp: Float
         ) {
             instance?.edgeOverlayHost?.applyCornerZonePreviewDimensions(
                 verticalEdgeWidthDp,
                 verticalEdgeHeightDp,
                 horizontalEdgeWidthDp,
-                horizontalEdgeHeightDp,
+                horizontalEdgeHeightDp
             )
         }
 
@@ -273,7 +273,7 @@ class SlideIndexAccessibilityService : AccessibilityService() {
             bottomFraction: Float? = null,
             shortSwipeDistanceDp: Float? = null,
             longSwipeDistanceDp: Float? = null,
-            design: com.slideindex.app.gesture.TriggerHandleDesign? = null,
+            design: com.slideindex.app.gesture.TriggerHandleDesign? = null
         ) {
             instance?.edgeOverlayHost?.mergeTriggerHandleLayoutPreview(
                 side = side,
@@ -283,7 +283,7 @@ class SlideIndexAccessibilityService : AccessibilityService() {
                 bottomFraction = bottomFraction,
                 shortSwipeDistanceDp = shortSwipeDistanceDp,
                 longSwipeDistanceDp = longSwipeDistanceDp,
-                design = design,
+                design = design
             )
         }
 
@@ -298,7 +298,7 @@ class SlideIndexAccessibilityService : AccessibilityService() {
         fun setPreviewMode(
             enabled: Boolean,
             content: LayoutPreviewContent = LayoutPreviewContent.TRIGGER_ONLY,
-            focus: LayoutPreviewFocus? = null,
+            focus: LayoutPreviewFocus? = null
         ) {
             instance?.edgeOverlayHost?.setPreviewMode(enabled, content, focus)
         }
@@ -361,7 +361,7 @@ class SlideIndexAccessibilityService : AccessibilityService() {
             rawX: Float,
             rawY: Float,
             activeWindowOnly: Boolean = false,
-            maxNodes: Int = AccessibilityTextExtractor.DEFAULT_MAX_TRAVERSAL_NODES,
+            maxNodes: Int = AccessibilityTextExtractor.DEFAULT_MAX_TRAVERSAL_NODES
         ): Rect? {
             val service = instance ?: return null
             return AccessibilityTextExtractor.findControlBoundsAt(
@@ -369,7 +369,7 @@ class SlideIndexAccessibilityService : AccessibilityService() {
                 rawX,
                 rawY,
                 activeWindowOnly,
-                maxNodes,
+                maxNodes
             )
         }
 
@@ -384,7 +384,7 @@ class SlideIndexAccessibilityService : AccessibilityService() {
             ocrFallbackEnabled: Boolean,
             ocrModelId: String,
             previewBoundsPick: Boolean = false,
-            onResult: (FloatBallPickResult) -> Unit,
+            onResult: (FloatBallPickResult) -> Unit
         ) {
             val service = instance ?: run {
                 onResult(
@@ -392,8 +392,8 @@ class SlideIndexAccessibilityService : AccessibilityService() {
                         a11yText = null,
                         ocrText = null,
                         screenshot = null,
-                        screenRect = null,
-                    ),
+                        screenRect = null
+                    )
                 )
                 return
             }
@@ -404,14 +404,14 @@ class SlideIndexAccessibilityService : AccessibilityService() {
                 ocrFallbackEnabled,
                 ocrModelId,
                 previewBoundsPick,
-                onResult,
+                onResult
             )
         }
 
         fun pickFullscreen(
             context: Context,
             ocrFallbackEnabled: Boolean,
-            ocrModelId: String,
+            ocrModelId: String
         ): Boolean {
             val (screenWidth, screenHeight) = FloatBallOcrRegions.accessibilityScreenSizePx(context)
             if (screenWidth <= 0 || screenHeight <= 0) return false
@@ -421,7 +421,7 @@ class SlideIndexAccessibilityService : AccessibilityService() {
                 context,
                 panelAnchorX,
                 panelAnchorY,
-                PickResultTextSource.OCR,
+                PickResultTextSource.OCR
             )
             pickFloatBallOnRelease(
                 context = context,
@@ -431,7 +431,7 @@ class SlideIndexAccessibilityService : AccessibilityService() {
                 endY = screenHeight.toFloat(),
                 regionalRect = true,
                 ocrFallbackEnabled = ocrFallbackEnabled,
-                ocrModelId = ocrModelId,
+                ocrModelId = ocrModelId
             ) { result ->
                 FloatBallPickResultPanel.showResult(context, panelAnchorX, panelAnchorY, result)
             }
@@ -447,7 +447,7 @@ class SlideIndexAccessibilityService : AccessibilityService() {
             regionalRect: Boolean,
             ocrFallbackEnabled: Boolean,
             ocrModelId: String,
-            onResult: (FloatBallPickResult) -> Unit,
+            onResult: (FloatBallPickResult) -> Unit
         ) {
             val service = instance ?: run {
                 onResult(
@@ -455,8 +455,8 @@ class SlideIndexAccessibilityService : AccessibilityService() {
                         a11yText = null,
                         ocrText = null,
                         screenshot = null,
-                        screenRect = null,
-                    ),
+                        screenRect = null
+                    )
                 )
                 return
             }
@@ -470,7 +470,7 @@ class SlideIndexAccessibilityService : AccessibilityService() {
                 regionalRect,
                 ocrFallbackEnabled,
                 ocrModelId,
-                onResult,
+                onResult
             )
         }
 
@@ -497,7 +497,7 @@ class SlideIndexAccessibilityService : AccessibilityService() {
             onSyncLockScreen = { watchdog.syncLockScreenState() },
             excludedPackageProvider = {
                 deps.settingsRepository.readSnapshot().previousAppExcludedPackages
-            },
+            }
         )
         watchdog.syncLockScreenState()
         edgeOverlayHost = EdgeOverlayHost(this, serviceScope, deps).also { it.start() }
@@ -558,7 +558,7 @@ class SlideIndexAccessibilityService : AccessibilityService() {
     fun dispatchExternalGestureAction(
         action: GestureAction,
         anchorRawY: Float,
-        panelSide: com.slideindex.app.overlay.PanelSide? = null,
+        panelSide: com.slideindex.app.overlay.PanelSide? = null
     ): Boolean =
         edgeOverlayHost?.dispatchExternalGestureAction(action, anchorRawY, panelSide) == true
 
@@ -634,7 +634,7 @@ class SlideIndexAccessibilityService : AccessibilityService() {
                     lineTo(centerX, 0f)
                 }
                 builder.addStroke(
-                    GestureDescription.StrokeDescription(path, index * 80L, 12),
+                    GestureDescription.StrokeDescription(path, index * 80L, 12)
                 )
             }
         }

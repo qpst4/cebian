@@ -17,7 +17,7 @@ import kotlinx.coroutines.withContext
 @Singleton
 class SegmentationEngineProvisioner @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val coordinator: NativeEnginePackCoordinator,
+    private val coordinator: NativeEnginePackCoordinator
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     @Volatile

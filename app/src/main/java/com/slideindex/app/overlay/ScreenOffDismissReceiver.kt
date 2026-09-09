@@ -11,7 +11,7 @@ import android.util.Log
  * 在单一 [Context] 上注册 [Intent.ACTION_SCREEN_OFF]，保证 unregister 与 register 配对。
  */
 class ScreenOffDismissReceiver(
-    private val onScreenOff: () -> Unit,
+    private val onScreenOff: () -> Unit
 ) {
     private companion object {
         private const val TAG = "ScreenOffDismissReceiver"

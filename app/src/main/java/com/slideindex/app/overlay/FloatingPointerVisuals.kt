@@ -37,34 +37,34 @@ import kotlin.math.roundToInt
 internal data class FloatingPointerTrailPoint(
     val x: Float,
     val y: Float,
-    val timeMs: Long,
+    val timeMs: Long
 )
 
 /** QC `t51` / `b60` samples shared by recorder, replay, and trail drawing. */
 internal data class GestureRecorderTrailPoint(
     val x: Int,
     val y: Int,
-    val durationMs: Long,
+    val durationMs: Long
 )
 
 internal fun DrawScope.drawFloatingPointerAreaPreview(
     layout: FloatingPointerBounds.AreaPreviewLayout,
     settings: AppSettings,
     screenWidth: Float,
-    screenHeight: Float,
+    screenHeight: Float
 ) {
     drawRoundRect(
         color = Color.White.copy(alpha = 0.04f),
         topLeft = Offset.Zero,
         size = Size(screenWidth, screenHeight),
-        cornerRadius = CornerRadius(0f, 0f),
+        cornerRadius = CornerRadius(0f, 0f)
     )
     drawRoundRect(
         color = Color.White.copy(alpha = 0.22f),
         topLeft = Offset.Zero,
         size = Size(screenWidth, screenHeight),
         cornerRadius = CornerRadius(0f, 0f),
-        style = Stroke(width = 2f),
+        style = Stroke(width = 2f)
     )
 
     val area = layout.travelRect
@@ -73,7 +73,7 @@ internal fun DrawScope.drawFloatingPointerAreaPreview(
             color = Color(0x22FFFFFF),
             topLeft = area.topLeft,
             size = area.size,
-            cornerRadius = CornerRadius(8f, 8f),
+            cornerRadius = CornerRadius(8f, 8f)
         )
         drawRoundRect(
             color = Color.White.copy(alpha = 0.38f),
@@ -82,8 +82,8 @@ internal fun DrawScope.drawFloatingPointerAreaPreview(
             cornerRadius = CornerRadius(8f, 8f),
             style = Stroke(
                 width = 1.5f,
-                pathEffect = PathEffect.dashPathEffect(floatArrayOf(14f, 10f)),
-            ),
+                pathEffect = PathEffect.dashPathEffect(floatArrayOf(14f, 10f))
+            )
         )
     }
     val onScreen = layout.travelRectOnScreen
@@ -92,14 +92,14 @@ internal fun DrawScope.drawFloatingPointerAreaPreview(
             color = Color(0x55FFFFFF),
             topLeft = onScreen.topLeft,
             size = onScreen.size,
-            cornerRadius = CornerRadius(8f, 8f),
+            cornerRadius = CornerRadius(8f, 8f)
         )
         drawRoundRect(
             color = Color.White.copy(alpha = 0.78f),
             topLeft = onScreen.topLeft,
             size = onScreen.size,
             cornerRadius = CornerRadius(8f, 8f),
-            style = Stroke(width = 2f),
+            style = Stroke(width = 2f)
         )
     }
 
@@ -109,12 +109,12 @@ internal fun DrawScope.drawFloatingPointerAreaPreview(
         color = Color.White.copy(alpha = 0.35f),
         radius = pointerRadius,
         center = layout.pointerPosition,
-        style = Stroke(width = 2.5f),
+        style = Stroke(width = 2.5f)
     )
     drawCircle(
         color = Color.White.copy(alpha = 0.92f),
         radius = 5f,
-        center = layout.pointerPosition,
+        center = layout.pointerPosition
     )
 
     drawQcJoystickDisc(
@@ -123,18 +123,18 @@ internal fun DrawScope.drawFloatingPointerAreaPreview(
         innerColor = Color(settings.floatingPointerJoystickInnerColorArgb),
         outerColor = Color(settings.floatingPointerJoystickOuterColorArgb),
         gradientRadiusFraction = settings.floatingPointerJoystickGradientRadiusFraction,
-        pressed = false,
+        pressed = false
     )
 
     drawCircle(
         color = Color(0xFFFF5252),
         radius = 9f,
-        center = layout.trigger,
+        center = layout.trigger
     )
     drawCircle(
         color = Color.White,
         radius = 4f,
-        center = layout.trigger,
+        center = layout.trigger
     )
 }
 
@@ -142,12 +142,12 @@ internal fun DrawScope.drawFloatingPointerAreaPreview(
 fun FloatingPointerJoystickPreview(
     settings: AppSettings,
     modifier: Modifier = Modifier,
-    pressed: Boolean = false,
+    pressed: Boolean = false
 ) {
     Canvas(
         modifier = modifier
             .fillMaxWidth()
-            .height(180.dp),
+            .height(180.dp)
     ) {
         val radius = settings.floatingPointerJoystickDiameterPx / 2f
         drawQcJoystickDisc(
@@ -156,7 +156,7 @@ fun FloatingPointerJoystickPreview(
             innerColor = Color(settings.floatingPointerJoystickInnerColorArgb),
             outerColor = Color(settings.floatingPointerJoystickOuterColorArgb),
             gradientRadiusFraction = settings.floatingPointerJoystickGradientRadiusFraction,
-            pressed = pressed,
+            pressed = pressed
         )
     }
 }
@@ -164,25 +164,25 @@ fun FloatingPointerJoystickPreview(
 @Composable
 fun FloatingPointerRingPreview(
     settings: AppSettings,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) = FloatingPointerDesignPreview(settings = settings, modifier = modifier)
 
 @Composable
 fun FloatingPointerDesignPreview(
     settings: AppSettings,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     val design = FloatingPointerDesign.fromId(settings.floatingPointerDesignId)
     val bitmap = rememberFloatingPointerDesignBitmap(
         context = context,
         design = design,
-        sizePx = settings.floatingPointerPointerDiameterPx.roundToInt().coerceAtLeast(1),
+        sizePx = settings.floatingPointerPointerDiameterPx.roundToInt().coerceAtLeast(1)
     )
     Canvas(
         modifier = modifier
             .fillMaxWidth()
-            .height(140.dp),
+            .height(140.dp)
     ) {
         val diameter = settings.floatingPointerPointerDiameterPx.coerceAtMost(size.minDimension - 16f)
         drawFloatingPointer(
@@ -190,7 +190,7 @@ fun FloatingPointerDesignPreview(
             settings = settings,
             design = design,
             bitmap = bitmap,
-            sizePx = diameter,
+            sizePx = diameter
         )
     }
 }
@@ -199,7 +199,7 @@ fun FloatingPointerDesignPreview(
 fun rememberFloatingPointerDesignBitmap(
     context: Context,
     design: FloatingPointerDesign,
-    sizePx: Int,
+    sizePx: Int
 ): ImageBitmap? = remember(design.id, sizePx) {
     if (!design.isBitmap) return@remember null
     renderFloatingPointerDesignBitmap(context, design, sizePx)
@@ -208,7 +208,7 @@ fun rememberFloatingPointerDesignBitmap(
 internal fun renderFloatingPointerDesignBitmap(
     context: Context,
     design: FloatingPointerDesign,
-    sizePx: Int,
+    sizePx: Int
 ): ImageBitmap? {
     if (!design.isBitmap) return null
     val drawable = ContextCompat.getDrawable(context, design.drawableResId) ?: return null
@@ -227,7 +227,7 @@ internal fun renderFloatingPointerDesignBitmap(
 
 internal fun floatingPointerBitmapDimensions(
     aspectRatio: Float,
-    sizePx: Float,
+    sizePx: Float
 ): Pair<Float, Float> = if (aspectRatio > 1f) {
     sizePx to sizePx / aspectRatio
 } else {
@@ -242,7 +242,7 @@ internal fun DrawScope.drawFloatingPointer(
     sizePx: Float = settings.floatingPointerPointerDiameterPx,
     visibilityAlpha: Float = 1f,
     sizeScale: Float = 1f,
-    clickProgress: Float = 0f,
+    clickProgress: Float = 0f
 ) {
     if (design.isRing) {
         drawQcRingPointer(
@@ -255,7 +255,7 @@ internal fun DrawScope.drawFloatingPointer(
             dotColor = Color(settings.floatingPointerDotColorArgb),
             visibilityAlpha = visibilityAlpha,
             sizeScale = sizeScale,
-            clickProgress = clickProgress,
+            clickProgress = clickProgress
         )
         return
     }
@@ -269,7 +269,7 @@ internal fun DrawScope.drawFloatingPointer(
         heightPx = heightPx,
         tipXFraction = design.tipXFraction,
         tipYFraction = design.tipYFraction,
-        visibilityAlpha = visibilityAlpha,
+        visibilityAlpha = visibilityAlpha
     )
     if (clickProgress > 0.001f) {
         drawQcPointerClickRing(
@@ -280,7 +280,7 @@ internal fun DrawScope.drawFloatingPointer(
             highlightColor = Color(settings.floatingPointerDotColorArgb),
             visibilityAlpha = visibilityAlpha,
             sizeScale = sizeScale,
-            clickProgress = clickProgress,
+            clickProgress = clickProgress
         )
     }
 }
@@ -292,21 +292,21 @@ fun DrawScope.drawQcBitmapPointer(
     heightPx: Float,
     tipXFraction: Float,
     tipYFraction: Float,
-    visibilityAlpha: Float = 1f,
+    visibilityAlpha: Float = 1f
 ) {
     if (visibilityAlpha <= 0.001f) return
     val topLeft = Offset(
         center.x - widthPx * tipXFraction,
-        center.y - heightPx * tipYFraction,
+        center.y - heightPx * tipYFraction
     )
     drawImage(
         image = image,
         dstOffset = IntOffset(topLeft.x.roundToInt(), topLeft.y.roundToInt()),
         dstSize = IntSize(
             widthPx.roundToInt().coerceAtLeast(1),
-            heightPx.roundToInt().coerceAtLeast(1),
+            heightPx.roundToInt().coerceAtLeast(1)
         ),
-        alpha = visibilityAlpha.coerceIn(0f, 1f),
+        alpha = visibilityAlpha.coerceIn(0f, 1f)
     )
 }
 
@@ -315,12 +315,12 @@ fun FloatingPointerRadialMenuPreview(
     settings: AppSettings,
     slots: List<com.slideindex.app.gesture.GestureAction>,
     modifier: Modifier = Modifier,
-    highlightedSlot: Int = -1,
+    highlightedSlot: Int = -1
 ) {
     Canvas(
         modifier = modifier
             .fillMaxWidth()
-            .height(280.dp),
+            .height(280.dp)
     ) {
         val maxOuter = settings.floatingPointerRadialOuterDiameterPx / 2f
         val scale = (size.minDimension / 2f - 12f) / maxOuter.coerceAtLeast(1f)
@@ -330,8 +330,8 @@ fun FloatingPointerRadialMenuPreview(
             floatingPointer = settings.floatingPointer.copy(
                 floatingPointerRadialOuterDiameterPx = outer,
                 floatingPointerRadialInnerDiameterPx = inner,
-                floatingPointerRadialDividerThicknessPx = settings.floatingPointerRadialDividerThicknessPx * scale,
-            ),
+                floatingPointerRadialDividerThicknessPx = settings.floatingPointerRadialDividerThicknessPx * scale
+            )
         )
         drawQcJoystickDisc(
             center = Offset(size.width / 2f, size.height / 2f),
@@ -340,13 +340,13 @@ fun FloatingPointerRadialMenuPreview(
             innerColor = Color(settings.floatingPointerJoystickInnerColorArgb),
             outerColor = Color(settings.floatingPointerJoystickOuterColorArgb),
             gradientRadiusFraction = settings.floatingPointerJoystickGradientRadiusFraction,
-            pressed = true,
+            pressed = true
         )
         drawFloatingPointerRadialMenu(
             center = Offset(size.width / 2f, size.height / 2f),
             settings = previewSettings,
             slots = slots,
-            highlightedSlot = highlightedSlot,
+            highlightedSlot = highlightedSlot
         )
     }
 }
@@ -357,7 +357,7 @@ fun DrawScope.drawQcJoystickDisc(
     innerColor: Color,
     outerColor: Color,
     gradientRadiusFraction: Float,
-    pressed: Boolean,
+    pressed: Boolean
 ) {
     val alphaScale = if (pressed) 1f else 0.94f
     val gradientStop = gradientRadiusFraction.coerceIn(0.5f, 1f)
@@ -366,13 +366,13 @@ fun DrawScope.drawQcJoystickDisc(
             colorStops = arrayOf(
                 0f to innerColor.copy(alpha = innerColor.alpha * alphaScale),
                 gradientStop to outerColor.copy(alpha = outerColor.alpha * alphaScale),
-                1f to outerColor.copy(alpha = outerColor.alpha * alphaScale * 0.85f),
+                1f to outerColor.copy(alpha = outerColor.alpha * alphaScale * 0.85f)
             ),
             center = center,
-            radius = radiusPx,
+            radius = radiusPx
         ),
         radius = radiusPx,
-        center = center,
+        center = center
     )
 }
 
@@ -386,7 +386,7 @@ fun DrawScope.drawQcRingPointer(
     dotColor: Color,
     visibilityAlpha: Float = 1f,
     sizeScale: Float = 1f,
-    clickProgress: Float = 0f,
+    clickProgress: Float = 0f
 ) {
     if (visibilityAlpha <= 0.001f || sizeScale <= 0.001f) return
     val alpha = visibilityAlpha.coerceIn(0f, 1f)
@@ -401,7 +401,7 @@ fun DrawScope.drawQcRingPointer(
             center = center,
             outerRadius = innerRingRadius,
             innerRadius = dotRadius,
-            color = fillColor.copy(alpha = fillColor.alpha * alpha),
+            color = fillColor.copy(alpha = fillColor.alpha * alpha)
         )
     }
 
@@ -410,7 +410,7 @@ fun DrawScope.drawQcRingPointer(
             center = center,
             outerRadius = outerRadius,
             innerRadius = innerRingRadius,
-            color = ringColor.copy(alpha = ringColor.alpha * alpha),
+            color = ringColor.copy(alpha = ringColor.alpha * alpha)
         )
     }
 
@@ -420,18 +420,18 @@ fun DrawScope.drawQcRingPointer(
             color = ringColor.copy(alpha = ringColor.alpha * 0.9f * alpha),
             radius = outerRadius,
             center = center,
-            style = Stroke(width = 1.4f * sizeScale),
+            style = Stroke(width = 1.4f * sizeScale)
         )
         drawCircle(
             color = ringColor.copy(alpha = ringColor.alpha * 0.75f * alpha),
             radius = innerRingRadius,
             center = center,
-            style = Stroke(width = 1.1f * sizeScale),
+            style = Stroke(width = 1.1f * sizeScale)
         )
         drawCircle(
             color = dotColor.copy(alpha = dotColor.alpha * alpha),
             radius = dotRadius,
-            center = center,
+            center = center
         )
     }
 
@@ -443,7 +443,7 @@ fun DrawScope.drawQcRingPointer(
         highlightColor = dotColor,
         visibilityAlpha = alpha,
         sizeScale = sizeScale,
-        clickProgress = click,
+        clickProgress = click
     )
 }
 
@@ -460,7 +460,7 @@ fun DrawScope.drawQcGestureRecorderPointer(
     fillColor: Color,
     dotColor: Color,
     visibilityAlpha: Float = 1f,
-    sizeScale: Float = 1f,
+    sizeScale: Float = 1f
 ) {
     val alpha = visibilityAlpha.coerceIn(0f, 1f)
     if (alpha <= 0.001f || sizeScale <= 0.001f) return
@@ -478,7 +478,7 @@ fun DrawScope.drawQcGestureRecorderPointer(
         drawCircle(
             color = fillColor.copy(alpha = fillColor.alpha * alpha),
             radius = fillRadius,
-            center = center,
+            center = center
         )
     }
 
@@ -488,7 +488,7 @@ fun DrawScope.drawQcGestureRecorderPointer(
             color = ringColor.copy(alpha = ringColor.alpha * alpha),
             radius = ringRadius,
             center = center,
-            style = Stroke(width = (m * u).coerceAtLeast(1f)),
+            style = Stroke(width = (m * u).coerceAtLeast(1f))
         )
     }
 
@@ -497,7 +497,7 @@ fun DrawScope.drawQcGestureRecorderPointer(
     drawCircle(
         color = centerDotColor.copy(alpha = centerDotColor.alpha * alpha),
         radius = centerRadius.coerceAtLeast(1f),
-        center = center,
+        center = center
     )
 }
 
@@ -510,7 +510,7 @@ fun DrawScope.drawQcPointerClickRing(
     highlightColor: Color,
     visibilityAlpha: Float = 1f,
     sizeScale: Float = 1f,
-    clickProgress: Float = 0f,
+    clickProgress: Float = 0f
 ) {
     val click = clickProgress.coerceIn(0f, 1f)
     if (click <= 0.001f) return
@@ -523,7 +523,7 @@ fun DrawScope.drawQcPointerClickRing(
         color = strokeColor.copy(alpha = strokeColor.alpha * alpha),
         radius = clickRingRadius,
         center = center,
-        style = Stroke(width = dotDiameterPx * sizeScale),
+        style = Stroke(width = dotDiameterPx * sizeScale)
     )
 }
 
@@ -531,7 +531,7 @@ private fun DrawScope.drawAnnulus(
     center: Offset,
     outerRadius: Float,
     innerRadius: Float,
-    color: Color,
+    color: Color
 ) {
     val path = Path().apply {
         fillType = PathFillType.EvenOdd
@@ -540,16 +540,16 @@ private fun DrawScope.drawAnnulus(
                 center.x - outerRadius,
                 center.y - outerRadius,
                 center.x + outerRadius,
-                center.y + outerRadius,
-            ),
+                center.y + outerRadius
+            )
         )
         addOval(
             Rect(
                 center.x - innerRadius,
                 center.y - innerRadius,
                 center.x + innerRadius,
-                center.y + innerRadius,
-            ),
+                center.y + innerRadius
+            )
         )
     }
     drawPath(path, color)
@@ -558,7 +558,7 @@ private fun DrawScope.drawAnnulus(
 internal fun DrawScope.drawGestureRecorderTrail(
     trailPoints: List<GestureRecorderTrailPoint>,
     color: Color,
-    strokeWidthPx: Float,
+    strokeWidthPx: Float
 ) {
     // QC `b60.draw`: always draw the full remaining shared list (no time clip).
     if (trailPoints.size < 2) return
@@ -579,8 +579,8 @@ internal fun DrawScope.drawGestureRecorderTrail(
         style = Stroke(
             width = strokeWidth,
             cap = StrokeCap.Round,
-            join = androidx.compose.ui.graphics.StrokeJoin.Round,
-        ),
+            join = androidx.compose.ui.graphics.StrokeJoin.Round
+        )
     )
 }
 
@@ -592,7 +592,7 @@ internal fun DrawScope.drawFloatingPointerTrail(
     trailColorArgb: Int = settings.floatingPointerTrailColorArgb,
     sequentialRetreat: Boolean = false,
     retreatProgress: Float = 0f,
-    forceDraw: Boolean = false,
+    forceDraw: Boolean = false
 ) {
     val trailType = FloatingPointerTrailType.fromId(settings.floatingPointerTrailTypeId)
     if (trailPoints.size < 2) return
@@ -606,7 +606,7 @@ internal fun DrawScope.drawFloatingPointerTrail(
             trailPoints = trailPoints,
             progress = retreatProgress,
             color = baseColor,
-            strokeBasePx = strokeBasePx,
+            strokeBasePx = strokeBasePx
         )
         return
     }
@@ -624,7 +624,7 @@ internal fun DrawScope.drawFloatingPointerTrail(
             to = Offset(next.x, next.y),
             ageFraction = age,
             color = baseColor,
-            strokeBasePx = strokeBasePx,
+            strokeBasePx = strokeBasePx
         )
     }
 }
@@ -633,7 +633,7 @@ private fun DrawScope.drawGestureTrailRetreatSuffix(
     trailPoints: List<FloatingPointerTrailPoint>,
     progress: Float,
     color: Color,
-    strokeBasePx: Float,
+    strokeBasePx: Float
 ) {
     if (trailPoints.size < 2 || progress >= 1f) return
     val firstTime = trailPoints.first().timeMs
@@ -655,7 +655,7 @@ private fun DrawScope.drawGestureTrailRetreatSuffix(
             to = Offset(next.x, next.y),
             ageFraction = 0f,
             color = color,
-            strokeBasePx = strokeBasePx,
+            strokeBasePx = strokeBasePx
         )
     }
 }
@@ -665,7 +665,7 @@ private fun DrawScope.drawQcTrailSegment(
     to: Offset,
     ageFraction: Float,
     color: Color,
-    strokeBasePx: Float,
+    strokeBasePx: Float
 ) {
     val fade = (1f - ageFraction.coerceIn(0f, 1f))
     if (fade <= 0.001f) return
@@ -676,14 +676,14 @@ private fun DrawScope.drawQcTrailSegment(
     drawCircle(
         color = segmentColor,
         radius = capRadius,
-        center = from,
+        center = from
     )
     drawLine(
         color = segmentColor,
         start = from,
         end = to,
         strokeWidth = strokeWidth,
-        cap = StrokeCap.Round,
+        cap = StrokeCap.Round
     )
 }
 
@@ -691,7 +691,7 @@ internal fun DrawScope.drawFloatingPointerRipple(
     center: Offset,
     progress: Float,
     rippleColor: Color,
-    rippleSizePx: Float,
+    rippleSizePx: Float
 ) {
     val fraction = progress.coerceIn(0f, 1f)
     if (fraction <= 0.001f) return
@@ -709,13 +709,13 @@ internal fun DrawScope.drawFloatingPointerRipple(
         brush = Brush.radialGradient(
             colorStops = arrayOf(
                 0f to rippleColor.copy(alpha = innerAlpha),
-                1f to rippleColor.copy(alpha = outerAlpha),
+                1f to rippleColor.copy(alpha = outerAlpha)
             ),
             center = center,
-            radius = drawRadius,
+            radius = drawRadius
         ),
         radius = drawRadius,
-        center = center,
+        center = center
     )
 }
 
@@ -728,6 +728,6 @@ internal fun floatingPointerClickAnimDurationMs(settings: AppSettings, density: 
     val ratio = (cursorSizePx * 1.3f) / rippleSizePx.coerceAtLeast(1f)
     return kotlin.math.min(
         (ratio * settings.floatingPointerRippleDurationMs).toInt(),
-        settings.floatingPointerRippleDurationMs,
+        settings.floatingPointerRippleDurationMs
     ).coerceAtLeast(80)
 }

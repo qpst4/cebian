@@ -51,7 +51,7 @@ fun FloatingPointerJoystickSettingsScreen(
     onHoverEnterSelectChange: (Boolean) -> Unit,
     onClickDistanceThresholdChange: (Float) -> Unit,
     onResetVisualDefaults: () -> Unit,
-    onResetBehaviorDefaults: () -> Unit,
+    onResetBehaviorDefaults: () -> Unit
 ) {
     var colorTarget by remember { mutableStateOf<JoystickColorTarget?>(null) }
     var pickerInitialColor by remember { mutableIntStateOf(0) }
@@ -74,7 +74,7 @@ fun FloatingPointerJoystickSettingsScreen(
         settings.floatingPointerJoystickDiameterPx,
         settings.floatingPointerJoystickGradientRadiusFraction,
         settings.floatingPointerClickDistanceThresholdDp,
-        settings.floatingPointerIdleHideDelayMs,
+        settings.floatingPointerIdleHideDelayMs
     ) {
         if (!joystickPreviewDragging) {
             previewJoystickDiameterPx = settings.floatingPointerJoystickDiameterPx
@@ -89,8 +89,8 @@ fun FloatingPointerJoystickSettingsScreen(
             floatingPointerJoystickDiameterPx = previewJoystickDiameterPx,
             floatingPointerJoystickGradientRadiusFraction = previewGradientRadiusFraction,
             floatingPointerClickDistanceThresholdDp = previewClickDistanceThresholdDp,
-            floatingPointerIdleHideDelayMs = previewIdleHideDelayMs,
-        ),
+            floatingPointerIdleHideDelayMs = previewIdleHideDelayMs
+        )
     )
 
     if (colorTarget != null) {
@@ -104,7 +104,7 @@ fun FloatingPointerJoystickSettingsScreen(
                     null -> Unit
                 }
                 colorTarget = null
-            },
+            }
         )
     }
 
@@ -115,20 +115,20 @@ fun FloatingPointerJoystickSettingsScreen(
 
     SettingsScreenScaffold(
         title = stringResource(R.string.floating_pointer_joystick_settings_title),
-        onBack = onBack,
+        onBack = onBack
     ) {
-        settingsLazySmallTitle(key = "fp-joystick-preview-section", title = previewSectionTitle, sectionTop = true)
+        settingsLazySmallTitle(key = "fp-joystick-preview-section", title = previewSectionTitle)
         item(key = "floating-pointer-joystick-preview") {
             Surface(
                 modifier = Modifier.padding(bottom = 4.dp),
                 shape = MaterialTheme.shapes.large,
-                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                color = MaterialTheme.colorScheme.surfaceContainerHigh
             ) {
                 FloatingPointerJoystickPreview(settings = previewSettings)
             }
         }
 
-        settingsLazySmallTitle(key = "fp-joystick-visual-section", title = visualSectionTitle, sectionTop = true)
+        settingsLazySmallTitle(key = "fp-joystick-visual-section", title = visualSectionTitle)
         groupedCardItems(
             keyPrefix = "fp-joystick-visual",
             items = buildList {
@@ -142,15 +142,15 @@ fun FloatingPointerJoystickSettingsScreen(
                             enabled = true,
                             label = stringResource(
                                 R.string.floating_pointer_size_px_value,
-                                settings.floatingPointerJoystickDiameterPx.roundToInt(),
+                                settings.floatingPointerJoystickDiameterPx.roundToInt()
                             ),
                             triggersLayoutPreview = true,
                             onLayoutPreviewStart = { joystickPreviewDragging = true },
                             onLayoutPreviewStop = { joystickPreviewDragging = false },
                             onLayoutPreviewValueChange = { previewJoystickDiameterPx = it },
-                            onValueChange = onJoystickDiameterChange,
+                            onValueChange = onJoystickDiameterChange
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("inner-color") {
@@ -161,9 +161,9 @@ fun FloatingPointerJoystickSettingsScreen(
                             onClick = {
                                 pickerInitialColor = settings.floatingPointerJoystickInnerColorArgb
                                 colorTarget = JoystickColorTarget.Inner
-                            },
+                            }
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("outer-color") {
@@ -174,9 +174,9 @@ fun FloatingPointerJoystickSettingsScreen(
                             onClick = {
                                 pickerInitialColor = settings.floatingPointerJoystickOuterColorArgb
                                 colorTarget = JoystickColorTarget.Outer
-                            },
+                            }
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("gradient-radius") {
@@ -188,17 +188,17 @@ fun FloatingPointerJoystickSettingsScreen(
                             enabled = true,
                             label = stringResource(
                                 R.string.floating_pointer_percent_value,
-                                (settings.floatingPointerJoystickGradientRadiusFraction * 100).roundToInt(),
+                                (settings.floatingPointerJoystickGradientRadiusFraction * 100).roundToInt()
                             ),
                             triggersLayoutPreview = true,
                             onLayoutPreviewStart = { joystickPreviewDragging = true },
                             onLayoutPreviewStop = { joystickPreviewDragging = false },
                             onLayoutPreviewValueChange = { previewGradientRadiusFraction = it },
-                            onValueChange = onGradientRadiusChange,
+                            onValueChange = onGradientRadiusChange
                         )
-                    },
+                    }
                 )
-            },
+            }
         )
         groupedCardItems(
             keyPrefix = "fp-joystick-reset-visual",
@@ -207,14 +207,14 @@ fun FloatingPointerJoystickSettingsScreen(
                     settingsCardScopeItem("reset") {
                         SettingLinkRow(
                             title = stringResource(R.string.floating_pointer_reset_joystick_visual),
-                            onClick = onResetVisualDefaults,
+                            onClick = onResetVisualDefaults
                         )
-                    },
+                    }
                 )
-            },
+            }
         )
 
-        settingsLazySmallTitle(key = "fp-joystick-behavior-section", title = behaviorSectionTitle, sectionTop = true)
+        settingsLazySmallTitle(key = "fp-joystick-behavior-section", title = behaviorSectionTitle)
         groupedCardItems(
             keyPrefix = "fp-joystick-behavior",
             items = buildList {
@@ -229,20 +229,20 @@ fun FloatingPointerJoystickSettingsScreen(
                             label = stringResource(
                                 R.string.floating_pointer_size_px_dp_value,
                                 (settings.floatingPointerClickDistanceThresholdDp * density).roundToInt(),
-                                settings.floatingPointerClickDistanceThresholdDp,
+                                settings.floatingPointerClickDistanceThresholdDp
                             ),
                             triggersLayoutPreview = true,
                             onLayoutPreviewStart = { joystickPreviewDragging = true },
                             onLayoutPreviewStop = { joystickPreviewDragging = false },
                             onLayoutPreviewValueChange = { previewClickDistanceThresholdDp = it },
-                            onValueChange = onClickDistanceThresholdChange,
+                            onValueChange = onClickDistanceThresholdChange
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("click-distance-hint") {
                         SettingsHintText(clickDistanceDesc)
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("release-click") {
@@ -251,9 +251,9 @@ fun FloatingPointerJoystickSettingsScreen(
                             subtitle = stringResource(R.string.floating_pointer_release_click_and_dismiss_desc),
                             checked = settings.floatingPointerReleaseClickAndDismiss,
                             enabled = true,
-                            onCheckedChange = onReleaseClickAndDismissChange,
+                            onCheckedChange = onReleaseClickAndDismissChange
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("hover-enter") {
@@ -262,9 +262,9 @@ fun FloatingPointerJoystickSettingsScreen(
                             subtitle = stringResource(R.string.floating_pointer_hover_enter_select_desc),
                             checked = settings.floatingPointerHoverEnterSelect,
                             enabled = true,
-                            onCheckedChange = onHoverEnterSelectChange,
+                            onCheckedChange = onHoverEnterSelectChange
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("hide-outside") {
@@ -273,9 +273,9 @@ fun FloatingPointerJoystickSettingsScreen(
                             subtitle = stringResource(R.string.floating_pointer_hide_outside_click_desc),
                             checked = settings.floatingPointerHideOnOutsideClick,
                             enabled = true,
-                            onCheckedChange = onHideOnOutsideClickChange,
+                            onCheckedChange = onHideOnOutsideClickChange
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("hide-swipe") {
@@ -284,9 +284,9 @@ fun FloatingPointerJoystickSettingsScreen(
                             subtitle = stringResource(R.string.floating_pointer_hide_quick_swipe_desc),
                             checked = settings.floatingPointerHideOnQuickSwipe,
                             enabled = true,
-                            onCheckedChange = onHideOnQuickSwipeChange,
+                            onCheckedChange = onHideOnQuickSwipeChange
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("hide-idle") {
@@ -295,7 +295,7 @@ fun FloatingPointerJoystickSettingsScreen(
                             subtitle = stringResource(R.string.floating_pointer_hide_idle_desc),
                             checked = settings.floatingPointerHideWhenIdle,
                             enabled = true,
-                            onCheckedChange = onHideWhenIdleChange,
+                            onCheckedChange = onHideWhenIdleChange
                         ) {
                             SettingsSliderRow(
                                 title = stringResource(R.string.floating_pointer_hide_idle_delay),
@@ -305,18 +305,18 @@ fun FloatingPointerJoystickSettingsScreen(
                                 enabled = true,
                                 label = stringResource(
                                     R.string.floating_pointer_hide_idle_delay_value,
-                                    settings.floatingPointerIdleHideDelayMs / 1000,
+                                    settings.floatingPointerIdleHideDelayMs / 1000
                                 ),
                                 triggersLayoutPreview = true,
                                 onLayoutPreviewStart = { joystickPreviewDragging = true },
                                 onLayoutPreviewStop = { joystickPreviewDragging = false },
                                 onLayoutPreviewValueChange = { previewIdleHideDelayMs = it.roundToInt() },
-                                onValueChange = { onIdleDelayChange(it.roundToInt()) },
+                                onValueChange = { onIdleDelayChange(it.roundToInt()) }
                             )
                         }
-                    },
+                    }
                 )
-            },
+            }
         )
         groupedCardItems(
             keyPrefix = "fp-joystick-reset-behavior",
@@ -325,11 +325,11 @@ fun FloatingPointerJoystickSettingsScreen(
                     settingsCardScopeItem("reset") {
                         SettingLinkRow(
                             title = stringResource(R.string.floating_pointer_reset_joystick_behavior),
-                            onClick = onResetBehaviorDefaults,
+                            onClick = onResetBehaviorDefaults
                         )
-                    },
+                    }
                 )
-            },
+            }
         )
     }
 }

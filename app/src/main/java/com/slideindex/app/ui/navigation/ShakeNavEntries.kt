@@ -19,6 +19,7 @@ import com.slideindex.app.ui.GestureExecuteShellCommandScreen
 import com.slideindex.app.ui.GestureSimulateKeyEventScreen
 import com.slideindex.app.ui.ShakeActionSetSettingsScreen
 import com.slideindex.app.ui.ShakeGestureBlacklistScreen
+import com.slideindex.app.ui.FaceDownSettingsScreen
 import com.slideindex.app.ui.ShakeGesturesScreen
 import com.slideindex.app.ui.ShakeIndependentAppSettingsScreen
 import com.slideindex.app.ui.ShakeIndependentSensitivityScreen
@@ -36,7 +37,6 @@ fun NavEntryBuilder.shakeNavEntries(ctx: MainNavContext) {
         val shakeSettings by viewModel.shakeUiSettings.collectAsStateWithLifecycle()
         ShakeGesturesScreen(
             settings = shakeSettings.shakeGestureSettings,
-            faceDownSettings = shakeSettings.faceDownGestureSettings,
             bottomContentPadding = ctx.rootBottomContentPadding,
             bottomNavReselectCount = ctx.bottomNavReselectCount,
             onEnabledChange = { enabled -> viewModel.setEnabled(enabled) },
@@ -53,13 +53,6 @@ fun NavEntryBuilder.shakeNavEntries(ctx: MainNavContext) {
             onVibrationFeedbackEnabledChange = { enabled -> viewModel.setVibrationFeedbackEnabled(enabled) },
             onAnimationColorChange = { color -> viewModel.setAnimationColor(color) },
             onDisableInLandscapeChange = { enabled -> viewModel.setDisableInLandscape(enabled) },
-            onFaceDownEnabledChange = { enabled -> viewModel.setFaceDownEnabled(enabled) },
-            onFaceDownHoldDurationChange = { ms -> viewModel.setFaceDownHoldDurationMs(ms) },
-            onFaceDownRequireProximityChange = { enabled -> viewModel.setFaceDownRequireProximity(enabled) },
-            onFaceDownDisableInLandscapeChange = { enabled -> viewModel.setFaceDownDisableInLandscape(enabled) },
-            onFaceDownVibrationFeedbackChange = { enabled -> viewModel.setFaceDownVibrationFeedbackEnabled(enabled) },
-            onFaceDownAudioFeedbackChange = { enabled -> viewModel.setFaceDownAudioFeedbackEnabled(enabled) },
-            onFaceDownAudioFeedbackVolumeChange = { volume -> viewModel.setFaceDownAudioFeedbackVolume(volume) },
             onOpenLockScreenShakeSettings = { ctx.navigate(AppNavKey.ShakeLockScreenSettings) },
             onOpenIndependentAppShakeSettings = { ctx.navigate(AppNavKey.ShakeIndependentAppSettings) },
             onOpenAppBlacklist = { ctx.navigate(AppNavKey.ShakeGestureBlacklist) },
@@ -71,14 +64,7 @@ fun NavEntryBuilder.shakeNavEntries(ctx: MainNavContext) {
                     ),
                 )
             },
-            onOpenFaceDownActionPick = {
-                ctx.navigate(
-                    AppNavKey.ShakeGestureActionPick(
-                        target = ShakeActionPickTarget.FACE_DOWN,
-                        gestureTypeId = ShakeGestureType.LEFT_FLIP.id,
-                    ),
-                )
-            },
+            onOpenFaceDownSettings = { ctx.navigate(AppNavKey.ShakeFaceDownSettings) },
             onOpenBackTapSettings = { ctx.navigate(AppNavKey.ExtensionBackTap) },
         )
     }
@@ -331,6 +317,30 @@ fun NavEntryBuilder.shakeNavEntries(ctx: MainNavContext) {
                     AppNavKey.ShakeGestureActionPick(
                         target = ShakeActionPickTarget.LOCK_SCREEN,
                         gestureTypeId = type.id,
+                    ),
+                )
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.ShakeFaceDownSettings> {
+        val viewModel: ShakeHubViewModel = hiltViewModel()
+        val shakeSettings by viewModel.shakeUiSettings.collectAsStateWithLifecycle()
+        FaceDownSettingsScreen(
+            faceDownSettings = shakeSettings.faceDownGestureSettings,
+            onBack = { ctx.navigateBackTo(AppNavKey.ShakeGestures) },
+            onEnabledChange = { enabled -> viewModel.setFaceDownEnabled(enabled) },
+            onHoldDurationChange = { ms -> viewModel.setFaceDownHoldDurationMs(ms) },
+            onRequireProximityChange = { enabled -> viewModel.setFaceDownRequireProximity(enabled) },
+            onDisableInLandscapeChange = { enabled -> viewModel.setFaceDownDisableInLandscape(enabled) },
+            onVibrationFeedbackChange = { enabled -> viewModel.setFaceDownVibrationFeedbackEnabled(enabled) },
+            onAudioFeedbackChange = { enabled -> viewModel.setFaceDownAudioFeedbackEnabled(enabled) },
+            onAudioFeedbackVolumeChange = { volume -> viewModel.setFaceDownAudioFeedbackVolume(volume) },
+            onOpenActionPick = {
+                ctx.navigate(
+                    AppNavKey.ShakeGestureActionPick(
+                        target = ShakeActionPickTarget.FACE_DOWN,
+                        gestureTypeId = ShakeGestureType.LEFT_FLIP.id,
                     ),
                 )
             },

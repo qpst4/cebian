@@ -10,7 +10,7 @@ import com.slideindex.app.util.TaskSwitcherLockStore
 import com.slideindex.app.util.TaskSwitcherMenuActions
 
 internal class TaskSwitcherTouchHandler(
-    internal val ctrl: TaskSwitcherOverlayController,
+    internal val ctrl: TaskSwitcherOverlayController
 ) {
     internal val host get() = ctrl.host
     internal val pickResolver = TaskSwitcherPickResolver(this)
@@ -254,7 +254,7 @@ internal class TaskSwitcherTouchHandler(
                             app.packageName,
                             host.settings(),
                             host.appRepository(),
-                            app = app,
+                            app = app
                         )
                     }
                 } else {
@@ -271,7 +271,7 @@ internal class TaskSwitcherTouchHandler(
                             rawIdentifier = it.rawIdentifier,
                             topComponent = it.topComponent,
                             packageName = it.app.packageName,
-                            settings = host.settings(),
+                            settings = host.settings()
                         )
                     }
                 }
@@ -354,7 +354,7 @@ internal class TaskSwitcherTouchHandler(
                 if (!removed) {
                     Log.w(
                         "EdgeGestureOverlay",
-                        "dismissTaskCards failed package=${entry.app.packageName} taskId=${entry.taskId}",
+                        "dismissTaskCards failed package=${entry.app.packageName} taskId=${entry.taskId}"
                     )
                 }
             }

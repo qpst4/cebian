@@ -46,14 +46,14 @@ object LsposedInjectorProbe {
             Status.Ready to context.getString(
               R.string.otp_lsposed_probe_response,
               strategy,
-              OtpAutoFillUiLabels.formatReason(context, reason),
+              OtpAutoFillUiLabels.formatReason(context, reason)
             )
           else ->
             Status.NotReady to context.getString(
               R.string.otp_lsposed_probe_failed,
-              OtpAutoFillUiLabels.formatReason(context, reason),
+              OtpAutoFillUiLabels.formatReason(context, reason)
             )
-        },
+        }
       )
     }
   }
@@ -71,12 +71,12 @@ object LsposedInjectorProbe {
     Log.i(TAG, "Sending LSPosed probe attemptId=$attemptId")
     appContext.sendOrderedBroadcast(
       OtpAutoInputBroadcastContract.buildProbeIntent(attemptId),
-      null,
+      null
     )
     mainHandler.postDelayed({
       if (pendingAttemptId == attemptId) {
         finish(
-          Status.Timeout to appContext.getString(R.string.otp_lsposed_probe_timeout),
+          Status.Timeout to appContext.getString(R.string.otp_lsposed_probe_timeout)
         )
       }
     }, PROBE_TIMEOUT_MS)

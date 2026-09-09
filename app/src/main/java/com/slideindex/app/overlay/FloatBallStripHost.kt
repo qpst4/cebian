@@ -19,7 +19,7 @@ internal class FloatBallStripHost(
     private val sceneState: FloatBallSceneState,
     private val settingsProvider: () -> AppSettings,
     private val activeSideProvider: () -> FloatBallSide,
-    private val screenSizeProvider: () -> Pair<Int, Int>,
+    private val screenSizeProvider: () -> Pair<Int, Int>
 ) : FrameLayout(context) {
     private val gestureDetector = FloatBallGestureDetector()
     var stripTouchable: Boolean = true
@@ -44,8 +44,8 @@ internal class FloatBallStripHost(
                 view,
                 FrameLayout.LayoutParams(
                     FrameLayout.LayoutParams.MATCH_PARENT,
-                    FrameLayout.LayoutParams.MATCH_PARENT,
-                ),
+                    FrameLayout.LayoutParams.MATCH_PARENT
+                )
             )
         }
     }
@@ -83,7 +83,7 @@ internal class FloatBallStripHost(
             },
             onPickPreviewCancel = { onPickPreviewCancel?.invoke() },
             onLauncherCaptureMove = { x, y -> onLauncherCaptureMove?.invoke(x, y) },
-            onLauncherCaptureUp = { x, y -> onLauncherCaptureUp?.invoke(x, y) },
+            onLauncherCaptureUp = { x, y -> onLauncherCaptureUp?.invoke(x, y) }
         )
     }
 
@@ -99,7 +99,7 @@ internal class FloatBallStripHost(
         onPickPreviewMove: (touchDownX: Float, touchDownY: Float, fingerX: Float, fingerY: Float) -> Unit = { _, _, _, _ -> },
         onPickPreviewCancel: () -> Unit = {},
         onLauncherCaptureMove: (rawX: Float, rawY: Float) -> Unit = { _, _ -> },
-        onLauncherCaptureUp: (rawX: Float, rawY: Float) -> Unit = { _, _ -> },
+        onLauncherCaptureUp: (rawX: Float, rawY: Float) -> Unit = { _, _ -> }
     ) {
         this.onDragStart = onDragStart
         this.onDrag = onDrag
@@ -155,7 +155,7 @@ internal class FloatBallStripHost(
             metrics = metrics,
             inactiveSide = inactiveSide,
             screenWidthPx = screenW,
-            screenHeightPx = screenH,
+            screenHeightPx = screenH
         )
         return rect.contains(x.roundToInt(), y.roundToInt())
     }

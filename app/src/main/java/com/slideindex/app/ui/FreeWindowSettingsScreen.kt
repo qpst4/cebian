@@ -15,16 +15,15 @@ import com.slideindex.app.R
 import com.slideindex.app.settings.AppLaunchPolicy
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.effectiveLongPressDurationMs
-import com.slideindex.app.settings.descRes
 import com.slideindex.app.settings.resolvedFreeWindowMode
 import com.slideindex.app.settings.resolvedLaunchPolicy
 import com.slideindex.app.settings.titleRes
 import com.slideindex.app.ui.miuix.groupedCardItems
+import com.slideindex.app.ui.settings.components.settingsLazyTipCard
 import com.slideindex.app.ui.settings.components.SettingDropdownRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
-import com.slideindex.app.ui.settings.components.settingsLazyHint
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import kotlin.math.roundToInt
 
@@ -37,7 +36,7 @@ fun FreeWindowSettingsScreen(
     onLongPressDurationChange: (Int) -> Unit,
     onLaunchPolicyChange: (Int) -> Unit,
     onOpenMode: () -> Unit,
-    onOpenPreview: () -> Unit,
+    onOpenPreview: () -> Unit
 ) {
     val selectedMode = settings.resolvedFreeWindowMode()
     val selectedPolicy = settings.resolvedLaunchPolicy()
@@ -52,23 +51,20 @@ fun FreeWindowSettingsScreen(
     val launchPolicyEntries = AppLaunchPolicy.entries
     val launchPolicyIndex = launchPolicyEntries.indexOf(selectedPolicy).coerceAtLeast(0)
 
-    val serviceSectionTitle = stringResource(R.string.settings_section_service)
-    val portraitOnlyHint = stringResource(R.string.free_window_portrait_only_hint)
     val launchSectionTitle = stringResource(R.string.settings_section_launch)
-    val longPressDurationDesc = stringResource(R.string.long_press_launch_duration_desc)
     val freeWindowSectionTitle = stringResource(R.string.settings_section_free_window)
     val freeWindowModeHint = stringResource(R.string.free_window_mode_hint)
 
     SettingsScreenScaffold(
         title = stringResource(R.string.free_window_settings_title),
-        onBack = onBack,
+        onBack = onBack
     ) {
         settingsLazySmallTitle(
-            key = "section-service",
-            title = serviceSectionTitle,
+            key = "section-launch",
+            title = launchSectionTitle
         )
         groupedCardItems(
-            keyPrefix = "free-window-service",
+            keyPrefix = "free-window-launch",
             items = buildList {
                 add(
                     settingsCardScopeItem("free-window-enabled") {
@@ -77,30 +73,10 @@ fun FreeWindowSettingsScreen(
                             title = stringResource(R.string.free_window_enabled),
                             subtitle = stringResource(R.string.free_window_enabled_desc),
                             checked = settings.freeWindowEnabled,
-                            onCheckedChange = onEnabledChange,
+                            onCheckedChange = onEnabledChange
                         )
-                    },
+                    }
                 )
-            },
-        )
-        settingsLazyHint(
-            key = "free-window-portrait-hint",
-            text = portraitOnlyHint,
-        )
-        settingsLazySmallTitle(
-            key = "section-launch",
-            title = launchSectionTitle,
-            sectionTop = true,
-        )
-        if (showLongPressDuration) {
-            settingsLazyHint(
-                key = "long-press-duration-hint",
-                text = longPressDurationDesc,
-            )
-        }
-        groupedCardItems(
-            keyPrefix = "free-window-launch-policy",
-            items = buildList {
                 add(
                     settingsCardScopeItem("launch-policy") {
                         SettingDropdownRow(
@@ -108,13 +84,13 @@ fun FreeWindowSettingsScreen(
                                 Icon(Icons.AutoMirrored.Outlined.Launch, contentDescription = label)
                             },
                             title = stringResource(R.string.launch_policy_title),
-                            subtitle = stringResource(selectedPolicy.descRes),
+                            subtitle = null,
                             items = launchPolicyEntries.map { stringResource(it.titleRes) },
                             selectedIndex = launchPolicyIndex,
                             enabled = settings.freeWindowEnabled,
-                            onSelectedIndexChange = { onLaunchPolicyChange(launchPolicyEntries[it].id) },
+                            onSelectedIndexChange = { onLaunchPolicyChange(launchPolicyEntries[it].id) }
                         )
-                    },
+                    }
                 )
                 if (showLongPressDuration) {
                     add(
@@ -130,18 +106,18 @@ fun FreeWindowSettingsScreen(
                                     ((value / 50f).roundToInt() * 50).toFloat().coerceIn(250f, 900f)
                                 },
                                 formatLabel = formatDurationLabel,
-                                onValueChange = { value -> onLongPressDurationChange(value.roundToInt()) },
+                                onValueChange = { value -> onLongPressDurationChange(value.roundToInt()) }
                             )
-                        },
+                        }
                     )
                 }
-            },
+            }
         )
         settingsLazySmallTitle(
             key = "section-free-window",
-            title = freeWindowSectionTitle,
-            sectionTop = true,
+            title = freeWindowSectionTitle
         )
+        settingsLazyTipCard(key = "free-window-mode-tip", text = freeWindowModeHint)
         groupedCardItems(
             keyPrefix = "free-window-mode",
             items = buildList {
@@ -152,9 +128,9 @@ fun FreeWindowSettingsScreen(
                             title = stringResource(R.string.free_window_launch_mode),
                             subtitle = stringResource(selectedMode.titleRes),
                             enabled = settings.freeWindowEnabled,
-                            onClick = onOpenMode,
+                            onClick = onOpenMode
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("free-window-adjust-layout") {
@@ -163,15 +139,11 @@ fun FreeWindowSettingsScreen(
                             title = stringResource(R.string.free_window_adjust_layout),
                             subtitle = stringResource(R.string.free_window_adjust_layout_desc),
                             enabled = settings.freeWindowEnabled,
-                            onClick = onOpenPreview,
+                            onClick = onOpenPreview
                         )
-                    },
+                    }
                 )
-            },
-        )
-        settingsLazyHint(
-            key = "free-window-mode-hint",
-            text = freeWindowModeHint,
+            }
         )
     }
 }
@@ -179,7 +151,7 @@ fun FreeWindowSettingsScreen(
 @Composable
 fun SettingsCardScope.FreeWindowEntryCard(
     outlinedLeadingIcons: Boolean = false,
-    onClick: () -> Unit,
+    onClick: () -> Unit
 ) {
     SettingNavigationRow(
         icon = { label ->
@@ -187,6 +159,6 @@ fun SettingsCardScope.FreeWindowEntryCard(
         },
         title = stringResource(R.string.free_window_entry_title),
         subtitle = stringResource(R.string.free_window_entry_desc),
-        onClick = onClick,
+        onClick = onClick
     )
 }

@@ -54,7 +54,7 @@ class SlideIndexApp : Application() {
         super.onCreate()
         runBlocking(Dispatchers.IO) {
             val language = AppUiLanguage.fromStorageTag(
-                runCatching { deps.settingsRepository.readFreshSnapshot().appUiLanguageTag }.getOrDefault(""),
+                runCatching { deps.settingsRepository.readFreshSnapshot().appUiLanguageTag }.getOrDefault("")
             )
             AppLocaleApplier.apply(this@SlideIndexApp, language)
         }

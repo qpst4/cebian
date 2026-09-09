@@ -7,7 +7,7 @@ import com.slideindex.app.overlay.layout.TaskSwitcherPanelLayout
 import com.slideindex.app.util.TaskSwitcherMenuActions
 
 internal class TaskSwitcherContextMenuHandler(
-    private val touch: TaskSwitcherTouchHandler,
+    private val touch: TaskSwitcherTouchHandler
 ) {
     private val ctrl get() = touch.ctrl
     private val host get() = touch.host
@@ -69,7 +69,7 @@ internal class TaskSwitcherContextMenuHandler(
     fun handleContinuousMenuMove(
         localX: Float,
         touchX: Float,
-        localY: Float,
+        localY: Float
     ): Boolean {
         val menu = ctrl.taskSwitcherContextMenu.takeIf { ctrl.taskSwitcherContextMenuActive() } ?: return false
         if (menu.menuRect.contains(touchX, localY)) {
@@ -126,7 +126,7 @@ internal class TaskSwitcherContextMenuHandler(
             density = host.density(),
             anchorX = anchorX,
             anchorY = anchorY,
-            inlineInPanel = inlineInPanel,
+            inlineInPanel = inlineInPanel
         )
         ctrl.taskSwitcherContextMenu = menu
         startMenuEnterAnimation()
@@ -144,7 +144,7 @@ internal class TaskSwitcherContextMenuHandler(
         layout: TaskSwitcherPanelLayout,
         localX: Float,
         localY: Float,
-        menu: TaskSwitcherContextMenuLayout,
+        menu: TaskSwitcherContextMenuLayout
     ): Boolean {
         val touchX = host.panelEnterAdjustedX(localX, layout.panelRect)
         if (menu.menuRect.contains(touchX, localY)) return false
@@ -188,7 +188,7 @@ internal class TaskSwitcherContextMenuHandler(
         touchX: Float,
         localY: Float,
         menu: TaskSwitcherContextMenuLayout,
-        haptic: Boolean,
+        haptic: Boolean
     ) {
         val prev = ctrl.taskSwitcherMenuHighlight
         ctrl.taskSwitcherMenuHighlight = menu.itemRects.indexOfFirst { it.contains(touchX, localY) }
@@ -200,7 +200,7 @@ internal class TaskSwitcherContextMenuHandler(
     private fun activateMenuSelection(
         menu: TaskSwitcherContextMenuLayout,
         touchX: Float,
-        localY: Float,
+        localY: Float
     ): Boolean {
         val selected = menu.itemRects.indexOfFirst { it.contains(touchX, localY) }
         ctrl.taskSwitcherMenuHighlight = -1
@@ -224,7 +224,7 @@ internal class TaskSwitcherContextMenuHandler(
                 { ctrl.endTaskSwitcherSession() }
             } else {
                 null
-            },
+            }
         )
         if (item.type == TaskSwitcherMenuItemType.APP_INFO) {
             ctrl.endTaskSwitcherSession()

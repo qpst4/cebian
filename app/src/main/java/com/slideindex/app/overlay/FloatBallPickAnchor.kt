@@ -21,7 +21,7 @@ internal object FloatBallPickAnchor {
     screenWidth: Float,
     screenHeight: Float,
     density: Float,
-    dockSide: FloatBallSide,
+    dockSide: FloatBallSide
   ): Offset {
     val gapPx = settings.floatBallPickOffsetDp.coerceIn(4f, 48f) * density
     val aboveOffsetY = -(ballSizePx / 2f + gapPx)
@@ -32,7 +32,7 @@ internal object FloatBallPickAnchor {
       ballBottomY = ballBottom,
       screenHeight = screenHeight,
       transitionBandPx = bottomTransitionBandPx(settings, screenHeight),
-      edgeInsetPx = BOTTOM_EDGE_INSET_DP * density,
+      edgeInsetPx = BOTTOM_EDGE_INSET_DP * density
     )
     val offsetY = aboveOffsetY + (belowOffsetY - aboveOffsetY) * blend
     val offsetX = horizontalOffsetPx(gapPx, dockSide)
@@ -43,7 +43,7 @@ internal object FloatBallPickAnchor {
       screenWidth = screenWidth,
       screenHeight = screenHeight,
       density = density,
-      dockSide = dockSide,
+      dockSide = dockSide
     )
   }
 
@@ -55,7 +55,7 @@ internal object FloatBallPickAnchor {
     screenWidth: Float,
     screenHeight: Float,
     density: Float,
-    dockSide: FloatBallSide,
+    dockSide: FloatBallSide
   ): Offset {
     val ballPick = pickPointForBallCenter(
       settings = settings,
@@ -65,7 +65,7 @@ internal object FloatBallPickAnchor {
       screenWidth = screenWidth,
       screenHeight = screenHeight,
       density = density,
-      dockSide = dockSide,
+      dockSide = dockSide
     )
     return clampToScreen(
       x = fingerX,
@@ -73,7 +73,7 @@ internal object FloatBallPickAnchor {
       screenWidth = screenWidth,
       screenHeight = screenHeight,
       density = density,
-      dockSide = dockSide,
+      dockSide = dockSide
     )
   }
 
@@ -94,7 +94,7 @@ internal object FloatBallPickAnchor {
   fun dockSideForBallCenter(
     ballCenterX: Float,
     screenWidth: Float,
-    fallbackDockSide: FloatBallSide,
+    fallbackDockSide: FloatBallSide
   ): FloatBallSide = when {
     ballCenterX < screenWidth * 0.45f -> FloatBallSide.LEFT
     ballCenterX > screenWidth * 0.55f -> FloatBallSide.RIGHT
@@ -109,7 +109,7 @@ internal object FloatBallPickAnchor {
     screenWidth: Float,
     screenHeight: Float,
     density: Float,
-    dockSide: FloatBallSide,
+    dockSide: FloatBallSide
   ): Offset = pickPointForBallCenter(
     settings = settings,
     ballCenterX = edgePickX(dockSide, screenWidth),
@@ -118,7 +118,7 @@ internal object FloatBallPickAnchor {
     screenWidth = screenWidth,
     screenHeight = screenHeight,
     density = density,
-    dockSide = dockSide,
+    dockSide = dockSide
   )
 
   /**
@@ -129,7 +129,7 @@ internal object FloatBallPickAnchor {
     ballBottomY: Float,
     screenHeight: Float,
     transitionBandPx: Float,
-    edgeInsetPx: Float,
+    edgeInsetPx: Float
   ): Float {
     val bandBottomY = screenHeight - edgeInsetPx
     val bandTopY = (bandBottomY - transitionBandPx).coerceAtLeast(0f)
@@ -150,14 +150,14 @@ internal object FloatBallPickAnchor {
     screenWidth: Float,
     screenHeight: Float,
     density: Float,
-    dockSide: FloatBallSide? = null,
+    dockSide: FloatBallSide? = null
   ): Offset {
     val margin = MIN_SCREEN_MARGIN_DP * density
     val minX = if (dockSide == FloatBallSide.LEFT) 0f else margin
     val maxX = if (dockSide == FloatBallSide.RIGHT) screenWidth else screenWidth - margin
     return Offset(
       x = x.coerceIn(minX, maxX),
-      y = y.coerceIn(margin, screenHeight - margin),
+      y = y.coerceIn(margin, screenHeight - margin)
     )
   }
 

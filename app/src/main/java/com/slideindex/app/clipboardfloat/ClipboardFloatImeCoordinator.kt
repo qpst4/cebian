@@ -50,7 +50,7 @@ object ClipboardFloatImeCoordinator {
                 ClipboardFloatLifecycle.showForIme(
                     context = serviceContext,
                     imeTop = imeBounds.top,
-                    showChip = showChip,
+                    showChip = showChip
                 )
             } else {
                 ClipboardFloatService.updateImeTop(serviceContext, imeBounds.top)

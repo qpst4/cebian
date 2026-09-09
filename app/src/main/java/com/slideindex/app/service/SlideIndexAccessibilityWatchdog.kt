@@ -17,7 +17,7 @@ import com.slideindex.app.util.TriggerEnvironmentState
 
 internal class SlideIndexAccessibilityWatchdog(
     private val service: SlideIndexAccessibilityService,
-    private val overlayHost: () -> EdgeOverlayHost?,
+    private val overlayHost: () -> EdgeOverlayHost?
 ) {
     private var wakeLock: PowerManager.WakeLock? = null
     private var screenLockReceiverRegistered = false
@@ -80,7 +80,7 @@ internal class SlideIndexAccessibilityWatchdog(
         @Suppress("DEPRECATION")
         wakeLock = powerManager.newWakeLock(
             PowerManager.SCREEN_BRIGHT_WAKE_LOCK or PowerManager.ON_AFTER_RELEASE,
-            "SlideIndex:KeepScreenOn",
+            "SlideIndex:KeepScreenOn"
         )
         return runCatching {
             wakeLock?.acquire(10 * 60 * 1000L)
@@ -102,7 +102,7 @@ internal class SlideIndexAccessibilityWatchdog(
         val scheduleCapture = Runnable {
             mainHandler.postDelayed({
                 service.performGlobalAction(
-                    android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_TAKE_SCREENSHOT,
+                    android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_TAKE_SCREENSHOT
                 )
                 mainHandler.postDelayed({
                     FloatingPointerOverlayWindow.restoreAfterScreenshotCapture()

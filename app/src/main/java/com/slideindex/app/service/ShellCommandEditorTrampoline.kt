@@ -27,7 +27,7 @@ object ShellCommandEditorTrampoline {
         onPrepare: () -> Unit,
         onDismiss: () -> Unit,
         onSave: (ShellCommand) -> Unit,
-        onDelete: (() -> Unit)?,
+        onDelete: (() -> Unit)?
     ) {
         cancelPending()
         active = true
@@ -40,8 +40,8 @@ object ShellCommandEditorTrampoline {
                 ShellCommandEditorTrampolineActivity.createIntent(
                     context = context,
                     existing = existing,
-                    shizukuGranted = shizukuGranted,
-                ),
+                    shizukuGranted = shizukuGranted
+                )
             )
         }.onFailure {
             deliverDismiss()

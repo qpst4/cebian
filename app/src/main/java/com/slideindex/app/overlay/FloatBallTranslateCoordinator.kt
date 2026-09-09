@@ -55,7 +55,7 @@ object FloatBallTranslateCoordinator {
                 is TranslateResult.Failure -> {
                     FloatBallPickResultPanel.showTranslateError(
                         context,
-                        mapErrorMessage(result.message),
+                        mapErrorMessage(result.message)
                     )
                 }
             }

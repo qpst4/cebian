@@ -20,7 +20,7 @@ object DndIconRenderer {
         cy: Float,
         sizePx: Float,
         dndEnabled: Boolean,
-        alphaScale: Float,
+        alphaScale: Float
     ) {
         ensure(context)
         val drawable = (if (dndEnabled) on else off) ?: return

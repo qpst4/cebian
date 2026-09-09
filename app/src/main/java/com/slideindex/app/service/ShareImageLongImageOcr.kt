@@ -36,7 +36,7 @@ object ShareImageLongImageOcr {
     fun planTileRanges(
         imageHeight: Int,
         tileHeight: Int = TILE_HEIGHT_PX,
-        overlap: Int = TILE_OVERLAP_PX,
+        overlap: Int = TILE_OVERLAP_PX
     ): List<IntRange> {
         require(imageHeight > 0)
         require(tileHeight > 0)
@@ -83,7 +83,7 @@ object ShareImageLongImageOcr {
     internal fun overlapLineCount(
         previousLines: List<String>,
         nextLines: List<String>,
-        maxCheck: Int,
+        maxCheck: Int
     ): Int {
         val limit = min(maxCheck, min(previousLines.size, nextLines.size))
         for (count in limit downTo 1) {
@@ -133,7 +133,7 @@ object ShareImageLongImageOcr {
                     decoder.setTargetSize(1, 1)
                     decoder.isMutableRequired = false
                     decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
-                },
+                }
             )
             decoded.recycle()
             bounds
@@ -178,7 +178,7 @@ object ShareImageLongImageOcr {
         context: Context,
         uri: Uri,
         bounds: ImageBounds,
-        modelId: String,
+        modelId: String
     ): String? {
         val sampleSize = computeSampleSize(bounds.width)
         val tileRanges = planTileRanges(bounds.height)
@@ -198,7 +198,7 @@ object ShareImageLongImageOcr {
                                 decoder = decoder,
                                 bounds = bounds,
                                 range = range,
-                                sampleSize = sampleSize,
+                                sampleSize = sampleSize
                             )
                         }
 
@@ -221,7 +221,7 @@ object ShareImageLongImageOcr {
                             val text = RegionalScreenshotOcr.recognizeBitmapPublic(
                                 context,
                                 modelId,
-                                tile,
+                                tile
                             ).textOrNull()
                             if (text != null) {
                                 tileTexts.add(text)
@@ -242,13 +242,13 @@ object ShareImageLongImageOcr {
         decoder: BitmapRegionDecoder,
         bounds: ImageBounds,
         range: IntRange,
-        sampleSize: Int,
+        sampleSize: Int
     ): Bitmap? {
         val rect = Rect(
             0,
             range.first.coerceAtLeast(0),
             bounds.width,
-            range.last + 1,
+            range.last + 1
         )
         if (rect.width() <= 0 || rect.height() <= 0) return null
         val options = BitmapFactory.Options().apply {

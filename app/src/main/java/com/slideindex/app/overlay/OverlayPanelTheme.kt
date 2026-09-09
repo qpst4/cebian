@@ -26,7 +26,7 @@ object OverlayPanelTheme {
         val rowHighlight: Int,
         val iconMuted: Int,
         val grip: Int,
-        val error: Int,
+        val error: Int
     )
 
     fun isDarkTheme(context: Context): Boolean {
@@ -57,7 +57,7 @@ object OverlayPanelTheme {
         rowHighlight = Color.argb(28, 0, 0, 0),
         iconMuted = Color.argb(160, 60, 60, 60),
         grip = Color.argb(120, 120, 120, 120),
-        error = Color.rgb(211, 47, 47),
+        error = Color.rgb(211, 47, 47)
     )
 
     private fun dark() = Colors(
@@ -80,6 +80,6 @@ object OverlayPanelTheme {
         rowHighlight = Color.argb(36, 255, 255, 255),
         iconMuted = Color.argb(180, 190, 200, 210),
         grip = Color.argb(100, 180, 180, 190),
-        error = Color.rgb(255, 120, 120),
+        error = Color.rgb(255, 120, 120)
     )
 }

@@ -39,7 +39,7 @@ data class ClipboardEntry(
     val imageFileName: String? = null,
     val imageFileNames: List<String> = emptyList(),
     val contentBlocks: List<ClipboardContentBlock> = emptyList(),
-    val createdAtEpochMs: Long,
+    val createdAtEpochMs: Long
 ) {
     fun contentKey(): String = ClipboardContentKey.forEntry(this)
 
@@ -55,7 +55,7 @@ data class ClipboardEntry(
 class ClipboardHistoryRepository @Inject constructor(
     @ApplicationContext appContext: Context,
     private val settingsRepository: SettingsRepository,
-    private val clipboardMonitorController: ClipboardMonitorController,
+    private val clipboardMonitorController: ClipboardMonitorController
 ) {
     private val context = appContext.applicationContext
     private val storageDir = File(context.filesDir, DIR_NAME).apply { mkdirs() }
@@ -101,7 +101,7 @@ class ClipboardHistoryRepository @Inject constructor(
     suspend fun addPayload(
         payload: ClipboardPayload,
         promoteExistingOnMatch: Boolean = true,
-        fromPassiveRefresh: Boolean = false,
+        fromPassiveRefresh: Boolean = false
     ) {
         if (payload.text.trim().isEmpty() &&
             payload.uri.isNullOrBlank() &&
@@ -127,18 +127,18 @@ class ClipboardHistoryRepository @Inject constructor(
             val imageSources = ClipboardImageStore.collectImageSources(payload)
             val baseEntry = payload.toEntry(
                 id = entryId,
-                createdAtEpochMs = System.currentTimeMillis(),
+                createdAtEpochMs = System.currentTimeMillis()
             ).copy(
                 imageFileName = imageFileNames.firstOrNull() ?: payload.imageFileName,
-                imageFileNames = imageFileNames.ifEmpty { payload.resolvedImageFileNames() },
+                imageFileNames = imageFileNames.ifEmpty { payload.resolvedImageFileNames() }
             )
             val entry = baseEntry.copy(
                 contentBlocks = ClipboardBlockParser.buildBlocks(
                     text = baseEntry.text,
                     htmlText = baseEntry.htmlText,
                     imageFileNames = baseEntry.resolvedImageFileNames(),
-                    imageSources = imageSources,
-                ),
+                    imageSources = imageSources
+                )
             )
             if (shouldBlockDisplacingScreenshot(payload, fromPassiveRefresh)) return
             removeMatchingEntries(payload, fingerprint)
@@ -157,8 +157,8 @@ class ClipboardHistoryRepository @Inject constructor(
         addPayload(
             ClipboardPayload(
                 type = ClipboardEntryType.TEXT,
-                text = trimmed,
-            ),
+                text = trimmed
+            )
         )
     }
 
@@ -196,7 +196,7 @@ class ClipboardHistoryRepository @Inject constructor(
     fun refreshClipboardWithFocus(
         triggerContext: Context? = null,
         force: Boolean = false,
-        promoteExistingOnMatch: Boolean = true,
+        promoteExistingOnMatch: Boolean = true
     ) {
         if (force) {
             cancelScheduledClipboardRefresh()
@@ -208,7 +208,7 @@ class ClipboardHistoryRepository @Inject constructor(
         scheduleClipboardRefresh(
             triggerContext = triggerContext,
             promoteExistingOnMatch = promoteExistingOnMatch,
-            passiveRefresh = true,
+            passiveRefresh = true
         )
     }
 
@@ -242,7 +242,7 @@ class ClipboardHistoryRepository @Inject constructor(
     fun ingestPayload(
         payload: ClipboardPayload,
         promoteExistingOnMatch: Boolean = true,
-        fromPassiveRefresh: Boolean = false,
+        fromPassiveRefresh: Boolean = false
     ) {
         if (consumeOutgoingWriteSkip()) return
         if (payload.text.trim().isEmpty() &&
@@ -302,8 +302,8 @@ class ClipboardHistoryRepository @Inject constructor(
         ingestPayload(
             ClipboardPayload(
                 type = ClipboardEntryType.TEXT,
-                text = text,
-            ),
+                text = text
+            )
         )
     }
 
@@ -318,8 +318,8 @@ class ClipboardHistoryRepository @Inject constructor(
                 text = label,
                 uri = uri.toString(),
                 mimeType = mimeType?.takeIf { it.isNotBlank() } ?: "image/*",
-                imageUris = listOf(uri.toString()),
-            ),
+                imageUris = listOf(uri.toString())
+            )
         )
     }
 
@@ -399,7 +399,7 @@ class ClipboardHistoryRepository @Inject constructor(
 
     suspend fun loadHistoryPage(
         createdBeforeMs: Long? = null,
-        limit: Int,
+        limit: Int
     ): ClipboardHistoryPage = withContext(Dispatchers.IO) {
         val pageSize = limit.coerceAtLeast(1)
         val total = store.count()
@@ -407,7 +407,7 @@ class ClipboardHistoryRepository @Inject constructor(
         ClipboardHistoryPage(
             entries = slice,
             totalCount = total,
-            hasMore = slice.size == pageSize,
+            hasMore = slice.size == pageSize
         )
     }
 
@@ -448,7 +448,7 @@ class ClipboardHistoryRepository @Inject constructor(
         triggerContext: Context? = null,
         useFocusReader: Boolean = shouldUseFocusReader(),
         promoteExistingOnMatch: Boolean = true,
-        passiveRefresh: Boolean = false,
+        passiveRefresh: Boolean = false
     ) {
         pendingPassiveClipboardRefresh = passiveRefresh
         pendingRefreshContext = triggerContext ?: pendingRefreshContext
@@ -474,7 +474,7 @@ class ClipboardHistoryRepository @Inject constructor(
 
     private fun shouldBlockDisplacingScreenshot(
         payload: ClipboardPayload,
-        fromPassiveRefresh: Boolean,
+        fromPassiveRefresh: Boolean
     ): Boolean {
         if (!fromPassiveRefresh) return false
         if (payload.hasImageContent()) return false
@@ -520,7 +520,7 @@ class ClipboardHistoryRepository @Inject constructor(
 
     private fun promoteExistingPayloadIfNeeded(
         payload: ClipboardPayload,
-        fromPassiveRefresh: Boolean = false,
+        fromPassiveRefresh: Boolean = false
     ) {
         if (shouldBlockDisplacingScreenshot(payload, fromPassiveRefresh)) return
         val existing = findMatchingEntry(payload) ?: return

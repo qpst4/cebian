@@ -21,7 +21,7 @@ import com.slideindex.app.notification.NotificationFilterRule
 import com.slideindex.app.notification.NotificationRuleActionType
 import com.slideindex.app.notification.RuleActionEntry
 import com.slideindex.app.ui.miuix.MiuixLabeledTextField
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.preference.CheckboxPreference
@@ -38,9 +38,9 @@ internal fun NotificationRuleActionPicker(
         Column(
             modifier = Modifier.padding(vertical = 8.dp),
         ) {
-            MiuixSmallTitle(
-                stringResource(R.string.notification_rule_actions),
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            SmallTitle(
+                text = stringResource(R.string.notification_rule_actions),
+                modifier = Modifier.fillMaxWidth(),
             )
             NotificationRuleActionType.entries.forEach { type ->
                 val selected = actionEntries.any { it.type == type }

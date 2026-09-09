@@ -15,12 +15,11 @@ import com.slideindex.app.R
 import com.slideindex.app.overlay.searchpanel.ContactPermissionTrampolineActivity
 import com.slideindex.app.search.contacts.ContactSearchIndex
 import com.slideindex.app.search.settings.SystemSettingsSearchIndex
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import top.yukonga.miuix.kmp.basic.SmallTitle
 import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
-import com.slideindex.app.ui.settings.components.settingsLazyHint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import top.yukonga.miuix.kmp.icon.MiuixIcons
@@ -38,7 +37,6 @@ fun SearchPanelAppSearchSettingsScreen(
         subtitle = desc,
         onBack = onBack,
     ) {
-        settingsLazyHint(key = "app-search-desc", text = desc)
     }
 }
 
@@ -59,9 +57,8 @@ fun SearchPanelContactSearchSettingsScreen(
         subtitle = desc,
         onBack = onBack,
     ) {
-        settingsLazyHint(key = "contact-search-desc", text = desc)
         item(key = "contact-permission-title") {
-            MiuixSmallTitle(permissionSectionTitle)
+            SmallTitle(permissionSectionTitle)
         }
         groupedCardItems(
             keyPrefix = "contact-permission",
@@ -116,9 +113,8 @@ fun SearchPanelSystemSettingsSearchSettingsScreen(
         subtitle = desc,
         onBack = onBack,
     ) {
-        settingsLazyHint(key = "settings-search-desc", text = desc)
         item(key = "settings-index-title") {
-            MiuixSmallTitle(indexSectionTitle)
+            SmallTitle(indexSectionTitle)
         }
         groupedCardItems(
             keyPrefix = "settings-index",

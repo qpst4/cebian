@@ -19,7 +19,7 @@ import com.slideindex.app.ui.settings.components.SettingLinkRow
 import com.slideindex.app.ui.settings.components.SettingsHintText
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
-import com.slideindex.app.ui.settings.components.settingsLazyHint
+import com.slideindex.app.ui.settings.components.settingsLazyTipCard
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -45,7 +45,7 @@ fun OtpAutoFillStatsScreen(
         onBack = onBack,
         modifier = modifier,
     ) {
-        settingsLazySmallTitle(key = "otp-stats-overview", title = overviewSectionTitle, sectionTop = true)
+        settingsLazySmallTitle(key = "otp-stats-overview", title = overviewSectionTitle)
         groupedCardItems(
             keyPrefix = "otp-stats-overview",
             items = buildList {
@@ -96,7 +96,6 @@ fun OtpAutoFillStatsScreen(
             settingsLazySmallTitle(
                 key = "otp-stats-last",
                 title = lastSectionTitle,
-                sectionTop = true,
             )
             groupedCardItems(
                 keyPrefix = "otp-stats-last",
@@ -151,11 +150,10 @@ fun OtpAutoFillStatsScreen(
         settingsLazySmallTitle(
             key = "otp-stats-help",
             title = helpSectionTitle,
-            sectionTop = true,
         )
-        settingsLazyHint(key = "otp-stats-help-pipeline", text = helpPipeline)
-        settingsLazyHint(key = "otp-stats-help-strategies", text = helpStrategies)
-        settingsLazyHint(key = "otp-stats-help-failures", text = helpFailures)
+        settingsLazyTipCard(key = "otp-stats-help-pipeline", text = helpPipeline)
+        settingsLazyTipCard(key = "otp-stats-help-strategies", text = helpStrategies)
+        settingsLazyTipCard(key = "otp-stats-help-failures", text = helpFailures)
 
         if (stats.totalAttempts > 0) {
             groupedCardItems(

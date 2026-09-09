@@ -28,7 +28,7 @@ private fun drawThemeBackground(
     width: Int,
     height: Int,
     opacity: Float,
-    canvas: android.graphics.Canvas,
+    canvas: android.graphics.Canvas
 ) {
     if (width <= 0 || height <= 0) return
     val drawable = ResourcesCompat.getDrawable(context.resources, theme.backgroundResId, null)?.mutate() ?: return
@@ -41,7 +41,7 @@ private fun drawThemeBackground(
 @Composable
 fun Modifier.messageThemeBackground(
     theme: MessageThemeSpec,
-    opacity: Float = 1f,
+    opacity: Float = 1f
 ): Modifier {
     val context = LocalContext.current
     return drawBehind {
@@ -52,7 +52,7 @@ fun Modifier.messageThemeBackground(
                 width = size.width.toInt(),
                 height = size.height.toInt(),
                 opacity = opacity,
-                canvas = canvas.nativeCanvas,
+                canvas = canvas.nativeCanvas
             )
         }
     }

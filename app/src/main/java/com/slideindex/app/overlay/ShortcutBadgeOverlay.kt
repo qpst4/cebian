@@ -21,7 +21,7 @@ private val ShortcutBadgeBackground = Color(0xFF4976F2)
 fun ShortcutBadgeOverlay(
     iconSize: Dp,
     modifier: Modifier = Modifier,
-    alpha: Float = 1f,
+    alpha: Float = 1f
 ) {
     val densityScale = LocalDensity.current.density
     Box(modifier = modifier.size(iconSize)) {
@@ -33,7 +33,7 @@ fun ShortcutBadgeOverlay(
                 iconCenterY = size.height / 2f,
                 iconDiameter = iconDiameter,
                 alpha = alpha,
-                density = densityScale,
+                density = densityScale
             )
         }
     }
@@ -44,7 +44,7 @@ internal fun DrawScope.drawShortcutBadge(
     iconCenterY: Float,
     iconDiameter: Float,
     alpha: Float,
-    density: Float,
+    density: Float
 ) {
     val badgeDiameter = max(9f * density, iconDiameter * 0.27f)
     val radius = badgeDiameter / 2f
@@ -58,12 +58,12 @@ internal fun DrawScope.drawShortcutBadge(
     drawCircle(
         color = borderColor,
         radius = radius + 1.5f * density,
-        center = androidx.compose.ui.geometry.Offset(centerX, centerY),
+        center = androidx.compose.ui.geometry.Offset(centerX, centerY)
     )
     drawCircle(
         color = backgroundColor,
         radius = radius,
-        center = androidx.compose.ui.geometry.Offset(centerX, centerY),
+        center = androidx.compose.ui.geometry.Offset(centerX, centerY)
     )
 
     val lightning = Path().apply {

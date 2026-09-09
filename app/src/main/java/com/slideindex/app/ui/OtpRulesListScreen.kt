@@ -3,7 +3,7 @@ package com.slideindex.app.ui
 import com.slideindex.app.ui.miuix.CardItem
 import com.slideindex.app.ui.miuix.MiuixLabeledTextField
 import com.slideindex.app.ui.miuix.MiuixHintText
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import top.yukonga.miuix.kmp.basic.SmallTitle
 import com.slideindex.app.ui.miuix.groupedCardItems
 import android.widget.Toast
 import androidx.compose.foundation.clickable
@@ -188,7 +188,10 @@ internal fun LazyListScope.otpRulesListItems(
     }
 
     item(key = "official_section_title") {
-        MiuixSmallTitle(stringResource(R.string.otp_rules_official_section))
+        SmallTitle(
+            text = stringResource(R.string.otp_rules_official_section),
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
     item(key = "official_section_hint") {
         MiuixHintText(
@@ -224,7 +227,10 @@ internal fun LazyListScope.otpRulesListItems(
     }
 
     item(key = "user_section_title") {
-        MiuixSmallTitle(stringResource(R.string.otp_rules_user_section))
+        SmallTitle(
+            text = stringResource(R.string.otp_rules_user_section),
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
     if (userRules.isEmpty()) {
         item(key = "user_empty") {

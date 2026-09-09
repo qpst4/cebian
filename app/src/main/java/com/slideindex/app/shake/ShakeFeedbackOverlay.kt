@@ -56,7 +56,7 @@ object ShakeFeedbackOverlay {
         context: Context,
         gestureType: ShakeGestureType,
         action: GestureAction,
-        colorArgb: Int,
+        colorArgb: Int
     ) {
         mainHandler.post {
             if (!ensureAttached(context)) return@post
@@ -73,7 +73,7 @@ object ShakeFeedbackOverlay {
                             ShakeFeedbackBubble(
                                 gestureType = gesture,
                                 action = feedbackAction,
-                                colorArgb = activeColorArgb,
+                                colorArgb = activeColorArgb
                             )
                         }
                     }
@@ -160,7 +160,7 @@ object ShakeFeedbackOverlay {
     private fun ShakeFeedbackBubble(
         gestureType: ShakeGestureType,
         action: GestureAction,
-        colorArgb: Int,
+        colorArgb: Int
     ) {
         val scale = remember { Animatable(0.45f) }
         val alpha = remember { Animatable(0.92f) }
@@ -184,13 +184,13 @@ object ShakeFeedbackOverlay {
                     }
                     .size(56.dp)
                     .background(Color(colorArgb).copy(alpha = 0.42f), CircleShape),
-                contentAlignment = Alignment.Center,
+                contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = gestureActionIcon(action),
                     contentDescription = stringResource(R.string.cd_shake_feedback),
                     tint = Color.White,
-                    modifier = Modifier.size(28.dp),
+                    modifier = Modifier.size(28.dp)
                 )
             }
         }

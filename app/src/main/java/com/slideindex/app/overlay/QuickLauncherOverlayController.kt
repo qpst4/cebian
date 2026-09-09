@@ -32,7 +32,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 
 internal class QuickLauncherOverlayController(
-    internal val host: Host,
+    internal val host: Host
 ) {
     private val motionScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     internal val quickLauncherPageSnapMotion = OverlayFloatSpringMotion(motionScope)
@@ -82,7 +82,7 @@ internal class QuickLauncherOverlayController(
 
     internal val quickLauncherOverlayDialogHost = OverlayComposeDialogHost(
         context = host.context,
-        themeSettings = { host.settings() },
+        themeSettings = { host.settings() }
     )
     internal val quickLauncherPanelController = QuickLauncherPanelController(
         object : QuickLauncherPanelController.Host {
@@ -103,11 +103,11 @@ internal class QuickLauncherOverlayController(
                 configuredShortcutKeys: Set<String>,
                 configuredActionKeys: Set<String>,
                 onAdd: (QuickLauncherItem) -> Unit,
-                onRemove: (QuickLauncherItem) -> Unit,
+                onRemove: (QuickLauncherItem) -> Unit
             ) {
                 val appDeps = dagger.hilt.android.EntryPointAccessors.fromApplication(
                     host.context.applicationContext,
-                    com.slideindex.app.di.AppGraphEntryPoint::class.java,
+                    com.slideindex.app.di.AppGraphEntryPoint::class.java
                 ).dependencies()
 
                 quickLauncherOverlayDialogHost.show(
@@ -118,10 +118,10 @@ internal class QuickLauncherOverlayController(
                     onDismiss = {
                         host.notifyPresentationTouchRequirementChanged()
                         host.invalidate()
-                    },
+                    }
                 ) {
                     androidx.compose.runtime.CompositionLocalProvider(
-                        com.slideindex.app.ui.compose.LocalAppDependencies provides appDeps,
+                        com.slideindex.app.ui.compose.LocalAppDependencies provides appDeps
                     ) {
                         com.slideindex.app.ui.QuickLauncherAddOverlaySheet(
                             panelSide = host.side(),
@@ -145,9 +145,9 @@ internal class QuickLauncherOverlayController(
                                         quickLauncherOverlayDialogHost.dismiss()
                                         dismissFromBack()
                                     },
-                                    onResult = onResult,
+                                    onResult = onResult
                                 )
-                            },
+                            }
                         )
                     }
                 }
@@ -173,7 +173,7 @@ internal class QuickLauncherOverlayController(
             override fun resolveEditDragTargetGlobal(
                 touchX: Float,
                 localY: Float,
-                panelRect: RectF,
+                panelRect: RectF
             ): Int = quickLauncherGlobalIndexAt(touchX, localY, panelRect)
             override fun postDelayed(runnable: Runnable, delayMs: Long) =
                 host.postDelayed(runnable, delayMs)
@@ -193,7 +193,7 @@ internal class QuickLauncherOverlayController(
                     updateActiveFolderChildren(newChildren)
                 }
             }
-        },
+        }
     )
 
     internal var quickLauncherAnchorRawY: Float? = null
@@ -627,7 +627,7 @@ internal class QuickLauncherOverlayController(
             (dirty.left + offsetX).toInt() - pad,
             dirty.top.toInt() - pad,
             (dirty.right + offsetX).toInt() + pad,
-            dirty.bottom.toInt() + pad,
+            dirty.bottom.toInt() + pad
         )
     }
 
@@ -658,7 +658,7 @@ internal class QuickLauncherOverlayController(
             xInPage = xInPage,
             localY = localY,
             panelRect = panelRect,
-            maxSlotIndex = pageSize - 1,
+            maxSlotIndex = pageSize - 1
         )
         return QuickLauncherGridLogic.dragSlotGlobal(pageStart, localIndex, pageSize)
     }
@@ -667,7 +667,7 @@ internal class QuickLauncherOverlayController(
         xInPage: Float,
         localY: Float,
         panelRect: RectF,
-        maxSlotIndex: Int,
+        maxSlotIndex: Int
     ): Int {
         if (maxSlotIndex < 0) return 0
         val columns = quickLauncherColumnsPerPage()
@@ -697,7 +697,7 @@ internal class QuickLauncherOverlayController(
             gridPadding = quickLauncherGridPadding,
             headerHeight = quickLauncherHeaderHeight,
             anchorLocalY = quickLauncherAnchorLocalY(),
-            toolbarReserveWidth = quickLauncherPanelController.contentReserveWidth(host.settings()),
+            toolbarReserveWidth = quickLauncherPanelController.contentReserveWidth(host.settings())
         )
     }
 
@@ -717,7 +717,7 @@ internal class QuickLauncherOverlayController(
             columnsPerPage = quickLauncherColumnsPerPage(),
             rowsPerPage = quickLauncherRowsPerPage(),
             cellWidth = quickLauncherCellWidth,
-            gridPadding = quickLauncherGridPadding,
+            gridPadding = quickLauncherGridPadding
         )
 
     private fun quickLauncherPanelContentHeight(rows: Int): Float =
@@ -725,7 +725,7 @@ internal class QuickLauncherOverlayController(
             rows,
             quickLauncherCellHeight,
             quickLauncherGridPadding,
-            quickLauncherHeaderHeight,
+            quickLauncherHeaderHeight
         )
 
     private fun anchoredQuickLauncherPanelRect(panelWidth: Float, rows: Int): RectF =
@@ -733,19 +733,19 @@ internal class QuickLauncherOverlayController(
             host = host,
             panelWidth = panelWidth,
             contentHeight = quickLauncherPanelContentHeight(rows),
-            anchorLocalY = quickLauncherAnchorLocalY(),
+            anchorLocalY = quickLauncherAnchorLocalY()
         )
 
     private fun offsetQuickLauncherPanelForToolbar(panelRect: RectF): RectF =
         QuickLauncherPanelLayoutEngine.offsetForToolbar(
             host = host,
             panelRect = panelRect,
-            reserveWidth = quickLauncherPanelController.contentReserveWidth(host.settings()),
+            reserveWidth = quickLauncherPanelController.contentReserveWidth(host.settings())
         )
 
     internal fun collectToolbarAccessibilityNodes(
         context: android.content.Context,
-        panelRect: RectF,
+        panelRect: RectF
     ): List<OverlayVirtualNode> =
         quickLauncherPanelController.collectAccessibilityNodes(context, panelRect)
 }

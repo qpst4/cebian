@@ -111,7 +111,7 @@ object RegionalPickOverlay {
         gestureStartRawY: Float,
         edgeSide: FloatBallSide,
         rawX: Float,
-        rawY: Float,
+        rawY: Float
     ) {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             mainHandler.post {
@@ -155,7 +155,7 @@ object RegionalPickOverlay {
         anchorRawY: Float?,
         continueTouch: Boolean,
         gestureStartRawY: Float? = null,
-        edgeSide: FloatBallSide? = null,
+        edgeSide: FloatBallSide? = null
     ) {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             mainHandler.post { show(context, appSettings, anchorRawX, anchorRawY, continueTouch) }
@@ -255,15 +255,15 @@ object RegionalPickOverlay {
                 preview,
                 FrameLayout.LayoutParams(
                     FrameLayout.LayoutParams.MATCH_PARENT,
-                    FrameLayout.LayoutParams.MATCH_PARENT,
-                ),
+                    FrameLayout.LayoutParams.MATCH_PARENT
+                )
             )
             addView(
                 ballVisual,
                 FrameLayout.LayoutParams(
                     FrameLayout.LayoutParams.WRAP_CONTENT,
-                    FrameLayout.LayoutParams.WRAP_CONTENT,
-                ),
+                    FrameLayout.LayoutParams.WRAP_CONTENT
+                )
             )
             visibility = View.GONE
         }
@@ -276,7 +276,7 @@ object RegionalPickOverlay {
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                 WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
                 WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
-            PixelFormat.TRANSLUCENT,
+            PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.TOP or Gravity.START
             layoutInDisplayCutoutMode =
@@ -311,7 +311,7 @@ object RegionalPickOverlay {
         gestureStartRawY: Float,
         edgeSide: FloatBallSide,
         rawX: Float,
-        rawY: Float,
+        rawY: Float
     ) {
         appContext?.let { refreshScreenMetrics(it) }
         val currentSettings = settings ?: return
@@ -333,7 +333,7 @@ object RegionalPickOverlay {
             screenWidth = screenWidth,
             screenHeight = screenHeight,
             density = density,
-            marginPx = marginPx,
+            marginPx = marginPx
         )
         lastFingerX = rawX
         lastFingerY = rawY
@@ -436,7 +436,7 @@ object RegionalPickOverlay {
                     host,
                     panelAnchorX,
                     panelAnchorY,
-                    PickResultTextSource.OCR,
+                    PickResultTextSource.OCR
                 )
                 SlideIndexAccessibilityService.pickFloatBallOnRelease(
                     context = host,
@@ -446,7 +446,7 @@ object RegionalPickOverlay {
                     endY = end.y,
                     regionalRect = true,
                     ocrFallbackEnabled = ocrFallbackEnabled,
-                    ocrModelId = ocrModelId,
+                    ocrModelId = ocrModelId
                 ) { result ->
                     FloatBallPickResultPanel.showResult(host, panelAnchorX, panelAnchorY, result)
                     PickPerf.endSession("END", "regional_rect_gesture")
@@ -461,14 +461,14 @@ object RegionalPickOverlay {
                     host,
                     panelAnchorX,
                     panelAnchorY,
-                    PickResultTextSource.A11Y,
+                    PickResultTextSource.A11Y
                 )
                 SlideIndexAccessibilityService.pickFloatBallTextInRect(
                     context = host,
                     rect = bounds,
                     ocrFallbackEnabled = ocrFallbackEnabled,
                     ocrModelId = ocrModelId,
-                    previewBoundsPick = true,
+                    previewBoundsPick = true
                 ) { result ->
                     FloatBallPickResultPanel.showResult(host, panelAnchorX, panelAnchorY, result)
                     PickPerf.endSession("END", "preview_bounds_gesture")
@@ -501,7 +501,7 @@ object RegionalPickOverlay {
         currentSettings: AppSettings,
         ballSizePx: Float,
         marginPx: Int,
-        density: Float,
+        density: Float
     ) {
         pickAnchor = dragSession.computePick(
             settings = currentSettings,
@@ -509,18 +509,18 @@ object RegionalPickOverlay {
             screenWidth = screenWidth,
             screenHeight = screenHeight,
             density = density,
-            marginPx = marginPx,
+            marginPx = marginPx
         )
         ballCenter = dragSession.clampedBallCenter(
             ballSizePx = ballSizePx,
             marginPx = marginPx,
             screenWidth = screenWidth.roundToInt(),
-            screenHeight = screenHeight.roundToInt(),
+            screenHeight = screenHeight.roundToInt()
         )
         val ballDockSide = FloatBallPickAnchor.dockSideForBallCenter(
             ballCenterX = ballCenter.x,
             screenWidth = screenWidth,
-            fallbackDockSide = edgePickDockSide,
+            fallbackDockSide = edgePickDockSide
         )
         updateBallLayout(currentSettings, ballDockSide, ballSizePx.roundToInt())
     }
@@ -528,7 +528,7 @@ object RegionalPickOverlay {
     private fun updateBallLayout(
         currentSettings: AppSettings,
         dockSide: FloatBallSide,
-        ballSizePx: Int,
+        ballSizePx: Int
     ) {
         val visual = ballDragVisualView ?: return
         if (visual.visibility != View.VISIBLE || ballVisualDockSide != dockSide) {
@@ -561,7 +561,7 @@ object RegionalPickOverlay {
         overlayScope.launch(Dispatchers.Default) {
             val bounds = SlideIndexAccessibilityService.findControlBoundsAt(
                 rawX = anchor.x,
-                rawY = anchor.y,
+                rawY = anchor.y
             )
             withContext(Dispatchers.Main) {
                 if (generation != boundsLookupGeneration) return@withContext
@@ -585,7 +585,7 @@ object RegionalPickOverlay {
         }
         val bounds = SlideIndexAccessibilityService.findControlBoundsAt(
             rawX = anchor.x,
-            rawY = anchor.y,
+            rawY = anchor.y
         )
         if (bounds != null) {
             selectionPreviewBounds = bounds
@@ -600,7 +600,7 @@ object RegionalPickOverlay {
         PickPrefetchCache.startPreviewA11yPrefetch(
             service = service,
             rect = bounds,
-            generation = boundsLookupGeneration,
+            generation = boundsLookupGeneration
         )
     }
 
@@ -654,7 +654,7 @@ object RegionalPickOverlay {
             onReady = {
                 if (!sessionActive) return@refresh
                 applyPreviewBoundsFromCache()
-            },
+            }
         )
     }
 
@@ -772,7 +772,7 @@ object RegionalPickOverlay {
             crossAlpha = 1f,
             crossPaused = paused,
             crossArmDp = currentSettings?.floatBallPickCrossArmDp?.coerceIn(4f, 16f) ?: 7.5f,
-            hintMode = hintMode,
+            hintMode = hintMode
         )
     }
 

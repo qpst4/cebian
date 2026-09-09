@@ -56,7 +56,7 @@ class SearchPanelTrampolineActivity : ComponentActivity() {
 
             OverlayServiceLifecycle.syncFromSettings(
                 this@SearchPanelTrampolineActivity,
-                deps.settingsRepository,
+                deps.settingsRepository
             )
 
             searchQuery?.let { SearchPanelQueryBridge.rememberQuery(this@SearchPanelTrampolineActivity, it) }
@@ -120,7 +120,7 @@ class SearchPanelTrampolineActivity : ComponentActivity() {
                 addFlags(
                     Intent.FLAG_ACTIVITY_NEW_TASK or
                         Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                        Intent.FLAG_ACTIVITY_NO_ANIMATION,
+                        Intent.FLAG_ACTIVITY_NO_ANIMATION
                 )
             }
 
@@ -133,7 +133,7 @@ class SearchPanelTrampolineActivity : ComponentActivity() {
                 addFlags(
                     Intent.FLAG_ACTIVITY_NEW_TASK or
                         Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                        Intent.FLAG_ACTIVITY_NO_ANIMATION,
+                        Intent.FLAG_ACTIVITY_NO_ANIMATION
                 )
             }
     }

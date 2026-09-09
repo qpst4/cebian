@@ -13,7 +13,7 @@ internal class FloatBallDisplayHost(
     context: Context,
     private val lineChromeOwner: OverlayComposeOwner,
     val ballIconView: FloatBallIconView,
-    val cursorPreviewView: FloatBallCursorPreviewView,
+    val cursorPreviewView: FloatBallCursorPreviewView
 ) : FrameLayout(context) {
 
     val lineChromeComposeView: ComposeView
@@ -68,7 +68,7 @@ internal class FloatBallDisplayHost(
         lastBallLeft,
         lastBallTop,
         lastBallLeft + lastBallSize,
-        lastBallTop + lastBallSize,
+        lastBallTop + lastBallSize
     )
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -84,7 +84,7 @@ internal class FloatBallDisplayHost(
         } else {
             ballIconView.measure(
                 MeasureSpec.makeMeasureSpec(0, MeasureSpec.EXACTLY),
-                MeasureSpec.makeMeasureSpec(0, MeasureSpec.EXACTLY),
+                MeasureSpec.makeMeasureSpec(0, MeasureSpec.EXACTLY)
             )
         }
         setMeasuredDimension(width, height)
@@ -100,7 +100,7 @@ internal class FloatBallDisplayHost(
                 lastBallLeft,
                 lastBallTop,
                 lastBallLeft + lastBallSize,
-                lastBallTop + lastBallSize,
+                lastBallTop + lastBallSize
             )
         } else {
             ballIconView.layout(0, 0, 0, 0)

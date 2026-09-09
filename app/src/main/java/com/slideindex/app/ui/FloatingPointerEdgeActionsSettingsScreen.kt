@@ -42,7 +42,7 @@ fun FloatingPointerEdgeActionsSettingsScreen(
     onPreviewShowIconChange: (Boolean) -> Unit,
     onVisualColorChange: (Int) -> Unit,
     onOpenSideSettings: (FloatingPointerEdgeSide) -> Unit,
-    onResetDefaults: () -> Unit,
+    onResetDefaults: () -> Unit
 ) {
     var showColorPicker by remember { mutableStateOf(false) }
 
@@ -53,7 +53,7 @@ fun FloatingPointerEdgeActionsSettingsScreen(
             onColorPicked = {
                 onVisualColorChange(it)
                 showColorPicker = false
-            },
+            }
         )
     }
 
@@ -63,12 +63,11 @@ fun FloatingPointerEdgeActionsSettingsScreen(
     Box(modifier = Modifier.fillMaxSize()) {
         SettingsScreenScaffold(
             title = stringResource(R.string.floating_pointer_edge_settings_title),
-            onBack = onBack,
+            onBack = onBack
         ) {
             settingsLazySmallTitle(
                 key = "edge-general-section",
-                title = generalSectionTitle,
-                sectionTop = true,
+                title = generalSectionTitle
             )
             groupedCardItems(
                 keyPrefix = "fp-edge-general",
@@ -83,11 +82,11 @@ fun FloatingPointerEdgeActionsSettingsScreen(
                                 enabled = true,
                                 label = stringResource(
                                     R.string.floating_pointer_edge_threshold_value,
-                                    settings.floatingPointerEdgeThresholdDp.roundToInt(),
+                                    settings.floatingPointerEdgeThresholdDp.roundToInt()
                                 ),
-                                onValueChange = onThresholdChange,
+                                onValueChange = onThresholdChange
                             )
-                        },
+                        }
                     )
                     add(
                         settingsCardScopeItem("preview-sensitivity") {
@@ -98,9 +97,9 @@ fun FloatingPointerEdgeActionsSettingsScreen(
                                 steps = 4,
                                 enabled = true,
                                 label = edgePreviewSensitivityLabel(settings.floatingPointerEdgePreviewSensitivity),
-                                onValueChange = { onPreviewSensitivityChange(it.roundToInt()) },
+                                onValueChange = { onPreviewSensitivityChange(it.roundToInt()) }
                             )
-                        },
+                        }
                     )
                     add(
                         settingsCardScopeItem("preview-glow") {
@@ -111,9 +110,9 @@ fun FloatingPointerEdgeActionsSettingsScreen(
                                 steps = 6,
                                 enabled = true,
                                 label = edgePreviewGlowLabel(settings.floatingPointerEdgePreviewGlowSize),
-                                onValueChange = { onPreviewGlowSizeChange(it.roundToInt()) },
+                                onValueChange = { onPreviewGlowSizeChange(it.roundToInt()) }
                             )
-                        },
+                        }
                     )
                     add(
                         settingsCardScopeItem("preview-icon") {
@@ -122,26 +121,25 @@ fun FloatingPointerEdgeActionsSettingsScreen(
                                 subtitle = stringResource(R.string.floating_pointer_edge_preview_show_icon_desc),
                                 checked = settings.floatingPointerEdgePreviewShowIcon,
                                 enabled = true,
-                                onCheckedChange = onPreviewShowIconChange,
+                                onCheckedChange = onPreviewShowIconChange
                             )
-                        },
+                        }
                     )
                     add(
                         settingsCardScopeItem("visual-color") {
                             AnimationStyleColorRow(
                                 title = stringResource(R.string.floating_pointer_edge_visual_color),
                                 color = settings.floatingPointerEdgeVisualColorArgb,
-                                onClick = { showColorPicker = true },
+                                onClick = { showColorPicker = true }
                             )
-                        },
+                        }
                     )
-                },
+                }
             )
 
             settingsLazySmallTitle(
                 key = "edge-sides-section",
-                title = sidesSectionTitle,
-                sectionTop = true,
+                title = sidesSectionTitle
             )
             groupedCardItems(
                 keyPrefix = "fp-edge-sides",
@@ -154,12 +152,12 @@ fun FloatingPointerEdgeActionsSettingsScreen(
                                     icon = { label -> Icon(edgeSideIcon(side), contentDescription = label) },
                                     title = edgeSideTitle(side),
                                     subtitle = edgeSideSummary(bar),
-                                    onClick = { onOpenSideSettings(side) },
+                                    onClick = { onOpenSideSettings(side) }
                                 )
-                            },
+                            }
                         )
                     }
-                },
+                }
             )
             groupedCardItems(
                 keyPrefix = "fp-edge-reset",
@@ -170,11 +168,11 @@ fun FloatingPointerEdgeActionsSettingsScreen(
                                 icon = { label -> Icon(Icons.Default.Restore, contentDescription = label) },
                                 title = stringResource(R.string.floating_pointer_edge_reset_defaults),
                                 subtitle = stringResource(R.string.floating_pointer_edge_reset_defaults_desc),
-                                onClick = onResetDefaults,
+                                onClick = onResetDefaults
                             )
-                        },
+                        }
                     )
-                },
+                }
             )
         }
     }
@@ -210,7 +208,7 @@ internal fun edgeSideSummary(zoneCount: Int, enabled: Boolean): String {
         R.plurals.floating_pointer_edge_side_summary,
         zoneCount,
         zoneCount,
-        status,
+        status
     )
 }
 

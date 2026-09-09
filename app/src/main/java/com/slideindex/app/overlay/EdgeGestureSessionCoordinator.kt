@@ -25,7 +25,7 @@ internal class GestureSessionCallbackBridge : GestureSession.Callbacks {
         continuousPick: Boolean,
         rawX: Float,
         rawY: Float,
-        forceBrowseMode: Boolean,
+        forceBrowseMode: Boolean
     ): Boolean = delegate.onShowHoneycombLauncher(continuousPick, rawX, rawY, forceBrowseMode)
     override fun onHoneycombLauncherPointerMove(rawX: Float, rawY: Float) =
         delegate.onHoneycombLauncherPointerMove(rawX, rawY)
@@ -34,7 +34,7 @@ internal class GestureSessionCallbackBridge : GestureSession.Callbacks {
     override fun onShowAppSwitcher(
         continuousPick: Boolean,
         rawX: Float,
-        rawY: Float,
+        rawY: Float
     ): Boolean = delegate.onShowAppSwitcher(continuousPick, rawX, rawY)
     override fun onAppSwitcherPointerMove(rawX: Float, rawY: Float) =
         delegate.onAppSwitcherPointerMove(rawX, rawY)
@@ -43,7 +43,7 @@ internal class GestureSessionCallbackBridge : GestureSession.Callbacks {
     override fun onShowFingertipRing(
         continuousPick: Boolean,
         rawX: Float,
-        rawY: Float,
+        rawY: Float
     ): Boolean = delegate.onShowFingertipRing(continuousPick, rawX, rawY)
     override fun onFingertipRingPointerMove(rawX: Float, rawY: Float) =
         delegate.onFingertipRingPointerMove(rawX, rawY)
@@ -53,7 +53,7 @@ internal class GestureSessionCallbackBridge : GestureSession.Callbacks {
         mode: com.slideindex.app.util.ContinuousAdjustController.Mode,
         fraction: Float,
         anchorRawY: Float,
-        deferWindowLayout: Boolean,
+        deferWindowLayout: Boolean
     ) = delegate.onShowAdjustPanel(mode, fraction, anchorRawY, deferWindowLayout)
     override fun onRequestInvalidate() = delegate.onRequestInvalidate()
     override fun hapticGestureStart() = delegate.hapticGestureStart()
@@ -84,7 +84,7 @@ internal class EdgeGestureSessionCoordinator(
     private val requestInvalidate: () -> Unit,
     private val indexPanelContentRect: () -> android.graphics.RectF,
     private val onIndexSessionStart: () -> Unit = {},
-    private val notifyAccessibilityStructure: () -> Unit = {},
+    private val notifyAccessibilityStructure: () -> Unit = {}
 ) : GestureSession.Callbacks {
     private var lastAdjustInvalidateMs = 0L
 
@@ -100,7 +100,7 @@ internal class EdgeGestureSessionCoordinator(
             (rect.left - pad).toInt().coerceAtLeast(0),
             (rect.top - pad).toInt().coerceAtLeast(0),
             (rect.right + pad).toInt().coerceAtMost(view.width.coerceAtLeast(1)),
-            (rect.bottom + pad).toInt().coerceAtMost(view.height.coerceAtLeast(1)),
+            (rect.bottom + pad).toInt().coerceAtMost(view.height.coerceAtLeast(1))
         )
     }
 
@@ -152,7 +152,7 @@ internal class EdgeGestureSessionCoordinator(
                 panelEnterAnimator.startEnter(
                     panelMode = mode,
                     onShellEnterEnded = { shellCoordinator.onPanelEnterAnimationEnded() },
-                    onQuickLauncherEnterEnded = { quickLauncherController.onPanelEnterAnimationEnded() },
+                    onQuickLauncherEnterEnded = { quickLauncherController.onPanelEnterAnimationEnded() }
                 )
             }
         }
@@ -192,7 +192,7 @@ internal class EdgeGestureSessionCoordinator(
         continuousPick: Boolean,
         rawX: Float,
         rawY: Float,
-        forceBrowseMode: Boolean,
+        forceBrowseMode: Boolean
     ): Boolean {
         val settings = settingsProvider()
         return HoneycombAppPickerOverlayWindow.show(
@@ -204,7 +204,7 @@ internal class EdgeGestureSessionCoordinator(
             forceBrowseMode = forceBrowseMode,
             onLaunch = { item, longPressArmed ->
                 actionExecutor.launchQuickItem(item, settings, longPressArmed = longPressArmed)
-            },
+            }
         )
     }
 
@@ -217,7 +217,7 @@ internal class EdgeGestureSessionCoordinator(
             rawX = rawX,
             rawY = rawY,
             actionExecutor = actionExecutor,
-            settings = settingsProvider(),
+            settings = settingsProvider()
         )
         gestureSession.clearHoneycombContinuousPick()
     }
@@ -225,7 +225,7 @@ internal class EdgeGestureSessionCoordinator(
     override fun onShowAppSwitcher(
         continuousPick: Boolean,
         rawX: Float,
-        rawY: Float,
+        rawY: Float
     ): Boolean {
         if (continuousPick) {
             gestureAnimationCoordinator.hide()
@@ -240,7 +240,7 @@ internal class EdgeGestureSessionCoordinator(
             onLaunch = { item, longPressArmed ->
                 actionExecutor.launchQuickItem(item, settings, longPressArmed = longPressArmed)
             },
-            edgePanelSide = gestureSession.sessionSide,
+            edgePanelSide = gestureSession.sessionSide
         )
     }
 
@@ -253,7 +253,7 @@ internal class EdgeGestureSessionCoordinator(
             rawX = rawX,
             rawY = rawY,
             actionExecutor = actionExecutor,
-            settings = settingsProvider(),
+            settings = settingsProvider()
         )
         gestureSession.clearAppSwitcherContinuousPick()
     }
@@ -261,7 +261,7 @@ internal class EdgeGestureSessionCoordinator(
     override fun onShowFingertipRing(
         continuousPick: Boolean,
         rawX: Float,
-        rawY: Float,
+        rawY: Float
     ): Boolean {
         gestureAnimationCoordinator.hide()
         val settings = settingsProvider()
@@ -271,7 +271,7 @@ internal class EdgeGestureSessionCoordinator(
             anchorRawX = rawX,
             anchorRawY = rawY,
             externalTracking = continuousPick,
-            actionExecutor = if (continuousPick) null else actionExecutor,
+            actionExecutor = if (continuousPick) null else actionExecutor
         )
         if (shown && continuousPick) {
             com.slideindex.app.overlay.fingertip.FingertipRingOverlayWindow.updatePointer(rawX, rawY)
@@ -288,7 +288,7 @@ internal class EdgeGestureSessionCoordinator(
             rawX = rawX,
             rawY = rawY,
             settings = settingsProvider(),
-            actionExecutor = actionExecutor,
+            actionExecutor = actionExecutor
         )
         gestureSession.clearFingertipRingContinuousPick()
     }
@@ -297,7 +297,7 @@ internal class EdgeGestureSessionCoordinator(
         mode: ContinuousAdjustController.Mode,
         fraction: Float,
         anchorRawY: Float,
-        deferWindowLayout: Boolean,
+        deferWindowLayout: Boolean
     ) {
         onAdjustPanelLayoutCallback(anchorRawY)
         adjustPanelController.showAdjustPanel(mode, fraction, anchorRawY)

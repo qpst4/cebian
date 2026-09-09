@@ -40,7 +40,7 @@ internal object BlurredWallpaperCache {
         service: AccessibilityService,
         context: Context,
         blurDp: Int,
-        callback: Callback,
+        callback: Callback
     ): Bitmap? {
         val appContext = context.applicationContext ?: context
         val width = downsampleWidth(appContext)
@@ -90,7 +90,7 @@ internal object BlurredWallpaperCache {
         source: Bitmap,
         width: Int,
         height: Int,
-        radius: Int,
+        radius: Int
     ): Bitmap {
         val result = createBitmap(width, height)
         val canvas = Canvas(result)
@@ -98,7 +98,7 @@ internal object BlurredWallpaperCache {
             source,
             null,
             RectF(0f, 0f, width.toFloat(), height.toFloat()),
-            null,
+            null
         )
         if (radius > 0) {
             blur(result, radius, 2)
@@ -151,7 +151,7 @@ internal object BlurredWallpaperCache {
         target: IntArray,
         width: Int,
         height: Int,
-        radius: Int,
+        radius: Int
     ) {
         val samples = radius * 2 + 1
         for (y in 0 until height) {
@@ -184,7 +184,7 @@ internal object BlurredWallpaperCache {
         target: IntArray,
         width: Int,
         height: Int,
-        radius: Int,
+        radius: Int
     ) {
         val samples = radius * 2 + 1
         for (x in 0 until width) {
@@ -224,6 +224,6 @@ internal object BlurredWallpaperCache {
         val generation: Int,
         val width: Int,
         val height: Int,
-        val radius: Int,
+        val radius: Int
     )
 }

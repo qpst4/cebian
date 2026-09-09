@@ -28,7 +28,7 @@ private val floatBallVisibleFractionRange =
     FloatBallPositionFractions.MIN_VISIBLE..FloatBallPositionFractions.MAX_VISIBLE
 
 private fun fractionPercentSnap(
-    range: ClosedFloatingPointRange<Float>,
+    range: ClosedFloatingPointRange<Float>
 ): (Float) -> Float = { value ->
     (value.coerceIn(range.start, range.endInclusive) * 1000f).roundToInt() / 1000f
 }
@@ -64,10 +64,10 @@ fun FloatBallAppearanceSettingsScreen(
         visibleFraction: Float?,
         lineHeightFraction: Float?,
         lineWidthFraction: Float?,
-        lineOpacity: Float?,
+        lineOpacity: Float?
     ) -> Unit = { _, _, _, _, _, _ -> },
     onAppearancePreviewCommit: () -> Unit = {},
-    onAppearancePreviewRestore: () -> Unit = {},
+    onAppearancePreviewRestore: () -> Unit = {}
 ) {
     val appearanceSectionTitle = stringResource(R.string.float_ball_section_appearance)
     val positionSectionTitle = stringResource(R.string.float_ball_position)
@@ -82,12 +82,11 @@ fun FloatBallAppearanceSettingsScreen(
 
     SettingsScreenScaffold(
         title = stringResource(R.string.float_ball_appearance_settings_title),
-        onBack = onBack,
+        onBack = onBack
     ) {
         settingsLazySmallTitle(
             key = "appearance_section",
-            title = appearanceSectionTitle,
-            sectionTop = true,
+            title = appearanceSectionTitle
         )
         groupedCardItems(
             keyPrefix = "fb-appearance",
@@ -99,15 +98,15 @@ fun FloatBallAppearanceSettingsScreen(
                                 Icon(
                                     Icons.Outlined.Palette,
                                     contentDescription = label,
-                                    tint = top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                                    tint = top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.onSurfaceVariantSummary
                                 )
                             },
                             title = stringResource(R.string.float_ball_style_picker_title),
                             subtitle = floatBallStyleLabel(settings.floatBallStyleType),
                             enabled = true,
-                            onClick = onOpenStyleSettings,
+                            onClick = onOpenStyleSettings
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("size") {
@@ -119,7 +118,7 @@ fun FloatBallAppearanceSettingsScreen(
                             enabled = true,
                             label = stringResource(
                                 R.string.float_ball_size_value,
-                                settings.floatBallSizeDp,
+                                settings.floatBallSizeDp
                             ),
                             triggersLayoutPreview = true,
                             onLayoutPreviewValueChange = { value ->
@@ -128,9 +127,9 @@ fun FloatBallAppearanceSettingsScreen(
                             onValueChange = { value ->
                                 onAppearancePreviewCommit()
                                 onSizeChange(value)
-                            },
+                            }
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("opacity") {
@@ -149,17 +148,16 @@ fun FloatBallAppearanceSettingsScreen(
                             onValueChange = { value ->
                                 onAppearancePreviewCommit()
                                 onOpacityChange(value)
-                            },
+                            }
                         )
-                    },
+                    }
                 )
-            },
+            }
         )
 
         settingsLazySmallTitle(
             key = "position_section",
-            title = positionSectionTitle,
-            sectionTop = true,
+            title = positionSectionTitle
         )
         settingsLazyHint(key = "position_xy_hint", text = positionXyHint)
         groupedCardItems(
@@ -173,9 +171,9 @@ fun FloatBallAppearanceSettingsScreen(
                             items = positionModeEntries.map { floatBallPositionModeLabel(it) },
                             selectedIndex = positionModeIndex,
                             enabled = true,
-                            onSelectedIndexChange = { onPositionModeChange(positionModeEntries[it]) },
+                            onSelectedIndexChange = { onPositionModeChange(positionModeEntries[it]) }
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("visible-fraction") {
@@ -194,9 +192,9 @@ fun FloatBallAppearanceSettingsScreen(
                             onValueChange = { value ->
                                 onAppearancePreviewCommit()
                                 onVisibleFractionChange(value)
-                            },
+                            }
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("position-y") {
@@ -215,18 +213,17 @@ fun FloatBallAppearanceSettingsScreen(
                             onValueChange = { fraction ->
                                 onPositionYPreviewStop(false)
                                 onPositionYChange(fraction)
-                            },
+                            }
                         )
-                    },
+                    }
                 )
-            },
+            }
         )
 
         if (showEdgeLineSettings) {
             settingsLazySmallTitle(
                 key = "line_section",
-                title = lineSectionTitle,
-                sectionTop = true,
+                title = lineSectionTitle
             )
             settingsLazyHint(key = "line_width_preview_hint", text = lineWidthPreviewHint)
             groupedCardItems(
@@ -251,9 +248,9 @@ fun FloatBallAppearanceSettingsScreen(
                                 onValueChange = { value ->
                                     onAppearancePreviewCommit()
                                     onLineHeightChange(value)
-                                },
+                                }
                             )
-                        },
+                        }
                     )
                     add(
                         settingsCardScopeItem("line-width") {
@@ -274,9 +271,9 @@ fun FloatBallAppearanceSettingsScreen(
                                 onValueChange = { value ->
                                     onAppearancePreviewCommit()
                                     onLineWidthChange(value)
-                                },
+                                }
                             )
-                        },
+                        }
                     )
                     add(
                         settingsCardScopeItem("line-opacity") {
@@ -295,11 +292,11 @@ fun FloatBallAppearanceSettingsScreen(
                                 onValueChange = { value ->
                                     onAppearancePreviewCommit()
                                     onLineOpacityChange(value)
-                                },
+                                }
                             )
-                        },
+                        }
                     )
-                },
+                }
             )
         }
     }

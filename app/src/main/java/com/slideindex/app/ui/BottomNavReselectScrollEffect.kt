@@ -13,7 +13,7 @@ import androidx.compose.runtime.LaunchedEffect
 fun BottomNavReselectScrollEffect(
     reselectCount: Int,
     scrollState: ScrollState,
-    scrollBehavior: TopAppBarScrollBehavior? = null,
+    scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
     LaunchedEffect(reselectCount) {
         if (reselectCount > 0) {
@@ -21,7 +21,7 @@ fun BottomNavReselectScrollEffect(
             scrollBehavior?.let { behavior ->
                 animate(
                     initialValue = behavior.state.heightOffset,
-                    targetValue = 0f,
+                    targetValue = 0f
                 ) { value, _ ->
                     behavior.state.heightOffset = value
                 }
@@ -35,7 +35,7 @@ fun BottomNavReselectScrollEffect(
 fun BottomNavReselectScrollEffect(
     reselectCount: Int,
     listState: LazyListState,
-    scrollBehavior: TopAppBarScrollBehavior? = null,
+    scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
     LaunchedEffect(reselectCount) {
         if (reselectCount > 0) {
@@ -43,7 +43,7 @@ fun BottomNavReselectScrollEffect(
             scrollBehavior?.let { behavior ->
                 animate(
                     initialValue = behavior.state.heightOffset,
-                    targetValue = 0f,
+                    targetValue = 0f
                 ) { value, _ ->
                     behavior.state.heightOffset = value
                 }

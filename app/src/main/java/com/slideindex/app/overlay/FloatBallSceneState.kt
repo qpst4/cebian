@@ -35,7 +35,7 @@ internal class FloatBallSceneState(initialSettings: AppSettings) {
 
     fun resolvedActiveSide(
         settings: AppSettings = settingsState.value,
-        dragActiveSideOverride: FloatBallSide? = null,
+        dragActiveSideOverride: FloatBallSide? = null
     ): FloatBallSide = dragActiveSideOverride ?: FloatBallLayout.resolvedActiveSide(settings)
 
     /** 停靠球心（屏幕坐标）。 */
@@ -44,14 +44,14 @@ internal class FloatBallSceneState(initialSettings: AppSettings) {
         metrics: DisplayMetrics,
         activeSide: FloatBallSide,
         screenWidthPx: Int = metrics.widthPixels,
-        screenHeightPx: Int = metrics.heightPixels,
+        screenHeightPx: Int = metrics.heightPixels
     ): Offset {
         val (cx, cy) = FloatBallLayout.ballCenterPx(
             settings,
             metrics,
             activeSide,
             screenWidthPx,
-            screenHeightPx,
+            screenHeightPx
         )
         return Offset(cx, cy)
     }
@@ -62,13 +62,13 @@ internal class FloatBallSceneState(initialSettings: AppSettings) {
         metrics: DisplayMetrics,
         activeSide: FloatBallSide,
         screenWidthPx: Int = metrics.widthPixels,
-        screenHeightPx: Int = metrics.heightPixels,
+        screenHeightPx: Int = metrics.heightPixels
     ): Offset = ballCenterPx.value ?: dockBallCenter(
         settings,
         metrics,
         activeSide,
         screenWidthPx,
-        screenHeightPx,
+        screenHeightPx
     )
 
     /** 球体窗口左上角，用于 Display 层定位（含半隐藏停靠）。 */
@@ -77,7 +77,7 @@ internal class FloatBallSceneState(initialSettings: AppSettings) {
         metrics: DisplayMetrics,
         activeSide: FloatBallSide,
         center: Offset,
-        screenHeightPx: Int = metrics.heightPixels,
+        screenHeightPx: Int = metrics.heightPixels
     ): Pair<Int, Int> {
         val ballSizePx = FloatBallLayout.ballSizePx(settings, metrics.density)
         return if (settings.floatBallPositionMode == FloatBallPositionMode.CUSTOM) {
@@ -89,7 +89,7 @@ internal class FloatBallSceneState(initialSettings: AppSettings) {
                 activeSide = activeSide,
                 ballCenterX = center.x,
                 ballCenterY = center.y,
-                screenHeightPx = screenHeightPx,
+                screenHeightPx = screenHeightPx
             )
         }
     }
@@ -99,7 +99,7 @@ internal class FloatBallSceneState(initialSettings: AppSettings) {
         metrics: DisplayMetrics,
         activeSide: FloatBallSide,
         screenWidthPx: Int = metrics.widthPixels,
-        screenHeightPx: Int = metrics.heightPixels,
+        screenHeightPx: Int = metrics.heightPixels
     ): Rect {
         val center = resolveBallCenter(settings, metrics, activeSide, screenWidthPx, screenHeightPx)
         val ballSizePx = FloatBallLayout.ballSizePx(settings, metrics.density)
@@ -112,13 +112,13 @@ internal class FloatBallSceneState(initialSettings: AppSettings) {
         metrics: DisplayMetrics,
         inactiveSide: FloatBallSide,
         screenWidthPx: Int = metrics.widthPixels,
-        screenHeightPx: Int = metrics.heightPixels,
+        screenHeightPx: Int = metrics.heightPixels
     ): Rect = FloatBallLayout.lineStripBounds(
         settings,
         metrics,
         inactiveSide,
         screenWidthPx,
-        screenHeightPx,
+        screenHeightPx
     )
 
     /** 空闲态球体触摸窗 bounds（仅球区；线条由独立触摸窗覆盖）。 */
@@ -127,6 +127,6 @@ internal class FloatBallSceneState(initialSettings: AppSettings) {
         metrics: DisplayMetrics,
         activeSide: FloatBallSide,
         screenWidthPx: Int = metrics.widthPixels,
-        screenHeightPx: Int = metrics.heightPixels,
+        screenHeightPx: Int = metrics.heightPixels
     ): Rect = ballHitRect(settings, metrics, activeSide, screenWidthPx, screenHeightPx)
 }

@@ -100,18 +100,18 @@ object MessageReminderPreviewController {
             enabled = true,
             floatIconEnabled = style == MessageStyle.FloatIcon,
             sideBubbleEnabled = style == MessageStyle.SideBubble,
-            autoDismissSeconds = 0,
+            autoDismissSeconds = 0
         )
 
     private fun buildPreviewPlan(
         context: Context,
         style: MessageStyle,
-        settings: MessageSettings,
+        settings: MessageSettings
     ): MessageDisplayPlan? {
         val appContext = context.applicationContext
         val appLabel = runCatching {
             appContext.packageManager.getApplicationLabel(
-                appContext.packageManager.getApplicationInfo(appContext.packageName, 0),
+                appContext.packageManager.getApplicationInfo(appContext.packageName, 0)
             ).toString()
         }.getOrDefault(appContext.packageName)
         val appIcon = loadAppIcon(appContext, appContext.packageName)
@@ -123,7 +123,7 @@ object MessageReminderPreviewController {
             largeIcon = appIcon,
             appIcon = null,
             contentIntent = null,
-            postTime = -1L,
+            postTime = -1L
         )
         return MessageDisplayPlan(
             data = data,
@@ -136,7 +136,7 @@ object MessageReminderPreviewController {
                 null
             },
             danmakuTheme = null,
-            settings = settings,
+            settings = settings
         )
     }
 

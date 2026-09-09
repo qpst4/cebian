@@ -14,7 +14,7 @@ internal fun GestureSession.dispatchMoveTimeGesture(
     rawX: Float,
     rawY: Float,
     localX: Float,
-    localY: Float,
+    localY: Float
 ) {
     val action = sessionSettings.actionFor(sessionSide, classification.trigger, sessionActiveHandleId)
 
@@ -30,7 +30,7 @@ internal fun GestureSession.dispatchMoveTimeGesture(
         rawY = rawY,
         localX = localX,
         localY = localY,
-        gestureStartRawY = sessionPathRecognizer.gestureStartRawY(),
+        gestureStartRawY = sessionPathRecognizer.gestureStartRawY()
     )
 }
 
@@ -39,7 +39,7 @@ internal fun GestureSession.trackContinuousGesture(
     rawX: Float,
     rawY: Float,
     localX: Float,
-    localY: Float,
+    localY: Float
 ) {
     val action = sessionSettings.actionFor(sessionSide, classification.trigger, sessionActiveHandleId)
 
@@ -64,7 +64,7 @@ internal fun GestureSession.trackContinuousGesture(
         is GestureAction.QuickLauncher -> {
             val resolvedPanelId = QuickLauncherPanelDefaults.resolvePanelId(
                 sessionSettings.quickLauncherPanels,
-                action.panelId,
+                action.panelId
             )
             if (sessionPanelMode != OverlayPanelMode.QUICK_LAUNCHER ||
                 sessionQuickLauncherPanelId != resolvedPanelId
@@ -112,7 +112,7 @@ internal fun GestureSession.trackContinuousGesture(
                     sessionSettings,
                     rawX,
                     rawY,
-                    externalTracking = true,
+                    externalTracking = true
                 )
                 if (shown) {
                     sessionContinuousPick.appCarouselSwitcher = true
@@ -128,7 +128,7 @@ internal fun GestureSession.trackContinuousGesture(
                 val shown = sessionCallbacks.onShowFingertipRing(
                     continuousPick = true,
                     rawX = rawX,
-                    rawY = rawY,
+                    rawY = rawY
                 )
                 if (shown) {
                     sessionContinuousPick.fingertipRing = true
@@ -149,7 +149,7 @@ internal fun GestureSession.trackContinuousGesture(
                     classification.trigger,
                     rawX,
                     rawY,
-                    classifyOptions(),
+                    classifyOptions()
                 )
             ) {
                 sessionMoveTimeActionFired = true
@@ -161,7 +161,7 @@ internal fun GestureSession.trackContinuousGesture(
                     context = hostContext,
                     settings = sessionSettings,
                     rawX = rawX,
-                    rawY = rawY,
+                    rawY = rawY
                 )
             }
         }
@@ -172,7 +172,7 @@ internal fun GestureSession.trackContinuousGesture(
                     classification.trigger,
                     rawX,
                     rawY,
-                    classifyOptions(),
+                    classifyOptions()
                 )
             ) {
                 sessionMoveTimeActionFired = true
@@ -187,7 +187,7 @@ internal fun GestureSession.trackContinuousGesture(
                     gestureStartRawY = sessionPathRecognizer.gestureStartRawY(),
                     edgeSide = sessionSide.toFloatBallPickDockSide(rawX, screenWidth),
                     rawX = rawX,
-                    rawY = rawY,
+                    rawY = rawY
                 )
             }
         }
@@ -202,7 +202,7 @@ internal fun GestureSession.handleClassifiedGesture(
     rawY: Float,
     localX: Float,
     localY: Float,
-    gestureStartRawY: Float,
+    gestureStartRawY: Float
 ) {
     val action = sessionSettings.actionFor(sessionSide, classification.trigger, sessionActiveHandleId)
 
@@ -251,7 +251,7 @@ internal fun GestureSession.handleClassifiedGesture(
             val triggerMode = sessionSettings.resolvedTriggerMode(
                 sessionSide,
                 classification.trigger,
-                sessionActiveHandleId,
+                sessionActiveHandleId
             )
             val forceBrowse = triggerMode == GestureTriggerMode.ON_RELEASE ||
                 triggerMode == GestureTriggerMode.IMMEDIATE
@@ -259,7 +259,7 @@ internal fun GestureSession.handleClassifiedGesture(
                 continuousPick = false,
                 rawX = rawX,
                 rawY = rawY,
-                forceBrowseMode = forceBrowse,
+                forceBrowseMode = forceBrowse
             )
             if (triggerMode != GestureTriggerMode.IMMEDIATE) {
                 endSession()
@@ -281,12 +281,12 @@ internal fun GestureSession.handleClassifiedGesture(
                 sessionSettings,
                 rawX,
                 rawY,
-                externalTracking = false,
+                externalTracking = false
             )
             val triggerMode = sessionSettings.resolvedTriggerMode(
                 sessionSide,
                 classification.trigger,
-                sessionActiveHandleId,
+                sessionActiveHandleId
             )
             if (triggerMode != GestureTriggerMode.IMMEDIATE) {
                 endSession()
@@ -299,12 +299,12 @@ internal fun GestureSession.handleClassifiedGesture(
             sessionCallbacks.onShowFingertipRing(
                 continuousPick = false,
                 rawX = rawX,
-                rawY = rawY,
+                rawY = rawY
             )
             val triggerMode = sessionSettings.resolvedTriggerMode(
                 sessionSide,
                 classification.trigger,
-                sessionActiveHandleId,
+                sessionActiveHandleId
             )
             if (triggerMode != GestureTriggerMode.IMMEDIATE) {
                 endSession()
@@ -317,7 +317,7 @@ internal fun GestureSession.handleClassifiedGesture(
                 action,
                 sessionSettings,
                 anchorRawX = rawX,
-                anchorRawY = rawY,
+                anchorRawY = rawY
             )
             endSession()
         }
@@ -430,7 +430,7 @@ internal fun GestureSession.handleClassifiedGesture(
                 sessionSettings,
                 anchorRawX = rawX,
                 anchorRawY = rawY,
-                continueTouch = sessionMoveTimeActionFired,
+                continueTouch = sessionMoveTimeActionFired
             )
             endSession()
         }
@@ -448,7 +448,7 @@ internal fun GestureSession.dispatchQuickLauncherAction(
     localX: Float,
     localY: Float,
     rawY: Float,
-    confirmHaptic: Boolean = true,
+    confirmHaptic: Boolean = true
 ): Boolean {
     when (action) {
         GestureAction.OpenIndex -> {
@@ -474,7 +474,7 @@ internal fun GestureSession.dispatchQuickLauncherAction(
             sessionActionExecutor.execute(
                 GestureAction.HoneycombLauncher,
                 sessionSettings,
-                anchorRawY = rawY,
+                anchorRawY = rawY
             )
             return true
         }
@@ -484,7 +484,7 @@ internal fun GestureSession.dispatchQuickLauncherAction(
             sessionActionExecutor.execute(
                 GestureAction.AppSwitcher,
                 sessionSettings,
-                anchorRawY = rawY,
+                anchorRawY = rawY
             )
             return true
         }
@@ -494,7 +494,7 @@ internal fun GestureSession.dispatchQuickLauncherAction(
             sessionActionExecutor.execute(
                 GestureAction.AppCarouselSwitcher,
                 sessionSettings,
-                anchorRawY = rawY,
+                anchorRawY = rawY
             )
             return true
         }
@@ -505,7 +505,7 @@ internal fun GestureSession.dispatchQuickLauncherAction(
                 GestureAction.FingertipRing,
                 sessionSettings,
                 anchorRawX = localX,
-                anchorRawY = rawY,
+                anchorRawY = rawY
             )
             return true
         }

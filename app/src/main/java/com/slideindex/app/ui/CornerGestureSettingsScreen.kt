@@ -13,7 +13,7 @@ import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
-import com.slideindex.app.ui.settings.components.settingsLazyHint
+import com.slideindex.app.ui.settings.components.settingsLazyTipCard
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -25,7 +25,7 @@ fun CornerGestureSettingsScreen(
     onLeftEnabledChange: (Boolean) -> Unit,
     onRightEnabledChange: (Boolean) -> Unit,
     onOpenInteractionAppearance: () -> Unit,
-    onOpenSlots: () -> Unit,
+    onOpenSlots: () -> Unit
 ) {
     val corner = settings.cornerGestureSettings
     val subSettingsEnabled = serviceEnabled && corner.enabled
@@ -34,11 +34,10 @@ fun CornerGestureSettingsScreen(
     SettingsScreenScaffold(
         title = stringResource(R.string.corner_gesture_settings_title),
         subtitle = stringResource(R.string.corner_gesture_settings_desc),
-        onBack = onBack,
+        onBack = onBack
     ) {
-        settingsLazyHint(
-            key = "corner-gesture-settings-hint",
-            text = settingsHint,
+        settingsLazyTipCard(key = "corner-gesture-settings-hint",
+            text = settingsHint
         )
         groupedCardItems(
             keyPrefix = "corner-enabled",
@@ -51,9 +50,9 @@ fun CornerGestureSettingsScreen(
                             icon = { label -> Icon(HomeLeadingIcons.cornerWheel(true), contentDescription = label) },
                             checked = corner.enabled,
                             enabled = serviceEnabled,
-                            onCheckedChange = onEnabledChange,
+                            onCheckedChange = onEnabledChange
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("corner-left-enabled") {
@@ -62,9 +61,9 @@ fun CornerGestureSettingsScreen(
                             subtitle = stringResource(R.string.corner_gesture_left_enabled_desc),
                             checked = corner.leftEnabled,
                             enabled = serviceEnabled && corner.enabled,
-                            onCheckedChange = onLeftEnabledChange,
+                            onCheckedChange = onLeftEnabledChange
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("corner-right-enabled") {
@@ -73,11 +72,11 @@ fun CornerGestureSettingsScreen(
                             subtitle = stringResource(R.string.corner_gesture_right_enabled_desc),
                             checked = corner.rightEnabled,
                             enabled = serviceEnabled && corner.enabled,
-                            onCheckedChange = onRightEnabledChange,
+                            onCheckedChange = onRightEnabledChange
                         )
-                    },
+                    }
                 )
-            },
+            }
         )
         groupedCardItems(
             keyPrefix = "corner-navigation",
@@ -89,9 +88,9 @@ fun CornerGestureSettingsScreen(
                             title = stringResource(R.string.corner_gesture_interaction_appearance_title),
                             subtitle = stringResource(R.string.corner_gesture_interaction_appearance_desc),
                             enabled = subSettingsEnabled,
-                            onClick = onOpenInteractionAppearance,
+                            onClick = onOpenInteractionAppearance
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("slots") {
@@ -100,11 +99,11 @@ fun CornerGestureSettingsScreen(
                             title = stringResource(R.string.corner_gesture_slots_section),
                             subtitle = stringResource(R.string.corner_gesture_slots_entry_desc),
                             enabled = subSettingsEnabled,
-                            onClick = onOpenSlots,
+                            onClick = onOpenSlots
                         )
-                    },
+                    }
                 )
-            },
+            }
         )
     }
 }

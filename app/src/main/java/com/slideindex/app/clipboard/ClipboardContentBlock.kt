@@ -16,7 +16,7 @@ enum class ClipboardBlockKind {
 data class ClipboardContentBlock(
     val kind: ClipboardBlockKind,
     val text: String = "",
-    val fileName: String = "",
+    val fileName: String = ""
 ) {
     companion object {
         fun text(value: String): ClipboardContentBlock =
@@ -33,7 +33,7 @@ fun ClipboardEntry.resolvedContentBlocks(): List<ClipboardContentBlock> {
         text = text,
         htmlText = htmlText,
         imageFileNames = resolvedImageFileNames(),
-        imageSources = ClipboardImageStore.collectImageSourcesForEntry(this),
+        imageSources = ClipboardImageStore.collectImageSourcesForEntry(this)
     )
 }
 
@@ -51,7 +51,7 @@ fun ClipboardEntry.isPureImageEntry(): Boolean {
     val blocks = ClipboardImageLabel.blocksForClipboardWrite(
         blocks = resolvedContentBlocks(),
         imageSources = imageSources,
-        uri = uri,
+        uri = uri
     )
     if (blocks.isNotEmpty()) return blocks.all { it.kind == ClipboardBlockKind.IMAGE }
     val bodyText = text.trim()

@@ -165,7 +165,6 @@ fun MessageReminderSettingsScreen(
         settingsLazySmallTitle(
             key = "message-general-section",
             title = generalSectionTitle,
-            sectionTop = true,
         )
         groupedCardItems(
             keyPrefix = "message-general",
@@ -242,7 +241,6 @@ fun MessageReminderSettingsScreen(
         settingsLazySmallTitle(
             key = "message-style-section",
             title = styleSectionTitle,
-            sectionTop = true,
         )
         groupedCardItems(
             keyPrefix = "message-style",
@@ -310,7 +308,6 @@ fun MessageReminderSettingsScreen(
         settingsLazySmallTitle(
             key = "message-filter-section",
             title = filterSectionTitle,
-            sectionTop = true,
         )
         groupedCardItems(
             keyPrefix = "message-filter",
@@ -379,7 +376,6 @@ fun MessageReminderSettingsScreen(
         settingsLazySmallTitle(
             key = "message-landscape-section",
             title = landscapeSectionTitle,
-            sectionTop = true,
         )
         groupedCardItems(
             keyPrefix = "message-landscape",
@@ -423,7 +419,6 @@ fun MessageReminderSettingsScreen(
         settingsLazySmallTitle(
             key = "message-gestures-section",
             title = gesturesSectionTitle,
-            sectionTop = true,
         )
         groupedCardItems(
             keyPrefix = "message-gestures",

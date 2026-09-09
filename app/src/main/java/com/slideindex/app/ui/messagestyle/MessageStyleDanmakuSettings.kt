@@ -101,7 +101,6 @@ fun LazyListScope.danmakuSettingsSection(
     settingsLazySmallTitle(
         key = "message-danmaku-theme",
         title = themeSectionTitle,
-        sectionTop = true,
     )
     settingsLazyHint(
         key = "message-danmaku-hint",

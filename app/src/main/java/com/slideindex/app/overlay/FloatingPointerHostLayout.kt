@@ -39,12 +39,12 @@ internal class FloatingPointerHostLayout(
     private val onEnsureTouchOverlayInteractive: () -> Unit,
     private val resolveFingerLocalInTouchOverlay: (Float, Float) -> Pair<Float, Float>,
     private val onFinishEdgeHandoffTouchCapture: (Float, Float) -> Unit,
-    private val pointerTapInjectionActive: () -> Boolean,
+    private val pointerTapInjectionActive: () -> Boolean
 ) : FrameLayout(context), FloatingPointerInputHandler.Host {
     private val inputHandler = FloatingPointerInputHandler(
         session = session,
         settingsProvider = settingsProvider,
-        host = this,
+        host = this
     )
 
     init {
@@ -63,7 +63,7 @@ internal class FloatingPointerHostLayout(
         fingerRawX: Float,
         fingerRawY: Float,
         fingerLocalX: Float,
-        fingerLocalY: Float,
+        fingerLocalY: Float
     ) = fingerTrackingMove(fingerRawX, fingerRawY, fingerLocalX, fingerLocalY)
 
     override fun onPointerPositionChanged(pointerX: Float, pointerY: Float) =

@@ -32,7 +32,7 @@ fun PointerDesignThumbnail(
     design: FloatingPointerDesign,
     settings: AppSettings,
     selected: Boolean,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
     val density = LocalDensity.current
@@ -40,7 +40,7 @@ fun PointerDesignThumbnail(
     val bitmap = rememberFloatingPointerDesignBitmap(
         context = context,
         design = design,
-        sizePx = previewDiameterPx.roundToInt().coerceAtLeast(1),
+        sizePx = previewDiameterPx.roundToInt().coerceAtLeast(1)
     )
     val containerShape = if (selected) {
         MaterialShapes.Cookie9Sided.toShape()
@@ -55,7 +55,7 @@ fun PointerDesignThumbnail(
             MaterialTheme.colorScheme.primaryContainer
         } else {
             MaterialTheme.colorScheme.surfaceContainerHighest
-        },
+        }
     ) {
         Canvas(modifier = Modifier.fillMaxSize()) {
             val center = Offset(size.width / 2f, size.height / 2f)
@@ -67,7 +67,7 @@ fun PointerDesignThumbnail(
                     dotDiameterPx = previewDiameterPx * 0.18f,
                     ringColor = Color(settings.floatingPointerRingColorArgb),
                     fillColor = Color(settings.floatingPointerFillColorArgb),
-                    dotColor = Color(settings.floatingPointerDotColorArgb),
+                    dotColor = Color(settings.floatingPointerDotColorArgb)
                 )
             } else {
                 drawFloatingPointer(
@@ -75,7 +75,7 @@ fun PointerDesignThumbnail(
                     settings = settings,
                     design = design,
                     bitmap = bitmap,
-                    sizePx = previewDiameterPx.coerceAtMost(size.minDimension - 4f),
+                    sizePx = previewDiameterPx.coerceAtMost(size.minDimension - 4f)
                 )
             }
         }

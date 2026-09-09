@@ -14,7 +14,7 @@ object ExternalInvocationCatalog {
         val titleRes: Int,
         val descriptionRes: Int,
         val path: String,
-        val supportsQuery: Boolean,
+        val supportsQuery: Boolean
     )
 
     data class ActionEntry(
@@ -22,7 +22,7 @@ object ExternalInvocationCatalog {
         val descriptionRes: Int,
         val action: String,
         val componentClass: String,
-        val supportsQuery: Boolean,
+        val supportsQuery: Boolean
     )
 
     val deeplinks: List<DeeplinkEntry> = listOf(
@@ -30,26 +30,26 @@ object ExternalInvocationCatalog {
             titleRes = R.string.external_invocation_entry_notification_history,
             descriptionRes = R.string.external_invocation_entry_notification_history_desc,
             path = "notification-history",
-            supportsQuery = true,
+            supportsQuery = true
         ),
         DeeplinkEntry(
             titleRes = R.string.external_invocation_entry_stash,
             descriptionRes = R.string.external_invocation_entry_stash_desc,
             path = "stash",
-            supportsQuery = true,
+            supportsQuery = true
         ),
         DeeplinkEntry(
             titleRes = R.string.external_invocation_entry_clipboard,
             descriptionRes = R.string.external_invocation_entry_clipboard_desc,
             path = "clipboard",
-            supportsQuery = true,
+            supportsQuery = true
         ),
         DeeplinkEntry(
             titleRes = R.string.external_invocation_entry_search_panel,
             descriptionRes = R.string.external_invocation_entry_search_panel_desc,
             path = "search-panel",
-            supportsQuery = true,
-        ),
+            supportsQuery = true
+        )
     )
 
     val actions: List<ActionEntry> = listOf(
@@ -58,43 +58,43 @@ object ExternalInvocationCatalog {
             descriptionRes = R.string.external_invocation_action_notification_history_desc,
             action = "com.slideindex.app.action.OPEN_NOTIFICATION_HISTORY",
             componentClass = "com.slideindex.app.MainActivity",
-            supportsQuery = false,
+            supportsQuery = false
         ),
         ActionEntry(
             titleRes = R.string.external_invocation_entry_stash,
             descriptionRes = R.string.external_invocation_action_stash_desc,
             action = "com.slideindex.app.action.OPEN_STASH_PANEL",
             componentClass = "com.slideindex.app.service.StashClipboardTrampolineActivity",
-            supportsQuery = true,
+            supportsQuery = true
         ),
         ActionEntry(
             titleRes = R.string.external_invocation_entry_clipboard,
             descriptionRes = R.string.external_invocation_action_clipboard_desc,
             action = "com.slideindex.app.action.OPEN_CLIPBOARD_PANEL",
             componentClass = "com.slideindex.app.service.StashClipboardTrampolineActivity",
-            supportsQuery = true,
+            supportsQuery = true
         ),
         ActionEntry(
             titleRes = R.string.external_invocation_entry_search_panel,
             descriptionRes = R.string.external_invocation_action_search_panel_desc,
             action = "com.slideindex.app.action.OPEN_SEARCH_PANEL",
             componentClass = "com.slideindex.app.service.SearchPanelTrampolineActivity",
-            supportsQuery = true,
+            supportsQuery = true
         ),
         ActionEntry(
             titleRes = R.string.external_invocation_entry_toggle_gesture,
             descriptionRes = R.string.external_invocation_action_toggle_gesture_desc,
             action = "com.slideindex.app.action.TOGGLE_GESTURE",
             componentClass = "com.slideindex.app.service.ToggleGestureTrampolineActivity",
-            supportsQuery = false,
+            supportsQuery = false
         ),
         ActionEntry(
             titleRes = R.string.external_invocation_entry_shell_panel,
             descriptionRes = R.string.external_invocation_action_shell_panel_desc,
             action = "com.slideindex.app.action.OPEN_SHELL_PANEL",
             componentClass = "com.slideindex.app.service.ShellCommandPanelTrampolineActivity",
-            supportsQuery = false,
-        ),
+            supportsQuery = false
+        )
     )
 
     fun deeplinkUri(path: String): String =

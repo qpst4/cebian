@@ -50,7 +50,7 @@ object DanmakuOverlayWindow {
         opacity: Float,
         maxLines: Int = 1,
         speedLevel: Int = com.slideindex.app.message.DanmakuSpeed.NORMAL,
-        fontSizeLevel: Int = com.slideindex.app.message.SideBubbleFontSize.NORMAL,
+        fontSizeLevel: Int = com.slideindex.app.message.SideBubbleFontSize.NORMAL
     ) {
         mainHandler.post {
             if (!ensureAttached(context)) {
@@ -175,7 +175,7 @@ object DanmakuOverlayWindow {
         opacity: Float,
         track: Int,
         maxLines: Int,
-        fontSizeLevel: Int,
+        fontSizeLevel: Int
     ): RelativeLayout {
         val density = context.resources.displayMetrics.density
         val trackHeightPx = (TRACK_HEIGHT_DP * density).toInt()
@@ -184,13 +184,13 @@ object DanmakuOverlayWindow {
             level = fontSizeLevel,
             normalSp = MessageBubbleTypography.TITLE_SP,
             smallSp = 8f,
-            largeSp = 12f,
+            largeSp = 12f
         )
         val contentSp = bubbleFontSizeLevelToSp(
             level = fontSizeLevel,
             normalSp = MessageBubbleTypography.CONTENT_SP,
             smallSp = 10f,
-            largeSp = 14f,
+            largeSp = 14f
         )
         val avatarSizePx = (MessageBubbleTypography.AVATAR_DP * density).toInt()
         val rowSpacingPx = (MessageBubbleTypography.ROW_SPACING_DP * density).toInt()
@@ -199,7 +199,7 @@ object DanmakuOverlayWindow {
         val container = RelativeLayout(context).apply {
             layoutParams = FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.WRAP_CONTENT,
-                FrameLayout.LayoutParams.WRAP_CONTENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT
             ).apply {
                 gravity = Gravity.TOP or Gravity.START
                 topMargin = topPx
@@ -218,7 +218,7 @@ object DanmakuOverlayWindow {
             gravity = Gravity.CENTER_VERTICAL
             layoutParams = RelativeLayout.LayoutParams(
                 RelativeLayout.LayoutParams.WRAP_CONTENT,
-                RelativeLayout.LayoutParams.WRAP_CONTENT,
+                RelativeLayout.LayoutParams.WRAP_CONTENT
             )
         }
 
@@ -239,7 +239,7 @@ object DanmakuOverlayWindow {
             orientation = LinearLayout.VERTICAL
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
             )
         }
 
@@ -249,7 +249,7 @@ object DanmakuOverlayWindow {
             textView = titleView,
             text = titleText,
             colorArgb = displayTheme.contentColorArgb,
-            titleSp = titleSp,
+            titleSp = titleSp
         )
         textColumn.addView(titleView)
 
@@ -261,7 +261,7 @@ object DanmakuOverlayWindow {
                 rawContent = data.content,
                 titleColorArgb = displayTheme.titleColorArgb,
                 contentSp = contentSp,
-                maxLines = maxLines,
+                maxLines = maxLines
             )
             textColumn.addView(contentView)
         }
@@ -279,7 +279,7 @@ object DanmakuOverlayWindow {
         }
         item.measure(
             View.MeasureSpec.makeMeasureSpec(screenWidth, View.MeasureSpec.AT_MOST),
-            View.MeasureSpec.makeMeasureSpec(bandHeightPx, View.MeasureSpec.AT_MOST),
+            View.MeasureSpec.makeMeasureSpec(bandHeightPx, View.MeasureSpec.AT_MOST)
         )
         val itemWidth = max(if (item.width > 0) item.width else item.measuredWidth, 1)
         val startX = screenWidth.toFloat()

@@ -48,7 +48,7 @@ data class FloatBallPickResult(
     val images: List<Bitmap> = emptyList(),
     val initialImageIndex: Int = 0,
     /** Panel should recycle [images] on dismiss when true. */
-    val ownsImages: Boolean = false,
+    val ownsImages: Boolean = false
 ) {
     val text: String?
         get() = textFor(activeSource)

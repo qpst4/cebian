@@ -31,7 +31,7 @@ enum class DiagnosticLogConnectionState {
 
 @Singleton
 class DiagnosticLogController @Inject constructor(
-    @ApplicationContext private val appContext: Context,
+    @ApplicationContext private val appContext: Context
 ) {
     private val tag = "DiagnosticLogController"
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -39,8 +39,8 @@ class DiagnosticLogController @Inject constructor(
     val serviceArgs: Shizuku.UserServiceArgs = Shizuku.UserServiceArgs(
         ComponentName(
             appContext.packageName,
-            DiagnosticLogUserService::class.java.name,
-        ),
+            DiagnosticLogUserService::class.java.name
+        )
     ).daemon(false).processNameSuffix("diagnostic-log")
 
     private val _lines = MutableSharedFlow<String>(extraBufferCapacity = 512)

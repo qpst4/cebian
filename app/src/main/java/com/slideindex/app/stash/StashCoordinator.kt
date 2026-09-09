@@ -37,7 +37,7 @@ object StashCoordinator {
         bitmap: Bitmap,
         pinDisplayWidthPx: Int? = null,
         pinDisplayHeightPx: Int? = null,
-        onDone: (Boolean) -> Unit = {},
+        onDone: (Boolean) -> Unit = {}
     ) {
         val repo = StashAccess.repository
         if (repo == null) {
@@ -54,8 +54,8 @@ object StashCoordinator {
                 repo.addImage(
                     bitmap = copy,
                     pinDisplayWidthPx = pinDisplayWidthPx,
-                    pinDisplayHeightPx = pinDisplayHeightPx,
-                ) != null,
+                    pinDisplayHeightPx = pinDisplayHeightPx
+                ) != null
             )
         }
     }
@@ -63,7 +63,7 @@ object StashCoordinator {
     fun addRich(
         parts: List<StashRichPart>,
         htmlText: String? = null,
-        onDone: (Boolean) -> Unit = {},
+        onDone: (Boolean) -> Unit = {}
     ) {
         val repo = StashAccess.repository
         if (repo == null) {
@@ -94,7 +94,7 @@ object StashCoordinator {
             context = context,
             bitmap = bitmap,
             displayWidthPx = entry.pinDisplayWidthPx,
-            displayHeightPx = entry.pinDisplayHeightPx,
+            displayHeightPx = entry.pinDisplayHeightPx
         )
     }
 
@@ -125,7 +125,7 @@ object StashCoordinator {
                     htmlText = entry.htmlText,
                     resolveDataUri = { fileName -> repo?.dataUriForFile(fileName) },
                     resolveContentUri = { fileName -> repo?.uriForFile(fileName) },
-                    resolveDimensions = { fileName -> repo?.imageDimensions(fileName) },
+                    resolveDimensions = { fileName -> repo?.imageDimensions(fileName) }
                 )
             }
         }
@@ -138,7 +138,7 @@ object StashCoordinator {
     fun openClipboardPanel(context: Context) {
         FloatBallStashPanel.show(
             context = context,
-            initialTab = StashPanelInitialTab.Clipboard,
+            initialTab = StashPanelInitialTab.Clipboard
         )
     }
 
@@ -150,7 +150,7 @@ object StashCoordinator {
         context: Context,
         bitmap: Bitmap,
         screenRect: Rect? = null,
-        layoutMeta: ScreenshotLayoutMeta? = null,
+        layoutMeta: ScreenshotLayoutMeta? = null
     ) {
         ScreenPinManager.pinImage(context, bitmap, screenRect, layoutMeta)
     }

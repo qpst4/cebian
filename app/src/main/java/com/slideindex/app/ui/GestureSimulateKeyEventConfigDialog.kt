@@ -26,8 +26,7 @@ import com.slideindex.app.ui.miuix.CardItem
 import com.slideindex.app.ui.miuix.MiuixHintText
 import com.slideindex.app.ui.miuix.MiuixLabeledTextField
 import com.slideindex.app.ui.miuix.MiuixSearchField
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
-import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import top.yukonga.miuix.kmp.basic.SmallTitle
 import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
@@ -48,7 +47,7 @@ fun GestureSimulateKeyEventScreen(
     onConfirm: (GestureAction.SimulateKeyEvent) -> Unit,
     embedInParentChrome: Boolean = false,
     overlayMode: Boolean = false,
-    enableBackHandler: Boolean = true,
+    enableBackHandler: Boolean = true
 ) {
     var selectedCode by remember(initialAction) {
         mutableIntStateOf(initialAction?.keyCode ?: 82)
@@ -76,7 +75,7 @@ fun GestureSimulateKeyEventScreen(
             GestureAction.SimulateKeyEvent(
                 keyCode = finalCode,
                 keyName = resolvedName,
-                isLongPress = isLongPress,
+                isLongPress = isLongPress
             )
         )
     }
@@ -115,7 +114,7 @@ fun GestureSimulateKeyEventScreen(
                     singleLine = true,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 12.dp, vertical = 6.dp),
+                        .padding(horizontal = 12.dp, vertical = 6.dp)
                 )
             },
             CardItem(key = "key_name_input") {
@@ -126,7 +125,7 @@ fun GestureSimulateKeyEventScreen(
                     singleLine = true,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 12.dp, vertical = 6.dp),
+                        .padding(horizontal = 12.dp, vertical = 6.dp)
                 )
             },
             CardItem(key = "long_press_switch") {
@@ -134,9 +133,9 @@ fun GestureSimulateKeyEventScreen(
                     title = stringResource(R.string.key_event_long_press_title),
                     summary = stringResource(R.string.key_event_long_press_summary),
                     checked = isLongPress,
-                    onCheckedChange = { isLongPress = it },
+                    onCheckedChange = { isLongPress = it }
                 )
-            },
+            }
         )
     }
 
@@ -155,7 +154,7 @@ fun GestureSimulateKeyEventScreen(
                             customCodeInput = item.keyCode.toString()
                             customName = itemLabel
                         },
-                        radioButtonLocation = RadioButtonLocation.End,
+                        radioButtonLocation = RadioButtonLocation.End
                     )
                 }
             }
@@ -169,28 +168,28 @@ fun GestureSimulateKeyEventScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             MiuixSearchField(
                 query = searchQuery,
                 onQueryChange = { searchQuery = it },
                 hintResId = R.string.search_hint,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth()
             )
 
             LazyColumn(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 item(key = "custom_key_config") {
-                    MiuixSmallTitle(
+                    SmallTitle(
                         text = stringResource(R.string.key_event_custom_config_title),
-                        modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                        modifier = Modifier.fillMaxWidth(),
                     )
                     MiuixCard(modifier = Modifier.fillMaxWidth()) {
                         Column(
                             modifier = Modifier.padding(12.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             MiuixLabeledTextField(
                                 value = customCodeInput,
@@ -203,34 +202,33 @@ fun GestureSimulateKeyEventScreen(
                                 },
                                 label = stringResource(R.string.key_event_code_label),
                                 singleLine = true,
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier.fillMaxWidth()
                             )
                             MiuixLabeledTextField(
                                 value = customName,
                                 onValueChange = { customName = it },
                                 label = stringResource(R.string.key_event_name_label),
                                 singleLine = true,
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier.fillMaxWidth()
                             )
                             SwitchPreference(
                                 title = stringResource(R.string.key_event_long_press_title),
                                 summary = stringResource(R.string.key_event_long_press_summary),
                                 checked = isLongPress,
-                                onCheckedChange = { isLongPress = it },
+                                onCheckedChange = { isLongPress = it }
                             )
                         }
                     }
                     MiuixHintText(
                         text = stringResource(R.string.key_event_permission_hint),
-                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
                     )
                 }
 
                 groupedPresets.forEach { (category, items) ->
                     item(key = "cat_${category.name}") {
-                        MiuixSmallTitle(
+                        SmallTitle(
                             text = category.title(context),
-                            modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop),
+                            modifier = Modifier.fillMaxWidth()
                         )
                     }
                     items.forEach { item ->
@@ -245,7 +243,7 @@ fun GestureSimulateKeyEventScreen(
                                     customCodeInput = item.keyCode.toString()
                                     customName = item.label(context)
                                 },
-                                radioButtonLocation = RadioButtonLocation.End,
+                                radioButtonLocation = RadioButtonLocation.End
                             )
                         }
                     }
@@ -256,11 +254,11 @@ fun GestureSimulateKeyEventScreen(
                 onClick = handleSave,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 8.dp, bottom = 16.dp),
+                    .padding(top = 8.dp, bottom = 16.dp)
             ) {
                 Text(
                     text = stringResource(R.string.shell_panel_save),
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Bold
                 )
             }
         }
@@ -274,10 +272,10 @@ fun GestureSimulateKeyEventScreen(
                 top.yukonga.miuix.kmp.basic.IconButton(onClick = handleSave) {
                     top.yukonga.miuix.kmp.basic.Icon(
                         imageVector = Icons.Default.Check,
-                        contentDescription = stringResource(R.string.shell_panel_save),
+                        contentDescription = stringResource(R.string.shell_panel_save)
                     )
                 }
-            },
+            }
         ) {
             item(key = "search_box") {
                 MiuixSearchField(
@@ -286,25 +284,24 @@ fun GestureSimulateKeyEventScreen(
                     hintResId = R.string.search_hint,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 14.dp, vertical = 6.dp),
+                        .padding(horizontal = 14.dp, vertical = 6.dp)
                 )
             }
 
             settingsLazySmallTitle(
                 key = "custom_key_title",
-                title = customConfigSectionTitle,
-                sectionTop = false,
+                title = customConfigSectionTitle
             )
 
             groupedCardItems(
                 keyPrefix = "custom_key_config",
-                items = customConfigCardItems,
+                items = customConfigCardItems
             )
 
             LazySettingsItem(key = "permission_hint_section") {
                 MiuixHintText(
                     text = stringResource(R.string.key_event_permission_hint),
-                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 4.dp),
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 4.dp)
                 )
             }
 
@@ -313,12 +310,11 @@ fun GestureSimulateKeyEventScreen(
                 if (items.isNotEmpty()) {
                     settingsLazySmallTitle(
                         key = "cat_title_${category.name}",
-                        title = category.title(context),
-                        sectionTop = true,
+                        title = category.title(context)
                     )
                     groupedCardItems(
                         keyPrefix = "cat_${category.name}",
-                        items = items,
+                        items = items
                     )
                 }
             }

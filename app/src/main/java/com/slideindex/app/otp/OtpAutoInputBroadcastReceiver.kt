@@ -9,7 +9,7 @@ import androidx.core.content.ContextCompat
 import com.slideindex.app.autofill.OtpAutoInputBroadcastContract
 
 class OtpAutoInputBroadcastReceiver(
-    private val service: AccessibilityService,
+    private val service: AccessibilityService
 ) : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         OtpAutoInputBroadcastHandler.onReceive(service, intent)

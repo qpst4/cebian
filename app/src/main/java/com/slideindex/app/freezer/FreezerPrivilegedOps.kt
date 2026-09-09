@@ -36,7 +36,7 @@ internal object FreezerPrivilegedOps {
             TaskManagerUtil.forceStopPackage(packageName)
             TaskManagerUtil.runShellCommandLine(
                 "am force-stop --user $userId $packageName",
-                useRoot = useRoot,
+                useRoot = useRoot
             )
         }
 
@@ -54,7 +54,7 @@ internal object FreezerPrivilegedOps {
                     disabled = false,
                     shizukuRoot = shizukuRoot,
                     userId = userId,
-                    enabledState = PackageManager.COMPONENT_ENABLED_STATE_DEFAULT,
+                    enabledState = PackageManager.COMPONENT_ENABLED_STATE_DEFAULT
                 )) {
                     is AttemptResult.Success -> return true to ""
                     is AttemptResult.Failure -> if (result.detail.isNotBlank()) errors += result.detail
@@ -117,7 +117,7 @@ internal object FreezerPrivilegedOps {
         packageManager.javaClass.getMethod(
             "getApplicationEnabledSetting",
             String::class.java,
-            Int::class.javaPrimitiveType,
+            Int::class.javaPrimitiveType
         ).invoke(packageManager, packageName, userId) as Int
     }.getOrNull()
 
@@ -132,7 +132,7 @@ internal object FreezerPrivilegedOps {
         disabled: Boolean,
         shizukuRoot: Boolean,
         userId: Int,
-        enabledState: Int = PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+        enabledState: Int = PackageManager.COMPONENT_ENABLED_STATE_ENABLED
     ): AttemptResult {
         return runCatching {
             val packageManager = bindShizukuPackageManager()
@@ -147,14 +147,14 @@ internal object FreezerPrivilegedOps {
                 Int::class.javaPrimitiveType,
                 Int::class.javaPrimitiveType,
                 Int::class.javaPrimitiveType,
-                String::class.java,
+                String::class.java
             ).invoke(
                 packageManager,
                 packageName,
                 newState,
                 PackageManager.DONT_KILL_APP,
                 userId,
-                BuildConfig.APPLICATION_ID,
+                BuildConfig.APPLICATION_ID
             )
             if (waitForState(context, packageName, disabled)) {
                 AttemptResult.Success
@@ -171,7 +171,7 @@ internal object FreezerPrivilegedOps {
         packageName: String,
         disabled: Boolean,
         userId: Int,
-        useRoot: Boolean,
+        useRoot: Boolean
     ): AttemptResult {
         val verb = if (disabled) "disable" else "enable"
         val commands = if (disabled) {

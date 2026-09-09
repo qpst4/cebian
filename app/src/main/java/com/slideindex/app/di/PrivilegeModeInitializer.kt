@@ -17,7 +17,7 @@ import kotlinx.coroutines.launch
 @Singleton
 class PrivilegeModeInitializer @Inject constructor(
     settingsRepository: SettingsRepository,
-    private val clipboardHistoryRepository: ClipboardHistoryRepository,
+    private val clipboardHistoryRepository: ClipboardHistoryRepository
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 

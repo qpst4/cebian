@@ -17,7 +17,7 @@ internal object MessageOverlayLayout {
         settings: MessageSettings,
         screenWidthPx: Int,
         screenHeightPx: Int,
-        density: Float,
+        density: Float
     ): Pair<Int, Int> {
         val iconPx = (settings.floatIconSizeDp.coerceIn(32f, 64f) * density).roundToInt()
         val marginPx = (FLOAT_ICON_EDGE_MARGIN_DP * density).roundToInt()
@@ -33,14 +33,14 @@ internal object MessageOverlayLayout {
 
     fun buildFloatIconLayoutParams(
         context: android.content.Context,
-        settings: MessageSettings,
+        settings: MessageSettings
     ): WindowManager.LayoutParams {
         val metrics = context.resources.displayMetrics
         val (left, top) = floatIconTopLeft(
             settings = settings,
             screenWidthPx = metrics.widthPixels,
             screenHeightPx = metrics.heightPixels,
-            density = metrics.density,
+            density = metrics.density
         )
         return WindowManager.LayoutParams(
             WindowManager.LayoutParams.WRAP_CONTENT,
@@ -50,7 +50,7 @@ internal object MessageOverlayLayout {
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                 WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
                 WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
-            PixelFormat.TRANSLUCENT,
+            PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.TOP or Gravity.START
             x = left
@@ -62,7 +62,7 @@ internal object MessageOverlayLayout {
 
     fun buildSideBubbleLayoutParams(
         context: android.content.Context,
-        settings: MessageSettings,
+        settings: MessageSettings
     ): WindowManager.LayoutParams {
         val metrics = context.resources.displayMetrics
         val density = metrics.density
@@ -82,7 +82,7 @@ internal object MessageOverlayLayout {
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                 WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
                 WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
-            PixelFormat.TRANSLUCENT,
+            PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.TOP or horizontalGravity
             x = edgeMarginPx

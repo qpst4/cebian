@@ -19,7 +19,7 @@ import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.SettingExpandableSwitchRow
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
-import com.slideindex.app.ui.settings.components.settingsLazyHint
+import com.slideindex.app.ui.settings.components.settingsLazyTipCard
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import kotlin.math.roundToInt
 
@@ -39,7 +39,7 @@ fun CornerGestureInteractionScreen(
         verticalEdgeWidthDp: Float,
         verticalEdgeHeightDp: Float,
         horizontalEdgeWidthDp: Float,
-        horizontalEdgeHeightDp: Float,
+        horizontalEdgeHeightDp: Float
     ) -> Unit = { _, _, _, _ -> },
     onTriggerSlopChange: (Float) -> Unit,
     onHideInLandscapeChange: (Boolean) -> Unit,
@@ -55,7 +55,7 @@ fun CornerGestureInteractionScreen(
     onSelectedHintIconSizeChange: (Int) -> Unit,
     onBackgroundStyleChange: (Int) -> Unit,
     onBlurDpChange: (Int) -> Unit,
-    onDimPercentChange: (Int) -> Unit,
+    onDimPercentChange: (Int) -> Unit
 ) {
     val corner = settings.cornerGestureSettings
 
@@ -77,7 +77,7 @@ fun CornerGestureInteractionScreen(
         corner.verticalEdgeWidthDp,
         corner.verticalEdgeHeightDp,
         corner.horizontalEdgeWidthDp,
-        corner.horizontalEdgeHeightDp,
+        corner.horizontalEdgeHeightDp
     ) {
         previewVerticalWidthDp = corner.verticalEdgeWidthDp
         previewVerticalHeightDp = corner.verticalEdgeHeightDp
@@ -90,7 +90,7 @@ fun CornerGestureInteractionScreen(
             previewVerticalWidthDp,
             previewVerticalHeightDp,
             previewHorizontalWidthDp,
-            previewHorizontalHeightDp,
+            previewHorizontalHeightDp
         )
     }
 
@@ -105,16 +105,14 @@ fun CornerGestureInteractionScreen(
     SettingsScreenScaffold(
         title = stringResource(R.string.corner_gesture_interaction_appearance_title),
         subtitle = stringResource(R.string.corner_gesture_interaction_appearance_desc),
-        onBack = onBack,
+        onBack = onBack
     ) {
         settingsLazySmallTitle(
             key = "corner-trigger-section",
-            title = triggerSectionTitle,
-            sectionTop = true,
+            title = triggerSectionTitle
         )
-        settingsLazyHint(
-            key = "corner-zone-preview-hint",
-            text = zonePreviewHint,
+        settingsLazyTipCard(key = "corner-zone-preview-hint",
+            text = zonePreviewHint
         )
         groupedCardItems(
             keyPrefix = "corner-trigger",
@@ -136,9 +134,9 @@ fun CornerGestureInteractionScreen(
                                 previewVerticalHeightDp = value
                                 pushZonePreview()
                             },
-                            onValueChange = onVerticalEdgeHeightChange,
+                            onValueChange = onVerticalEdgeHeightChange
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("vertical-edge-width") {
@@ -157,9 +155,9 @@ fun CornerGestureInteractionScreen(
                                 previewVerticalWidthDp = value
                                 pushZonePreview()
                             },
-                            onValueChange = onVerticalEdgeWidthChange,
+                            onValueChange = onVerticalEdgeWidthChange
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("horizontal-edge-height") {
@@ -178,9 +176,9 @@ fun CornerGestureInteractionScreen(
                                 previewHorizontalHeightDp = value
                                 pushZonePreview()
                             },
-                            onValueChange = onHorizontalEdgeHeightChange,
+                            onValueChange = onHorizontalEdgeHeightChange
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("horizontal-edge-width") {
@@ -199,9 +197,9 @@ fun CornerGestureInteractionScreen(
                                 previewHorizontalWidthDp = value
                                 pushZonePreview()
                             },
-                            onValueChange = onHorizontalEdgeWidthChange,
+                            onValueChange = onHorizontalEdgeWidthChange
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("trigger-slop") {
@@ -213,11 +211,11 @@ fun CornerGestureInteractionScreen(
                             enabled = serviceEnabled && corner.enabled,
                             label = stringResource(
                                 R.string.corner_gesture_zone_dp_value,
-                                corner.triggerSlopDp.roundToInt(),
+                                corner.triggerSlopDp.roundToInt()
                             ),
-                            onValueChange = onTriggerSlopChange,
+                            onValueChange = onTriggerSlopChange
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("outer-diameter") {
@@ -229,11 +227,11 @@ fun CornerGestureInteractionScreen(
                             enabled = serviceEnabled && corner.enabled,
                             label = stringResource(
                                 R.string.corner_gesture_zone_dp_value,
-                                corner.outerDiameterDp.roundToInt(),
+                                corner.outerDiameterDp.roundToInt()
                             ),
-                            onValueChange = onOuterDiameterChange,
+                            onValueChange = onOuterDiameterChange
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("inner-diameter") {
@@ -245,11 +243,11 @@ fun CornerGestureInteractionScreen(
                             enabled = serviceEnabled && corner.enabled,
                             label = stringResource(
                                 R.string.corner_gesture_zone_dp_value,
-                                corner.innerDiameterDp.roundToInt(),
+                                corner.innerDiameterDp.roundToInt()
                             ),
-                            onValueChange = onInnerDiameterChange,
+                            onValueChange = onInnerDiameterChange
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("bubble-size") {
@@ -261,18 +259,17 @@ fun CornerGestureInteractionScreen(
                             enabled = serviceEnabled && corner.enabled,
                             label = stringResource(
                                 R.string.corner_gesture_zone_dp_value,
-                                corner.bubbleSizeDp.roundToInt(),
+                                corner.bubbleSizeDp.roundToInt()
                             ),
-                            onValueChange = onBubbleSizeChange,
+                            onValueChange = onBubbleSizeChange
                         )
-                    },
+                    }
                 )
-            },
+            }
         )
         settingsLazySmallTitle(
             key = "corner-behavior-section",
-            title = behaviorSectionTitle,
-            sectionTop = true,
+            title = behaviorSectionTitle
         )
         groupedCardItems(
             keyPrefix = "corner-behavior",
@@ -284,9 +281,9 @@ fun CornerGestureInteractionScreen(
                             subtitle = stringResource(R.string.corner_gesture_hide_landscape_desc),
                             checked = corner.hideInLandscape,
                             enabled = serviceEnabled && corner.enabled,
-                            onCheckedChange = onHideInLandscapeChange,
+                            onCheckedChange = onHideInLandscapeChange
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("landscape-prevent-false-touch") {
@@ -295,9 +292,9 @@ fun CornerGestureInteractionScreen(
                             subtitle = stringResource(R.string.corner_gesture_landscape_prevent_false_touch_desc),
                             checked = corner.landscapePreventFalseTouch,
                             enabled = serviceEnabled && corner.enabled,
-                            onCheckedChange = onLandscapePreventFalseTouchChange,
+                            onCheckedChange = onLandscapePreventFalseTouchChange
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("override-system-nav") {
@@ -306,9 +303,9 @@ fun CornerGestureInteractionScreen(
                             subtitle = stringResource(R.string.corner_gesture_override_system_nav_desc),
                             checked = corner.overrideSystemNav,
                             enabled = serviceEnabled && corner.enabled,
-                            onCheckedChange = onOverrideSystemNavChange,
+                            onCheckedChange = onOverrideSystemNavChange
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("cancel-outside-wheel") {
@@ -317,9 +314,9 @@ fun CornerGestureInteractionScreen(
                             subtitle = stringResource(R.string.corner_gesture_cancel_outside_wheel_desc),
                             checked = corner.cancelOutsideWheel,
                             enabled = serviceEnabled && corner.enabled,
-                            onCheckedChange = onCancelOutsideWheelChange,
+                            onCheckedChange = onCancelOutsideWheelChange
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("progressive-layers") {
@@ -328,9 +325,9 @@ fun CornerGestureInteractionScreen(
                             subtitle = stringResource(R.string.corner_gesture_progressive_layers_desc),
                             checked = corner.progressiveLayers,
                             enabled = serviceEnabled && corner.enabled,
-                            onCheckedChange = onProgressiveLayersChange,
+                            onCheckedChange = onProgressiveLayersChange
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("slot-haptic") {
@@ -339,9 +336,9 @@ fun CornerGestureInteractionScreen(
                             subtitle = stringResource(R.string.corner_gesture_slot_haptic_desc),
                             checked = corner.slotHapticEnabled,
                             enabled = serviceEnabled && corner.enabled,
-                            onCheckedChange = onSlotHapticChange,
+                            onCheckedChange = onSlotHapticChange
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("show-selected-name") {
@@ -361,18 +358,18 @@ fun CornerGestureInteractionScreen(
                                     enabled = serviceEnabled && corner.enabled && corner.showSelectedName,
                                     label = stringResource(
                                         R.string.selected_hint_icon_size_value,
-                                        corner.selectedHintIconSizeDp,
+                                        corner.selectedHintIconSizeDp
                                     ),
-                                    onValueChange = { onSelectedHintIconSizeChange(it.roundToInt()) },
+                                    onValueChange = { onSelectedHintIconSizeChange(it.roundToInt()) }
                                 )
-                            },
+                            }
                         )
-                    },
+                    }
                 )
                 val backgroundStyles = listOf(
                     CornerGestureSettings.BACKGROUND_NONE,
                     CornerGestureSettings.BACKGROUND_BLUR,
-                    CornerGestureSettings.BACKGROUND_BLACK,
+                    CornerGestureSettings.BACKGROUND_BLACK
                 )
                 add(
                     settingsCardScopeItem("background-style") {
@@ -381,7 +378,7 @@ fun CornerGestureInteractionScreen(
                             items = listOf(
                                 stringResource(R.string.corner_gesture_background_none),
                                 stringResource(R.string.honeycomb_background_blur),
-                                stringResource(R.string.honeycomb_background_black),
+                                stringResource(R.string.honeycomb_background_black)
                             ),
                             selectedIndex = backgroundStyles.indexOf(localBackgroundStyle).coerceAtLeast(0),
                             enabled = serviceEnabled && corner.enabled,
@@ -389,9 +386,9 @@ fun CornerGestureInteractionScreen(
                                 val style = backgroundStyles[index]
                                 localBackgroundStyle = style
                                 onBackgroundStyleChange(style)
-                            },
+                            }
                         )
-                    },
+                    }
                 )
                 // 始终注册行，避免 Lazy 条件增减导致切背景后滑条不出现。
                 add(
@@ -409,9 +406,9 @@ fun CornerGestureInteractionScreen(
                                 val v = it.roundToInt()
                                 localBlurDp = v
                                 onBlurDpChange(v)
-                            },
+                            }
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("dim-percent") {
@@ -428,11 +425,11 @@ fun CornerGestureInteractionScreen(
                                 val v = it.roundToInt()
                                 localDimPercent = v
                                 onDimPercentChange(v)
-                            },
+                            }
                         )
-                    },
+                    }
                 )
-            },
+            }
         )
     }
 }

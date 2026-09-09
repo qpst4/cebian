@@ -76,7 +76,7 @@ fun FreezerGridUi(
     contentPadding: PaddingValues = PaddingValues(0.dp),
     onAppLaunched: (() -> Unit)? = null,
     onManageApps: (() -> Unit)? = null,
-    overlayMode: Boolean = false,
+    overlayMode: Boolean = false
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -103,7 +103,7 @@ fun FreezerGridUi(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .padding(contentPadding),
+            .padding(contentPadding)
     ) {
         when {
             memberApps.isEmpty() -> {
@@ -112,20 +112,20 @@ fun FreezerGridUi(
                         .fillMaxSize()
                         .padding(32.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
+                    verticalArrangement = Arrangement.Center
                 ) {
                     Icon(
                         Icons.Default.AcUnit,
                         contentDescription = null,
                         modifier = Modifier.size(32.dp),
-                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
                     )
                     Text(
                         text = stringResource(R.string.freezer_list_empty),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(top = 12.dp),
+                        modifier = Modifier.padding(top = 12.dp)
                     )
                     if (onManageApps != null) {
                         TextButton(onClick = onManageApps, modifier = Modifier.padding(top = 8.dp)) {
@@ -137,11 +137,11 @@ fun FreezerGridUi(
             filteredApps.isEmpty() -> {
                 Box(
                     modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center,
+                    contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = stringResource(R.string.no_apps),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -151,11 +151,11 @@ fun FreezerGridUi(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp),
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     items(
                         items = filteredApps,
-                        key = { app -> "${app.packageName}_$freezeStateRevision" },
+                        key = { app -> "${app.packageName}_$freezeStateRevision" }
                     ) { app ->
                         val frozen = FreezerOperations.isFrozen(context, app.packageName)
                         FreezerGridItem(
@@ -167,13 +167,13 @@ fun FreezerGridUi(
                                             context,
                                             appRepository,
                                             settings,
-                                            app,
+                                            app
                                         )
                                     ) {
                                         Toast.makeText(
                                             context,
                                             R.string.freezer_launch_failed,
-                                            Toast.LENGTH_SHORT,
+                                            Toast.LENGTH_SHORT
                                         ).show()
                                         return@launch
                                     }
@@ -181,7 +181,7 @@ fun FreezerGridUi(
                                     onAppLaunched?.invoke()
                                 }
                             },
-                            onLongClick = { actionTarget = app },
+                            onLongClick = { actionTarget = app }
                         )
                     }
                 }
@@ -200,13 +200,13 @@ fun FreezerGridUi(
                             appRepository,
                             settings,
                             app,
-                            fullscreen = false,
+                            fullscreen = false
                         )
                     ) {
                         Toast.makeText(
                             context,
                             R.string.freezer_launch_failed,
-                            Toast.LENGTH_SHORT,
+                            Toast.LENGTH_SHORT
                         ).show()
                         return@launch
                     }
@@ -235,7 +235,7 @@ fun FreezerGridUi(
                             context = context,
                             settingsRepository = settingsRepository,
                             packageName = app.packageName,
-                            appRepository = appRepository,
+                            appRepository = appRepository
                         )
                     ) {
                         onFreezeStateRevisionBump()
@@ -249,28 +249,28 @@ fun FreezerGridUi(
                             context = context,
                             settingsRepository = settingsRepository,
                             packageName = app.packageName,
-                            appRepository = appRepository,
+                            appRepository = appRepository
                         )
                     ) {
                         onFreezeStateRevisionBump()
                     }
                     dismissMenu()
                 }
-            },
+            }
         )
         if (overlayMode) {
             FreezerAppActionOverlayMenu(
                 app = app,
                 frozen = frozen,
                 onDismiss = dismissMenu,
-                callbacks = menuActions,
+                callbacks = menuActions
             )
         } else {
             FreezerAppActionWindowMenu(
                 app = app,
                 frozen = frozen,
                 onDismiss = dismissMenu,
-                callbacks = menuActions,
+                callbacks = menuActions
             )
         }
     }
@@ -281,7 +281,7 @@ private data class FreezerAppActionCallbacks(
     val onToggleFrozen: () -> Unit,
     val onAddToHome: () -> Unit,
     val onRemoveFromList: () -> Unit,
-    val onUnfreezeAndRemoveFromList: () -> Unit,
+    val onUnfreezeAndRemoveFromList: () -> Unit
 )
 
 @Composable
@@ -289,11 +289,11 @@ private fun FreezerAppActionWindowMenu(
     app: AppInfo,
     frozen: Boolean,
     onDismiss: () -> Unit,
-    callbacks: FreezerAppActionCallbacks,
+    callbacks: FreezerAppActionCallbacks
 ) {
     val launchFreeWindowLabel = stringResource(R.string.task_switcher_menu_free_window)
     val freezeLabel = stringResource(
-        if (frozen) R.string.freezer_action_unfreeze else R.string.freezer_action_freeze,
+        if (frozen) R.string.freezer_action_unfreeze else R.string.freezer_action_freeze
     )
     val addToHomeLabel = stringResource(R.string.freezer_action_add_to_home)
     val removeFromListLabel = stringResource(R.string.freezer_remove_from_list)
@@ -309,7 +309,7 @@ private fun FreezerAppActionWindowMenu(
             } else {
                 add(DropdownItem(text = removeFromListLabel, onClick = callbacks.onRemoveFromList))
             }
-        },
+        }
     )
     WindowDropdownDialog(
         entry = menuEntry,
@@ -318,7 +318,7 @@ private fun FreezerAppActionWindowMenu(
         show = true,
         onDismiss = onDismiss,
         onDismissFinished = {},
-        dropdownColors = DropdownDefaults.dropdownColors(),
+        dropdownColors = DropdownDefaults.dropdownColors()
     )
 }
 
@@ -327,11 +327,11 @@ private fun FreezerAppActionOverlayMenu(
     app: AppInfo,
     frozen: Boolean,
     onDismiss: () -> Unit,
-    callbacks: FreezerAppActionCallbacks,
+    callbacks: FreezerAppActionCallbacks
 ) {
     val launchFreeWindowLabel = stringResource(R.string.task_switcher_menu_free_window)
     val freezeLabel = stringResource(
-        if (frozen) R.string.freezer_action_unfreeze else R.string.freezer_action_freeze,
+        if (frozen) R.string.freezer_action_unfreeze else R.string.freezer_action_freeze
     )
     val addToHomeLabel = stringResource(R.string.freezer_action_add_to_home)
     val removeFromListLabel = stringResource(R.string.freezer_remove_from_list)
@@ -353,7 +353,7 @@ private fun FreezerAppActionOverlayMenu(
             .fillMaxSize()
             .background(Color.Black.copy(alpha = 0.45f))
             .clickable(onClick = onDismiss),
-        contentAlignment = Alignment.Center,
+        contentAlignment = Alignment.Center
     ) {
         Card(
             modifier = Modifier
@@ -362,34 +362,34 @@ private fun FreezerAppActionOverlayMenu(
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
-                    onClick = {},
-                ),
+                    onClick = {}
+                )
         ) {
             Column(
                 modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 MiuixText(
                     text = app.label,
                     style = MiuixTheme.textStyles.title4,
-                    color = MiuixTheme.colorScheme.onSurface,
+                    color = MiuixTheme.colorScheme.onSurface
                 )
                 MiuixText(
                     text = app.packageName,
                     style = MiuixTheme.textStyles.body2,
-                    color = MiuixTheme.colorScheme.onSurfaceSecondary,
+                    color = MiuixTheme.colorScheme.onSurfaceSecondary
                 )
                 menuItems.forEach { (label, onClick) ->
                     MiuixTextButton(
                         text = label,
                         onClick = onClick,
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
                 MiuixTextButton(
                     text = cancelLabel,
                     onClick = onDismiss,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
         }
@@ -402,7 +402,7 @@ private fun FreezerGridItem(
     app: AppInfo,
     frozen: Boolean,
     onClick: () -> Unit,
-    onLongClick: () -> Unit,
+    onLongClick: () -> Unit
 ) {
     val context = LocalContext.current
     var iconBitmap by remember(app.packageName) {
@@ -422,11 +422,11 @@ private fun FreezerGridItem(
             .fillMaxWidth()
             .combinedClickable(
                 onClick = onClick,
-                onLongClick = onLongClick,
+                onLongClick = onLongClick
             )
             .padding(horizontal = 4.dp, vertical = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         if (iconBitmap != null) {
             Image(
@@ -434,7 +434,7 @@ private fun FreezerGridItem(
                 contentDescription = app.label,
                 modifier = Modifier.size(64.dp),
                 contentScale = ContentScale.Fit,
-                colorFilter = grayscale,
+                colorFilter = grayscale
             )
         } else {
             Box(modifier = Modifier.size(64.dp))
@@ -450,7 +450,7 @@ private fun FreezerGridItem(
             } else {
                 MaterialTheme.colorScheme.onSurface
             },
-            modifier = Modifier.padding(horizontal = 2.dp),
+            modifier = Modifier.padding(horizontal = 2.dp)
         )
     }
 }

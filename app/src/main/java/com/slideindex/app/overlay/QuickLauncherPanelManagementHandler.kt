@@ -9,7 +9,7 @@ import com.slideindex.app.launcher.QuickLauncherItemType
 internal class QuickLauncherPanelManagementHandler(
     private val controller: QuickLauncherPanelController,
     private val host: QuickLauncherPanelController.Host,
-    private val toolbar: QuickLauncherPanelToolbar,
+    private val toolbar: QuickLauncherPanelToolbar
 ) {
     private var dragFromIndex = -1
     private var dragTargetIndex = -1
@@ -76,7 +76,7 @@ internal class QuickLauncherPanelManagementHandler(
         panelRect: RectF,
         cellBounds: List<Pair<Any, RectF>>,
         tapGesture: Boolean = false,
-        toolbarCommitAllowed: Boolean = true,
+        toolbarCommitAllowed: Boolean = true
     ): Boolean {
         if (!toolbar.shouldShowToolbar()) return false
 
@@ -178,7 +178,7 @@ internal class QuickLauncherPanelManagementHandler(
                         panelRect = panelRect,
                         tapGesture = tapGesture,
                         toolbarCommitAllowed = toolbarCommitAllowed,
-                        allowSlideRelease = false,
+                        allowSlideRelease = false
                     )
                 ) {
                     handled = true
@@ -200,7 +200,7 @@ internal class QuickLauncherPanelManagementHandler(
                             val itemCount = controller.workingItems().size
                             val insertIndex = QuickLauncherGridLogic.dragInsertIndex(
                                 dragSlotGlobal = dragToGlobal,
-                                itemCount = itemCount,
+                                itemCount = itemCount
                             )
                             if (insertIndex in 0..itemCount && dragFromGlobal != insertIndex) {
                                 controller.moveItemGlobal(dragFromGlobal, insertIndex)
@@ -329,7 +329,7 @@ internal class QuickLauncherPanelManagementHandler(
         localX: Float,
         localY: Float,
         panelRect: RectF,
-        quickCells: List<Pair<QuickLauncherItem, RectF>>,
+        quickCells: List<Pair<QuickLauncherItem, RectF>>
     ) {
         if (dragFromGlobal < 0) return
         val globalTarget = host.resolveEditDragTargetGlobal(localX, localY, panelRect)
@@ -348,7 +348,7 @@ internal class QuickLauncherPanelManagementHandler(
     private fun indexAt(
         localX: Float,
         localY: Float,
-        cellBounds: List<Pair<QuickLauncherItem, RectF>>,
+        cellBounds: List<Pair<QuickLauncherItem, RectF>>
     ): Int {
         cellBounds.forEachIndexed { index, (_, rect) ->
             if (rect.contains(localX, localY)) return index
@@ -359,7 +359,7 @@ internal class QuickLauncherPanelManagementHandler(
     private fun targetIndexForDrag(
         localX: Float,
         localY: Float,
-        cellBounds: List<Pair<QuickLauncherItem, RectF>>,
+        cellBounds: List<Pair<QuickLauncherItem, RectF>>
     ): Int {
         if (cellBounds.isEmpty()) return dragFromIndex
         cellBounds.forEachIndexed { index, (_, rect) ->

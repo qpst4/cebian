@@ -9,7 +9,7 @@ import com.slideindex.app.launcher.QuickLauncherItemType
 import com.slideindex.app.overlay.layout.QuickLauncherPanelLayoutEngine
 
 internal class QuickLauncherFolderHandler(
-    private val ctrl: QuickLauncherOverlayController,
+    private val ctrl: QuickLauncherOverlayController
 ) {
     internal val host get() = ctrl.host
     private val pageSnapMotion get() = ctrl.quickLauncherPageSnapMotion
@@ -49,7 +49,7 @@ internal class QuickLauncherFolderHandler(
         val cellW: Float,
         val cellH: Float,
         val contentStartY: Float,
-        val indicatorHeight: Float,
+        val indicatorHeight: Float
     ) {
         val folderWidth: Float get() = rect.width()
     }
@@ -97,7 +97,7 @@ internal class QuickLauncherFolderHandler(
         val clampedH = folderH.coerceAtMost(maxH)
         val folderTop = (panelRect.centerY() - clampedH / 2f).coerceIn(
             panelRect.top + host.dp(10f),
-            panelRect.bottom - clampedH - host.dp(10f),
+            panelRect.bottom - clampedH - host.dp(10f)
         )
         val rect = RectF(folderLeft, folderTop, folderRight, folderTop + clampedH)
         return FolderLayout(
@@ -111,7 +111,7 @@ internal class QuickLauncherFolderHandler(
             cellW = cellW,
             cellH = cellH,
             contentStartY = folderTop + headerHeight,
-            indicatorHeight = dotsSpace,
+            indicatorHeight = dotsSpace
         ).also { layout = it }
     }
 
@@ -137,8 +137,8 @@ internal class QuickLauncherFolderHandler(
                         currentPageIndex = pageIndex,
                         pageCount = pageCount,
                         pageWidth = folderWidth,
-                        side = host.side(),
-                    ).map { it.pageIndex to it.translateX },
+                        side = host.side()
+                    ).map { it.pageIndex to it.translateX }
                 )
             }
             for ((candidatePageIdx, translateX) in layers) {
@@ -177,7 +177,7 @@ internal class QuickLauncherFolderHandler(
         event: MotionEvent,
         touchX: Float,
         localX: Float,
-        localY: Float,
+        localY: Float
     ): Boolean {
         val panelRect = ctrl.quickLauncherPanelRect()
         val folderLayout = layout ?: computeLayout(panelRect)
@@ -215,7 +215,7 @@ internal class QuickLauncherFolderHandler(
                     if (deleteGlobal >= 0) {
                         ctrl.quickLauncherPanelController.removeFolderChildItem(
                             ctrl.folderGlobalIndex,
-                            deleteGlobal,
+                            deleteGlobal
                         )
                         refreshFolderChildren()
                         host.hapticTick()
@@ -430,7 +430,7 @@ internal class QuickLauncherFolderHandler(
     private fun nearestChildGlobalIndex(
         touchX: Float,
         localY: Float,
-        folderLayout: FolderLayout,
+        folderLayout: FolderLayout
     ): Int {
         if (ctrl.folderCellBounds.isEmpty()) return dragFromGlobal
         var best = dragFromGlobal
@@ -452,7 +452,7 @@ internal class QuickLauncherFolderHandler(
         val itemCount = ctrl.folderSubPanelItems.size
         val insertIndex = QuickLauncherGridLogic.dragInsertIndex(
             dragSlotGlobal = dragToGlobal,
-            itemCount = itemCount,
+            itemCount = itemCount
         )
         if (insertIndex in 0..itemCount && dragFromGlobal in 0 until itemCount &&
             dragFromGlobal != insertIndex
@@ -460,7 +460,7 @@ internal class QuickLauncherFolderHandler(
             ctrl.quickLauncherPanelController.moveFolderChildItem(
                 ctrl.folderGlobalIndex,
                 dragFromGlobal,
-                insertIndex,
+                insertIndex
             )
             refreshFolderChildren()
         }
@@ -479,7 +479,7 @@ internal class QuickLauncherFolderHandler(
         hit: Int,
         event: MotionEvent,
         localX: Float,
-        localY: Float,
+        localY: Float
     ) {
         val childItem = ctrl.folderSubPanelItems[hit]
         val longPress = ctrl.isFolderLongPressTriggered(event)
@@ -492,7 +492,7 @@ internal class QuickLauncherFolderHandler(
                     localX,
                     localY,
                     event.rawY,
-                    confirmHaptic = longPress,
+                    confirmHaptic = longPress
                 )
             }
         } else {
@@ -502,7 +502,7 @@ internal class QuickLauncherFolderHandler(
                     childItem,
                     host.settings(),
                     longPressArmed = longPress,
-                    anchorRawY = event.rawY,
+                    anchorRawY = event.rawY
                 )
             ) {
                 280L
@@ -548,7 +548,7 @@ internal class QuickLauncherFolderHandler(
             pageIndex = pageIndex,
             pageCount = pageCount,
             side = host.side(),
-            resistance = PAGE_EDGE_RESISTANCE,
+            resistance = PAGE_EDGE_RESISTANCE
         )
         pageDragOffset = offset.coerceIn(-folderWidth, folderWidth)
     }
@@ -560,7 +560,7 @@ internal class QuickLauncherFolderHandler(
             panelWidth = folderWidth,
             pageIndex = pageIndex,
             pageCount = pageCount,
-            side = host.side(),
+            side = host.side()
         )
         if (delta != 0) {
             pageIndex += delta
@@ -568,7 +568,7 @@ internal class QuickLauncherFolderHandler(
             pageDragOffset += QuickLauncherScrollHandler.pageCommitOffsetCompensation(
                 delta = delta,
                 pageWidth = folderWidth,
-                side = host.side(),
+                side = host.side()
             )
         }
         animatePageSnapTo(0f)
@@ -588,7 +588,7 @@ internal class QuickLauncherFolderHandler(
             onComplete = {
                 pageDragOffset = targetOffset
                 host.invalidate()
-            },
+            }
         )
     }
 
@@ -612,7 +612,7 @@ internal class QuickLauncherFolderHandler(
             touchX = touchX,
             panelRect = folderLayout.rect,
             side = host.side(),
-            edgePx = host.dp(EDGE_AUTO_PAGE_THRESHOLD_DP),
+            edgePx = host.dp(EDGE_AUTO_PAGE_THRESHOLD_DP)
         )
         if (!edgeAutoPageSeeded) {
             edgeAutoPageSeeded = true
@@ -640,7 +640,7 @@ internal class QuickLauncherFolderHandler(
         pageDragOffset += QuickLauncherScrollHandler.pageCommitOffsetCompensation(
             delta = delta,
             pageWidth = folderWidth,
-            side = host.side(),
+            side = host.side()
         )
         ctrl.folderHighlightLocalIndex = -1
         ctrl.cancelFolderLongPress()

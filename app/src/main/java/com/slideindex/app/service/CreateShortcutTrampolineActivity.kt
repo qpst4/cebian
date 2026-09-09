@@ -19,7 +19,7 @@ class CreateShortcutTrampolineActivity : ComponentActivity() {
     private var resultDelivered = false
 
     private val createLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult(),
+        ActivityResultContracts.StartActivityForResult()
     ) { result ->
         val hostPackage = pendingHostPackage
         pendingHostPackage = null
@@ -101,7 +101,7 @@ object CreateShortcutTrampoline {
         context: Context,
         host: AppShortcutLoader.CreateShortcutHost,
         onPrepare: () -> Unit,
-        onResult: (AppShortcutLoader.CreatedShortcut?) -> Unit,
+        onResult: (AppShortcutLoader.CreatedShortcut?) -> Unit
     ) {
         cancelPending()
         delivered = false

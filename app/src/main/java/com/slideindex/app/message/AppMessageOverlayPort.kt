@@ -136,7 +136,7 @@ class AppMessageOverlayPort @Inject constructor() : MessageOverlayPort {
         context: Context,
         plan: MessageDisplayPlan,
         onAction: (MessageAction) -> Unit,
-        onDismiss: () -> Unit,
+        onDismiss: () -> Unit
     ) {
         val danmakuTheme = plan.danmakuTheme
         if (plan.showDanmaku && danmakuTheme != null) {
@@ -147,7 +147,7 @@ class AppMessageOverlayPort @Inject constructor() : MessageOverlayPort {
                 opacity = plan.settings.danmakuOpacity,
                 maxLines = plan.settings.danmakuMaxLines,
                 speedLevel = plan.settings.danmakuSpeedLevel,
-                fontSizeLevel = plan.settings.sideBubbleFontSizeLevel,
+                fontSizeLevel = plan.settings.sideBubbleFontSizeLevel
             )
         }
         if (plan.showFloatIcon) {
@@ -155,7 +155,7 @@ class AppMessageOverlayPort @Inject constructor() : MessageOverlayPort {
                 context = context,
                 plan = plan,
                 onAction = onAction,
-                onDismiss = onDismiss,
+                onDismiss = onDismiss
             )
         }
         if (plan.showSideBubble && plan.sideTheme != null) {
@@ -163,7 +163,7 @@ class AppMessageOverlayPort @Inject constructor() : MessageOverlayPort {
                 context = context,
                 plan = plan,
                 onAction = onAction,
-                onDismiss = onDismiss,
+                onDismiss = onDismiss
             )
         }
         if (plan.showDanmaku) {
@@ -176,18 +176,18 @@ class AppMessageOverlayPort @Inject constructor() : MessageOverlayPort {
         data: NotificationData,
         autoDismissSeconds: Int,
         onConfirm: (alwaysAllow: Boolean) -> Unit,
-        onDismiss: () -> Unit,
+        onDismiss: () -> Unit
     ) {
         cancelUnlockConfirmationCallbacks()
         val appLabel = runCatching {
             context.packageManager.getApplicationLabel(
-                context.packageManager.getApplicationInfo(data.packageName, 0),
+                context.packageManager.getApplicationInfo(data.packageName, 0)
             ).toString()
         }.getOrDefault(data.packageName)
         val hostContext = MessageOverlayHost.resolveHostContext(context) ?: context
         val host = unlockConfirmationHost ?: OverlayComposeDialogHost(
             context = hostContext,
-            fullScreen = false,
+            fullScreen = false
         ).also {
             unlockConfirmationHost = it
         }
@@ -195,7 +195,7 @@ class AppMessageOverlayPort @Inject constructor() : MessageOverlayPort {
             onDismiss = {
                 cancelUnlockConfirmationCallbacks()
                 onDismiss()
-            },
+            }
         ) {
             var alwaysAllow by remember { mutableStateOf(false) }
             val badgeBackground = MaterialTheme.colorScheme.surfaceContainer
@@ -208,13 +208,13 @@ class AppMessageOverlayPort @Inject constructor() : MessageOverlayPort {
                     .border(
                         width = 1.dp,
                         color = MaterialTheme.colorScheme.outlineVariant,
-                        shape = RoundedCornerShape(28.dp),
+                        shape = RoundedCornerShape(28.dp)
                     ),
                 shape = RoundedCornerShape(28.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer
                 ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
             ) {
                 Column(modifier = Modifier.padding(18.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -226,7 +226,7 @@ class AppMessageOverlayPort @Inject constructor() : MessageOverlayPort {
                                     contentScale = ContentScale.Crop,
                                     modifier = Modifier
                                         .size(40.dp)
-                                        .clip(CircleShape),
+                                        .clip(CircleShape)
                                 )
                                 val appIcon = data.appIcon
                                 appIcon?.let {
@@ -241,9 +241,9 @@ class AppMessageOverlayPort @Inject constructor() : MessageOverlayPort {
                                             .drawBehind {
                                                 drawCircle(
                                                     color = badgeBackground,
-                                                    radius = size.minDimension / 2f + 2.dp.toPx(),
+                                                    radius = size.minDimension / 2f + 2.dp.toPx()
                                                 )
-                                            },
+                                            }
                                     )
                                 }
                             }
@@ -257,7 +257,7 @@ class AppMessageOverlayPort @Inject constructor() : MessageOverlayPort {
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
                                     .size(40.dp)
-                                    .clip(CircleShape),
+                                    .clip(CircleShape)
                             )
                             Spacer(modifier = Modifier.size(12.dp))
                         }
@@ -265,44 +265,44 @@ class AppMessageOverlayPort @Inject constructor() : MessageOverlayPort {
                             Text(
                                 text = appLabel,
                                 style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.primary,
+                                color = MaterialTheme.colorScheme.primary
                             )
                             Text(
                                 text = stringResource(R.string.message_reminder_unlock_confirm_title),
-                                style = MaterialTheme.typography.titleSmall,
+                                style = MaterialTheme.typography.titleSmall
                             )
                         }
                     }
                     Text(
                         text = listOfNotNull(
                             notificationTitle,
-                            data.content.takeIf { it.isNotBlank() },
+                            data.content.takeIf { it.isNotBlank() }
                         ).joinToString("\n"),
                         maxLines = 3,
                         overflow = TextOverflow.Ellipsis,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.padding(top = 14.dp),
+                        modifier = Modifier.padding(top = 14.dp)
                     )
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .padding(top = 4.dp)
-                            .clickable { alwaysAllow = !alwaysAllow },
+                            .clickable { alwaysAllow = !alwaysAllow }
                     ) {
                         Switch(
                             checked = alwaysAllow,
-                            onCheckedChange = { alwaysAllow = it },
+                            onCheckedChange = { alwaysAllow = it }
                         )
                         Text(
                             text = stringResource(R.string.message_reminder_unlock_confirm_always_allow),
                             style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(start = 8.dp),
+                            modifier = Modifier.padding(start = 8.dp)
                         )
                     }
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(top = 4.dp),
+                        modifier = Modifier.padding(top = 4.dp)
                     ) {
                         Spacer(modifier = Modifier.weight(1f))
                         TextButton(onClick = { host.dismiss() }) {
@@ -328,7 +328,7 @@ class AppMessageOverlayPort @Inject constructor() : MessageOverlayPort {
             unlockAutoDismissRunnable = autoDismissRunnable
             mainHandler.postDelayed(
                 autoDismissRunnable,
-                autoDismissSeconds.coerceIn(1, 30) * 1000L,
+                autoDismissSeconds.coerceIn(1, 30) * 1000L
             )
         }
     }

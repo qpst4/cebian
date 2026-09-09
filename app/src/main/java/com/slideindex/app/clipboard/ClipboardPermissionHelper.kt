@@ -45,7 +45,7 @@ object ClipboardPermissionHelper {
             "pm",
             "grant",
             packageName,
-            Manifest.permission.READ_LOGS,
+            Manifest.permission.READ_LOGS
         )
         return granted && hasReadLogsPermission(context)
     }

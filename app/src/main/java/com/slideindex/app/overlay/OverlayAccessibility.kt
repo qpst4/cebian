@@ -22,12 +22,12 @@ import com.slideindex.app.shell.ShellCommand
 internal data class OverlayVirtualNode(
     val description: String,
     val boundsInParent: RectF,
-    val clickable: Boolean = true,
+    val clickable: Boolean = true
 )
 
 internal data class OverlayAccessibilitySnapshot(
     val panelTitle: String?,
-    val nodes: List<OverlayVirtualNode>,
+    val nodes: List<OverlayVirtualNode>
 )
 
 internal object OverlayTriggerAccessibility {
@@ -67,7 +67,7 @@ internal object OverlayTriggerAccessibility {
 internal class OverlayAccessibilityDelegate(
     private val host: View,
     private val snapshotProvider: () -> OverlayAccessibilitySnapshot,
-    private val onActivate: (localX: Float, localY: Float) -> Boolean,
+    private val onActivate: (localX: Float, localY: Float) -> Boolean
 ) : AccessibilityDelegateCompat() {
     private val provider = OverlayVirtualNodeProvider(host, snapshotProvider, onActivate)
 
@@ -92,7 +92,7 @@ internal class OverlayAccessibilityDelegate(
 private class OverlayVirtualNodeProvider(
     private val host: View,
     private val snapshotProvider: () -> OverlayAccessibilitySnapshot,
-    private val onActivate: (localX: Float, localY: Float) -> Boolean,
+    private val onActivate: (localX: Float, localY: Float) -> Boolean
 ) : AccessibilityNodeProviderCompat() {
     override fun createAccessibilityNodeInfo(virtualViewId: Int): AccessibilityNodeInfoCompat? {
         if (virtualViewId == View.NO_ID) {
@@ -129,7 +129,7 @@ private class OverlayVirtualNodeProvider(
             (location[0] + boundsInParent.left).toInt(),
             (location[1] + boundsInParent.top).toInt(),
             (location[0] + boundsInParent.right).toInt(),
-            (location[1] + boundsInParent.bottom).toInt(),
+            (location[1] + boundsInParent.bottom).toInt()
         )
     }
 
@@ -138,7 +138,7 @@ private class OverlayVirtualNodeProvider(
             bounds.left.toInt(),
             bounds.top.toInt(),
             bounds.right.toInt(),
-            bounds.bottom.toInt(),
+            bounds.bottom.toInt()
         )
 }
 
@@ -153,7 +153,7 @@ internal object EdgeGestureOverlayAccessibilityCollector {
         quickLauncherController: QuickLauncherOverlayController,
         taskSwitcherController: TaskSwitcherOverlayController,
         shellPanelController: ShellCommandPanelController,
-        appsByPackage: Map<String, AppInfo>,
+        appsByPackage: Map<String, AppInfo>
     ): OverlayAccessibilitySnapshot {
         val panelTitle = panelTitle(context, panelMode)
         val nodes = when (panelMode) {
@@ -181,7 +181,7 @@ internal object EdgeGestureOverlayAccessibilityCollector {
     private fun collectIndexNodes(
         context: android.content.Context,
         zoneLayout: GestureZoneLayout,
-        indexSession: SlideAlongRailSession,
+        indexSession: SlideAlongRailSession
     ): List<OverlayVirtualNode> {
         val rail = zoneLayout.indexRailRect()
         if (rail.isEmpty) return emptyList()
@@ -192,13 +192,13 @@ internal object EdgeGestureOverlayAccessibilityCollector {
             val top = rail.top + slotHeight * index
             OverlayVirtualNode(
                 description = context.getString(R.string.cd_overlay_index_letter, letter),
-                boundsInParent = RectF(rail.left, top, rail.right, top + slotHeight),
+                boundsInParent = RectF(rail.left, top, rail.right, top + slotHeight)
             )
         }
         val appNodes = indexSession.gridCellBounds.map { (app, bounds) ->
             OverlayVirtualNode(
                 description = context.getString(R.string.cd_overlay_launch_app, app.label),
-                boundsInParent = RectF(bounds),
+                boundsInParent = RectF(bounds)
             )
         }
         return letterNodes + appNodes
@@ -208,14 +208,14 @@ internal object EdgeGestureOverlayAccessibilityCollector {
         context: android.content.Context,
         panelGridSession: PanelGridSession,
         quickLauncherController: QuickLauncherOverlayController,
-        appsByPackage: Map<String, AppInfo>,
+        appsByPackage: Map<String, AppInfo>
     ): List<OverlayVirtualNode> {
         val itemNodes = panelGridSession.cellBounds.mapNotNull { (payload, bounds) ->
             val item = payload as? QuickLauncherItem ?: return@mapNotNull null
             val label = QuickLauncherLabels.resolveLabel(context, item, appsByPackage)
             OverlayVirtualNode(
                 description = context.getString(R.string.cd_overlay_quick_launcher_item, label),
-                boundsInParent = RectF(bounds),
+                boundsInParent = RectF(bounds)
             )
         }
         val panelRect = quickLauncherController.quickLauncherPanelRect()
@@ -225,13 +225,13 @@ internal object EdgeGestureOverlayAccessibilityCollector {
 
     private fun collectTaskSwitcherNodes(
         context: android.content.Context,
-        taskSwitcherController: TaskSwitcherOverlayController,
+        taskSwitcherController: TaskSwitcherOverlayController
     ): List<OverlayVirtualNode> =
         taskSwitcherController.collectAccessibilityNodes(context)
 
     private fun collectShellNodes(
         context: android.content.Context,
-        shellPanelController: ShellCommandPanelController,
+        shellPanelController: ShellCommandPanelController
     ): List<OverlayVirtualNode> =
         shellPanelController.collectAccessibilityNodes(context)
 }
@@ -251,12 +251,12 @@ internal fun EdgeGestureOverlayView.dispatchOverlayAccessibilityClick(localX: Fl
 
 internal fun installEdgeGestureOverlayAccessibility(
     view: EdgeGestureOverlayView,
-    snapshotProvider: () -> OverlayAccessibilitySnapshot,
+    snapshotProvider: () -> OverlayAccessibilitySnapshot
 ): OverlayAccessibilityDelegate {
     val delegate = OverlayAccessibilityDelegate(
         host = view,
         snapshotProvider = snapshotProvider,
-        onActivate = { x, y -> view.dispatchOverlayAccessibilityClick(x, y) },
+        onActivate = { x, y -> view.dispatchOverlayAccessibilityClick(x, y) }
     )
     ViewCompat.setAccessibilityDelegate(view, delegate)
     return delegate

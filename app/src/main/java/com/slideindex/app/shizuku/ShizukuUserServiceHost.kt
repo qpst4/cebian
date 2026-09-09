@@ -162,7 +162,7 @@ object ShizukuUserServiceHost {
             Shizuku.unbindUserService(
                 buildArgs(context, "task_manager_v10"),
                 connection,
-                true,
+                true
             )
         }
     }
@@ -222,7 +222,7 @@ object ShizukuUserServiceHost {
 
     private fun buildArgs(context: Context, suffix: String): Shizuku.UserServiceArgs =
         Shizuku.UserServiceArgs(
-            ComponentName(context.packageName, TaskManagerUserService::class.java.name),
+            ComponentName(context.packageName, TaskManagerUserService::class.java.name)
         )
             .daemon(true)
             .processNameSuffix(suffix)

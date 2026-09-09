@@ -42,7 +42,7 @@ object ShareImageOcrCoordinator {
         val screenshot: Bitmap,
         val tiled: Boolean,
         var backgroundRequested: Boolean,
-        val cachedImageUri: Uri,
+        val cachedImageUri: Uri
     )
 
     private var activeSession: ActiveSession? = null
@@ -66,7 +66,7 @@ object ShareImageOcrCoordinator {
         Toast.makeText(
             session.appContext,
             R.string.share_image_ocr_background_started,
-            Toast.LENGTH_SHORT,
+            Toast.LENGTH_SHORT
         ).show()
     }
 
@@ -96,16 +96,16 @@ object ShareImageOcrCoordinator {
                 ocrPreferSwitchOnComplete = true,
                 a11ySourceEnabled = false,
                 isShareImageOcr = true,
-                barcodeResults = barcodeResults,
+                barcodeResults = barcodeResults
             ),
-            initialTextMode = PickResultTextMode.WORD_TAP,
+            initialTextMode = PickResultTextMode.WORD_TAP
         )
     }
 
     suspend fun handleSharedImage(
         context: Context,
         uri: Uri,
-        modelId: String,
+        modelId: String
     ): Boolean {
         PickPerf.mark("share_image_ocr_start", "model=$modelId")
         val appContext = context.applicationContext
@@ -157,7 +157,7 @@ object ShareImageOcrCoordinator {
         hostContext: Context,
         appContext: Context,
         cachedUri: Uri,
-        modelId: String,
+        modelId: String
     ): Boolean {
         val bitmap = withContext(Dispatchers.IO) { decodeShareImage(appContext, cachedUri) }
         if (bitmap == null) {
@@ -190,13 +190,13 @@ object ShareImageOcrCoordinator {
             appContext = appContext,
             screenshot = sessionScreenshot,
             tiled = false,
-            cachedImageUri = cachedUri,
+            cachedImageUri = cachedUri
         )
         showPendingResult(hostContext, panelScreenshot, barcodeResults)
         launchSingleOcr(modelId, cachedUri)
         PickPerf.mark(
             "share_image_ocr_panel_shown",
-            "mode=single size=${panelScreenshot.width}x${panelScreenshot.height}",
+            "mode=single size=${panelScreenshot.width}x${panelScreenshot.height}"
         )
         return true
     }
@@ -206,7 +206,7 @@ object ShareImageOcrCoordinator {
         appContext: Context,
         cachedUri: Uri,
         bounds: ShareImageLongImageOcr.ImageBounds,
-        modelId: String,
+        modelId: String
     ): Boolean {
         val thumbnail = withContext(Dispatchers.IO) {
             ShareImageLongImageOcr.decodeThumbnail(appContext, cachedUri, bounds)
@@ -236,13 +236,13 @@ object ShareImageOcrCoordinator {
             appContext = appContext,
             screenshot = sessionScreenshot,
             tiled = true,
-            cachedImageUri = cachedUri,
+            cachedImageUri = cachedUri
         )
         showPendingResult(hostContext, panelScreenshot, barcodeResults)
         launchTiledOcr(cachedUri, bounds, modelId)
         PickPerf.mark(
             "share_image_ocr_panel_shown",
-            "mode=tiled source=${bounds.width}x${bounds.height} tiles=$tileCount",
+            "mode=tiled source=${bounds.width}x${bounds.height} tiles=$tileCount"
         )
         return true
     }
@@ -251,7 +251,7 @@ object ShareImageOcrCoordinator {
         appContext: Context,
         screenshot: Bitmap,
         tiled: Boolean,
-        cachedImageUri: Uri,
+        cachedImageUri: Uri
     ) {
         endSession(activeSession)
         activeSession = ActiveSession(
@@ -259,14 +259,14 @@ object ShareImageOcrCoordinator {
             screenshot = screenshot,
             tiled = tiled,
             backgroundRequested = false,
-            cachedImageUri = cachedImageUri,
+            cachedImageUri = cachedImageUri
         )
     }
 
     private fun showPendingResult(
         hostContext: Context,
         screenshotCopy: Bitmap,
-        barcodeResults: List<com.slideindex.app.barcode.BarcodeScanResult> = emptyList(),
+        barcodeResults: List<com.slideindex.app.barcode.BarcodeScanResult> = emptyList()
     ) {
         FloatBallPickResultPanel.showResult(
             context = hostContext,
@@ -281,8 +281,8 @@ object ShareImageOcrCoordinator {
                 ocrPreferSwitchOnComplete = true,
                 a11ySourceEnabled = false,
                 isShareImageOcr = true,
-                barcodeResults = barcodeResults,
-            ),
+                barcodeResults = barcodeResults
+            )
         )
     }
 
@@ -303,7 +303,7 @@ object ShareImageOcrCoordinator {
                                 val result = RegionalScreenshotOcr.recognizeBitmapPublic(
                                     session.appContext,
                                     modelId,
-                                    bitmap,
+                                    bitmap
                                 )
                             ) {
                                 is com.slideindex.app.ocr.OcrRecognizeResult.Success ->
@@ -326,7 +326,7 @@ object ShareImageOcrCoordinator {
     private fun launchTiledOcr(
         cachedUri: Uri,
         bounds: ShareImageLongImageOcr.ImageBounds,
-        modelId: String,
+        modelId: String
     ) {
         if (activeSession == null) return
         scope.launch(ocrDispatcher) {
@@ -339,7 +339,7 @@ object ShareImageOcrCoordinator {
                         context = session.appContext,
                         uri = cachedUri,
                         bounds = bounds,
-                        modelId = modelId,
+                        modelId = modelId
                     )
                 }
             } catch (_: Throwable) {
@@ -364,7 +364,7 @@ object ShareImageOcrCoordinator {
                     FloatBallPickResultPanel.updateOcrText(
                         ocrText,
                         switchToOcr = true,
-                        initialTextMode = null,
+                        initialTextMode = null
                     )
                     delivered = true
                 } else if (reopenAfterBackground) {
@@ -375,7 +375,7 @@ object ShareImageOcrCoordinator {
                     Toast.makeText(
                         session.appContext,
                         R.string.share_image_ocr_saved_to_history,
-                        Toast.LENGTH_SHORT,
+                        Toast.LENGTH_SHORT
                     ).show()
                 }
 
@@ -387,7 +387,7 @@ object ShareImageOcrCoordinator {
                                 appContext = session.appContext,
                                 ocrText = ocrText,
                                 thumbnail = historyThumbnail,
-                                tiled = session.tiled,
+                                tiled = session.tiled
                             )
                         }
                     }
@@ -396,7 +396,7 @@ object ShareImageOcrCoordinator {
                     Toast.makeText(
                         session.appContext,
                         R.string.share_image_ocr_background_complete,
-                        Toast.LENGTH_SHORT,
+                        Toast.LENGTH_SHORT
                     ).show()
                 }
             } else {
@@ -409,7 +409,7 @@ object ShareImageOcrCoordinator {
                     Toast.makeText(
                         session.appContext,
                         message,
-                        Toast.LENGTH_SHORT,
+                        Toast.LENGTH_SHORT
                     ).show()
                 }
             }
@@ -419,7 +419,7 @@ object ShareImageOcrCoordinator {
 
     private fun reopenCompletedResult(
         session: ActiveSession,
-        ocrText: String,
+        ocrText: String
     ): Boolean {
         if (!SlideIndexAccessibilityService.isConnected()) {
             return false
@@ -440,9 +440,9 @@ object ShareImageOcrCoordinator {
                 ocrPreferSwitchOnComplete = true,
                 a11ySourceEnabled = false,
                 isShareImageOcr = true,
-                barcodeResults = barcodeResults,
+                barcodeResults = barcodeResults
             ),
-            initialTextMode = PickResultTextMode.WORD_TAP,
+            initialTextMode = PickResultTextMode.WORD_TAP
         )
         return true
     }
@@ -451,7 +451,7 @@ object ShareImageOcrCoordinator {
         appContext: Context,
         ocrText: String,
         thumbnail: Bitmap,
-        tiled: Boolean,
+        tiled: Boolean
     ) {
         val repository = ShareImageOcrDependencyAccess.historyRepository(appContext) ?: run {
             thumbnail.recycle()
@@ -461,7 +461,7 @@ object ShareImageOcrCoordinator {
             repository.append(
                 ocrText = ocrText,
                 thumbnail = thumbnail,
-                tiled = tiled,
+                tiled = tiled
             )
         } finally {
             thumbnail.recycle()

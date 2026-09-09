@@ -36,18 +36,17 @@ fun FloatBallSettingsScreen(
     onOpenPickSettings: () -> Unit,
     onOpenTranslationSettings: () -> Unit,
     onOpenSearchEngineSettings: () -> Unit,
-    onOpenImageSearchEngineSettings: () -> Unit,
+    onOpenImageSearchEngineSettings: () -> Unit
 ) {
     val sectionFeaturesTitle = stringResource(R.string.settings_section_features)
 
     SettingsScreenScaffold(
         title = stringResource(R.string.float_ball_settings_title),
-        onBack = onBack,
+        onBack = onBack
     ) {
         settingsLazySmallTitle(
             key = "section-features",
-            title = sectionFeaturesTitle,
-            sectionTop = true,
+            title = sectionFeaturesTitle
         )
         groupedCardItems(
             keyPrefix = "float-ball-enabled",
@@ -63,11 +62,11 @@ fun FloatBallSettingsScreen(
                             },
                             checked = settings.floatBallEnabled,
                             enabled = accessibilityGranted,
-                            onCheckedChange = onEnabledChange,
+                            onCheckedChange = onEnabledChange
                         )
-                    },
+                    }
                 )
-            },
+            }
         )
         groupedCardItems(
             keyPrefix = "float-ball-navigation",
@@ -80,12 +79,12 @@ fun FloatBallSettingsScreen(
                             subtitle = stringResource(
                                 R.string.float_ball_appearance_settings_summary,
                                 settings.floatBallSizeDp,
-                                (settings.floatBallOpacity * 100).roundToInt(),
+                                (settings.floatBallOpacity * 100).roundToInt()
                             ),
                             enabled = true,
-                            onClick = onOpenAppearanceSettings,
+                            onClick = onOpenAppearanceSettings
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("gesture") {
@@ -94,9 +93,9 @@ fun FloatBallSettingsScreen(
                             title = stringResource(R.string.float_ball_gesture_settings_title),
                             subtitle = stringResource(R.string.float_ball_gesture_settings_summary),
                             enabled = true,
-                            onClick = onOpenGestureSettings,
+                            onClick = onOpenGestureSettings
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("pick") {
@@ -110,12 +109,12 @@ fun FloatBallSettingsScreen(
                                     stringResource(R.string.float_ball_ocr_fallback_on)
                                 } else {
                                     stringResource(R.string.float_ball_ocr_fallback_off)
-                                },
+                                }
                             ),
                             enabled = true,
-                            onClick = onOpenPickSettings,
+                            onClick = onOpenPickSettings
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("translation") {
@@ -124,9 +123,9 @@ fun FloatBallSettingsScreen(
                             title = stringResource(R.string.float_ball_translation_settings_title),
                             subtitle = floatBallTranslationSubtitle(settings),
                             enabled = true,
-                            onClick = onOpenTranslationSettings,
+                            onClick = onOpenTranslationSettings
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("search-engines") {
@@ -136,12 +135,12 @@ fun FloatBallSettingsScreen(
                             subtitle = pluralStringResource(
                                 R.plurals.search_engine_settings_summary,
                                 SearchEngineStore.textPickPanelEngines(settings.searchEngines).size,
-                                SearchEngineStore.textPickPanelEngines(settings.searchEngines).size,
+                                SearchEngineStore.textPickPanelEngines(settings.searchEngines).size
                             ),
                             enabled = true,
-                            onClick = onOpenSearchEngineSettings,
+                            onClick = onOpenSearchEngineSettings
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("image-search-engines") {
@@ -153,15 +152,15 @@ fun FloatBallSettingsScreen(
                                 SearchEngineStore.imageSharePanelEngines(settings.searchEngines).size,
                                 SearchEngineStore.imageSharePanelEngines(settings.searchEngines).size,
                                 AggregatedImageSearchEnginePreferencesStore.panelConfigs(
-                                    settings.aggregatedImageSearchEngines,
-                                ).size,
+                                    settings.aggregatedImageSearchEngines
+                                ).size
                             ),
                             enabled = true,
-                            onClick = onOpenImageSearchEngineSettings,
+                            onClick = onOpenImageSearchEngineSettings
                         )
-                    },
+                    }
                 )
-            },
+            }
         )
     }
 }
@@ -189,14 +188,14 @@ fun SettingsCardScope.FloatBallEntryCard(
     floatBallOpacity: Float,
     enabled: Boolean,
     outlinedLeadingIcons: Boolean = false,
-    onClick: () -> Unit,
+    onClick: () -> Unit
 ) {
     val subtitle = when {
         !enabled -> stringResource(R.string.float_ball_entry_desc)
         floatBallEnabled -> stringResource(
             R.string.float_ball_entry_summary_enabled,
             floatBallSizeDp,
-            (floatBallOpacity * 100).roundToInt(),
+            (floatBallOpacity * 100).roundToInt()
         )
         else -> stringResource(R.string.float_ball_entry_summary_disabled)
     }
@@ -207,7 +206,7 @@ fun SettingsCardScope.FloatBallEntryCard(
         title = stringResource(R.string.float_ball_settings_title),
         subtitle = subtitle,
         enabled = enabled,
-        onClick = onClick,
+        onClick = onClick
     )
 }
 
@@ -216,14 +215,14 @@ fun SettingsCardScope.FloatBallEntryCard(
     settings: AppSettings,
     enabled: Boolean,
     outlinedLeadingIcons: Boolean = false,
-    onClick: () -> Unit,
+    onClick: () -> Unit
 ) {
     val subtitle = when {
         !enabled -> stringResource(R.string.float_ball_entry_desc)
         settings.floatBallEnabled -> stringResource(
             R.string.float_ball_entry_summary_enabled,
             settings.floatBallSizeDp,
-            (settings.floatBallOpacity * 100).roundToInt(),
+            (settings.floatBallOpacity * 100).roundToInt()
         )
         else -> stringResource(R.string.float_ball_entry_summary_disabled)
     }
@@ -234,6 +233,6 @@ fun SettingsCardScope.FloatBallEntryCard(
         title = stringResource(R.string.float_ball_settings_title),
         subtitle = subtitle,
         enabled = enabled,
-        onClick = onClick,
+        onClick = onClick
     )
 }

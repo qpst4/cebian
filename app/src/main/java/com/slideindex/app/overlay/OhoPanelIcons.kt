@@ -17,11 +17,11 @@ object OhoPanelIcons {
             defaultWidth = 24.dp,
             defaultHeight = 24.dp,
             viewportWidth = 24f,
-            viewportHeight = 24f,
+            viewportHeight = 24f
         ).apply {
             path(
                 fill = SolidColor(Color.Black),
-                pathFillType = PathFillType.EvenOdd,
+                pathFillType = PathFillType.EvenOdd
             ) {
                 // Rounded-square camera body.
                 moveTo(6.8f, 6.5f)
@@ -55,7 +55,7 @@ object OhoPanelIcons {
             defaultWidth = 24.dp,
             defaultHeight = 24.dp,
             viewportWidth = 24f,
-            viewportHeight = 24f,
+            viewportHeight = 24f
         ).apply {
             path(fill = SolidColor(Color.Black)) {
                 moveTo(3f, 5.5f)
@@ -103,7 +103,7 @@ object OhoPanelIcons {
             defaultWidth = 24.dp,
             defaultHeight = 24.dp,
             viewportWidth = 24f,
-            viewportHeight = 24f,
+            viewportHeight = 24f
         ).apply {
             path(fill = SolidColor(Color.Black)) {
                 quickToolsDot(7.5f, 6.5f)
@@ -129,7 +129,7 @@ object OhoPanelIcons {
             defaultWidth = 24.dp,
             defaultHeight = 24.dp,
             viewportWidth = 24f,
-            viewportHeight = 24f,
+            viewportHeight = 24f
         ).apply {
             path(fill = SolidColor(Color.Black)) {
                 moveTo(3f, 9f)

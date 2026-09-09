@@ -152,7 +152,6 @@ fun MainScreen(
 
     MiuixHubScaffold(
         title = stringResource(R.string.app_name),
-        subtitle = stringResource(R.string.main_settings_subtitle),
         modifier = Modifier.fillMaxSize(),
         listState = listState,
         bottomContentPadding = bottomContentPadding,
@@ -166,7 +165,6 @@ fun MainScreen(
         settingsLazySmallTitle(
             key = "service_section",
             title = serviceSectionTitle,
-            sectionTop = pendingPermissions.isNotEmpty(),
         )
         groupedCardItems(
             keyPrefix = "main_service",
@@ -225,7 +223,7 @@ fun MainScreen(
             },
         )
 
-        settingsLazySmallTitle(key = "features_section", title = featuresSectionTitle, sectionTop = true)
+        settingsLazySmallTitle(key = "features_section", title = featuresSectionTitle)
         groupedCardItems(
             keyPrefix = "main_features",
             items = buildList {
@@ -261,7 +259,7 @@ fun MainScreen(
             },
         )
 
-        settingsLazySmallTitle(key = "gestures_section", title = gesturesSectionTitle, sectionTop = true)
+        settingsLazySmallTitle(key = "gestures_section", title = gesturesSectionTitle)
         groupedCardItems(
             keyPrefix = "main_gestures",
             items = buildList {
@@ -316,7 +314,7 @@ fun MainScreen(
             },
         )
 
-        settingsLazySmallTitle(key = "apps_section", title = appsSectionTitle, sectionTop = true)
+        settingsLazySmallTitle(key = "apps_section", title = appsSectionTitle)
         groupedCardItems(
             keyPrefix = "main_apps",
             items = buildList {
@@ -356,7 +354,7 @@ fun MainScreen(
             },
         )
 
-        settingsLazySmallTitle(key = "feedback_section", title = feedbackSectionTitle, sectionTop = true)
+        settingsLazySmallTitle(key = "feedback_section", title = feedbackSectionTitle)
         groupedCardItems(
             keyPrefix = "main_feedback",
             items = listOf(

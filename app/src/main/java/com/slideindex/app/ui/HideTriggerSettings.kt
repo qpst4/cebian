@@ -20,7 +20,7 @@ fun hideTriggerSettingsCardItems(
     outlinedLeadingIcons: Boolean = false,
     onHideInLandscapeChange: (Boolean) -> Unit,
     onHideOnLockScreenChange: (Boolean) -> Unit,
-    onHideOnLauncherChange: (Boolean) -> Unit,
+    onHideOnLauncherChange: (Boolean) -> Unit
 ): List<CardItem> = listOf(
     settingsCardItem("hide-trigger-landscape") {
         SettingsCardScopeContent {
@@ -31,7 +31,7 @@ fun hideTriggerSettingsCardItems(
             },
             checked = !hideTriggerInLandscape,
             enabled = enabled,
-            onCheckedChange = { landscapeModeEnabled -> onHideInLandscapeChange(!landscapeModeEnabled) },
+            onCheckedChange = { landscapeModeEnabled -> onHideInLandscapeChange(!landscapeModeEnabled) }
             )
         }
     },
@@ -44,7 +44,7 @@ fun hideTriggerSettingsCardItems(
             },
             checked = !hideTriggerOnLockScreen,
             enabled = enabled,
-            onCheckedChange = { lockScreenEnabled -> onHideOnLockScreenChange(!lockScreenEnabled) },
+            onCheckedChange = { lockScreenEnabled -> onHideOnLockScreenChange(!lockScreenEnabled) }
             )
         }
     },
@@ -57,10 +57,10 @@ fun hideTriggerSettingsCardItems(
             },
             checked = !hideTriggerOnLauncher,
             enabled = enabled,
-            onCheckedChange = { launcherEnabled -> onHideOnLauncherChange(!launcherEnabled) },
+            onCheckedChange = { launcherEnabled -> onHideOnLauncherChange(!launcherEnabled) }
             )
         }
-    },
+    }
 )
 
 @Composable
@@ -70,7 +70,7 @@ fun SettingsCardScope.HideTriggerSettingsRows(
     outlinedLeadingIcons: Boolean = false,
     onHideInLandscapeChange: (Boolean) -> Unit,
     onHideOnLockScreenChange: (Boolean) -> Unit,
-    onHideOnLauncherChange: (Boolean) -> Unit,
+    onHideOnLauncherChange: (Boolean) -> Unit
 ) {
     HideTriggerSettingsRows(
         hideTriggerInLandscape = settings.hideTriggerInLandscape,
@@ -80,7 +80,7 @@ fun SettingsCardScope.HideTriggerSettingsRows(
         outlinedLeadingIcons = outlinedLeadingIcons,
         onHideInLandscapeChange = onHideInLandscapeChange,
         onHideOnLockScreenChange = onHideOnLockScreenChange,
-        onHideOnLauncherChange = onHideOnLauncherChange,
+        onHideOnLauncherChange = onHideOnLauncherChange
     )
 }
 
@@ -93,7 +93,7 @@ fun SettingsCardScope.HideTriggerSettingsRows(
     outlinedLeadingIcons: Boolean = false,
     onHideInLandscapeChange: (Boolean) -> Unit,
     onHideOnLockScreenChange: (Boolean) -> Unit,
-    onHideOnLauncherChange: (Boolean) -> Unit,
+    onHideOnLauncherChange: (Boolean) -> Unit
 ) {
     // "妯睆妯″紡" enables edge triggers in landscape; stored as hideTriggerInLandscape (hide when false).
     SettingSwitchRow(
@@ -103,7 +103,7 @@ fun SettingsCardScope.HideTriggerSettingsRows(
         },
         checked = !hideTriggerInLandscape,
         enabled = enabled,
-        onCheckedChange = { landscapeModeEnabled -> onHideInLandscapeChange(!landscapeModeEnabled) },
+        onCheckedChange = { landscapeModeEnabled -> onHideInLandscapeChange(!landscapeModeEnabled) }
     )
     // "閿佸睆鐣岄潰" enables edge triggers on lock screen; stored as hideTriggerOnLockScreen (hide when true).
     SettingSwitchRow(
@@ -113,7 +113,7 @@ fun SettingsCardScope.HideTriggerSettingsRows(
         },
         checked = !hideTriggerOnLockScreen,
         enabled = enabled,
-        onCheckedChange = { lockScreenEnabled -> onHideOnLockScreenChange(!lockScreenEnabled) },
+        onCheckedChange = { lockScreenEnabled -> onHideOnLockScreenChange(!lockScreenEnabled) }
     )
     // "绯荤粺妗岄潰" enables edge triggers on home launcher; stored as hideTriggerOnLauncher (hide when true).
     SettingSwitchRow(
@@ -123,6 +123,6 @@ fun SettingsCardScope.HideTriggerSettingsRows(
         },
         checked = !hideTriggerOnLauncher,
         enabled = enabled,
-        onCheckedChange = { launcherEnabled -> onHideOnLauncherChange(!launcherEnabled) },
+        onCheckedChange = { launcherEnabled -> onHideOnLauncherChange(!launcherEnabled) }
     )
 }

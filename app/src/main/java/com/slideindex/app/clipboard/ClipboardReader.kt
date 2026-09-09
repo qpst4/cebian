@@ -52,7 +52,7 @@ object ClipboardReader {
 
         var fileMimeType: String? = null,
 
-        var intentUri: String? = null,
+        var intentUri: String? = null
 
     )
 
@@ -76,7 +76,7 @@ object ClipboardReader {
 
         index: Int,
 
-        parts: ClipParts,
+        parts: ClipParts
 
     ) {
 
@@ -246,7 +246,7 @@ object ClipboardReader {
 
                 text = intentUri,
 
-                intentUri = intentUri,
+                intentUri = intentUri
 
             )
 
@@ -282,7 +282,7 @@ object ClipboardReader {
 
                 htmlText = htmlText,
 
-                mimeType = parts.imageMimeType ?: parts.fileMimeType,
+                mimeType = parts.imageMimeType ?: parts.fileMimeType
 
             )
 
@@ -294,7 +294,7 @@ object ClipboardReader {
                     uri = imageUri,
                     imageUris = imageUris,
                     htmlText = if (isMeta) null else ClipboardHtmlParser.buildHtml(plainText, imageUris),
-                    mimeType = parts.imageMimeType,
+                    mimeType = parts.imageMimeType
                 )
             }
 
@@ -308,7 +308,7 @@ object ClipboardReader {
 
                 imageUris = imageUris,
 
-                mimeType = parts.imageMimeType,
+                mimeType = parts.imageMimeType
 
             )
 
@@ -320,7 +320,7 @@ object ClipboardReader {
 
                 uri = fileUri,
 
-                mimeType = parts.fileMimeType,
+                mimeType = parts.fileMimeType
 
             )
 
@@ -328,7 +328,7 @@ object ClipboardReader {
 
                 type = ClipboardEntryType.TEXT,
 
-                text = plainText,
+                text = plainText
 
             )
 
@@ -338,7 +338,7 @@ object ClipboardReader {
 
                 text = intentUri.orEmpty(),
 
-                intentUri = intentUri,
+                intentUri = intentUri
 
             )
 

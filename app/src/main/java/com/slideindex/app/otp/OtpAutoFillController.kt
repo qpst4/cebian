@@ -51,7 +51,7 @@ object OtpAutoFillController {
 
     fun scheduleAutoFill(
         service: AccessibilityService,
-        settings: AppSettings,
+        settings: AppSettings
     ) {
         if (!settings.otpAutoInputEnabled) return
         if (peekPendingCode() == null) return
@@ -72,7 +72,7 @@ object OtpAutoFillController {
     private fun performAutoFill(
         service: AccessibilityService,
         settings: AppSettings,
-        code: String,
+        code: String
     ) {
         if (!fillInProgress.compareAndSet(false, true)) return
         val root = findAutoFillRoot(service)
@@ -90,7 +90,7 @@ object OtpAutoFillController {
                 root = root,
                 code = code,
                 autoEnter = settings.otpAutoConfirmEnabled,
-                inputIntervalMs = settings.otpAutoInputIntervalMs.toLong(),
+                inputIntervalMs = settings.otpAutoInputIntervalMs.toLong()
             )
             if (result.success) {
                 pendingCode = null

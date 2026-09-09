@@ -27,7 +27,7 @@ class ToggleGestureTrampolineActivity : ComponentActivity() {
             OverlayServiceLifecycle.syncFromSettings(this@ToggleGestureTrampolineActivity, deps.settingsRepository)
 
             val msg = getString(
-                if (newState) R.string.toggle_gesture_enabled else R.string.toggle_gesture_disabled,
+                if (newState) R.string.toggle_gesture_enabled else R.string.toggle_gesture_disabled
             )
             Toast.makeText(this@ToggleGestureTrampolineActivity, msg, Toast.LENGTH_SHORT).show()
             

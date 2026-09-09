@@ -44,7 +44,7 @@ object ClipboardWriter {
         val blocks = ClipboardImageLabel.blocksForClipboardWrite(
             blocks = entry.resolvedContentBlocks(),
             imageSources = imageSources,
-            uri = entry.uri,
+            uri = entry.uri
         )
         if (blocks.isNotEmpty()) {
             return buildClipForBlocks(
@@ -55,7 +55,7 @@ object ClipboardWriter {
                 fallbackImageUris = imageSources,
                 resolveDataUri = { fileName -> ClipboardImageStore.uriForFile(context, fileName)?.toString() },
                 resolveContentUri = { ClipboardImageStore.uriForFile(context, it) },
-                resolveDimensions = { ClipboardImageStore.imageDimensions(context, it) },
+                resolveDimensions = { ClipboardImageStore.imageDimensions(context, it) }
             )
         }
         return buildClipData(
@@ -68,8 +68,8 @@ object ClipboardWriter {
                 htmlText = entry.htmlText,
                 mimeType = entry.mimeType,
                 imageFileName = entry.imageFileName,
-                imageFileNames = entry.resolvedImageFileNames(),
-            ),
+                imageFileNames = entry.resolvedImageFileNames()
+            )
         )
     }
 
@@ -81,7 +81,7 @@ object ClipboardWriter {
         fallbackImageUris: List<String> = emptyList(),
         resolveDataUri: (String) -> String?,
         resolveContentUri: (String) -> Uri?,
-        resolveDimensions: (String) -> Pair<Int, Int>? = { null },
+        resolveDimensions: (String) -> Pair<Int, Int>? = { null }
     ): ClipData? {
         if (blocks.isEmpty()) return null
         return buildClipFromBlocks(
@@ -92,7 +92,7 @@ object ClipboardWriter {
             fallbackImageUris = fallbackImageUris,
             resolveDataUri = resolveDataUri,
             resolveContentUri = resolveContentUri,
-            resolveDimensions = resolveDimensions,
+            resolveDimensions = resolveDimensions
         )
     }
 
@@ -102,7 +102,7 @@ object ClipboardWriter {
         htmlText: String? = null,
         resolveDataUri: (String) -> String?,
         resolveContentUri: (String) -> Uri?,
-        resolveDimensions: (String) -> Pair<Int, Int>? = { null },
+        resolveDimensions: (String) -> Pair<Int, Int>? = { null }
     ): Boolean {
         if (blocks.isEmpty()) return false
         val clip = buildClipForBlocks(
@@ -111,7 +111,7 @@ object ClipboardWriter {
             blocks = blocks,
             resolveDataUri = resolveDataUri,
             resolveContentUri = resolveContentUri,
-            resolveDimensions = resolveDimensions,
+            resolveDimensions = resolveDimensions
         ) ?: return false
         safeSetPrimaryClip(context, clip)
         return true
@@ -125,7 +125,7 @@ object ClipboardWriter {
         fallbackImageUris: List<String>,
         resolveDataUri: (String) -> String?,
         resolveContentUri: (String) -> Uri?,
-        resolveDimensions: (String) -> Pair<Int, Int>?,
+        resolveDimensions: (String) -> Pair<Int, Int>?
     ): ClipData? {
         val imageBlocks = blocks.filter { it.kind == ClipboardBlockKind.IMAGE }
         val imageUris = resolveImageUrisForBlocks(imageBlocks, resolveContentUri, fallbackImageUris)
@@ -153,7 +153,7 @@ object ClipboardWriter {
                 ClipboardHtmlParser.buildHtmlFromBlocks(
                     blocks = blocks,
                     imageSrcForFile = resolveDataUri,
-                    imageSizeForFile = resolveDimensions,
+                    imageSizeForFile = resolveDimensions
                 )
             }
         }
@@ -163,7 +163,7 @@ object ClipboardWriter {
     private fun resolveImageUrisForBlocks(
         imageBlocks: List<ClipboardContentBlock>,
         resolveContentUri: (String) -> Uri?,
-        fallbackImageUris: List<String>,
+        fallbackImageUris: List<String>
     ): List<Uri> {
         val localUris = imageBlocks.mapNotNull { resolveContentUri(it.fileName) }
         if (localUris.isNotEmpty()) return localUris
@@ -173,7 +173,7 @@ object ClipboardWriter {
     private fun buildPureImageClip(
         context: Context?,
         mimeType: String?,
-        imageUris: List<Uri>,
+        imageUris: List<Uri>
     ): ClipData? {
         if (imageUris.isEmpty()) return null
         val type = mimeType ?: "image/*"
@@ -208,7 +208,7 @@ object ClipboardWriter {
         val plainText = ClipboardImageLabel.stripMetadataText(
             text = payload.text,
             imageSources = imageSources,
-            uri = payload.uri,
+            uri = payload.uri
         )
 
         if (!html.isNullOrBlank() && imageUris.isEmpty()) {
@@ -226,7 +226,7 @@ object ClipboardWriter {
                 !html.isNullOrBlank() && ClipboardHtmlParser.imageSources(html).size > 1 -> {
                     ClipboardHtmlParser.buildHtml(
                         plainText.ifBlank { ClipboardHtmlParser.plainTextFromHtml(html) },
-                        imageSrcs,
+                        imageSrcs
                     )
                 }
                 plainText.isNotBlank() || imageUris.size > 1 -> {
@@ -247,7 +247,7 @@ object ClipboardWriter {
                 ClipData.newUri(
                     context.contentResolver,
                     payload.mimeType ?: "text/*",
-                    uri,
+                    uri
                 )
             }
             ClipboardEntryType.INTENT -> {
@@ -265,7 +265,7 @@ object ClipboardWriter {
     private fun buildRichHtmlClip(
         plainText: String,
         html: String,
-        imageUris: List<Uri>,
+        imageUris: List<Uri>
     ): ClipData? {
         if (html.isBlank() && plainText.isBlank() && imageUris.isEmpty()) return null
         val clip = if (html.isNotBlank()) {
@@ -282,7 +282,7 @@ object ClipboardWriter {
         payload: ClipboardPayload,
         imageUris: List<Uri>,
         plainText: String,
-        imageSrcs: List<String>,
+        imageSrcs: List<String>
     ): ClipData? {
         val mimeType = payload.mimeType ?: "image/*"
         if (plainText.isNotBlank()) {
@@ -302,7 +302,7 @@ object ClipboardWriter {
     private fun safeSetPrimaryClip(
         context: Context,
         clip: ClipData,
-        fallback: (() -> ClipData?)? = null,
+        fallback: (() -> ClipData?)? = null
     ) {
         val clipboard = context.getSystemService(ClipboardManager::class.java) ?: return
         try {

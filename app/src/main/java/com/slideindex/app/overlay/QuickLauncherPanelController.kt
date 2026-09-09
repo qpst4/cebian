@@ -15,7 +15,7 @@ import com.slideindex.app.launcher.mergeIntoFolder
 import com.slideindex.app.settings.AppSettings
 
 internal class QuickLauncherPanelController(
-    private val host: Host,
+    private val host: Host
 ) {
     interface Host {
         val context: Context
@@ -34,7 +34,7 @@ internal class QuickLauncherPanelController(
             configuredShortcutKeys: Set<String>,
             configuredActionKeys: Set<String>,
             onAdd: (QuickLauncherItem) -> Unit,
-            onRemove: (QuickLauncherItem) -> Unit,
+            onRemove: (QuickLauncherItem) -> Unit
         )
         fun onPersist(items: List<QuickLauncherItem>)
         fun isQuickLauncherVisible(): Boolean
@@ -148,7 +148,7 @@ internal class QuickLauncherPanelController(
         panelRect: RectF,
         tapGesture: Boolean,
         toolbarCommitAllowed: Boolean,
-        allowSlideRelease: Boolean = false,
+        allowSlideRelease: Boolean = false
     ): Boolean {
         val handled = toolbar.commitToolbarAtRelease(
             localX = localX,
@@ -156,7 +156,7 @@ internal class QuickLauncherPanelController(
             panelRect = panelRect,
             tapGesture = tapGesture,
             toolbarCommitAllowed = toolbarCommitAllowed,
-            allowSlideRelease = allowSlideRelease,
+            allowSlideRelease = allowSlideRelease
         )
         if (handled) {
             management.reset()
@@ -172,7 +172,7 @@ internal class QuickLauncherPanelController(
         panelRect: RectF,
         cellBounds: List<Pair<Any, RectF>>,
         tapGesture: Boolean = false,
-        toolbarCommitAllowed: Boolean = true,
+        toolbarCommitAllowed: Boolean = true
     ): Boolean = management.handleManagementTouch(
         event = event,
         localX = localX,
@@ -180,7 +180,7 @@ internal class QuickLauncherPanelController(
         panelRect = panelRect,
         cellBounds = cellBounds,
         tapGesture = tapGesture,
-        toolbarCommitAllowed = toolbarCommitAllowed,
+        toolbarCommitAllowed = toolbarCommitAllowed
     )
 
     fun isDragging(): Boolean = management.isDragging()
@@ -274,7 +274,7 @@ internal class QuickLauncherPanelController(
                     }
                 }
                 host.invalidate()
-            },
+            }
         )
     }
 
@@ -325,7 +325,7 @@ internal class QuickLauncherPanelController(
         if (shouldUseLocalItems(panel)) return localItems
         return QuickLauncherDefaults.effectiveItems(
             configuredItems(host.settings(), panel),
-            host.apps(),
+            host.apps()
         )
     }
 

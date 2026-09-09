@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicInteger
  * Reference-counted bitmap handle (GestureEVO Inspire ManagedBitmap).
  */
 class ManagedBitmap private constructor(
-    private val bitmap: Bitmap,
+    private val bitmap: Bitmap
 ) : Closeable {
     private val refCount = AtomicInteger(1)
 

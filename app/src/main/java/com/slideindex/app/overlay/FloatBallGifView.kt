@@ -22,7 +22,7 @@ import androidx.core.graphics.withScale
  */
 internal class FloatBallGifView @JvmOverloads constructor(
     context: Context,
-    attrs: AttributeSet? = null,
+    attrs: AttributeSet? = null
 ) : View(context, attrs) {
 
     private val circlePath = Path()
@@ -75,7 +75,7 @@ internal class FloatBallGifView @JvmOverloads constructor(
             val durationMs = movie.duration().takeIf { it > 0 } ?: 1_000
             val bitmap = createBitmap(
                 streamingOutW.coerceAtLeast(1),
-                streamingOutH.coerceAtLeast(1),
+                streamingOutH.coerceAtLeast(1)
             )
             val canvas = Canvas(bitmap)
             movie.setTime(streamingElapsedMs % durationMs)

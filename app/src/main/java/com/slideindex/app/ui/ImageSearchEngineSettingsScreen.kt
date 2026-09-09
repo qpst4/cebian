@@ -36,6 +36,7 @@ import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Add
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 import com.slideindex.app.ui.settings.components.settingsLazyHint
+import com.slideindex.app.ui.settings.components.settingsLazyTipCard
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import kotlin.math.roundToInt
 
@@ -105,9 +106,8 @@ fun ImageSearchEngineSettingsScreen(
         settingsLazySmallTitle(
             key = "image-search-share-section",
             title = shareSectionTitle,
-            sectionTop = true,
         )
-        settingsLazyHint(key = "image-search-share-hint", text = shareHint)
+        settingsLazyTipCard(key = "image-search-share-hint", text = shareHint)
         groupedCardItems(
             keyPrefix = "image-search-add-share",
             items = listOf(
@@ -152,9 +152,8 @@ fun ImageSearchEngineSettingsScreen(
         settingsLazySmallTitle(
             key = "image-search-aggregated-section",
             title = aggregatedSectionTitle,
-            sectionTop = true,
         )
-        settingsLazyHint(key = "image-search-aggregated-hint", text = aggregatedHint)
+        settingsLazyTipCard(key = "image-search-aggregated-hint", text = aggregatedHint)
         LazySettingsItem(key = "image-search-aggregated-list") {
             if (visibleAggregatedCount == 0) {
                 Text(

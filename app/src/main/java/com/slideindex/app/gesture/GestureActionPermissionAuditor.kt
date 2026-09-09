@@ -27,7 +27,7 @@ data class MissingGesturePermission(
     val actionLabel: String,
     val actionDescription: String?,
     val permissionHint: String,
-    val requestTag: String? = null,
+    val requestTag: String? = null
 )
 
 object GestureActionPermissionAuditor {
@@ -95,7 +95,7 @@ object GestureActionPermissionAuditor {
                     action = action,
                     actionLabel = gestureActionLabelText(context, action),
                     actionDescription = gestureActionDescriptionText(context, action),
-                    permissionHint = hint,
+                    permissionHint = hint
                 )
             }
 
@@ -109,8 +109,8 @@ object GestureActionPermissionAuditor {
                         actionLabel = context.getString(R.string.clipboard_screenshot_monitoring_title),
                         actionDescription = context.getString(R.string.clipboard_screenshot_monitoring_desc),
                         permissionHint = context.getString(R.string.clipboard_media_read_status_denied),
-                        requestTag = REQUEST_CLIPBOARD_MEDIA_READ,
-                    ),
+                        requestTag = REQUEST_CLIPBOARD_MEDIA_READ
+                    )
                 )
             }
 
@@ -125,8 +125,8 @@ object GestureActionPermissionAuditor {
                         actionLabel = context.getString(R.string.wallpaper_blur_permission_title),
                         actionDescription = context.getString(R.string.honeycomb_background_wallpaper_blur),
                         permissionHint = context.getString(R.string.wallpaper_blur_permission_missing),
-                        requestTag = REQUEST_WALLPAPER_BLUR_ALL_FILES,
-                    ),
+                        requestTag = REQUEST_WALLPAPER_BLUR_ALL_FILES
+                    )
                 )
             }
 
@@ -139,8 +139,8 @@ object GestureActionPermissionAuditor {
                         actionLabel = context.getString(R.string.message_reminder_title),
                         actionDescription = context.getString(R.string.message_reminder_permission_listener_desc),
                         permissionHint = context.getString(R.string.message_reminder_permission_listener_title),
-                        requestTag = REQUEST_NOTIFICATION_LISTENER,
-                    ),
+                        requestTag = REQUEST_NOTIFICATION_LISTENER
+                    )
                 )
             }
         }
@@ -155,8 +155,8 @@ object GestureActionPermissionAuditor {
                 context.startActivity(
                     Intent(
                         Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                        Uri.fromParts("package", context.packageName, null),
-                    ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                        Uri.fromParts("package", context.packageName, null)
+                    ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 )
             }
             REQUEST_WALLPAPER_BLUR_ALL_FILES -> {
@@ -165,7 +165,7 @@ object GestureActionPermissionAuditor {
             REQUEST_NOTIFICATION_LISTENER -> {
                 context.startActivity(
                     Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
-                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 )
             }
             else -> requestPermissionForAdjustAction(context, item.action)

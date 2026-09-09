@@ -3,7 +3,7 @@ package com.slideindex.app.overlay
 import android.graphics.RectF
 
 internal class QuickLauncherScrollHandler(
-    private val touch: QuickLauncherTouchHandler,
+    private val touch: QuickLauncherTouchHandler
 ) {
     private val ctrl get() = touch.ctrl
     private val host get() = touch.host
@@ -82,7 +82,7 @@ internal class QuickLauncherScrollHandler(
             panelWidth = panelWidth,
             pageIndex = ctrl.quickLauncherPageIndex,
             pageCount = ctrl.quickLauncherPageCount,
-            side = host.side(),
+            side = host.side()
         )
         if (delta != 0) {
             ctrl.quickLauncherPageIndex += delta
@@ -90,7 +90,7 @@ internal class QuickLauncherScrollHandler(
             ctrl.quickLauncherPageDragOffset += pageCommitOffsetCompensation(
                 delta = delta,
                 pageWidth = panelWidth,
-                side = host.side(),
+                side = host.side()
             )
             syncPageOffsetForDrag()
         }
@@ -109,7 +109,7 @@ internal class QuickLauncherScrollHandler(
             pageIndex = ctrl.quickLauncherPageIndex,
             pageCount = ctrl.quickLauncherPageCount,
             side = host.side(),
-            resistance = PAGE_EDGE_RESISTANCE,
+            resistance = PAGE_EDGE_RESISTANCE
         )
         ctrl.quickLauncherPageDragOffset = offset.coerceIn(-panelWidth, panelWidth)
         ctrl.invalidateQuickLauncherPanel()
@@ -129,7 +129,7 @@ internal class QuickLauncherScrollHandler(
             onComplete = {
                 ctrl.quickLauncherPageDragOffset = targetOffset
                 ctrl.invalidateQuickLauncherPanel()
-            },
+            }
         )
     }
 
@@ -167,7 +167,7 @@ internal class QuickLauncherScrollHandler(
         ctrl.quickLauncherPageDragOffset += pageCommitOffsetCompensation(
             delta = delta,
             pageWidth = panelWidth,
-            side = host.side(),
+            side = host.side()
         )
         pickResolver.clearHighlight()
         host.hapticTick()
@@ -187,7 +187,7 @@ internal class QuickLauncherScrollHandler(
             touchX = touchX,
             panelRect = panelRect,
             side = host.side(),
-            edgePx = host.dp(EDGE_AUTO_PAGE_THRESHOLD_DP),
+            edgePx = host.dp(EDGE_AUTO_PAGE_THRESHOLD_DP)
         )
 
     companion object {
@@ -198,13 +198,13 @@ internal class QuickLauncherScrollHandler(
 
         internal data class AdjacentPageLayer(
             val pageIndex: Int,
-            val translateX: Float,
+            val translateX: Float
         )
 
         internal fun pageCommitOffsetCompensation(
             delta: Int,
             pageWidth: Float,
-            side: PanelSide = PanelSide.LEFT,
+            side: PanelSide = PanelSide.LEFT
         ): Float {
             if (delta == 0) return 0f
             return when (side) {
@@ -218,7 +218,7 @@ internal class QuickLauncherScrollHandler(
             panelWidth: Float,
             pageIndex: Int,
             pageCount: Int,
-            side: PanelSide = PanelSide.LEFT,
+            side: PanelSide = PanelSide.LEFT
         ): Int {
             val threshold = panelWidth * PAGE_COMMIT_FRACTION
             return when (side) {
@@ -240,7 +240,7 @@ internal class QuickLauncherScrollHandler(
             pageIndex: Int,
             pageCount: Int,
             side: PanelSide,
-            resistance: Float,
+            resistance: Float
         ): Float {
             var adjusted = offset
             val atStart = pageIndex <= 0
@@ -263,7 +263,7 @@ internal class QuickLauncherScrollHandler(
             currentPageIndex: Int,
             pageCount: Int,
             pageWidth: Float,
-            side: PanelSide,
+            side: PanelSide
         ): List<AdjacentPageLayer> {
             if (pageCount <= 1) return emptyList()
             return when (side) {
@@ -290,7 +290,7 @@ internal class QuickLauncherScrollHandler(
             touchX: Float,
             panelRect: RectF,
             side: PanelSide,
-            edgePx: Float,
+            edgePx: Float
         ): Int {
             val leftThreshold = panelRect.left + edgePx
             val rightThreshold = panelRect.right - edgePx

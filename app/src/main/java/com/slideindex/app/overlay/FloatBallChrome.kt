@@ -51,7 +51,7 @@ import kotlinx.coroutines.withContext
 @Composable
 internal fun FloatBallLineChrome(
     sceneState: FloatBallSceneState,
-    dragActiveSideOverrideState: MutableState<FloatBallSide?>,
+    dragActiveSideOverrideState: MutableState<FloatBallSide?>
 ) {
     val settings by sceneState.settingsState
     val stripPreviewActive by sceneState.stripZonePreview
@@ -82,25 +82,25 @@ internal fun FloatBallLineChrome(
                 metrics,
                 inactiveSide,
                 screenWidthPx,
-                screenHeightPx,
+                screenHeightPx
             )
             Box(
                 modifier = Modifier
                     .offset { IntOffset(lineRect.left, lineRect.top) }
                     .width(with(density) { lineRect.width().toDp() })
-                    .height(with(density) { lineRect.height().toDp() }),
+                    .height(with(density) { lineRect.height().toDp() })
             ) {
                 if (stripPreviewActive) {
                     FloatBallStripZonePreviewLayer(
                         settings = settings,
                         side = inactiveSide,
                         lineColor = lineColor,
-                        showEdgeLine = true,
+                        showEdgeLine = true
                     )
                 } else {
                     FloatBallEdgeLineVisual(
                         side = inactiveSide,
-                        lineColor = lineColor,
+                        lineColor = lineColor
                     )
                 }
             }
@@ -112,7 +112,7 @@ internal fun FloatBallLineChrome(
                 metrics,
                 activeSide,
                 screenWidthPx,
-                screenHeightPx,
+                screenHeightPx
             )
             val ballSizePx = FloatBallLayout.ballSizePx(settings, metrics.density)
             val ballSizeDp = with(density) { ballSizePx.toDp() }
@@ -121,7 +121,7 @@ internal fun FloatBallLineChrome(
                 metrics,
                 activeSide,
                 ballCenter,
-                screenHeightPx,
+                screenHeightPx
             )
             Box(
                 modifier = Modifier
@@ -130,13 +130,13 @@ internal fun FloatBallLineChrome(
                 contentAlignment = when (activeSide) {
                     FloatBallSide.LEFT -> Alignment.CenterStart
                     FloatBallSide.RIGHT -> Alignment.CenterEnd
-                },
+                }
             ) {
                 FloatBallStripZonePreviewLayer(
                     settings = settings,
                     side = activeSide,
                     lineColor = lineColor,
-                    showEdgeLine = false,
+                    showEdgeLine = false
                 )
             }
         }
@@ -146,7 +146,7 @@ internal fun FloatBallLineChrome(
 @Composable
 internal fun FloatBallEdgeLineVisual(
     side: FloatBallSide,
-    lineColor: Color,
+    lineColor: Color
 ) {
     val density = LocalDensity.current
     val lineWidth = with(density) { 4.dp }
@@ -161,14 +161,14 @@ internal fun FloatBallEdgeLineVisual(
 
     Box(
         modifier = Modifier.fillMaxSize(),
-        contentAlignment = outerAlignment,
+        contentAlignment = outerAlignment
     ) {
         Box(
             modifier = Modifier
                 .width(lineWidth)
                 .fillMaxHeight()
                 .clip(roundedEdge)
-                .background(lineColor),
+                .background(lineColor)
         )
     }
 }
@@ -177,7 +177,7 @@ internal fun FloatBallEdgeLineVisual(
 @Composable
 internal fun FloatBallIdleBallChrome(
     sceneState: FloatBallSceneState,
-    dragActiveSideOverrideState: MutableState<FloatBallSide?>,
+    dragActiveSideOverrideState: MutableState<FloatBallSide?>
 ) {
     val settings by sceneState.settingsState
     val styleVisualGeneration by sceneState.styleVisualGeneration
@@ -206,10 +206,10 @@ internal fun FloatBallIdleBallChrome(
                 view.bind(
                     settings = settings,
                     activeSide = activeSide,
-                    styleGeneration = styleVisualGeneration,
+                    styleGeneration = styleVisualGeneration
                 )
                 view.setDragging(false)
-            },
+            }
         )
     }
 }
@@ -229,7 +229,7 @@ internal fun FloatBallStripZonePreviewLayer(
     settings: AppSettings,
     side: FloatBallSide,
     lineColor: Color,
-    showEdgeLine: Boolean,
+    showEdgeLine: Boolean
 ) {
     val density = LocalDensity.current
     val windowInfo = androidx.compose.ui.platform.LocalWindowInfo.current
@@ -258,7 +258,7 @@ internal fun FloatBallStripZonePreviewLayer(
 
     Box(
         modifier = Modifier.fillMaxSize(),
-        contentAlignment = outerAlignment,
+        contentAlignment = outerAlignment
     ) {
         Box(
             modifier = Modifier
@@ -266,7 +266,7 @@ internal fun FloatBallStripZonePreviewLayer(
                 .fillMaxHeight()
                 .clip(roundedEdge)
                 .background(previewColor),
-            contentAlignment = lineAlignment,
+            contentAlignment = lineAlignment
         ) {
             if (showEdgeLine) {
                 Box(
@@ -274,7 +274,7 @@ internal fun FloatBallStripZonePreviewLayer(
                         .width(lineWidth)
                         .fillMaxHeight()
                         .clip(roundedEdge)
-                        .background(lineColor),
+                        .background(lineColor)
                 )
             }
         }
@@ -286,7 +286,7 @@ internal fun FloatBallStyledVisual(
     sizeDp: androidx.compose.ui.unit.Dp,
     ballColor: Color,
     settings: AppSettings,
-    isDragging: Boolean,
+    isDragging: Boolean
 ) {
     when (settings.floatBallStyleType) {
         FloatBallStyleType.DEFAULT -> FloatBallDefaultVisual.Content(sizeDp = sizeDp, ballColor = ballColor)
@@ -297,24 +297,24 @@ internal fun FloatBallStyledVisual(
             sizeDp = sizeDp,
             opacity = settings.floatBallOpacity,
             styleType = settings.floatBallStyleType,
-            isDragging = isDragging,
+            isDragging = isDragging
         )
         FloatBallStyleType.CUSTOM_IMAGE -> FloatBallUriVisual(
             sizeDp = sizeDp,
             opacity = settings.floatBallOpacity,
-            uri = settings.floatBallCustomImageUri,
+            uri = settings.floatBallCustomImageUri
         )
         FloatBallStyleType.SLIDESHOW -> FloatBallSlideshowVisual(
             sizeDp = sizeDp,
             opacity = settings.floatBallOpacity,
-            uris = settings.floatBallSlideshowUris,
+            uris = settings.floatBallSlideshowUris
         )
         FloatBallStyleType.GIF -> FloatBallGifVisual(
             sizeDp = sizeDp,
             opacity = settings.floatBallOpacity,
             ballColor = ballColor,
             uri = settings.floatBallGifUri,
-            isDragging = isDragging,
+            isDragging = isDragging
         )
     }
 }
@@ -324,7 +324,7 @@ private fun FloatBallBuiltinAnimVisual(
     sizeDp: androidx.compose.ui.unit.Dp,
     opacity: Float,
     styleType: FloatBallStyleType,
-    isDragging: Boolean,
+    isDragging: Boolean
 ) {
     val alpha = opacity.coerceIn(0f, 1f)
     if (!FloatBallBuiltinAnimCatalog.isBuiltinAnimated(styleType)) return
@@ -344,7 +344,7 @@ private fun FloatBallBuiltinAnimVisual(
                     animView.alpha = alpha
                     animView.setStyle(styleType)
                     animView.setPaused(isDragging)
-                },
+                }
             )
         }
     }
@@ -354,7 +354,7 @@ private fun FloatBallBuiltinAnimVisual(
 private fun FloatBallUriVisual(
     sizeDp: androidx.compose.ui.unit.Dp,
     opacity: Float,
-    uri: String,
+    uri: String
 ) {
     val context = LocalContext.current
     val bitmap = remember(uri) { FloatBallImageLoader.loadBitmap(context, uri) }
@@ -364,7 +364,7 @@ private fun FloatBallUriVisual(
         modifier = Modifier
             .size(sizeDp)
             .clip(shape),
-        contentAlignment = Alignment.Center,
+        contentAlignment = Alignment.Center
     ) {
         if (bitmap != null) {
             Image(
@@ -377,13 +377,13 @@ private fun FloatBallUriVisual(
                         clip = true
                     },
                 contentScale = ContentScale.Crop,
-                alpha = alpha,
+                alpha = alpha
             )
         } else {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Gray.copy(alpha = alpha * 0.5f)),
+                    .background(Color.Gray.copy(alpha = alpha * 0.5f))
             )
         }
     }
@@ -393,7 +393,7 @@ private fun FloatBallUriVisual(
 private fun FloatBallSlideshowVisual(
     sizeDp: androidx.compose.ui.unit.Dp,
     opacity: Float,
-    uris: List<String>,
+    uris: List<String>
 ) {
     if (uris.isEmpty()) {
         FloatBallUriVisual(sizeDp = sizeDp, opacity = opacity, uri = "")
@@ -415,7 +415,7 @@ private fun FloatBallGifVisual(
     opacity: Float,
     ballColor: Color,
     uri: String,
-    isDragging: Boolean,
+    isDragging: Boolean
 ) {
     val context = LocalContext.current
     val density = LocalDensity.current
@@ -473,7 +473,7 @@ private fun FloatBallGifVisual(
     }
 
     Box(
-        modifier = Modifier.size(sizeDp),
+        modifier = Modifier.size(sizeDp)
     ) {
         AndroidView(
             modifier = Modifier.fillMaxSize(),
@@ -486,7 +486,7 @@ private fun FloatBallGifVisual(
             },
             update = { gifView ->
                 gifView.alpha = alpha
-            },
+            }
         )
     }
 }

@@ -49,7 +49,7 @@ internal class EdgeGestureOverlayHosts(
     private val onOverlayWindowResumeFn: () -> Unit,
     private val onShellPanelAuxiliaryPrepareFn: () -> Unit,
     private val onShellPanelAuxiliaryDismissFn: () -> Unit,
-    private val iconForFn: (AppInfo) -> Bitmap,
+    private val iconForFn: (AppInfo) -> Bitmap
 ) : ShellPanelOverlayController.Host,
     QuickLauncherOverlayController.Host,
     IndexPanelRenderer.Host,
@@ -88,7 +88,7 @@ internal class EdgeGestureOverlayHosts(
     override fun drawWithPanelEnterAnimation(
         canvas: Canvas,
         contentRect: RectF,
-        drawContent: () -> Unit,
+        drawContent: () -> Unit
     ) = panelEnterAnimator.drawWithAnimation(canvas, contentRect, drawContent)
 
     override fun activeTriggerZoneRect(): RectF = activeTriggerZoneRectFn()
@@ -123,7 +123,7 @@ internal class EdgeGestureOverlayHosts(
             (target.left - pad).toInt().coerceAtLeast(0),
             (target.top - pad).toInt().coerceAtLeast(0),
             (target.right + pad).toInt().coerceAtMost(view.width.coerceAtLeast(1)),
-            (target.bottom + pad).toInt().coerceAtMost(view.height.coerceAtLeast(1)),
+            (target.bottom + pad).toInt().coerceAtMost(view.height.coerceAtLeast(1))
         )
     }
 

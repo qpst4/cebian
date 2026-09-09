@@ -31,7 +31,7 @@ object FloatBallOcrRegions {
             rect.left - paddingPx,
             rect.top - paddingPx,
             rect.right + paddingPx,
-            rect.bottom + paddingPx,
+            rect.bottom + paddingPx
         )
     }
 
@@ -39,7 +39,7 @@ object FloatBallOcrRegions {
         rect: Rect,
         fraction: Float,
         screenWidth: Int,
-        screenHeight: Int,
+        screenHeight: Int
     ): Rect {
         if (fraction <= 0f) return Rect(rect)
         val padX = (rect.width() * fraction).roundToInt()
@@ -49,10 +49,10 @@ object FloatBallOcrRegions {
                 rect.left - padX,
                 rect.top - padY,
                 rect.right + padX,
-                rect.bottom + padY,
+                rect.bottom + padY
             ),
             screenWidth,
-            screenHeight,
+            screenHeight
         )
     }
 
@@ -61,7 +61,7 @@ object FloatBallOcrRegions {
         x: Float,
         y: Float,
         screenWidth: Int = metrics.widthPixels,
-        screenHeight: Int = metrics.heightPixels,
+        screenHeight: Int = metrics.heightPixels
     ): Rect {
         val halfPx = (POINT_PICK_HALF_DP * metrics.density).roundToInt()
         val cx = x.roundToInt()
@@ -69,7 +69,7 @@ object FloatBallOcrRegions {
         return clampToScreen(
             Rect(cx - halfPx, cy - halfPx, cx + halfPx, cy + halfPx),
             screenWidth,
-            screenHeight,
+            screenHeight
         )
     }
 
@@ -83,7 +83,7 @@ object FloatBallOcrRegions {
         screenWidth: Int,
         screenHeight: Int,
         bitmapWidth: Int,
-        bitmapHeight: Int,
+        bitmapHeight: Int
     ): Rect {
         if (screenWidth <= 0 || screenHeight <= 0 || bitmapWidth <= 0 || bitmapHeight <= 0) {
             return Rect(screenRect)

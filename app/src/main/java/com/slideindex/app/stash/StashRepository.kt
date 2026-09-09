@@ -27,7 +27,7 @@ import kotlinx.serialization.json.Json
 
 @Singleton
 class StashRepository @Inject constructor(
-    @ApplicationContext context: Context,
+    @ApplicationContext context: Context
 ) {
     private val appContext = context.applicationContext
     private val stashDir = File(appContext.filesDir, STASH_DIR_NAME).apply { mkdirs() }
@@ -61,7 +61,7 @@ class StashRepository @Inject constructor(
                     id = UUID.randomUUID().toString(),
                     type = StashEntryType.TEXT,
                     text = trimmed,
-                    createdAtEpochMs = System.currentTimeMillis(),
+                    createdAtEpochMs = System.currentTimeMillis()
                 )
                 val next = trimToMax(listOf(entry) + readFromDisk())
                 writeToDisk(next)
@@ -74,7 +74,7 @@ class StashRepository @Inject constructor(
     suspend fun addImage(
         bitmap: Bitmap,
         pinDisplayWidthPx: Int? = null,
-        pinDisplayHeightPx: Int? = null,
+        pinDisplayHeightPx: Int? = null
     ): StashEntry? {
         return withContext(Dispatchers.IO) {
             mutex.withLock {
@@ -87,7 +87,7 @@ class StashRepository @Inject constructor(
                     imageFileName = saved,
                     createdAtEpochMs = System.currentTimeMillis(),
                     pinDisplayWidthPx = pinDisplayWidthPx?.takeIf { it > 0 },
-                    pinDisplayHeightPx = pinDisplayHeightPx?.takeIf { it > 0 },
+                    pinDisplayHeightPx = pinDisplayHeightPx?.takeIf { it > 0 }
                 )
                 val next = trimToMax(listOf(entry) + readFromDisk())
                 writeToDisk(next)
@@ -99,7 +99,7 @@ class StashRepository @Inject constructor(
 
     suspend fun addRich(
         parts: List<StashRichPart>,
-        htmlText: String? = null,
+        htmlText: String? = null
     ): StashEntry? {
         if (parts.isEmpty()) return null
         return withContext(Dispatchers.IO) {
@@ -147,7 +147,7 @@ class StashRepository @Inject constructor(
                         ?.fileName,
                     contentBlocks = contentBlocks,
                     htmlText = htmlText?.trim()?.takeIf { it.isNotEmpty() },
-                    createdAtEpochMs = System.currentTimeMillis(),
+                    createdAtEpochMs = System.currentTimeMillis()
                 )
                 val next = trimToMax(listOf(entry) + readFromDisk())
                 writeToDisk(next)
@@ -212,7 +212,7 @@ class StashRepository @Inject constructor(
 
     fun loadEntryThumbnailsForPreview(
         entry: StashEntry,
-        maxSidePx: Int = STASH_PREVIEW_MAX_SIDE_PX,
+        maxSidePx: Int = STASH_PREVIEW_MAX_SIDE_PX
     ): List<Bitmap> =
         entry.allImageFileNames().mapNotNull { fileName ->
             loadThumbnailByFileName(entry.id, fileName, maxSidePx)
@@ -221,7 +221,7 @@ class StashRepository @Inject constructor(
     fun loadThumbnailByFileName(
         entryId: String,
         fileName: String?,
-        maxSidePx: Int = STASH_PREVIEW_MAX_SIDE_PX,
+        maxSidePx: Int = STASH_PREVIEW_MAX_SIDE_PX
     ): Bitmap? {
         if (fileName.isNullOrBlank()) return null
         val cacheKey = "$entryId:$fileName:side$maxSidePx"
@@ -246,7 +246,7 @@ class StashRepository @Inject constructor(
             FileProvider.getUriForFile(
                 appContext,
                 "${appContext.packageName}.fileprovider",
-                file,
+                file
             )
         }.getOrNull()
     }
@@ -283,7 +283,7 @@ class StashRepository @Inject constructor(
     fun loadImageThumbnailForCard(
         entry: StashEntry,
         targetWidthPx: Int,
-        maxVisibleHeightPx: Int,
+        maxVisibleHeightPx: Int
     ): Bitmap? {
         val fileName = entry.imageFileName ?: return null
         return loadThumbnailByFileNameForCard(entry.id, fileName, targetWidthPx, maxVisibleHeightPx)
@@ -292,7 +292,7 @@ class StashRepository @Inject constructor(
     fun loadEntryThumbnailsForCard(
         entry: StashEntry,
         targetWidthPx: Int,
-        maxVisibleHeightPx: Int,
+        maxVisibleHeightPx: Int
     ): List<Bitmap> =
         entry.allImageFileNames().mapNotNull { fileName ->
             loadThumbnailByFileNameForCard(entry.id, fileName, targetWidthPx, maxVisibleHeightPx)
@@ -302,7 +302,7 @@ class StashRepository @Inject constructor(
         entryId: String,
         fileName: String?,
         targetWidthPx: Int,
-        maxVisibleHeightPx: Int,
+        maxVisibleHeightPx: Int
     ): Bitmap? {
         if (fileName.isNullOrBlank() || targetWidthPx <= 0 || maxVisibleHeightPx <= 0) return null
         val cacheKey = "$entryId:$fileName:w$targetWidthPx:h$maxVisibleHeightPx"

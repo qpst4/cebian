@@ -19,7 +19,7 @@ class EdgeTouchCaptureView(
     context: Context,
     private val side: PanelSide,
     private val triggerIndex: Int,
-    private val touchHandler: (MotionEvent) -> Boolean,
+    private val touchHandler: (MotionEvent) -> Boolean
 ) : View(context) {
     private var handleDesign: TriggerHandleDesign = TriggerHandleDesign()
     private var showVisual: Boolean = true
@@ -61,7 +61,7 @@ class EdgeTouchCaptureView(
                 design = handleDesign,
                 density = resources.displayMetrics.density,
                 widthPx = width,
-                heightPx = height,
+                heightPx = height
             )
         }
         updateSystemGestureExclusion()

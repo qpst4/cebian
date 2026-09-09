@@ -35,7 +35,7 @@ class SideOverlayController(
     private val clickPassthroughHandler: ((Float, Float, () -> Unit) -> Unit)? = null,
     private val onShellCommandsPersist: (List<ShellCommand>) -> Unit = {},
     private val onQuickLauncherPanelItemsPersist: (String, List<QuickLauncherItem>) -> Unit = { _, _ -> },
-    private val onComposeOverlayDialogStateChanged: () -> Unit = {},
+    private val onComposeOverlayDialogStateChanged: () -> Unit = {}
 ) {
     internal val androidWindowManager = windowManager
     internal var settings: AppSettings = AppSettings()
@@ -126,7 +126,7 @@ class SideOverlayController(
     fun setPreviewMode(
         enabled: Boolean,
         content: LayoutPreviewContent = LayoutPreviewContent.TRIGGER_ONLY,
-        focus: LayoutPreviewFocus? = null,
+        focus: LayoutPreviewFocus? = null
     ) {
         previewMode = enabled
         previewContent = content
@@ -307,7 +307,7 @@ class SideOverlayController(
             onOverlayPresentationResume = { resumePresentationIfNeeded() },
             onShellPanelAuxiliaryPrepare = { suspendEdgeOverlay() },
             onShellPanelAuxiliaryDismiss = { resumeEdgeOverlay() },
-            overlayBrightness = null,
+            overlayBrightness = null
         ).also { view ->
             view.onPresentationTouchRequirementChanged = {
                 if (!windowManager.edgeOverlayDetached && !windowManager.overlayLayoutSuspended()) {
@@ -329,12 +329,12 @@ class SideOverlayController(
             presentation,
             FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.MATCH_PARENT,
-            ),
+                FrameLayout.LayoutParams.MATCH_PARENT
+            )
         )
         GestureAnimationOverlayRegistry.controller(side).attach(
             container,
-            overlayContext,
+            overlayContext
         )
         GestureAnimationOverlayRegistry.controller(side).applySettings(settings)
 

@@ -31,11 +31,11 @@ import kotlin.math.roundToInt
 fun BackTapSettingsScreen(
     settingsRepository: SettingsRepository,
     onBack: () -> Unit,
-    onOpenActionPick: () -> Unit,
+    onOpenActionPick: () -> Unit
 ) {
     val context = LocalContext.current
     val settings by settingsRepository.settings.collectAsStateWithLifecycle(
-        initialValue = settingsRepository.readSnapshot(),
+        initialValue = settingsRepository.readSnapshot()
     )
     val backTap = settings.backTapSettings
     val scope = rememberCoroutineScope()
@@ -44,7 +44,7 @@ fun BackTapSettingsScreen(
 
     SettingsScreenScaffold(
         title = stringResource(R.string.extension_back_tap_title),
-        onBack = onBack,
+        onBack = onBack
     ) {
         groupedCardItems(
             keyPrefix = "back-tap-main",
@@ -57,9 +57,9 @@ fun BackTapSettingsScreen(
                             icon = { label -> Icon(Icons.Default.TouchApp, contentDescription = label) },
                             checked = backTap.enabled,
                             enabled = true,
-                            onCheckedChange = { scope.launch { settingsRepository.setBackTapEnabled(it) } },
+                            onCheckedChange = { scope.launch { settingsRepository.setBackTapEnabled(it) } }
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("action") {
@@ -68,11 +68,11 @@ fun BackTapSettingsScreen(
                             title = stringResource(R.string.back_tap_action),
                             subtitle = gestureActionLabelText(context, backTap.action),
                             enabled = backTap.enabled,
-                            onClick = onOpenActionPick,
+                            onClick = onOpenActionPick
                         )
-                    },
+                    }
                 )
-            },
+            }
         )
         groupedCardItems(
             keyPrefix = "back-tap-tuning",
@@ -88,9 +88,9 @@ fun BackTapSettingsScreen(
                             label = backTap.sensitivity.toString(),
                             startLabel = stringResource(R.string.shake_gestures_sensitivity_hard),
                             endLabel = stringResource(R.string.shake_gestures_sensitivity_easy),
-                            onValueChange = { scope.launch { settingsRepository.setBackTapSensitivity(it.toInt()) } },
+                            onValueChange = { scope.launch { settingsRepository.setBackTapSensitivity(it.toInt()) } }
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("range") {
@@ -103,17 +103,16 @@ fun BackTapSettingsScreen(
                             enabled = backTap.enabled,
                             label = "${intervalMs} ms",
                             formatLabel = { "${250 + it.roundToInt() * 60} ms" },
-                            onValueChange = { scope.launch { settingsRepository.setBackTapRange(it.toInt()) } },
+                            onValueChange = { scope.launch { settingsRepository.setBackTapRange(it.toInt()) } }
                         )
-                    },
+                    }
                 )
-            },
+            }
         )
         settingsLazyHint(key = "back-tap-sensitivity-hint", text = sensitivityHint)
         settingsLazySmallTitle(
             key = "section-back-tap-mode",
-            title = modeSectionTitle,
-            sectionTop = true,
+            title = modeSectionTitle
         )
         groupedCardItems(
             keyPrefix = "back-tap-mode",
@@ -125,9 +124,9 @@ fun BackTapSettingsScreen(
                             title = stringResource(R.string.back_tap_mode_always),
                             selected = backTap.mode == BackTapMode.ALWAYS,
                             enabled = backTap.enabled,
-                            onClick = { scope.launch { settingsRepository.setBackTapMode(BackTapMode.ALWAYS) } },
+                            onClick = { scope.launch { settingsRepository.setBackTapMode(BackTapMode.ALWAYS) } }
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("mode-screen-on") {
@@ -135,9 +134,9 @@ fun BackTapSettingsScreen(
                             title = stringResource(R.string.back_tap_mode_screen_on),
                             selected = backTap.mode == BackTapMode.SCREEN_ON,
                             enabled = backTap.enabled,
-                            onClick = { scope.launch { settingsRepository.setBackTapMode(BackTapMode.SCREEN_ON) } },
+                            onClick = { scope.launch { settingsRepository.setBackTapMode(BackTapMode.SCREEN_ON) } }
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("mode-screen-off") {
@@ -145,11 +144,11 @@ fun BackTapSettingsScreen(
                             title = stringResource(R.string.back_tap_mode_screen_off),
                             selected = backTap.mode == BackTapMode.SCREEN_OFF,
                             enabled = backTap.enabled,
-                            onClick = { scope.launch { settingsRepository.setBackTapMode(BackTapMode.SCREEN_OFF) } },
+                            onClick = { scope.launch { settingsRepository.setBackTapMode(BackTapMode.SCREEN_OFF) } }
                         )
-                    },
+                    }
                 )
-            },
+            }
         )
         groupedCardItems(
             keyPrefix = "back-tap-options",
@@ -160,9 +159,9 @@ fun BackTapSettingsScreen(
                             title = stringResource(R.string.back_tap_vibration_feedback),
                             checked = backTap.vibrationFeedbackEnabled,
                             enabled = backTap.enabled,
-                            onCheckedChange = { scope.launch { settingsRepository.setBackTapVibrationFeedbackEnabled(it) } },
+                            onCheckedChange = { scope.launch { settingsRepository.setBackTapVibrationFeedbackEnabled(it) } }
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("pause-charging") {
@@ -170,11 +169,11 @@ fun BackTapSettingsScreen(
                             title = stringResource(R.string.back_tap_pause_charging),
                             checked = backTap.pauseWhileCharging,
                             enabled = backTap.enabled,
-                            onCheckedChange = { scope.launch { settingsRepository.setBackTapPauseWhileCharging(it) } },
+                            onCheckedChange = { scope.launch { settingsRepository.setBackTapPauseWhileCharging(it) } }
                         )
-                    },
+                    }
                 )
-            },
+            }
         )
     }
 }

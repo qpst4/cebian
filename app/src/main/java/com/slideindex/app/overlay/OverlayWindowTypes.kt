@@ -86,7 +86,7 @@ object OverlayWindowTypes {
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                 WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
                 WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
-            PixelFormat.TRANSLUCENT,
+            PixelFormat.TRANSLUCENT
         ).also {
             ensureNoBrightnessOverride(it)
             it.flags = it.flags or WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
@@ -105,7 +105,7 @@ object OverlayWindowTypes {
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                 WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
-            PixelFormat.TRANSLUCENT,
+            PixelFormat.TRANSLUCENT
         ).also {
             ensureNoBrightnessOverride(it)
             applyPresentationPassthroughFlags(it)

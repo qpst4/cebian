@@ -48,7 +48,7 @@ internal class FloatBallDragSession {
     screenWidth: Float,
     screenHeight: Float,
     density: Float,
-    pickDockSide: FloatBallSide,
+    pickDockSide: FloatBallSide
   ) {
     this.pickDockSide = pickDockSide
     dragFingerX = fingerX
@@ -67,7 +67,7 @@ internal class FloatBallDragSession {
       screenWidth = screenWidth,
       screenHeight = screenHeight,
       density = density,
-      dockSide = pickDockSide,
+      dockSide = pickDockSide
     )
     dragPointerAnchorX = pick.x
     dragPointerAnchorY = pick.y
@@ -93,7 +93,7 @@ internal class FloatBallDragSession {
     ballSizePx: Float,
     marginPx: Int,
     screenWidth: Int,
-    screenHeight: Int,
+    screenHeight: Int
   ): Offset {
     val center = ballCenter()
     val half = ballSizePx / 2f
@@ -103,7 +103,7 @@ internal class FloatBallDragSession {
     val maxCenterY = screenHeight - marginPx - half
     return Offset(
       x = center.x.coerceIn(minCenterX, maxCenterX),
-      y = center.y.coerceIn(minCenterY, maxCenterY),
+      y = center.y.coerceIn(minCenterY, maxCenterY)
     )
   }
 
@@ -111,7 +111,7 @@ internal class FloatBallDragSession {
     ballSizePx: Int,
     marginPx: Int,
     screenWidth: Int,
-    screenHeight: Int,
+    screenHeight: Int
   ): Pair<Int, Int> {
     val center = clampedBallCenter(ballSizePx.toFloat(), marginPx, screenWidth, screenHeight)
     val left = (center.x - ballSizePx / 2f).roundToInt()
@@ -125,7 +125,7 @@ internal class FloatBallDragSession {
     screenWidth: Float,
     screenHeight: Float,
     density: Float,
-    marginPx: Int,
+    marginPx: Int
   ): Offset {
     if (pointerTravelWidth <= 0f || pointerTravelHeight <= 0f) {
       establishPointerTravel(settings, screenWidth, screenHeight)
@@ -135,7 +135,7 @@ internal class FloatBallDragSession {
       ballSizePx = ballSizePx,
       marginPx = marginPx,
       screenWidth = screenWidth.roundToInt(),
-      screenHeight = screenHeight.roundToInt(),
+      screenHeight = screenHeight.roundToInt()
     )
     val edgePick = edgeAnchoredPick(
       settings = settings,
@@ -144,7 +144,7 @@ internal class FloatBallDragSession {
       screenWidth = screenWidth,
       screenHeight = screenHeight,
       density = density,
-      dockSide = pickDockSide,
+      dockSide = pickDockSide
     )
 
     if (fingerTravelPx() <= 0f) {
@@ -160,7 +160,7 @@ internal class FloatBallDragSession {
       screenWidth = screenWidth,
       screenHeight = screenHeight,
       pointerAnchorX = dragPointerAnchorX,
-      pointerAnchorY = dragPointerAnchorY,
+      pointerAnchorY = dragPointerAnchorY
     )
     return freePick
   }
@@ -177,7 +177,7 @@ internal class FloatBallDragSession {
     screenWidth: Float,
     screenHeight: Float,
     density: Float,
-    dockSide: FloatBallSide,
+    dockSide: FloatBallSide
   ): Offset = FloatBallPickAnchor.pickPointAtEdge(
     settings = settings,
     ballCenterY = ballCenterY,
@@ -185,27 +185,27 @@ internal class FloatBallDragSession {
     screenWidth = screenWidth,
     screenHeight = screenHeight,
     density = density,
-    dockSide = dockSide,
+    dockSide = dockSide
   )
 
   private fun establishPointerTravel(settings: AppSettings, screenWidth: Float, screenHeight: Float) {
     val horizontalSpeed = settings.floatBallPointerSpeedFraction.coerceIn(
       FloatingPointerBounds.SENSITIVITY_MIN,
-      FloatingPointerBounds.SENSITIVITY_MAX,
+      FloatingPointerBounds.SENSITIVITY_MAX
     )
     val verticalSpeed = settings.floatBallPointerSpeedVerticalFraction.coerceIn(
       FloatingPointerBounds.SENSITIVITY_MIN,
-      FloatingPointerBounds.SENSITIVITY_MAX,
+      FloatingPointerBounds.SENSITIVITY_MAX
     )
     val (travelWidth, _) = FloatingPointerBounds.effectivePointerTravelForSpeed(
       speedFraction = horizontalSpeed,
       screenWidth = screenWidth,
-      screenHeight = screenHeight,
+      screenHeight = screenHeight
     )
     val (_, travelHeight) = FloatingPointerBounds.effectivePointerTravelForSpeed(
       speedFraction = verticalSpeed,
       screenWidth = screenWidth,
-      screenHeight = screenHeight,
+      screenHeight = screenHeight
     )
     pointerTravelWidth = travelWidth
     pointerTravelHeight = travelHeight

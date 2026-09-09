@@ -59,7 +59,7 @@ internal object FloatBallDragVisualRenderer {
             -> drawBuiltinAnim(canvas, sizePx, alpha, settings.floatBallStyleType)
             FloatBallStyleType.CUSTOM_IMAGE -> drawUri(
                 canvas, context, sizePx, alpha, settings.floatBallCustomImageUri,
-                fallbackArgb = settings.themeColorArgb,
+                fallbackArgb = settings.themeColorArgb
             )
             FloatBallStyleType.SLIDESHOW -> {
                 val uri = settings.floatBallSlideshowUris.firstOrNull().orEmpty()
@@ -68,7 +68,7 @@ internal object FloatBallDragVisualRenderer {
             FloatBallStyleType.GIF -> {
                 val dragFrame = FloatBallGifDragSnapshot.copyForDrag(
                     uri = settings.floatBallGifUri,
-                    targetPx = sizePx,
+                    targetPx = sizePx
                 )
                 if (dragFrame != null) {
                     drawBitmap(canvas, sizePx, alpha, dragFrame)
@@ -76,7 +76,7 @@ internal object FloatBallDragVisualRenderer {
                 } else {
                     drawUri(
                         canvas, context, sizePx, alpha, settings.floatBallGifUri,
-                        fallbackArgb = settings.themeColorArgb,
+                        fallbackArgb = settings.themeColorArgb
                     )
                 }
             }
@@ -102,7 +102,7 @@ internal object FloatBallDragVisualRenderer {
         canvas: Canvas,
         sizePx: Int,
         alpha: Float,
-        styleType: FloatBallStyleType,
+        styleType: FloatBallStyleType
     ) {
         if (!FloatBallBuiltinAnimCatalog.isBuiltinAnimated(styleType)) {
             drawDefault(canvas, sizePx, 0xFF42A5F5.toInt(), alpha)
@@ -117,7 +117,7 @@ internal object FloatBallDragVisualRenderer {
                 sizePx = sizePx,
                 alpha = alpha,
                 styleType = styleType,
-                timeMs = android.os.SystemClock.uptimeMillis(),
+                timeMs = android.os.SystemClock.uptimeMillis()
             )
         }
     }
@@ -141,7 +141,7 @@ internal object FloatBallDragVisualRenderer {
         sizePx: Int,
         alpha: Float,
         uri: String,
-        fallbackArgb: Int,
+        fallbackArgb: Int
     ) {
         val loaded = FloatBallImageLoader.loadBitmap(context, uri)
         if (loaded != null) {

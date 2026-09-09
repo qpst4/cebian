@@ -1,7 +1,6 @@
 package com.slideindex.app.ui
 
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
-import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import top.yukonga.miuix.kmp.basic.SmallTitle
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Spacer
@@ -64,7 +63,7 @@ fun LayoutSettingsScreen(
         }
 
         item(key = "panel_section") {
-            MiuixSmallTitle(stringResource(R.string.settings_section_panel), modifier = Modifier.fillMaxWidth())
+            SmallTitle(stringResource(R.string.settings_section_panel), modifier = Modifier.fillMaxWidth())
         }
 
         item(key = "panel_sliders_card") {
@@ -115,7 +114,7 @@ fun LayoutSettingsScreen(
         }
 
         item(key = "hidden_section") {
-            MiuixSmallTitle(stringResource(R.string.hidden_apps_section_in_index), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
+            SmallTitle(stringResource(R.string.hidden_apps_section_in_index), modifier = Modifier.fillMaxWidth())
         }
 
         item(key = "hidden_apps") {

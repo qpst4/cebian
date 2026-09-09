@@ -17,7 +17,7 @@ fun ActivityShortcut.toLaunchShortcut(): GestureAction.LaunchShortcut = when (ki
             GestureAction.LaunchShortcut.intent(
                 intentUris.firstOrNull().orEmpty(),
                 label,
-                hostPackage,
+                hostPackage
             )
         } else {
             GestureAction.LaunchShortcut.intents(intentUris, label, hostPackage)
@@ -35,13 +35,13 @@ fun ActivityShortcut.toQuickLauncherItem(): QuickLauncherItem = when (kind) {
             QuickLauncherItem.intentShortcut(
                 intentUri = intentUris.firstOrNull().orEmpty(),
                 label = label,
-                hostPackage = packageName,
+                hostPackage = packageName
             )
         } else {
             QuickLauncherItem.intentShortcuts(
                 intentUris = intentUris,
                 label = label,
-                hostPackage = packageName,
+                hostPackage = packageName
             )
         }
     }
@@ -58,7 +58,7 @@ fun List<ActivityShortcut>.findForLaunchShortcut(payloadKey: String): ActivitySh
     return when (decoded) {
         is GestureShortcutPayload.Decoded.Dynamic ->
             findByIdentityKey(
-                QuickLauncherItemCodec.shortcutKey(decoded.packageName, decoded.shortcutId),
+                QuickLauncherItemCodec.shortcutKey(decoded.packageName, decoded.shortcutId)
             )
         is GestureShortcutPayload.Decoded.Component ->
             findByIdentityKey(decoded.componentFlat)
@@ -70,7 +70,7 @@ fun List<ActivityShortcut>.findForLaunchShortcut(payloadKey: String): ActivitySh
                     "intent:${decoded.intentUris[0]}"
                 } else {
                     "intents:${decoded.intentUris.joinToString(QuickLauncherItemCodec.INTENT_LIST_SEP)}"
-                },
+                }
             )
     }
 }
@@ -109,7 +109,7 @@ fun activityShortcutFromQuickLauncherItem(item: QuickLauncherItem): ActivityShor
         return ActivityShortcut.component(
             label = item.label.ifBlank { cls },
             packageName = pkg,
-            activityClassName = cls,
+            activityClassName = cls
         )
     }
     return null

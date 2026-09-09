@@ -1,6 +1,6 @@
 package com.slideindex.app.ui
 
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import top.yukonga.miuix.kmp.basic.SmallTitle
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.background
@@ -137,7 +137,7 @@ fun TriggerAppearanceSettingsScreen(
             }
         }
 
-        settingsLazySmallTitle(key = "trigger-handle-section", title = handleSectionTitle, sectionTop = true)
+        settingsLazySmallTitle(key = "trigger-handle-section", title = handleSectionTitle)
         groupedCardItems(
             keyPrefix = "trigger-handle-settings",
             items = buildList {

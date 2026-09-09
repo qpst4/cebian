@@ -10,7 +10,7 @@ data class KeyEventPresetItem(
     val constantName: String,
     @StringRes val labelRes: Int,
     val category: KeyEventCategory,
-    @StringRes val descriptionRes: Int,
+    @StringRes val descriptionRes: Int
 ) {
     fun label(context: Context): String = context.getString(labelRes)
 
@@ -37,771 +37,771 @@ object KeyEventPresets {
             constantName = "KEYCODE_MENU",
             labelRes = R.string.keyevent_label_keycode_menu,
             category = KeyEventCategory.SYSTEM,
-            descriptionRes = R.string.keyevent_desc_keycode_menu,
+            descriptionRes = R.string.keyevent_desc_keycode_menu
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_APP_SWITCH,
             constantName = "KEYCODE_APP_SWITCH",
             labelRes = R.string.keyevent_label_keycode_app_switch,
             category = KeyEventCategory.SYSTEM,
-            descriptionRes = R.string.keyevent_desc_keycode_app_switch,
+            descriptionRes = R.string.keyevent_desc_keycode_app_switch
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_HOME,
             constantName = "KEYCODE_HOME",
             labelRes = R.string.keyevent_label_keycode_home,
             category = KeyEventCategory.SYSTEM,
-            descriptionRes = R.string.keyevent_desc_keycode_home,
+            descriptionRes = R.string.keyevent_desc_keycode_home
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_BACK,
             constantName = "KEYCODE_BACK",
             labelRes = R.string.keyevent_label_keycode_back,
             category = KeyEventCategory.SYSTEM,
-            descriptionRes = R.string.keyevent_desc_keycode_back,
+            descriptionRes = R.string.keyevent_desc_keycode_back
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_POWER,
             constantName = "KEYCODE_POWER",
             labelRes = R.string.keyevent_label_keycode_power,
             category = KeyEventCategory.SYSTEM,
-            descriptionRes = R.string.keyevent_desc_keycode_power,
+            descriptionRes = R.string.keyevent_desc_keycode_power
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_SLEEP,
             constantName = "KEYCODE_SLEEP",
             labelRes = R.string.keyevent_label_keycode_sleep,
             category = KeyEventCategory.SYSTEM,
-            descriptionRes = R.string.keyevent_desc_keycode_sleep,
+            descriptionRes = R.string.keyevent_desc_keycode_sleep
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_WAKEUP,
             constantName = "KEYCODE_WAKEUP",
             labelRes = R.string.keyevent_label_keycode_wakeup,
             category = KeyEventCategory.SYSTEM,
-            descriptionRes = R.string.keyevent_desc_keycode_wakeup,
+            descriptionRes = R.string.keyevent_desc_keycode_wakeup
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_SOFT_SLEEP,
             constantName = "KEYCODE_SOFT_SLEEP",
             labelRes = R.string.keyevent_label_keycode_soft_sleep,
             category = KeyEventCategory.SYSTEM,
-            descriptionRes = R.string.keyevent_desc_keycode_soft_sleep,
+            descriptionRes = R.string.keyevent_desc_keycode_soft_sleep
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_NOTIFICATION,
             constantName = "KEYCODE_NOTIFICATION",
             labelRes = R.string.keyevent_label_keycode_notification,
             category = KeyEventCategory.SYSTEM,
-            descriptionRes = R.string.keyevent_desc_keycode_notification,
+            descriptionRes = R.string.keyevent_desc_keycode_notification
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_SETTINGS,
             constantName = "KEYCODE_SETTINGS",
             labelRes = R.string.keyevent_label_keycode_settings,
             category = KeyEventCategory.SYSTEM,
-            descriptionRes = R.string.keyevent_desc_keycode_settings,
+            descriptionRes = R.string.keyevent_desc_keycode_settings
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_SEARCH,
             constantName = "KEYCODE_SEARCH",
             labelRes = R.string.keyevent_label_keycode_search,
             category = KeyEventCategory.SYSTEM,
-            descriptionRes = R.string.keyevent_desc_keycode_search,
+            descriptionRes = R.string.keyevent_desc_keycode_search
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_VOICE_ASSIST,
             constantName = "KEYCODE_VOICE_ASSIST",
             labelRes = R.string.keyevent_label_keycode_voice_assist,
             category = KeyEventCategory.SYSTEM,
-            descriptionRes = R.string.keyevent_desc_keycode_voice_assist,
+            descriptionRes = R.string.keyevent_desc_keycode_voice_assist
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_SYSRQ,
             constantName = "KEYCODE_SYSRQ",
             labelRes = R.string.keyevent_label_keycode_sysrq,
             category = KeyEventCategory.SYSTEM,
-            descriptionRes = R.string.keyevent_desc_keycode_sysrq,
+            descriptionRes = R.string.keyevent_desc_keycode_sysrq
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_ALL_APPS,
             constantName = "KEYCODE_ALL_APPS",
             labelRes = R.string.keyevent_label_keycode_all_apps,
             category = KeyEventCategory.SYSTEM,
-            descriptionRes = R.string.keyevent_desc_keycode_all_apps,
+            descriptionRes = R.string.keyevent_desc_keycode_all_apps
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_WINDOW,
             constantName = "KEYCODE_WINDOW",
             labelRes = R.string.keyevent_label_keycode_window,
             category = KeyEventCategory.SYSTEM,
-            descriptionRes = R.string.keyevent_desc_keycode_window,
+            descriptionRes = R.string.keyevent_desc_keycode_window
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_VOLUME_UP,
             constantName = "KEYCODE_VOLUME_UP",
             labelRes = R.string.keyevent_label_keycode_volume_up,
             category = KeyEventCategory.MEDIA,
-            descriptionRes = R.string.keyevent_desc_keycode_volume_up,
+            descriptionRes = R.string.keyevent_desc_keycode_volume_up
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_VOLUME_DOWN,
             constantName = "KEYCODE_VOLUME_DOWN",
             labelRes = R.string.keyevent_label_keycode_volume_down,
             category = KeyEventCategory.MEDIA,
-            descriptionRes = R.string.keyevent_desc_keycode_volume_down,
+            descriptionRes = R.string.keyevent_desc_keycode_volume_down
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_VOLUME_MUTE,
             constantName = "KEYCODE_VOLUME_MUTE",
             labelRes = R.string.keyevent_label_keycode_volume_mute,
             category = KeyEventCategory.MEDIA,
-            descriptionRes = R.string.keyevent_desc_keycode_volume_mute,
+            descriptionRes = R.string.keyevent_desc_keycode_volume_mute
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_MUTE,
             constantName = "KEYCODE_MUTE",
             labelRes = R.string.keyevent_label_keycode_mute,
             category = KeyEventCategory.MEDIA,
-            descriptionRes = R.string.keyevent_desc_keycode_mute,
+            descriptionRes = R.string.keyevent_desc_keycode_mute
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE,
             constantName = "KEYCODE_MEDIA_PLAY_PAUSE",
             labelRes = R.string.keyevent_label_keycode_media_play_pause,
             category = KeyEventCategory.MEDIA,
-            descriptionRes = R.string.keyevent_desc_keycode_media_play_pause,
+            descriptionRes = R.string.keyevent_desc_keycode_media_play_pause
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_MEDIA_PLAY,
             constantName = "KEYCODE_MEDIA_PLAY",
             labelRes = R.string.keyevent_label_keycode_media_play,
             category = KeyEventCategory.MEDIA,
-            descriptionRes = R.string.keyevent_desc_keycode_media_play,
+            descriptionRes = R.string.keyevent_desc_keycode_media_play
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_MEDIA_PAUSE,
             constantName = "KEYCODE_MEDIA_PAUSE",
             labelRes = R.string.keyevent_label_keycode_media_pause,
             category = KeyEventCategory.MEDIA,
-            descriptionRes = R.string.keyevent_desc_keycode_media_pause,
+            descriptionRes = R.string.keyevent_desc_keycode_media_pause
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_MEDIA_NEXT,
             constantName = "KEYCODE_MEDIA_NEXT",
             labelRes = R.string.keyevent_label_keycode_media_next,
             category = KeyEventCategory.MEDIA,
-            descriptionRes = R.string.keyevent_desc_keycode_media_next,
+            descriptionRes = R.string.keyevent_desc_keycode_media_next
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_MEDIA_PREVIOUS,
             constantName = "KEYCODE_MEDIA_PREVIOUS",
             labelRes = R.string.keyevent_label_keycode_media_previous,
             category = KeyEventCategory.MEDIA,
-            descriptionRes = R.string.keyevent_desc_keycode_media_previous,
+            descriptionRes = R.string.keyevent_desc_keycode_media_previous
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_MEDIA_FAST_FORWARD,
             constantName = "KEYCODE_MEDIA_FAST_FORWARD",
             labelRes = R.string.keyevent_label_keycode_media_fast_forward,
             category = KeyEventCategory.MEDIA,
-            descriptionRes = R.string.keyevent_desc_keycode_media_fast_forward,
+            descriptionRes = R.string.keyevent_desc_keycode_media_fast_forward
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_MEDIA_REWIND,
             constantName = "KEYCODE_MEDIA_REWIND",
             labelRes = R.string.keyevent_label_keycode_media_rewind,
             category = KeyEventCategory.MEDIA,
-            descriptionRes = R.string.keyevent_desc_keycode_media_rewind,
+            descriptionRes = R.string.keyevent_desc_keycode_media_rewind
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_MEDIA_STOP,
             constantName = "KEYCODE_MEDIA_STOP",
             labelRes = R.string.keyevent_label_keycode_media_stop,
             category = KeyEventCategory.MEDIA,
-            descriptionRes = R.string.keyevent_desc_keycode_media_stop,
+            descriptionRes = R.string.keyevent_desc_keycode_media_stop
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_MEDIA_AUDIO_TRACK,
             constantName = "KEYCODE_MEDIA_AUDIO_TRACK",
             labelRes = R.string.keyevent_label_keycode_media_audio_track,
             category = KeyEventCategory.MEDIA,
-            descriptionRes = R.string.keyevent_desc_keycode_media_audio_track,
+            descriptionRes = R.string.keyevent_desc_keycode_media_audio_track
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_MEDIA_EJECT,
             constantName = "KEYCODE_MEDIA_EJECT",
             labelRes = R.string.keyevent_label_keycode_media_eject,
             category = KeyEventCategory.MEDIA,
-            descriptionRes = R.string.keyevent_desc_keycode_media_eject,
+            descriptionRes = R.string.keyevent_desc_keycode_media_eject
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_MEDIA_RECORD,
             constantName = "KEYCODE_MEDIA_RECORD",
             labelRes = R.string.keyevent_label_keycode_media_record,
             category = KeyEventCategory.MEDIA,
-            descriptionRes = R.string.keyevent_desc_keycode_media_record,
+            descriptionRes = R.string.keyevent_desc_keycode_media_record
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_HEADSETHOOK,
             constantName = "KEYCODE_HEADSETHOOK",
             labelRes = R.string.keyevent_label_keycode_headsethook,
             category = KeyEventCategory.MEDIA,
-            descriptionRes = R.string.keyevent_desc_keycode_headsethook,
+            descriptionRes = R.string.keyevent_desc_keycode_headsethook
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_BACK,
             constantName = "KEYCODE_BACK",
             labelRes = R.string.keyevent_label_keycode_back,
             category = KeyEventCategory.NAVIGATION,
-            descriptionRes = R.string.keyevent_desc_keycode_back,
+            descriptionRes = R.string.keyevent_desc_keycode_back
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_FORWARD,
             constantName = "KEYCODE_FORWARD",
             labelRes = R.string.keyevent_label_keycode_forward,
             category = KeyEventCategory.NAVIGATION,
-            descriptionRes = R.string.keyevent_desc_keycode_forward,
+            descriptionRes = R.string.keyevent_desc_keycode_forward
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_REFRESH,
             constantName = "KEYCODE_REFRESH",
             labelRes = R.string.keyevent_label_keycode_refresh,
             category = KeyEventCategory.NAVIGATION,
-            descriptionRes = R.string.keyevent_desc_keycode_refresh,
+            descriptionRes = R.string.keyevent_desc_keycode_refresh
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_BOOKMARK,
             constantName = "KEYCODE_BOOKMARK",
             labelRes = R.string.keyevent_label_keycode_bookmark,
             category = KeyEventCategory.NAVIGATION,
-            descriptionRes = R.string.keyevent_desc_keycode_bookmark,
+            descriptionRes = R.string.keyevent_desc_keycode_bookmark
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_ZOOM_IN,
             constantName = "KEYCODE_ZOOM_IN",
             labelRes = R.string.keyevent_label_keycode_zoom_in,
             category = KeyEventCategory.NAVIGATION,
-            descriptionRes = R.string.keyevent_desc_keycode_zoom_in,
+            descriptionRes = R.string.keyevent_desc_keycode_zoom_in
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_ZOOM_OUT,
             constantName = "KEYCODE_ZOOM_OUT",
             labelRes = R.string.keyevent_label_keycode_zoom_out,
             category = KeyEventCategory.NAVIGATION,
-            descriptionRes = R.string.keyevent_desc_keycode_zoom_out,
+            descriptionRes = R.string.keyevent_desc_keycode_zoom_out
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_DPAD_UP,
             constantName = "KEYCODE_DPAD_UP",
             labelRes = R.string.keyevent_label_keycode_dpad_up,
             category = KeyEventCategory.NAVIGATION,
-            descriptionRes = R.string.keyevent_desc_keycode_dpad_up,
+            descriptionRes = R.string.keyevent_desc_keycode_dpad_up
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_DPAD_DOWN,
             constantName = "KEYCODE_DPAD_DOWN",
             labelRes = R.string.keyevent_label_keycode_dpad_down,
             category = KeyEventCategory.NAVIGATION,
-            descriptionRes = R.string.keyevent_desc_keycode_dpad_down,
+            descriptionRes = R.string.keyevent_desc_keycode_dpad_down
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_DPAD_LEFT,
             constantName = "KEYCODE_DPAD_LEFT",
             labelRes = R.string.keyevent_label_keycode_dpad_left,
             category = KeyEventCategory.NAVIGATION,
-            descriptionRes = R.string.keyevent_desc_keycode_dpad_left,
+            descriptionRes = R.string.keyevent_desc_keycode_dpad_left
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_DPAD_RIGHT,
             constantName = "KEYCODE_DPAD_RIGHT",
             labelRes = R.string.keyevent_label_keycode_dpad_right,
             category = KeyEventCategory.NAVIGATION,
-            descriptionRes = R.string.keyevent_desc_keycode_dpad_right,
+            descriptionRes = R.string.keyevent_desc_keycode_dpad_right
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_DPAD_CENTER,
             constantName = "KEYCODE_DPAD_CENTER",
             labelRes = R.string.keyevent_label_keycode_dpad_center,
             category = KeyEventCategory.NAVIGATION,
-            descriptionRes = R.string.keyevent_desc_keycode_dpad_center,
+            descriptionRes = R.string.keyevent_desc_keycode_dpad_center
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_PAGE_UP,
             constantName = "KEYCODE_PAGE_UP",
             labelRes = R.string.keyevent_label_keycode_page_up,
             category = KeyEventCategory.NAVIGATION,
-            descriptionRes = R.string.keyevent_desc_keycode_page_up,
+            descriptionRes = R.string.keyevent_desc_keycode_page_up
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_PAGE_DOWN,
             constantName = "KEYCODE_PAGE_DOWN",
             labelRes = R.string.keyevent_label_keycode_page_down,
             category = KeyEventCategory.NAVIGATION,
-            descriptionRes = R.string.keyevent_desc_keycode_page_down,
+            descriptionRes = R.string.keyevent_desc_keycode_page_down
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_MOVE_HOME,
             constantName = "KEYCODE_MOVE_HOME",
             labelRes = R.string.keyevent_label_keycode_move_home,
             category = KeyEventCategory.NAVIGATION,
-            descriptionRes = R.string.keyevent_desc_keycode_move_home,
+            descriptionRes = R.string.keyevent_desc_keycode_move_home
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_MOVE_END,
             constantName = "KEYCODE_MOVE_END",
             labelRes = R.string.keyevent_label_keycode_move_end,
             category = KeyEventCategory.NAVIGATION,
-            descriptionRes = R.string.keyevent_desc_keycode_move_end,
+            descriptionRes = R.string.keyevent_desc_keycode_move_end
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_ENTER,
             constantName = "KEYCODE_ENTER",
             labelRes = R.string.keyevent_label_keycode_enter,
             category = KeyEventCategory.INPUT_EDIT,
-            descriptionRes = R.string.keyevent_desc_keycode_enter,
+            descriptionRes = R.string.keyevent_desc_keycode_enter
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_NUMPAD_ENTER,
             constantName = "KEYCODE_NUMPAD_ENTER",
             labelRes = R.string.keyevent_label_keycode_numpad_enter,
             category = KeyEventCategory.INPUT_EDIT,
-            descriptionRes = R.string.keyevent_desc_keycode_numpad_enter,
+            descriptionRes = R.string.keyevent_desc_keycode_numpad_enter
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_TAB,
             constantName = "KEYCODE_TAB",
             labelRes = R.string.keyevent_label_keycode_tab,
             category = KeyEventCategory.INPUT_EDIT,
-            descriptionRes = R.string.keyevent_desc_keycode_tab,
+            descriptionRes = R.string.keyevent_desc_keycode_tab
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_SPACE,
             constantName = "KEYCODE_SPACE",
             labelRes = R.string.keyevent_label_keycode_space,
             category = KeyEventCategory.INPUT_EDIT,
-            descriptionRes = R.string.keyevent_desc_keycode_space,
+            descriptionRes = R.string.keyevent_desc_keycode_space
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_DEL,
             constantName = "KEYCODE_DEL",
             labelRes = R.string.keyevent_label_keycode_del,
             category = KeyEventCategory.INPUT_EDIT,
-            descriptionRes = R.string.keyevent_desc_keycode_del,
+            descriptionRes = R.string.keyevent_desc_keycode_del
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_FORWARD_DEL,
             constantName = "KEYCODE_FORWARD_DEL",
             labelRes = R.string.keyevent_label_keycode_forward_del,
             category = KeyEventCategory.INPUT_EDIT,
-            descriptionRes = R.string.keyevent_desc_keycode_forward_del,
+            descriptionRes = R.string.keyevent_desc_keycode_forward_del
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_CLEAR,
             constantName = "KEYCODE_CLEAR",
             labelRes = R.string.keyevent_label_keycode_clear,
             category = KeyEventCategory.INPUT_EDIT,
-            descriptionRes = R.string.keyevent_desc_keycode_clear,
+            descriptionRes = R.string.keyevent_desc_keycode_clear
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_INSERT,
             constantName = "KEYCODE_INSERT",
             labelRes = R.string.keyevent_label_keycode_insert,
             category = KeyEventCategory.INPUT_EDIT,
-            descriptionRes = R.string.keyevent_desc_keycode_insert,
+            descriptionRes = R.string.keyevent_desc_keycode_insert
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_CAPS_LOCK,
             constantName = "KEYCODE_CAPS_LOCK",
             labelRes = R.string.keyevent_label_keycode_caps_lock,
             category = KeyEventCategory.INPUT_EDIT,
-            descriptionRes = R.string.keyevent_desc_keycode_caps_lock,
+            descriptionRes = R.string.keyevent_desc_keycode_caps_lock
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_SCROLL_LOCK,
             constantName = "KEYCODE_SCROLL_LOCK",
             labelRes = R.string.keyevent_label_keycode_scroll_lock,
             category = KeyEventCategory.INPUT_EDIT,
-            descriptionRes = R.string.keyevent_desc_keycode_scroll_lock,
+            descriptionRes = R.string.keyevent_desc_keycode_scroll_lock
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_NUM_LOCK,
             constantName = "KEYCODE_NUM_LOCK",
             labelRes = R.string.keyevent_label_keycode_num_lock,
             category = KeyEventCategory.INPUT_EDIT,
-            descriptionRes = R.string.keyevent_desc_keycode_num_lock,
+            descriptionRes = R.string.keyevent_desc_keycode_num_lock
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_LANGUAGE_SWITCH,
             constantName = "KEYCODE_LANGUAGE_SWITCH",
             labelRes = R.string.keyevent_label_keycode_language_switch,
             category = KeyEventCategory.INPUT_EDIT,
-            descriptionRes = R.string.keyevent_desc_keycode_language_switch,
+            descriptionRes = R.string.keyevent_desc_keycode_language_switch
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_ESCAPE,
             constantName = "KEYCODE_ESCAPE",
             labelRes = R.string.keyevent_label_keycode_escape,
             category = KeyEventCategory.INPUT_EDIT,
-            descriptionRes = R.string.keyevent_desc_keycode_escape,
+            descriptionRes = R.string.keyevent_desc_keycode_escape
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_CAMERA,
             constantName = "KEYCODE_CAMERA",
             labelRes = R.string.keyevent_label_keycode_camera,
             category = KeyEventCategory.HARDWARE,
-            descriptionRes = R.string.keyevent_desc_keycode_camera,
+            descriptionRes = R.string.keyevent_desc_keycode_camera
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_FOCUS,
             constantName = "KEYCODE_FOCUS",
             labelRes = R.string.keyevent_label_keycode_focus,
             category = KeyEventCategory.HARDWARE,
-            descriptionRes = R.string.keyevent_desc_keycode_focus,
+            descriptionRes = R.string.keyevent_desc_keycode_focus
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_CALL,
             constantName = "KEYCODE_CALL",
             labelRes = R.string.keyevent_label_keycode_call,
             category = KeyEventCategory.HARDWARE,
-            descriptionRes = R.string.keyevent_desc_keycode_call,
+            descriptionRes = R.string.keyevent_desc_keycode_call
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_ENDCALL,
             constantName = "KEYCODE_ENDCALL",
             labelRes = R.string.keyevent_label_keycode_endcall,
             category = KeyEventCategory.HARDWARE,
-            descriptionRes = R.string.keyevent_desc_keycode_endcall,
+            descriptionRes = R.string.keyevent_desc_keycode_endcall
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_BRIGHTNESS_UP,
             constantName = "KEYCODE_BRIGHTNESS_UP",
             labelRes = R.string.keyevent_label_keycode_brightness_up,
             category = KeyEventCategory.HARDWARE,
-            descriptionRes = R.string.keyevent_desc_keycode_brightness_up,
+            descriptionRes = R.string.keyevent_desc_keycode_brightness_up
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_BRIGHTNESS_DOWN,
             constantName = "KEYCODE_BRIGHTNESS_DOWN",
             labelRes = R.string.keyevent_label_keycode_brightness_down,
             category = KeyEventCategory.HARDWARE,
-            descriptionRes = R.string.keyevent_desc_keycode_brightness_down,
+            descriptionRes = R.string.keyevent_desc_keycode_brightness_down
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_CALCULATOR,
             constantName = "KEYCODE_CALCULATOR",
             labelRes = R.string.keyevent_label_keycode_calculator,
             category = KeyEventCategory.HARDWARE,
-            descriptionRes = R.string.keyevent_desc_keycode_calculator,
+            descriptionRes = R.string.keyevent_desc_keycode_calculator
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_CALENDAR,
             constantName = "KEYCODE_CALENDAR",
             labelRes = R.string.keyevent_label_keycode_calendar,
             category = KeyEventCategory.HARDWARE,
-            descriptionRes = R.string.keyevent_desc_keycode_calendar,
+            descriptionRes = R.string.keyevent_desc_keycode_calendar
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_MUSIC,
             constantName = "KEYCODE_MUSIC",
             labelRes = R.string.keyevent_label_keycode_music,
             category = KeyEventCategory.HARDWARE,
-            descriptionRes = R.string.keyevent_desc_keycode_music,
+            descriptionRes = R.string.keyevent_desc_keycode_music
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_ENVELOPE,
             constantName = "KEYCODE_ENVELOPE",
             labelRes = R.string.keyevent_label_keycode_envelope,
             category = KeyEventCategory.HARDWARE,
-            descriptionRes = R.string.keyevent_desc_keycode_envelope,
+            descriptionRes = R.string.keyevent_desc_keycode_envelope
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_CONTACTS,
             constantName = "KEYCODE_CONTACTS",
             labelRes = R.string.keyevent_label_keycode_contacts,
             category = KeyEventCategory.HARDWARE,
-            descriptionRes = R.string.keyevent_desc_keycode_contacts,
+            descriptionRes = R.string.keyevent_desc_keycode_contacts
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_EXPLORER,
             constantName = "KEYCODE_EXPLORER",
             labelRes = R.string.keyevent_label_keycode_explorer,
             category = KeyEventCategory.HARDWARE,
-            descriptionRes = R.string.keyevent_desc_keycode_explorer,
+            descriptionRes = R.string.keyevent_desc_keycode_explorer
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_HELP,
             constantName = "KEYCODE_HELP",
             labelRes = R.string.keyevent_label_keycode_help,
             category = KeyEventCategory.HARDWARE,
-            descriptionRes = R.string.keyevent_desc_keycode_help,
+            descriptionRes = R.string.keyevent_desc_keycode_help
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_TV_POWER,
             constantName = "KEYCODE_TV_POWER",
             labelRes = R.string.keyevent_label_keycode_tv_power,
             category = KeyEventCategory.TV_REMOTE,
-            descriptionRes = R.string.keyevent_desc_keycode_tv_power,
+            descriptionRes = R.string.keyevent_desc_keycode_tv_power
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_TV_INPUT,
             constantName = "KEYCODE_TV_INPUT",
             labelRes = R.string.keyevent_label_keycode_tv_input,
             category = KeyEventCategory.TV_REMOTE,
-            descriptionRes = R.string.keyevent_desc_keycode_tv_input,
+            descriptionRes = R.string.keyevent_desc_keycode_tv_input
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_CHANNEL_UP,
             constantName = "KEYCODE_CHANNEL_UP",
             labelRes = R.string.keyevent_label_keycode_channel_up,
             category = KeyEventCategory.TV_REMOTE,
-            descriptionRes = R.string.keyevent_desc_keycode_channel_up,
+            descriptionRes = R.string.keyevent_desc_keycode_channel_up
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_CHANNEL_DOWN,
             constantName = "KEYCODE_CHANNEL_DOWN",
             labelRes = R.string.keyevent_label_keycode_channel_down,
             category = KeyEventCategory.TV_REMOTE,
-            descriptionRes = R.string.keyevent_desc_keycode_channel_down,
+            descriptionRes = R.string.keyevent_desc_keycode_channel_down
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_LAST_CHANNEL,
             constantName = "KEYCODE_LAST_CHANNEL",
             labelRes = R.string.keyevent_label_keycode_last_channel,
             category = KeyEventCategory.TV_REMOTE,
-            descriptionRes = R.string.keyevent_desc_keycode_last_channel,
+            descriptionRes = R.string.keyevent_desc_keycode_last_channel
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_GUIDE,
             constantName = "KEYCODE_GUIDE",
             labelRes = R.string.keyevent_label_keycode_guide,
             category = KeyEventCategory.TV_REMOTE,
-            descriptionRes = R.string.keyevent_desc_keycode_guide,
+            descriptionRes = R.string.keyevent_desc_keycode_guide
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_INFO,
             constantName = "KEYCODE_INFO",
             labelRes = R.string.keyevent_label_keycode_info,
             category = KeyEventCategory.TV_REMOTE,
-            descriptionRes = R.string.keyevent_desc_keycode_info,
+            descriptionRes = R.string.keyevent_desc_keycode_info
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_PROG_RED,
             constantName = "KEYCODE_PROG_RED",
             labelRes = R.string.keyevent_label_keycode_prog_red,
             category = KeyEventCategory.TV_REMOTE,
-            descriptionRes = R.string.keyevent_desc_keycode_prog_red,
+            descriptionRes = R.string.keyevent_desc_keycode_prog_red
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_PROG_GREEN,
             constantName = "KEYCODE_PROG_GREEN",
             labelRes = R.string.keyevent_label_keycode_prog_green,
             category = KeyEventCategory.TV_REMOTE,
-            descriptionRes = R.string.keyevent_desc_keycode_prog_green,
+            descriptionRes = R.string.keyevent_desc_keycode_prog_green
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_PROG_YELLOW,
             constantName = "KEYCODE_PROG_YELLOW",
             labelRes = R.string.keyevent_label_keycode_prog_yellow,
             category = KeyEventCategory.TV_REMOTE,
-            descriptionRes = R.string.keyevent_desc_keycode_prog_yellow,
+            descriptionRes = R.string.keyevent_desc_keycode_prog_yellow
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_PROG_BLUE,
             constantName = "KEYCODE_PROG_BLUE",
             labelRes = R.string.keyevent_label_keycode_prog_blue,
             category = KeyEventCategory.TV_REMOTE,
-            descriptionRes = R.string.keyevent_desc_keycode_prog_blue,
+            descriptionRes = R.string.keyevent_desc_keycode_prog_blue
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_BUTTON_A,
             constantName = "KEYCODE_BUTTON_A",
             labelRes = R.string.keyevent_label_keycode_button_a,
             category = KeyEventCategory.GAMEPAD,
-            descriptionRes = R.string.keyevent_desc_keycode_button_a,
+            descriptionRes = R.string.keyevent_desc_keycode_button_a
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_BUTTON_B,
             constantName = "KEYCODE_BUTTON_B",
             labelRes = R.string.keyevent_label_keycode_button_b,
             category = KeyEventCategory.GAMEPAD,
-            descriptionRes = R.string.keyevent_desc_keycode_button_b,
+            descriptionRes = R.string.keyevent_desc_keycode_button_b
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_BUTTON_X,
             constantName = "KEYCODE_BUTTON_X",
             labelRes = R.string.keyevent_label_keycode_button_x,
             category = KeyEventCategory.GAMEPAD,
-            descriptionRes = R.string.keyevent_desc_keycode_button_x,
+            descriptionRes = R.string.keyevent_desc_keycode_button_x
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_BUTTON_Y,
             constantName = "KEYCODE_BUTTON_Y",
             labelRes = R.string.keyevent_label_keycode_button_y,
             category = KeyEventCategory.GAMEPAD,
-            descriptionRes = R.string.keyevent_desc_keycode_button_y,
+            descriptionRes = R.string.keyevent_desc_keycode_button_y
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_BUTTON_C,
             constantName = "KEYCODE_BUTTON_C",
             labelRes = R.string.keyevent_label_keycode_button_c,
             category = KeyEventCategory.GAMEPAD,
-            descriptionRes = R.string.keyevent_desc_keycode_button_c,
+            descriptionRes = R.string.keyevent_desc_keycode_button_c
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_BUTTON_Z,
             constantName = "KEYCODE_BUTTON_Z",
             labelRes = R.string.keyevent_label_keycode_button_z,
             category = KeyEventCategory.GAMEPAD,
-            descriptionRes = R.string.keyevent_desc_keycode_button_z,
+            descriptionRes = R.string.keyevent_desc_keycode_button_z
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_BUTTON_L1,
             constantName = "KEYCODE_BUTTON_L1",
             labelRes = R.string.keyevent_label_keycode_button_l1,
             category = KeyEventCategory.GAMEPAD,
-            descriptionRes = R.string.keyevent_desc_keycode_button_l1,
+            descriptionRes = R.string.keyevent_desc_keycode_button_l1
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_BUTTON_R1,
             constantName = "KEYCODE_BUTTON_R1",
             labelRes = R.string.keyevent_label_keycode_button_r1,
             category = KeyEventCategory.GAMEPAD,
-            descriptionRes = R.string.keyevent_desc_keycode_button_r1,
+            descriptionRes = R.string.keyevent_desc_keycode_button_r1
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_BUTTON_L2,
             constantName = "KEYCODE_BUTTON_L2",
             labelRes = R.string.keyevent_label_keycode_button_l2,
             category = KeyEventCategory.GAMEPAD,
-            descriptionRes = R.string.keyevent_desc_keycode_button_l2,
+            descriptionRes = R.string.keyevent_desc_keycode_button_l2
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_BUTTON_R2,
             constantName = "KEYCODE_BUTTON_R2",
             labelRes = R.string.keyevent_label_keycode_button_r2,
             category = KeyEventCategory.GAMEPAD,
-            descriptionRes = R.string.keyevent_desc_keycode_button_r2,
+            descriptionRes = R.string.keyevent_desc_keycode_button_r2
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_BUTTON_THUMBL,
             constantName = "KEYCODE_BUTTON_THUMBL",
             labelRes = R.string.keyevent_label_keycode_button_thumbl,
             category = KeyEventCategory.GAMEPAD,
-            descriptionRes = R.string.keyevent_desc_keycode_button_thumbl,
+            descriptionRes = R.string.keyevent_desc_keycode_button_thumbl
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_BUTTON_THUMBR,
             constantName = "KEYCODE_BUTTON_THUMBR",
             labelRes = R.string.keyevent_label_keycode_button_thumbr,
             category = KeyEventCategory.GAMEPAD,
-            descriptionRes = R.string.keyevent_desc_keycode_button_thumbr,
+            descriptionRes = R.string.keyevent_desc_keycode_button_thumbr
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_BUTTON_START,
             constantName = "KEYCODE_BUTTON_START",
             labelRes = R.string.keyevent_label_keycode_button_start,
             category = KeyEventCategory.GAMEPAD,
-            descriptionRes = R.string.keyevent_desc_keycode_button_start,
+            descriptionRes = R.string.keyevent_desc_keycode_button_start
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_BUTTON_SELECT,
             constantName = "KEYCODE_BUTTON_SELECT",
             labelRes = R.string.keyevent_label_keycode_button_select,
             category = KeyEventCategory.GAMEPAD,
-            descriptionRes = R.string.keyevent_desc_keycode_button_select,
+            descriptionRes = R.string.keyevent_desc_keycode_button_select
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_BUTTON_MODE,
             constantName = "KEYCODE_BUTTON_MODE",
             labelRes = R.string.keyevent_label_keycode_button_mode,
             category = KeyEventCategory.GAMEPAD,
-            descriptionRes = R.string.keyevent_desc_keycode_button_mode,
+            descriptionRes = R.string.keyevent_desc_keycode_button_mode
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_F1,
             constantName = "KEYCODE_F1",
             labelRes = R.string.keyevent_label_keycode_f1,
             category = KeyEventCategory.FUNCTION_KEYS,
-            descriptionRes = R.string.keyevent_desc_keycode_f1,
+            descriptionRes = R.string.keyevent_desc_keycode_f1
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_F2,
             constantName = "KEYCODE_F2",
             labelRes = R.string.keyevent_label_keycode_f2,
             category = KeyEventCategory.FUNCTION_KEYS,
-            descriptionRes = R.string.keyevent_desc_keycode_f2,
+            descriptionRes = R.string.keyevent_desc_keycode_f2
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_F3,
             constantName = "KEYCODE_F3",
             labelRes = R.string.keyevent_label_keycode_f3,
             category = KeyEventCategory.FUNCTION_KEYS,
-            descriptionRes = R.string.keyevent_desc_keycode_f3,
+            descriptionRes = R.string.keyevent_desc_keycode_f3
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_F4,
             constantName = "KEYCODE_F4",
             labelRes = R.string.keyevent_label_keycode_f4,
             category = KeyEventCategory.FUNCTION_KEYS,
-            descriptionRes = R.string.keyevent_desc_keycode_f4,
+            descriptionRes = R.string.keyevent_desc_keycode_f4
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_F5,
             constantName = "KEYCODE_F5",
             labelRes = R.string.keyevent_label_keycode_f5,
             category = KeyEventCategory.FUNCTION_KEYS,
-            descriptionRes = R.string.keyevent_desc_keycode_f5,
+            descriptionRes = R.string.keyevent_desc_keycode_f5
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_F6,
             constantName = "KEYCODE_F6",
             labelRes = R.string.keyevent_label_keycode_f6,
             category = KeyEventCategory.FUNCTION_KEYS,
-            descriptionRes = R.string.keyevent_desc_keycode_f6,
+            descriptionRes = R.string.keyevent_desc_keycode_f6
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_F7,
             constantName = "KEYCODE_F7",
             labelRes = R.string.keyevent_label_keycode_f7,
             category = KeyEventCategory.FUNCTION_KEYS,
-            descriptionRes = R.string.keyevent_desc_keycode_f7,
+            descriptionRes = R.string.keyevent_desc_keycode_f7
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_F8,
             constantName = "KEYCODE_F8",
             labelRes = R.string.keyevent_label_keycode_f8,
             category = KeyEventCategory.FUNCTION_KEYS,
-            descriptionRes = R.string.keyevent_desc_keycode_f8,
+            descriptionRes = R.string.keyevent_desc_keycode_f8
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_F9,
             constantName = "KEYCODE_F9",
             labelRes = R.string.keyevent_label_keycode_f9,
             category = KeyEventCategory.FUNCTION_KEYS,
-            descriptionRes = R.string.keyevent_desc_keycode_f9,
+            descriptionRes = R.string.keyevent_desc_keycode_f9
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_F10,
             constantName = "KEYCODE_F10",
             labelRes = R.string.keyevent_label_keycode_f10,
             category = KeyEventCategory.FUNCTION_KEYS,
-            descriptionRes = R.string.keyevent_desc_keycode_f10,
+            descriptionRes = R.string.keyevent_desc_keycode_f10
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_F11,
             constantName = "KEYCODE_F11",
             labelRes = R.string.keyevent_label_keycode_f11,
             category = KeyEventCategory.FUNCTION_KEYS,
-            descriptionRes = R.string.keyevent_desc_keycode_f11,
+            descriptionRes = R.string.keyevent_desc_keycode_f11
         ),
         KeyEventPresetItem(
             keyCode = KeyEvent.KEYCODE_F12,
             constantName = "KEYCODE_F12",
             labelRes = R.string.keyevent_label_keycode_f12,
             category = KeyEventCategory.FUNCTION_KEYS,
-            descriptionRes = R.string.keyevent_desc_keycode_f12,
-        ),
+            descriptionRes = R.string.keyevent_desc_keycode_f12
+        )
     )
 
     private val presetByCode: Map<Int, KeyEventPresetItem> = presets.associateBy { it.keyCode }

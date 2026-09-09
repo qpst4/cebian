@@ -33,7 +33,7 @@ object ClipboardPasteHelper {
         service: AccessibilityService,
         context: Context,
         entry: ClipboardEntry,
-        action: ClipboardFloatEntryClickAction,
+        action: ClipboardFloatEntryClickAction
     ): PasteResult {
         return when (action) {
             ClipboardFloatEntryClickAction.COPY -> {
@@ -45,7 +45,7 @@ object ClipboardPasteHelper {
                     service = service,
                     context = context,
                     entry = entry,
-                    clipboardAlreadyPrepared = false,
+                    clipboardAlreadyPrepared = false
                 )
             }
             ClipboardFloatEntryClickAction.COPY_AND_PASTE -> {
@@ -54,7 +54,7 @@ object ClipboardPasteHelper {
                     service = service,
                     context = context,
                     entry = entry,
-                    clipboardAlreadyPrepared = true,
+                    clipboardAlreadyPrepared = true
                 )
             }
         }
@@ -64,19 +64,19 @@ object ClipboardPasteHelper {
         service: AccessibilityService,
         context: Context,
         entry: ClipboardEntry,
-        clipboardAlreadyPrepared: Boolean,
+        clipboardAlreadyPrepared: Boolean
     ): PasteResult {
         val root = service.rootInActiveWindow ?: return PasteResult.Failure(PasteFailureReason.NO_ACTIVE_WINDOW)
         return try {
             val focused = findFocusedEditableNode(root) ?: return PasteResult.Failure(
-                PasteFailureReason.NO_EDITABLE_FOCUS,
+                PasteFailureReason.NO_EDITABLE_FOCUS
             )
             try {
                 pasteIntoNode(
                     context = context,
                     node = focused,
                     entry = entry,
-                    clipboardAlreadyPrepared = clipboardAlreadyPrepared,
+                    clipboardAlreadyPrepared = clipboardAlreadyPrepared
                 )
             } finally {
                 recycleNode(focused)
@@ -90,7 +90,7 @@ object ClipboardPasteHelper {
         context: Context,
         node: AccessibilityNodeInfo,
         entry: ClipboardEntry,
-        clipboardAlreadyPrepared: Boolean,
+        clipboardAlreadyPrepared: Boolean
     ): PasteResult {
         ensureNodeFocused(node)
         val entryText = resolveEntryPasteText(entry)
@@ -137,7 +137,7 @@ object ClipboardPasteHelper {
 
     private fun insertViaSetText(
         node: AccessibilityNodeInfo,
-        clipText: String,
+        clipText: String
     ): PasteResult {
         ensureNodeFocused(node)
         val hint = readHintText(node)
@@ -153,7 +153,7 @@ object ClipboardPasteHelper {
                 currentText = snapshot.content,
                 clipText = clipText,
                 selectionStart = start,
-                selectionEnd = end,
+                selectionEnd = end
             )
         }
         val args = Bundle().apply {
@@ -172,7 +172,7 @@ object ClipboardPasteHelper {
         val blocks = ClipboardImageLabel.blocksForClipboardWrite(
             blocks = entry.resolvedContentBlocks(),
             imageSources = imageSources,
-            uri = entry.uri,
+            uri = entry.uri
         )
         val textBlocks = blocks.filter { it.kind == ClipboardBlockKind.TEXT }
         if (textBlocks.isNotEmpty()) {
@@ -248,7 +248,7 @@ object ClipboardPasteHelper {
         return candidates.maxWithOrNull(
             compareByDescending<AccessibilityNodeInfo> { it.isFocused }
                 .thenByDescending { supportsSetText(it) }
-                .thenByDescending { it.className?.toString().orEmpty().contains("EditText", ignoreCase = true) },
+                .thenByDescending { it.className?.toString().orEmpty().contains("EditText", ignoreCase = true) }
         )
     }
 

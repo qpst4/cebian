@@ -128,6 +128,16 @@ Cebian（`com.slideindex.app`）在 [GNU Affero General Public License v3.0](LIC
 
 ---
 
+## InstallerX-Revived
+
+- **Copyright:** InstallerX Revived contributors
+- **License:** [GNU General Public License v3.0](app/src/main/assets/licenses/GPL-3.0.txt)
+- **Source:** https://github.com/InstallerX-Revived/InstallerX-Revived
+- **Used in:** 液态悬浮底栏（`ui/miuix/bottombar/*`）、设置页蓝框提示 `MiuixSettingsTipCard`
+- **Modifications:** 包名适配 Cebian；底栏与 Mishka / AndroidLiquidGlass 链路分离标注；`MiuixSettingsTipCard` 仅 vendoring 提示卡片段
+
+---
+
 ## EdgeGesture
 
 - **Copyright:** evilgodxu and contributors

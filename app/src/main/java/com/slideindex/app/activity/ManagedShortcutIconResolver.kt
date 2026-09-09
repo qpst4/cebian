@@ -26,7 +26,7 @@ object ManagedShortcutIconResolver {
     fun drawableForQuickItem(
         context: Context,
         item: QuickLauncherItem,
-        catalog: List<ActivityShortcut>,
+        catalog: List<ActivityShortcut>
     ): Drawable? {
         if (item.type != QuickLauncherItemType.SHORTCUT) return null
         val managed = catalog.findForQuickLauncherItem(item) ?: return null
@@ -36,7 +36,7 @@ object ManagedShortcutIconResolver {
     fun drawableForLaunchShortcut(
         context: Context,
         action: GestureAction.LaunchShortcut,
-        catalog: List<ActivityShortcut>,
+        catalog: List<ActivityShortcut>
     ): Drawable? {
         val managed = catalog.findForLaunchShortcut(action.payloadKey) ?: return null
         return drawableForManaged(context, managed)
@@ -46,7 +46,7 @@ object ManagedShortcutIconResolver {
         context: Context,
         action: GestureAction.LaunchShortcut,
         catalog: List<ActivityShortcut>,
-        sizePx: Int,
+        sizePx: Int
     ): Bitmap? {
         val drawable = drawableForLaunchShortcut(context, action, catalog) ?: return null
         return drawableToBitmap(drawable, sizePx)
@@ -111,7 +111,7 @@ object ManagedShortcutIconResolver {
                 setQueryFlags(
                     LauncherApps.ShortcutQuery.FLAG_MATCH_MANIFEST or
                         LauncherApps.ShortcutQuery.FLAG_MATCH_DYNAMIC or
-                        LauncherApps.ShortcutQuery.FLAG_MATCH_PINNED,
+                        LauncherApps.ShortcutQuery.FLAG_MATCH_PINNED
                 )
             }
             val info = launcherApps.getShortcuts(query, Process.myUserHandle())?.firstOrNull() ?: return null

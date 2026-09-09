@@ -4,7 +4,7 @@ import com.slideindex.app.overlay.layout.TaskSwitcherPanelLayout
 import com.slideindex.app.util.TaskSwitcherLockStore
 
 internal class TaskSwitcherLongPressHandler(
-    private val touch: TaskSwitcherTouchHandler,
+    private val touch: TaskSwitcherTouchHandler
 ) {
     private val ctrl get() = touch.ctrl
     private val host get() = touch.host
@@ -42,7 +42,7 @@ internal class TaskSwitcherLongPressHandler(
         }
         host.postDelayed(
             ctrl.taskSwitcherRowLongPressRunnable!!,
-            TaskSwitcherOverlayController.TASK_SWITCHER_LONG_PRESS_MS,
+            TaskSwitcherOverlayController.TASK_SWITCHER_LONG_PRESS_MS
         )
     }
 
@@ -50,7 +50,7 @@ internal class TaskSwitcherLongPressHandler(
         if (shouldSkipRowLongPressSync(
                 host.gestureSession().taskSwitcherContinuousPickActive(),
                 ctrl.taskSwitcherContextMenuActive(),
-                ctrl.taskSwitcherRowLongPressTriggered,
+                ctrl.taskSwitcherRowLongPressTriggered
             )
         ) {
             return
@@ -61,7 +61,7 @@ internal class TaskSwitcherLongPressHandler(
                     closePressIndex = ctrl.taskSwitcherClosePressIndex,
                     closeLongPressScheduled = ctrl.taskSwitcherCloseLongPressRunnable != null,
                     closeLongPressTriggered = ctrl.taskSwitcherCloseLongPressTriggered,
-                    currentRowPressIndex = ctrl.taskSwitcherRowPressIndex,
+                    currentRowPressIndex = ctrl.taskSwitcherRowPressIndex
                 )
             ) {
                 return
@@ -79,7 +79,7 @@ internal class TaskSwitcherLongPressHandler(
     fun syncCloseLongPress(
         pick: TaskSwitcherPick,
         layout: TaskSwitcherPanelLayout,
-        eventTime: Long,
+        eventTime: Long
     ) {
         if (!host.gestureSession().taskSwitcherContinuousPickActive()) return
         if (ctrl.taskSwitcherContextMenuActive()) return
@@ -154,7 +154,7 @@ internal class TaskSwitcherLongPressHandler(
         internal fun shouldSkipRowLongPressSync(
             continuousPickActive: Boolean,
             contextMenuActive: Boolean,
-            rowLongPressTriggered: Boolean,
+            rowLongPressTriggered: Boolean
         ): Boolean = !continuousPickActive || contextMenuActive || rowLongPressTriggered
 
         internal fun shouldArmRowLongPress(
@@ -162,7 +162,7 @@ internal class TaskSwitcherLongPressHandler(
             closePressIndex: Int,
             closeLongPressScheduled: Boolean,
             closeLongPressTriggered: Boolean,
-            currentRowPressIndex: Int,
+            currentRowPressIndex: Int
         ): Boolean {
             if (pickRow < 0) return false
             if (pickRow == closePressIndex && (closeLongPressScheduled || closeLongPressTriggered)) {

@@ -16,7 +16,7 @@ import kotlinx.coroutines.Job
 abstract class BaseFloatingWindow(
     private val context: Context,
     protected val coroutineScope: CoroutineScope,
-    private val logTag: String,
+    private val logTag: String
 ) {
     private val windowManager: WindowManager by lazy {
         context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
@@ -38,7 +38,7 @@ abstract class BaseFloatingWindow(
         x: Int = 0,
         y: Int = 0,
         allowDisplayCutout: Boolean = true,
-        title: String? = null,
+        title: String? = null
     ) {
         params.type = WindowManager.LayoutParams.TYPE_ACCESSIBILITY_OVERLAY
         params.screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
@@ -59,7 +59,7 @@ abstract class BaseFloatingWindow(
     protected fun addViewSafely(
         view: View,
         layoutParams: WindowManager.LayoutParams,
-        onAttached: () -> Unit = {},
+        onAttached: () -> Unit = {}
     ): Boolean {
         attachRequests.add(view)
         attachRetryJobs.remove(view)?.cancel(CancellationException("replaced"))
@@ -79,7 +79,7 @@ abstract class BaseFloatingWindow(
 
     protected fun detachViewSafely(
         view: View,
-        onDetached: () -> Unit = {},
+        onDetached: () -> Unit = {}
     ): Boolean {
         attachRequests.remove(view)
         attachRetryJobs.remove(view)?.cancel(CancellationException("detached"))

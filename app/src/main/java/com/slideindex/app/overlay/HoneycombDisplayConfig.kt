@@ -36,7 +36,7 @@ data class HoneycombDisplayConfig(
     val honeycombDiscSizePercent: Int = HoneycombDisplaySettings.DEFAULT_DISC_SIZE_PERCENT,
     val selectedHintIconSizeDp: Int = SelectedHintMetrics.DEFAULT_ICON_SIZE_DP,
     val launchLongPressDurationMs: Int = 450,
-    val launchLongPressTrackingEnabled: Boolean = false,
+    val launchLongPressTrackingEnabled: Boolean = false
 ) {
     companion object {
         const val MODE_BROWSE = HoneycombDisplaySettings.MODE_BROWSE
@@ -72,7 +72,7 @@ data class HoneycombDisplayConfig(
                 honeycombDiscSizePercent = display.discSizePercent,
                 selectedHintIconSizeDp = display.selectedHintIconSizeDp,
                 launchLongPressDurationMs = settings.effectiveLongPressDurationMs(),
-                launchLongPressTrackingEnabled = settings.launchPolicyLongPressEligible(),
+                launchLongPressTrackingEnabled = settings.launchPolicyLongPressEligible()
             )
         }
     }

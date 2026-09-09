@@ -173,7 +173,7 @@ private fun pickPanelSlideAnimationSpec(durationMs: Int): AnimationSpec<Dp> =
 @Stable
 private class AuxiliaryCollapseController(
     initialCollapseProgress: Float = 0f,
-    initialSearchCollapseProgress: Float = 0f,
+    initialSearchCollapseProgress: Float = 0f
 ) {
     private var totalCollapsiblePx by mutableFloatStateOf(1f)
     private var totalSearchCollapsiblePx by mutableFloatStateOf(1f)
@@ -245,7 +245,7 @@ private data class PickResultCollapseHeights(
     val searchDividerHeight: Dp,
     val searchGridHeight: Dp,
     val textBodyHeight: Dp,
-    val fillTextSpace: Boolean,
+    val fillTextSpace: Boolean
 )
 
 private fun computePickResultCollapseHeights(
@@ -262,7 +262,7 @@ private fun computePickResultCollapseHeights(
     actionBarBottomPadding: Dp = 0.dp,
     imageExpansionFraction: Float,
     searchExpansionFraction: Float,
-    landscapeDualColumn: Boolean = false,
+    landscapeDualColumn: Boolean = false
 ): PickResultCollapseHeights {
     val layoutFactor = normalLayoutFactor.coerceIn(0f, 1f)
     val imageExpansion = imageExpansionFraction.coerceIn(0f, 1f)
@@ -314,7 +314,7 @@ private fun computePickResultCollapseHeights(
         searchDividerHeight = searchDividerHeight.coerceAtLeast(0.dp),
         searchGridHeight = searchGridHeight.coerceAtLeast(0.dp),
         textBodyHeight = textBodyHeight,
-        fillTextSpace = fillTextSpace,
+        fillTextSpace = fillTextSpace
     )
 }
 
@@ -331,7 +331,7 @@ private fun computePickResultExpandedPanelOuterHeight(
     idealTextBodyHeight: Dp,
     minTextBodyHeight: Dp,
     actionBarBottomPadding: Dp = 0.dp,
-    landscapeDualColumn: Boolean = false,
+    landscapeDualColumn: Boolean = false
 ): Dp {
     val expandedBottomPadding = if (hasSearchGrid) 0.dp else PANEL_ACTION_BAR_BOTTOM_GAP
     val panelInnerHeight = panelContentHeight - PANEL_VERTICAL_PADDING - expandedBottomPadding
@@ -349,7 +349,7 @@ private fun computePickResultExpandedPanelOuterHeight(
         actionBarBottomPadding = actionBarBottomPadding,
         imageExpansionFraction = 1f,
         searchExpansionFraction = 1f,
-        landscapeDualColumn = landscapeDualColumn,
+        landscapeDualColumn = landscapeDualColumn
     )
     val textToolbarReserved =
         PickResultTextSectionToolbarReservedHeight + PickResultTextToolbarBodySpacing
@@ -399,7 +399,7 @@ private fun PickResultAuxiliaryImageBlock(
     collapseDragActive: Boolean = false,
     auxiliaryDragEnabled: Boolean = false,
     onDragEnd: () -> Unit = {},
-    applyDrag: (Float) -> Unit = {},
+    applyDrag: (Float) -> Unit = {}
 ) {
     if (sectionHeight <= 0.dp) return
 
@@ -423,11 +423,11 @@ private fun PickResultAuxiliaryImageBlock(
                 if (auxiliaryDragEnabled) {
                     Modifier.pickResultLinkedVerticalDrag(
                         onDragDelta = { dragAmount -> applyDrag(-dragAmount) },
-                        onDragEnd = onDragEnd,
+                        onDragEnd = onDragEnd
                     )
                 } else {
                     Modifier
-                },
+                }
             ),
         onSave = onSaveScreenshot,
         onShare = onShareScreenshot,
@@ -438,7 +438,7 @@ private fun PickResultAuxiliaryImageBlock(
         onImageClick = onImageClick,
         onImageIndexChange = onImageIndexChange,
         sectionExpanded = sectionExpanded,
-        onSectionExpandedChange = onSectionExpandedChange,
+        onSectionExpandedChange = onSectionExpandedChange
     )
 }
 
@@ -448,7 +448,7 @@ private fun PickResultTextImageDividerBlock(
     alphaFactor: Float,
     hasAuxiliaryCollapse: Boolean,
     onDragEnd: () -> Unit,
-    applyDrag: (Float) -> Unit,
+    applyDrag: (Float) -> Unit
 ) {
     if (dividerHeight <= 0.dp) return
 
@@ -462,26 +462,26 @@ private fun PickResultTextImageDividerBlock(
                     Modifier.pointerInput(onDragEnd, applyDrag) {
                         detectVerticalDragGestures(
                             onDragEnd = onDragEnd,
-                            onDragCancel = onDragEnd,
+                            onDragCancel = onDragEnd
                         ) { _, dragAmount ->
                             applyDrag(-dragAmount)
                         }
                     }
                 } else {
                     Modifier
-                },
+                }
             ),
-        contentAlignment = Alignment.Center,
+        contentAlignment = Alignment.Center
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .graphicsLayer { alpha = alphaFactor },
+                .graphicsLayer { alpha = alphaFactor }
         ) {
             Spacer(modifier = Modifier.height(12.dp))
             HorizontalDivider(
                 modifier = Modifier.padding(horizontal = 16.dp),
-                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
             )
             Spacer(modifier = Modifier.height(12.dp))
         }
@@ -503,7 +503,7 @@ private fun PickResultAuxiliarySearchBlock(
     onDragEnd: () -> Unit,
     applyDrag: (Float) -> Unit,
     collapseDragActive: Boolean = false,
-    auxiliaryDragEnabled: Boolean = false,
+    auxiliaryDragEnabled: Boolean = false
 ) {
     if (searchDividerHeight > 0.dp) {
         Box(
@@ -514,18 +514,18 @@ private fun PickResultAuxiliarySearchBlock(
                 .pointerInput(onDragEnd, applyDrag) {
                     detectVerticalDragGestures(
                         onDragEnd = onDragEnd,
-                        onDragCancel = onDragEnd,
+                        onDragCancel = onDragEnd
                     ) { _, dragAmount ->
                         applyDrag(dragAmount)
                     }
                 },
-            contentAlignment = Alignment.BottomCenter,
+            contentAlignment = Alignment.BottomCenter
         ) {
             Column(modifier = Modifier.fillMaxWidth()) {
                 Spacer(modifier = Modifier.height(12.dp))
                 HorizontalDivider(
                     modifier = Modifier.padding(horizontal = 16.dp),
-                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
                 )
                 Spacer(modifier = Modifier.height(12.dp + PickResultTextSearchGridTopSpacing))
             }
@@ -549,12 +549,12 @@ private fun PickResultAuxiliarySearchBlock(
                 if (auxiliaryDragEnabled) {
                     Modifier.pickResultLinkedVerticalDrag(
                         onDragDelta = applyDrag,
-                        onDragEnd = onDragEnd,
+                        onDragEnd = onDragEnd
                     )
                 } else {
                     Modifier
-                },
-            ),
+                }
+            )
     ) {
         PickResultTextSearchGrid(
             engines = panelSearchEngines,
@@ -563,7 +563,7 @@ private fun PickResultAuxiliarySearchBlock(
             rows = searchEngineGridRows,
             showLabels = searchEngineShowLabels,
             longPressEnabled = appSettings.launchPolicyLongPressEligible(),
-            onEngineClick = onSearchEngineClick,
+            onEngineClick = onSearchEngineClick
         )
     }
 }
@@ -602,12 +602,12 @@ private fun PickResultPanelTextSlot(
     onPinTextToScreen: (String) -> Unit,
     onStashText: (String) -> Unit,
     actionBarBottomPadding: Dp,
-    actionBarDragActive: Boolean = false,
+    actionBarDragActive: Boolean = false
 ) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 12.dp),
+            .padding(horizontal = 12.dp)
     ) {
         PickResultInteractiveTextSection(
             text = text,
@@ -648,7 +648,7 @@ private fun PickResultPanelTextSlot(
             onPinToScreen = { onPinTextToScreen(activeText) },
             onStash = { onStashText(activeText) },
             actionBarBottomPadding = actionBarBottomPadding,
-            actionBarDragActive = actionBarDragActive,
+            actionBarDragActive = actionBarDragActive
         )
     }
 }
@@ -665,7 +665,7 @@ private fun PickResultPanelSlideHost(
     panelEnterAnimationMs: Int,
     panelExitAnimationMs: Int,
     onPanelBoundsInRoot: (ComposeRect) -> Unit,
-    content: @Composable (freezeCollapseAnimation: Boolean) -> Unit,
+    content: @Composable (freezeCollapseAnimation: Boolean) -> Unit
 ) {
     val density = LocalDensity.current
     var hiddenSlideDistance by remember { mutableStateOf(panelSlideDistance) }
@@ -680,7 +680,7 @@ private fun PickResultPanelSlideHost(
     val panelSlideOffset by animateDpAsState(
         targetValue = if (panelRevealed) 0.dp else hiddenSlideDistance,
         animationSpec = pickPanelSlideAnimationSpec(slideAnimationMs),
-        label = "pickPanelSlide",
+        label = "pickPanelSlide"
     )
     val isPanelSlideAnimating = panelSlideOffset > 0.5.dp
     val isBlurSupported = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
@@ -704,7 +704,7 @@ private fun PickResultPanelSlideHost(
                 if (!isPanelSlideAnimating) {
                     onPanelBoundsInRoot(coords.boundsInRoot())
                 }
-            },
+            }
     ) {
         if (isBlurSupported) {
             LocalFrostedGlassBackdrop(
@@ -712,7 +712,7 @@ private fun PickResultPanelSlideHost(
                 cornerRadiusPx = cornerPx,
                 blurRadiusPx = blurRadiusPx,
                 tintColor = frostedTint,
-                enabled = true,
+                enabled = true
             )
         }
         content(isPanelSlideAnimating)
@@ -791,15 +791,15 @@ private fun PickResultCollapsePanelColumn(
     onStashText: (String) -> Unit,
     textFirstPanelEnabled: Boolean = false,
     freezeCollapseAnimation: Boolean = false,
-    landscapeDualColumn: Boolean = false,
+    landscapeDualColumn: Boolean = false
 ) {
     val editModeProgress by animateFloatAsState(
         targetValue = if (isEditMode) 1f else 0f,
         animationSpec = tween(
             durationMillis = EDIT_MODE_ANIMATION_MS,
-            easing = FastOutSlowInEasing,
+            easing = FastOutSlowInEasing
         ),
-        label = "editMode",
+        label = "editMode"
     )
     val normalLayoutFactor = 1f - editModeProgress
     val snapCollapseAnimation = controller.isDragging || freezeCollapseAnimation
@@ -811,10 +811,10 @@ private fun PickResultCollapsePanelColumn(
         } else {
             spring(
                 dampingRatio = 0.92f,
-                stiffness = 380f,
+                stiffness = 380f
             )
         },
-        label = "collapse",
+        label = "collapse"
     )
     val expansionFraction = if (snapCollapseAnimation) {
         1f - controller.collapseProgress
@@ -829,10 +829,10 @@ private fun PickResultCollapsePanelColumn(
         } else {
             spring(
                 dampingRatio = 0.92f,
-                stiffness = 380f,
+                stiffness = 380f
             )
         },
-        label = "searchCollapse",
+        label = "searchCollapse"
     )
     val decoupleSearchFromImage = textFirstPanelEnabled && hasSearchGrid
     val searchExpansionFraction = if (decoupleSearchFromImage) {
@@ -854,7 +854,7 @@ private fun PickResultCollapsePanelColumn(
     val targetActionBarBottomInset = lerp(
         PickResultTextActionBarBottomPaddingWhenAlone,
         0.dp,
-        searchPresence,
+        searchPresence
     ).coerceAtLeast(0.dp)
     var frozenActionBarBottomInset by remember { mutableStateOf<Dp?>(null) }
     SideEffect {
@@ -878,10 +878,10 @@ private fun PickResultCollapsePanelColumn(
         } else {
             spring(
                 dampingRatio = 0.92f,
-                stiffness = 380f,
+                stiffness = 380f
             )
         },
-        label = "actionBarBottomInset",
+        label = "actionBarBottomInset"
     )
     // spring ?????????padding ????
     val actionBarBottomInset = animatedActionBarBottomInset.coerceAtLeast(0.dp)
@@ -899,7 +899,7 @@ private fun PickResultCollapsePanelColumn(
         expandedSearchGridContentHeight,
         idealTextBodyHeight,
         minTextBodyHeight,
-        landscapeDualColumn,
+        landscapeDualColumn
     ) {
         if (!hasAuxiliaryCollapse) {
             null
@@ -915,7 +915,7 @@ private fun PickResultCollapsePanelColumn(
                 expandedSearchGridContentHeight = expandedSearchGridContentHeight,
                 idealTextBodyHeight = idealTextBodyHeight,
                 minTextBodyHeight = minTextBodyHeight,
-                landscapeDualColumn = landscapeDualColumn,
+                landscapeDualColumn = landscapeDualColumn
             )
         }
     }
@@ -945,7 +945,7 @@ private fun PickResultCollapsePanelColumn(
         actionBarBottomPadding = actionBarBottomInset,
         imageExpansionFraction = imageExpansionFraction,
         searchExpansionFraction = searchExpansionFraction,
-        landscapeDualColumn = landscapeDualColumn,
+        landscapeDualColumn = landscapeDualColumn
     )
 
     val applyDragState = rememberUpdatedState(applyDrag)
@@ -961,7 +961,7 @@ private fun PickResultCollapsePanelColumn(
     val totalImageCollapsiblePx = remember(
         maxImageSectionHeight,
         minImageSectionHeight,
-        density,
+        density
     ) {
         with(density) {
             (maxImageSectionHeight - minImageSectionHeight).toPx().coerceAtLeast(1f)
@@ -969,7 +969,7 @@ private fun PickResultCollapsePanelColumn(
     }
     val totalSearchCollapsiblePx = remember(
         maxSearchSectionHeight,
-        density,
+        density
     ) {
         with(density) {
             maxSearchSectionHeight.toPx().coerceAtLeast(1f)
@@ -979,7 +979,7 @@ private fun PickResultCollapsePanelColumn(
         totalImageCollapsiblePx,
         totalSearchCollapsiblePx,
         textFirstPanelEnabled,
-        hasSearchGrid,
+        hasSearchGrid
     ) {
         if (textFirstPanelEnabled && hasSearchGrid) {
             totalImageCollapsiblePx
@@ -992,7 +992,7 @@ private fun PickResultCollapsePanelColumn(
         minImageSectionHeight,
         maxImageSectionHeight,
         textImageDividerBaseHeight,
-        density,
+        density
     ) {
         with(density) {
             if (hasImageContent) {
@@ -1005,7 +1005,7 @@ private fun PickResultCollapsePanelColumn(
     val searchLinkedRangePx = remember(
         hasSearchGrid,
         maxSearchSectionHeight,
-        density,
+        density
     ) {
         with(density) {
             if (hasSearchGrid) {
@@ -1019,7 +1019,7 @@ private fun PickResultCollapsePanelColumn(
         controller,
         totalCollapsiblePx,
         toolbarLinkedRangePx,
-        wrappedApplyDrag,
+        wrappedApplyDrag
     ) {
         val scale = totalCollapsiblePx / toolbarLinkedRangePx
         { dragAmount: Float -> wrappedApplyDrag(-dragAmount * scale) }
@@ -1033,7 +1033,7 @@ private fun PickResultCollapsePanelColumn(
         totalCollapsiblePx,
         searchLinkedRangePx,
         wrappedApplyDrag,
-        wrappedApplySearchDrag,
+        wrappedApplySearchDrag
     ) {
         if (textFirstPanelEnabled && hasSearchGrid) {
             val scale = totalSearchCollapsiblePx / searchLinkedRangePx
@@ -1093,7 +1093,7 @@ private fun PickResultCollapsePanelColumn(
             onPinTextToScreen = onPinTextToScreen,
             onStashText = onStashText,
             actionBarBottomPadding = actionBarBottomInset,
-            actionBarDragActive = searchCollapseDragActive,
+            actionBarDragActive = searchCollapseDragActive
         )
     }
 
@@ -1119,7 +1119,7 @@ private fun PickResultCollapsePanelColumn(
             collapseDragActive = imageCollapseDragActive,
             auxiliaryDragEnabled = auxiliaryDragEnabled,
             onDragEnd = onDragEnd,
-            applyDrag = wrappedApplyDrag,
+            applyDrag = wrappedApplyDrag
         )
     }
 
@@ -1139,7 +1139,7 @@ private fun PickResultCollapsePanelColumn(
                 onDragEnd = onSearchDragEnd,
                 applyDrag = if (textFirstPanelEnabled) wrappedApplySearchDrag else wrappedApplyDrag,
                 collapseDragActive = searchCollapseDragActive,
-                auxiliaryDragEnabled = auxiliaryDragEnabled,
+                auxiliaryDragEnabled = auxiliaryDragEnabled
             )
         }
     }
@@ -1155,7 +1155,7 @@ private fun PickResultCollapsePanelColumn(
                     Modifier
                         .wrapContentHeight()
                         .heightIn(max = panelContentHeight)
-                },
+                }
             )
             .graphicsLayer { alpha = pickPanelAlpha }
             .then(
@@ -1163,14 +1163,14 @@ private fun PickResultCollapsePanelColumn(
                     Modifier.clickable(
                         interactionSource = cardInteraction,
                         indication = null,
-                        onClick = onDismiss,
+                        onClick = onDismiss
                     )
                 } else {
                     Modifier
-                },
+                }
             )
             .padding(top = PANEL_VERTICAL_PADDING),
-        verticalArrangement = Arrangement.spacedBy(0.dp),
+        verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
         if (landscapeDualColumn) {
             Row(
@@ -1180,13 +1180,13 @@ private fun PickResultCollapsePanelColumn(
                         .fillMaxWidth()
                 } else {
                     Modifier.fillMaxWidth()
-                },
+                }
             ) {
                 if (showTextSection) {
                     Box(
                         modifier = Modifier
                             .weight(LANDSCAPE_DUAL_COLUMN_TEXT_WEIGHT)
-                            .fillMaxHeight(),
+                            .fillMaxHeight()
                     ) {
                         renderTextSlot()
                     }
@@ -1194,7 +1194,7 @@ private fun PickResultCollapsePanelColumn(
                 Column(
                     modifier = Modifier
                         .weight(LANDSCAPE_DUAL_COLUMN_AUX_WEIGHT)
-                        .fillMaxHeight(),
+                        .fillMaxHeight()
                 ) {
                     renderImageBlock()
                     renderSearchBlock()
@@ -1208,7 +1208,7 @@ private fun PickResultCollapsePanelColumn(
                     alphaFactor = normalLayoutFactor,
                     hasAuxiliaryCollapse = auxiliaryDragEnabled,
                     onDragEnd = onDragEnd,
-                    applyDrag = wrappedApplyDrag,
+                    applyDrag = wrappedApplyDrag
                 )
                 Box(
                     modifier = if (useWeightedTextLayout) {
@@ -1217,7 +1217,7 @@ private fun PickResultCollapsePanelColumn(
                             .fillMaxWidth()
                     } else {
                         Modifier.fillMaxWidth()
-                    },
+                    }
                 ) {
                     renderTextSlot()
                 }
@@ -1458,7 +1458,7 @@ object FloatBallPickResultPanel {
         anchorX: Float = 0f,
         anchorY: Float = 0f,
         result: FloatBallPickResult,
-        initialTextMode: PickResultTextMode? = null,
+        initialTextMode: PickResultTextMode? = null
     ) {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             mainHandler.post { showResult(context, anchorX, anchorY, result, initialTextMode) }
@@ -1525,7 +1525,7 @@ object FloatBallPickResultPanel {
     fun updatePickScreenshot(
         bitmap: Bitmap,
         screenRect: Rect?,
-        layoutMeta: ScreenshotLayoutMeta? = null,
+        layoutMeta: ScreenshotLayoutMeta? = null
     ) {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             mainHandler.post { updatePickScreenshot(bitmap, screenRect, layoutMeta) }
@@ -1556,7 +1556,7 @@ object FloatBallPickResultPanel {
         context: Context,
         anchorX: Float = 0f,
         anchorY: Float = 0f,
-        loadingSource: PickResultTextSource = PickResultTextSource.OCR,
+        loadingSource: PickResultTextSource = PickResultTextSource.OCR
     ) {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             mainHandler.post { showLoading(context, anchorX, anchorY, loadingSource) }
@@ -1621,7 +1621,7 @@ object FloatBallPickResultPanel {
     fun updateOcrText(
         ocrText: String,
         switchToOcr: Boolean = ocrSwitchOnComplete,
-        initialTextMode: PickResultTextMode? = null,
+        initialTextMode: PickResultTextMode? = null
     ) {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             mainHandler.post { updateOcrText(ocrText, switchToOcr, initialTextMode) }
@@ -1690,7 +1690,7 @@ object FloatBallPickResultPanel {
         Toast.makeText(
             hostContext,
             translateErrorMessage(hostContext, message),
-            Toast.LENGTH_SHORT,
+            Toast.LENGTH_SHORT
         ).show()
         updateWindowFocusableForMode(textModeState?.value ?: PickResultTextMode.WORD_TAP)
     }
@@ -1713,7 +1713,7 @@ object FloatBallPickResultPanel {
             source = source,
             a11yText = a11yTextState?.value,
             ocrText = ocrTextState?.value,
-            barcodeResults = barcodeResultsState?.value.orEmpty(),
+            barcodeResults = barcodeResultsState?.value.orEmpty()
         )
         textState?.value = text
         activeTextState?.value = text
@@ -1723,7 +1723,7 @@ object FloatBallPickResultPanel {
         source: PickResultTextSource,
         a11yText: String?,
         ocrText: String?,
-        barcodeResults: List<BarcodeScanResult>,
+        barcodeResults: List<BarcodeScanResult>
     ): String = when (source) {
         PickResultTextSource.A11Y -> a11yText.orEmpty()
         PickResultTextSource.OCR -> ocrText.orEmpty()
@@ -1820,8 +1820,8 @@ object FloatBallPickResultPanel {
                 com.slideindex.app.ocr.OcrRecognizeResult.Failure(
                     appContext.getString(
                         R.string.ocr_error_recognition_failed,
-                        it.localizedMessage ?: it.message ?: appContext.getString(R.string.ocr_error_unknown),
-                    ),
+                        it.localizedMessage ?: it.message ?: appContext.getString(R.string.ocr_error_unknown)
+                    )
                 )
             }
             withContext(Dispatchers.Main.immediate) {
@@ -2152,7 +2152,7 @@ object FloatBallPickResultPanel {
                             val opened = FloatBallTextPick.viewScreenshot(
                                 appContext ?: overlayContext,
                                 it,
-                                settings.defaultImageViewerPackage,
+                                settings.defaultImageViewerPackage
                             )
                             if (opened) {
                                 dismiss()
@@ -2178,7 +2178,7 @@ object FloatBallPickResultPanel {
                             source = source,
                             a11yText = a11yTextHolder.value,
                             ocrText = ocrTextHolder.value,
-                            barcodeResults = barcodeResultsHolder.value,
+                            barcodeResults = barcodeResultsHolder.value
                         )
                         textHolder.value = switched
                         activeTextHolder.value = switched
@@ -2255,7 +2255,7 @@ object FloatBallPickResultPanel {
                                 engine,
                                 query,
                                 settings,
-                                longPressTriggered,
+                                longPressTriggered
                             )
                         }
                         if (launched) {
@@ -2283,13 +2283,13 @@ object FloatBallPickResultPanel {
                         val meta = layoutMeta ?: buildScreenshotLayoutMeta(
                             bitmap = bitmap,
                             screenWidthPx = overlayContext.resources.displayMetrics.widthPixels,
-                            screenHeightPx = overlayContext.resources.displayMetrics.heightPixels,
+                            screenHeightPx = overlayContext.resources.displayMetrics.heightPixels
                         )
                         StashCoordinator.pinImageToScreen(
                             overlayContext,
                             bitmap,
                             screenRect,
-                            meta,
+                            meta
                         )
                         dismiss()
                     },
@@ -2302,15 +2302,15 @@ object FloatBallPickResultPanel {
                             layoutMeta = layoutMeta ?: buildScreenshotLayoutMeta(
                                 bitmap = bitmap,
                                 screenWidthPx = metrics.widthPixels,
-                                screenHeightPx = metrics.heightPixels,
+                                screenHeightPx = metrics.heightPixels
                             ),
                             screenWidthPx = metrics.widthPixels,
-                            screenHeightPx = metrics.heightPixels,
+                            screenHeightPx = metrics.heightPixels
                         )
                         StashCoordinator.addImage(
                             bitmap = bitmap,
                             pinDisplayWidthPx = displayW,
-                            pinDisplayHeightPx = displayH,
+                            pinDisplayHeightPx = displayH
                         ) { success ->
                             showInPanelMessage(
                                 overlayContext.getString(
@@ -2320,7 +2320,7 @@ object FloatBallPickResultPanel {
                         }
                     },
                     screenRect = screenRect,
-                    layoutMeta = layoutMeta,
+                    layoutMeta = layoutMeta
                 )
                 }
             }
@@ -2423,7 +2423,7 @@ private fun FloatBallPickResultContent(
     onImageClick: () -> Unit,
     onImageIndexChange: (Int) -> Unit,
     screenRect: Rect?,
-    layoutMeta: ScreenshotLayoutMeta?,
+    layoutMeta: ScreenshotLayoutMeta?
 ) {
     LaunchedEffect(panelNotification) {
         if (panelNotification != null) {
@@ -2486,7 +2486,7 @@ private fun FloatBallPickResultContent(
         pickResultSearchGridReservedHeight(
             searchEngineGridRows,
             searchEngineShowLabels,
-            effectiveSearchGridColumns,
+            effectiveSearchGridColumns
         )
     } else {
         0.dp
@@ -2509,7 +2509,7 @@ private fun FloatBallPickResultContent(
     val minTextBodyHeight = if (showTextSection) {
         pickResultMinTextBodyAllocatedHeight(
             textSizeSp = textSizeSp,
-            lines = pickResultMinTextBodyLines(),
+            lines = pickResultMinTextBodyLines()
         )
     } else {
         0.dp
@@ -2552,7 +2552,7 @@ private fun FloatBallPickResultContent(
             screenRect = screenRect,
             layoutMeta = layoutMeta,
             screenWidthPx = displayMetrics.widthPixels,
-            screenHeightPx = displayMetrics.heightPixels,
+            screenHeightPx = displayMetrics.heightPixels
         )
     } ?: PickResultImageDisplaySize(0.dp, 0.dp)
 
@@ -2572,7 +2572,7 @@ private fun FloatBallPickResultContent(
         searchGridContentHeight(
             searchEngineGridRows,
             searchEngineShowLabels,
-            effectiveSearchGridColumns,
+            effectiveSearchGridColumns
         ) + 4.dp
     } else {
         0.dp
@@ -2585,7 +2585,7 @@ private fun FloatBallPickResultContent(
     val totalImageCollapsiblePx = remember(
         maxImageSectionHeight,
         minImageSectionHeight,
-        density,
+        density
     ) {
         with(density) {
             (maxImageSectionHeight - minImageSectionHeight).toPx().coerceAtLeast(1f)
@@ -2593,7 +2593,7 @@ private fun FloatBallPickResultContent(
     }
     val totalSearchCollapsiblePx = remember(
         maxSearchSectionHeight,
-        density,
+        density
     ) {
         with(density) {
             maxSearchSectionHeight.toPx().coerceAtLeast(1f)
@@ -2603,7 +2603,7 @@ private fun FloatBallPickResultContent(
         totalImageCollapsiblePx,
         totalSearchCollapsiblePx,
         textFirstPanelEnabled,
-        hasSearchGrid,
+        hasSearchGrid
     ) {
         if (textFirstPanelEnabled && hasSearchGrid) {
             totalImageCollapsiblePx
@@ -2621,7 +2621,7 @@ private fun FloatBallPickResultContent(
     val scopedCollapseController = remember(panelShowToken, textFirstPanelEnabled) {
         AuxiliaryCollapseController(
             initialCollapseProgress = if (textFirstPanelEnabled) 1f else 0f,
-            initialSearchCollapseProgress = 0f,
+            initialSearchCollapseProgress = 0f
         )
     }
     SideEffect {
@@ -2630,7 +2630,7 @@ private fun FloatBallPickResultContent(
                 totalImageCollapsiblePx
             } else {
                 totalCollapsiblePx
-            },
+            }
         )
         scopedCollapseController.updateTotalSearchCollapsiblePx(totalSearchCollapsiblePx)
     }
@@ -2685,7 +2685,7 @@ private fun FloatBallPickResultContent(
         minTextBodyHeight,
         showTextSection,
         maxPanelHeight,
-        landscapeDualColumn,
+        landscapeDualColumn
     ) {
         if (showTextSection || showImageSection) {
             computePickResultExpandedPanelOuterHeight(
@@ -2699,7 +2699,7 @@ private fun FloatBallPickResultContent(
                 expandedSearchGridContentHeight = expandedSearchGridContentHeight,
                 idealTextBodyHeight = idealTextBodyHeight,
                 minTextBodyHeight = minTextBodyHeight,
-                landscapeDualColumn = landscapeDualColumn,
+                landscapeDualColumn = landscapeDualColumn
             )
         } else {
             maxPanelHeight * 0.35f
@@ -2721,10 +2721,10 @@ private fun FloatBallPickResultContent(
                 .pointerInput(Unit) {
                     detectPickResultDismissOutsidePanelTap(
                         panelBoundsInRoot = { panelBoundsState.value },
-                        onDismiss = onDismiss,
+                        onDismiss = onDismiss
                     )
                 },
-            contentAlignment = Alignment.BottomCenter,
+            contentAlignment = Alignment.BottomCenter
         ) {
             Box(modifier = Modifier.overlayBottomPanelWidth()) {
             PickResultPanelSlideHost(
@@ -2732,7 +2732,7 @@ private fun FloatBallPickResultContent(
                 panelSlideDistance = panelSlideDistance,
                 panelEnterAnimationMs = appSettings.floatBallPickPanelEnterAnimationMs,
                 panelExitAnimationMs = appSettings.floatBallPickPanelExitAnimationMs,
-                onPanelBoundsInRoot = { panelBoundsInRoot = it },
+                onPanelBoundsInRoot = { panelBoundsInRoot = it }
             ) { freezeCollapseAnimation ->
                 PickResultCollapsePanelColumn(
                 controller = scopedCollapseController,
@@ -2823,7 +2823,7 @@ private fun FloatBallPickResultContent(
                 onStashText = onStashText,
                 textFirstPanelEnabled = textFirstPanelEnabled,
                 freezeCollapseAnimation = freezeCollapseAnimation,
-                landscapeDualColumn = landscapeDualColumn,
+                landscapeDualColumn = landscapeDualColumn
             )
             }
             }
@@ -2834,29 +2834,29 @@ private fun FloatBallPickResultContent(
                 exit = androidx.compose.animation.fadeOut() + androidx.compose.animation.slideOutVertically { it / 2 },
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(bottom = 24.dp),
+                    .padding(bottom = 24.dp)
             ) {
                 androidx.compose.material3.Surface(
                     shape = androidx.compose.foundation.shape.RoundedCornerShape(24.dp),
                     color = MaterialTheme.colorScheme.inverseSurface,
                     contentColor = MaterialTheme.colorScheme.inverseOnSurface,
                     tonalElevation = 6.dp,
-                    shadowElevation = 8.dp,
+                    shadowElevation = 8.dp
                 ) {
                     Row(
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         androidx.compose.material3.Icon(
                             Icons.Default.Check,
                             contentDescription = null,
                             modifier = Modifier.size(18.dp),
-                            tint = MaterialTheme.colorScheme.primary,
+                            tint = MaterialTheme.colorScheme.primary
                         )
                         Text(
                             text = panelNotification ?: "",
-                            style = MaterialTheme.typography.labelLarge,
+                            style = MaterialTheme.typography.labelLarge
                         )
                     }
                 }
@@ -2882,7 +2882,7 @@ private fun PickResultImageSection(
     onImageClick: () -> Unit,
     onImageIndexChange: (Int) -> Unit,
     sectionExpanded: Boolean,
-    onSectionExpandedChange: (Boolean) -> Unit,
+    onSectionExpandedChange: (Boolean) -> Unit
 ) {
     val images = panelImages.ifEmpty { listOfNotNull(screenshot) }
     Column(modifier = modifier) {
@@ -2890,7 +2890,7 @@ private fun PickResultImageSection(
             title = stringResource(R.string.float_ball_pick_result_image_section),
             expanded = sectionExpanded,
             onToggle = { onSectionExpandedChange(!sectionExpanded) },
-            collapsible = true,
+            collapsible = true
         )
         if (images.isNotEmpty()) {
             PickResultImageSectionGallery(
@@ -2908,7 +2908,7 @@ private fun PickResultImageSection(
                 onImageClick = onImageClick,
                 onImageIndexChange = onImageIndexChange,
                 sectionExpanded = sectionExpanded,
-                onSectionExpandedChange = onSectionExpandedChange,
+                onSectionExpandedChange = onSectionExpandedChange
             )
         }
     }
@@ -2930,11 +2930,11 @@ private fun PickResultImageSectionGallery(
     onImageIndexChange: (Int) -> Unit,
     sectionExpanded: Boolean,
     onSectionExpandedChange: (Boolean) -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     val pagerState = rememberPagerState(
         initialPage = currentImageIndex.coerceIn(0, images.lastIndex),
-        pageCount = { images.size },
+        pageCount = { images.size }
     )
     LaunchedEffect(currentImageIndex) {
         if (pagerState.currentPage != currentImageIndex) {
@@ -2950,13 +2950,13 @@ private fun PickResultImageSectionGallery(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),
-                contentAlignment = Alignment.Center,
+                contentAlignment = Alignment.Center
             ) {
                 if (images.size == 1) {
                     val image = images.first()
@@ -2968,18 +2968,18 @@ private fun PickResultImageSectionGallery(
                             .height(imageDisplaySize.height)
                             .clip(RoundedCornerShape(8.dp))
                             .clickable(onClick = onImageClick),
-                        contentScale = ContentScale.Fit,
+                        contentScale = ContentScale.Fit
                     )
                 } else {
                     HorizontalPager(
                         state = pagerState,
                         modifier = Modifier.fillMaxSize(),
-                        beyondViewportPageCount = 0,
+                        beyondViewportPageCount = 0
                     ) { page ->
                         val image = images[page]
                         Box(
                             modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center,
+                            contentAlignment = Alignment.Center
                         ) {
                             Image(
                                 bitmap = image.asImageBitmap(),
@@ -2989,7 +2989,7 @@ private fun PickResultImageSectionGallery(
                                     .height(imageDisplaySize.height)
                                     .clip(RoundedCornerShape(8.dp))
                                     .clickable(onClick = onImageClick),
-                                contentScale = ContentScale.Fit,
+                                contentScale = ContentScale.Fit
                             )
                         }
                     }
@@ -3002,16 +3002,16 @@ private fun PickResultImageSectionGallery(
                             .padding(6.dp)
                             .background(
                                 color = Color.Black.copy(alpha = 0.55f),
-                                shape = RoundedCornerShape(4.dp),
+                                shape = RoundedCornerShape(4.dp)
                             )
-                            .padding(horizontal = 6.dp, vertical = 2.dp),
+                            .padding(horizontal = 6.dp, vertical = 2.dp)
                     )
                 }
             }
             if (images.size > 1) {
                 LazyRow(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     items(images.size, key = { it }) { index ->
                         val selected = index == pagerState.currentPage
@@ -3029,10 +3029,10 @@ private fun PickResultImageSectionGallery(
                                     } else {
                                         MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
                                     },
-                                    shape = RoundedCornerShape(6.dp),
+                                    shape = RoundedCornerShape(6.dp)
                                 )
                                 .clickable { onImageIndexChange(index) },
-                            contentScale = ContentScale.Crop,
+                            contentScale = ContentScale.Crop
                         )
                     }
                 }
@@ -3045,7 +3045,7 @@ private fun PickResultImageSectionGallery(
                 onSave = onSave,
                 onPinToScreen = onPinToScreen,
                 onStash = onStash,
-                onThumbnailClick = { onSectionExpandedChange(!sectionExpanded) },
+                onThumbnailClick = { onSectionExpandedChange(!sectionExpanded) }
             )
     }
 }

@@ -21,7 +21,7 @@ import com.slideindex.app.R
  */
 class ScreenshotMonitor(
     private val context: Context,
-    private val onScreenshot: (Uri, displayName: String?, mimeType: String?) -> Unit,
+    private val onScreenshot: (Uri, displayName: String?, mimeType: String?) -> Unit
 ) {
     private val appContext = context.applicationContext
     private var handlerThread: HandlerThread? = null
@@ -61,7 +61,7 @@ class ScreenshotMonitor(
             appContext.contentResolver.registerContentObserver(
                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                 true,
-                obs,
+                obs
             )
         }.onFailure { error ->
             Log.w(TAG, "Failed to register screenshot observer", error)
@@ -142,15 +142,15 @@ class ScreenshotMonitor(
         val bundle = Bundle().apply {
             putString(
                 ContentResolverQueryArgs.SQL_SELECTION,
-                "${MediaStore.MediaColumns.DATE_MODIFIED} >= ?",
+                "${MediaStore.MediaColumns.DATE_MODIFIED} >= ?"
             )
             putStringArray(
                 ContentResolverQueryArgs.SQL_SELECTION_ARGS,
-                arrayOf((System.currentTimeMillis() / 1000 - 1).toString()),
+                arrayOf((System.currentTimeMillis() / 1000 - 1).toString())
             )
             putStringArray(
                 ContentResolverQueryArgs.SORT_COLUMNS,
-                arrayOf(MediaStore.MediaColumns.DATE_MODIFIED),
+                arrayOf(MediaStore.MediaColumns.DATE_MODIFIED)
             )
             putInt(ContentResolverQueryArgs.SORT_DIRECTION, 1)
             putInt(ContentResolverQueryArgs.QUERY_ARG_LIMIT, 1)
@@ -160,7 +160,7 @@ class ScreenshotMonitor(
                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                 projection,
                 bundle,
-                null,
+                null
             )
         }.getOrNull() ?: return
 
@@ -210,7 +210,7 @@ class ScreenshotMonitor(
             dateAdded = optionalLong(MediaStore.MediaColumns.DATE_ADDED),
             dateModified = optionalLong(MediaStore.MediaColumns.DATE_MODIFIED),
             isPending = optionalInt(MediaStore.MediaColumns.IS_PENDING) == 1,
-            isTrashed = optionalInt(MediaStore.MediaColumns.IS_TRASHED) == 1,
+            isTrashed = optionalInt(MediaStore.MediaColumns.IS_TRASHED) == 1
         )
     }
 
@@ -251,7 +251,7 @@ class ScreenshotMonitor(
         val dateAdded: Long?,
         val dateModified: Long?,
         val isPending: Boolean,
-        val isTrashed: Boolean,
+        val isTrashed: Boolean
     )
 
     private object ContentResolverQueryArgs {
@@ -273,7 +273,7 @@ class ScreenshotMonitor(
         displayName: String?,
         mimeType: String?,
         relativePath: String?,
-        dataPath: String?,
+        dataPath: String?
     ): Boolean {
         val mime = mimeType?.lowercase()
         if (mime != null && !mime.startsWith("image/")) return false
@@ -300,7 +300,7 @@ class ScreenshotMonitor(
             "screen_shot",
             "screencap",
             "capture",
-            "screen-shot",
+            "screen-shot"
         )
 
         fun isRecentEnough(dateTaken: Long?, dateAdded: Long?, dateModified: Long?): Boolean {
@@ -324,7 +324,7 @@ class ScreenshotMonitor(
                 MediaStore.MediaColumns.SIZE,
                 MediaStore.MediaColumns.DATE_TAKEN,
                 MediaStore.MediaColumns.DATE_ADDED,
-                MediaStore.MediaColumns.DATE_MODIFIED,
+                MediaStore.MediaColumns.DATE_MODIFIED
             )
             columns += MediaStore.MediaColumns.RELATIVE_PATH
             columns += MediaStore.MediaColumns.IS_PENDING

@@ -53,7 +53,7 @@ class MediaNotificationListenerPort @Inject constructor() : NotificationListener
 @Singleton
 class AppNotificationShadeActions @Inject constructor(
     private val ruleExecutor: NotificationRuleExecutor,
-    private val shadeHider: NotificationShadeHider,
+    private val shadeHider: NotificationShadeHider
 ) : NotificationShadeActions {
     override fun hideFromShade(listener: NotificationListenerService, sbn: StatusBarNotification): Boolean =
         shadeHider.hideFromShade(listener, sbn)
@@ -64,12 +64,12 @@ class AppNotificationShadeActions @Inject constructor(
 
     override fun cancelDismissibleFromShade(
         listener: NotificationListenerService,
-        sbn: StatusBarNotification,
+        sbn: StatusBarNotification
     ): Boolean = shadeHider.cancelDismissibleFromShade(listener, sbn)
 
     override fun cancelDismissibleFromShadeOnMain(
         listener: NotificationListenerService,
-        sbn: StatusBarNotification,
+        sbn: StatusBarNotification
     ) {
         shadeHider.cancelDismissibleFromShadeOnMain(listener, sbn)
     }
@@ -77,13 +77,13 @@ class AppNotificationShadeActions @Inject constructor(
     override fun hideFromShade(
         listener: NotificationListenerService,
         key: String,
-        sbn: StatusBarNotification?,
+        sbn: StatusBarNotification?
     ): Boolean = shadeHider.hideFromShade(listener, key, sbn)
 
     override fun snoozeMatchingActive(
         context: Context,
         listener: NotificationListenerService,
-        shouldHide: (StatusBarNotification) -> Boolean,
+        shouldHide: (StatusBarNotification) -> Boolean
     ) {
         listener.activeNotifications?.forEach { sbn ->
             if (sbn.packageName == context.packageName) return@forEach
@@ -97,7 +97,7 @@ class AppNotificationShadeActions @Inject constructor(
         context: Context,
         listener: NotificationListenerService,
         sbn: StatusBarNotification,
-        rules: List<NotificationFilterRule>,
+        rules: List<NotificationFilterRule>
     ) {
         ruleExecutor.execute(context, listener, sbn, rules)
     }
@@ -112,7 +112,7 @@ class AppNotificationShadeActions @Inject constructor(
 
 @Singleton
 class AppNotificationHistoryLaunchPort @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @ApplicationContext private val context: Context
 ) : NotificationHistoryLaunchPort {
     override fun startPendingIntentTrampoline(pendingIntentBase64: String, fallbackIntent: Intent?): Boolean =
         runCatching {
@@ -120,8 +120,8 @@ class AppNotificationHistoryLaunchPort @Inject constructor(
                 LaunchTrampolineActivity.createPendingIntentIntent(
                     context = context,
                     pendingIntentBase64 = pendingIntentBase64,
-                    fallbackIntent = fallbackIntent,
-                ),
+                    fallbackIntent = fallbackIntent
+                )
             )
         }.isSuccess
 
@@ -134,7 +134,7 @@ class AppNotificationHistoryLaunchPort @Inject constructor(
 
 @Singleton
 class FreeWindowAppLaunchPort @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @ApplicationContext private val context: Context
 ) : AppLaunchPort {
     override fun launch(intent: Intent, settings: AppSettings, fullscreen: Boolean) {
         FreeWindowLauncher.launch(context, intent, settings, fullscreen)
@@ -159,25 +159,25 @@ abstract class AppPortsModule {
     @Binds
     @Singleton
     abstract fun bindNotificationHistoryLaunchPort(
-        impl: AppNotificationHistoryLaunchPort,
+        impl: AppNotificationHistoryLaunchPort
     ): NotificationHistoryLaunchPort
 
     @Binds
     @Singleton
     abstract fun bindNotificationOtpSideEffects(
-        impl: AppNotificationOtpSideEffects,
+        impl: AppNotificationOtpSideEffects
     ): NotificationOtpSideEffects
 
     @Binds
     @Singleton
     abstract fun bindNotificationIntentLaunchPort(
-        impl: AppNotificationIntentLaunchPort,
+        impl: AppNotificationIntentLaunchPort
     ): NotificationIntentLaunchPort
 
     @Binds
     @Singleton
     abstract fun bindNotificationRuleUiStrings(
-        impl: AppNotificationRuleUiStrings,
+        impl: AppNotificationRuleUiStrings
     ): NotificationRuleUiStrings
 
     @Binds

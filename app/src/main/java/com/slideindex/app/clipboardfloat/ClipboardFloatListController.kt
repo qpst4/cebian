@@ -21,7 +21,7 @@ import kotlinx.coroutines.withContext
 @OptIn(FlowPreview::class)
 class ClipboardFloatListController(
     private val repository: ClipboardHistoryRepository?,
-    private val scope: CoroutineScope,
+    private val scope: CoroutineScope
 ) {
     private val _entries = MutableStateFlow<List<ClipboardEntry>>(emptyList())
     val entries: StateFlow<List<ClipboardEntry>> = _entries.asStateFlow()
@@ -34,7 +34,7 @@ class ClipboardFloatListController(
     val filteredEntries: StateFlow<List<ClipboardEntry>> = combine(
         _entries,
         _searchResults,
-        _searchQuery,
+        _searchQuery
     ) { entries, searched, query ->
         if (query.trim().isEmpty()) entries else searched
     }.stateIn(scope, SharingStarted.WhileSubscribed(5_000), emptyList())
@@ -79,7 +79,7 @@ class ClipboardFloatListController(
                 val page = withContext(Dispatchers.IO) {
                     repository.loadHistoryPage(
                         createdBeforeMs = null,
-                        limit = ClipboardFloatWindowMetrics.PAGE_SIZE,
+                        limit = ClipboardFloatWindowMetrics.PAGE_SIZE
                     )
                 }
                 _entries.value = page.entries

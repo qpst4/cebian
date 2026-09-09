@@ -28,7 +28,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 
 internal class TaskSwitcherOverlayController(
-    internal val host: Host,
+    internal val host: Host
 ) {
     private val motionScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     internal val taskSwitcherOverscrollMotion = OverlayFloatSpringMotion(motionScope)
@@ -151,7 +151,7 @@ internal class TaskSwitcherOverlayController(
             val iconSize = host.dp(30f).toInt().coerceAtLeast(48)
             host.appRepository().warmLaunchIconBitmapsAsync(
                 fresh.map { it.app.packageName },
-                iconSize,
+                iconSize
             )
             invalidateTaskSwitcherPanel()
         }
@@ -163,7 +163,7 @@ internal class TaskSwitcherOverlayController(
             host = host,
             rows = rowEntries,
             scrollOffset = taskSwitcherScrollOffset,
-            anchorLocalY = taskSwitcherAnchorLocalY(),
+            anchorLocalY = taskSwitcherAnchorLocalY()
         )
         taskSwitcherScrollOffset = offset
         return layout
@@ -177,7 +177,7 @@ internal class TaskSwitcherOverlayController(
 
     internal fun endTaskSwitcherSession(
         runBeforeExit: Boolean = false,
-        runAfter: (() -> Unit)? = null,
+        runAfter: (() -> Unit)? = null
     ) {
         if (taskSwitcherExiting) return
         dismissTaskSwitcherContextMenu(immediate = true)
@@ -288,7 +288,7 @@ internal class TaskSwitcherOverlayController(
         contextMenuActive = taskSwitcherContextMenuActive(),
         contextMenu = taskSwitcherContextMenu,
         menuHighlight = taskSwitcherMenuHighlight,
-        menuEnterProgress = taskSwitcherMenuEnterProgress,
+        menuEnterProgress = taskSwitcherMenuEnterProgress
     )
 
     private fun resolveTaskSwitcherAnchorLocalY(): Float {
@@ -359,21 +359,21 @@ internal class TaskSwitcherOverlayController(
             val label = entry.app.label
             nodes += OverlayVirtualNode(
                 description = context.getString(R.string.cd_overlay_task_switch_row, label),
-                boundsInParent = RectF(row.rowRect),
+                boundsInParent = RectF(row.rowRect)
             )
             nodes += OverlayVirtualNode(
                 description = context.getString(R.string.cd_overlay_task_switch_close, label),
-                boundsInParent = RectF(row.closeRect),
+                boundsInParent = RectF(row.closeRect)
             )
             nodes += OverlayVirtualNode(
                 description = context.getString(R.string.cd_overlay_task_switch_free_window, label),
-                boundsInParent = RectF(row.freeWindowRect),
+                boundsInParent = RectF(row.freeWindowRect)
             )
         }
         if (!layout.closeAllRect.isEmpty) {
             nodes += OverlayVirtualNode(
                 description = context.getString(R.string.task_switcher_close_all),
-                boundsInParent = RectF(layout.closeAllRect),
+                boundsInParent = RectF(layout.closeAllRect)
             )
         }
         return nodes

@@ -26,7 +26,7 @@ class OverlayFullScreenPanelHost(
     private val layoutParamsFactory: (Context, Boolean) -> WindowManager.LayoutParams =
         { context, focusable -> OverlayPanelLayoutParams.fullScreenOverlay(context, focusable) },
     private val onScreenOff: () -> Unit = {},
-    private val excludeLeftBackEdge: Boolean = true,
+    private val excludeLeftBackEdge: Boolean = true
 ) {
     private val mainHandler = Handler(Looper.getMainLooper())
 
@@ -55,7 +55,7 @@ class OverlayFullScreenPanelHost(
     fun ensureWindow(
         context: Context,
         focusable: Boolean = false,
-        content: @Composable () -> Unit,
+        content: @Composable () -> Unit
     ): OverlayComposeOwner? {
         if (composeViewRef != null) return ownerRef
 
@@ -191,7 +191,7 @@ class OverlayFullScreenPanelHost(
 
     fun dismissAnimated(
         hideDelayMs: Long = 300L,
-        onHidden: () -> Unit = {},
+        onHidden: () -> Unit = {}
     ) {
         runOnMain {
             setInputActive(false)

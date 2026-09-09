@@ -20,7 +20,7 @@ import kotlinx.coroutines.launch
 
 @Singleton
 class AppShakeRuntimePort @Inject constructor(
-    @ApplicationContext private val appContext: Context,
+    @ApplicationContext private val appContext: Context
 ) : ShakeRuntimePort {
     override fun isAccessibilityServiceEnabled(): Boolean =
         PermissionHelper.isAccessibilityServiceEnabled(appContext)
@@ -66,13 +66,13 @@ class AppShakeActionPort @Inject constructor(
     private val appRepository: AppRepository,
     private val settingsRepository: SettingsRepository,
     private val applicationScope: CoroutineScope,
-    private val runtimePort: ShakeRuntimePort,
+    private val runtimePort: ShakeRuntimePort
 ) : ShakeActionPort {
     override fun execute(
         action: GestureAction,
         settings: AppSettings,
         anchorRawX: Float,
-        anchorRawY: Float,
+        anchorRawY: Float
     ): Boolean {
         val executor = ActionExecutor(
             context = runtimePort.overlayActionContext(),
@@ -81,13 +81,13 @@ class AppShakeActionPort @Inject constructor(
                 applicationScope.launch {
                     settingsRepository.setShellCommands(commands)
                 }
-            },
+            }
         )
         return executor.execute(
             action = action,
             settings = settings,
             anchorRawX = anchorRawX,
-            anchorRawY = anchorRawY,
+            anchorRawY = anchorRawY
         )
     }
 }
@@ -101,7 +101,7 @@ class AppShakeFeedbackPort @Inject constructor() : ShakeFeedbackPort {
     override fun playActionSound(
         context: Context,
         forceAudible: Boolean,
-        volume: Int,
+        volume: Int
     ) {
         TriggerFeedbackAudio.playActionAck(context, forceAudible, volume)
     }
@@ -110,7 +110,7 @@ class AppShakeFeedbackPort @Inject constructor() : ShakeFeedbackPort {
         context: Context,
         gestureType: ShakeGestureType,
         action: GestureAction,
-        colorArgb: Int,
+        colorArgb: Int
     ) {
         ShakeFeedbackOverlay.showGestureFeedback(context, gestureType, action, colorArgb)
     }

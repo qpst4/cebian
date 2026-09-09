@@ -52,14 +52,14 @@ object ShellCommandIconResolver {
             text,
             sizePx / 2f,
             sizePx / 2f - (textPaint.descent() + textPaint.ascent()) / 2f,
-            textPaint,
+            textPaint
         )
         return bitmap
     }
 
     fun findForCommandLine(
         commandLine: String,
-        shellCommands: List<ShellCommand>,
+        shellCommands: List<ShellCommand>
     ): ShellCommand? =
         shellCommands.firstOrNull { it.command.trim() == commandLine.trim() && it.hasCustomIcon() }
 }

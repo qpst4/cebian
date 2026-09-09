@@ -58,7 +58,7 @@ class StashClipboardTrampolineActivity : ComponentActivity() {
 
             OverlayServiceLifecycle.syncFromSettings(
                 this@StashClipboardTrampolineActivity,
-                deps.settingsRepository,
+                deps.settingsRepository
             )
 
             val shown = retryShowPanel(initialTab, searchQuery)
@@ -125,7 +125,7 @@ class StashClipboardTrampolineActivity : ComponentActivity() {
                     when (tab) {
                         StashPanelInitialTab.Stash -> PATH_STASH
                         StashPanelInitialTab.Clipboard -> PATH_CLIPBOARD
-                    },
+                    }
                 )
                 .apply {
                     query?.trim()?.takeIf { it.isNotEmpty() }?.let {
@@ -140,7 +140,7 @@ class StashClipboardTrampolineActivity : ComponentActivity() {
                 addFlags(
                     Intent.FLAG_ACTIVITY_NEW_TASK or
                         Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                        Intent.FLAG_ACTIVITY_NO_ANIMATION,
+                        Intent.FLAG_ACTIVITY_NO_ANIMATION
                 )
             }
 
@@ -153,7 +153,7 @@ class StashClipboardTrampolineActivity : ComponentActivity() {
                 addFlags(
                     Intent.FLAG_ACTIVITY_NEW_TASK or
                         Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                        Intent.FLAG_ACTIVITY_NO_ANIMATION,
+                        Intent.FLAG_ACTIVITY_NO_ANIMATION
                 )
             }
 

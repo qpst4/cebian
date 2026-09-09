@@ -1,8 +1,7 @@
 package com.slideindex.app.ui
 
 import com.slideindex.app.ui.miuix.MiuixHintText
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
-import com.slideindex.app.ui.miuix.MiuixSmallTitleSectionTop
+import top.yukonga.miuix.kmp.basic.SmallTitle
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
@@ -38,7 +37,7 @@ fun HiddenAppsScreen(
     onHideApp: (String) -> Unit,
     onUnhideApp: (String) -> Unit,
     titleRes: Int = R.string.hidden_apps_title,
-    descriptionRes: Int = R.string.hidden_apps_desc,
+    descriptionRes: Int = R.string.hidden_apps_desc
 ) {
     val appRepository = rememberAppRepository()
     var allApps by remember { mutableStateOf<List<AppInfo>>(emptyList()) }
@@ -74,13 +73,16 @@ fun HiddenAppsScreen(
         title = stringResource(titleRes),
         searchQuery = searchQuery,
         onSearchQueryChange = { searchQuery = it },
-        onBack = onBack,
+        onBack = onBack
     ) {
         item(key = "desc") {
             MiuixHintText(stringResource(descriptionRes))
         }
         item(key = "section-hidden") {
-            MiuixSmallTitle(stringResource(R.string.hidden_apps_section_hidden))
+            SmallTitle(
+                text = stringResource(R.string.hidden_apps_section_hidden),
+                modifier = Modifier.fillMaxWidth(),
+            )
         }
         if (hiddenEntries.isEmpty()) {
             item(key = "hidden-empty") {
@@ -88,13 +90,13 @@ fun HiddenAppsScreen(
                     text = stringResource(R.string.hidden_apps_empty),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 28.dp, vertical = 12.dp),
+                    modifier = Modifier.padding(horizontal = 28.dp, vertical = 12.dp)
                 )
             }
         } else {
             items(
                 hiddenEntries.size,
-                key = { hiddenEntries[it].packageName },
+                key = { hiddenEntries[it].packageName }
             ) { index ->
                 AppPackageListRow(
                     entry = hiddenEntries[index],
@@ -103,18 +105,18 @@ fun HiddenAppsScreen(
                     actionIcon = Icons.Default.Close,
                     actionDescription = stringResource(R.string.hidden_apps_unhide),
                     missingIcon = Icons.Default.VisibilityOff,
-                    onAction = { onUnhideApp(hiddenEntries[index].packageName) },
+                    onAction = { onUnhideApp(hiddenEntries[index].packageName) }
                 )
             }
         }
         item(key = "section-add") {
-            MiuixSmallTitle(stringResource(R.string.hidden_apps_section_add), modifier = Modifier.fillMaxWidth().padding(top = MiuixSmallTitleSectionTop))
+            SmallTitle(stringResource(R.string.hidden_apps_section_add), modifier = Modifier.fillMaxWidth())
         }
         when {
             isLoading -> {
                 item(key = "loading") {
                     LoadingContent(
-                        message = stringResource(R.string.loading), modifier = Modifier.fillMaxWidth(),
+                        message = stringResource(R.string.loading), modifier = Modifier.fillMaxWidth()
                     )
                 }
             }
@@ -127,14 +129,14 @@ fun HiddenAppsScreen(
                             stringResource(R.string.no_apps)
                         },
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 28.dp, vertical = 24.dp),
+                        modifier = Modifier.padding(horizontal = 28.dp, vertical = 24.dp)
                     )
                 }
             }
             else -> {
                 items(
                     addableApps.size,
-                    key = { addableApps[it].packageName },
+                    key = { addableApps[it].packageName }
                 ) { index ->
                     val app = addableApps[index]
                     AppPackageListRow(
@@ -144,7 +146,7 @@ fun HiddenAppsScreen(
                         actionIcon = Icons.Default.Add,
                         actionDescription = stringResource(R.string.hidden_apps_hide),
                         missingIcon = Icons.Default.VisibilityOff,
-                        onAction = { onHideApp(app.packageName) },
+                        onAction = { onHideApp(app.packageName) }
                     )
                 }
             }
@@ -157,7 +159,7 @@ fun SettingsCardScope.HiddenAppsEntryCard(
     hiddenCount: Int,
     onClick: () -> Unit,
     titleRes: Int = R.string.hidden_apps_entry_title,
-    descriptionRes: Int = R.string.hidden_apps_entry_desc,
+    descriptionRes: Int = R.string.hidden_apps_entry_desc
 ) {
     val subtitle = if (hiddenCount > 0) {
         stringResource(R.string.hidden_apps_entry_count, hiddenCount)
@@ -168,6 +170,6 @@ fun SettingsCardScope.HiddenAppsEntryCard(
         icon = { label -> Icon(Icons.Default.VisibilityOff, contentDescription = label) },
         title = stringResource(titleRes),
         subtitle = subtitle,
-        onClick = onClick,
+        onClick = onClick
     )
 }

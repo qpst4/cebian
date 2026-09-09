@@ -31,7 +31,7 @@ import kotlinx.coroutines.launch
  * with horizontal enter/exit animation and optional left/right gravity.
  */
 class OverlaySidePanelHost(
-    private val tag: String = "OverlaySidePanelHost",
+    private val tag: String = "OverlaySidePanelHost"
 ) : OverlayPanelVisibility {
     private val panelHost = OverlayFullScreenPanelHost(
         tag = tag,
@@ -39,7 +39,7 @@ class OverlaySidePanelHost(
             OverlayPanelLayoutParams.stashClipboardSidePanel(context, focusable)
         },
         onScreenOff = { dismiss() },
-        excludeLeftBackEdge = false,
+        excludeLeftBackEdge = false
     )
 
     private var panelVisibilityState: MutableTransitionState<Boolean>? = null
@@ -72,12 +72,12 @@ class OverlaySidePanelHost(
             gravityEnd: Boolean,
             panelTargetVisible: Boolean,
             onToggleSide: () -> Unit,
-            onDismiss: () -> Unit,
+            onDismiss: () -> Unit
         ) -> Unit,
         onAccessibilityRequired: () -> Boolean = {
             PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)
         },
-        onHostContext: () -> Context? = { OverlayDependencyAccess.overlayHostContext() },
+        onHostContext: () -> Context? = { OverlayDependencyAccess.overlayHostContext() }
     ): Boolean {
         if (panelHost.isAttached) {
             attachedBelowChrome = true
@@ -94,7 +94,7 @@ class OverlaySidePanelHost(
         val attached = attachPanelWindow(
             hostContext = hostContext,
             initialGravityEnd = initialGravityEnd,
-            content = content,
+            content = content
         )
         if (!attached) return false
         panelHost.setViewVisible(false)
@@ -109,13 +109,13 @@ class OverlaySidePanelHost(
             gravityEnd: Boolean,
             panelTargetVisible: Boolean,
             onToggleSide: () -> Unit,
-            onDismiss: () -> Unit,
+            onDismiss: () -> Unit
         ) -> Unit,
         onAccessibilityRequired: () -> Boolean = {
             PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)
         },
         onHostContext: () -> Context? = { OverlayDependencyAccess.overlayHostContext() },
-        onShown: () -> Unit = { FloatBallOverlay.scheduleChromeAbovePanels() },
+        onShown: () -> Unit = { FloatBallOverlay.scheduleChromeAbovePanels() }
     ): Boolean {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             var result = false
@@ -127,7 +127,7 @@ class OverlaySidePanelHost(
                     content = content,
                     onAccessibilityRequired = onAccessibilityRequired,
                     onHostContext = onHostContext,
-                    onShown = onShown,
+                    onShown = onShown
                 )
                 latch.countDown()
             }
@@ -174,7 +174,7 @@ class OverlaySidePanelHost(
         val attached = attachPanelWindow(
             hostContext = hostContext,
             initialGravityEnd = initialGravityEnd,
-            content = content,
+            content = content
         )
         if (!attached) return false
         attachedBelowChrome = false
@@ -199,8 +199,8 @@ class OverlaySidePanelHost(
             gravityEnd: Boolean,
             panelTargetVisible: Boolean,
             onToggleSide: () -> Unit,
-            onDismiss: () -> Unit,
-        ) -> Unit,
+            onDismiss: () -> Unit
+        ) -> Unit
     ): Boolean {
         val gravityEndHolder = mutableStateOf(initialGravityEnd)
         gravityEndState = gravityEndHolder
@@ -216,18 +216,18 @@ class OverlaySidePanelHost(
                 visibleState = visibleState,
                 enter = slideInHorizontally(
                     initialOffsetX = { if (gravityEnd) it else -it },
-                    animationSpec = spring(dampingRatio = 0.8f, stiffness = 300f),
+                    animationSpec = spring(dampingRatio = 0.8f, stiffness = 300f)
                 ) + fadeIn(animationSpec = tween(250)),
                 exit = slideOutHorizontally(
                     targetOffsetX = { if (gravityEnd) it else -it },
-                    animationSpec = spring(dampingRatio = 0.8f, stiffness = 300f),
-                ) + fadeOut(animationSpec = tween(250)),
+                    animationSpec = spring(dampingRatio = 0.8f, stiffness = 300f)
+                ) + fadeOut(animationSpec = tween(250))
             ) {
                 content(
                     gravityEnd,
                     panelTargetVisible,
                     { gravityEndHolder.value = !gravityEndHolder.value },
-                    { dismiss() },
+                    { dismiss() }
                 )
             }
         } ?: return false

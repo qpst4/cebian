@@ -24,12 +24,12 @@ data class ShareImageOcrHistoryEntry(
     val createdAtEpochMs: Long,
     val ocrText: String,
     val thumbnailFileName: String?,
-    val tiled: Boolean,
+    val tiled: Boolean
 )
 
 @Singleton
 class ShareImageOcrHistoryRepository @Inject constructor(
-    @ApplicationContext context: Context,
+    @ApplicationContext context: Context
 ) {
     private val appContext = context.applicationContext
     private val historyDir = File(appContext.filesDir, HISTORY_DIR_NAME).apply { mkdirs() }
@@ -48,7 +48,7 @@ class ShareImageOcrHistoryRepository @Inject constructor(
     suspend fun append(
         ocrText: String,
         thumbnail: Bitmap?,
-        tiled: Boolean,
+        tiled: Boolean
     ): ShareImageOcrHistoryEntry {
         mutex.withLock {
             val id = "${System.currentTimeMillis()}-${ocrText.hashCode()}"
@@ -60,7 +60,7 @@ class ShareImageOcrHistoryRepository @Inject constructor(
                 createdAtEpochMs = System.currentTimeMillis(),
                 ocrText = ocrText,
                 thumbnailFileName = thumbnailFileName,
-                tiled = tiled,
+                tiled = tiled
             )
             val next = (listOf(entry) + readFromDisk()).take(MAX_ENTRIES)
             pruneRemovedThumbnails(previous = _entries.value, next = next)
@@ -117,7 +117,7 @@ class ShareImageOcrHistoryRepository @Inject constructor(
 
     private fun pruneRemovedThumbnails(
         previous: List<ShareImageOcrHistoryEntry>,
-        next: List<ShareImageOcrHistoryEntry>,
+        next: List<ShareImageOcrHistoryEntry>
     ) {
         val retained = next.mapNotNull { it.thumbnailFileName }.toSet()
         previous.mapNotNull { it.thumbnailFileName }

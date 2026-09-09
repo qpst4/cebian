@@ -60,13 +60,13 @@ fun FreezerPanelContent(
     onBack: (() -> Unit)? = null,
     onManageApps: (() -> Unit)? = null,
     onAppLaunched: (() -> Unit)? = null,
-    overlayMode: Boolean = false,
+    overlayMode: Boolean = false
 ) {
     val context = LocalContext.current
     val resources = LocalResources.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val settings by settingsRepository.settings.collectAsStateWithLifecycle(
-        initialValue = settingsRepository.readSnapshot(),
+        initialValue = settingsRepository.readSnapshot()
     )
     val appRepository = rememberAppRepository()
     var memberApps by remember { mutableStateOf<List<AppInfo>>(emptyList()) }
@@ -128,7 +128,7 @@ fun FreezerPanelContent(
                 expanded = searchExpanded,
                 query = searchQuery,
                 onExpandedChange = { searchExpanded = it },
-                onQueryChange = { searchQuery = it },
+                onQueryChange = { searchQuery = it }
             )
         ) {
             onBack()
@@ -139,7 +139,7 @@ fun FreezerPanelContent(
         items = listOf(
             DropdownItem(
                 text = importFrozenLabel,
-                onClick = { importFrozenApps() },
+                onClick = { importFrozenApps() }
             ),
             DropdownItem(
                 text = unfreezeAllLabel,
@@ -149,9 +149,9 @@ fun FreezerPanelContent(
                             freezeStateRevision++
                         }
                     }
-                },
-            ),
-        ),
+                }
+            )
+        )
     )
 
     SettingsLazyScreenScaffold(
@@ -164,14 +164,14 @@ fun FreezerPanelContent(
                 expanded = searchExpanded,
                 query = searchQuery,
                 onExpandedChange = { searchExpanded = it },
-                onQueryChange = { searchQuery = it },
+                onQueryChange = { searchQuery = it }
             )
             if (onManageApps != null) {
                 IconButton(onClick = onManageApps) {
                     Icon(
                         imageVector = Icons.Default.Add,
                         contentDescription = stringResource(R.string.freezer_manage_apps),
-                        tint = MiuixTheme.colorScheme.onBackground,
+                        tint = MiuixTheme.colorScheme.onBackground
                     )
                 }
             }
@@ -181,19 +181,19 @@ fun FreezerPanelContent(
                         Icon(
                             imageVector = Icons.Default.MoreVert,
                             contentDescription = stringResource(R.string.freezer_batch_menu),
-                            tint = MiuixTheme.colorScheme.onBackground,
+                            tint = MiuixTheme.colorScheme.onBackground
                         )
                     }
                     DropdownMenu(
                         expanded = overflowMenuExpanded,
-                        onDismissRequest = { overflowMenuExpanded = false },
+                        onDismissRequest = { overflowMenuExpanded = false }
                     ) {
                         DropdownMenuItem(
                             text = { Text(importFrozenLabel) },
                             onClick = {
                                 overflowMenuExpanded = false
                                 importFrozenApps()
-                            },
+                            }
                         )
                         DropdownMenuItem(
                             text = { Text(unfreezeAllLabel) },
@@ -204,7 +204,7 @@ fun FreezerPanelContent(
                                         freezeStateRevision++
                                     }
                                 }
-                            },
+                            }
                         )
                     }
                 }
@@ -213,7 +213,7 @@ fun FreezerPanelContent(
                     Icon(
                         imageVector = Icons.Default.MoreVert,
                         contentDescription = stringResource(R.string.freezer_batch_menu),
-                        tint = MiuixTheme.colorScheme.onBackground,
+                        tint = MiuixTheme.colorScheme.onBackground
                     )
                 }
             }
@@ -224,7 +224,7 @@ fun FreezerPanelContent(
                 searchQuery = searchQuery,
                 onSearchQueryChange = { searchQuery = it },
                 focusRequester = searchFocusRequester,
-                hintResId = R.string.freezer_grid_search_hint,
+                hintResId = R.string.freezer_grid_search_hint
             )
         },
         floatingActionButton = {
@@ -237,15 +237,15 @@ fun FreezerPanelContent(
                     }
                 },
                 icon = Icons.Default.AcUnit,
-                contentDescription = stringResource(R.string.freezer_action_freeze),
+                contentDescription = stringResource(R.string.freezer_action_freeze)
             )
-        },
+        }
     ) {
         if (isLoading) {
             item(key = "freezer-loading") {
                 Box(
                     modifier = Modifier.fillMaxSize(),
-                    contentAlignment = androidx.compose.ui.Alignment.Center,
+                    contentAlignment = androidx.compose.ui.Alignment.Center
                 ) {
                     top.yukonga.miuix.kmp.basic.CircularProgressIndicator()
                 }
@@ -263,7 +263,7 @@ fun FreezerPanelContent(
                     modifier = Modifier.fillMaxSize(),
                     onAppLaunched = onAppLaunched,
                     onManageApps = onManageApps,
-                    overlayMode = overlayMode,
+                    overlayMode = overlayMode
                 )
             }
         }

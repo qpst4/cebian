@@ -23,7 +23,7 @@ import kotlinx.coroutines.withContext
 class PinImagePickerTrampolineActivity : ComponentActivity() {
 
     private val pickLauncher = registerForActivityResult(
-        ActivityResultContracts.GetContent(),
+        ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         if (uri != null) {
             handlePickedUri(uri)

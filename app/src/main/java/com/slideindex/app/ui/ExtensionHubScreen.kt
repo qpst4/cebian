@@ -49,12 +49,12 @@ fun ExtensionHubScreen(
     onOpenSettingsBackup: () -> Unit,
     onOpenNativeEnginePacks: () -> Unit,
     onOpenDiagnosticLogs: () -> Unit,
-    onOpenAbout: () -> Unit,
+    onOpenAbout: () -> Unit
 ) {
     val listState = rememberLazyListState()
     BottomNavReselectScrollEffect(
         reselectCount = bottomNavReselectCount,
-        listState = listState,
+        listState = listState
     )
 
     val launchPanelTitle = stringResource(R.string.extension_section_launch_panel)
@@ -65,14 +65,13 @@ fun ExtensionHubScreen(
 
     MiuixHubScaffold(
         title = stringResource(R.string.main_nav_extension),
-        subtitle = stringResource(R.string.extension_hub_subtitle),
         modifier = Modifier.fillMaxSize(),
         listState = listState,
-        bottomContentPadding = bottomContentPadding,
+        bottomContentPadding = bottomContentPadding
     ) {
         settingsLazySmallTitle(
             key = "launch_panel_section",
-            title = launchPanelTitle,
+            title = launchPanelTitle
         )
         groupedCardItems(
             keyPrefix = "extension_launch_panel",
@@ -83,9 +82,9 @@ fun ExtensionHubScreen(
                             settings = settings,
                             enabled = gestureActive,
                             outlinedLeadingIcons = true,
-                            onClick = onOpenLayoutSettings,
+                            onClick = onOpenLayoutSettings
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("quick-launcher") {
@@ -93,9 +92,9 @@ fun ExtensionHubScreen(
                             settings = settings,
                             enabled = gestureActive,
                             outlinedLeadingIcons = true,
-                            onClick = onOpenQuickLauncher,
+                            onClick = onOpenQuickLauncher
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("honeycomb-launcher") {
@@ -103,9 +102,9 @@ fun ExtensionHubScreen(
                             settings = settings,
                             enabled = gestureActive,
                             outlinedLeadingIcons = true,
-                            onClick = onOpenHoneycombLauncher,
+                            onClick = onOpenHoneycombLauncher
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("holographic-launcher") {
@@ -113,9 +112,9 @@ fun ExtensionHubScreen(
                             hiddenAppCount = settings.holographicHiddenAppCount,
                             enabled = gestureActive,
                             outlinedLeadingIcons = true,
-                            onClick = onOpenHolographicLauncher,
+                            onClick = onOpenHolographicLauncher
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("widget-panel") {
@@ -123,25 +122,24 @@ fun ExtensionHubScreen(
                             settings = settings,
                             enabled = gestureActive,
                             outlinedLeadingIcons = true,
-                            onClick = onOpenWidgetPanel,
+                            onClick = onOpenWidgetPanel
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("search-panel") {
                         SearchPanelEntryCard(
                             outlinedLeadingIcons = true,
-                            onClick = onOpenSearchPanel,
+                            onClick = onOpenSearchPanel
                         )
-                    },
+                    }
                 )
-            },
+            }
         )
 
         settingsLazySmallTitle(
             key = "shortcuts_section",
-            title = shortcutsTitle,
-            sectionTop = true,
+            title = shortcutsTitle
         )
         groupedCardItems(
             keyPrefix = "extension_shortcuts",
@@ -151,33 +149,32 @@ fun ExtensionHubScreen(
                         ShellCommandEntryCard(
                             commandCount = settings.shellCommandCount,
                             outlinedLeadingIcons = true,
-                            onClick = onOpenShellCommands,
+                            onClick = onOpenShellCommands
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("activity-shortcut") {
                         ActivityShortcutEntryCard(
                             shortcutCount = settings.activityShortcutCount,
                             outlinedLeadingIcons = true,
-                            onClick = onOpenActivityShortcuts,
+                            onClick = onOpenActivityShortcuts
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("external-invocation") {
                         ExternalInvocationEntryCard(
-                            onClick = onOpenExternalInvocations,
+                            onClick = onOpenExternalInvocations
                         )
-                    },
+                    }
                 )
-            },
+            }
         )
 
         settingsLazySmallTitle(
             key = "tools_section",
-            title = toolsTitle,
-            sectionTop = true,
+            title = toolsTitle
         )
         groupedCardItems(
             keyPrefix = "extension_tools",
@@ -188,9 +185,9 @@ fun ExtensionHubScreen(
                             settings = settings,
                             enabled = gestureActive,
                             outlinedLeadingIcons = true,
-                            onClick = onOpenFloatingPointer,
+                            onClick = onOpenFloatingPointer
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("stash-clipboard") {
@@ -198,9 +195,9 @@ fun ExtensionHubScreen(
                             settings = settings,
                             stashEntryCount = stashEntryCount,
                             outlinedLeadingIcons = true,
-                            onClick = onOpenStashClipboard,
+                            onClick = onOpenStashClipboard
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("freezer") {
@@ -208,17 +205,16 @@ fun ExtensionHubScreen(
                             icon = { label -> Icon(Icons.Outlined.AcUnit, contentDescription = label) },
                             title = stringResource(R.string.extension_freezer_title),
                             subtitle = stringResource(R.string.extension_freezer_subtitle),
-                            onClick = onOpenFreezer,
+                            onClick = onOpenFreezer
                         )
-                    },
+                    }
                 )
-            },
+            }
         )
 
         settingsLazySmallTitle(
             key = "maintenance_section",
-            title = maintenanceTitle,
-            sectionTop = true,
+            title = maintenanceTitle
         )
         groupedCardItems(
             keyPrefix = "extension_maintenance",
@@ -227,30 +223,30 @@ fun ExtensionHubScreen(
                     settingsCardScopeItem("settings-backup") {
                         SettingsBackupEntryCard(
                             outlinedLeadingIcons = true,
-                            onClick = onOpenSettingsBackup,
+                            onClick = onOpenSettingsBackup
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("native-engine-packs") {
                         NativeEnginePacksEntryCard(
                             outlinedLeadingIcons = true,
-                            onClick = onOpenNativeEnginePacks,
+                            onClick = onOpenNativeEnginePacks
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("diagnostic-logs") {
                         DiagnosticLogsEntryCard(
                             outlinedLeadingIcons = true,
-                            onClick = onOpenDiagnosticLogs,
+                            onClick = onOpenDiagnosticLogs
                         )
-                    },
+                    }
                 )
-            },
+            }
         )
 
-        settingsLazySmallTitle(key = "about_section", title = aboutTitle, sectionTop = true)
+        settingsLazySmallTitle(key = "about_section", title = aboutTitle)
         groupedCardItems(
             keyPrefix = "extension_about",
             items = buildList {
@@ -258,11 +254,11 @@ fun ExtensionHubScreen(
                     settingsCardScopeItem("about") {
                         AboutEntryCard(
                             outlinedLeadingIcons = true,
-                            onClick = onOpenAbout,
+                            onClick = onOpenAbout
                         )
-                    },
+                    }
                 )
-            },
+            }
         )
     }
 }
@@ -270,39 +266,39 @@ fun ExtensionHubScreen(
 @Composable
 fun SettingsCardScope.NativeEnginePacksEntryCard(
     outlinedLeadingIcons: Boolean = false,
-    onClick: () -> Unit,
+    onClick: () -> Unit
 ) {
     SettingNavigationRow(
         icon = { label -> Icon(Icons.Outlined.Memory, contentDescription = label) },
         title = stringResource(R.string.extension_native_engine_packs_entry_title),
         subtitle = stringResource(R.string.extension_native_engine_packs_entry_desc),
-        onClick = onClick,
+        onClick = onClick
     )
 }
 
 @Composable
 fun SettingsCardScope.DiagnosticLogsEntryCard(
     outlinedLeadingIcons: Boolean = false,
-    onClick: () -> Unit,
+    onClick: () -> Unit
 ) {
     SettingNavigationRow(
         icon = { label -> Icon(Icons.Outlined.BugReport, contentDescription = label) },
         title = stringResource(R.string.diagnostic_report_entry_title),
         subtitle = stringResource(R.string.diagnostic_report_entry_subtitle),
-        onClick = onClick,
+        onClick = onClick
     )
 }
 
 @Composable
 fun SettingsCardScope.AboutEntryCard(
     outlinedLeadingIcons: Boolean = false,
-    onClick: () -> Unit,
+    onClick: () -> Unit
 ) {
     SettingNavigationRow(
         icon = { label -> Icon(HubLeadingIcons.about(outlinedLeadingIcons), contentDescription = label) },
         title = stringResource(R.string.about_section_title),
         subtitle = stringResource(R.string.extension_about_subtitle),
-        onClick = onClick,
+        onClick = onClick
     )
 }
 
@@ -312,7 +308,7 @@ fun SettingsCardScope.PrivacyPolicyEntryCard(onClick: () -> Unit) {
         icon = { label -> Icon(Icons.AutoMirrored.Outlined.Article, contentDescription = label) },
         title = stringResource(R.string.privacy_policy_entry_title),
         subtitle = stringResource(R.string.privacy_policy_entry_desc),
-        onClick = onClick,
+        onClick = onClick
     )
 }
 
@@ -322,7 +318,7 @@ fun SettingsCardScope.OpenSourceLicenseEntryCard(onClick: () -> Unit) {
         icon = { label -> Icon(Icons.Outlined.Gavel, contentDescription = label) },
         title = stringResource(R.string.about_open_source_license_title),
         subtitle = stringResource(R.string.about_open_source_license_desc),
-        onClick = onClick,
+        onClick = onClick
     )
 }
 
@@ -332,19 +328,19 @@ fun SettingsCardScope.ThirdPartyNoticesEntryCard(onClick: () -> Unit) {
         icon = { label -> Icon(Icons.Outlined.Favorite, contentDescription = label) },
         title = stringResource(R.string.about_third_party_notices_title),
         subtitle = stringResource(R.string.about_third_party_notices_subtitle),
-        onClick = onClick,
+        onClick = onClick
     )
 }
 
 @Composable
 fun SettingsCardScope.SettingsBackupEntryCard(
     outlinedLeadingIcons: Boolean = false,
-    onClick: () -> Unit,
+    onClick: () -> Unit
 ) {
     SettingNavigationRow(
         icon = { label -> Icon(HubLeadingIcons.settingsBackup(outlinedLeadingIcons), contentDescription = label) },
         title = stringResource(R.string.settings_backup_entry_title),
         subtitle = stringResource(R.string.settings_backup_entry_desc),
-        onClick = onClick,
+        onClick = onClick
     )
 }

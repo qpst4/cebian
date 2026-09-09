@@ -26,14 +26,14 @@ internal object FloatBallGifFrameDecoder {
 
     data class Frame(
         val bitmap: Bitmap,
-        val delayMs: Int,
+        val delayMs: Int
     )
 
     sealed class Sequence {
         abstract val frameCount: Int
 
         data class Cached(
-            val frames: List<Frame>,
+            val frames: List<Frame>
         ) : Sequence() {
             override val frameCount: Int get() = frames.size
         }
@@ -42,7 +42,7 @@ internal object FloatBallGifFrameDecoder {
             val movie: Movie,
             val durationMs: Int,
             val width: Int,
-            val height: Int,
+            val height: Int
         ) : Sequence() {
             override val frameCount: Int get() = 1
         }
@@ -100,7 +100,7 @@ internal object FloatBallGifFrameDecoder {
         durationMs: Int,
         outW: Int,
         outH: Int,
-        sampleStepMs: Int,
+        sampleStepMs: Int
     ): List<Frame> {
         val frames = ArrayList<Frame>()
         var lastPixels: IntArray? = null
@@ -122,8 +122,8 @@ internal object FloatBallGifFrameDecoder {
                     frames.add(
                         Frame(
                             bitmap = kept,
-                            delayMs = normalizeDelay(accumulatedDelayMs.coerceAtLeast(sampleStepMs)),
-                        ),
+                            delayMs = normalizeDelay(accumulatedDelayMs.coerceAtLeast(sampleStepMs))
+                        )
                     )
                 }
                 lastBitmap = bitmap
@@ -137,8 +137,8 @@ internal object FloatBallGifFrameDecoder {
             frames.add(
                 Frame(
                     bitmap = kept,
-                    delayMs = normalizeDelay(accumulatedDelayMs.coerceAtLeast(sampleStepMs)),
-                ),
+                    delayMs = normalizeDelay(accumulatedDelayMs.coerceAtLeast(sampleStepMs))
+                )
             )
         }
         if (frames.isEmpty()) {
@@ -161,7 +161,7 @@ internal object FloatBallGifFrameDecoder {
     fun renderStreamingFrame(
         streaming: Sequence.Streaming,
         elapsedMs: Int,
-        reuse: Bitmap?,
+        reuse: Bitmap?
     ): Bitmap {
         val bitmap = if (
             reuse != null &&

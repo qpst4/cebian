@@ -62,7 +62,7 @@ fun FloatingPointerPointerSettingsScreen(
     onTrailColorChange: (Int) -> Unit,
     onHideWhenReleasedChange: (Boolean) -> Unit,
     onPointerDesignChange: (FloatingPointerDesign) -> Unit,
-    onResetVisualDefaults: () -> Unit,
+    onResetVisualDefaults: () -> Unit
 ) {
     var colorTarget by remember { mutableStateOf<PointerColorTarget?>(null) }
     var pickerInitialColor by remember { mutableIntStateOf(0) }
@@ -83,7 +83,7 @@ fun FloatingPointerPointerSettingsScreen(
             resources.getString(
                 R.string.floating_pointer_size_px_dp_value,
                 px.roundToInt(),
-                px / density,
+                px / density
             )
         }
     }
@@ -93,7 +93,7 @@ fun FloatingPointerPointerSettingsScreen(
     LaunchedEffect(
         settings.floatingPointerPointerDiameterPx,
         settings.floatingPointerRingThicknessPx,
-        settings.floatingPointerDotDiameterPx,
+        settings.floatingPointerDotDiameterPx
     ) {
         if (!pointerSizeDragging) {
             previewPointerDiameterPx = settings.floatingPointerPointerDiameterPx
@@ -106,8 +106,8 @@ fun FloatingPointerPointerSettingsScreen(
         floatingPointer = settings.floatingPointer.copy(
             floatingPointerPointerDiameterPx = previewPointerDiameterPx,
             floatingPointerRingThicknessPx = previewRingThicknessPx,
-            floatingPointerDotDiameterPx = previewDotDiameterPx,
-        ),
+            floatingPointerDotDiameterPx = previewDotDiameterPx
+        )
     )
 
     @Composable
@@ -127,7 +127,7 @@ fun FloatingPointerPointerSettingsScreen(
                     null -> Unit
                 }
                 colorTarget = null
-            },
+            }
         )
     }
 
@@ -143,20 +143,20 @@ fun FloatingPointerPointerSettingsScreen(
 
     SettingsScreenScaffold(
         title = stringResource(R.string.floating_pointer_pointer_settings_title),
-        onBack = onBack,
+        onBack = onBack
     ) {
-        settingsLazySmallTitle(key = "fp-preview-section", title = previewSectionTitle, sectionTop = true)
+        settingsLazySmallTitle(key = "fp-preview-section", title = previewSectionTitle)
         item(key = "floating-pointer-preview") {
             Surface(
                 modifier = Modifier.padding(bottom = 4.dp),
                 shape = MaterialTheme.shapes.large,
-                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                color = MaterialTheme.colorScheme.surfaceContainerHigh
             ) {
                 FloatingPointerDesignPreview(settings = previewSettings)
             }
         }
 
-        settingsLazySmallTitle(key = "fp-design-section", title = designSectionTitle, sectionTop = true)
+        settingsLazySmallTitle(key = "fp-design-section", title = designSectionTitle)
         groupedCardItems(
             keyPrefix = "fp-pointer-design",
             items = buildList {
@@ -174,20 +174,20 @@ fun FloatingPointerPointerSettingsScreen(
                                             design = design,
                                             settings = settings,
                                             selected = design == selectedDesign,
-                                            modifier = iconModifier,
+                                            modifier = iconModifier
                                         )
-                                    },
+                                    }
                                 )
                             },
                             selectedIndex = selectedDesignIndex,
-                            onSelectedIndexChange = { index -> onPointerDesignChange(designEntries[index]) },
+                            onSelectedIndexChange = { index -> onPointerDesignChange(designEntries[index]) }
                         )
-                    },
+                    }
                 )
-            },
+            }
         )
 
-        settingsLazySmallTitle(key = "fp-pointer-section", title = pointerSectionTitle, sectionTop = true)
+        settingsLazySmallTitle(key = "fp-pointer-section", title = pointerSectionTitle)
         groupedCardItems(
             keyPrefix = "fp-pointer-size",
             items = buildList {
@@ -201,15 +201,15 @@ fun FloatingPointerPointerSettingsScreen(
                             enabled = true,
                             label = stringResource(
                                 R.string.floating_pointer_size_px_value,
-                                settings.floatingPointerPointerDiameterPx.roundToInt(),
+                                settings.floatingPointerPointerDiameterPx.roundToInt()
                             ),
                             triggersLayoutPreview = true,
                             onLayoutPreviewStart = { pointerSizeDragging = true },
                             onLayoutPreviewStop = { pointerSizeDragging = false },
                             onLayoutPreviewValueChange = { previewPointerDiameterPx = it },
-                            onValueChange = onPointerDiameterChange,
+                            onValueChange = onPointerDiameterChange
                         )
-                    },
+                    }
                 )
                 if (selectedDesign.isRing) {
                     add(
@@ -226,9 +226,9 @@ fun FloatingPointerPointerSettingsScreen(
                                 onLayoutPreviewStart = { pointerSizeDragging = true },
                                 onLayoutPreviewStop = { pointerSizeDragging = false },
                                 onLayoutPreviewValueChange = { previewRingThicknessPx = it },
-                                onValueChange = onRingThicknessChange,
+                                onValueChange = onRingThicknessChange
                             )
-                        },
+                        }
                     )
                     add(
                         settingsCardScopeItem("dot-diameter") {
@@ -244,9 +244,9 @@ fun FloatingPointerPointerSettingsScreen(
                                 onLayoutPreviewStart = { pointerSizeDragging = true },
                                 onLayoutPreviewStop = { pointerSizeDragging = false },
                                 onLayoutPreviewValueChange = { previewDotDiameterPx = it },
-                                onValueChange = onDotDiameterChange,
+                                onValueChange = onDotDiameterChange
                             )
-                        },
+                        }
                     )
                     add(
                         settingsCardScopeItem("ring-color") {
@@ -257,9 +257,9 @@ fun FloatingPointerPointerSettingsScreen(
                                 onClick = {
                                     pickerInitialColor = settings.floatingPointerRingColorArgb
                                     colorTarget = PointerColorTarget.Ring
-                                },
+                                }
                             )
-                        },
+                        }
                     )
                     add(
                         settingsCardScopeItem("fill-color") {
@@ -271,9 +271,9 @@ fun FloatingPointerPointerSettingsScreen(
                                 onClick = {
                                     pickerInitialColor = settings.floatingPointerFillColorArgb
                                     colorTarget = PointerColorTarget.Fill
-                                },
+                                }
                             )
-                        },
+                        }
                     )
                     add(
                         settingsCardScopeItem("dot-color") {
@@ -284,15 +284,15 @@ fun FloatingPointerPointerSettingsScreen(
                                 onClick = {
                                     pickerInitialColor = settings.floatingPointerDotColorArgb
                                     colorTarget = PointerColorTarget.Dot
-                                },
+                                }
                             )
-                        },
+                        }
                     )
                 }
-            },
+            }
         )
 
-        settingsLazySmallTitle(key = "fp-visual-feedback-section", title = visualFeedbackSectionTitle, sectionTop = true)
+        settingsLazySmallTitle(key = "fp-visual-feedback-section", title = visualFeedbackSectionTitle)
         groupedCardItems(
             keyPrefix = "fp-visual-feedback",
             items = buildList {
@@ -303,9 +303,9 @@ fun FloatingPointerPointerSettingsScreen(
                             subtitle = stringResource(R.string.floating_pointer_click_haptic_desc),
                             checked = settings.floatingPointerClickHapticEnabled,
                             enabled = true,
-                            onCheckedChange = onClickHapticChange,
+                            onCheckedChange = onClickHapticChange
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("click-visual-feedback") {
@@ -314,7 +314,7 @@ fun FloatingPointerPointerSettingsScreen(
                             subtitle = stringResource(R.string.floating_pointer_click_visual_feedback_desc),
                             checked = settings.floatingPointerClickVisualFeedbackEnabled,
                             enabled = true,
-                            onCheckedChange = onClickVisualFeedbackChange,
+                            onCheckedChange = onClickVisualFeedbackChange
                         ) {
                             SettingsSliderRow(
                                 title = stringResource(R.string.floating_pointer_ripple_size),
@@ -324,9 +324,9 @@ fun FloatingPointerPointerSettingsScreen(
                                 enabled = true,
                                 label = stringResource(
                                     R.string.floating_pointer_ripple_size_value,
-                                    settings.floatingPointerRippleSizeDp,
+                                    settings.floatingPointerRippleSizeDp
                                 ),
-                                onValueChange = onRippleSizeChange,
+                                onValueChange = onRippleSizeChange
                             )
                             SettingsSliderRow(
                                 title = stringResource(R.string.floating_pointer_ripple_duration),
@@ -336,9 +336,9 @@ fun FloatingPointerPointerSettingsScreen(
                                 enabled = true,
                                 label = stringResource(
                                     R.string.floating_pointer_ripple_duration_value,
-                                    settings.floatingPointerRippleDurationMs,
+                                    settings.floatingPointerRippleDurationMs
                                 ),
-                                onValueChange = { onRippleDurationChange(it.roundToInt()) },
+                                onValueChange = { onRippleDurationChange(it.roundToInt()) }
                             )
                             AnimationStyleColorRow(
                                 title = stringResource(R.string.floating_pointer_ripple_color),
@@ -348,15 +348,15 @@ fun FloatingPointerPointerSettingsScreen(
                                 onClick = {
                                     pickerInitialColor = settings.floatingPointerRippleColorArgb
                                     colorTarget = PointerColorTarget.Ripple
-                                },
+                                }
                             )
                         }
-                    },
+                    }
                 )
-            },
+            }
         )
 
-        settingsLazySmallTitle(key = "fp-trail-section", title = trailSectionTitle, sectionTop = true)
+        settingsLazySmallTitle(key = "fp-trail-section", title = trailSectionTitle)
         groupedCardItems(
             keyPrefix = "fp-trail-type",
             selectableGroup = true,
@@ -366,29 +366,29 @@ fun FloatingPointerPointerSettingsScreen(
                         SettingRadioRow(
                             title = stringResource(R.string.floating_pointer_trail_off),
                             selected = trailType == FloatingPointerTrailType.OFF,
-                            onClick = { onTrailTypeChange(FloatingPointerTrailType.OFF) },
+                            onClick = { onTrailTypeChange(FloatingPointerTrailType.OFF) }
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("trail-simple") {
                         SettingRadioRow(
                             title = stringResource(R.string.floating_pointer_trail_simple),
                             selected = trailType == FloatingPointerTrailType.SIMPLE,
-                            onClick = { onTrailTypeChange(FloatingPointerTrailType.SIMPLE) },
+                            onClick = { onTrailTypeChange(FloatingPointerTrailType.SIMPLE) }
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("trail-high-detail") {
                         SettingRadioRow(
                             title = stringResource(R.string.floating_pointer_trail_high_detail),
                             selected = trailType == FloatingPointerTrailType.HIGH_DETAIL,
-                            onClick = { onTrailTypeChange(FloatingPointerTrailType.HIGH_DETAIL) },
+                            onClick = { onTrailTypeChange(FloatingPointerTrailType.HIGH_DETAIL) }
                         )
-                    },
+                    }
                 )
-            },
+            }
         )
         if (trailType != FloatingPointerTrailType.OFF) {
             groupedCardItems(
@@ -404,11 +404,11 @@ fun FloatingPointerPointerSettingsScreen(
                                 enabled = true,
                                 label = stringResource(
                                     R.string.floating_pointer_trail_duration_value,
-                                    settings.floatingPointerTrailDurationMs,
+                                    settings.floatingPointerTrailDurationMs
                                 ),
-                                onValueChange = { onTrailDurationChange(it.roundToInt()) },
+                                onValueChange = { onTrailDurationChange(it.roundToInt()) }
                             )
-                        },
+                        }
                     )
                     add(
                         settingsCardScopeItem("trail-color") {
@@ -419,15 +419,15 @@ fun FloatingPointerPointerSettingsScreen(
                                 onClick = {
                                     pickerInitialColor = settings.floatingPointerTrailColorArgb
                                     colorTarget = PointerColorTarget.Trail
-                                },
+                                }
                             )
-                        },
+                        }
                     )
-                },
+                }
             )
         }
 
-        settingsLazySmallTitle(key = "fp-other-section", title = otherSectionTitle, sectionTop = true)
+        settingsLazySmallTitle(key = "fp-other-section", title = otherSectionTitle)
         groupedCardItems(
             keyPrefix = "fp-pointer-other",
             items = buildList {
@@ -438,11 +438,11 @@ fun FloatingPointerPointerSettingsScreen(
                             subtitle = stringResource(R.string.floating_pointer_hide_on_release_desc),
                             checked = settings.floatingPointerHideWhenJoystickReleased,
                             enabled = true,
-                            onCheckedChange = onHideWhenReleasedChange,
+                            onCheckedChange = onHideWhenReleasedChange
                         )
-                    },
+                    }
                 )
-            },
+            }
         )
         groupedCardItems(
             keyPrefix = "fp-pointer-reset",
@@ -451,11 +451,11 @@ fun FloatingPointerPointerSettingsScreen(
                     settingsCardScopeItem("reset-visual") {
                         SettingLinkRow(
                             title = stringResource(R.string.floating_pointer_reset_visual),
-                            onClick = onResetVisualDefaults,
+                            onClick = onResetVisualDefaults
                         )
-                    },
+                    }
                 )
-            },
+            }
         )
     }
 }

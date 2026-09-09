@@ -43,7 +43,7 @@ object HoneycombAppPickerOverlayWindow {
         anchorRawY: Float,
         externalTracking: Boolean,
         forceBrowseMode: Boolean = false,
-        onLaunch: (QuickLauncherItem, Boolean) -> Unit,
+        onLaunch: (QuickLauncherItem, Boolean) -> Unit
     ): Boolean {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             var result = false
@@ -56,7 +56,7 @@ object HoneycombAppPickerOverlayWindow {
                     anchorRawY,
                     externalTracking,
                     forceBrowseMode,
-                    onLaunch,
+                    onLaunch
                 )
                 latch.countDown()
             }
@@ -89,7 +89,7 @@ object HoneycombAppPickerOverlayWindow {
             appsByPackage,
             appRepository,
             settings.activityShortcuts,
-            settings.shellCommands,
+            settings.shellCommands
         )
         if (targets.isEmpty()) {
             Log.w(TAG, "show: no resolvable honeycomb targets")
@@ -137,7 +137,7 @@ object HoneycombAppPickerOverlayWindow {
                 override fun onLaunch(target: HoneycombRuntimeTarget, selectionPressDurationMs: Long) {
                     val longPressArmed = resolveLaunchLongPressArmed(
                         settings = settings,
-                        selectionPressDurationMs = selectionPressDurationMs,
+                        selectionPressDurationMs = selectionPressDurationMs
                     )
                     screenOffDismissReceiver.unregister()
                     releaseOverlayState()
@@ -148,7 +148,7 @@ object HoneycombAppPickerOverlayWindow {
                     screenOffDismissReceiver.unregister()
                     releaseOverlayState()
                 }
-            },
+            }
         )
         if (!shown) return false
 
@@ -169,7 +169,7 @@ object HoneycombAppPickerOverlayWindow {
                     if (controller === overlayController && overlayController.isVisible) {
                         overlayController.refreshIcons()
                     }
-                },
+                }
             )
         }
         return true
@@ -187,7 +187,7 @@ object HoneycombAppPickerOverlayWindow {
         rawX: Float,
         rawY: Float,
         actionExecutor: ActionExecutor,
-        settings: AppSettings,
+        settings: AppSettings
     ) {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             mainHandler.post { confirmSelection(rawX, rawY, actionExecutor, settings) }
@@ -235,6 +235,6 @@ object HoneycombAppPickerOverlayWindow {
 
     private fun resolveLaunchLongPressArmed(
         settings: AppSettings,
-        selectionPressDurationMs: Long,
+        selectionPressDurationMs: Long
     ): Boolean = settings.resolveHoneycombLongPressArmed(selectionPressDurationMs.coerceAtLeast(0L))
 }

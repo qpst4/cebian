@@ -77,7 +77,7 @@ object MessageReplyOverlayWindow {
         context: Context,
         data: NotificationData,
         onSent: () -> Unit,
-        onCancelled: () -> Unit,
+        onCancelled: () -> Unit
     ) {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             mainHandler.post { show(context, data, onSent, onCancelled) }
@@ -122,11 +122,11 @@ object MessageReplyOverlayWindow {
                         android.widget.Toast.makeText(
                             hostContext,
                             hostContext.getString(R.string.message_action_quick_reply_failed),
-                            android.widget.Toast.LENGTH_SHORT,
+                            android.widget.Toast.LENGTH_SHORT
                         ).show()
                     }
                 },
-                onCancel = completeCancel,
+                onCancel = completeCancel
             )
         }
 
@@ -136,7 +136,7 @@ object MessageReplyOverlayWindow {
             OverlayWindowTypes.overlayWindowType(hostContext),
             WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
                 WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
-            PixelFormat.TRANSLUCENT,
+            PixelFormat.TRANSLUCENT
         ).apply {
             @Suppress("DEPRECATION")
             softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
@@ -191,7 +191,7 @@ object MessageReplyOverlayWindow {
 private fun MessageReplyContent(
     data: NotificationData,
     onSend: (String) -> Unit,
-    onCancel: () -> Unit,
+    onCancel: () -> Unit
 ) {
     val context = LocalContext.current
     val view = LocalView.current
@@ -215,8 +215,8 @@ private fun MessageReplyContent(
                     .clickable(
                         indication = null,
                         interactionSource = scrimInteractionSource,
-                        onClick = onCancel,
-                    ),
+                        onClick = onCancel
+                    )
             )
             Column(
                 modifier = Modifier
@@ -225,15 +225,15 @@ private fun MessageReplyContent(
                     .imePadding()
                     .background(
                         MaterialTheme.colorScheme.surface,
-                        RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+                        RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
                     )
                     .padding(horizontal = 16.dp, vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
                     text = stringResource(R.string.message_action_quick_reply_to, data.title.ifBlank { data.packageName }),
                     style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 if (data.content.isNotBlank()) {
                     QuickReplyMessagePreview(content = data.content)
@@ -246,18 +246,18 @@ private fun MessageReplyContent(
                         .focusRequester(focusRequester),
                     placeholder = { Text(stringResource(R.string.message_action_quick_reply_hint)) },
                     singleLine = false,
-                    maxLines = 4,
+                    maxLines = 4
                 )
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
+                    horizontalArrangement = Arrangement.End
                 ) {
                     TextButton(onClick = onCancel) {
                         Text(stringResource(R.string.cancel))
                     }
                     Button(
                         onClick = { onSend(text.text) },
-                        enabled = text.text.isNotBlank(),
+                        enabled = text.text.isNotBlank()
                     ) {
                         Text(stringResource(R.string.message_action_quick_reply_send))
                     }
@@ -275,13 +275,13 @@ private fun QuickReplyMessagePreview(content: String) {
             .height(IntrinsicSize.Min)
             .clip(RoundedCornerShape(8.dp))
             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f)),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = Modifier
                 .width(3.dp)
                 .fillMaxHeight()
-                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.75f)),
+                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.75f))
         )
         Text(
             text = content,
@@ -291,7 +291,7 @@ private fun QuickReplyMessagePreview(content: String) {
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 3,
-            overflow = TextOverflow.Ellipsis,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }

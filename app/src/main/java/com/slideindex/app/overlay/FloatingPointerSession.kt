@@ -15,7 +15,7 @@ internal class FloatingPointerSession(
     val density: Float,
     val screenWidth: Float,
     val screenHeight: Float,
-    private val settingsSource: () -> AppSettings,
+    private val settingsSource: () -> AppSettings
 ) {
     val tapSlopPx: Float
         get() = clickDistanceThresholdPx()
@@ -53,7 +53,7 @@ internal class FloatingPointerSession(
     fun isFingerInsideTouchCapture(
         fingerX: Float,
         fingerY: Float,
-        settings: AppSettings = settingsSource(),
+        settings: AppSettings = settingsSource()
     ): Boolean {
         val radius = touchCaptureRadiusPx(settings)
         val dx = fingerX - joystickCenterX.floatValue
@@ -156,10 +156,10 @@ internal class FloatingPointerSession(
     fun beginGestureReplayPrepare(
         replayDurationMs: Long,
         replayStartDelayMs: Long,
-        nowMs: Long = System.currentTimeMillis(),
+        nowMs: Long = System.currentTimeMillis()
     ) {
         gestureRecorderTrailDrawPoints = CopyOnWriteArrayList(
-            gestureRecorderTrailPoints.map { it.copy() },
+            gestureRecorderTrailPoints.map { it.copy() }
         )
         gestureRecorderTrailDrawPoints.lastOrNull()?.let { last ->
             gesturePointerRestoreX = last.x.toFloat()
@@ -195,7 +195,7 @@ internal class FloatingPointerSession(
         if (!gestureTrailRetreatActive.value) return emptyList()
         return gestureRecorderTrailSuffixPoints(
             points = gestureRecorderTrailDrawPoints,
-            consumedDurationMs = gestureRecorderConsumedDurationMs(nowMs),
+            consumedDurationMs = gestureRecorderConsumedDurationMs(nowMs)
         )
     }
 
@@ -336,7 +336,7 @@ internal class FloatingPointerSession(
             fingerX = fingerX,
             fingerY = fingerY,
             innerRadius = inner,
-            outerRadius = outer,
+            outerRadius = outer
         ) ?: -1
         radialHighlightedSlot.intValue = newSlot
         return newSlot >= 0 && newSlot != previous
@@ -383,7 +383,7 @@ internal class FloatingPointerSession(
         pointerX: Float,
         pointerY: Float,
         onReplayPrepare: (replayDurationMs: Long) -> Unit,
-        onFinished: () -> Unit,
+        onFinished: () -> Unit
     ) {
         clearPendingGestureCapture()
         gestureTrailRetreatActive.value = false
@@ -405,14 +405,14 @@ internal class FloatingPointerSession(
             onReplayPrepare = { replayDurationMs ->
                 beginGestureReplayPrepare(
                     replayDurationMs = replayDurationMs,
-                    replayStartDelayMs = FloatingPointerGestureRecorder.REPLAY_START_DELAY_MS,
+                    replayStartDelayMs = FloatingPointerGestureRecorder.REPLAY_START_DELAY_MS
                 )
                 onReplayPrepare(replayDurationMs)
             },
             onFinished = {
                 releaseGestureRecorder()
                 onFinished()
-            },
+            }
         )
     }
 
@@ -439,7 +439,7 @@ internal class FloatingPointerSession(
         pointerX: Float,
         pointerY: Float,
         onError: () -> Unit,
-        onFinished: () -> Unit,
+        onFinished: () -> Unit
     ) {
         clearPendingGestureCapture()
         realtimeGesture = FloatingPointerRealtimeGesture(
@@ -453,7 +453,7 @@ internal class FloatingPointerSession(
             onFinished = {
                 releaseRealtimeGesture()
                 onFinished()
-            },
+            }
         )
     }
 
@@ -524,7 +524,7 @@ internal class FloatingPointerSession(
             rawY = rawY,
             screenWidth = screenWidth,
             screenHeight = screenHeight,
-            edgeThresholdPx = edgeThresholdPx,
+            edgeThresholdPx = edgeThresholdPx
         )
         pointerX.floatValue = start.x
         pointerY.floatValue = start.y
@@ -565,7 +565,7 @@ internal class FloatingPointerSession(
         val (travelWidth, travelHeight) = FloatingPointerBounds.effectivePointerTravel(
             settings = settings,
             screenWidth = screenWidth,
-            screenHeight = screenHeight,
+            screenHeight = screenHeight
         )
         pointerTravelWidth = travelWidth
         pointerTravelHeight = travelHeight
@@ -580,7 +580,7 @@ internal class FloatingPointerSession(
         val (travelWidth, travelHeight) = FloatingPointerBounds.effectivePointerTravel(
             settings = settings,
             screenWidth = screenWidth,
-            screenHeight = screenHeight,
+            screenHeight = screenHeight
         )
         return FloatingPointerBounds.clampJoystickCenter(
             rawX = rawX,
@@ -590,7 +590,7 @@ internal class FloatingPointerSession(
             travelHeight = travelHeight,
             screenWidth = screenWidth,
             screenHeight = screenHeight,
-            density = density,
+            density = density
         )
     }
 
@@ -598,7 +598,7 @@ internal class FloatingPointerSession(
         val next = FloatingPointerBounds.clamp(
             position = Offset(pointerX.floatValue, pointerY.floatValue),
             screenWidth = screenWidth,
-            screenHeight = screenHeight,
+            screenHeight = screenHeight
         )
         pointerX.floatValue = next.x
         pointerY.floatValue = next.y
@@ -645,7 +645,7 @@ internal class FloatingPointerSession(
         val hitRadius = settingsSource().floatingPointerPointerDiameterPx / 2f + tapSlopPx
         return kotlin.math.hypot(
             (rawX - pointerX.floatValue).toDouble(),
-            (rawY - pointerY.floatValue).toDouble(),
+            (rawY - pointerY.floatValue).toDouble()
         ) <= hitRadius
     }
 
@@ -653,7 +653,7 @@ internal class FloatingPointerSession(
         if (gestureRecordingActive.value) return
         val settings = settingsSource()
         var trailType = com.slideindex.app.settings.FloatingPointerTrailType.fromId(
-            settings.floatingPointerTrailTypeId,
+            settings.floatingPointerTrailTypeId
         )
         if (gestureRecordingActive.value && trailType == com.slideindex.app.settings.FloatingPointerTrailType.OFF) {
             trailType = com.slideindex.app.settings.FloatingPointerTrailType.SIMPLE
@@ -664,7 +664,7 @@ internal class FloatingPointerSession(
             y = y,
             nowMs = System.currentTimeMillis(),
             type = trailType,
-            density = density,
+            density = density
         )
         // Expiration is handled by pruneExpiredTrailPoints in the display frame loop so that
         // temporary lifespan overrides (e.g. during gesture recording) are respected.
@@ -677,13 +677,13 @@ internal class FloatingPointerSession(
         val normDeltaY = if (pointerTravelHeight > 0f) (rawY - dragFingerAnchorY) / pointerTravelHeight else 0f
         val unclamped = Offset(
             x = dragPointerAnchorX + normDeltaX * screenWidth,
-            y = dragPointerAnchorY + normDeltaY * screenHeight,
+            y = dragPointerAnchorY + normDeltaY * screenHeight
         )
         rawPointerX.floatValue = unclamped.x
         rawPointerY.floatValue = unclamped.y
         val next = Offset(
             x = unclamped.x.coerceIn(0f, screenWidth),
-            y = unclamped.y.coerceIn(0f, screenHeight),
+            y = unclamped.y.coerceIn(0f, screenHeight)
         )
         pointerX.floatValue = next.x
         pointerY.floatValue = next.y
@@ -710,8 +710,8 @@ internal class FloatingPointerSession(
                     settings = settings,
                     screenWidth = screenWidth,
                     screenHeight = screenHeight,
-                    density = density,
-                ),
+                    density = density
+                )
             )
         }
         val previewRadius = FloatingPointerEdgeActionsEngine.previewRadiusPx(settings, density)
@@ -719,14 +719,14 @@ internal class FloatingPointerSession(
             segments = edgeActionSegments,
             rawX = rawPointerX.floatValue,
             rawY = rawPointerY.floatValue,
-            previewRadiusPx = previewRadius,
+            previewRadiusPx = previewRadius
         )
         edgePreviewVisible.value = FloatingPointerEdgeActionsEngine.shouldShowPreview(
             settings = settings,
             segments = edgeActionSegments,
             gestureCaptureActive = gestureCaptureActive,
             gestureReplayActive = gestureReplayActive.value,
-            armedAction = null,
+            armedAction = null
         )
         val triggered = FloatingPointerEdgeActionsEngine.resolveTriggeredAction(
             settings = settings,
@@ -736,7 +736,7 @@ internal class FloatingPointerSession(
             clampedY = pointerY.floatValue,
             rawX = rawPointerX.floatValue,
             rawY = rawPointerY.floatValue,
-            density = density,
+            density = density
         )
         if (triggered != null) {
             if (!edgeOverscrollActive) {
@@ -765,7 +765,7 @@ internal class FloatingPointerSession(
 
         private fun gestureRecorderTrailSuffixPoints(
             points: List<GestureRecorderTrailPoint>,
-            consumedDurationMs: Long,
+            consumedDurationMs: Long
         ): List<GestureRecorderTrailPoint> {
             if (points.size < 2) return emptyList()
             val totalDuration = points.drop(1).sumOf { it.durationMs.coerceAtLeast(0L) }.coerceAtLeast(1L)
@@ -783,7 +783,7 @@ internal class FloatingPointerSession(
                     val head = GestureRecorderTrailPoint(
                         x = (from.x + (to.x - from.x) * fraction).toInt(),
                         y = (from.y + (to.y - from.y) * fraction).toInt(),
-                        durationMs = 0L,
+                        durationMs = 0L
                     )
                     return listOf(head) + points.subList(index + 1, points.size)
                 }

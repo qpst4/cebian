@@ -155,7 +155,7 @@ fun ClipboardFloatRoot(
     onEntryLongClick: (ClipboardEntry) -> Unit,
     onEntryDragStart: () -> Unit,
     onEntryDragEnd: () -> Unit,
-    onUserInteraction: () -> Unit = {},
+    onUserInteraction: () -> Unit = {}
 ) {
     OverlayAwareModuleTheme {
         Box(
@@ -170,14 +170,14 @@ fun ClipboardFloatRoot(
                             }
                         }
                     }
-                },
+                }
         ) {
             when (mode) {
                 ClipboardFloatDisplayMode.Chip -> ClipboardFloatChip(
                     onClick = onOpenExpanded,
                     onDragWindow = onDragWindow,
                     onDragWindowStart = onDragWindowStart,
-                    onDragWindowEnd = onDragWindowEnd,
+                    onDragWindowEnd = onDragWindowEnd
                 )
                 ClipboardFloatDisplayMode.Expanded -> ClipboardFloatExpandedChrome(
                     pinned = pinned,
@@ -199,7 +199,7 @@ fun ClipboardFloatRoot(
                     onEntryClick = onEntryClick,
                     onEntryLongClick = onEntryLongClick,
                     onEntryDragStart = onEntryDragStart,
-                    onEntryDragEnd = onEntryDragEnd,
+                    onEntryDragEnd = onEntryDragEnd
                 )
             }
         }
@@ -210,7 +210,7 @@ fun ClipboardFloatRoot(
 private fun Modifier.clipboardFloatDragHandle(
     onDragStart: () -> Unit,
     onDrag: (Float, Float) -> Unit,
-    onDragEnd: () -> Unit,
+    onDragEnd: () -> Unit
 ): Modifier {
     return this.pointerInput(Unit) {
         detectDragGestures(
@@ -220,7 +220,7 @@ private fun Modifier.clipboardFloatDragHandle(
             onDrag = { change, dragAmount ->
                 change.consume()
                 onDrag(dragAmount.x, dragAmount.y)
-            },
+            }
         )
     }
 }
@@ -230,13 +230,13 @@ private fun ClipboardFloatChip(
     onClick: () -> Unit,
     onDragWindow: (Float, Float) -> Unit,
     onDragWindowStart: () -> Unit,
-    onDragWindowEnd: () -> Unit,
+    onDragWindowEnd: () -> Unit
 ) {
     val scheme = MiuixTheme.colorScheme
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(ClipboardFloatWindowMetrics.CHIP_SHADOW_INSET_DP.dp),
+            .padding(ClipboardFloatWindowMetrics.CHIP_SHADOW_INSET_DP.dp)
     ) {
         Box(
             modifier = Modifier
@@ -244,7 +244,7 @@ private fun ClipboardFloatChip(
                 .shadow(
                     ClipboardFloatWindowMetrics.CHIP_SHADOW_ELEVATION_DP.dp,
                     ClipboardFloatChipShape,
-                    clip = false,
+                    clip = false
                 )
                 .clip(ClipboardFloatChipShape)
                 .background(scheme.surfaceContainer)
@@ -253,15 +253,15 @@ private fun ClipboardFloatChip(
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
-                    onClick = onClick,
+                    onClick = onClick
                 ),
-            contentAlignment = Alignment.Center,
+            contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = Icons.Default.ContentPaste,
                 contentDescription = stringResource(R.string.clipboard_float_open),
                 tint = scheme.primary,
-                modifier = Modifier.size(20.dp),
+                modifier = Modifier.size(20.dp)
             )
         }
     }
@@ -288,7 +288,7 @@ private fun ClipboardFloatExpandedChrome(
     onEntryClick: (ClipboardEntry) -> Unit,
     onEntryLongClick: (ClipboardEntry) -> Unit,
     onEntryDragStart: () -> Unit,
-    onEntryDragEnd: () -> Unit,
+    onEntryDragEnd: () -> Unit
 ) {
     val scheme = MiuixTheme.colorScheme
     val searchQuery by listController.searchQuery.collectAsState()
@@ -306,7 +306,7 @@ private fun ClipboardFloatExpandedChrome(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(ClipboardFloatWindowMetrics.PANEL_SHADOW_INSET_DP.dp),
+            .padding(ClipboardFloatWindowMetrics.PANEL_SHADOW_INSET_DP.dp)
     ) {
         Box(
             modifier = Modifier
@@ -314,11 +314,11 @@ private fun ClipboardFloatExpandedChrome(
                 .shadow(
                     ClipboardFloatWindowMetrics.PANEL_SHADOW_ELEVATION_DP.dp,
                     ClipboardFloatPanelShape,
-                    clip = false,
+                    clip = false
                 )
                 .clip(ClipboardFloatPanelShape)
                 .background(HistoryPanelColors.panelChrome())
-                .border(0.5.dp, scheme.onSurface.copy(alpha = 0.10f), ClipboardFloatPanelShape),
+                .border(0.5.dp, scheme.onSurface.copy(alpha = 0.10f), ClipboardFloatPanelShape)
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
             Row(
@@ -327,31 +327,31 @@ private fun ClipboardFloatExpandedChrome(
                     .height(40.dp)
                     .padding(horizontal = 4.dp)
                     .clipboardFloatDragHandle(onDragWindowStart, onDragWindow, onDragWindowEnd),
-                verticalAlignment = Alignment.CenterVertically,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = onTogglePin, modifier = Modifier.size(32.dp)) {
                     Icon(
                         imageVector = if (pinned) Icons.Default.PushPin else Icons.Outlined.PushPin,
                         contentDescription = stringResource(R.string.clipboard_float_keep_visible),
-                        modifier = Modifier.size(18.dp),
+                        modifier = Modifier.size(18.dp)
                     )
                 }
                 IconButton(
                     onClick = { showAlphaSlider = !showAlphaSlider },
-                    modifier = Modifier.size(32.dp),
+                    modifier = Modifier.size(32.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Tune,
                         contentDescription = stringResource(R.string.clipboard_float_opacity_title),
                         tint = if (showAlphaSlider || panelAlpha < 0.99f) scheme.primary else scheme.onSurface,
-                        modifier = Modifier.size(18.dp),
+                        modifier = Modifier.size(18.dp)
                     )
                 }
                 IconButton(onClick = onOpenStashPanel, modifier = Modifier.size(32.dp)) {
                     Icon(
                         imageVector = Icons.Default.Home,
                         contentDescription = stringResource(R.string.clipboard_float_open_stash_panel),
-                        modifier = Modifier.size(18.dp),
+                        modifier = Modifier.size(18.dp)
                     )
                 }
                 Text(
@@ -361,7 +361,7 @@ private fun ClipboardFloatExpandedChrome(
                         .fillMaxWidth(),
                     style = MiuixTheme.textStyles.subtitle,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                    overflow = TextOverflow.Ellipsis
                 )
                 IconButton(
                     onClick = {
@@ -375,12 +375,12 @@ private fun ClipboardFloatExpandedChrome(
                             searchExpanded = true
                         }
                     },
-                    modifier = Modifier.size(32.dp),
+                    modifier = Modifier.size(32.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Search,
                         contentDescription = stringResource(R.string.clipboard_search_hint),
-                        modifier = Modifier.size(18.dp),
+                        modifier = Modifier.size(18.dp)
                     )
                 }
                 IconButton(onClick = onToggleListStyle, modifier = Modifier.size(32.dp)) {
@@ -391,28 +391,28 @@ private fun ClipboardFloatExpandedChrome(
                             Icons.Default.ViewHeadline
                         },
                         contentDescription = stringResource(R.string.clipboard_float_style_toggle),
-                        modifier = Modifier.size(18.dp),
+                        modifier = Modifier.size(18.dp)
                     )
                 }
                 IconButton(onClick = onCollapse, modifier = Modifier.size(32.dp)) {
                     Icon(
                         imageVector = Icons.Default.Remove,
                         contentDescription = stringResource(R.string.clipboard_float_collapse),
-                        modifier = Modifier.size(18.dp),
+                        modifier = Modifier.size(18.dp)
                     )
                 }
                 IconButton(onClick = onClose, modifier = Modifier.size(32.dp)) {
                     Icon(
                         imageVector = Icons.Default.Close,
                         contentDescription = stringResource(R.string.clipboard_float_close),
-                        modifier = Modifier.size(18.dp),
+                        modifier = Modifier.size(18.dp)
                     )
                 }
             }
             AnimatedVisibility(
                 visible = showAlphaSlider,
                 enter = expandVertically() + fadeIn(),
-                exit = shrinkVertically() + fadeOut(),
+                exit = shrinkVertically() + fadeOut()
             ) {
                 Row(
                     modifier = Modifier
@@ -420,13 +420,13 @@ private fun ClipboardFloatExpandedChrome(
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                         .background(scheme.surfaceContainerHigh.copy(alpha = 0.9f), RoundedCornerShape(8.dp))
                         .padding(horizontal = 8.dp, vertical = 2.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = "${(panelAlpha * 100).roundToInt()}%",
                         fontSize = 12.sp,
                         color = scheme.onSurfaceSecondary,
-                        modifier = Modifier.padding(end = 4.dp),
+                        modifier = Modifier.padding(end = 4.dp)
                     )
                     Slider(
                         value = panelAlpha,
@@ -437,8 +437,8 @@ private fun ClipboardFloatExpandedChrome(
                             .height(28.dp),
                         colors = SliderDefaults.colors(
                             thumbColor = scheme.primary,
-                            activeTrackColor = scheme.primary,
-                        ),
+                            activeTrackColor = scheme.primary
+                        )
                     )
                 }
             }
@@ -448,13 +448,13 @@ private fun ClipboardFloatExpandedChrome(
                 onQueryChange = listController::setSearchQuery,
                 focusRequester = searchFocusRequester,
                 hintResId = R.string.clipboard_search_hint,
-                modifier = Modifier.padding(horizontal = 8.dp),
+                modifier = Modifier.padding(horizontal = 8.dp)
             )
             Box(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
-                    .background(HistoryPanelColors.listBackground()),
+                    .background(HistoryPanelColors.listBackground())
             ) {
                 ClipboardFloatContentSection(
                     listController = listController,
@@ -463,14 +463,14 @@ private fun ClipboardFloatExpandedChrome(
                     onEntryClick = onEntryClick,
                     onEntryLongClick = onEntryLongClick,
                     onEntryDragStart = onEntryDragStart,
-                    onEntryDragEnd = onEntryDragEnd,
+                    onEntryDragEnd = onEntryDragEnd
                 )
             }
             }
             ClipboardFloatResizeCornerHandle(
                 cornerRadius = ClipboardFloatPanelCornerRadius,
                 color = scheme.primary,
-                onResizeWindow = onResizeWindow,
+                onResizeWindow = onResizeWindow
             )
         }
     }
@@ -480,7 +480,7 @@ private fun ClipboardFloatExpandedChrome(
 private fun BoxScope.ClipboardFloatResizeCornerHandle(
     cornerRadius: Dp,
     color: Color,
-    onResizeWindow: (Float, Float) -> Unit,
+    onResizeWindow: (Float, Float) -> Unit
 ) {
     val touchSize = (cornerRadius.value + 12f).coerceAtLeast(28f).dp
     Box(
@@ -493,7 +493,7 @@ private fun BoxScope.ClipboardFloatResizeCornerHandle(
                     onResizeWindow(dragAmount.x, dragAmount.y)
                 }
             },
-        contentAlignment = Alignment.BottomEnd,
+        contentAlignment = Alignment.BottomEnd
     ) {
         Canvas(modifier = Modifier.size(cornerRadius)) {
             val radius = size.minDimension
@@ -506,7 +506,7 @@ private fun BoxScope.ClipboardFloatResizeCornerHandle(
                 useCenter = false,
                 topLeft = Offset(-radius + inset, -radius + inset),
                 size = Size((radius - inset) * 2f, (radius - inset) * 2f),
-                style = Stroke(width = strokeWidth, cap = StrokeCap.Round),
+                style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
             )
         }
     }
@@ -520,7 +520,7 @@ private fun ClipboardFloatContentSection(
     onEntryClick: (ClipboardEntry) -> Unit,
     onEntryLongClick: (ClipboardEntry) -> Unit,
     onEntryDragStart: () -> Unit,
-    onEntryDragEnd: () -> Unit,
+    onEntryDragEnd: () -> Unit
 ) {
     val entries by listController.filteredEntries.collectAsState()
     val loading by listController.loading.collectAsState()
@@ -533,7 +533,7 @@ private fun ClipboardFloatContentSection(
             CircularProgressIndicator(
                 modifier = Modifier.size(24.dp),
                 strokeWidth = 2.dp,
-                color = MiuixTheme.colorScheme.primary,
+                color = MiuixTheme.colorScheme.primary
             )
         }
         return
@@ -542,10 +542,10 @@ private fun ClipboardFloatContentSection(
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text(
                 text = stringResource(
-                    if (isSearching) R.string.clipboard_search_empty else R.string.clipboard_empty,
+                    if (isSearching) R.string.clipboard_search_empty else R.string.clipboard_empty
                 ),
                 style = MiuixTheme.textStyles.body2,
-                color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary
             )
         }
         return
@@ -560,7 +560,7 @@ private fun ClipboardFloatContentSection(
                 onEntryClick = onEntryClick,
                 onEntryLongClick = onEntryLongClick,
                 onEntryDragStart = onEntryDragStart,
-                onEntryDragEnd = onEntryDragEnd,
+                onEntryDragEnd = onEntryDragEnd
             )
         }
         ClipboardFloatListStyle.SINGLE_LINE -> {
@@ -570,7 +570,7 @@ private fun ClipboardFloatContentSection(
                 onEntryClick = onEntryClick,
                 onEntryLongClick = onEntryLongClick,
                 onEntryDragStart = onEntryDragStart,
-                onEntryDragEnd = onEntryDragEnd,
+                onEntryDragEnd = onEntryDragEnd
             )
         }
     }
@@ -583,12 +583,12 @@ private fun ClipboardFloatSingleLineList(
     onEntryClick: (ClipboardEntry) -> Unit,
     onEntryLongClick: (ClipboardEntry) -> Unit,
     onEntryDragStart: () -> Unit,
-    onEntryDragEnd: () -> Unit,
+    onEntryDragEnd: () -> Unit
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(horizontal = 8.dp, vertical = 6.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         items(entries, key = { it.id }) { entry ->
             ClipboardFloatSingleLineRow(
@@ -596,7 +596,7 @@ private fun ClipboardFloatSingleLineList(
                 onClick = { onEntryClick(entry) },
                 onLongClick = { onEntryLongClick(entry) },
                 onEntryDragStart = onEntryDragStart,
-                onEntryDragEnd = onEntryDragEnd,
+                onEntryDragEnd = onEntryDragEnd
             )
         }
     }
@@ -609,7 +609,7 @@ private fun ClipboardFloatSingleLineRow(
     onClick: () -> Unit,
     onLongClick: () -> Unit,
     onEntryDragStart: () -> Unit,
-    onEntryDragEnd: () -> Unit,
+    onEntryDragEnd: () -> Unit
 ) {
     val scheme = MiuixTheme.colorScheme
     val hasImage = entry.hasImageContent()
@@ -631,7 +631,7 @@ private fun ClipboardFloatSingleLineRow(
         entry = entry,
         enabled = hasImage && expanded,
         cardWidthPx = with(density) { 200.dp.roundToPx() },
-        thumbHeightPx = thumbHeightPx,
+        thumbHeightPx = thumbHeightPx
     )
 
     Surface(
@@ -642,38 +642,38 @@ private fun ClipboardFloatSingleLineRow(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = onClick,
-                onLongClick = onLongClick,
+                onLongClick = onLongClick
             ),
         shape = RoundedCornerShape(8.dp),
         color = HistoryPanelColors.cardBackground(starred = false),
-        border = androidx.compose.foundation.BorderStroke(1.dp, scheme.onSurface.copy(alpha = 0.05f)),
+        border = androidx.compose.foundation.BorderStroke(1.dp, scheme.onSurface.copy(alpha = 0.05f))
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 8.dp, vertical = if (expanded) 6.dp else 4.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .heightIn(min = 32.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 if (hasImage) {
                     Icon(
                         imageVector = Icons.Default.Image,
                         contentDescription = null,
                         tint = scheme.primary,
-                        modifier = Modifier.size(16.dp),
+                        modifier = Modifier.size(16.dp)
                     )
                 } else if (linkMeta != null) {
                     Icon(
                         imageVector = Icons.Default.Link,
                         contentDescription = null,
                         tint = scheme.primary,
-                        modifier = Modifier.size(16.dp),
+                        modifier = Modifier.size(16.dp)
                     )
                 }
 
@@ -683,19 +683,19 @@ private fun ClipboardFloatSingleLineRow(
                     color = scheme.onSurface,
                     maxLines = if (expanded) Int.MAX_VALUE else 1,
                     overflow = if (expanded) TextOverflow.Clip else TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f)
                 )
 
                 if (isLong) {
                     IconButton(
                         onClick = { expanded = !expanded },
-                        modifier = Modifier.size(24.dp),
+                        modifier = Modifier.size(24.dp)
                     ) {
                         Icon(
                             imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                             contentDescription = null,
                             tint = scheme.onSurfaceVariantSummary,
-                            modifier = Modifier.size(16.dp),
+                            modifier = Modifier.size(16.dp)
                         )
                     }
                 }
@@ -709,7 +709,7 @@ private fun ClipboardFloatSingleLineRow(
                         .fillMaxWidth()
                         .heightIn(max = 80.dp)
                         .clip(RoundedCornerShape(6.dp)),
-                    contentScale = ContentScale.Crop,
+                    contentScale = ContentScale.Crop
                 )
             }
         }
@@ -724,14 +724,14 @@ private fun ClipboardFloatGrid(
     onEntryClick: (ClipboardEntry) -> Unit,
     onEntryLongClick: (ClipboardEntry) -> Unit,
     onEntryDragStart: () -> Unit,
-    onEntryDragEnd: () -> Unit,
+    onEntryDragEnd: () -> Unit
 ) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(columnCount),
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(10.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(entries, key = { it.id }) { entry ->
             ClipboardFloatEntryCard(
@@ -741,7 +741,7 @@ private fun ClipboardFloatGrid(
                 onClick = { onEntryClick(entry) },
                 onLongClick = { onEntryLongClick(entry) },
                 onEntryDragStart = onEntryDragStart,
-                onEntryDragEnd = onEntryDragEnd,
+                onEntryDragEnd = onEntryDragEnd
             )
         }
     }
@@ -756,7 +756,7 @@ private fun ClipboardFloatEntryCard(
     onClick: () -> Unit,
     onLongClick: () -> Unit,
     onEntryDragStart: () -> Unit,
-    onEntryDragEnd: () -> Unit,
+    onEntryDragEnd: () -> Unit
 ) {
     val context = LocalContext.current
     val view = LocalView.current
@@ -783,7 +783,7 @@ private fun ClipboardFloatEntryCard(
         entry = entry,
         enabled = hasImage,
         cardWidthPx = cardWidthPx,
-        thumbHeightPx = thumbHeightPx,
+        thumbHeightPx = thumbHeightPx
     )
 
     Surface(
@@ -800,34 +800,34 @@ private fun ClipboardFloatEntryCard(
                         entry = entry,
                         thumbnail = thumbnail,
                         onDragStart = onEntryDragStart,
-                        onDragEnd = onEntryDragEnd,
+                        onDragEnd = onEntryDragEnd
                     )
-                },
+                }
             ),
         shape = RoundedCornerShape(12.dp),
         color = HistoryPanelColors.cardBackground(starred = false),
-        border = androidx.compose.foundation.BorderStroke(1.dp, scheme.onSurface.copy(alpha = 0.06f)),
+        border = androidx.compose.foundation.BorderStroke(1.dp, scheme.onSurface.copy(alpha = 0.06f))
     ) {
         Column(
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = typeLabel,
                     style = MiuixTheme.textStyles.footnote2,
                     color = scheme.primary,
-                    maxLines = 1,
+                    maxLines = 1
                 )
                 Text(
                     text = formatClipboardFloatRelativeTime(entry.createdAtEpochMs),
                     style = MiuixTheme.textStyles.footnote2,
                     color = scheme.onSurfaceVariantSummary,
-                    maxLines = 1,
+                    maxLines = 1
                 )
             }
             if (thumbnail != null) {
@@ -838,7 +838,7 @@ private fun ClipboardFloatEntryCard(
                         .fillMaxWidth()
                         .heightIn(max = 64.dp)
                         .clip(RoundedCornerShape(8.dp)),
-                    contentScale = ContentScale.Crop,
+                    contentScale = ContentScale.Crop
                 )
                 val imageMeta = buildClipboardFloatImageMeta(entry)
                 if (imageMeta.isNotEmpty()) {
@@ -847,20 +847,20 @@ private fun ClipboardFloatEntryCard(
                         style = MiuixTheme.textStyles.footnote2,
                         color = scheme.onSurfaceVariantSummary,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             } else if (linkMeta != null) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
                         imageVector = Icons.Default.Link,
                         contentDescription = null,
                         tint = scheme.primary,
-                        modifier = Modifier.size(16.dp),
+                        modifier = Modifier.size(16.dp)
                     )
                     Text(
                         text = linkMeta.host,
@@ -868,7 +868,7 @@ private fun ClipboardFloatEntryCard(
                         color = scheme.primary,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f, fill = false),
+                        modifier = Modifier.weight(1f, fill = false)
                     )
                 }
                 if (linkMeta.path.isNotEmpty()) {
@@ -877,7 +877,7 @@ private fun ClipboardFloatEntryCard(
                         style = MiuixTheme.textStyles.footnote2,
                         color = scheme.onSurfaceVariantSummary,
                         maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             } else {
@@ -887,7 +887,7 @@ private fun ClipboardFloatEntryCard(
                         style = MiuixTheme.textStyles.body2,
                         color = scheme.onSurface,
                         maxLines = previewLines,
-                        overflow = TextOverflow.Ellipsis,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
                 val metaText = buildClipboardFloatTextMeta(entry, bodyText)
@@ -897,7 +897,7 @@ private fun ClipboardFloatEntryCard(
                         style = MiuixTheme.textStyles.footnote2,
                         color = scheme.onSurfaceVariantSummary,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
@@ -911,7 +911,7 @@ private fun startClipboardFloatEntryDrag(
     entry: ClipboardEntry,
     thumbnail: Bitmap?,
     onDragStart: () -> Unit,
-    onDragEnd: () -> Unit,
+    onDragEnd: () -> Unit
 ) {
     val clipData = ClipboardWriter.buildClipForEntry(context, entry) ?: run {
         Toast.makeText(context, R.string.history_drag_unsupported, Toast.LENGTH_SHORT).show()
@@ -922,10 +922,10 @@ private fun startClipboardFloatEntryDrag(
         clipData = clipData,
         preview = HistoryEntryDragHelper.previewForClipboardEntry(
             entry = entry,
-            thumbnails = listOfNotNull(thumbnail),
+            thumbnails = listOfNotNull(thumbnail)
         ),
         onDragStart = onDragStart,
-        onDragEnd = onDragEnd,
+        onDragEnd = onDragEnd
     )
 }
 
@@ -934,7 +934,7 @@ private fun rememberClipboardFloatThumbnail(
     entry: ClipboardEntry,
     enabled: Boolean,
     cardWidthPx: Int,
-    thumbHeightPx: Int,
+    thumbHeightPx: Int
 ): Bitmap? {
     val context = LocalContext.current
     var thumbnail by remember(entry.id) { mutableStateOf<Bitmap?>(null) }
@@ -948,7 +948,7 @@ private fun rememberClipboardFloatThumbnail(
                 context = context,
                 entry = entry,
                 targetWidthPx = cardWidthPx,
-                maxVisibleHeightPx = thumbHeightPx,
+                maxVisibleHeightPx = thumbHeightPx
             ).firstOrNull()
         }
     }
@@ -957,7 +957,7 @@ private fun rememberClipboardFloatThumbnail(
 
 private data class ClipboardFloatLinkMeta(
     val host: String,
-    val path: String,
+    val path: String
 )
 
 private fun parseClipboardFloatLinkMeta(entry: ClipboardEntry): ClipboardFloatLinkMeta? {
@@ -1000,7 +1000,7 @@ private fun buildClipboardFloatImageMeta(entry: ClipboardEntry): String {
     val mime = entry.mimeType?.substringAfter('/')?.uppercase().orEmpty()
     return listOfNotNull(
         stringResource(R.string.clipboard_float_meta_image),
-        mime.takeIf { it.isNotEmpty() },
+        mime.takeIf { it.isNotEmpty() }
     ).joinToString(" · ")
 }
 
@@ -1011,7 +1011,7 @@ private fun buildClipboardFloatTextMeta(entry: ClipboardEntry, bodyText: String)
     val lines = bodyText.lineSequence().count().coerceAtLeast(1)
     return listOf(
         pluralStringResource(R.plurals.clipboard_float_meta_chars, chars, chars),
-        pluralStringResource(R.plurals.clipboard_float_meta_lines, lines, lines),
+        pluralStringResource(R.plurals.clipboard_float_meta_lines, lines, lines)
     ).joinToString(" · ")
 }
 
@@ -1045,7 +1045,7 @@ private fun ClipboardFloatSearchFieldStrip(
     onQueryChange: (String) -> Unit,
     focusRequester: FocusRequester,
     modifier: Modifier = Modifier,
-    hintResId: Int = R.string.search_hint,
+    hintResId: Int = R.string.search_hint
 ) {
     val scheme = MiuixTheme.colorScheme
     val hint = stringResource(hintResId)
@@ -1067,12 +1067,12 @@ private fun ClipboardFloatSearchFieldStrip(
         visible = expanded,
         enter = expandVertically(
             animationSpec = tween(200),
-            expandFrom = Alignment.Top,
+            expandFrom = Alignment.Top
         ) + fadeIn(animationSpec = tween(200)),
         exit = shrinkVertically(
             animationSpec = tween(160),
-            shrinkTowards = Alignment.Top,
-        ) + fadeOut(animationSpec = tween(160)),
+            shrinkTowards = Alignment.Top
+        ) + fadeOut(animationSpec = tween(160))
     ) {
         Row(
             modifier = Modifier
@@ -1083,13 +1083,13 @@ private fun ClipboardFloatSearchFieldStrip(
                 .background(scheme.surfaceContainerHigh.copy(alpha = 0.92f))
                 .padding(horizontal = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             Icon(
                 imageVector = Icons.Default.Search,
                 contentDescription = hint,
                 tint = scheme.onSurfaceVariantSummary,
-                modifier = Modifier.size(18.dp),
+                modifier = Modifier.size(18.dp)
             )
             BasicTextField(
                 value = query,
@@ -1108,23 +1108,23 @@ private fun ClipboardFloatSearchFieldStrip(
                                 style = MiuixTheme.textStyles.body2,
                                 color = scheme.onSurfaceVariantSummary,
                                 maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                         innerTextField()
                     }
-                },
+                }
             )
             if (query.isNotEmpty()) {
                 IconButton(
                     onClick = { onQueryChange("") },
-                    modifier = Modifier.size(24.dp),
+                    modifier = Modifier.size(24.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Close,
                         contentDescription = stringResource(R.string.search_clear),
                         tint = scheme.onSurfaceVariantSummary,
-                        modifier = Modifier.size(16.dp),
+                        modifier = Modifier.size(16.dp)
                     )
                 }
             }

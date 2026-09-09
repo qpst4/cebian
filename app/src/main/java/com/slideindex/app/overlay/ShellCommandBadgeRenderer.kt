@@ -23,7 +23,7 @@ object ShellCommandBadgeRenderer {
         iconCenterY: Float,
         iconDiameter: Float,
         alpha: Float,
-        density: Float,
+        density: Float
     ) {
         if (alpha <= 0f || iconDiameter <= 1f) return
         val badgeDiameter = max(9f * density, iconDiameter * 0.27f)
@@ -41,7 +41,7 @@ object ShellCommandBadgeRenderer {
             "$",
             centerX,
             centerY - (glyphPaint.descent() + glyphPaint.ascent()) / 2f,
-            glyphPaint,
+            glyphPaint
         )
     }
 }

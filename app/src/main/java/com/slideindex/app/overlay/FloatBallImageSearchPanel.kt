@@ -117,7 +117,7 @@ private fun isWaitingForImageUpload(
     engine: ImageSearchEngine,
     preloadedUrls: Map<ImageSearchEngine, String>,
     postResults: Map<ImageSearchEngine, ImageSearchPostResult>,
-    uploadFailed: Map<ImageSearchEngine, Boolean>,
+    uploadFailed: Map<ImageSearchEngine, Boolean>
 ): Boolean {
     if (uploadFailed[engine] == true) return false
     return when {
@@ -141,7 +141,7 @@ private fun resolveEngineTabLoadState(
     postResults: Map<ImageSearchEngine, ImageSearchPostResult>,
     uploadFailed: Map<ImageSearchEngine, Boolean>,
     loadingByEngine: Map<ImageSearchEngine, Boolean>,
-    readyByEngine: Map<ImageSearchEngine, Boolean>,
+    readyByEngine: Map<ImageSearchEngine, Boolean>
 ): EngineTabLoadState {
     if (uploadFailed[engine] == true) return EngineTabLoadState.FAILED
     if (engine !in mountedEngines) return EngineTabLoadState.IDLE
@@ -354,16 +354,16 @@ object FloatBallImageSearchPanel {
                         runCatching {
                             overlayContext.startActivity(
                                 Intent(Intent.ACTION_VIEW, url.toUri())
-                                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                             )
                         }.onFailure {
                             Toast.makeText(
                                 overlayContext,
                                 R.string.float_ball_action_failed,
-                                Toast.LENGTH_SHORT,
+                                Toast.LENGTH_SHORT
                             ).show()
                         }
-                    },
+                    }
                 )
             }
         }
@@ -404,7 +404,7 @@ object FloatBallImageSearchPanel {
             WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
                 WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
                 WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
-            PixelFormat.TRANSLUCENT,
+            PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.CENTER
             layoutInDisplayCutoutMode =
@@ -424,7 +424,7 @@ private fun FloatBallImageSearchPanelContent(
     onUrlUploaded: (String) -> Unit,
     onDismiss: () -> Unit,
     onRegisterWebView: (WebView) -> Unit,
-    onOpenExternal: (String) -> Unit,
+    onOpenExternal: (String) -> Unit
 ) {
     val engines = remember(aggregatedEngineConfigs) {
         aggregatedEngineConfigs.toPanelImageSearchEngines()
@@ -495,7 +495,7 @@ private fun FloatBallImageSearchPanelContent(
                     onUrlUploaded = onUrlUploaded,
                     preloadedUrls = preloadedUrls,
                     loadingByEngine = loadingByEngine,
-                    uploadFailed = uploadFailed,
+                    uploadFailed = uploadFailed
                 )
             }
         }
@@ -508,7 +508,7 @@ private fun FloatBallImageSearchPanelContent(
                     isSessionActive = { session == webViewSession },
                     postResults = postResults,
                     loadingByEngine = loadingByEngine,
-                    uploadFailed = uploadFailed,
+                    uploadFailed = uploadFailed
                 )
             }
         }
@@ -543,7 +543,7 @@ private fun FloatBallImageSearchPanelContent(
             refreshToken,
             currentRetryToken,
             webViewSession,
-            bitmap,
+            bitmap
         ) {
             val view = engineWebViews[engine] ?: return@LaunchedEffect
             if (bitmap == null) return@LaunchedEffect
@@ -567,7 +567,7 @@ private fun FloatBallImageSearchPanelContent(
                     result = result,
                     engine = engine,
                     context = webViewContext,
-                    loadId = webViewSession,
+                    loadId = webViewSession
                 )
             } else {
                 val url = preloadedUrls[engine] ?: return@LaunchedEffect
@@ -576,7 +576,7 @@ private fun FloatBallImageSearchPanelContent(
                     url = url,
                     engine = engine,
                     context = webViewContext,
-                    loadId = webViewSession,
+                    loadId = webViewSession
                 )
             }
         }
@@ -589,9 +589,9 @@ private fun FloatBallImageSearchPanelContent(
                 .clickable(
                     interactionSource = dismissInteraction,
                     indication = null,
-                    onClick = onDismiss,
+                    onClick = onDismiss
                 ),
-            contentAlignment = Alignment.Center,
+            contentAlignment = Alignment.Center
         ) {
             Column(
                 modifier = Modifier
@@ -602,20 +602,20 @@ private fun FloatBallImageSearchPanelContent(
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null,
-                        onClick = {},
+                        onClick = {}
                     )
-                    .padding(vertical = 8.dp),
+                    .padding(vertical = 8.dp)
             ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = stringResource(R.string.float_ball_image_search_panel_title),
                         style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f)
                     )
                     IconButton(onClick = onDismiss) {
                         Icon(Icons.Default.Close, contentDescription = stringResource(R.string.shell_panel_close))
@@ -642,12 +642,12 @@ private fun FloatBallImageSearchPanelContent(
                                         webViewContext,
                                         if (saved) {
                                             webViewContext.getString(
-                                                R.string.float_ball_image_search_ascii2d_screenshot_saved,
+                                                R.string.float_ball_image_search_ascii2d_screenshot_saved
                                             )
                                         } else {
                                             webViewContext.getString(R.string.float_ball_action_failed)
                                         },
-                                        Toast.LENGTH_SHORT,
+                                        Toast.LENGTH_SHORT
                                     ).show()
                                 }
                             }
@@ -664,7 +664,7 @@ private fun FloatBallImageSearchPanelContent(
                                     engine = engine,
                                     postResults = postResults,
                                     loadingByEngine = loadingByEngine,
-                                    uploadFailed = uploadFailed,
+                                    uploadFailed = uploadFailed
                                 )
                             }
                         }
@@ -679,11 +679,11 @@ private fun FloatBallImageSearchPanelContent(
                                     onUrlUploaded = onUrlUploaded,
                                     preloadedUrls = preloadedUrls,
                                     loadingByEngine = loadingByEngine,
-                                    uploadFailed = uploadFailed,
+                                    uploadFailed = uploadFailed
                                 )
                             }
                         }
-                    },
+                    }
                 )
 
                 if (engines.isEmpty()) {
@@ -692,12 +692,12 @@ private fun FloatBallImageSearchPanelContent(
                             .fillMaxWidth()
                             .weight(1f, fill = true)
                             .padding(horizontal = 16.dp),
-                        contentAlignment = Alignment.Center,
+                        contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = stringResource(R.string.float_ball_image_search_no_engines),
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 } else {
@@ -706,20 +706,20 @@ private fun FloatBallImageSearchPanelContent(
                     engine = activeEngine,
                     preloadedUrls = preloadedUrls,
                     postResults = postResults,
-                    uploadFailed = uploadFailed,
+                    uploadFailed = uploadFailed
                 )
                 val pageLoading = loadingByEngine[activeEngine] == true && !waitingImageUpload
 
                 HorizontalDivider(
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
                 )
 
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f, fill = true)
-                        .padding(horizontal = 12.dp),
+                        .padding(horizontal = 12.dp)
                 ) {
                     engines.filter { it in mountedEngines }.forEach { engine ->
                         key(webViewSession, engine) {
@@ -728,7 +728,7 @@ private fun FloatBallImageSearchPanelContent(
                                 engine = engine,
                                 preloadedUrls = preloadedUrls,
                                 postResults = postResults,
-                                uploadFailed = uploadFailed,
+                                uploadFailed = uploadFailed
                             )
                             AndroidView(
                                 factory = {
@@ -746,7 +746,7 @@ private fun FloatBallImageSearchPanelContent(
                                                     engine,
                                                     preloadedUrls,
                                                     postResults,
-                                                    uploadFailed,
+                                                    uploadFailed
                                                 )
                                             ) {
                                                 readyByEngine[engine] = true
@@ -754,7 +754,7 @@ private fun FloatBallImageSearchPanelContent(
                                         },
                                         onCanGoBackChanged = { canGoBack ->
                                             canGoBackByEngine[engine] = canGoBack
-                                        },
+                                        }
                                     ).also { engineWebViews[engine] = it }
                                 },
                                 update = { webView ->
@@ -772,7 +772,7 @@ private fun FloatBallImageSearchPanelContent(
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .zIndex(if (isSelected) 1f else 0f)
-                                    .alpha(if (isSelected && !engineWaitingUpload) 1f else 0f),
+                                    .alpha(if (isSelected && !engineWaitingUpload) 1f else 0f)
                             )
                         }
                     }
@@ -784,12 +784,12 @@ private fun FloatBallImageSearchPanelContent(
                                 .zIndex(2f)
                                 .padding(horizontal = 16.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Text(
                                 text = stringResource(R.string.float_ball_image_search_upload_failed),
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.error,
+                                color = MaterialTheme.colorScheme.error
                             )
                             Text(
                                 text = stringResource(R.string.float_ball_image_search_retry),
@@ -807,11 +807,11 @@ private fun FloatBallImageSearchPanelContent(
                                                 engine = activeEngine,
                                                 postResults = postResults,
                                                 loadingByEngine = loadingByEngine,
-                                                uploadFailed = uploadFailed,
+                                                uploadFailed = uploadFailed
                                             )
                                         }
                                     }
-                                },
+                                }
                             )
                         }
                     } else if (waitingImageUpload || pageLoading) {
@@ -820,16 +820,16 @@ private fun FloatBallImageSearchPanelContent(
                                 .align(Alignment.Center)
                                 .zIndex(2f),
                             horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(10.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(28.dp),
-                                strokeWidth = 2.dp,
+                                strokeWidth = 2.dp
                             )
                             if (waitingImageUpload) {
                                 Text(
                                     text = stringResource(R.string.float_ball_image_search_uploading),
-                                    style = MaterialTheme.typography.bodyMedium,
+                                    style = MaterialTheme.typography.bodyMedium
                                 )
                             }
                         }
@@ -840,7 +840,7 @@ private fun FloatBallImageSearchPanelContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     val externalUrl = when {
                         activeEngine.usesHostedUrl -> preloadedUrls[activeEngine]
@@ -850,7 +850,7 @@ private fun FloatBallImageSearchPanelContent(
                         onClick = {
                             engineWebViews[activeEngine]?.goBack()
                         },
-                        enabled = canGoBackByEngine[activeEngine] == true,
+                        enabled = canGoBackByEngine[activeEngine] == true
                     ) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.float_ball_image_search_panel_title))
                     }
@@ -862,7 +862,7 @@ private fun FloatBallImageSearchPanelContent(
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier
                             .weight(1f)
-                            .padding(start = 12.dp, end = 4.dp),
+                            .padding(start = 12.dp, end = 4.dp)
                     )
                     IconButton(
                         onClick = {
@@ -883,7 +883,7 @@ private fun FloatBallImageSearchPanelContent(
                                             engine = activeEngine,
                                             postResults = postResults,
                                             loadingByEngine = loadingByEngine,
-                                            uploadFailed = uploadFailed,
+                                            uploadFailed = uploadFailed
                                         )
                                     }
                                 } else {
@@ -891,7 +891,7 @@ private fun FloatBallImageSearchPanelContent(
                                 }
                             }
                         },
-                        enabled = true,
+                        enabled = true
                     ) {
                         Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.float_ball_image_search_refresh))
                     }
@@ -899,7 +899,7 @@ private fun FloatBallImageSearchPanelContent(
                         onClick = {
                             externalUrl?.let(onOpenExternal)
                         },
-                        enabled = externalUrl != null,
+                        enabled = externalUrl != null
                     ) {
                         Icon(Icons.AutoMirrored.Filled.OpenInNew, contentDescription = stringResource(R.string.float_ball_image_search_open_browser))
                     }
@@ -920,7 +920,7 @@ private fun EngineTabRow(
     uploadFailed: Map<ImageSearchEngine, Boolean>,
     loadingByEngine: Map<ImageSearchEngine, Boolean>,
     readyByEngine: Map<ImageSearchEngine, Boolean>,
-    onSelected: (ImageSearchEngine) -> Unit,
+    onSelected: (ImageSearchEngine) -> Unit
 ) {
     val scrollState = rememberScrollState()
     val readyColor = Color(0xFF2E7D32)
@@ -929,7 +929,7 @@ private fun EngineTabRow(
             .fillMaxWidth()
             .horizontalScroll(scrollState)
             .padding(horizontal = 12.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         engines.forEach { engine ->
             val isSelected = engine == selected
@@ -940,7 +940,7 @@ private fun EngineTabRow(
                 postResults = postResults,
                 uploadFailed = uploadFailed,
                 loadingByEngine = loadingByEngine,
-                readyByEngine = readyByEngine,
+                readyByEngine = readyByEngine
             )
             val statusLabel = when (loadState) {
                 EngineTabLoadState.IDLE -> null
@@ -962,12 +962,12 @@ private fun EngineTabRow(
                 onClick = { onSelected(engine) },
                 shape = MaterialTheme.shapes.medium,
                 color = tabColor,
-                border = tabBorder,
+                border = tabBorder
             ) {
                 Row(
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     Text(
                         text = engine.displayName,
@@ -976,13 +976,13 @@ private fun EngineTabRow(
                             isSelected -> MaterialTheme.colorScheme.onPrimaryContainer
                             loadState == EngineTabLoadState.READY -> readyColor
                             else -> MaterialTheme.colorScheme.onSurfaceVariant
-                        },
+                        }
                     )
                     when (loadState) {
                         EngineTabLoadState.LOADING -> {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(14.dp),
-                                strokeWidth = 2.dp,
+                                strokeWidth = 2.dp
                             )
                         }
                         EngineTabLoadState.READY -> {
@@ -990,7 +990,7 @@ private fun EngineTabRow(
                                 imageVector = Icons.Default.CheckCircle,
                                 contentDescription = statusLabel,
                                 modifier = Modifier.size(16.dp),
-                                tint = readyColor,
+                                tint = readyColor
                             )
                         }
                         EngineTabLoadState.FAILED -> {
@@ -998,7 +998,7 @@ private fun EngineTabRow(
                                 imageVector = Icons.Default.ErrorOutline,
                                 contentDescription = statusLabel,
                                 modifier = Modifier.size(16.dp),
-                                tint = MaterialTheme.colorScheme.error,
+                                tint = MaterialTheme.colorScheme.error
                             )
                         }
                         EngineTabLoadState.IDLE -> Unit
@@ -1015,7 +1015,7 @@ private suspend fun preloadPostSearchResults(
     isSessionActive: () -> Boolean,
     postResults: MutableMap<ImageSearchEngine, ImageSearchPostResult>,
     loadingByEngine: MutableMap<ImageSearchEngine, Boolean>,
-    uploadFailed: MutableMap<ImageSearchEngine, Boolean>,
+    uploadFailed: MutableMap<ImageSearchEngine, Boolean>
 ) {
     val postEngines = engines.filter { it.usesDirectPost }
     if (postEngines.isEmpty()) return
@@ -1044,7 +1044,7 @@ private suspend fun ensurePostSearchResult(
     engine: ImageSearchEngine,
     postResults: MutableMap<ImageSearchEngine, ImageSearchPostResult>,
     loadingByEngine: MutableMap<ImageSearchEngine, Boolean>,
-    uploadFailed: MutableMap<ImageSearchEngine, Boolean>,
+    uploadFailed: MutableMap<ImageSearchEngine, Boolean>
 ) {
     if (!engine.usesDirectPost || postResults[engine] != null) return
     loadingByEngine[engine] = true
@@ -1068,7 +1068,7 @@ private suspend fun ensureHostedSearchUrls(
     onUrlUploaded: (String) -> Unit,
     preloadedUrls: MutableMap<ImageSearchEngine, String>,
     loadingByEngine: MutableMap<ImageSearchEngine, Boolean>,
-    uploadFailed: MutableMap<ImageSearchEngine, Boolean>,
+    uploadFailed: MutableMap<ImageSearchEngine, Boolean>
 ) {
     val hostedEngines = engines.filter { it.usesHostedUrl }
     if (hostedEngines.isEmpty()) return
@@ -1108,7 +1108,7 @@ private fun createSearchWebView(
     isFirstEngine: Boolean,
     onRegister: (WebView) -> Unit,
     onPageLoadingChanged: (Boolean) -> Unit,
-    onCanGoBackChanged: (Boolean) -> Unit,
+    onCanGoBackChanged: (Boolean) -> Unit
 ): WebView {
     return WebView(context).apply {
         if (isFirstEngine) {
@@ -1118,7 +1118,7 @@ private fun createSearchWebView(
         setLayerType(View.LAYER_TYPE_HARDWARE, null)
         layoutParams = ViewGroup.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT
         )
         settings.apply {
             javaScriptEnabled = true
@@ -1158,32 +1158,32 @@ private fun createSearchWebView(
             override fun onReceivedError(
                 view: WebView?,
                 request: WebResourceRequest?,
-                error: WebResourceError?,
+                error: WebResourceError?
             ) {
                 if (request?.isForMainFrame != true) return
                 Log.w(
                     WEBVIEW_LOG_TAG,
-                    "main frame error: ${error?.description} url=${request.url}",
+                    "main frame error: ${error?.description} url=${request.url}"
                 )
             }
 
             override fun onReceivedHttpError(
                 view: WebView?,
                 request: WebResourceRequest?,
-                response: WebResourceResponse?,
+                response: WebResourceResponse?
             ) {
                 val host = request?.url?.host.orEmpty()
                 if (host.contains("google") || host.contains("catbox")) {
                     Log.w(
                         WEBVIEW_LOG_TAG,
-                        "http ${response?.statusCode} ${request?.url}",
+                        "http ${response?.statusCode} ${request?.url}"
                     )
                 }
             }
 
             override fun shouldInterceptRequest(
                 view: WebView?,
-                request: WebResourceRequest,
+                request: WebResourceRequest
             ): WebResourceResponse? {
                 return null
             }
@@ -1207,7 +1207,7 @@ private fun createSearchWebView(
             override fun onShowFileChooser(
                 webView: WebView?,
                 filePathCallback: ValueCallback<Array<Uri>>?,
-                fileChooserParams: FileChooserParams?,
+                fileChooserParams: FileChooserParams?
             ): Boolean {
                 if (filePathCallback == null || fileChooserParams == null) return false
                 return WebViewFileChooserBridge.launch(context, filePathCallback, fileChooserParams)
@@ -1218,7 +1218,7 @@ private fun createSearchWebView(
                 if (message.messageLevel() == ConsoleMessage.MessageLevel.ERROR) {
                     Log.w(
                         WEBVIEW_LOG_TAG,
-                        "console: ${message.message()} @ ${message.sourceId()}:${message.lineNumber()}",
+                        "console: ${message.message()} @ ${message.sourceId()}:${message.lineNumber()}"
                     )
                 }
                 return false
@@ -1232,7 +1232,7 @@ private fun WebView.loadSearchPostResultAfterLayout(
     result: ImageSearchPostResult,
     engine: ImageSearchEngine,
     context: Context,
-    loadId: Int,
+    loadId: Int
 ) {
     fun doLoad() {
         setTag(tagLoadGeneration, loadId)
@@ -1246,7 +1246,7 @@ private fun WebView.loadSearchPostResultAfterLayout(
                 Log.d(
                     WEBVIEW_LOG_TAG,
                     "loadData: engine=$engine id=$loadId base=${result.baseUrl} " +
-                        "(size=${width}x$height, htmlLen=${result.html.length})",
+                        "(size=${width}x$height, htmlLen=${result.html.length})"
                 )
                 loadDataWithBaseURL(result.baseUrl, result.html, "text/html", "UTF-8", null)
             }
@@ -1254,7 +1254,7 @@ private fun WebView.loadSearchPostResultAfterLayout(
                 Log.d(
                     WEBVIEW_LOG_TAG,
                     "loadUrl redirect: ${result.url} engine=$engine id=$loadId " +
-                        "(size=${width}x$height)",
+                        "(size=${width}x$height)"
                 )
                 loadUrl(result.url)
             }
@@ -1271,7 +1271,7 @@ private fun WebView.loadSearchPostResultAfterLayout(
                         viewTreeObserver.removeOnGlobalLayoutListener(this)
                         doLoad()
                     }
-                },
+                }
             )
         }
     }
@@ -1281,7 +1281,7 @@ private fun WebView.loadSearchUrlAfterLayout(
     url: String,
     engine: ImageSearchEngine,
     context: Context,
-    loadId: Int,
+    loadId: Int
 ) {
     fun doLoad() {
         setTag(tagLoadGeneration, loadId)
@@ -1293,7 +1293,7 @@ private fun WebView.loadSearchUrlAfterLayout(
         Log.d(
             WEBVIEW_LOG_TAG,
             "loadUrl: $url engine=$engine id=$loadId " +
-                "(size=${width}x$height, ua=${settings.userAgentString})",
+                "(size=${width}x$height, ua=${settings.userAgentString})"
         )
         loadUrl(url)
     }
@@ -1308,7 +1308,7 @@ private fun WebView.loadSearchUrlAfterLayout(
                         viewTreeObserver.removeOnGlobalLayoutListener(this)
                         doLoad()
                     }
-                },
+                }
             )
         }
     }

@@ -79,14 +79,14 @@ object PinToScreenDialog {
         val hostContext = OverlayDependencyAccess.overlayHostContext() ?: context.applicationContext
         val host = dialogHost ?: OverlayComposeDialogHost(
             context = hostContext,
-            fullScreen = false,
+            fullScreen = false
         ).also { dialogHost = it }
 
         host.show(
             onBackPressed = {
                 host.dismiss()
                 true
-            },
+            }
         ) {
             OverlayAwareModuleTheme {
                 PinToScreenDialogContent(
@@ -104,10 +104,10 @@ object PinToScreenDialog {
                         SlideIndexAccessibilityService.pickFullscreen(
                             context = hostContext,
                             ocrFallbackEnabled = false,
-                            ocrModelId = "",
+                            ocrModelId = ""
                         )
                     },
-                    onDismiss = { host.dismiss() },
+                    onDismiss = { host.dismiss() }
                 )
             }
         }
@@ -130,7 +130,7 @@ private fun PinToScreenDialogContent(
     onPinText: (String) -> Unit,
     onPickGalleryImage: () -> Unit,
     onCaptureRegionalScreenshot: () -> Unit,
-    onDismiss: () -> Unit,
+    onDismiss: () -> Unit
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
     var textInput by remember { mutableStateOf("") }
@@ -149,41 +149,41 @@ private fun PinToScreenDialogContent(
             .width(340.dp),
         shape = RoundedCornerShape(28.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Box(
                     modifier = Modifier
                         .size(36.dp)
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.primaryContainer),
-                    contentAlignment = Alignment.Center,
+                    contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.PushPin,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(20.dp),
+                        modifier = Modifier.size(20.dp)
                     )
                 }
                 Text(
                     text = stringResource(R.string.pin_to_screen_title),
                     style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.SemiBold,
+                        fontWeight = FontWeight.SemiBold
                     ),
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
 
@@ -191,24 +191,24 @@ private fun PinToScreenDialogContent(
                 selectedTabIndex = selectedTab,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp)),
+                    .clip(RoundedCornerShape(12.dp))
             ) {
                 Tab(
                     selected = selectedTab == 0,
                     onClick = { selectedTab = 0 },
-                    text = { Text(stringResource(R.string.pin_to_screen_tab_text)) },
+                    text = { Text(stringResource(R.string.pin_to_screen_tab_text)) }
                 )
                 Tab(
                     selected = selectedTab == 1,
                     onClick = { selectedTab = 1 },
-                    text = { Text(stringResource(R.string.pin_to_screen_tab_image)) },
+                    text = { Text(stringResource(R.string.pin_to_screen_tab_image)) }
                 )
             }
 
             if (selectedTab == 0) {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     OutlinedTextField(
                         value = textInput,
@@ -220,16 +220,16 @@ private fun PinToScreenDialogContent(
                             Text(
                                 text = stringResource(R.string.pin_to_screen_text_hint),
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                             )
                         },
-                        shape = RoundedCornerShape(16.dp),
+                        shape = RoundedCornerShape(16.dp)
                     )
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             TextButton(
@@ -241,12 +241,12 @@ private fun PinToScreenDialogContent(
                                     } else {
                                         Toast.makeText(context, R.string.pin_to_screen_clipboard_empty, Toast.LENGTH_SHORT).show()
                                     }
-                                },
+                                }
                             ) {
                                 Icon(
                                     imageVector = Icons.Outlined.ContentPaste,
                                     contentDescription = null,
-                                    modifier = Modifier.size(16.dp),
+                                    modifier = Modifier.size(16.dp)
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Text(stringResource(R.string.pin_to_screen_btn_read_clipboard), fontSize = 12.sp)
@@ -257,7 +257,7 @@ private fun PinToScreenDialogContent(
                                     Icon(
                                         imageVector = Icons.Outlined.DeleteOutline,
                                         contentDescription = null,
-                                        modifier = Modifier.size(16.dp),
+                                        modifier = Modifier.size(16.dp)
                                     )
                                     Spacer(modifier = Modifier.width(4.dp))
                                     Text(stringResource(R.string.pin_to_screen_btn_clear), fontSize = 12.sp)
@@ -269,7 +269,7 @@ private fun PinToScreenDialogContent(
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.End,
-                        verticalAlignment = Alignment.CenterVertically,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         TextButton(onClick = onDismiss) {
                             Text(stringResource(android.R.string.cancel))
@@ -284,7 +284,7 @@ private fun PinToScreenDialogContent(
                                     Toast.makeText(context, R.string.pin_to_screen_text_empty, Toast.LENGTH_SHORT).show()
                                 }
                             },
-                            shape = RoundedCornerShape(12.dp),
+                            shape = RoundedCornerShape(12.dp)
                         ) {
                             Text(stringResource(R.string.pin_to_screen_btn_pin))
                         }
@@ -293,25 +293,25 @@ private fun PinToScreenDialogContent(
             } else {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     PinImageOptionCard(
                         icon = Icons.Outlined.Image,
                         title = stringResource(R.string.pin_to_screen_image_pick_gallery),
                         desc = stringResource(R.string.pin_to_screen_image_pick_gallery_desc),
-                        onClick = onPickGalleryImage,
+                        onClick = onPickGalleryImage
                     )
 
                     PinImageOptionCard(
                         icon = Icons.Outlined.Crop,
                         title = stringResource(R.string.pin_to_screen_image_pick_screenshot),
                         desc = stringResource(R.string.pin_to_screen_image_pick_screenshot_desc),
-                        onClick = onCaptureRegionalScreenshot,
+                        onClick = onCaptureRegionalScreenshot
                     )
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End,
+                        horizontalArrangement = Arrangement.End
                     ) {
                         TextButton(onClick = onDismiss) {
                             Text(stringResource(android.R.string.cancel))
@@ -328,7 +328,7 @@ private fun PinImageOptionCard(
     icon: ImageVector,
     title: String,
     desc: String,
-    onClick: () -> Unit,
+    onClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -336,43 +336,43 @@ private fun PinImageOptionCard(
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer,
-        ),
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
+        )
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(14.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Box(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(RoundedCornerShape(10.dp))
                     .background(MaterialTheme.colorScheme.secondaryContainer),
-                contentAlignment = Alignment.Center,
+                contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                    modifier = Modifier.size(22.dp),
+                    modifier = Modifier.size(22.dp)
                 )
             }
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Medium),
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = desc,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }

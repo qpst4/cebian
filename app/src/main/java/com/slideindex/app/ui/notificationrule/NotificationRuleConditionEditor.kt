@@ -23,7 +23,7 @@ import com.slideindex.app.notification.NotificationRuleChargeMask
 import com.slideindex.app.notification.ScreenMode
 import com.slideindex.app.notification.TextMatchMode
 import com.slideindex.app.ui.miuix.MiuixLabeledTextField
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.preference.ArrowPreference
@@ -215,7 +215,10 @@ internal fun NotificationRuleConditionEditor(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            MiuixSmallTitle(stringResource(R.string.notification_rule_section_time))
+            SmallTitle(
+                text = stringResource(R.string.notification_rule_section_time),
+                modifier = Modifier.fillMaxWidth(),
+            )
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                 MiuixLabeledTextField(
                     value = timeStart,
@@ -236,7 +239,10 @@ internal fun NotificationRuleConditionEditor(
                 color = MiuixTheme.colorScheme.onSurfaceSecondary,
             )
 
-            MiuixSmallTitle(stringResource(R.string.notification_rule_week_days), modifier = Modifier.padding(top = 4.dp))
+            SmallTitle(
+                text = stringResource(R.string.notification_rule_week_days),
+                modifier = Modifier.fillMaxWidth(),
+            )
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -252,7 +258,10 @@ internal fun NotificationRuleConditionEditor(
                 }
             }
 
-            MiuixSmallTitle(stringResource(R.string.notification_rule_section_device), modifier = Modifier.padding(top = 4.dp))
+            SmallTitle(
+                text = stringResource(R.string.notification_rule_section_device),
+                modifier = Modifier.fillMaxWidth(),
+            )
             CheckboxPreference(
                 title = stringResource(R.string.notification_rule_screen_on),
                 checked = screenOn,

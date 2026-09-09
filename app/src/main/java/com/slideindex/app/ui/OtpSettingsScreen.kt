@@ -1,4 +1,4 @@
-﻿package com.slideindex.app.ui
+package com.slideindex.app.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -29,7 +29,7 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.ui.miuix.MiuixFormDialog
 import com.slideindex.app.ui.miuix.MiuixHintText
 import com.slideindex.app.ui.miuix.MiuixLabeledTextField
-import com.slideindex.app.ui.miuix.MiuixSmallTitle
+import top.yukonga.miuix.kmp.basic.SmallTitle
 import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.SettingLinkRow
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
@@ -104,9 +104,8 @@ fun LazyListScope.emitOtpKeywordsEditorSection(
     onKeywordsTextChange: (String) -> Unit,
     onSave: () -> Unit,
     onReset: () -> Unit,
-    sectionTop: Boolean = false,
 ) {
-    settingsLazySmallTitle(key = "otp_keywords_section", title = sectionTitle, sectionTop = sectionTop)
+    settingsLazySmallTitle(key = "otp_keywords_section", title = sectionTitle)
     settingsLazyHint(key = "otp_keywords_fallback_hint", text = fallbackHint)
     groupedCardItems(
         keyPrefix = "otp_keywords",
@@ -175,7 +174,7 @@ fun OtpKeywordsEditorSection(
     )
     val fallbackHint = stringResource(R.string.otp_keywords_fallback_hint)
     Column {
-        MiuixSmallTitle(sectionTitle)
+        SmallTitle(sectionTitle)
         MiuixHintText(fallbackHint)
         card.RenderRows()
     }
@@ -194,9 +193,8 @@ fun rememberOtpTestLinkCard(onOpenTest: () -> Unit): SettingsCardItems = setting
 fun LazyListScope.emitOtpTestLinkSection(
     sectionTitle: String,
     onOpenTest: () -> Unit,
-    sectionTop: Boolean = false,
 ) {
-    settingsLazySmallTitle(key = "otp_test_section", title = sectionTitle, sectionTop = sectionTop)
+    settingsLazySmallTitle(key = "otp_test_section", title = sectionTitle)
     groupedCardItems(
         keyPrefix = "otp_test",
         items = listOf(
@@ -216,7 +214,7 @@ fun LazyListScope.emitOtpTestLinkSection(
 fun OtpTestLinkSection(onOpenTest: () -> Unit) {
     val card = rememberOtpTestLinkCard(onOpenTest)
     Column {
-        MiuixSmallTitle(stringResource(R.string.otp_test_section))
+        SmallTitle(stringResource(R.string.otp_test_section))
         card.RenderRows()
     }
 }
@@ -300,13 +298,11 @@ fun OtpSettingsScreen(
                 keywordsText = VerificationCodeExtractor.DEFAULT_KEYWORDS_REGEX
                 onKeywordsRegexChange(keywordsText)
             },
-            sectionTop = true,
         )
 
         emitOtpTestLinkSection(
             sectionTitle = testSectionTitle,
             onOpenTest = { showTestDialog = true },
-            sectionTop = true,
         )
     }
 

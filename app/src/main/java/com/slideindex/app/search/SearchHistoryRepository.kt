@@ -21,12 +21,12 @@ import kotlinx.serialization.json.Json
 @Serializable
 data class SearchHistoryEntry(
     val query: String,
-    val createdAtEpochMs: Long,
+    val createdAtEpochMs: Long
 )
 
 @Singleton
 class SearchHistoryRepository @Inject constructor(
-    @ApplicationContext context: Context,
+    @ApplicationContext context: Context
 ) {
     private val appContext = context.applicationContext
     private val historyFile = File(appContext.filesDir, HISTORY_FILE_NAME)
@@ -57,7 +57,7 @@ class SearchHistoryRepository @Inject constructor(
         mutex.withLock {
             val entry = SearchHistoryEntry(
                 query = trimmed,
-                createdAtEpochMs = System.currentTimeMillis(),
+                createdAtEpochMs = System.currentTimeMillis()
             )
             val withoutDup = readFromDisk().filterNot { it.query == trimmed }
             val next = (listOf(entry) + withoutDup).take(limit)

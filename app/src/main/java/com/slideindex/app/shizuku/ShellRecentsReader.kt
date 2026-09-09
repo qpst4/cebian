@@ -9,7 +9,7 @@ import com.slideindex.app.util.TaskExclusions
  * instead of the Shizuku UserService.
  */
 internal class ShellRecentsReader(
-    private val shell: TaskShellPort,
+    private val shell: TaskShellPort
 ) : RecentsReader {
 
     @Volatile
@@ -23,7 +23,7 @@ internal class ShellRecentsReader(
         var entries = TaskShellParser.listRecentTaskEntries(
             dumps.recents,
             dumps.taskList,
-            dumps.activities,
+            dumps.activities
         )
         if (entries.isEmpty() && dumps.taskList.isNotBlank()) {
             entries = TaskShellParser.listAllCmdTaskEntries(dumps.taskList)
@@ -36,7 +36,7 @@ internal class ShellRecentsReader(
                 TAG,
                 "listTasks empty parsed=${entries.size} recents=${dumps.recents.length} " +
                     "taskList=${dumps.taskList.length} activities=${dumps.activities.length} " +
-                    "taskPreview=${dumps.taskList.lineSequence().take(3).joinToString(" | ")}",
+                    "taskPreview=${dumps.taskList.lineSequence().take(3).joinToString(" | ")}"
             )
         } else {
             Log.i(TAG, "listTasks size=${tasks.size}")
@@ -48,7 +48,7 @@ internal class ShellRecentsReader(
         val activities = dumps().activities.ifBlank {
             runPrivilegedOutput(
                 "dumpsys activity activities 2>/dev/null | head -n 200",
-                ACTIVITIES_TIMEOUT_MS,
+                ACTIVITIES_TIMEOUT_MS
             )
         }
         return TaskShellParser.findFrontTask(activities)?.toRecentsTask()
@@ -60,7 +60,7 @@ internal class ShellRecentsReader(
             identifier,
             dumps.recents,
             dumps.taskList,
-            dumps.activities,
+            dumps.activities
         )
     }
 
@@ -75,7 +75,7 @@ internal class ShellRecentsReader(
             taskId,
             dumps.taskList,
             dumps.recents,
-            dumps.activities,
+            dumps.activities
         ) ?: return false
         val started = shell.shellCommand(
             "am",
@@ -83,7 +83,7 @@ internal class ShellRecentsReader(
             "-n",
             component,
             "--activity-single-top",
-            "--activity-clear-top",
+            "--activity-clear-top"
         )
         Log.i(TAG, "switchToTask($taskId) via am start -> $started")
         return started
@@ -152,13 +152,13 @@ internal class ShellRecentsReader(
             Log.i(
                 TAG,
                 "fetchDumps full exit=0 recents=${dumps.recents.length} " +
-                    "taskList=${dumps.taskList.length} activities=${dumps.activities.length}",
+                    "taskList=${dumps.taskList.length} activities=${dumps.activities.length}"
             )
             return dumps
         }
         Log.w(
             TAG,
-            "fetchDumps full failed exit=${batched.exitCode} preview=${batched.output.take(160)}",
+            "fetchDumps full failed exit=${batched.exitCode} preview=${batched.output.take(160)}"
         )
         val taskList = runPrivilegedOutput("cmd activity task list 2>/dev/null", TASK_LIST_TIMEOUT_MS)
         return ShellRecentsDumps(recents = "", taskList = taskList, activities = "")
@@ -178,7 +178,7 @@ internal class ShellRecentsReader(
         ShellRecentsDumps(
             recents = section(output, MARKER_RECENTS, MARKER_TASKLIST),
             taskList = section(output, MARKER_TASKLIST, MARKER_ACTIVITIES),
-            activities = section(output, MARKER_ACTIVITIES, null),
+            activities = section(output, MARKER_ACTIVITIES, null)
         )
 
     private fun section(output: String, startMarker: String, endMarker: String?): String {
@@ -194,7 +194,7 @@ internal class ShellRecentsReader(
     private data class ShellRecentsDumps(
         val recents: String,
         val taskList: String,
-        val activities: String,
+        val activities: String
     )
 
     private fun ShellTaskEntry.toRecentsTask(): SystemRecentsAccess.Task? {
@@ -212,7 +212,7 @@ internal class ShellRecentsReader(
             taskId = taskId,
             packageName = pkg,
             component = component,
-            title = taskTitle,
+            title = taskTitle
         )
     }
 

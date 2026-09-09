@@ -87,7 +87,7 @@ object PseudoScreenOffOverlayWindow {
                 WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
                 WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
-            PixelFormat.OPAQUE,
+            PixelFormat.OPAQUE
         ).apply {
             gravity = Gravity.TOP or Gravity.START
             screenBrightness = 0.0f
@@ -142,7 +142,7 @@ object PseudoScreenOffOverlayWindow {
                 context,
                 receiver,
                 IntentFilter(Intent.ACTION_SCREEN_OFF),
-                ContextCompat.RECEIVER_NOT_EXPORTED,
+                ContextCompat.RECEIVER_NOT_EXPORTED
             )
         } catch (_: Exception) {
             try {
@@ -166,7 +166,7 @@ private class PseudoScreenOffView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0,
-    private val onExitRequest: () -> Unit,
+    private val onExitRequest: () -> Unit
 ) : FrameLayout(context, attrs, defStyleAttr) {
 
     private val hintTextView: TextView
@@ -210,7 +210,7 @@ private class PseudoScreenOffView @JvmOverloads constructor(
                     onExitRequest()
                     return true
                 }
-            },
+            }
         )
     }
 

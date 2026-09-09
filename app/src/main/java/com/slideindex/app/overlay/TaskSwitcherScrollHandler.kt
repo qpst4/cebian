@@ -3,7 +3,7 @@ package com.slideindex.app.overlay
 import com.slideindex.app.overlay.layout.TaskSwitcherPanelLayout
 
 internal class TaskSwitcherScrollHandler(
-    private val touch: TaskSwitcherTouchHandler,
+    private val touch: TaskSwitcherTouchHandler
 ) {
     private val ctrl get() = touch.ctrl
     private val host get() = touch.host
@@ -153,7 +153,7 @@ internal class TaskSwitcherScrollHandler(
             onComplete = {
                 ctrl.taskSwitcherOverscrollOffset = 0f
                 host.invalidate()
-            },
+            }
         )
     }
 }

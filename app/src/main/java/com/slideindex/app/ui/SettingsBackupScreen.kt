@@ -36,7 +36,7 @@ import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingSwitchRow
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
-import com.slideindex.app.ui.settings.components.settingsLazyHint
+import com.slideindex.app.ui.settings.components.settingsLazyTipCard
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import com.slideindex.app.ui.viewmodel.SettingsBackupPreviewState
 import com.slideindex.app.settings.SettingsDomain
@@ -83,7 +83,7 @@ fun SettingsBackupScreen(
         onBack = onBack,
     ) {
         settingsLazySmallTitle(key = "backup_actions_section", title = actionsSectionTitle)
-        settingsLazyHint(key = "backup_hint", text = backupHint)
+        settingsLazyTipCard(key = "backup_hint", text = backupHint)
         groupedCardItems(
             keyPrefix = "backup_sensitive",
             items = buildList {
@@ -159,7 +159,6 @@ fun SettingsBackupScreen(
             settingsLazySmallTitle(
                 key = "backup_permissions_section",
                 title = permissionsSectionTitle,
-                sectionTop = true,
             )
             groupedCardItems(
                 keyPrefix = "backup_permissions",

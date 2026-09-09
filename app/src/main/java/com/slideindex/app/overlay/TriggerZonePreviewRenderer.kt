@@ -24,7 +24,7 @@ internal object TriggerZonePreviewRenderer {
         density: Float,
         dp: (Float) -> Float,
         focusHandleId: String? = null,
-        showSwipeDistances: Boolean = false,
+        showSwipeDistances: Boolean = false
     ) {
         val corner = dp(6f)
         val focused = focusHandleId != null
@@ -68,17 +68,17 @@ internal object TriggerZonePreviewRenderer {
                 PanelSide.BOTTOM, PanelSide.TOP -> Triple(
                     zone.width().toInt().coerceAtLeast(1),
                     zone.height().toInt().coerceAtLeast(1),
-                    zone.left,
+                    zone.left
                 )
                 PanelSide.LEFT -> Triple(
                     glowWidth,
                     zone.height().toInt().coerceAtLeast(1),
-                    0f,
+                    0f
                 )
                 PanelSide.RIGHT -> Triple(
                     glowWidth,
                     zone.height().toInt().coerceAtLeast(1),
-                    zone.right - glowWidth,
+                    zone.right - glowWidth
                 )
             }
             canvas.withSave {
@@ -89,7 +89,7 @@ internal object TriggerZonePreviewRenderer {
                     design = handle.design,
                     density = density,
                     widthPx = drawWidthPx,
-                    heightPx = drawHeightPx,
+                    heightPx = drawHeightPx
                 )
             }
 
@@ -104,7 +104,7 @@ internal object TriggerZonePreviewRenderer {
         zone: RectF,
         corner: Float,
         dp: (Float) -> Float,
-        hidden: Boolean,
+        hidden: Boolean
     ) {
         if (hidden) {
             fillPaint.color = Color.argb(72, 255, 152, 0)
@@ -128,7 +128,7 @@ internal object TriggerZonePreviewRenderer {
         settings: AppSettings,
         zone: RectF,
         handleId: String,
-        dp: (Float) -> Float,
+        dp: (Float) -> Float
     ) {
         val handle = settings.triggerHandle(side, handleId) ?: settings.primaryTriggerHandle(side)
         val shortR = dp(handle.shortSwipeDistanceDp)

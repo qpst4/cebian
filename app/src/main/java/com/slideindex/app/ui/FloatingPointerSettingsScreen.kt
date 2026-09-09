@@ -35,7 +35,7 @@ fun FloatingPointerSettingsScreen(
     onOpenJoystickSettings: () -> Unit,
     onOpenRadialMenuSettings: () -> Unit,
     onOpenEdgeActionsSettings: () -> Unit,
-    onPointerSensitivityChange: (Float) -> Unit,
+    onPointerSensitivityChange: (Float) -> Unit
 ) {
     val joystickAreaSectionTitle = stringResource(R.string.floating_pointer_joystick_area_section)
     val previewDragHint = stringResource(R.string.floating_pointer_preview_drag_hint)
@@ -43,12 +43,11 @@ fun FloatingPointerSettingsScreen(
 
     SettingsScreenScaffold(
         title = stringResource(R.string.floating_pointer_settings_title),
-        onBack = onBack,
+        onBack = onBack
     ) {
         settingsLazySmallTitle(
             key = "section-joystick-area",
-            title = joystickAreaSectionTitle,
-            sectionTop = true,
+            title = joystickAreaSectionTitle
         )
         groupedCardItems(
             keyPrefix = "floating-pointer-preview",
@@ -64,16 +63,16 @@ fun FloatingPointerSettingsScreen(
                             },
                             checked = areaPreviewEnabled,
                             enabled = previewAccessibilityGranted,
-                            onCheckedChange = onAreaPreviewEnabledChange,
+                            onCheckedChange = onAreaPreviewEnabledChange
                         )
-                    },
+                    }
                 )
-            },
+            }
         )
         if (areaPreviewEnabled) {
             settingsLazyHint(
                 key = "floating-pointer-preview-hint",
-                text = previewDragHint,
+                text = previewDragHint
             )
         }
         groupedCardItems(
@@ -89,18 +88,17 @@ fun FloatingPointerSettingsScreen(
                             enabled = true,
                             label = stringResource(
                                 R.string.floating_pointer_percent_value,
-                                (settings.floatingPointerSensitivityFraction * 100).roundToInt(),
+                                (settings.floatingPointerSensitivityFraction * 100).roundToInt()
                             ),
-                            onValueChange = onPointerSensitivityChange,
+                            onValueChange = onPointerSensitivityChange
                         )
-                    },
+                    }
                 )
-            },
+            }
         )
         settingsLazySmallTitle(
             key = "section-appearance",
-            title = appearanceSectionTitle,
-            sectionTop = true,
+            title = appearanceSectionTitle
         )
         groupedCardItems(
             keyPrefix = "floating-pointer-appearance",
@@ -111,18 +109,18 @@ fun FloatingPointerSettingsScreen(
                             icon = { label ->
                                 Icon(
                                     HubLeadingIcons.floatingPointer(true),
-                                    contentDescription = label,
+                                    contentDescription = label
                                 )
                             },
                             title = stringResource(R.string.floating_pointer_pointer_settings_title),
                             subtitle = stringResource(
                                 R.string.floating_pointer_pointer_settings_summary,
                                 settings.floatingPointerRingThicknessPx.roundToInt(),
-                                settings.floatingPointerDotDiameterPx.roundToInt(),
+                                settings.floatingPointerDotDiameterPx.roundToInt()
                             ),
-                            onClick = onOpenPointerSettings,
+                            onClick = onOpenPointerSettings
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("joystick-settings") {
@@ -130,17 +128,17 @@ fun FloatingPointerSettingsScreen(
                             icon = { label ->
                                 Icon(
                                     gestureActionTypeOutlinedIcon(GestureActionType.SIMULATE_POINTER_SWIPE),
-                                    contentDescription = label,
+                                    contentDescription = label
                                 )
                             },
                             title = stringResource(R.string.floating_pointer_joystick_settings_title),
                             subtitle = stringResource(
                                 R.string.floating_pointer_joystick_settings_summary,
-                                settings.floatingPointerJoystickDiameterPx.roundToInt(),
+                                settings.floatingPointerJoystickDiameterPx.roundToInt()
                             ),
-                            onClick = onOpenJoystickSettings,
+                            onClick = onOpenJoystickSettings
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("radial-settings") {
@@ -148,14 +146,14 @@ fun FloatingPointerSettingsScreen(
                             icon = { label ->
                                 Icon(
                                     gestureActionTypeOutlinedIcon(GestureActionType.OPEN_FLOATING_POINTER_RADIAL_MENU),
-                                    contentDescription = label,
+                                    contentDescription = label
                                 )
                             },
                             title = stringResource(R.string.floating_pointer_radial_settings_title),
                             subtitle = gestureActionLabel(settings.floatingPointerJoystickLongPressAction),
-                            onClick = onOpenRadialMenuSettings,
+                            onClick = onOpenRadialMenuSettings
                         )
-                    },
+                    }
                 )
                 add(
                     settingsCardScopeItem("edge-settings") {
@@ -163,11 +161,11 @@ fun FloatingPointerSettingsScreen(
                             icon = { label -> Icon(Icons.Outlined.KeyboardArrowUp, contentDescription = label) },
                             title = stringResource(R.string.floating_pointer_edge_settings_title),
                             subtitle = stringResource(R.string.floating_pointer_edge_settings_summary),
-                            onClick = onOpenEdgeActionsSettings,
+                            onClick = onOpenEdgeActionsSettings
                         )
-                    },
+                    }
                 )
-            },
+            }
         )
     }
 }
@@ -177,14 +175,14 @@ fun SettingsCardScope.FloatingPointerEntryCard(
     settings: ExtensionHubSettings,
     enabled: Boolean,
     outlinedLeadingIcons: Boolean = false,
-    onClick: () -> Unit,
+    onClick: () -> Unit
 ) {
     val subtitle = if (enabled) {
         stringResource(
             R.string.floating_pointer_entry_summary,
             settings.floatingPointerJoystickDiameterPx.roundToInt(),
             settings.floatingPointerPointerDiameterPx.roundToInt(),
-            (settings.floatingPointerSensitivityFraction * 100).roundToInt(),
+            (settings.floatingPointerSensitivityFraction * 100).roundToInt()
         )
     } else {
         stringResource(R.string.floating_pointer_entry_desc)
@@ -196,6 +194,6 @@ fun SettingsCardScope.FloatingPointerEntryCard(
         title = stringResource(R.string.floating_pointer_settings_title),
         subtitle = subtitle,
         enabled = enabled,
-        onClick = onClick,
+        onClick = onClick
     )
 }

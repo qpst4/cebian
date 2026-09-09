@@ -105,16 +105,16 @@ object UniversalCopyOverlay {
         }
         val blocksView = TextBlocksView(context, blocks, density, accentColor,
             onEmptyTap = { dismiss() },
-            onSelectionChanged = { updateToolbarState(blocks) },
+            onSelectionChanged = { updateToolbarState(blocks) }
         )
         root.addView(blocksView, FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.MATCH_PARENT,
-            FrameLayout.LayoutParams.MATCH_PARENT,
+            FrameLayout.LayoutParams.MATCH_PARENT
         ))
         val toolbar = createToolbar(context, blocks, density, accentColor)
         root.addView(toolbar, FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.WRAP_CONTENT,
-            FrameLayout.LayoutParams.WRAP_CONTENT,
+            FrameLayout.LayoutParams.WRAP_CONTENT
         ).apply {
             gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
             bottomMargin = dp(48)
@@ -124,7 +124,7 @@ object UniversalCopyOverlay {
             WindowManager.LayoutParams.MATCH_PARENT,
             OverlayWindowTypes.overlayWindowType(context),
             WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
-            PixelFormat.TRANSLUCENT,
+            PixelFormat.TRANSLUCENT
         )
         wm.addView(root, params)
         currentOverlay = WeakReference(root)
@@ -137,7 +137,7 @@ object UniversalCopyOverlay {
         context: Context,
         blocks: List<SelectableBlock>,
         density: Float,
-        accentColor: Int,
+        accentColor: Int
     ): LinearLayout {
         val dp = { value: Int -> (value * density + 0.5f).toInt() }
         val toolbar = LinearLayout(context).apply {
@@ -162,7 +162,7 @@ object UniversalCopyOverlay {
         val selectAll = createToolbarButton(context, density,
             context.getString(R.string.universal_copy_select_all),
             "#3A3A3A".toColorInt(),
-            "#CCCCCC".toColorInt(),
+            "#CCCCCC".toColorInt()
         ) {
             val allSelected = blocks.all { it.selected }
             blocks.forEach { it.selected = !allSelected }
@@ -176,7 +176,7 @@ object UniversalCopyOverlay {
         val copy = createToolbarButton(context, density,
             context.getString(R.string.universal_copy_copy),
             accentColor,
-            Color.WHITE,
+            Color.WHITE
         ) {
             val selected = blocks.filter { it.selected }
             if (selected.isNotEmpty()) {
@@ -195,7 +195,7 @@ object UniversalCopyOverlay {
         val pick = createToolbarButton(context, density,
             context.getString(R.string.universal_copy_pick),
             "#4A9A4A".toColorInt(),
-            Color.WHITE,
+            Color.WHITE
         ) {
             val selected = blocks.filter { it.selected }
             if (selected.isNotEmpty()) {
@@ -224,7 +224,7 @@ object UniversalCopyOverlay {
         label: String,
         bgColor: Int,
         textColor: Int,
-        onClick: () -> Unit,
+        onClick: () -> Unit
     ): TextView {
         val dp = { value: Int -> (value * density + 0.5f).toInt() }
         return TextView(context).apply {
@@ -279,9 +279,9 @@ object UniversalCopyOverlay {
                 screenshot = null,
                 screenRect = null,
                 activeSource = PickResultTextSource.A11Y,
-                contentOrigin = PickResultContentOrigin.SCREEN_PICK,
+                contentOrigin = PickResultContentOrigin.SCREEN_PICK
             ),
-            initialTextMode = PickResultTextMode.WORD_TAP,
+            initialTextMode = PickResultTextMode.WORD_TAP
         )
     }
 
@@ -291,7 +291,7 @@ object UniversalCopyOverlay {
         private val density: Float,
         accentColor: Int,
         private val onEmptyTap: () -> Unit,
-        private val onSelectionChanged: () -> Unit,
+        private val onSelectionChanged: () -> Unit
     ) : View(context) {
         private val cornerRadius = 4f * density
         private val tapPadding = (10 * density).toInt()
@@ -333,7 +333,7 @@ object UniversalCopyOverlay {
                     block.bounds.left.toFloat() - viewOffsetX,
                     block.bounds.top.toFloat() - viewOffsetY,
                     block.bounds.right.toFloat() - viewOffsetX,
-                    block.bounds.bottom.toFloat() - viewOffsetY,
+                    block.bounds.bottom.toFloat() - viewOffsetY
                 )
                 if (block.selected) {
                     canvas.drawRoundRect(tmpRect, cornerRadius, cornerRadius, selectedFillPaint)

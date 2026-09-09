@@ -18,7 +18,7 @@ internal class FloatingPointerRealtimeGesture(
     startX: Float,
     startY: Float,
     private val onError: () -> Unit = {},
-    private val onFinished: () -> Unit = {},
+    private val onFinished: () -> Unit = {}
 ) {
     private var currentStroke: GestureDescription.StrokeDescription?
     private var lastDispatchedPoint: Point

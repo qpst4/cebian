@@ -21,7 +21,7 @@ internal fun WidgetPopupTouchHandler(
     editMode: Boolean,
     progress: Float,
     onDismissOutside: () -> Unit,
-    onExitEditMode: () -> Unit,
+    onExitEditMode: () -> Unit
 ) {
     if (!blockingTouches) return
     Box(
@@ -46,11 +46,11 @@ internal fun WidgetPopupTouchHandler(
                         indication = null,
                         onClick = {
                             if (editMode) onExitEditMode() else onDismissOutside()
-                        },
+                        }
                     )
                 } else {
                     Modifier
-                },
-            ),
+                }
+            )
     )
 }

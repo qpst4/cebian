@@ -29,7 +29,7 @@ internal fun SideBubbleTitleText(
     text: String,
     color: Color,
     fontSize: TextUnit = SideBubbleTitleFontSize,
-    lineHeight: TextUnit = SideBubbleTitleLineHeight,
+    lineHeight: TextUnit = SideBubbleTitleLineHeight
 ) {
     Text(
         text = text,
@@ -38,10 +38,10 @@ internal fun SideBubbleTitleText(
             fontSize = fontSize,
             lineHeight = lineHeight,
             fontWeight = FontWeight.Normal,
-            platformStyle = SideBubbleCompactPlatformStyle,
+            platformStyle = SideBubbleCompactPlatformStyle
         ),
         maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
+        overflow = TextOverflow.Ellipsis
     )
 }
 
@@ -53,17 +53,17 @@ internal fun SideBubbleContentText(
     contentColor: Color,
     maxLines: Int,
     fontSize: TextUnit = SideBubbleContentFontSize,
-    lineHeight: TextUnit = SideBubbleContentLineHeight,
+    lineHeight: TextUnit = SideBubbleContentLineHeight
 ) {
     val displayText = resolveSideBubbleContent(title, text)
     Text(
         text = buildSideBubbleContentText(displayText, titleColor, contentColor, fontSize),
         style = TextStyle(
             lineHeight = lineHeight,
-            platformStyle = SideBubbleCompactPlatformStyle,
+            platformStyle = SideBubbleCompactPlatformStyle
         ),
         maxLines = maxLines,
-        overflow = TextOverflow.Ellipsis,
+        overflow = TextOverflow.Ellipsis
     )
 }
 
@@ -90,12 +90,12 @@ internal fun buildSideBubbleContentText(
     text: String,
     titleColor: Color,
     contentColor: Color,
-    fontSize: TextUnit = SideBubbleContentFontSize,
+    fontSize: TextUnit = SideBubbleContentFontSize
 ): AnnotatedString {
     val contentLineStyle = SpanStyle(
         color = titleColor,
         fontSize = fontSize,
-        fontWeight = FontWeight.Bold,
+        fontWeight = FontWeight.Bold
     )
     val colonIndex = text.indexOf(':')
     if (colonIndex <= 0 || colonIndex >= text.lastIndex) {

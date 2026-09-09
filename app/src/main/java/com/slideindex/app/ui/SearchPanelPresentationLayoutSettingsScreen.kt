@@ -104,7 +104,6 @@ fun SearchPanelPresentationLayoutSettingsScreen(
         settingsLazySmallTitle(
             key = "background_section",
             title = backgroundSectionTitle,
-            sectionTop = true,
         )
         groupedCardItems(
             keyPrefix = "search_panel_appearance",
