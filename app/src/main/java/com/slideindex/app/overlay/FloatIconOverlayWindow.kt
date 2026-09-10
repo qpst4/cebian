@@ -94,14 +94,14 @@ object FloatIconOverlayWindow {
                 return
             }
 
-        ensureWindow(hostContext, plan.settings)
-        updateWindowPlacement(hostContext, plan.settings)
-
         if (items.any { it.matches(plan.data) }) return
 
         while (items.isNotEmpty()) {
             removeEntry(items.last(), animate = false)
         }
+
+        ensureWindow(hostContext, plan.settings)
+        updateWindowPlacement(hostContext, plan.settings)
 
         val entry = FloatIconEntry(
             id = ++nextEntryId,
