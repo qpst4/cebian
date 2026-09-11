@@ -88,13 +88,11 @@ internal object CNoticePeekBannerOverlayWindow {
         ensureWindow(context)
         composeView?.let { view ->
             view.visibility = View.VISIBLE
-            visibleState.value = true
-            view.post {
-                if (lastBannerSize.width > 0 && lastBannerSize.height > 0) {
-                    applyPosition(lastBannerSize.width, lastBannerSize.height)
-                } else {
-                    view.requestLayout()
-                }
+            if (visibleState.value) {
+                refreshBannerPlacement(view)
+            } else {
+                visibleState.value = false
+                view.post { revealBanner(view) }
             }
         }
     }
@@ -102,7 +100,7 @@ internal object CNoticePeekBannerOverlayWindow {
     fun dismiss() {
         cancelDismissCleanup()
         if (!visibleState.value && displayTextState.value.isNullOrBlank()) {
-            composeView?.visibility = View.GONE
+            composeView?.visibility = View.INVISIBLE
             return
         }
         visibleState.value = false
@@ -111,7 +109,7 @@ internal object CNoticePeekBannerOverlayWindow {
             displayTextState.value = null
             lastAnchor = null
             lastBannerSize = IntSize.Zero
-            composeView?.visibility = View.GONE
+            composeView?.visibility = View.INVISIBLE
         }
         dismissCleanupRunnable = runnable
         mainHandler.postDelayed(runnable, ANIM_MS)
@@ -139,6 +137,19 @@ internal object CNoticePeekBannerOverlayWindow {
         dismissCleanupRunnable = null
     }
 
+    private fun revealBanner(view: ComposeView) {
+        visibleState.value = true
+        refreshBannerPlacement(view)
+    }
+
+    private fun refreshBannerPlacement(view: ComposeView) {
+        if (lastBannerSize.width > 0 && lastBannerSize.height > 0) {
+            applyPosition(lastBannerSize.width, lastBannerSize.height)
+        } else {
+            view.requestLayout()
+        }
+    }
+
     private fun ensureWindow(context: Context) {
         if (composeView != null) return
         val hostContext = MessageOverlayHost.resolveContentPanelContext(context)
@@ -152,6 +163,7 @@ internal object CNoticePeekBannerOverlayWindow {
             return
         }
         val view = OverlayCompose.createComposeView(overlayContext, dialogOwner).apply {
+            visibility = View.INVISIBLE
             isClickable = false
             isFocusable = false
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
