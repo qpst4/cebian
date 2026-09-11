@@ -4,7 +4,6 @@ import android.graphics.Canvas
 import android.graphics.Outline
 import android.graphics.RectF
 import android.graphics.drawable.Drawable
-import android.os.Build
 import android.util.Log
 import android.view.View
 import android.view.ViewOutlineProvider
@@ -22,7 +21,7 @@ fun LocalFrostedGlassBackdrop(
     @ColorInt tintColor: Int = 0x331C1C1E,
     enabled: Boolean = true
 ) {
-    if (!enabled || Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
+    if (!enabled) return
 
     AndroidView(
         modifier = modifier,
@@ -50,7 +49,6 @@ fun LocalFrostedGlassBackdrop(
 }
 
 internal fun setupBackgroundBlur(view: View, cornerRadiusPx: Float, blurRadiusPx: Int, @ColorInt tintColor: Int) {
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
     runCatching {
         val blurDrawable = view.background?.takeIf {
             it.javaClass.name.contains("BackgroundBlurDrawable")
@@ -76,15 +74,12 @@ internal class LocalFrostedGlassDrawable(private val viewProvider: () -> View?) 
     constructor(view: View) : this({ view })
     private var blurDrawable: Drawable? = null
     private var lastViewRootImpl: Any? = null
-    private val isSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-
     fun reset() {
         blurDrawable = null
         lastViewRootImpl = null
     }
 
     private fun ensureDrawable(): Drawable? {
-        if (!isSupported) return null
         val view = viewProvider() ?: return null
         if (!view.isAttachedToWindow) return null
         val currentVri = runCatching {
@@ -113,7 +108,7 @@ internal class LocalFrostedGlassDrawable(private val viewProvider: () -> View?) 
         @ColorInt tintColor: Int,
         alpha: Float = 1f
     ): Boolean {
-        if (!isSupported || bounds.isEmpty || alpha <= 0.001f) return false
+        if (bounds.isEmpty || alpha <= 0.001f) return false
         val drawable = ensureDrawable() ?: return false
         return runCatching {
             val setBlurRadius = drawable.javaClass.getMethod("setBlurRadius", java.lang.Integer.TYPE)
@@ -136,7 +131,6 @@ internal class LocalFrostedGlassDrawable(private val viewProvider: () -> View?) 
 
     companion object {
         fun createBlurDrawable(view: View): Drawable? {
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return null
             return runCatching {
                 val getViewRootImplMethod = View::class.java.getDeclaredMethod("getViewRootImpl")
                 getViewRootImplMethod.isAccessible = true

@@ -13,6 +13,7 @@ import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewTreeObserver
+import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.isNotEmpty
 import android.view.animation.DecelerateInterpolator
 import android.widget.FrameLayout
@@ -90,7 +91,7 @@ class WidgetCardContainer(
                 tintArgb = Color.WHITE,
                 outlined = true,
                 withPlate = true,
-              ).let { android.graphics.drawable.BitmapDrawable(resources, it) }
+              ).toDrawable(resources)
             } else null
           } else if (item.itemType == ITEM_TYPE_SHORTCUT && item.shortcutId.isNotEmpty()) {
             runCatching {

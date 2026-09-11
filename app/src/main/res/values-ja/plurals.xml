@@ -87,4 +87,40 @@
     <plurals name="clipboard_float_app_blacklist_desc">
         <item quantity="other">%1$d 個のアプリをブロック · ペースト成功 %2$d 回 · 失敗 %3$d 回</item>
     </plurals>
+    <plurals name="notification_history_group_summary">
+        <item quantity="other">%d 件の通知</item>
+    </plurals>
+    <plurals name="fingertip_ring_slot_count_value">
+        <item quantity="other">%d スロット</item>
+    </plurals>
+    <plurals name="universal_copy_selected">
+        <item quantity="other">%d 件選択中</item>
+    </plurals>
+    <plurals name="universal_copy_copied">
+        <item quantity="other">%d 件をコピーしました</item>
+    </plurals>
+    <plurals name="freezer_refreeze_done">
+        <item quantity="other">%d 個のアプリをフリーズしました</item>
+    </plurals>
+    <plurals name="freezer_unfreeze_all_done">
+        <item quantity="other">%d 個のアプリのフリーズを解除しました</item>
+    </plurals>
+    <plurals name="freezer_import_frozen_done">
+        <item quantity="other">%d 件のアプリをインポートしました</item>
+    </plurals>
+    <plurals name="holographic_launcher_entry_summary_hidden">
+        <item quantity="other">%d 件のアプリを非表示</item>
+    </plurals>
+    <plurals name="quick_launcher_folder_items_count">
+        <item quantity="other">%d 件</item>
+    </plurals>
+    <plurals name="shortcut_custom_count_summary">
+        <item quantity="other">カスタム直接ショートカット %d 件</item>
+    </plurals>
+    <plurals name="shortcut_item_count">
+        <item quantity="other">%d 件</item>
+    </plurals>
+    <plurals name="widget_group_count">
+        <item quantity="other">ウィジェット %d 件</item>
+    </plurals>
 </resources>

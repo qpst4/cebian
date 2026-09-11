@@ -82,7 +82,6 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
     private lateinit var listController: ClipboardFloatListController
     private var backHandler: OverlayViewBackHandler? = null
 
-    private var hostContext: Context? = null
     private var viewAdded = false
 
     private var displayMode by mutableStateOf(ClipboardFloatDisplayMode.Chip)
@@ -189,7 +188,6 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
             stopSelf()
             return START_NOT_STICKY
         }
-        hostContext = resolvedHost
         windowManager = resolvedHost.getSystemService(WINDOW_SERVICE) as WindowManager
 
         if (!viewAdded) {
@@ -482,7 +480,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
                     onUserInteraction = ::onUserInteraction
                 )
             }
-            setOnTouchListener { _, event ->
+            setOnTouchListener { view, event ->
                 when (event.action) {
                     MotionEvent.ACTION_OUTSIDE -> {
                         if (displayMode == ClipboardFloatDisplayMode.Expanded) {
@@ -499,6 +497,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
                             undimWindow()
                         }
                     }
+                    MotionEvent.ACTION_UP -> view.performClick()
                 }
                 false
             }
@@ -865,7 +864,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
     }
 
     private fun openStashPanel() {
-        val host = hostContext ?: return
+        val host = MessageOverlayHost.resolveHostContext(this) ?: return
         val query = listController.searchQuery.value.trim().takeIf { searchActive && it.isNotEmpty() }
         FloatBallStashPanel.show(
             context = host,

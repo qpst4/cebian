@@ -3,6 +3,7 @@ package com.slideindex.app.ui.icon
 import android.content.ComponentName
 import android.content.Context
 import android.content.pm.PackageManager
+import androidx.core.content.edit
 import com.slideindex.app.R
 
 enum class AppIconTheme(
@@ -55,7 +56,7 @@ enum class AppIconTheme(
 
         fun applyIconTheme(context: Context, targetTheme: AppIconTheme) {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            prefs.edit().putInt(KEY_ICON_THEME_ID, targetTheme.id).apply()
+            prefs.edit { putInt(KEY_ICON_THEME_ID, targetTheme.id) }
 
             val pm = context.packageManager
             val pkg = context.packageName

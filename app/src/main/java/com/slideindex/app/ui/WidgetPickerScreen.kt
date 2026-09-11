@@ -57,6 +57,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -631,7 +632,7 @@ private fun WidgetAppGroupSection(
           color = MaterialTheme.colorScheme.onSurface,
         )
         Text(
-          text = stringResource(R.string.widget_group_count, group.widgets.size),
+          text = pluralStringResource(R.plurals.widget_group_count, group.widgets.size, group.widgets.size),
           style = MaterialTheme.typography.bodySmall,
           color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -749,7 +750,7 @@ private fun WidgetAppDetailScreen(
 
   SettingsScreenScaffold(
     title = group.appLabel,
-    subtitle = stringResource(R.string.widget_group_count, group.widgets.size),
+    subtitle = pluralStringResource(R.plurals.widget_group_count, group.widgets.size, group.widgets.size),
     onBack = onBack,
     enableBackHandler = enableBackHandler,
     overlayMode = overlayMode,

@@ -32,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -73,7 +74,11 @@ fun LazyListScope.shortcutFolderCardsSection(
             ArrowPreference(
                 title = stringResource(R.string.quick_launcher_my_shortcuts),
                 summary = if (activityShortcutsCount > 0) {
-                    stringResource(R.string.shortcut_custom_count_summary, activityShortcutsCount)
+                    pluralStringResource(
+                        R.plurals.shortcut_custom_count_summary,
+                        activityShortcutsCount,
+                        activityShortcutsCount,
+                    )
                 } else {
                     stringResource(R.string.shortcut_custom_empty_summary)
                 },
@@ -434,7 +439,11 @@ private fun LazyListScope.presetShortcutsListContent(
                         Spacer(Modifier.width(6.dp))
                     }
                     Text(
-                        text = stringResource(R.string.shortcut_item_count, group.shortcuts.size),
+                        text = pluralStringResource(
+                            R.plurals.shortcut_item_count,
+                            group.shortcuts.size,
+                            group.shortcuts.size,
+                        ),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )

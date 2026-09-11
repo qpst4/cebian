@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Path
+import androidx.core.graphics.withClip
 import com.slideindex.app.activity.ActivityShortcut
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.launcher.isShellActivityShortcut
@@ -84,10 +85,9 @@ internal object FingertipRingRenderer {
             val top = iconY - drawDiameter / 2f
             iconClipPath.rewind()
             iconClipPath.addCircle(iconX, iconY, bgRadius * 0.96f, Path.Direction.CW)
-            canvas.save()
-            canvas.clipPath(iconClipPath)
-            canvas.drawBitmap(bitmap, null, android.graphics.RectF(left, top, left + drawDiameter, top + drawDiameter), iconPaint)
-            canvas.restore()
+            canvas.withClip(iconClipPath) {
+                drawBitmap(bitmap, null, android.graphics.RectF(left, top, left + drawDiameter, top + drawDiameter), iconPaint)
+            }
 
             when {
                 action is GestureAction.LaunchShortcut -> {

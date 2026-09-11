@@ -1,7 +1,6 @@
 package com.slideindex.app.util
 
 import android.content.Context
-import android.graphics.drawable.BitmapDrawable
 import androidx.core.graphics.drawable.toDrawable
 import android.graphics.drawable.Drawable
 import android.content.Intent
@@ -78,7 +77,7 @@ object QuickLauncherIconResolver {
                     activityShortcuts = activityShortcuts,
                     shellCommands = shellCommands,
                 )
-                context?.resources?.let { bmp.toDrawable(it) } ?: BitmapDrawable(null, bmp)
+                bmp.toDrawable(context?.resources ?: android.content.res.Resources.getSystem())
             }
             QuickLauncherItemType.APP -> getIconSafe(appsByPackage[item.payload], context)
                 ?: getIconSafe(item.payload, context)

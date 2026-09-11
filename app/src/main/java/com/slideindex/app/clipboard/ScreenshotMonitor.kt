@@ -274,18 +274,13 @@ class ScreenshotMonitor(
         mimeType: String?,
         relativePath: String?,
         dataPath: String?
-    ): Boolean {
-        val mime = mimeType?.lowercase()
-        if (mime != null && !mime.startsWith("image/")) return false
-
-        val rel = relativePath?.lowercase().orEmpty()
-        val data = dataPath?.lowercase().orEmpty()
-        if (rel.contains("screenshots") || data.contains("/screenshots/")) {
-            return true
-        }
-        val name = (displayName ?: dataPath ?: "").lowercase()
-        return nameKeywords.any { keyword -> name.contains(keyword) }
-    }
+    ): Boolean = Companion.isScreenshotCandidate(
+        displayName = displayName,
+        mimeType = mimeType,
+        relativePath = relativePath,
+        dataPath = dataPath,
+        nameKeywords = nameKeywords,
+    )
 
     companion object {
         private const val TAG = "ScreenshotMonitor"
@@ -302,6 +297,25 @@ class ScreenshotMonitor(
             "capture",
             "screen-shot"
         )
+
+        fun isScreenshotCandidate(
+            displayName: String?,
+            mimeType: String?,
+            relativePath: String?,
+            dataPath: String?,
+            nameKeywords: Set<String> = ENGLISH_NAME_KEYWORDS,
+        ): Boolean {
+            val mime = mimeType?.lowercase()
+            if (mime != null && !mime.startsWith("image/")) return false
+
+            val rel = relativePath?.lowercase().orEmpty()
+            val data = dataPath?.lowercase().orEmpty()
+            if (rel.contains("screenshots") || data.contains("/screenshots/")) {
+                return true
+            }
+            val name = (displayName ?: dataPath ?: "").lowercase()
+            return nameKeywords.any { keyword -> name.contains(keyword) }
+        }
 
         fun isRecentEnough(dateTaken: Long?, dateAdded: Long?, dateModified: Long?): Boolean {
             val nowSec = System.currentTimeMillis() / 1000

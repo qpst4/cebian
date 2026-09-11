@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
@@ -63,7 +64,7 @@ fun FingertipRingSettingsScreen(
     val orbitRadiusLabel = stringResource(R.string.fingertip_ring_size_px_value, orbitRadiusPx.roundToInt())
     val iconSizeLabel = stringResource(R.string.fingertip_ring_size_px_value, iconSizePx.roundToInt())
     val slotCountTitle = stringResource(R.string.fingertip_ring_slot_count)
-    val slotCountLabel = stringResource(R.string.fingertip_ring_slot_count_value, slotCount)
+    val slotCountLabel = pluralStringResource(R.plurals.fingertip_ring_slot_count_value, slotCount, slotCount)
 
     SettingsLazyScreenScaffold(
         title = stringResource(R.string.fingertip_ring_settings_title),

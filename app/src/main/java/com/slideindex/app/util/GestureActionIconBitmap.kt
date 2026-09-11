@@ -200,11 +200,10 @@ object GestureActionIconBitmap {
         ) * contentScale
         val dx = (sizePx - imageVector.viewportWidth * scale) / 2f
         val dy = (sizePx - imageVector.viewportHeight * scale) / 2f
-        canvas.save()
-        canvas.translate(dx, dy)
-        canvas.scale(scale, scale)
-        drawGroup(canvas, paint, imageVector.root)
-        canvas.restore()
+        canvas.withTranslation(dx, dy) {
+            scale(scale, scale)
+            drawGroup(this, paint, imageVector.root)
+        }
         return bitmap
     }
 

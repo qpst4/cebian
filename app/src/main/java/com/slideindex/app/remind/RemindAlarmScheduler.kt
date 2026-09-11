@@ -5,11 +5,11 @@ package com.slideindex.app.remind
  * Licensed under GPL-3.0. Modified for com.slideindex.app.
  */
 
+import android.annotation.SuppressLint
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.widget.Toast
 import com.slideindex.app.R
 
@@ -55,14 +55,10 @@ object RemindAlarmScheduler {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         ) ?: return false
         val triggerAt = System.currentTimeMillis() + safeMinutes * 60_000L
-        runCatching {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, scheduleIntent)
-            } else {
-                alarmManager.setExact(AlarmManager.RTC_WAKEUP, triggerAt, scheduleIntent)
-            }
-        }.onFailure {
-            alarmManager.set(AlarmManager.RTC_WAKEUP, triggerAt, scheduleIntent)
+        if (!alarmManager.canScheduleExactAlarms()) {
+            alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, scheduleIntent)
+        } else {
+            scheduleExactAlarm(alarmManager, triggerAt, scheduleIntent)
         }
         Toast.makeText(
             context,
@@ -70,6 +66,19 @@ object RemindAlarmScheduler {
             Toast.LENGTH_SHORT
         ).show()
         return true
+    }
+
+    @SuppressLint("MissingPermission")
+    private fun scheduleExactAlarm(
+        alarmManager: AlarmManager,
+        triggerAt: Long,
+        scheduleIntent: PendingIntent,
+    ) {
+        runCatching {
+            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, scheduleIntent)
+        }.onFailure {
+            alarmManager.set(AlarmManager.RTC_WAKEUP, triggerAt, scheduleIntent)
+        }
     }
 
     private fun pendingIntent(context: Context, minutes: Int, flags: Int): PendingIntent? {

@@ -63,7 +63,7 @@ object SystemWallpaperBlurHelper {
 
         val appSpecificIntent = Intent(
             android.provider.Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
-            android.net.Uri.parse("package:${context.packageName}")
+            "package:${context.packageName}".toUri()
         ).applyContextFlags()
 
         val generalIntent = Intent(

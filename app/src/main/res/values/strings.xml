@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">边栏</string>
     <string name="main_settings_subtitle">边缘手势与侧边面板</string>
     <string name="main_nav_home">首页</string>
@@ -288,7 +288,7 @@
     <string name="permission_notification_title">通知权限</string>
     <string name="permission_notification_desc">需要通知权限以保持后台服务运行</string>
     <string name="permission_usage_title">使用情况访问权限</string>
-    <string name="permission_usage_desc_excluded_apps">无障碍服务开启时已实时接管前台应用识别，排除规则已正常生效。开启此权限可作为后台备用兜底，并在应用切换器中获取完整的最近使用应用排行。</string>
+    <string name="permission_usage_desc_excluded_apps">建议在列表中找到「%1$s」并允许访问。无障碍服务开启时已实时接管前台应用识别，排除规则已正常生效。开启此权限可作为后台备用兜底，并在应用切换器中获取完整的最近使用应用排行。</string>
     <string name="gesture_action_app_carousel_switcher_permission">需要使用情况访问权限以获取最近使用的应用</string>
     <string name="grant_permission">去授权</string>
     <string name="gesture_switch">手势开关</string>
@@ -790,7 +790,6 @@
     <string name="gesture_action_holographic_launcher">全息启动器</string>
     <string name="holographic_launcher_entry_title">全息启动器</string>
     <string name="holographic_launcher_entry_desc">3D 球面应用启动器：拖拽旋转、点击启动</string>
-    <string name="holographic_launcher_entry_summary_hidden">已隐藏 %1$d 个应用</string>
     <string name="holographic_launcher_settings_title">全息启动器设置</string>
     <string name="holographic_settings_section_interaction">交互</string>
     <string name="holographic_settings_section_background">背景</string>
@@ -901,7 +900,7 @@
     <string name="key_event_code_label">按键键值 (KeyCode)</string>
     <string name="key_event_name_label">按键名称 / 备注</string>
     <string name="key_event_long_press_title">模拟长按</string>
-    <string name="key_event_long_press_summary">使用 input keyevent --longpress 发送按键事件</string>
+    <string name="key_event_long_press_summary" tools:ignore="TypographyDashes">使用 input keyevent --longpress 发送按键事件</string>
     <string name="key_event_permission_hint">提示：模拟按键需要 Root 权限或已激活 Shizuku 服务以注入按键事件。</string>
     <string name="key_event_permission_toast">模拟按键失败：请确保已授予 Root 权限或 Shizuku 服务正在运行</string>
     <string name="key_event_failed_hint">模拟按键失败：%1$s</string>
@@ -926,7 +925,6 @@
     <string name="fingertip_ring_icon_size">图标大小</string>
     <string name="fingertip_ring_size_px_value">%1$d px</string>
     <string name="fingertip_ring_slot_count">槽位数量</string>
-    <string name="fingertip_ring_slot_count_value">%1$d 个槽位</string>
     <string name="fingertip_ring_slot_title">槽位 %1$d</string>
     <string name="gesture_action_foreground_activity_inspector">前台活动探测</string>
     <string name="gesture_action_foreground_activity_inspector_desc">悬浮窗实时显示当前前台应用的包名与 Activity 类名</string>
@@ -956,8 +954,6 @@
     <string name="universal_copy_deselect">取消全选</string>
     <string name="universal_copy_copy">复制</string>
     <string name="universal_copy_pick">分词</string>
-    <string name="universal_copy_selected">已选 %1$d 项</string>
-    <string name="universal_copy_copied">已复制 %1$d 项</string>
     <string name="universal_copy_no_text">未找到可复制文本</string>
     <string name="gesture_action_freezer_panel">冰箱</string>
     <string name="gesture_action_freezer_panel_desc">打开冰箱悬浮窗</string>
@@ -972,8 +968,6 @@
     <string name="freezer_freeze_failed">冻结失败：%1$s</string>
     <string name="freezer_unfreeze_failed">解冻失败：%1$s</string>
     <string name="freezer_unfreeze_need_root">该应用先前以系统级方式冻结，请在特权模式中选择 Root，或授予 Shizuku Root 后再解冻</string>
-    <string name="freezer_refreeze_done">已冻结 %1$d 个应用</string>
-    <string name="freezer_unfreeze_all_done">已解冻 %1$d 个应用</string>
     <string name="freezer_tab_all">全部</string>
     <string name="freezer_tab_frozen">已冻结</string>
     <string name="freezer_tab_active">使用中</string>
@@ -997,7 +991,6 @@
     <string name="freezer_remove_while_frozen">该应用仍处于冻结状态，请先解冻或选择「解冻并移除」</string>
     <string name="freezer_import_frozen_apps">导入已冻结应用</string>
     <string name="freezer_import_frozen_apps_desc">扫描系统中已禁用的桌面应用并加入冰箱列表</string>
-    <string name="freezer_import_frozen_done">已导入 %1$d 个应用</string>
     <string name="freezer_import_frozen_none">没有可导入的已冻结应用</string>
     <string name="freezer_add_to_list">加入冰箱列表</string>
     <string name="freezer_launch_app">启动应用</string>
@@ -1450,7 +1443,7 @@
     <string name="diagnostic_report_export_failed">诊断报告导出失败，请稍后重试</string>
     <string name="diagnostic_report_share_chooser_title">分享诊断日志</string>
     <string name="diagnostic_report_share_subject">边栏诊断日志</string>
-    <string name="diagnostic_report_truncation_suffix">\n\n...(内容过长已截断)...</string>
+    <string name="diagnostic_report_truncation_suffix">\n\n…(内容过长已截断)…</string>
     <string name="native_engine_packs_title">运行时引擎</string>
     <string name="native_engine_packs_subtitle">OCR、离线翻译与取词分词的原生库，按需下载</string>
     <string name="native_engine_packs_section">引擎包</string>
@@ -1675,7 +1668,7 @@
     <string name="search_engine_type_extern_jump">应用深链 (Scheme)</string>
     <string name="search_engine_url_link_hint">URL / Scheme 链接地址</string>
     <string name="search_engine_url_link_support" formatted="false">支持 https://、coolmarket://、intent:// 等；可用 %s 或 %q 作为关键词占位符</string>
-    <string name="search_engine_url_link_flow_desc" formatted="false">执行规则与流程：&#10;1. 带参跳转：若包含 %s 占位符（如 .../search?q=%s），直接将关键词替换入链接带参跳转&#10;2. 指定应用：若填了目标包名则强制由该 App 打开，留空则使用默认应用&#10;3. 无障碍填字：若未用 %s 且开启了自动输入，跳转后自动在搜索框中填字并回车</string>
+    <string name="search_engine_url_link_flow_desc" formatted="false">执行规则与流程：&#10;1. 带参跳转：若包含 %s 占位符（如 example.com/search?q=%s），直接将关键词替换入链接带参跳转&#10;2. 指定应用：若填了目标包名则强制由该 App 打开，留空则使用默认应用&#10;3. 无障碍填字：若未用 %s 且开启了自动输入，跳转后自动在搜索框中填字并回车</string>
     <string name="search_engine_jump_activity_flow_desc">执行规则与流程：&#10;1. 组件拉起：通过包名和 Activity 直接打开目标 App 界面（未导出 Activity 自动由 Shizuku 尝试拉起）&#10;2. 无障碍填字：界面打开后（需开启自动输入），在 600ms~3000ms 内自动寻找搜索框并填字回车</string>
     <string name="search_engine_type_share">分享</string>
     <string name="search_engine_type_share_image">分享图片</string>
@@ -2095,7 +2088,6 @@
     <string name="notification_history_group_by_app_title">按应用折叠</string>
     <string name="notification_history_group_by_app_desc">同一应用有多条通知时默认折叠显示，点击展开</string>
     <string name="notification_history_group_count">%1$d 条</string>
-    <string name="notification_history_group_summary">%1$d 条通知</string>
     <string name="notification_history_group_latest_preview">最新：%1$s</string>
     <string name="notification_history_group_tap_expand">点击展开</string>
     <string name="notification_history_group_tap_collapse">点击收起</string>
@@ -2384,7 +2376,6 @@
     <string name="quick_launcher_folder_add_items">添加快捷项</string>
     <string name="quick_launcher_folder_delete">解散文件夹</string>
     <string name="quick_launcher_folder_rename">重命名</string>
-    <string name="quick_launcher_folder_items_count">%1$d 个快捷项</string>
     <string name="quick_launcher_panel_switch">切换面板</string>
     <string name="adjust_volume_ring_label">铃</string>
     <string name="adjust_volume_notification_label">通</string>
@@ -3161,7 +3152,7 @@
     <string name="vlm_ocr_model_label">Model 模型名称</string>
     <string name="vlm_ocr_recommended_models">快捷选择该服务商推荐型号：</string>
     <string name="vlm_ocr_saved_custom_models">已保存的自定义型号：</string>
-    <string name="vlm_ocr_testing_connection">正在测试连接...</string>
+    <string name="vlm_ocr_testing_connection">正在测试连接…</string>
     <string name="vlm_ocr_test_connection">测试连接</string>
     <string name="vlm_ocr_connection_success_prefix">连接成功</string>
     <string name="vlm_ocr_section_prompt">识别提示词 (System Prompt)</string>
@@ -3233,13 +3224,11 @@ adb 模式应返回 uid=2000。
     <string name="quick_launcher_multi_select_hint">可勾选多个快捷项添加到面板</string>
     <string name="quick_launcher_panel_named">面板 %1$d</string>
     <string name="quick_launcher_folder_add">+ 添加</string>
-    <string name="shortcut_custom_count_summary">%1$d 个自定义直达快捷方式</string>
     <string name="shortcut_custom_empty_summary">自定义创建与管理的直达快捷方式</string>
     <string name="preset_shortcut_library_summary">内置精选直达规则 · 涵盖常用应用</string>
     <string name="shortcut_custom_section_header">自定义快捷方式 (%1$d)</string>
     <string name="preset_shortcut_no_installed">当前设备暂无已安装应用对应的预设快捷方式，搜索可查看全部</string>
     <string name="preset_shortcut_no_match">未找到匹配的预设快捷方式</string>
-    <string name="shortcut_item_count">%1$d 项</string>
     <string name="preset_shortcut_category_other">其他快捷指令</string>
     <string name="preset_app_alipay">支付宝</string>
     <string name="preset_app_coolapk">酷安</string>
@@ -3305,7 +3294,6 @@ adb 模式应返回 uid=2000。
     <string name="fv_app_switcher_circle_4">4 圈(38)</string>
     <string name="widget_tab_apps">应用程序</string>
     <string name="widget_tab_shortcuts">快捷方式</string>
-    <string name="widget_group_count">%1$d 个小组件</string>
     <string name="cd_view_all">查看全部</string>
     <string name="holographic_no_apps_loaded">未加载到应用</string>
     <string name="holographic_check_settings_hint">请检查设置或前往设置页配置</string>

@@ -1,5 +1,6 @@
 package com.slideindex.app.overlay.holographic
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
@@ -10,6 +11,7 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import com.slideindex.app.settings.HolographicLauncherSettings
 
+@SuppressLint("ViewConstructor")
 class HolographicLauncherOverlayView(
     context: Context,
     private val mainHandler: Handler,

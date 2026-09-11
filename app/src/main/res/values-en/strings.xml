@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">Cebian</string>
     <string name="main_settings_subtitle">Edge gestures and sidebar panels</string>
     <!-- Bottom nav "Notifications" groups filter box + verification codes; "Messages" may fit better in some contexts -->
@@ -629,7 +629,7 @@
     <string name="search_engine_url_link_hint">URL / Scheme Address</string>
     <string name="search_engine_url_link_support" formatted="false">Supports https://, coolmarket://, intent:// etc. Use %s or %q as placeholder</string>
     <string name="search_engine_url_link_flow_desc" formatted="false">Execution Rules &amp; Flow:
-1. Parameterized Jump: If %s is used (e.g. .../search?q=%s), query is replaced into URL directly
+1. Parameterized Jump: If %s is used (e.g. example.com/search?q=%s), query is replaced into URL directly
 2. Target App: If target package is set, forces open with specified App; otherwise uses default App
 3. Auto-fill: If no %s is used and auto-input is ON, fills query into search bar via accessibility after launch</string>
     <string name="search_engine_jump_activity_flow_desc">Execution Rules &amp; Flow:
@@ -888,7 +888,7 @@
     <string name="diagnostic_report_export_failed">Failed to export diagnostic report. Please try again.</string>
     <string name="diagnostic_report_share_chooser_title">Share diagnostic log</string>
     <string name="diagnostic_report_share_subject">Cebian diagnostic log</string>
-    <string name="diagnostic_report_truncation_suffix">\n\n...(truncated)...</string>
+    <string name="diagnostic_report_truncation_suffix">\n\n…(truncated)…</string>
     <string name="native_engine_packs_title">Runtime engines</string>
     <string name="native_engine_packs_subtitle">Native libraries for OCR, offline translate, and word segmentation</string>
     <string name="native_engine_packs_section">Engine packs</string>
@@ -1272,7 +1272,6 @@
     <string name="notification_history_group_by_app_title">Group by app</string>
     <string name="notification_history_group_by_app_desc">Collapse when an app has multiple notifications; tap to expand</string>
     <string name="notification_history_group_count">%1$d</string>
-    <string name="notification_history_group_summary">%1$d notifications</string>
     <string name="notification_history_group_latest_preview">Latest: %1$s</string>
     <string name="notification_history_group_tap_expand">Tap to expand</string>
     <string name="notification_history_group_tap_collapse">Tap to collapse</string>
@@ -1387,7 +1386,7 @@
     <string name="key_event_code_label">Key code (KeyCode)</string>
     <string name="key_event_name_label">Key name / note</string>
     <string name="key_event_long_press_title">Simulate long press</string>
-    <string name="key_event_long_press_summary">Use input keyevent --longpress to dispatch key event</string>
+    <string name="key_event_long_press_summary" tools:ignore="TypographyDashes">Use input keyevent --longpress to dispatch key event</string>
     <string name="key_event_permission_hint">Note: Simulating key events requires Root permissions or active Shizuku service.</string>
     <string name="key_event_permission_toast">Simulate key failed: ensure Root permission is granted or Shizuku is running</string>
     <string name="key_event_failed_hint">Simulate key failed: %1$s</string>
@@ -1412,7 +1411,6 @@
     <string name="fingertip_ring_icon_size">Icon size</string>
     <string name="fingertip_ring_size_px_value">%1$d px</string>
     <string name="fingertip_ring_slot_count">Slot count</string>
-    <string name="fingertip_ring_slot_count_value">%1$d slots</string>
     <string name="fingertip_ring_slot_title">Slot %1$d</string>
     <string name="gesture_action_foreground_activity_inspector">Activity Inspector</string>
     <string name="gesture_action_foreground_activity_inspector_desc">Floating HUD displaying current foreground package and Activity class name</string>
@@ -1442,8 +1440,6 @@
     <string name="universal_copy_deselect">Deselect all</string>
     <string name="universal_copy_copy">Copy</string>
     <string name="universal_copy_pick">Segment</string>
-    <string name="universal_copy_selected">%1$d selected</string>
-    <string name="universal_copy_copied">Copied %1$d item(s)</string>
     <string name="universal_copy_no_text">No copyable text found</string>
     <string name="gesture_action_freezer_panel">App freezer</string>
     <string name="gesture_action_freezer_panel_desc">Open freezer overlay</string>
@@ -1482,8 +1478,6 @@
     <string name="freezer_freeze_failed">Freeze failed: %1$s</string>
     <string name="freezer_unfreeze_failed">Unfreeze failed: %1$s</string>
     <string name="freezer_unfreeze_need_root">This app was system-disabled earlier. Switch privilege mode to Root, or grant Shizuku root, then try again.</string>
-    <string name="freezer_refreeze_done">Froze %1$d apps</string>
-    <string name="freezer_unfreeze_all_done">Unfroze %1$d apps</string>
     <string name="freezer_tab_all">All</string>
     <string name="freezer_tab_frozen">Frozen</string>
     <string name="freezer_tab_active">Active</string>
@@ -1507,7 +1501,6 @@
     <string name="freezer_remove_while_frozen">This app is still frozen. Unfreeze it first, or choose Unfreeze and remove.</string>
     <string name="freezer_import_frozen_apps">Import frozen apps</string>
     <string name="freezer_import_frozen_apps_desc">Scan disabled launcher apps and add them to the freezer list</string>
-    <string name="freezer_import_frozen_done">Imported %1$d apps</string>
     <string name="freezer_import_frozen_none">No frozen apps to import</string>
     <string name="freezer_add_to_list">Add to freezer list</string>
     <string name="freezer_launch_app">Launch app</string>
@@ -1634,9 +1627,6 @@
     <string name="settings_section_general">General</string>
     <string name="settings_app_language_title">App language</string>
     <string name="settings_app_language_system">Follow system</string>
-    <string name="settings_app_language_label_zh" translatable="false">简体中文</string>
-    <string name="settings_app_language_label_en" translatable="false">English</string>
-    <string name="settings_app_language_label_ja" translatable="false">日本語</string>
     <string name="settings_section_interaction_feedback">Interaction feedback</string>
     <string name="haptic_strength">Vibration strength</string>
     <string name="selected_hint_icon_size_value">%1$d dp</string>
@@ -1852,7 +1842,6 @@
     <string name="gesture_action_holographic_launcher">Holographic launcher</string>
     <string name="holographic_launcher_entry_title">Holographic launcher</string>
     <string name="holographic_launcher_entry_desc">3D sphere launcher: drag to rotate, tap to launch</string>
-    <string name="holographic_launcher_entry_summary_hidden">%1$d apps hidden</string>
     <string name="holographic_launcher_settings_title">Holographic launcher settings</string>
     <string name="holographic_settings_section_interaction">Interaction</string>
     <string name="holographic_settings_section_background">Background</string>
@@ -2390,7 +2379,6 @@
     <string name="quick_launcher_folder_add_items">Add items</string>
     <string name="quick_launcher_folder_delete">Delete folder</string>
     <string name="quick_launcher_folder_rename">Rename</string>
-    <string name="quick_launcher_folder_items_count">%1$d items</string>
     <string name="quick_launcher_panel_switch">Switch panel</string>
     <string name="adjust_volume_ring_label">Ring</string>
     <string name="adjust_volume_notification_label">Notif</string>
@@ -3227,13 +3215,11 @@ or revoke permanent Root for Shell in APatch.</string>
     <string name="quick_launcher_multi_select_hint">Select multiple shortcuts to add to the panel</string>
     <string name="quick_launcher_panel_named">Panel %1$d</string>
     <string name="quick_launcher_folder_add">+ Add</string>
-    <string name="shortcut_custom_count_summary">%1$d custom direct shortcuts</string>
     <string name="shortcut_custom_empty_summary">Create and manage your direct shortcuts</string>
     <string name="preset_shortcut_library_summary">Built-in direct rules for popular apps</string>
     <string name="shortcut_custom_section_header">Custom shortcuts (%1$d)</string>
     <string name="preset_shortcut_no_installed">No preset shortcuts for installed apps on this device. Search to see all.</string>
     <string name="preset_shortcut_no_match">No matching preset shortcuts</string>
-    <string name="shortcut_item_count">%1$d items</string>
     <string name="preset_shortcut_category_other">Other shortcuts</string>
     <string name="preset_app_alipay">Alipay</string>
     <string name="preset_app_coolapk">CoolApk</string>
@@ -3299,7 +3285,6 @@ or revoke permanent Root for Shell in APatch.</string>
     <string name="fv_app_switcher_circle_4">4 rings (38)</string>
     <string name="widget_tab_apps">Apps</string>
     <string name="widget_tab_shortcuts">Shortcuts</string>
-    <string name="widget_group_count">%1$d widgets</string>
     <string name="cd_view_all">View all</string>
     <string name="holographic_no_apps_loaded">No apps loaded</string>
     <string name="holographic_check_settings_hint">Check settings or configure on the settings page</string>

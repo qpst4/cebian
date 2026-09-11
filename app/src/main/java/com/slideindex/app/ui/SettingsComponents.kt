@@ -249,8 +249,9 @@ fun PermissionCard(
     title: String,
     description: String,
     onGrant: () -> Unit,
+    modifier: Modifier = Modifier,
     grantLabel: String = stringResource(R.string.grant_permission),
-) = PermissionCardImpl(title, description, onGrant, grantLabel)
+) = PermissionCardImpl(title, description, onGrant, modifier, grantLabel)
 
 @Composable
 fun SettingsCardScope.ThemeColorPicker(

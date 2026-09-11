@@ -854,10 +854,10 @@ private fun PermissionStatusRow(
  */
 @Composable
 private fun StaggeredEntrance(
+    modifier: Modifier = Modifier,
     delayMillis: Int = 0,
     initialOffsetY: Dp = 24.dp,
     initialScale: Float = 0.92f,
-    modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
     val density = LocalDensity.current

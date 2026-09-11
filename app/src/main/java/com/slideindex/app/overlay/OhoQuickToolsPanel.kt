@@ -135,7 +135,6 @@ fun OhoQuickToolsPanel(
         side = side
     )
     val panelAlpha = OverlayPanelEnterAnimation.alpha(enterProgress.value)
-    val isBlurSupported = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
     val outerCornerPx = with(density) { outerCorner.toPx() }
     val blurRadiusPx = (57f * density.density).roundToInt()
     val frostedTint = 0x78343438.toInt()
@@ -150,24 +149,15 @@ fun OhoQuickToolsPanel(
             }
             .shadow(elevation = 28.dp, shape = RoundedCornerShape(outerCorner), clip = false)
             .clip(RoundedCornerShape(outerCorner))
-            .then(
-                if (!isBlurSupported) {
-                    Modifier.background(OhoColors.PanelBackground)
-                } else {
-                    Modifier
-                }
-            )
             .border(width = 1.dp, color = OhoColors.PanelBorder, shape = RoundedCornerShape(outerCorner))
     ) {
-        if (isBlurSupported) {
-            LocalFrostedGlassBackdrop(
-                modifier = Modifier.matchParentSize(),
-                cornerRadiusPx = outerCornerPx,
-                blurRadiusPx = blurRadiusPx,
-                tintColor = frostedTint,
-                enabled = true
-            )
-        }
+        LocalFrostedGlassBackdrop(
+            modifier = Modifier.matchParentSize(),
+            cornerRadiusPx = outerCornerPx,
+            blurRadiusPx = blurRadiusPx,
+            tintColor = frostedTint,
+            enabled = true
+        )
         Column(
             modifier = Modifier.padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)

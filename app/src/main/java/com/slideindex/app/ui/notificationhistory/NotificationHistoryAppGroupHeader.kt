@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -121,7 +122,7 @@ internal fun NotificationHistoryAppGroupHeader(
                         overflow = TextOverflow.Ellipsis,
                     )
                     Text(
-                        text = stringResource(R.string.notification_history_group_summary, count),
+                        text = pluralStringResource(R.plurals.notification_history_group_summary, count, count),
                         style = MiuixTheme.textStyles.body2,
                         color = MiuixTheme.colorScheme.primary,
                         maxLines = 1,

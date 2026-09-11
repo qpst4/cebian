@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
@@ -715,7 +716,11 @@ internal fun QuickLauncherCreateFolderScreen(
             )
             if (folderItems.isNotEmpty()) {
                 Text(
-                    text = stringResource(R.string.quick_launcher_folder_items_count, folderItems.size),
+                    text = pluralStringResource(
+                        R.plurals.quick_launcher_folder_items_count,
+                        folderItems.size,
+                        folderItems.size,
+                    ),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(top = 4.dp, start = 4.dp),

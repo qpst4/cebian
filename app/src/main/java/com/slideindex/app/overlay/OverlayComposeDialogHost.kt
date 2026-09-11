@@ -33,7 +33,7 @@ import com.slideindex.app.ui.miuix.theme.ModuleTheme
 
 class OverlayComposeDialogHost(
 
-    private val context: Context,
+    context: Context,
 
     private val themeSettings: () -> AppSettings = { AppSettings() },
 
@@ -41,7 +41,10 @@ class OverlayComposeDialogHost(
 
 ) {
 
-    private fun themedContext(): Context = OverlayCompose.themedContext(context)
+    private val appContext: android.app.Application =
+        context.applicationContext as android.app.Application
+
+    private fun themedContext(): Context = OverlayCompose.themedContext(appContext)
 
     private val mainHandler = Handler(Looper.getMainLooper())
 
@@ -310,7 +313,7 @@ class OverlayComposeDialogHost(
 
     private fun buildLayoutParams(): WindowManager.LayoutParams {
 
-        val host = overlayHostContext() ?: context
+        val host = overlayHostContext() ?: appContext
 
         return WindowManager.LayoutParams(
 

@@ -11,7 +11,7 @@ import androidx.core.graphics.createBitmap
 fun Drawable.toSafeImageBitmap(sizePx: Int = 96): ImageBitmap {
     if (this is BitmapDrawable && bitmap != null && !bitmap.isRecycled) {
         return runCatching { bitmap.asImageBitmap() }.getOrElse {
-            Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888).asImageBitmap()
+            createBitmap(1, 1).asImageBitmap()
         }
     }
     return runCatching {
@@ -22,6 +22,6 @@ fun Drawable.toSafeImageBitmap(sizePx: Int = 96): ImageBitmap {
         draw(canvas)
         bitmap.asImageBitmap()
     }.getOrElse {
-        Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888).asImageBitmap()
+        createBitmap(1, 1).asImageBitmap()
     }
 }

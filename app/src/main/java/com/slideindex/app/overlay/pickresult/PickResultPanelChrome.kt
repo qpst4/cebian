@@ -194,7 +194,6 @@ internal val PickResultPanelCardElevation = 12.dp
 
 @Composable
 internal fun Modifier.pickResultPanelCard(): Modifier {
-    val isHardwareBlurSupported = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
     val isDark = LocalAppDarkTheme.current
     return this
         .shadow(
@@ -203,22 +202,15 @@ internal fun Modifier.pickResultPanelCard(): Modifier {
             clip = false,
         )
         .clip(PickResultPanelCardShape)
-        .then(
-            if (!isHardwareBlurSupported) {
-                Modifier.background(MaterialTheme.colorScheme.surface.copy(alpha = 0.98f))
-            } else {
-                Modifier.border(
-                    width = 0.5.dp,
-                    color = if (isDark) androidx.compose.ui.graphics.Color(0x38FFFFFF) else androidx.compose.ui.graphics.Color(0x22000000),
-                    shape = PickResultPanelCardShape,
-                )
-            }
+        .border(
+            width = 0.5.dp,
+            color = if (isDark) androidx.compose.ui.graphics.Color(0x38FFFFFF) else androidx.compose.ui.graphics.Color(0x22000000),
+            shape = PickResultPanelCardShape,
         )
 }
 
 @Composable
 internal fun Modifier.pickResultBottomPanelCard(suppressShadow: Boolean = false): Modifier {
-    val isHardwareBlurSupported = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
     val isDark = LocalAppDarkTheme.current
     return this
         .then(
@@ -233,16 +225,10 @@ internal fun Modifier.pickResultBottomPanelCard(suppressShadow: Boolean = false)
             },
         )
         .clip(PickResultBottomPanelShape)
-        .then(
-            if (!isHardwareBlurSupported) {
-                Modifier.background(if (isDark) androidx.compose.ui.graphics.Color(0xFF202124) else androidx.compose.ui.graphics.Color(0xFFFFFFFF))
-            } else {
-                Modifier.border(
-                    width = 0.5.dp,
-                    color = if (isDark) androidx.compose.ui.graphics.Color(0x38FFFFFF) else androidx.compose.ui.graphics.Color(0x22000000),
-                    shape = PickResultBottomPanelShape,
-                )
-            }
+        .border(
+            width = 0.5.dp,
+            color = if (isDark) androidx.compose.ui.graphics.Color(0x38FFFFFF) else androidx.compose.ui.graphics.Color(0x22000000),
+            shape = PickResultBottomPanelShape,
         )
 }
 

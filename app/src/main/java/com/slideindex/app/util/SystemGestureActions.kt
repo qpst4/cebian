@@ -82,38 +82,24 @@ object SystemGestureActions {
     /** 打开原生网络连接面板（Android 10+ Panel，低版本跳转设置）。 */
     fun openNativeInternetPanel(context: Context): Boolean {
         return runCatching {
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-                val action = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
-                    Settings.Panel.ACTION_INTERNET_CONNECTIVITY
-                } else {
-                    Settings.Panel.ACTION_WIFI
-                }
-                val intent = Intent(action).apply {
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                }
-                context.startActivity(intent)
-            } else {
-                val intent = Intent(Settings.ACTION_WIFI_SETTINGS).apply {
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                }
-                context.startActivity(intent)
+            val intent = Intent(Settings.Panel.ACTION_INTERNET_CONNECTIVITY).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
+            context.startActivity(intent)
             true
         }.getOrDefault(false)
     }
 
     /** 调出系统原生声音调节面板（Settings.Panel.ACTION_VOLUME）。 */
     fun openNativeVolumePanel(context: Context): Boolean {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-            val panelIntent = Intent(Settings.Panel.ACTION_VOLUME).apply {
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            }
-            val started = runCatching {
-                context.startActivity(panelIntent)
-                true
-            }.getOrDefault(false)
-            if (started) return true
+        val panelIntent = Intent(Settings.Panel.ACTION_VOLUME).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
+        val started = runCatching {
+            context.startActivity(panelIntent)
+            true
+        }.getOrDefault(false)
+        if (started) return true
 
         // Fallback: 调出音量条或声音设置
         val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager

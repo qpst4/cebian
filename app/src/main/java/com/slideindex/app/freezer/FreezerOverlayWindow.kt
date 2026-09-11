@@ -67,12 +67,21 @@ object FreezerOverlayWindow {
     private val mainHandler = Handler(Looper.getMainLooper())
 
     private var windowManager: WindowManager? = null
-    private var composeView: ComposeView? = null
+    private var composeViewRef = java.lang.ref.WeakReference<ComposeView>(null)
+    private var composeView: ComposeView?
+        get() = composeViewRef.get()
+        set(value) {
+            composeViewRef = java.lang.ref.WeakReference(value)
+        }
     private var owner: OverlayComposeOwner? = null
     private var panelVisibilityState: MutableTransitionState<Boolean>? = null
     private val screenOffDismissReceiver = ScreenOffDismissReceiver { dismiss() }
-    private var appContext: Context? = null
-    private var backHandler: OverlayViewBackHandler? = null
+    private var backHandlerRef = java.lang.ref.WeakReference<OverlayViewBackHandler>(null)
+    private var backHandler: OverlayViewBackHandler?
+        get() = backHandlerRef.get()
+        set(value) {
+            backHandlerRef = java.lang.ref.WeakReference(value)
+        }
     private var dismissToken = 0
 
     val isShowing: Boolean
@@ -134,7 +143,6 @@ object FreezerOverlayWindow {
 
     private fun ensureWindow(context: Context) {
         if (composeView != null) return
-        appContext = context.applicationContext
         val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
         windowManager = wm
         val visibilityState = MutableTransitionState(false)

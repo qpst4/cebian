@@ -602,7 +602,11 @@ internal class QuickLauncherRenderer(
         canvas.drawText(title, titleX, titleY, folderTitlePaint)
 
         val titleW = folderTitlePaint.measureText(title)
-        val subtitle = localizedContext().getString(R.string.quick_launcher_folder_items_count, childCount)
+        val subtitle = localizedContext().resources.getQuantityString(
+            R.plurals.quick_launcher_folder_items_count,
+            childCount,
+            childCount,
+        )
         folderSubtitlePaint.textSize = host.sp(11f)
         canvas.drawText(subtitle, titleX + titleW + host.dp(8f), titleY, folderSubtitlePaint)
 
@@ -653,33 +657,32 @@ internal class QuickLauncherRenderer(
             folderLayout.rect.right,
             folderLayout.rect.bottom - folderLayout.indicatorHeight
         )
-        canvas.save()
-        canvas.clipRect(contentClip)
-        drawFolderPageCells(
-            canvas = canvas,
-            folderLayout = folderLayout,
-            pageIndex = folderHandler.pageIndex,
-            translateX = if (pagingActive) dragOffset else 0f,
-            recordCells = recordCells
-        )
-        if (pagingActive && kotlin.math.abs(dragOffset) > host.dp(0.5f)) {
-            QuickLauncherScrollHandler.adjacentPagesForDrag(
-                dragOffset = dragOffset,
-                currentPageIndex = folderHandler.pageIndex,
-                pageCount = folderHandler.pageCount,
-                pageWidth = folderWidth,
-                side = host.side()
-            ).forEach { layer ->
-                drawFolderPageCells(
-                    canvas = canvas,
-                    folderLayout = folderLayout,
-                    pageIndex = layer.pageIndex,
-                    translateX = layer.translateX,
-                    recordCells = false
-                )
+        canvas.withClip(contentClip) {
+            drawFolderPageCells(
+                canvas = this,
+                folderLayout = folderLayout,
+                pageIndex = folderHandler.pageIndex,
+                translateX = if (pagingActive) dragOffset else 0f,
+                recordCells = recordCells
+            )
+            if (pagingActive && kotlin.math.abs(dragOffset) > host.dp(0.5f)) {
+                QuickLauncherScrollHandler.adjacentPagesForDrag(
+                    dragOffset = dragOffset,
+                    currentPageIndex = folderHandler.pageIndex,
+                    pageCount = folderHandler.pageCount,
+                    pageWidth = folderWidth,
+                    side = host.side()
+                ).forEach { layer ->
+                    drawFolderPageCells(
+                        canvas = this,
+                        folderLayout = folderLayout,
+                        pageIndex = layer.pageIndex,
+                        translateX = layer.translateX,
+                        recordCells = false
+                    )
+                }
             }
         }
-        canvas.restore()
 
         if (folderHandler.pageCount > 1) {
             drawFolderPageIndicator(canvas, folderLayout, folderHandler.pageIndex, folderHandler.pageCount)

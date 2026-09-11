@@ -9,6 +9,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import com.slideindex.app.R
 import com.slideindex.app.overlay.SystemWallpaperBlurHelper
@@ -230,7 +231,7 @@ fun SettingsCardScope.HolographicLauncherEntryCard(
     onClick: () -> Unit
 ) {
     val subtitle = if (hiddenAppCount > 0) {
-        stringResource(R.string.holographic_launcher_entry_summary_hidden, hiddenAppCount)
+        pluralStringResource(R.plurals.holographic_launcher_entry_summary_hidden, hiddenAppCount, hiddenAppCount)
     } else {
         stringResource(R.string.holographic_launcher_entry_desc)
     }

@@ -23,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.AddFolder
@@ -389,7 +390,11 @@ fun QuickLauncherCreateFolderScreen(
                 )
                 if (folderItems.isNotEmpty()) {
                     Text(
-                        text = stringResource(R.string.quick_launcher_folder_items_count, folderItems.size),
+                        text = pluralStringResource(
+                            R.plurals.quick_launcher_folder_items_count,
+                            folderItems.size,
+                            folderItems.size,
+                        ),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(top = 4.dp, start = 4.dp),

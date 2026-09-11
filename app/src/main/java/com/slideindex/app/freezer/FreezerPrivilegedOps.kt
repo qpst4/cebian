@@ -2,7 +2,6 @@ package com.slideindex.app.freezer
 
 import android.content.Context
 import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Process
 import com.slideindex.app.BuildConfig
 import com.slideindex.app.privilege.PrivilegeGateway
@@ -98,13 +97,7 @@ internal object FreezerPrivilegedOps {
     }
 
     private fun currentUserId(): Int {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            return Process.myUserHandle().hashCode()
-        }
-        return runCatching {
-            Process.myUserHandle().javaClass.getMethod("getIdentifier")
-                .invoke(Process.myUserHandle()) as Int
-        }.getOrDefault(0)
+        return Process.myUserHandle().hashCode()
     }
 
     private fun bindShizukuPackageManager(): Any {

@@ -2,7 +2,6 @@ package com.slideindex.app.shizuku
 
 import android.annotation.SuppressLint
 import android.content.pm.ShortcutInfo
-import android.os.Build
 import android.os.IBinder
 import android.os.ParcelFileDescriptor
 import android.os.Process
@@ -78,13 +77,10 @@ object ShortcutSystemApiFetcher {
     }
 
     private fun userHandleFor(userId: Int): UserHandle {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            return runCatching {
-                UserHandle::class.java.getMethod("of", Int::class.javaPrimitiveType)
-                    .invoke(null, userId) as UserHandle
-            }.getOrDefault(Process.myUserHandle())
-        }
-        return Process.myUserHandle()
+        return runCatching {
+            UserHandle::class.java.getMethod("of", Int::class.javaPrimitiveType)
+                .invoke(null, userId) as UserHandle
+        }.getOrDefault(Process.myUserHandle())
     }
 
     private fun shellCallingPackages(): List<String> =

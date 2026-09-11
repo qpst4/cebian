@@ -618,7 +618,6 @@ internal fun PickResultPanelSlideHost(
         label = "pickPanelSlide"
     )
     val isPanelSlideAnimating = panelSlideOffset > 0.5.dp
-    val isBlurSupported = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
     val cornerPx = with(density) { PickResultPanelCardCorner.toPx() }
     val blurRadiusPx = (57f * density.density).roundToInt()
     val isDark = LocalAppDarkTheme.current
@@ -641,15 +640,13 @@ internal fun PickResultPanelSlideHost(
                 }
             }
     ) {
-        if (isBlurSupported) {
-            LocalFrostedGlassBackdrop(
-                modifier = Modifier.matchParentSize(),
-                cornerRadiusPx = cornerPx,
-                blurRadiusPx = blurRadiusPx,
-                tintColor = frostedTint,
-                enabled = true
-            )
-        }
+        LocalFrostedGlassBackdrop(
+            modifier = Modifier.matchParentSize(),
+            cornerRadiusPx = cornerPx,
+            blurRadiusPx = blurRadiusPx,
+            tintColor = frostedTint,
+            enabled = true
+        )
         content(isPanelSlideAnimating)
     }
 }

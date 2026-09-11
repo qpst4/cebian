@@ -87,4 +87,40 @@
     <plurals name="clipboard_float_app_blacklist_desc">
         <item quantity="other">已屏蔽 %1$d 个应用 · 粘贴成功 %2$d 次 · 失败 %3$d 次</item>
     </plurals>
+    <plurals name="notification_history_group_summary">
+        <item quantity="other">%d 条通知</item>
+    </plurals>
+    <plurals name="fingertip_ring_slot_count_value">
+        <item quantity="other">%d 个槽位</item>
+    </plurals>
+    <plurals name="universal_copy_selected">
+        <item quantity="other">已选 %d 项</item>
+    </plurals>
+    <plurals name="universal_copy_copied">
+        <item quantity="other">已复制 %d 项</item>
+    </plurals>
+    <plurals name="freezer_refreeze_done">
+        <item quantity="other">已冻结 %d 个应用</item>
+    </plurals>
+    <plurals name="freezer_unfreeze_all_done">
+        <item quantity="other">已解冻 %d 个应用</item>
+    </plurals>
+    <plurals name="freezer_import_frozen_done">
+        <item quantity="other">已导入 %d 个应用</item>
+    </plurals>
+    <plurals name="holographic_launcher_entry_summary_hidden">
+        <item quantity="other">已隐藏 %d 个应用</item>
+    </plurals>
+    <plurals name="quick_launcher_folder_items_count">
+        <item quantity="other">%d 个快捷项</item>
+    </plurals>
+    <plurals name="shortcut_custom_count_summary">
+        <item quantity="other">%d 个自定义直达快捷方式</item>
+    </plurals>
+    <plurals name="shortcut_item_count">
+        <item quantity="other">%d 项</item>
+    </plurals>
+    <plurals name="widget_group_count">
+        <item quantity="other">%d 个小组件</item>
+    </plurals>
 </resources>

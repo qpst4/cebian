@@ -662,6 +662,11 @@ internal class AppSwitcherOverlayView(
         AppSwitcherOverlayWindow.openSlotPicker(slotIndex)
     }
 
+    override fun performClick(): Boolean {
+        super.performClick()
+        return true
+    }
+
     override fun onTouchEvent(event: MotionEvent): Boolean {
         if (!sessionActive) return false
         return when (event.actionMasked) {

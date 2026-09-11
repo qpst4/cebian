@@ -767,7 +767,7 @@ public final class HoneycombOverlayView extends View {
             namePillPaint.setStyle(Paint.Style.FILL);
 
             String label = target != null && target.label != null ? target.label.trim() : "";
-            String initial = label.isEmpty() ? "•" : label.substring(0, Math.min(label.length(), 1)).toUpperCase();
+            String initial = label.isEmpty() ? "•" : label.substring(0, Math.min(label.length(), 1)).toUpperCase(java.util.Locale.ROOT);
             placeholderPaint.setColor(Color.WHITE);
             placeholderPaint.setTextSize(radius * 0.88f);
             placeholderPaint.setTextAlign(Paint.Align.CENTER);
@@ -823,7 +823,7 @@ public final class HoneycombOverlayView extends View {
                     iconPlatePaint);
 
             String label = target != null && target.label != null ? target.label.trim() : "";
-            String initial = label.isEmpty() ? "•" : label.substring(0, Math.min(label.length(), 1)).toUpperCase();
+            String initial = label.isEmpty() ? "•" : label.substring(0, Math.min(label.length(), 1)).toUpperCase(java.util.Locale.ROOT);
             placeholderPaint.setColor(Color.WHITE);
             placeholderPaint.setTextSize(size * 0.5f);
             placeholderPaint.setTextAlign(Paint.Align.CENTER);

@@ -6,6 +6,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.util.Log
+import androidx.core.graphics.createBitmap
 import com.slideindex.app.BuildConfig
 import com.slideindex.app.ocr.OcrDependencyAccess
 import com.slideindex.app.ocr.OcrEngines
@@ -64,7 +65,7 @@ class OcrStartupSmokeVerifier @Inject constructor(
     }
 
     private fun createTestBitmap(): Bitmap {
-        val bitmap = Bitmap.createBitmap(480, 120, Bitmap.Config.ARGB_8888)
+        val bitmap = createBitmap(480, 120)
         val canvas = Canvas(bitmap)
         canvas.drawColor(Color.WHITE)
         val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {

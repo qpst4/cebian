@@ -24,6 +24,7 @@ import android.view.accessibility.AccessibilityNodeInfo
 import android.widget.FrameLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.graphics.get
 import com.slideindex.app.R
 import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.overlay.FloatBallOcrRegions
@@ -47,14 +48,26 @@ import kotlinx.coroutines.withContext
 import java.util.IdentityHashMap
 import kotlin.coroutines.resume
 
-class ScreenTranslationOverlayManager(
-    private val service: AccessibilityService,
-) {
-    private val windowManager = service.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+class ScreenTranslationOverlayManager {
+    private val service: AccessibilityService
+        get() = OverlayDependencyAccess.overlayHostContext() as? AccessibilityService
+            ?: error("accessibility service not connected")
+    private val windowManager: WindowManager
+        get() = service.getSystemService(Context.WINDOW_SERVICE) as WindowManager
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private var job: Job? = null
-    private var rootView: FrameLayout? = null
-    private var backHandler: OverlayViewBackHandler? = null
+    private var rootViewRef = java.lang.ref.WeakReference<FrameLayout>(null)
+    private var rootView: FrameLayout?
+        get() = rootViewRef.get()
+        set(value) {
+            rootViewRef = java.lang.ref.WeakReference(value)
+        }
+    private var backHandlerRef = java.lang.ref.WeakReference<OverlayViewBackHandler>(null)
+    private var backHandler: OverlayViewBackHandler?
+        get() = backHandlerRef.get()
+        set(value) {
+            backHandlerRef = java.lang.ref.WeakReference(value)
+        }
     @Volatile private var active = false
 
     val isActive: Boolean get() = active
@@ -237,7 +250,7 @@ class ScreenTranslationOverlayManager(
         if (right <= left || bottom <= top) return Color.WHITE
         var r = 0L; var g = 0L; var b = 0L; var count = 0L
         fun sample(x: Int, y: Int) {
-            val color = bitmap.getPixel(x, y)
+            val color = bitmap[x, y]
             r += Color.red(color); g += Color.green(color); b += Color.blue(color); count++
         }
         val stepX = maxOf(1, (right - left) / 40)
@@ -380,7 +393,7 @@ object ScreenTranslationController {
             manager = null
             return
         }
-        val created = ScreenTranslationOverlayManager(service)
+        val created = ScreenTranslationOverlayManager()
         manager = created
         created.toggle()
     }

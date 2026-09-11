@@ -430,7 +430,6 @@ private fun FloatBallTranslatePanelContent(
                 ),
             contentAlignment = Alignment.Center
         ) {
-            val isBlurSupported = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
             val density = LocalDensity.current
             val cornerPx = with(density) { PickResultPanelCardCorner.toPx() }
             val blurRadiusPx = (57f * density.density).roundToInt()
@@ -449,15 +448,13 @@ private fun FloatBallTranslatePanelContent(
                         onClick = {}
                     )
             ) {
-                if (isBlurSupported) {
-                    LocalFrostedGlassBackdrop(
-                        modifier = Modifier.matchParentSize(),
-                        cornerRadiusPx = cornerPx,
-                        blurRadiusPx = blurRadiusPx,
-                        tintColor = frostedTint,
-                        enabled = true
-                    )
-                }
+                LocalFrostedGlassBackdrop(
+                    modifier = Modifier.matchParentSize(),
+                    cornerRadiusPx = cornerPx,
+                    blurRadiusPx = blurRadiusPx,
+                    tintColor = frostedTint,
+                    enabled = true
+                )
                 Column(
                     modifier = Modifier.padding(top = 4.dp, bottom = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(0.dp)

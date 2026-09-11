@@ -219,8 +219,7 @@ internal fun HistoryPanelScreen(
         } else {
             RoundedCornerShape(topEnd = 14.dp, bottomEnd = 14.dp)
         }
-        val isHardwareBlurSupported = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
-        val isLocalBlurActive = panelBlurActive && isHardwareBlurSupported
+        val isLocalBlurActive = panelBlurActive
         val density = LocalDensity.current
         val cornerPx = with(density) { 14.dp.toPx() }
         val blurRadiusPx = with(density) { blurRadiusDp.toFloat().dp.toPx() }.roundToInt()

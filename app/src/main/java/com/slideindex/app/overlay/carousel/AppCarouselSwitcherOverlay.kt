@@ -3,7 +3,6 @@ package com.slideindex.app.overlay.carousel
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.PixelFormat
-import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
@@ -92,9 +91,7 @@ object AppCarouselSwitcherOverlay {
             gravity = Gravity.TOP or Gravity.LEFT
             OverlayWindowTypes.ensureNoBrightnessOverride(this)
             flags = flags or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
-            }
+            layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
         }
 
         return try {

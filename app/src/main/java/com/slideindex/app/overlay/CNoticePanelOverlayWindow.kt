@@ -44,11 +44,11 @@ import androidx.compose.ui.Modifier
 
 import androidx.compose.ui.platform.ComposeView
 
-import androidx.compose.ui.platform.LocalConfiguration
-
 import androidx.compose.ui.platform.LocalContext
 
 import androidx.compose.ui.platform.LocalDensity
+
+import androidx.compose.ui.platform.LocalWindowInfo
 
 import androidx.core.view.ViewCompat
 
@@ -78,17 +78,27 @@ internal object CNoticePanelOverlayWindow {
 
     private var windowManager: WindowManager? = null
 
-    private var composeView: ComposeView? = null
+    private var composeViewRef = java.lang.ref.WeakReference<ComposeView>(null)
+
+    private var composeView: ComposeView?
+        get() = composeViewRef.get()
+        set(value) {
+            composeViewRef = java.lang.ref.WeakReference(value)
+        }
 
     private var owner: OverlayComposeOwner? = null
 
-    private var backHandler: OverlayViewBackHandler? = null
+    private var backHandlerRef = java.lang.ref.WeakReference<OverlayViewBackHandler>(null)
+
+    private var backHandler: OverlayViewBackHandler?
+        get() = backHandlerRef.get()
+        set(value) {
+            backHandlerRef = java.lang.ref.WeakReference(value)
+        }
 
     private var panelVisibilityState: MutableTransitionState<Boolean>? = null
 
     private var dismissToken = 0
-
-    private var hostContext: Context? = null
 
     private var edgeMarginDpState = mutableFloatStateOf(8f)
 
@@ -254,10 +264,6 @@ internal object CNoticePanelOverlayWindow {
 
             ?: return
 
-        hostContext = resolvedHostContext
-
-
-
         if (composeView == null) {
 
             ensureWindow(resolvedHostContext)
@@ -386,9 +392,9 @@ internal object CNoticePanelOverlayWindow {
 
                 val historyExhausted = historyExhaustedProvider?.invoke(selectedKey) == true
 
-                val configuration = LocalConfiguration.current
+                val windowSize = LocalWindowInfo.current.containerSize
 
-                val isLandscape = configuration.screenWidthDp > configuration.screenHeightDp
+                val isLandscape = windowSize.width > windowSize.height
 
                 SideEffect {
 
@@ -480,9 +486,9 @@ internal object CNoticePanelOverlayWindow {
 
     private fun applyPanelWindowPlacement(landscape: Boolean? = null) {
 
-        val ctx = hostContext ?: return
-
         val view = composeView ?: return
+
+        val ctx = view.context
 
         val wm = windowManager ?: return
 
@@ -573,8 +579,6 @@ internal object CNoticePanelOverlayWindow {
         composeView = null
 
         owner = null
-
-        hostContext = null
 
         panelVisibilityState = null
 

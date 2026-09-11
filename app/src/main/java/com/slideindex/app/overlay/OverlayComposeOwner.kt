@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Context
 import android.graphics.Color
 import android.hardware.display.DisplayManager
-import android.os.Build
 import android.inputmethodservice.InputMethodService
 import android.util.Log
 import android.view.ContextThemeWrapper
@@ -88,14 +87,12 @@ object OverlayCompose {
                 createWindowContextOrNull(appContext, display, windowType)?.let { return it }
             }
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val appContext = context.applicationContext
-            createWindowContextOrNull(
-                appContext,
-                display,
-                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-            )?.let { return it }
-        }
+        val appContext = context.applicationContext
+        createWindowContextOrNull(
+            appContext,
+            display,
+            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+        )?.let { return it }
         Log.e(TAG, "resolveUiContext: all createWindowContext attempts failed for ${context.javaClass.name}")
         return context.applicationContext
     }

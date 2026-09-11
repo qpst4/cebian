@@ -4,6 +4,7 @@ kotlin = "2.4.10"
 minSdk = "31"
 compose-bom = "2026.08.01"
 core-ktx = "1.19.0"
+appcompat = "1.7.0"
 lifecycle = "2.11.0"
 work = "2.11.2"
 activity = "1.13.0"
@@ -71,6 +72,7 @@ compose-foundation = { group = "androidx.compose.foundation", name = "foundation
 compose-animation = { group = "androidx.compose.animation", name = "animation" }
 activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activity" }
 core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
+appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 lifecycle-runtime = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle" }
 lifecycle-viewmodel = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
 lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycle" }

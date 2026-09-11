@@ -184,11 +184,7 @@ object ClipboardPasteHelper {
     }
 
     private fun readHintText(node: AccessibilityNodeInfo): CharSequence? {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            node.hintText
-        } else {
-            null
-        }
+        return node.hintText
     }
 
     private fun ensureNodeFocused(node: AccessibilityNodeInfo) {

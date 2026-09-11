@@ -157,12 +157,7 @@ object LocalCrashHandler {
         }.getOrNull()
 
         val versionName = packageInfo?.versionName ?: "Unknown"
-        val versionCode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            packageInfo?.longVersionCode ?: -1L
-        } else {
-            @Suppress("DEPRECATION")
-            packageInfo?.versionCode?.toLong() ?: -1L
-        }
+        val versionCode = packageInfo?.longVersionCode ?: -1L
 
         val overlayGranted = Settings.canDrawOverlays(context)
         val accessibilityServices = Settings.Secure.getString(

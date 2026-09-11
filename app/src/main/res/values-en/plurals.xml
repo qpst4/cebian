@@ -116,4 +116,52 @@
         <item quantity="one">%1$d app blocked · %2$d paste successes · %3$d failures</item>
         <item quantity="other">%1$d apps blocked · %2$d paste successes · %3$d failures</item>
     </plurals>
+    <plurals name="notification_history_group_summary">
+        <item quantity="one">%d notification</item>
+        <item quantity="other">%d notifications</item>
+    </plurals>
+    <plurals name="fingertip_ring_slot_count_value">
+        <item quantity="one">%d slot</item>
+        <item quantity="other">%d slots</item>
+    </plurals>
+    <plurals name="universal_copy_selected">
+        <item quantity="one">%d selected</item>
+        <item quantity="other">%d selected</item>
+    </plurals>
+    <plurals name="universal_copy_copied">
+        <item quantity="one">Copied %d item</item>
+        <item quantity="other">Copied %d items</item>
+    </plurals>
+    <plurals name="freezer_refreeze_done">
+        <item quantity="one">Froze %d app</item>
+        <item quantity="other">Froze %d apps</item>
+    </plurals>
+    <plurals name="freezer_unfreeze_all_done">
+        <item quantity="one">Unfroze %d app</item>
+        <item quantity="other">Unfroze %d apps</item>
+    </plurals>
+    <plurals name="freezer_import_frozen_done">
+        <item quantity="one">Imported %d app</item>
+        <item quantity="other">Imported %d apps</item>
+    </plurals>
+    <plurals name="holographic_launcher_entry_summary_hidden">
+        <item quantity="one">%d app hidden</item>
+        <item quantity="other">%d apps hidden</item>
+    </plurals>
+    <plurals name="quick_launcher_folder_items_count">
+        <item quantity="one">%d item</item>
+        <item quantity="other">%d items</item>
+    </plurals>
+    <plurals name="shortcut_custom_count_summary">
+        <item quantity="one">%d custom direct shortcut</item>
+        <item quantity="other">%d custom direct shortcuts</item>
+    </plurals>
+    <plurals name="shortcut_item_count">
+        <item quantity="one">%d item</item>
+        <item quantity="other">%d items</item>
+    </plurals>
+    <plurals name="widget_group_count">
+        <item quantity="one">%d widget</item>
+        <item quantity="other">%d widgets</item>
+    </plurals>
 </resources>

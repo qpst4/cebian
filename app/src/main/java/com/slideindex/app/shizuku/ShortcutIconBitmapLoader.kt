@@ -2,6 +2,7 @@ package com.slideindex.app.shizuku
 
 import android.graphics.Bitmap
 import android.util.Log
+import androidx.core.graphics.scale
 import java.io.ByteArrayOutputStream
 
 internal object ShortcutIconBitmapLoader {
@@ -30,7 +31,7 @@ internal object ShortcutIconBitmapLoader {
 
     private fun scaleBitmap(source: Bitmap): Bitmap {
         if (source.width == ICON_SIZE_PX && source.height == ICON_SIZE_PX) return source
-        return Bitmap.createScaledBitmap(source, ICON_SIZE_PX, ICON_SIZE_PX, true)
+        return source.scale(ICON_SIZE_PX, ICON_SIZE_PX)
     }
 
     private fun bitmapToPng(bitmap: Bitmap): ByteArray? =

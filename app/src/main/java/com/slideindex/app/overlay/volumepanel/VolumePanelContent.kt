@@ -7,7 +7,6 @@ package com.slideindex.app.overlay.volumepanel
 
 import android.content.Context
 import android.media.AudioManager
-import android.os.Build
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -257,7 +256,6 @@ private fun ExpandPanelFrostedSurface(
     content: @Composable () -> Unit,
 ) {
     val shape = RoundedCornerShape(ExpandPanelCornerRadius)
-    val isBlurSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
     val density = LocalDensity.current
     val cornerPx = with(density) { ExpandPanelCornerRadius.toPx() }
     val blurRadiusPx = with(density) { 48.dp.toPx() }.roundToInt()
@@ -269,30 +267,21 @@ private fun ExpandPanelFrostedSurface(
             .padding(horizontal = 12.dp, vertical = 12.dp)
             .shadow(16.dp, shape, clip = false)
             .clip(shape)
-            .then(
-                if (!isBlurSupported) {
-                    Modifier.background(frostedStyle.fallbackBackground)
-                } else {
-                    Modifier
-                },
-            )
             .border(1.dp, frostedStyle.borderColor, shape),
     ) {
-        if (isBlurSupported) {
-            LocalFrostedGlassBackdrop(
-                modifier = Modifier.matchParentSize(),
-                cornerRadiusPx = cornerPx,
-                blurRadiusPx = blurRadiusPx,
-                tintColor = frostedStyle.tintColor,
-                enabled = true,
+        LocalFrostedGlassBackdrop(
+            modifier = Modifier.matchParentSize(),
+            cornerRadiusPx = cornerPx,
+            blurRadiusPx = blurRadiusPx,
+            tintColor = frostedStyle.tintColor,
+            enabled = true,
+        )
+        if (frostedStyle.innerScrimAlpha > 0f) {
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .background(Color.Black.copy(alpha = frostedStyle.innerScrimAlpha)),
             )
-            if (frostedStyle.innerScrimAlpha > 0f) {
-                Box(
-                    modifier = Modifier
-                        .matchParentSize()
-                        .background(Color.Black.copy(alpha = frostedStyle.innerScrimAlpha)),
-                )
-            }
         }
         content()
     }

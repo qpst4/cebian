@@ -211,7 +211,7 @@ fun FreezerAppsPickerScreen(
                                     FreezerListOperations.importFrozenApps(context, settingsRepository)
                                 }
                                 val message = if (count > 0) {
-                                    resources.getString(R.string.freezer_import_frozen_done, count)
+                                    resources.getQuantityString(R.plurals.freezer_import_frozen_done, count, count)
                                 } else {
                                     resources.getString(R.string.freezer_import_frozen_none)
                                 }

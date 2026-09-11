@@ -54,9 +54,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
@@ -75,9 +76,19 @@ object CNoticeDetailOverlayWindow {
 
     private val mainHandler = Handler(Looper.getMainLooper())
     private var windowManager: WindowManager? = null
-    private var composeView: ComposeView? = null
+    private var composeViewRef = java.lang.ref.WeakReference<ComposeView>(null)
+    private var composeView: ComposeView?
+        get() = composeViewRef.get()
+        set(value) {
+            composeViewRef = java.lang.ref.WeakReference(value)
+        }
     private var owner: OverlayComposeOwner? = null
-    private var backHandler: OverlayViewBackHandler? = null
+    private var backHandlerRef = java.lang.ref.WeakReference<OverlayViewBackHandler>(null)
+    private var backHandler: OverlayViewBackHandler?
+        get() = backHandlerRef.get()
+        set(value) {
+            backHandlerRef = java.lang.ref.WeakReference(value)
+        }
     private var activeConversationKey: String? = null
     private val messageHistoryState = mutableStateListOf<NotificationMessage>()
     private var latestDataState = mutableStateOf<NotificationData?>(null)
@@ -275,9 +286,13 @@ private fun CNoticeDetailContent(
 ) {
     val context = LocalContext.current
     val view = LocalView.current
+    val quickReplyFailedMessage = stringResource(R.string.message_action_quick_reply_failed)
     val scrimInteractionSource = remember { MutableInteractionSource() }
     val scrollState = rememberScrollState()
-    val maxPanelHeight = (LocalConfiguration.current.screenHeightDp * 0.72f).dp
+    val density = LocalDensity.current
+    val maxPanelHeight = with(density) {
+        LocalWindowInfo.current.containerSize.height.toDp() * 0.72f
+    }
     val avatarSize = DETAIL_AVATAR_SIZE_DP.dp
     val headerTitle = NotificationData.overlayHeaderTitle(data)
     val displayMessages = remember(
@@ -439,7 +454,7 @@ private fun CNoticeDetailContent(
                                 } else {
                                     Toast.makeText(
                                         context,
-                                        context.getString(R.string.message_action_quick_reply_failed),
+                                        quickReplyFailedMessage,
                                         Toast.LENGTH_SHORT,
                                     ).show()
                                 }

@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import androidx.core.graphics.createBitmap
 import com.slideindex.app.R
 import com.slideindex.app.message.MessageThemeCatalog
 import com.slideindex.app.overlay.CNoticeOverlayWindow
@@ -168,7 +169,7 @@ object MessageReminderPreviewController {
             if (source.width == sizePx && source.height == sizePx) return source
             return Bitmap.createScaledBitmap(source, sizePx, sizePx, true)
         }
-        return Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888).also { bitmap ->
+        return createBitmap(sizePx, sizePx).also { bitmap ->
             val canvas = Canvas(bitmap)
             drawable.setBounds(0, 0, sizePx, sizePx)
             drawable.draw(canvas)

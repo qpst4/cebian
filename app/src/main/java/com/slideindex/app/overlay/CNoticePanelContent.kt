@@ -57,7 +57,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
@@ -107,11 +106,10 @@ internal fun CNoticePanelContent(
     val context = LocalContext.current
     val hostContext = context.applicationContext
     val density = LocalDensity.current
-    val configuration = LocalConfiguration.current
     val (screenWidthPx, screenHeightPx) = OverlayScreenMetrics.sizePx(hostContext)
     val displayWidthDp = with(density) { screenWidthPx.toDp() }
     val displayHeightDp = with(density) { screenHeightPx.toDp() }
-    val isLandscape = configuration.screenWidthDp > configuration.screenHeightDp
+    val isLandscape = displayWidthDp > displayHeightDp
     val maxPanelHeight = if (isLandscape) {
         minOf(displayWidthDp, displayHeightDp) * 0.9f
     } else {
@@ -370,6 +368,7 @@ private fun CNoticePanelDetailContent(
 ) {
     val context = LocalContext.current
     val view = LocalView.current
+    val quickReplyFailedMessage = stringResource(R.string.message_action_quick_reply_failed)
     val data = entry.data
     val headerTitle = NotificationData.overlayHeaderTitle(data)
     val displayMessages = remember(
@@ -557,7 +556,7 @@ private fun CNoticePanelDetailContent(
                     } else {
                         Toast.makeText(
                             context,
-                            context.getString(R.string.message_action_quick_reply_failed),
+                            quickReplyFailedMessage,
                             Toast.LENGTH_SHORT,
                         ).show()
                     }

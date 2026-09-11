@@ -58,10 +58,10 @@ private fun TipCard(
 @Composable
 fun MiuixSettingsTipCard(
     text: String,
-    modifier: Modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+    modifier: Modifier = Modifier,
 ) {
     TipCard(
-        modifier = modifier,
+        modifier = modifier.padding(horizontal = 12.dp, vertical = 8.dp),
         tipContent = {
             Text(
                 text = text,

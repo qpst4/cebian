@@ -17,7 +17,9 @@ import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
 import android.view.animation.DecelerateInterpolator
+import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.toBitmap
+import androidx.core.graphics.withClip
 import com.slideindex.app.R
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.util.HapticHelper
@@ -92,6 +94,7 @@ class AppCarouselSwitcherView @JvmOverloads constructor(
 
     private val cardRect = RectF()
     private val iconRect = RectF()
+    private val strokeRect = RectF()
     private val clipPath = Path()
 
     init {
@@ -187,7 +190,7 @@ class AppCarouselSwitcherView @JvmOverloads constructor(
             val bitmap = try {
                 iconDrawable.toBitmap(iconSizePx, iconSizePx, Bitmap.Config.ARGB_8888)
             } catch (_: Exception) {
-                Bitmap.createBitmap(iconSizePx, iconSizePx, Bitmap.Config.ARGB_8888).apply {
+                createBitmap(iconSizePx, iconSizePx).apply {
                     eraseColor(Color.GRAY)
                 }
             }
@@ -357,23 +360,21 @@ class AppCarouselSwitcherView @JvmOverloads constructor(
             // 图标居中裁剪（保持 1:1 原比例不拉伸变形）
             clipPath.reset()
             clipPath.addRoundRect(cardRect, currentCorner, currentCorner, Path.Direction.CW)
-            val saveCount = canvas.save()
-            canvas.clipPath(clipPath)
-
-            val iconPad = 13f * density * scale
-            val iconSize = (minOf(cardW, cardH) - 2 * iconPad).coerceAtLeast(16f * density)
-            val iconLeft = left + (cardW - iconSize) / 2f
-            val iconTop = top + (cardH - iconSize) / 2f
-            iconRect.set(iconLeft, iconTop, iconLeft + iconSize, iconTop + iconSize)
-            canvas.drawBitmap(item.iconBitmap, null, iconRect, iconPaint)
-            canvas.restoreToCount(saveCount)
+            canvas.withClip(clipPath) {
+                val iconPad = 13f * density * scale
+                val iconSize = (minOf(cardW, cardH) - 2 * iconPad).coerceAtLeast(16f * density)
+                val iconLeft = left + (cardW - iconSize) / 2f
+                val iconTop = top + (cardH - iconSize) / 2f
+                iconRect.set(iconLeft, iconTop, iconLeft + iconSize, iconTop + iconSize)
+                drawBitmap(item.iconBitmap, null, iconRect, iconPaint)
+            }
 
             // 高亮外描边
             if (isSelected) {
                 cardStrokePaint.color = item.cardColors.strokeColor
                 cardStrokePaint.strokeWidth = 2.5f * density
                 val strokePad = 1.5f * density
-                val strokeRect = RectF(left - strokePad, top - strokePad, right + strokePad, bottom + strokePad)
+                strokeRect.set(left - strokePad, top - strokePad, right + strokePad, bottom + strokePad)
                 canvas.drawRoundRect(strokeRect, currentCorner + strokePad, currentCorner + strokePad, cardStrokePaint)
             } else {
                 cardStrokePaint.color = 0x22FFFFFF.toInt()

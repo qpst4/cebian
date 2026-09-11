@@ -17,36 +17,37 @@ class ScreenOffDismissReceiver(
         private const val TAG = "ScreenOffDismissReceiver"
     }
     private var receiver: BroadcastReceiver? = null
-    private var registeredHost: Context? = null
+    private var registeredAppContext: android.app.Application? = null
 
     fun register(context: Context) {
         unregister()
+        val appContext = context.applicationContext as android.app.Application
         val r = object : BroadcastReceiver() {
             override fun onReceive(ctx: Context?, intent: Intent?) {
                 if (intent?.action == Intent.ACTION_SCREEN_OFF) onScreenOff()
             }
         }
         receiver = r
-        registeredHost = context
+        registeredAppContext = appContext
         val filter = IntentFilter(Intent.ACTION_SCREEN_OFF)
         runCatching {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                context.registerReceiver(r, filter, Context.RECEIVER_NOT_EXPORTED)
+                appContext.registerReceiver(r, filter, Context.RECEIVER_NOT_EXPORTED)
             } else {
                 @Suppress("UnspecifiedRegisterReceiverFlag")
-                context.registerReceiver(r, filter)
+                appContext.registerReceiver(r, filter)
             }
         }.onFailure { error ->
             Log.w(TAG, "register screen-off receiver failed", error)
             receiver = null
-            registeredHost = null
+            registeredAppContext = null
         }
     }
 
     fun unregister() {
         val r = receiver ?: return
-        registeredHost?.let { host -> runCatching { host.unregisterReceiver(r) } }
+        registeredAppContext?.let { host -> runCatching { host.unregisterReceiver(r) } }
         receiver = null
-        registeredHost = null
+        registeredAppContext = null
     }
 }

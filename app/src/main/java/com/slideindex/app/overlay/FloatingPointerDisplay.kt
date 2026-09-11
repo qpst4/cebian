@@ -338,11 +338,10 @@ internal fun FloatingPointerDisplay(
                     alpha = presence
                 }
         ) {
-            val isBlurSupported = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
             val localDensity = LocalDensity.current
             val isJoystickVisible = !session.awaitingPlacement || joystickActive || radialMenuActive || radialMenuIdle || gestureCaptureActive
 
-            if (isBlurSupported && isJoystickVisible) {
+            if (isJoystickVisible) {
                 val radiusPx = session.joystickRadiusPx()
                 val diameterDp = with(localDensity) { (radiusPx * 2f).toDp() }
                 val blurRadiusPx = (45f * localDensity.density).roundToInt()
@@ -362,7 +361,7 @@ internal fun FloatingPointerDisplay(
                 }
             }
 
-            if (isBlurSupported && radialMenuProgress > 0.01f) {
+            if (radialMenuProgress > 0.01f) {
                 val radialCenter = if (radialMenuActive || radialMenuIdle) {
                     Offset(session.radialMenuCenterX, session.radialMenuCenterY)
                 } else {

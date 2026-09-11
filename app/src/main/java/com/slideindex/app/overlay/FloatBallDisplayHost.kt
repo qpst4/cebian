@@ -1,5 +1,6 @@
 package com.slideindex.app.overlay
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Rect
 import android.view.View
@@ -9,6 +10,7 @@ import androidx.compose.ui.platform.ComposeView
 /**
  * Display 层根容器：线条仍走 Compose，球体与准星由原生 View 直接 layout，避免拖拽时整层重组。
  */
+@SuppressLint("ViewConstructor")
 internal class FloatBallDisplayHost(
     context: Context,
     private val lineChromeOwner: OverlayComposeOwner,

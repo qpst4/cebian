@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">Cebian</string>
     <string name="main_settings_subtitle">エッジジェスチャとサイドバーパネル</string>
     <string name="main_nav_home">ホーム</string>
@@ -517,9 +517,6 @@
     <string name="settings_section_general">一般</string>
     <string name="settings_app_language_title">アプリの言語</string>
     <string name="settings_app_language_system">システムに従う</string>
-    <string name="settings_app_language_label_zh" translatable="false">简体中文</string>
-    <string name="settings_app_language_label_en" translatable="false">English</string>
-    <string name="settings_app_language_label_ja" translatable="false">日本語</string>
     <string name="settings_section_interaction_feedback">操作フィードバック</string>
     <string name="haptic_strength">振動の強さ</string>
     <string name="selected_hint_icon_size_value">%1$d dp</string>
@@ -792,7 +789,6 @@
     <string name="gesture_action_holographic_launcher">ホログラフィックランチャー</string>
     <string name="holographic_launcher_entry_title">ホログラフィックランチャー</string>
     <string name="holographic_launcher_entry_desc">3D 球体ランチャー：ドラッグで回転、タップで起動</string>
-    <string name="holographic_launcher_entry_summary_hidden">%1$d 件のアプリを非表示</string>
     <string name="holographic_launcher_settings_title">ホログラフィックランチャー設定</string>
     <string name="holographic_settings_section_interaction">操作</string>
     <string name="holographic_settings_section_background">背景</string>
@@ -903,7 +899,7 @@
     <string name="key_event_code_label">キーコード（KeyCode）</string>
     <string name="key_event_name_label">キー名 / メモ</string>
     <string name="key_event_long_press_title">長押しをシミュレート</string>
-    <string name="key_event_long_press_summary">input keyevent --longpress でキーイベントを送信</string>
+    <string name="key_event_long_press_summary" tools:ignore="TypographyDashes">input keyevent --longpress でキーイベントを送信</string>
     <string name="key_event_permission_hint">注: キーイベントのシミュレートには Root 権限または Shizuku サービスの起動が必要です。</string>
     <string name="key_event_permission_toast">キーシミュレート失敗: Root 権限を付与するか Shizuku を起動してください</string>
     <string name="key_event_failed_hint">キーシミュレート失敗: %1$s</string>
@@ -928,7 +924,6 @@
     <string name="fingertip_ring_icon_size">アイコンサイズ</string>
     <string name="fingertip_ring_size_px_value">%1$d px</string>
     <string name="fingertip_ring_slot_count">スロット数</string>
-    <string name="fingertip_ring_slot_count_value">%1$d スロット</string>
     <string name="fingertip_ring_slot_title">スロット %1$d</string>
     <string name="gesture_action_foreground_activity_inspector">フォアグラウンドアクティビティ検出</string>
     <string name="gesture_action_foreground_activity_inspector_desc">現在の前面パッケージと Activity クラス名を表示するフローティング HUD</string>
@@ -958,8 +953,6 @@
     <string name="universal_copy_deselect">選択解除</string>
     <string name="universal_copy_copy">コピー</string>
     <string name="universal_copy_pick">分かち書き</string>
-    <string name="universal_copy_selected">%1$d 件選択中</string>
-    <string name="universal_copy_copied">%1$d 件をコピーしました</string>
     <string name="universal_copy_no_text">コピー可能なテキストが見つかりませんでした</string>
     <string name="gesture_action_freezer_panel">アプリフリーザー</string>
     <string name="gesture_action_freezer_panel_desc">フリーザーオーバーレイを開く</string>
@@ -974,8 +967,6 @@
     <string name="freezer_freeze_failed">フリーズ失敗: %1$s</string>
     <string name="freezer_unfreeze_failed">解除失敗: %1$s</string>
     <string name="freezer_unfreeze_need_root">このアプリは以前システムで無効化されました。特権モードを Root に切り替えるか Shizuku に Root を付与して再試行してください。</string>
-    <string name="freezer_refreeze_done">%1$d 個のアプリをフリーズしました</string>
-    <string name="freezer_unfreeze_all_done">%1$d 個のアプリのフリーズを解除しました</string>
     <string name="freezer_tab_all">すべて</string>
     <string name="freezer_tab_frozen">フリーズ済み</string>
     <string name="freezer_tab_active">有効</string>
@@ -999,7 +990,6 @@
     <string name="freezer_remove_while_frozen">このアプリはまだ凍結中です。先に解除するか、「解除して削除」を選択してください。</string>
     <string name="freezer_import_frozen_apps">凍結済みアプリをインポート</string>
     <string name="freezer_import_frozen_apps_desc">無効化されたランチャーアプリをスキャンし、フリーズリストに追加します</string>
-    <string name="freezer_import_frozen_done">%1$d 件のアプリをインポートしました</string>
     <string name="freezer_import_frozen_none">インポートする凍結アプリがありません</string>
     <string name="freezer_add_to_list">フリーズリストに追加</string>
     <string name="freezer_launch_app">アプリを起動</string>
@@ -1452,9 +1442,7 @@
     <string name="diagnostic_report_export_failed">診断レポートのエクスポートに失敗しました。再試行してください。</string>
     <string name="diagnostic_report_share_chooser_title">診断ログを共有</string>
     <string name="diagnostic_report_share_subject">Cebian 診断ログ</string>
-    <string name="diagnostic_report_truncation_suffix">
-
-...(内容が長いため省略)...</string>
+    <string name="diagnostic_report_truncation_suffix">\n\n…(内容が長いため省略)…</string>
     <string name="native_engine_packs_title">ランタイムエンジン</string>
     <string name="native_engine_packs_subtitle">OCR、オフライン翻訳、分かち書き用ネイティブライブラリ</string>
     <string name="native_engine_packs_section">エンジンパック</string>
@@ -1680,7 +1668,7 @@
     <string name="search_engine_url_link_hint">URL / スキームアドレス</string>
     <string name="search_engine_url_link_support" formatted="false">https://、coolmarket://、intent:// などに対応。プレースホルダーに %s または %q を使用</string>
     <string name="search_engine_url_link_flow_desc" formatted="false">実行ルールとフロー:
-1. パラメータ付きジャンプ: %s を使用する場合（例: .../search?q=%s）、クエリを URL に直接置換
+1. パラメータ付きジャンプ: %s を使用する場合（例: example.com/search?q=%s）、クエリを URL に直接置換
 2. 対象アプリ: 対象パッケージを設定すると指定アプリで強制起動。未設定時はデフォルトアプリを使用
 3. 自動入力: %s 未使用かつ自動入力オン時、起動後にアクセシビリティで検索バーに入力</string>
     <string name="search_engine_jump_activity_flow_desc">実行ルールとフロー:
@@ -2104,7 +2092,6 @@
     <string name="notification_history_group_by_app_title">アプリ別にグループ化</string>
     <string name="notification_history_group_by_app_desc">アプリに複数通知がある場合は折りたたみ。タップで展開</string>
     <string name="notification_history_group_count">%1$d件</string>
-    <string name="notification_history_group_summary">%1$d 件の通知</string>
     <string name="notification_history_group_latest_preview">最新: %1$s</string>
     <string name="notification_history_group_tap_expand">タップして展開</string>
     <string name="notification_history_group_tap_collapse">タップして折りたたむ</string>
@@ -2388,7 +2375,6 @@
     <string name="quick_launcher_folder_add_items">アイテムを追加</string>
     <string name="quick_launcher_folder_delete">フォルダを削除</string>
     <string name="quick_launcher_folder_rename">名前を変更</string>
-    <string name="quick_launcher_folder_items_count">%1$d 件</string>
     <string name="quick_launcher_panel_switch">パネルを切り替え</string>
     <string name="adjust_volume_ring_label">着信</string>
     <string name="adjust_volume_notification_label">通知</string>
@@ -3219,13 +3205,11 @@ APatch で Shell の永久 Root 権限を取り消してください。</string>
     <string name="quick_launcher_multi_select_hint">複数のショートカットを選択してパネルに追加できます</string>
     <string name="quick_launcher_panel_named">パネル %1$d</string>
     <string name="quick_launcher_folder_add">+ 追加</string>
-    <string name="shortcut_custom_count_summary">カスタム直接ショートカット %1$d 件</string>
     <string name="shortcut_custom_empty_summary">カスタムで作成・管理する直接ショートカット</string>
     <string name="preset_shortcut_library_summary">人気アプリ向けの組み込み直接ルール</string>
     <string name="shortcut_custom_section_header">カスタムショートカット (%1$d)</string>
     <string name="preset_shortcut_no_installed">この端末にインストール済みアプリ向けのプリセットはありません。検索ですべて表示できます。</string>
     <string name="preset_shortcut_no_match">一致するプリセットショートカットがありません</string>
-    <string name="shortcut_item_count">%1$d 件</string>
     <string name="preset_shortcut_category_other">その他のショートカット</string>
     <string name="preset_app_alipay">Alipay</string>
     <string name="preset_app_coolapk">CoolApk</string>
@@ -3291,7 +3275,6 @@ APatch で Shell の永久 Root 権限を取り消してください。</string>
     <string name="fv_app_switcher_circle_4">4 リング (38)</string>
     <string name="widget_tab_apps">アプリ</string>
     <string name="widget_tab_shortcuts">ショートカット</string>
-    <string name="widget_group_count">ウィジェット %1$d 件</string>
     <string name="widget_panel_add_widget_failed">ウィジェットを追加できません：ウィジェット情報が見つかりません</string>
     <string name="cd_view_all">すべて表示</string>
     <string name="holographic_no_apps_loaded">アプリが読み込まれていません</string>

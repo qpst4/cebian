@@ -66,7 +66,12 @@ class RemindAlarmService : Service() {
             .setSilent(true)
             .build()
         startForeground(NOTIFY_ID_BASE + minutes, notification)
-        registerReceiver(screenOffReceiver, IntentFilter(Intent.ACTION_SCREEN_OFF), RECEIVER_NOT_EXPORTED)
+        androidx.core.content.ContextCompat.registerReceiver(
+            this,
+            screenOffReceiver,
+            IntentFilter(Intent.ACTION_SCREEN_OFF),
+            androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED,
+        )
         showOverlay(minutes)
         playAlarmSound()
         vibrate()

@@ -31,6 +31,7 @@ import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
+import android.webkit.RenderProcessGoneDetail
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
@@ -177,7 +178,7 @@ object FloatBallImageSearchPanel {
         runCatching { (webView.parent as? ViewGroup)?.removeView(webView) }
         runCatching {
             webView.webChromeClient = null
-            webView.webViewClient = WebViewClient()
+            webView.webViewClient = releaseSafeWebViewClient()
             webView.destroy()
         }
     }
@@ -1101,6 +1102,15 @@ private suspend fun clearSearchSessionCookies() = kotlin.coroutines.suspendCorou
     }
 }
 
+private fun releaseSafeWebViewClient(
+    onRenderProcessGone: (WebView) -> Unit = {},
+): WebViewClient = object : WebViewClient() {
+    override fun onRenderProcessGone(view: WebView?, detail: RenderProcessGoneDetail?): Boolean {
+        view?.let(onRenderProcessGone)
+        return true
+    }
+}
+
 @SuppressLint("RestrictedApi", "SetJavaScriptEnabled")
 private fun createSearchWebView(
     context: Context,
@@ -1201,6 +1211,11 @@ private fun createSearchWebView(
                     }
                     else -> false
                 }
+            }
+
+            override fun onRenderProcessGone(view: WebView?, detail: RenderProcessGoneDetail?): Boolean {
+                view?.let(FloatBallImageSearchPanel::releaseSearchWebView)
+                return true
             }
         }
         webChromeClient = object : WebChromeClient() {

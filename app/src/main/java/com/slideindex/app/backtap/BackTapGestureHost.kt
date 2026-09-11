@@ -133,7 +133,12 @@ class BackTapGestureHost @Inject constructor(
             addAction(Intent.ACTION_POWER_CONNECTED)
             addAction(Intent.ACTION_POWER_DISCONNECTED)
         }
-        appContext.registerReceiver(screenReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        androidx.core.content.ContextCompat.registerReceiver(
+            appContext,
+            screenReceiver,
+            filter,
+            androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED,
+        )
     }
 
     private fun unregisterReceivers() {

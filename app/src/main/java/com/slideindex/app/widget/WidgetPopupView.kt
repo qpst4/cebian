@@ -5,7 +5,6 @@ import android.content.Context
 import android.graphics.Color
 import android.graphics.Outline
 import android.graphics.drawable.GradientDrawable
-import android.os.Build
 import android.util.Log
 import android.view.Gravity
 import android.view.MotionEvent
@@ -39,6 +38,11 @@ class WidgetPopupRootLayout(
         setBackgroundColor(Color.TRANSPARENT)
     }
 
+    override fun performClick(): Boolean {
+        super.performClick()
+        return true
+    }
+
     override fun onTouchEvent(event: MotionEvent): Boolean {
         val card = cardView ?: return super.onTouchEvent(event)
         val x = event.x
@@ -46,6 +50,7 @@ class WidgetPopupRootLayout(
         if (x < card.left || x > card.right || y < card.top || y > card.bottom) {
             if (event.action == MotionEvent.ACTION_UP) {
                 onDismissOutside()
+                performClick()
             }
             return true
         }
@@ -213,7 +218,7 @@ class WidgetPopupCardLayout(
         )
         val strokeColor = if (settings.widgetPanelBlurEnabled) 0x29FFFFFF.toInt() else 0x14FFFFFF
 
-        if (settings.widgetPanelBlurEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        if (settings.widgetPanelBlurEnabled) {
             setupBackgroundBlur(
                 cornerRadiusPx = cornerRadiusPx,
                 blurRadiusPx = (settings.widgetPanelBlurRadiusDp * density).roundToInt(),
@@ -286,7 +291,31 @@ class WidgetPopupCardLayout(
         }
         updateHeader()
         fabContainer.visibility = if (enabled) View.VISIBLE else View.GONE
-        adapter.notifyDataSetChanged()
+        notifyAllPagesChanged()
+    }
+
+    private fun notifyAllPagesChanged() {
+        if (pages.isEmpty()) return
+        adapter.notifyItemRangeChanged(0, pages.size)
+    }
+
+    private fun notifyPageStructureChanged(previousSize: Int) {
+        val newSize = pages.size
+        when {
+            previousSize == newSize -> notifyAllPagesChanged()
+            newSize > previousSize -> {
+                if (previousSize > 0) {
+                    adapter.notifyItemRangeChanged(0, previousSize)
+                }
+                adapter.notifyItemRangeInserted(previousSize, newSize - previousSize)
+            }
+            else -> {
+                adapter.notifyItemRangeRemoved(newSize, previousSize - newSize)
+                if (newSize > 0) {
+                    adapter.notifyItemRangeChanged(0, newSize)
+                }
+            }
+        }
     }
 
     private fun updateHeader() {
@@ -334,13 +363,14 @@ class WidgetPopupCardLayout(
     }
 
     fun updatePages(updated: List<WidgetPanelPage>) {
+        val previousSize = pages.size
         pages = WidgetPanelDefaults.effectivePages(updated)
             .map { WidgetPanelGridLogic.fitPageToGrid(it) }
             .toMutableList()
         if (currentPageIndex >= pages.size) {
             currentPageIndex = (pages.size - 1).coerceAtLeast(0)
         }
-        adapter.notifyDataSetChanged()
+        notifyPageStructureChanged(previousSize)
         updateDots()
         updateHeader()
         applyCardBackground()
@@ -367,7 +397,7 @@ class WidgetPopupCardLayout(
                 )
                 if (updated != null) {
                     persist(updated)
-                    adapter.notifyDataSetChanged()
+                    adapter.notifyItemChanged(pageIndex)
                 }
             },
             onAppAdded = { packageName, className, label ->
@@ -381,7 +411,7 @@ class WidgetPopupCardLayout(
                 )
                 if (updated != null) {
                     persist(updated)
-                    adapter.notifyDataSetChanged()
+                    adapter.notifyItemChanged(pageIndex)
                 }
             },
             onShortcutAdded = { packageName, shortcutId, label, intentUri ->
@@ -396,7 +426,7 @@ class WidgetPopupCardLayout(
                 )
                 if (updated != null) {
                     persist(updated)
-                    adapter.notifyDataSetChanged()
+                    adapter.notifyItemChanged(pageIndex)
                 }
             },
             onActionAdded = { actionPayload, label ->
@@ -409,13 +439,14 @@ class WidgetPopupCardLayout(
                 )
                 if (updated != null) {
                     persist(updated)
-                    adapter.notifyDataSetChanged()
+                    adapter.notifyItemChanged(pageIndex)
                 }
             },
             onPagesChanged = { updatedPages ->
+                val previousSize = pages.size
                 this.pages = updatedPages.toMutableList()
                 persist(updatedPages)
-                adapter.notifyDataSetChanged()
+                notifyPageStructureChanged(previousSize)
             },
         )
     }
@@ -458,7 +489,7 @@ class WidgetPopupCardLayout(
             }
             canvas.onItemRemoved = { widgetId ->
                 persist(WidgetPanelMutator.removeWidgetFromPage(hostContext, pages, position, widgetId))
-                notifyDataSetChanged()
+                notifyItemChanged(position)
             }
             canvas.onConfigureWidget = { widgetId ->
                 val intent = WidgetConfigureTrampolineActivity.createIntent(hostContext, widgetId)

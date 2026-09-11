@@ -22,8 +22,8 @@ fun PermissionCard(
     title: String,
     description: String,
     onGrant: () -> Unit,
-    grantLabel: String = stringResource(R.string.grant_permission),
     modifier: Modifier = Modifier,
+    grantLabel: String = stringResource(R.string.grant_permission),
 ) {
     Card(
         modifier = modifier

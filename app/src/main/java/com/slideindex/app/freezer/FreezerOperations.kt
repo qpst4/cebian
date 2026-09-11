@@ -118,7 +118,11 @@ object FreezerOperations {
             if (!isFrozen(context, pkg) && setFrozen(context, pkg, frozen = true)) count++
         }
         withContext(Dispatchers.Main) {
-            Toast.makeText(context, context.getString(R.string.freezer_refreeze_done, count), Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                context,
+                context.resources.getQuantityString(R.plurals.freezer_refreeze_done, count, count),
+                Toast.LENGTH_SHORT,
+            ).show()
         }
         count
     }
@@ -135,7 +139,11 @@ object FreezerOperations {
             if (isFrozen(context, pkg) && setFrozen(context, pkg, frozen = false)) count++
         }
         withContext(Dispatchers.Main) {
-            Toast.makeText(context, context.getString(R.string.freezer_unfreeze_all_done, count), Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                context,
+                context.resources.getQuantityString(R.plurals.freezer_unfreeze_all_done, count, count),
+                Toast.LENGTH_SHORT,
+            ).show()
         }
         count
     }

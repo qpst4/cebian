@@ -283,7 +283,7 @@ private class FingertipRingOverlayView(context: Context) : View(context) {
         onRelease: (Float, Float) -> Unit,
         onCancel: () -> Unit,
     ) {
-        setOnTouchListener { _, event ->
+        setOnTouchListener { view, event ->
             when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN, MotionEvent.ACTION_MOVE -> {
                     onMove(event.rawX, event.rawY)
@@ -291,6 +291,7 @@ private class FingertipRingOverlayView(context: Context) : View(context) {
                 }
                 MotionEvent.ACTION_UP -> {
                     onRelease(event.rawX, event.rawY)
+                    view.performClick()
                     true
                 }
                 MotionEvent.ACTION_CANCEL -> {

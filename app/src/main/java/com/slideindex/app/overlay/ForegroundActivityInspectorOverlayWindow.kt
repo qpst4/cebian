@@ -12,7 +12,6 @@ import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.net.Uri
-import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
@@ -61,7 +60,8 @@ data class ActivityHistoryRecord(
 object ForegroundActivityInspectorOverlayWindow {
 
     private val mainHandler = Handler(Looper.getMainLooper())
-    private val timeFormat = SimpleDateFormat("HH:mm:ss.SSS", Locale.getDefault())
+    private fun formatEventTime(timestamp: Long): String =
+        SimpleDateFormat("HH:mm:ss.SSS", Locale.getDefault()).format(timestamp)
 
     private var windowManager: WindowManager? = null
     private var rootView: FrameLayout? = null
@@ -122,12 +122,7 @@ object ForegroundActivityInspectorOverlayWindow {
         val params = WindowManager.LayoutParams().apply {
             width = dp(330f).coerceAtMost((dm.widthPixels * 0.92f).toInt())
             height = WindowManager.LayoutParams.WRAP_CONTENT
-            type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-            } else {
-                @Suppress("DEPRECATION")
-                WindowManager.LayoutParams.TYPE_PHONE
-            }
+            type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
             flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                 WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
                 WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED
@@ -284,7 +279,7 @@ object ForegroundActivityInspectorOverlayWindow {
         // 6. 记录到历史队列中（仅记录真实有效的 Activity）
         if (!isSameAsCurrent) {
             val record = ActivityHistoryRecord(
-                timeFormatted = timeFormat.format(Date()),
+                timeFormatted = formatEventTime(System.currentTimeMillis()),
                 packageName = packageName,
                 className = className,
                 appLabel = initialLabel
@@ -665,7 +660,7 @@ object ForegroundActivityInspectorOverlayWindow {
         var initialTouchY = 0f
         var isDragging = false
 
-        view.setOnTouchListener { _, event ->
+        view.setOnTouchListener { touchView, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
                     initialX = params.x
@@ -693,6 +688,9 @@ object ForegroundActivityInspectorOverlayWindow {
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                     val wasDragging = isDragging
                     isDragging = false
+                    if (event.action == MotionEvent.ACTION_UP) {
+                        touchView.performClick()
+                    }
                     wasDragging
                 }
                 else -> false

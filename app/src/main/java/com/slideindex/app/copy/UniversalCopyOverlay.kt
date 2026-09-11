@@ -148,7 +148,13 @@ object UniversalCopyOverlay {
                 cornerRadius = dp(28).toFloat()
             }
             setPadding(dp(16), dp(10), dp(8), dp(10))
-            setOnTouchListener { _, _ -> true }
+            isClickable = true
+            setOnTouchListener { view, event ->
+                if (event.action == MotionEvent.ACTION_UP) {
+                    view.performClick()
+                }
+                true
+            }
         }
         val hint = TextView(context).apply {
             text = context.getString(R.string.universal_copy_tap_to_select)
@@ -182,7 +188,15 @@ object UniversalCopyOverlay {
             if (selected.isNotEmpty()) {
                 val text = selected.joinToString("\n") { it.text }
                 copyToClipboard(context, text)
-                Toast.makeText(context, context.getString(R.string.universal_copy_copied, selected.size), Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    context,
+                    context.resources.getQuantityString(
+                        R.plurals.universal_copy_copied,
+                        selected.size,
+                        selected.size,
+                    ),
+                    Toast.LENGTH_SHORT,
+                ).show()
                 dismiss()
             }
         }
@@ -245,7 +259,11 @@ object UniversalCopyOverlay {
     private fun updateToolbarState(blocks: List<SelectableBlock>) {
         val count = blocks.count { it.selected }
         hintView?.get()?.text = if (count > 0) {
-            currentOverlay?.get()?.context?.getString(R.string.universal_copy_selected, count)
+            currentOverlay?.get()?.context?.resources?.getQuantityString(
+                R.plurals.universal_copy_selected,
+                count,
+                count,
+            )
         } else {
             currentOverlay?.get()?.context?.getString(R.string.universal_copy_tap_to_select)
         }
@@ -345,6 +363,11 @@ object UniversalCopyOverlay {
             }
         }
 
+        override fun performClick(): Boolean {
+            super.performClick()
+            return true
+        }
+
         override fun onTouchEvent(event: MotionEvent): Boolean {
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
@@ -361,8 +384,10 @@ object UniversalCopyOverlay {
                             upBlock.selected = !upBlock.selected
                             invalidate()
                             onSelectionChanged()
+                            performClick()
                         } else if (upBlock == null && downBlock == null) {
                             onEmptyTap()
+                            performClick()
                         }
                     }
                     downBlock = null

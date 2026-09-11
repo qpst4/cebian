@@ -7,7 +7,6 @@ import android.content.pm.PackageManager
 import android.content.pm.ShortcutInfo
 import android.content.pm.ShortcutManager
 import android.graphics.drawable.Icon
-import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import com.slideindex.app.R
@@ -22,9 +21,6 @@ object FreezerLauncherHelper {
      * 添加桌面快捷方式（系统 Pin 对话框）。不再使用 activity-alias，避免 Flyme 把它当成可卸载的应用。
      */
     fun requestPinShortcut(context: Context): Boolean {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            return false
-        }
         val appContext = context.applicationContext
         val shortcutManager = appContext.getSystemService(ShortcutManager::class.java) ?: return false
         if (!shortcutManager.isRequestPinShortcutSupported) {

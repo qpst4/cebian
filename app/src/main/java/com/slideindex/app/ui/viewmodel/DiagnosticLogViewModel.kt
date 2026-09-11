@@ -118,7 +118,6 @@ class DiagnosticLogViewModel @Inject constructor(
 
     override fun onCleared() {
         disconnect()
-        super.onCleared()
     }
 
     companion object {

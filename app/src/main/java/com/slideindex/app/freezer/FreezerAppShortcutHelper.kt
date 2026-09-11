@@ -5,7 +5,6 @@ import android.content.Intent
 import android.content.pm.ShortcutInfo
 import android.content.pm.ShortcutManager
 import android.graphics.drawable.Icon
-import android.os.Build
 import android.widget.Toast
 import com.slideindex.app.R
 import com.slideindex.app.data.AppInfo
@@ -13,7 +12,6 @@ import androidx.core.graphics.drawable.toBitmap
 
 object FreezerAppShortcutHelper {
     fun requestPinAppShortcut(context: Context, app: AppInfo): Boolean {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return false
         val appContext = context.applicationContext
         val shortcutManager = appContext.getSystemService(ShortcutManager::class.java) ?: return false
         if (!shortcutManager.isRequestPinShortcutSupported) return false

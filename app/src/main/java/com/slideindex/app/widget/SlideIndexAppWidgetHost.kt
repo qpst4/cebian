@@ -33,7 +33,6 @@ class SlideIndexAppWidgetHost(private val appContext: Context) : AppWidgetHost(a
 
   @SuppressLint("PrivateApi", "DiscouragedPrivateApi")
   private fun injectInteractionHandlerIfSupported() {
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
     try {
       val handlerClass = Class.forName("android.widget.RemoteViews\$InteractionHandler")
       val proxy = Proxy.newProxyInstance(

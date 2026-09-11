@@ -196,6 +196,11 @@ class Ball3DView @JvmOverloads constructor(
         canvas.drawText(label, node.screenX, node.screenY + half + textSize + 6f, textPaint)
     }
 
+    override fun performClick(): Boolean {
+        super.performClick()
+        return true
+    }
+
     override fun onTouchEvent(event: MotionEvent): Boolean {
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
@@ -246,6 +251,7 @@ class Ball3DView @JvmOverloads constructor(
                 velocityTracker?.computeCurrentVelocity(1000)
                 if (!isDragging) {
                     handleClick(event.x, event.y)
+                    performClick()
                     onRotationStateChange?.invoke(false)
                 } else {
                     val vx = velocityTracker?.xVelocity ?: 0f

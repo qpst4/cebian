@@ -7,7 +7,6 @@ import android.os.Looper
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
-import android.os.Build
 import android.provider.Settings
 import com.slideindex.app.util.PermissionHelper
 
@@ -47,12 +46,7 @@ object ClipboardFocusReader {
             isFocusable = true
             isFocusableInTouchMode = true
         }
-        val overlayType = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-        } else {
-            @Suppress("DEPRECATION")
-            WindowManager.LayoutParams.TYPE_PHONE
-        }
+        val overlayType = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
         val params = WindowManager.LayoutParams(
             16,
             16,
