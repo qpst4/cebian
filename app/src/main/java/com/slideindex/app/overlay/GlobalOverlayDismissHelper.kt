@@ -49,6 +49,7 @@ object GlobalOverlayDismissHelper {
         runCatching { FreezerOverlayWindow.dismiss() }
         runCatching { FloatBallTranslatePanel.dismiss() }
         runCatching { FloatIconOverlayWindow.dismiss() }
+        runCatching { CNoticeOverlayWindow.closePanel() }
         runCatching { MessageReplyOverlayWindow.dismiss() }
         runCatching { ForegroundActivityInspectorOverlayWindow.dismiss() }
         runCatching { VolumePanelOverlayWindow.dismiss() }

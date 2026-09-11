@@ -42,6 +42,41 @@ class MessageNotificationFilterTest {
     }
 
     @Test
+    fun acceptDanmaku_rejectsUnchangedConversationContent() {
+        val first = sampleData(
+            key = "k1",
+            title = "TG 群",
+            content = "旧消息",
+            postTime = 1L,
+            conversationSourceKey = "tg|group",
+            messages = listOf(NotificationMessage(text = "旧消息", timestamp = 1L)),
+        )
+        val refreshed = sampleData(
+            key = "k1",
+            title = "TG 群",
+            content = "旧消息",
+            postTime = 2L,
+            conversationSourceKey = "tg|group",
+            messages = listOf(NotificationMessage(text = "旧消息", timestamp = 1L)),
+        )
+        val updated = sampleData(
+            key = "k1",
+            title = "TG 群",
+            content = "新消息",
+            postTime = 3L,
+            conversationSourceKey = "tg|group",
+            messages = listOf(
+                NotificationMessage(text = "旧消息", timestamp = 1L),
+                NotificationMessage(text = "新消息", timestamp = 3L),
+            ),
+        )
+
+        assertTrue(MessageNotificationFilter.acceptDanmaku(first))
+        assertFalse(MessageNotificationFilter.acceptDanmaku(refreshed))
+        assertTrue(MessageNotificationFilter.acceptDanmaku(updated))
+    }
+
+    @Test
     fun shouldShowNotification_blocksOwnPackage() {
         val sbn = statusBarNotification(context.packageName, "self")
         val data = sampleData(packageName = context.packageName)
@@ -129,6 +164,8 @@ class MessageNotificationFilterTest {
         title: String = "Title",
         content: String = "Body",
         postTime: Long = 1_700_000_000_000L,
+        conversationSourceKey: String = "",
+        messages: List<NotificationMessage> = emptyList(),
     ) = NotificationData(
         packageName = packageName,
         key = key,
@@ -138,6 +175,8 @@ class MessageNotificationFilterTest {
         appIcon = null,
         contentIntent = null,
         postTime = postTime,
+        conversationSourceKey = conversationSourceKey,
+        messages = messages,
     )
 
     private fun statusBarNotification(packageName: String, tag: String): StatusBarNotification {

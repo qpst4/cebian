@@ -7,6 +7,7 @@ import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import com.slideindex.app.R
 import com.slideindex.app.message.MessageThemeCatalog
+import com.slideindex.app.overlay.CNoticeOverlayWindow
 import com.slideindex.app.overlay.FloatIconOverlayWindow
 import com.slideindex.app.overlay.MessageOverlayHost
 import com.slideindex.app.overlay.SideBubbleOverlayWindow
@@ -36,6 +37,10 @@ object MessageReminderPreviewController {
                 SideBubbleOverlayWindow.dismissPreview()
                 SideBubbleOverlayWindow.show(context, plan, noOpAction, noOpDismiss)
             }
+            MessageStyle.CNotice -> {
+                CNoticeOverlayWindow.dismissPreview()
+                CNoticeOverlayWindow.installPreview(context, previewSettings)
+            }
             else -> Unit
         }
     }
@@ -48,6 +53,8 @@ object MessageReminderPreviewController {
                 FloatIconOverlayWindow.updateWindowPlacement(context, previewSettings)
             MessageStyle.SideBubble ->
                 SideBubbleOverlayWindow.updateWindowPlacement(context, previewSettings)
+            MessageStyle.CNotice ->
+                CNoticeOverlayWindow.updateWindowPlacement(context, previewSettings)
             else -> Unit
         }
     }
@@ -64,6 +71,9 @@ object MessageReminderPreviewController {
             MessageStyle.SideBubble -> {
                 SideBubbleOverlayWindow.updateWindowPlacement(context, previewSettings)
                 SideBubbleOverlayWindow.updatePreviewPlan(plan)
+            }
+            MessageStyle.CNotice -> {
+                CNoticeOverlayWindow.updateWindowPlacement(context, previewSettings)
             }
             else -> Unit
         }
@@ -82,6 +92,7 @@ object MessageReminderPreviewController {
         when (style) {
             MessageStyle.FloatIcon -> FloatIconOverlayWindow.dismissPreview()
             MessageStyle.SideBubble -> SideBubbleOverlayWindow.dismissPreview()
+            MessageStyle.CNotice -> CNoticeOverlayWindow.dismissPreview()
             else -> Unit
         }
         if (restorePlacement && style != null && baseline != null) {
@@ -100,8 +111,10 @@ object MessageReminderPreviewController {
             enabled = true,
             floatIconEnabled = style == MessageStyle.FloatIcon,
             sideBubbleEnabled = style == MessageStyle.SideBubble,
+            cNoticeEnabled = style == MessageStyle.CNotice,
             floatIconAutoDismissSeconds = 0,
             sideBubbleAutoDismissSeconds = 0,
+            cNoticeAutoDismissSeconds = 0,
         )
 
     private fun buildPreviewPlan(
@@ -131,6 +144,7 @@ object MessageReminderPreviewController {
             showFloatIcon = style == MessageStyle.FloatIcon,
             showSideBubble = style == MessageStyle.SideBubble,
             showDanmaku = false,
+            showCNotice = style == MessageStyle.CNotice,
             sideTheme = if (style == MessageStyle.SideBubble) {
                 MessageThemeCatalog.themeFor(MessageStyle.SideBubble, settings.sideThemeId)
             } else {

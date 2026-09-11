@@ -26,4 +26,6 @@ interface ITaskManagerService {
     String runShellCommandLine(String command, boolean useRoot, boolean forceAdb) = 16;
     /** Whether root execution is available from the current Shizuku service. */
     boolean probeRootAvailable() = 17;
+    /** PNG bytes for a published shortcut icon, or null when unavailable. */
+    byte[] getShortcutIconBytes(String packageName, String shortcutId, int userId) = 19;
 }

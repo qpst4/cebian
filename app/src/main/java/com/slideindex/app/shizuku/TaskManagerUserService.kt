@@ -89,6 +89,16 @@ class TaskManagerUserService() : ITaskManagerService.Stub() {
     override fun startPublishedShortcut(packageName: String?, shortcutId: String?): Boolean =
         tasks.startPublishedShortcut(packageName, shortcutId)
 
+    override fun getShortcutIconBytes(
+        packageName: String?,
+        shortcutId: String?,
+        userId: Int,
+    ): ByteArray? {
+        val context = appContext ?: return null
+        if (packageName.isNullOrBlank() || shortcutId.isNullOrBlank()) return null
+        return ShortcutIconBitmapLoader.loadPngBytes(packageName, shortcutId, userId)
+    }
+
     override fun moveTaskToFreeWindow(
         taskIdStr: String?,
         windowingMode: Int,

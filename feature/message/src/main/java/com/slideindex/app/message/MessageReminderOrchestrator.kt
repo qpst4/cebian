@@ -2,6 +2,7 @@ package com.slideindex.app.message
 
 import android.content.Context
 import android.content.res.Configuration
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.service.notification.NotificationListenerService
@@ -28,6 +29,7 @@ class MessageReminderOrchestrator @Inject constructor(
     private val environmentPort: MessageEnvironmentPort,
     private val actionExecutor: MessageActionExecutor,
     private val shadeActions: NotificationShadeActions,
+    private val shortcutIconPort: NotificationShortcutIconPort,
 ) {
     private val mainHandler = Handler(Looper.getMainLooper())
     private val settingsWriteScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -36,7 +38,12 @@ class MessageReminderOrchestrator @Inject constructor(
     @Volatile
     private var pendingUnlockMessage: NotificationData? = null
 
-    fun onNotificationRemoved(sbn: StatusBarNotification, reason: Int) {
+    fun onNotificationRemoved(
+        context: Context,
+        listener: NotificationListenerService,
+        sbn: StatusBarNotification,
+        reason: Int,
+    ) {
         if (!shouldDismissReminderForRemoval(reason)) return
 
         val settings = settingsRepository.readSnapshot().messageReminderSettings
@@ -50,8 +57,25 @@ class MessageReminderOrchestrator @Inject constructor(
         }
 
         mainHandler.post {
+            val removedData = NotificationData.fromSbn(context, sbn)
+            val activeConversationKeys = runCatching { listener.activeNotifications?.toList() }
+                .getOrNull()
+                .orEmpty()
+                .mapNotNull { active ->
+                    NotificationData.fromSbn(context, active)?.let { NotificationData.conversationIdentityKey(it) }
+                }
+                .filter { it.isNotBlank() }
+                .toSet()
             MessageStyle.entries.forEach { style ->
-                overlayPort.dismissEntriesForKey(style, key)
+                if (style == MessageStyle.CNotice) {
+                    overlayPort.reconcileCNoticeAfterRemoval(
+                        removedNotificationKey = key,
+                        removedConversationKey = removedData?.let { NotificationData.conversationIdentityKey(it) },
+                        activeConversationKeys = activeConversationKeys,
+                    )
+                } else {
+                    overlayPort.dismissEntriesForKey(style, key)
+                }
             }
         }
     }
@@ -78,9 +102,8 @@ class MessageReminderOrchestrator @Inject constructor(
         ) {
             return
         }
-        if (!MessageNotificationFilter.dedup(data)) return
-
         val plan = MessagePlanBuilder.buildDisplayPlan(context, settings, data, themePort) ?: return
+        val acceptedByDedup = MessageNotificationFilter.dedup(data)
         if (environmentPort.isScreenLocked(context)) {
             pendingUnlockMessage = data
         }
@@ -88,8 +111,42 @@ class MessageReminderOrchestrator @Inject constructor(
             shadeActions.cancelDismissibleFromShadeOnMain(listener, sbn)
         }
         mainHandler.post {
-            if (isAlreadyDisplayed(plan)) return@post
-            showPlan(context, plan)
+            if (!acceptedByDedup) {
+                val conversationKey = NotificationData.conversationIdentityKey(data)
+                val allowCNoticeUpdate = plan.showCNotice &&
+                    overlayPort.containsCNoticeConversation(conversationKey)
+                if (!allowCNoticeUpdate) return@post
+            }
+            if (isAlreadyDisplayed(plan) && !plan.showCNotice) return@post
+            val showDanmaku = acceptedByDedup &&
+                (!plan.showDanmaku || MessageNotificationFilter.acceptDanmaku(data))
+            showPlan(context, plan, showDanmaku = showDanmaku)
+            scheduleShortcutIconRefresh(context, sbn, data, plan)
+        }
+    }
+
+    private fun scheduleShortcutIconRefresh(
+        context: Context,
+        sbn: StatusBarNotification,
+        data: NotificationData,
+        plan: MessageDisplayPlan,
+    ) {
+        if (!plan.showCNotice) return
+        val shortcutId = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            sbn.notification?.shortcutId
+        } else {
+            null
+        }
+        if (shortcutId.isNullOrBlank()) return
+        val conversationKey = NotificationData.conversationIdentityKey(data)
+        val userId = NotificationData.shortcutUserId(sbn.user)
+        settingsWriteScope.launch {
+            val icon = shortcutIconPort.loadShortcutIcon(sbn.packageName, shortcutId, userId)
+            if (icon != null) {
+                mainHandler.post {
+                    overlayPort.refreshCNoticeConversationIcon(conversationKey, icon)
+                }
+            }
         }
     }
 
@@ -218,18 +275,25 @@ class MessageReminderOrchestrator @Inject constructor(
 
     private fun isAlreadyDisplayed(plan: MessageDisplayPlan): Boolean {
         val overlayStyles = plan.enabledStyles().filter {
-            it == MessageStyle.FloatIcon || it == MessageStyle.SideBubble
+            it == MessageStyle.FloatIcon ||
+                it == MessageStyle.SideBubble ||
+                it == MessageStyle.CNotice
         }
         if (overlayStyles.isEmpty()) return false
         return overlayStyles.all { overlayPort.containsNotification(it, plan.data) }
     }
 
-    private fun showPlan(context: Context, plan: MessageDisplayPlan) {
+    private fun showPlan(
+        context: Context,
+        plan: MessageDisplayPlan,
+        showDanmaku: Boolean = true,
+    ) {
         overlayPort.showPlan(
             context = context,
             plan = plan,
             onAction = { action -> onAction(context, plan, action) },
             onDismiss = { dismissPlan(plan) },
+            showDanmaku = showDanmaku,
         )
     }
 

@@ -36,16 +36,36 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.shape.RoundedCornerShape
 import com.slideindex.app.R
+import com.slideindex.app.overlay.CNoticeOverlayWindow
 import com.slideindex.app.overlay.DanmakuOverlayWindow
 import com.slideindex.app.overlay.FloatIconOverlayWindow
 import com.slideindex.app.overlay.MessageOverlayHost
 import com.slideindex.app.overlay.OverlayComposeDialogHost
 import com.slideindex.app.overlay.SideBubbleOverlayWindow
+import com.slideindex.app.settings.SettingsRepository
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 @Singleton
-class AppMessageOverlayPort @Inject constructor() : MessageOverlayPort {
+class AppMessageOverlayPort @Inject constructor(
+    private val settingsRepository: SettingsRepository,
+    private val cNoticeHistoryLoader: CNoticeHistoryLoader,
+) : MessageOverlayPort {
+    private val settingsWriteScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    init {
+        CNoticeOverlayWindow.historyLoader = cNoticeHistoryLoader
+        CNoticeOverlayWindow.placementPersistHandler = { edge, yFraction ->
+            settingsWriteScope.launch {
+                settingsRepository.setMessageCNoticeHorizontalEdge(edge.id)
+                settingsRepository.setMessageCNoticeYFraction(yFraction)
+            }
+        }
+    }
     private var unlockConfirmationHost: OverlayComposeDialogHost? = null
     private val mainHandler = Handler(Looper.getMainLooper())
     private var unlockBringToFrontRunnable: Runnable? = null
@@ -62,13 +82,22 @@ class AppMessageOverlayPort @Inject constructor() : MessageOverlayPort {
         when (style) {
             MessageStyle.SideBubble -> SideBubbleOverlayWindow.containsNotification(data)
             MessageStyle.FloatIcon -> FloatIconOverlayWindow.containsNotification(data)
+            MessageStyle.CNotice -> CNoticeOverlayWindow.containsNotification(data)
             else -> false
         }
+
+    override fun containsCNoticeConversation(conversationSourceKey: String): Boolean =
+        CNoticeOverlayWindow.containsConversation(conversationSourceKey)
+
+    override fun refreshCNoticeConversationIcon(conversationSourceKey: String, icon: android.graphics.Bitmap) {
+        CNoticeOverlayWindow.refreshConversationIcon(conversationSourceKey, icon)
+    }
 
     override fun dismissEntry(style: MessageStyle, key: String, postTime: Long) {
         when (style) {
             MessageStyle.SideBubble -> SideBubbleOverlayWindow.dismissEntry(key, postTime)
             MessageStyle.FloatIcon -> FloatIconOverlayWindow.dismissEntry(key, postTime)
+            MessageStyle.CNotice -> CNoticeOverlayWindow.dismissEntry(key, postTime)
             else -> Unit
         }
     }
@@ -77,14 +106,28 @@ class AppMessageOverlayPort @Inject constructor() : MessageOverlayPort {
         when (style) {
             MessageStyle.SideBubble -> SideBubbleOverlayWindow.dismissEntriesForKey(key)
             MessageStyle.FloatIcon -> FloatIconOverlayWindow.dismissEntriesForKey(key)
+            MessageStyle.CNotice -> CNoticeOverlayWindow.dismissEntriesForKey(key)
             else -> Unit
         }
+    }
+
+    override fun reconcileCNoticeAfterRemoval(
+        removedNotificationKey: String,
+        removedConversationKey: String?,
+        activeConversationKeys: Set<String>,
+    ) {
+        CNoticeOverlayWindow.reconcileAfterRemoval(
+            removedNotificationKey = removedNotificationKey,
+            removedConversationKey = removedConversationKey,
+            activeConversationKeys = activeConversationKeys,
+        )
     }
 
     override fun resumeAutoDismiss(style: MessageStyle, key: String, postTime: Long) {
         when (style) {
             MessageStyle.SideBubble -> SideBubbleOverlayWindow.resumeAutoDismiss(key, postTime)
             MessageStyle.FloatIcon -> FloatIconOverlayWindow.resumeAutoDismiss(key, postTime)
+            MessageStyle.CNotice -> CNoticeOverlayWindow.resumeAutoDismiss(key, postTime)
             else -> Unit
         }
     }
@@ -93,6 +136,7 @@ class AppMessageOverlayPort @Inject constructor() : MessageOverlayPort {
         when (style) {
             MessageStyle.SideBubble -> SideBubbleOverlayWindow.pauseAutoDismiss(key, postTime)
             MessageStyle.FloatIcon -> FloatIconOverlayWindow.pauseAutoDismiss(key, postTime)
+            MessageStyle.CNotice -> CNoticeOverlayWindow.pauseAutoDismiss(key, postTime)
             else -> Unit
         }
     }
@@ -101,9 +145,11 @@ class AppMessageOverlayPort @Inject constructor() : MessageOverlayPort {
         when (style) {
             MessageStyle.SideBubble -> SideBubbleOverlayWindow.dismissImmediate()
             MessageStyle.FloatIcon -> FloatIconOverlayWindow.dismissImmediate()
+            MessageStyle.CNotice -> CNoticeOverlayWindow.dismissImmediate()
             null -> {
                 SideBubbleOverlayWindow.dismissImmediate()
                 FloatIconOverlayWindow.dismissImmediate()
+                CNoticeOverlayWindow.dismissImmediate()
             }
             else -> Unit
         }
@@ -113,36 +159,41 @@ class AppMessageOverlayPort @Inject constructor() : MessageOverlayPort {
         buildSet {
             addAll(SideBubbleOverlayWindow.snapshotDisplayedKeys())
             addAll(FloatIconOverlayWindow.snapshotDisplayedKeys())
+            addAll(CNoticeOverlayWindow.snapshotDisplayedKeys())
         }
 
     override fun dismissAllReminders() {
         SideBubbleOverlayWindow.dismiss()
         FloatIconOverlayWindow.dismiss()
+        CNoticeOverlayWindow.dismiss()
         DanmakuOverlayWindow.detach()
     }
 
     override fun dismissSameSourceReminders(sourceKey: String) {
         SideBubbleOverlayWindow.dismissSameSource(sourceKey)
         FloatIconOverlayWindow.dismissSameSource(sourceKey)
+        CNoticeOverlayWindow.dismissSameSource(sourceKey)
     }
 
     override fun snapshotDisplayedKeysForSource(sourceKey: String): Set<String> =
         buildSet {
             addAll(SideBubbleOverlayWindow.snapshotDisplayedKeysForSource(sourceKey))
             addAll(FloatIconOverlayWindow.snapshotDisplayedKeysForSource(sourceKey))
+            addAll(CNoticeOverlayWindow.snapshotDisplayedKeysForSource(sourceKey))
         }
 
     override fun showPlan(
         context: Context,
         plan: MessageDisplayPlan,
         onAction: (MessageAction) -> Unit,
-        onDismiss: () -> Unit
+        onDismiss: () -> Unit,
+        showDanmaku: Boolean,
     ) {
         val danmakuTheme = plan.danmakuTheme
-        if (plan.showDanmaku && danmakuTheme != null) {
+        if (showDanmaku && plan.showDanmaku && danmakuTheme != null) {
             DanmakuOverlayWindow.show(
                 context = context,
-                data = plan.data,
+                data = plan.data.latestMessageForDanmaku(),
                 theme = danmakuTheme,
                 opacity = plan.settings.danmakuOpacity,
                 maxLines = plan.settings.danmakuMaxLines,
@@ -160,6 +211,14 @@ class AppMessageOverlayPort @Inject constructor() : MessageOverlayPort {
         }
         if (plan.showSideBubble && plan.sideTheme != null) {
             SideBubbleOverlayWindow.show(
+                context = context,
+                plan = plan,
+                onAction = onAction,
+                onDismiss = onDismiss
+            )
+        }
+        if (plan.showCNotice) {
+            CNoticeOverlayWindow.show(
                 context = context,
                 plan = plan,
                 onAction = onAction,

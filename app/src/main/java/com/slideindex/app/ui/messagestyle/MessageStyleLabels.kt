@@ -1,4 +1,4 @@
-﻿package com.slideindex.app.ui.messagestyle
+package com.slideindex.app.ui.messagestyle
 
 
 
@@ -25,6 +25,8 @@ fun messageStyleLabel(style: MessageStyle): String = when (style) {
     MessageStyle.SideBubble -> stringResource(R.string.message_style_side_bubble)
 
     MessageStyle.Danmaku -> stringResource(R.string.message_style_danmaku)
+
+    MessageStyle.CNotice -> stringResource(R.string.message_style_c_notice)
 
 }
 
@@ -61,6 +63,8 @@ fun messageStyleSummary(settings: MessageSettings): String {
         if (settings.sideBubbleEnabled) add(messageStyleLabel(MessageStyle.SideBubble))
 
         if (settings.danmakuEnabled) add(messageStyleLabel(MessageStyle.Danmaku))
+
+        if (settings.cNoticeEnabled) add(messageStyleLabel(MessageStyle.CNotice))
 
     }
 

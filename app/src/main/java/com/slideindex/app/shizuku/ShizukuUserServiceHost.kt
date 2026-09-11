@@ -26,7 +26,7 @@ object ShizukuUserServiceHost {
     private const val RESTART_DELAY_MS = 300L
 
     /** Bump when the remote service ABI changes; drives processNameSuffix. */
-    const val SERVICE_BUILD = 32
+    const val SERVICE_BUILD = 36
 
     private val mainHandler = Handler(Looper.getMainLooper())
     private val bindLock = Any()

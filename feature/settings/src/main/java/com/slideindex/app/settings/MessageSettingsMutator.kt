@@ -5,7 +5,9 @@ import com.slideindex.app.message.MessageAppFilterCodec
 import com.slideindex.app.message.MessageAppFilterRule
 import com.slideindex.app.message.MessageOverlayCorner
 import com.slideindex.app.message.MessagePlacementFractions
+import com.slideindex.app.message.MessageSettings
 import com.slideindex.app.message.MessageSettingsCodec
+import com.slideindex.app.message.SideBubbleHorizontalEdge
 import com.slideindex.app.message.SideBubbleVerticalAnchor
 import com.slideindex.app.message.SideBubbleFontSize
 import javax.inject.Inject
@@ -80,6 +82,66 @@ class MessageSettingsMutator @Inject constructor(
 
     suspend fun setMessageDanmakuEnabled(enabled: Boolean) =
         editor.edit { it[SettingsPreferenceKeys.MESSAGE_DANMAKU_ENABLED] = enabled }
+
+    suspend fun setMessageCNoticeEnabled(enabled: Boolean) =
+        editor.edit { it[SettingsPreferenceKeys.MESSAGE_C_NOTICE_ENABLED] = enabled }
+
+    suspend fun setMessageCNoticeOpacity(opacity: Float) =
+        editor.edit { it[SettingsPreferenceKeys.MESSAGE_C_NOTICE_OPACITY] = opacity.coerceIn(0f, 1f) }
+
+    suspend fun setMessageCNoticeDimmedOpacity(opacity: Float) =
+        editor.edit { it[SettingsPreferenceKeys.MESSAGE_C_NOTICE_DIMMED_OPACITY] = opacity.coerceIn(0f, 1f) }
+
+    suspend fun setMessageCNoticeGhostOpacity(opacity: Float) =
+        editor.edit { it[SettingsPreferenceKeys.MESSAGE_C_NOTICE_GHOST_OPACITY] = opacity.coerceIn(0f, 1f) }
+
+    suspend fun setMessageCNoticeIconSizeDp(sizeDp: Float) =
+        editor.edit { it[SettingsPreferenceKeys.MESSAGE_C_NOTICE_ICON_SIZE_DP] = sizeDp.coerceIn(32f, 64f) }
+
+    suspend fun setMessageCNoticeMaxCount(count: Int) =
+        editor.edit {
+            it[SettingsPreferenceKeys.MESSAGE_C_NOTICE_MAX_COUNT] =
+                count.coerceIn(1, MessageSettings.C_NOTICE_MAX_RETAINED_CONVERSATIONS)
+        }
+
+    suspend fun setMessageCNoticeAutoDismissSeconds(seconds: Int) =
+        editor.edit {
+            it[SettingsPreferenceKeys.MESSAGE_C_NOTICE_AUTO_DISMISS_SECONDS] =
+                seconds.coerceIn(0, 60)
+        }
+
+    suspend fun setMessageCNoticeHorizontalEdge(edge: String) =
+        editor.edit { it[SettingsPreferenceKeys.MESSAGE_C_NOTICE_HORIZONTAL_EDGE] = edge }
+
+    suspend fun setMessageCNoticeYFraction(fraction: Float) =
+        editor.edit {
+            it[SettingsPreferenceKeys.MESSAGE_C_NOTICE_Y_FRACTION] =
+                MessagePlacementFractions.coerceY(fraction)
+        }
+
+    suspend fun setMessageCNoticeEdgeMarginDp(marginDp: Float) =
+        editor.edit {
+            it[SettingsPreferenceKeys.MESSAGE_C_NOTICE_EDGE_MARGIN_DP] = marginDp.coerceIn(0f, 32f)
+        }
+
+    suspend fun setMessageCNoticeDimDelayMs(delayMs: Int) =
+        editor.edit {
+            it[SettingsPreferenceKeys.MESSAGE_C_NOTICE_DIM_DELAY_MS] = delayMs.coerceIn(0, 5_000)
+        }
+
+    suspend fun setMessageCNoticeGhostDelayMs(delayMs: Int) =
+        editor.edit {
+            it[SettingsPreferenceKeys.MESSAGE_C_NOTICE_GHOST_DELAY_MS] = delayMs.coerceIn(0, 10_000)
+        }
+
+    suspend fun setMessageCNoticeDefaultCollapsed(collapsed: Boolean) =
+        editor.edit { it[SettingsPreferenceKeys.MESSAGE_C_NOTICE_DEFAULT_COLLAPSED] = collapsed }
+
+    suspend fun setMessageCNoticePeekBannerEnabled(enabled: Boolean) =
+        editor.edit { it[SettingsPreferenceKeys.MESSAGE_C_NOTICE_PEEK_BANNER_ENABLED] = enabled }
+
+    suspend fun setMessageCNoticeLandscapeEnabled(enabled: Boolean) =
+        editor.edit { it[SettingsPreferenceKeys.MESSAGE_C_NOTICE_LANDSCAPE_ENABLED] = enabled }
 
     suspend fun setMessageThemeId(themeId: String) =
         editor.edit { it[SettingsPreferenceKeys.MESSAGE_THEME_ID] = themeId }

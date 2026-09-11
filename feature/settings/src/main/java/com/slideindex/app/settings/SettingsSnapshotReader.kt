@@ -3,6 +3,7 @@ package com.slideindex.app.settings
 import android.content.Context
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.intPreferencesKey
 import com.slideindex.app.floatball.FloatBallGestureCodec
 import com.slideindex.app.floatball.FloatBallGestureType
 import com.slideindex.app.gesture.GestureAction
@@ -41,6 +42,8 @@ import com.slideindex.app.activity.ActivityShortcutCodec
 import com.slideindex.app.widget.WidgetPanelCodec
 
 internal object SettingsSnapshotReader {
+    private const val LEGACY_MESSAGE_AUTO_DISMISS_SECONDS_KEY = "message_auto_dismiss_seconds"
+
     fun read(prefs: Preferences, context: Context): AppSettings {
         val legacyWidth = prefs[SettingsPreferenceKeys.EDGE_TRIGGER_WIDTH] ?: 20f
         val legacyTop = prefs[SettingsPreferenceKeys.TRIGGER_TOP] ?: 0.30f
@@ -823,9 +826,10 @@ internal object SettingsSnapshotReader {
         val sideBubbleEnabled = prefs[SettingsPreferenceKeys.MESSAGE_SIDE_BUBBLE_ENABLED]
             ?: (((legacyStyleId == MessageStyle.SideBubble.id || wasLegacyCard) && primaryStyleEnabled))
         val danmakuEnabled = prefs[SettingsPreferenceKeys.MESSAGE_DANMAKU_ENABLED] ?: true
+        val cNoticeEnabled = prefs[SettingsPreferenceKeys.MESSAGE_C_NOTICE_ENABLED] ?: false
         val legacyMasterEnabled = prefs[SettingsPreferenceKeys.MESSAGE_REMINDER_ENABLED] ?: false
         val hasInterceptKey = SettingsPreferenceKeys.MESSAGE_INTERCEPT_NOTIFICATIONS in prefs
-        val anyStyleEnabled = floatIconEnabled || sideBubbleEnabled || danmakuEnabled
+        val anyStyleEnabled = floatIconEnabled || sideBubbleEnabled || danmakuEnabled || cNoticeEnabled
         val interceptNotifications = if (hasInterceptKey) {
             prefs[SettingsPreferenceKeys.MESSAGE_INTERCEPT_NOTIFICATIONS] ?: false
         } else {
@@ -844,6 +848,7 @@ internal object SettingsSnapshotReader {
             floatIconEnabled = floatIconEnabled,
             sideBubbleEnabled = sideBubbleEnabled,
             danmakuEnabled = danmakuEnabled,
+            cNoticeEnabled = cNoticeEnabled,
             themeId = legacyThemeId,
             sideThemeId = MessageThemeIds.normalizeThemeId(
                 prefs[SettingsPreferenceKeys.MESSAGE_SIDE_THEME_ID]
@@ -861,22 +866,33 @@ internal object SettingsSnapshotReader {
                 ?: prefs[SettingsPreferenceKeys.MESSAGE_OPACITY]
                 ?: base.sideBubbleOpacity,
             danmakuOpacity = prefs[SettingsPreferenceKeys.MESSAGE_DANMAKU_OPACITY] ?: base.danmakuOpacity,
+            cNoticeOpacity = prefs[SettingsPreferenceKeys.MESSAGE_C_NOTICE_OPACITY] ?: base.cNoticeOpacity,
+            cNoticeDimmedOpacity = prefs[SettingsPreferenceKeys.MESSAGE_C_NOTICE_DIMMED_OPACITY]
+                ?: base.cNoticeDimmedOpacity,
+            cNoticeGhostOpacity = prefs[SettingsPreferenceKeys.MESSAGE_C_NOTICE_GHOST_OPACITY]
+                ?: base.cNoticeGhostOpacity,
             danmakuMaxLines = prefs[SettingsPreferenceKeys.MESSAGE_DANMAKU_MAX_LINES] ?: base.danmakuMaxLines,
             sideMaxCount = prefs[SettingsPreferenceKeys.MESSAGE_SIDE_MAX_COUNT] ?: base.sideMaxCount,
             sideMaxWidthDp = prefs[SettingsPreferenceKeys.MESSAGE_SIDE_MAX_WIDTH_DP] ?: base.sideMaxWidthDp,
             sideMaxLines = prefs[SettingsPreferenceKeys.MESSAGE_SIDE_MAX_LINES] ?: base.sideMaxLines,
             floatIconSizeDp = prefs[SettingsPreferenceKeys.MESSAGE_FLOAT_ICON_SIZE_DP] ?: base.floatIconSizeDp,
+            cNoticeIconSizeDp = prefs[SettingsPreferenceKeys.MESSAGE_C_NOTICE_ICON_SIZE_DP]
+                ?: base.cNoticeIconSizeDp,
+            cNoticeMaxCount = prefs[SettingsPreferenceKeys.MESSAGE_C_NOTICE_MAX_COUNT] ?: base.cNoticeMaxCount,
             floatIconAutoDismissSeconds = resolveMessageAutoDismissSeconds(
                 prefs = prefs,
                 styleKey = SettingsPreferenceKeys.MESSAGE_FLOAT_ICON_AUTO_DISMISS_SECONDS,
-                legacyKey = SettingsPreferenceKeys.MESSAGE_AUTO_DISMISS_SECONDS,
                 fallback = base.floatIconAutoDismissSeconds,
             ),
             sideBubbleAutoDismissSeconds = resolveMessageAutoDismissSeconds(
                 prefs = prefs,
                 styleKey = SettingsPreferenceKeys.MESSAGE_SIDE_BUBBLE_AUTO_DISMISS_SECONDS,
-                legacyKey = SettingsPreferenceKeys.MESSAGE_AUTO_DISMISS_SECONDS,
                 fallback = base.sideBubbleAutoDismissSeconds,
+            ),
+            cNoticeAutoDismissSeconds = resolveMessageAutoDismissSeconds(
+                prefs = prefs,
+                styleKey = SettingsPreferenceKeys.MESSAGE_C_NOTICE_AUTO_DISMISS_SECONDS,
+                fallback = base.cNoticeAutoDismissSeconds,
             ),
             hideInLandscape = prefs[SettingsPreferenceKeys.MESSAGE_HIDE_IN_LANDSCAPE] ?: false,
             portraitDanmaku = prefs[SettingsPreferenceKeys.MESSAGE_PORTRAIT_DANMAKU] ?: true,
@@ -893,6 +909,23 @@ internal object SettingsSnapshotReader {
                         prefs[SettingsPreferenceKeys.MESSAGE_SIDE_VERTICAL_ANCHOR],
                     ),
                 ),
+            cNoticeHorizontalEdge = SideBubbleHorizontalEdge.fromId(
+                prefs[SettingsPreferenceKeys.MESSAGE_C_NOTICE_HORIZONTAL_EDGE],
+            ),
+            cNoticeYFraction = prefs[SettingsPreferenceKeys.MESSAGE_C_NOTICE_Y_FRACTION]
+                ?: base.cNoticeYFraction,
+            cNoticeEdgeMarginDp = prefs[SettingsPreferenceKeys.MESSAGE_C_NOTICE_EDGE_MARGIN_DP]
+                ?: base.cNoticeEdgeMarginDp,
+            cNoticeDimDelayMs = prefs[SettingsPreferenceKeys.MESSAGE_C_NOTICE_DIM_DELAY_MS]
+                ?: base.cNoticeDimDelayMs,
+            cNoticeGhostDelayMs = prefs[SettingsPreferenceKeys.MESSAGE_C_NOTICE_GHOST_DELAY_MS]
+                ?: base.cNoticeGhostDelayMs,
+            cNoticeDefaultCollapsed = prefs[SettingsPreferenceKeys.MESSAGE_C_NOTICE_DEFAULT_COLLAPSED]
+                ?: base.cNoticeDefaultCollapsed,
+            cNoticePeekBannerEnabled = prefs[SettingsPreferenceKeys.MESSAGE_C_NOTICE_PEEK_BANNER_ENABLED]
+                ?: base.cNoticePeekBannerEnabled,
+            cNoticeLandscapeEnabled = prefs[SettingsPreferenceKeys.MESSAGE_C_NOTICE_LANDSCAPE_ENABLED]
+                ?: base.cNoticeLandscapeEnabled,
             floatIconCorner = MessageOverlayCorner.fromId(
                 prefs[SettingsPreferenceKeys.MESSAGE_FLOAT_ICON_CORNER],
             ),
@@ -1060,9 +1093,15 @@ internal object SettingsSnapshotReader {
     private fun resolveMessageAutoDismissSeconds(
         prefs: Preferences,
         styleKey: Preferences.Key<Int>,
-        legacyKey: Preferences.Key<Int>,
         fallback: Int,
-    ): Int = (prefs[styleKey] ?: prefs[legacyKey] ?: fallback).coerceIn(0, 60)
+    ): Int {
+        val legacy = intPreference(
+            prefs,
+            intPreferencesKey(LEGACY_MESSAGE_AUTO_DISMISS_SECONDS_KEY),
+            -1,
+        ).takeIf { it >= 0 }
+        return (prefs[styleKey] ?: legacy ?: fallback).coerceIn(0, 60)
+    }
 
     private fun intPreference(prefs: Preferences, key: Preferences.Key<Int>, default: Int): Int {
         runCatching { prefs[key] }.getOrNull()?.let { return it }

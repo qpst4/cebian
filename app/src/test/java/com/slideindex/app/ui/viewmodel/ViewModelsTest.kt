@@ -18,6 +18,12 @@ import com.slideindex.app.notification.NotificationListenerPort
 import com.slideindex.app.notification.NotificationShadeActions
 import com.slideindex.app.otp.OtpOfficialRulesLoader
 import com.slideindex.app.otp.OtpRecordsRepository
+import android.graphics.Bitmap
+import com.slideindex.app.message.MessageAction
+import com.slideindex.app.message.MessageDisplayPlan
+import com.slideindex.app.message.MessageOverlayPort
+import com.slideindex.app.message.MessageStyle
+import com.slideindex.app.message.NotificationData
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.clearTestSettings
 import com.slideindex.app.settings.testSettingsRepository
@@ -217,7 +223,12 @@ class MessageSettingsViewModelTest : ViewModelCoroutineTest() {
         val context = RuntimeEnvironment.getApplication()
         clearTestSettings(context)
         val repository = testSettingsRepository(context)
-        val viewModel = MessageSettingsViewModel(repository, UserMessageBus(), context)
+        val viewModel = MessageSettingsViewModel(
+            repository,
+            UserMessageBus(),
+            context,
+            NoOpMessageOverlayPort,
+        )
 
         assertFalse(viewModel.settings.value.messageReminderSettings.enabled)
     }
@@ -227,7 +238,12 @@ class MessageSettingsViewModelTest : ViewModelCoroutineTest() {
         val context = RuntimeEnvironment.getApplication()
         clearTestSettings(context)
         val repository = testSettingsRepository(context)
-        val viewModel = MessageSettingsViewModel(repository, UserMessageBus(), context)
+        val viewModel = MessageSettingsViewModel(
+            repository,
+            UserMessageBus(),
+            context,
+            NoOpMessageOverlayPort,
+        )
         primeSettingsFlow(repository)
 
         viewModel.setMessageReminderEnabled(true)
@@ -646,6 +662,56 @@ private object NoOpNotificationHistoryLaunchPort : NotificationHistoryLaunchPort
     override fun startPendingIntentTrampoline(pendingIntentBase64: String, fallbackIntent: Intent?) = false
 
     override fun launchReplayIntent(intent: Intent, packageName: String, extrasBase64: String?) = false
+}
+
+private object NoOpMessageOverlayPort : MessageOverlayPort {
+    override fun containsNotification(style: MessageStyle, data: NotificationData) = false
+
+    override fun containsCNoticeConversation(conversationSourceKey: String) = false
+
+    override fun refreshCNoticeConversationIcon(conversationSourceKey: String, icon: Bitmap) = Unit
+
+    override fun dismissEntry(style: MessageStyle, key: String, postTime: Long) = Unit
+
+    override fun dismissEntriesForKey(style: MessageStyle, key: String) = Unit
+
+    override fun reconcileCNoticeAfterRemoval(
+        removedNotificationKey: String,
+        removedConversationKey: String?,
+        activeConversationKeys: Set<String>,
+    ) = Unit
+
+    override fun resumeAutoDismiss(style: MessageStyle, key: String, postTime: Long) = Unit
+
+    override fun pauseAutoDismiss(style: MessageStyle, key: String, postTime: Long) = Unit
+
+    override fun dismissImmediate(style: MessageStyle?) = Unit
+
+    override fun snapshotDisplayedKeys(): Set<String> = emptySet()
+
+    override fun dismissAllReminders() = Unit
+
+    override fun dismissSameSourceReminders(sourceKey: String) = Unit
+
+    override fun snapshotDisplayedKeysForSource(sourceKey: String): Set<String> = emptySet()
+
+    override fun showPlan(
+        context: Context,
+        plan: MessageDisplayPlan,
+        onAction: (MessageAction) -> Unit,
+        onDismiss: () -> Unit,
+        showDanmaku: Boolean,
+    ) = Unit
+
+    override fun showUnlockConfirmation(
+        context: Context,
+        data: NotificationData,
+        autoDismissSeconds: Int,
+        onConfirm: (Boolean) -> Unit,
+        onDismiss: () -> Unit,
+    ) = Unit
+
+    override fun detachDanmaku() = Unit
 }
 
 private class TestSettingsViewModel(

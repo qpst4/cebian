@@ -220,6 +220,23 @@ class NotificationHistoryRepository @Inject constructor(
         }
     }
 
+    suspend fun queryFullItemsForCNotice(
+        packageName: String,
+        postedBeforeMs: Long,
+        offset: Int,
+        limit: Int,
+    ): List<NotificationHistoryItem> {
+        ensureLoaded()
+        return mutex.withLock {
+            storageItems
+                .asSequence()
+                .filter { it.packageName == packageName && it.postedAtMs < postedBeforeMs }
+                .drop(offset.coerceAtLeast(0))
+                .take(limit.coerceAtLeast(1))
+                .toList()
+        }
+    }
+
     fun getActiveNotificationKeys(): Set<String> {
         val listener = listenerPort.listenerOrNull() ?: return emptySet()
         return runCatching {

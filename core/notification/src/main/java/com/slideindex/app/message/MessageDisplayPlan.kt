@@ -5,6 +5,7 @@ data class MessageDisplayPlan(
     val showFloatIcon: Boolean,
     val showSideBubble: Boolean,
     val showDanmaku: Boolean,
+    val showCNotice: Boolean,
     val sideTheme: MessageThemeSpec?,
     val danmakuTheme: MessageThemeSpec?,
     val settings: MessageSettings,
@@ -13,5 +14,6 @@ data class MessageDisplayPlan(
         if (showFloatIcon) add(MessageStyle.FloatIcon)
         if (showSideBubble) add(MessageStyle.SideBubble)
         if (showDanmaku) add(MessageStyle.Danmaku)
+        if (showCNotice) add(MessageStyle.CNotice)
     }
 }

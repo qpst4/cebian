@@ -9,6 +9,7 @@ data class MessageSettings(
     val floatIconEnabled: Boolean = false,
     val sideBubbleEnabled: Boolean = true,
     val danmakuEnabled: Boolean = true,
+    val cNoticeEnabled: Boolean = false,
     @Deprecated("Use sideThemeId")
     val themeId: String = MessageThemeIds.defaultThemeIdFor(MessageStyle.SideBubble),
     val sideThemeId: String = MessageThemeIds.defaultThemeIdFor(MessageStyle.SideBubble),
@@ -16,15 +17,33 @@ data class MessageSettings(
     val floatIconOpacity: Float = 0.95f,
     val sideBubbleOpacity: Float = 0.7f,
     val danmakuOpacity: Float = 0.7f,
+    val cNoticeOpacity: Float = 1.0f,
+    val cNoticeDimmedOpacity: Float = 0.4f,
+    val cNoticeGhostOpacity: Float = 0.2f,
     val danmakuMaxLines: Int = 1,
     val sideMaxCount: Int = 3,
     val sideMaxWidthDp: Float = 168f,
     val sideMaxLines: Int = 2,
     val floatIconSizeDp: Float = 44f,
+    val cNoticeIconSizeDp: Float = 44f,
+    val cNoticeMaxCount: Int = 5,
     /** 悬浮球样式自动关闭时间，0 表示不自动关闭。 */
     val floatIconAutoDismissSeconds: Int = 5,
     /** 侧边气泡样式自动关闭时间，0 表示不自动关闭。 */
     val sideBubbleAutoDismissSeconds: Int = 5,
+    /** C Notice 样式自动关闭时间，0 表示不自动关闭。 */
+    val cNoticeAutoDismissSeconds: Int = 0,
+    val cNoticeHorizontalEdge: SideBubbleHorizontalEdge = SideBubbleHorizontalEdge.Right,
+    val cNoticeYFraction: Float = 0.5f,
+    /** 贴边列表距屏幕左右边缘的距离（dp）。 */
+    val cNoticeEdgeMarginDp: Float = 8f,
+    val cNoticeDimDelayMs: Int = 300,
+    val cNoticeGhostDelayMs: Int = 2500,
+    val cNoticeDefaultCollapsed: Boolean = false,
+    /** 新消息到达时，在对应悬浮球旁短暂显示内容横幅。 */
+    val cNoticePeekBannerEnabled: Boolean = false,
+    /** 横屏时是否显示贴边通知列表（与「横屏隐藏悬浮球与侧边」独立）。 */
+    val cNoticeLandscapeEnabled: Boolean = true,
     val hideInLandscape: Boolean = false,
     val portraitDanmaku: Boolean = true,
     val landscapeDanmaku: Boolean = true,
@@ -70,5 +89,9 @@ data class MessageSettings(
         MessageAppFilterMatcher.passes(filterRuleFor(packageName), title, content)
 
     fun hasAnyStyleEnabled(): Boolean =
-        floatIconEnabled || sideBubbleEnabled || danmakuEnabled
+        floatIconEnabled || sideBubbleEnabled || danmakuEnabled || cNoticeEnabled
+
+    companion object {
+        const val C_NOTICE_MAX_RETAINED_CONVERSATIONS = 20
+    }
 }

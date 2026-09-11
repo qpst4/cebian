@@ -1,4 +1,4 @@
-﻿@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
 
 package com.slideindex.app.ui
 
@@ -67,9 +67,11 @@ fun MessageReminderSettingsScreen(
     onFloatIconEnabledChange: (Boolean) -> Unit,
     onSideBubbleEnabledChange: (Boolean) -> Unit,
     onDanmakuEnabledChange: (Boolean) -> Unit,
+    onCNoticeEnabledChange: (Boolean) -> Unit,
     onOpenFloatIconSettings: () -> Unit,
     onOpenSideBubbleSettings: () -> Unit,
     onOpenDanmakuSettings: () -> Unit,
+    onOpenCNoticeSettings: () -> Unit,
     onHideInLandscapeChange: (Boolean) -> Unit,
     onPortraitDanmakuChange: (Boolean) -> Unit,
     onLandscapeDanmakuChange: (Boolean) -> Unit,
@@ -262,6 +264,25 @@ fun MessageReminderSettingsScreen(
                             enabled = controlsEnabled,
                             onCheckedChange = onDanmakuEnabledChange,
                             onNavigate = onOpenDanmakuSettings,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("c-notice") {
+                        SettingSwitchNavigationRow(
+                            title = messageStyleLabel(MessageStyle.CNotice),
+                            subtitle = stringResource(R.string.message_style_c_notice_desc),
+                            icon = { label ->
+                                MessageReminderColoredIcon(
+                                    icon = Icons.Outlined.Notifications,
+                                    background = Color(0xFFFF7043),
+                                    contentDescription = label,
+                                )
+                            },
+                            checked = settings.cNoticeEnabled,
+                            enabled = controlsEnabled,
+                            onCheckedChange = onCNoticeEnabledChange,
+                            onNavigate = onOpenCNoticeSettings,
                         )
                     },
                 )

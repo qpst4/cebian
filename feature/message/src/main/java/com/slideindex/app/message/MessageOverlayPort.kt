@@ -1,6 +1,7 @@
 package com.slideindex.app.message
 
 import android.content.Context
+import android.graphics.Bitmap
 import com.slideindex.app.message.MessageDisplayPlan
 import com.slideindex.app.message.MessageStyle
 import com.slideindex.app.message.NotificationData
@@ -9,9 +10,19 @@ import com.slideindex.app.message.NotificationData
 interface MessageOverlayPort {
     fun containsNotification(style: MessageStyle, data: NotificationData): Boolean
 
+    fun containsCNoticeConversation(conversationSourceKey: String): Boolean
+
+    fun refreshCNoticeConversationIcon(conversationSourceKey: String, icon: Bitmap)
+
     fun dismissEntry(style: MessageStyle, key: String, postTime: Long)
 
     fun dismissEntriesForKey(style: MessageStyle, key: String)
+
+    fun reconcileCNoticeAfterRemoval(
+        removedNotificationKey: String,
+        removedConversationKey: String?,
+        activeConversationKeys: Set<String>,
+    )
 
     fun resumeAutoDismiss(style: MessageStyle, key: String, postTime: Long)
 
@@ -32,6 +43,7 @@ interface MessageOverlayPort {
         plan: MessageDisplayPlan,
         onAction: (MessageAction) -> Unit,
         onDismiss: () -> Unit,
+        showDanmaku: Boolean = true,
     )
 
     fun showUnlockConfirmation(

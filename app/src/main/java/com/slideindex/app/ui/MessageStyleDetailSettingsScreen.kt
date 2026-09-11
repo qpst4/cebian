@@ -12,6 +12,9 @@ import com.slideindex.app.message.MessageOverlayCorner
 import com.slideindex.app.message.MessageSettings
 import com.slideindex.app.message.MessageStyle
 import com.slideindex.app.message.SideBubbleHorizontalEdge
+import com.slideindex.app.ui.messagestyle.cNoticePlacementSection
+import com.slideindex.app.ui.messagestyle.cNoticeSettingsCardItems
+import com.slideindex.app.ui.messagestyle.cNoticeSettingsSection
 import com.slideindex.app.ui.messagestyle.danmakuSettingsCardItems
 import com.slideindex.app.ui.messagestyle.danmakuSettingsSection
 import com.slideindex.app.ui.messagestyle.floatIconPlacementSection
@@ -50,6 +53,22 @@ fun MessageStyleDetailSettingsScreen(
     onFloatIconYFractionChange: (Float) -> Unit = {},
     onSideFontSizeLevelChange: (Int) -> Unit,
     onDanmakuSpeedLevelChange: (Int) -> Unit,
+    onCNoticeOpacityChange: (Float) -> Unit = {},
+    onCNoticeDimmedOpacityChange: (Float) -> Unit = {},
+    onCNoticeGhostOpacityChange: (Float) -> Unit = {},
+    onCNoticeIconSizeDpChange: (Float) -> Unit = {},
+    onCNoticeMaxCountChange: (Int) -> Unit = {},
+    onCNoticeAutoDismissSecondsChange: (Int) -> Unit = {},
+    onCNoticeDefaultCollapsedChange: (Boolean) -> Unit = {},
+    onCNoticePeekBannerEnabledChange: (Boolean) -> Unit = {},
+    onCNoticeLandscapeEnabledChange: (Boolean) -> Unit = {},
+    onCNoticeHorizontalEdgeChange: (SideBubbleHorizontalEdge) -> Unit = {},
+    onCNoticeYFractionPreviewChange: (Float) -> Unit = {},
+    onCNoticeYFractionPreviewCommit: () -> Unit = {},
+    onCNoticeYFractionChange: (Float) -> Unit = {},
+    onCNoticeEdgeMarginPreviewChange: (Float) -> Unit = {},
+    onCNoticeEdgeMarginPreviewCommit: () -> Unit = {},
+    onCNoticeEdgeMarginChange: (Float) -> Unit = {},
     onMessagePreviewChange: (MessageSettings) -> Unit = {},
     onMessagePreviewCommit: () -> Unit = {},
 ) {
@@ -58,7 +77,11 @@ fun MessageStyleDetailSettingsScreen(
         MessageStyle.FloatIcon -> stringResource(R.string.message_style_float_icon_desc)
         MessageStyle.SideBubble -> stringResource(R.string.message_style_side_bubble_desc)
         MessageStyle.Danmaku -> stringResource(R.string.message_style_danmaku_desc)
+        MessageStyle.CNotice -> stringResource(R.string.message_style_c_notice_desc)
     }
+    val cNoticeSectionTitle = stringResource(R.string.message_style_section_c_notice_settings)
+    val cNoticePlacementTitle = stringResource(R.string.message_style_c_notice_position)
+    val cNoticePlacementHint = stringResource(R.string.message_style_c_notice_position_hint)
     val floatIconSectionTitle = stringResource(R.string.message_style_section_float_settings)
     val floatIconPlacementTitle = stringResource(R.string.message_style_float_position)
     val sideThemeSectionTitle = stringResource(R.string.message_style_section_side_theme)
@@ -93,6 +116,20 @@ fun MessageStyleDetailSettingsScreen(
         sideMaxCount = settings.sideMaxCount,
         opacitySteps = 0,
         opacityRange = 0.1f..1f,
+        onPreviewChange = onMessagePreviewChange,
+        onPreviewCommit = onMessagePreviewCommit,
+    )
+    val cNoticeItems = cNoticeSettingsCardItems(
+        settings = settings,
+        enabled = controlsEnabled,
+        onOpacityChange = onCNoticeOpacityChange,
+        onDimmedOpacityChange = onCNoticeDimmedOpacityChange,
+        onGhostOpacityChange = onCNoticeGhostOpacityChange,
+        onIconSizeDpChange = onCNoticeIconSizeDpChange,
+        onMaxCountChange = onCNoticeMaxCountChange,
+        onDefaultCollapsedChange = onCNoticeDefaultCollapsedChange,
+        onPeekBannerEnabledChange = onCNoticePeekBannerEnabledChange,
+        onLandscapeEnabledChange = onCNoticeLandscapeEnabledChange,
         onPreviewChange = onMessagePreviewChange,
         onPreviewCommit = onMessagePreviewCommit,
     )
@@ -157,6 +194,25 @@ fun MessageStyleDetailSettingsScreen(
                     themeSectionTitle = danmakuThemeSectionTitle,
                     overlayHint = danmakuOverlayHint,
                     onDanmakuThemeIdChange = onDanmakuThemeIdChange,
+                )
+            }
+            MessageStyle.CNotice -> {
+                cNoticeSettingsSection(
+                    items = cNoticeItems,
+                    sectionTitle = cNoticeSectionTitle,
+                )
+                cNoticePlacementSection(
+                    settings = settings,
+                    enabled = controlsEnabled,
+                    sectionTitle = cNoticePlacementTitle,
+                    positionHint = cNoticePlacementHint,
+                    onHorizontalEdgeChange = onCNoticeHorizontalEdgeChange,
+                    onYFractionPreviewChange = onCNoticeYFractionPreviewChange,
+                    onYFractionPreviewCommit = onCNoticeYFractionPreviewCommit,
+                    onYFractionChange = onCNoticeYFractionChange,
+                    onEdgeMarginPreviewChange = onCNoticeEdgeMarginPreviewChange,
+                    onEdgeMarginPreviewCommit = onCNoticeEdgeMarginPreviewCommit,
+                    onEdgeMarginChange = onCNoticeEdgeMarginChange,
                 )
             }
         }

@@ -218,5 +218,11 @@ class TaskManagerTaskOperationsTest {
         override fun runShellCommandLine(command: String?, useRoot: Boolean, forceAdb: Boolean): String = ""
 
         override fun probeRootAvailable(): Boolean = false
+
+        override fun getShortcutIconBytes(
+            packageName: String?,
+            shortcutId: String?,
+            userId: Int,
+        ): ByteArray? = null
     }
 }

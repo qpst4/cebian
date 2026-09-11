@@ -1,4 +1,4 @@
-﻿package com.slideindex.app.ui.navigation
+package com.slideindex.app.ui.navigation
 
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -147,6 +147,7 @@ fun NavEntryBuilder.notificationNavEntries(ctx: MainNavContext) {
             onFloatIconEnabledChange = viewModel::setMessageFloatIconEnabled,
             onSideBubbleEnabledChange = viewModel::setMessageSideBubbleEnabled,
             onDanmakuEnabledChange = viewModel::setMessageDanmakuEnabled,
+            onCNoticeEnabledChange = viewModel::setMessageCNoticeEnabled,
             onOpenFloatIconSettings = {
                 ctx.navigate(AppNavKey.MessageStyleDetail(MessageStyle.FloatIcon.id))
             },
@@ -155,6 +156,9 @@ fun NavEntryBuilder.notificationNavEntries(ctx: MainNavContext) {
             },
             onOpenDanmakuSettings = {
                 ctx.navigate(AppNavKey.MessageStyleDetail(MessageStyle.Danmaku.id))
+            },
+            onOpenCNoticeSettings = {
+                ctx.navigate(AppNavKey.MessageStyleDetail(MessageStyle.CNotice.id))
             },
             onHideInLandscapeChange = viewModel::setMessageHideInLandscape,
             onPortraitDanmakuChange = viewModel::setMessagePortraitDanmaku,
@@ -181,7 +185,11 @@ fun NavEntryBuilder.notificationNavEntries(ctx: MainNavContext) {
         val latestContext by rememberUpdatedState(context)
         DisposableEffect(lifecycleOwner, style) {
             fun startPreviewIfNeeded() {
-                if (style == MessageStyle.FloatIcon || style == MessageStyle.SideBubble) {
+                if (
+                    style == MessageStyle.FloatIcon ||
+                    style == MessageStyle.SideBubble ||
+                    style == MessageStyle.CNotice
+                ) {
                     MessageReminderPreviewController.start(latestContext, style, latestSettings)
                 }
             }
@@ -212,6 +220,13 @@ fun NavEntryBuilder.notificationNavEntries(ctx: MainNavContext) {
             messageSettings.sideThemeId,
             messageSettings.sideBubbleOpacity,
             messageSettings.sideBubbleFontSizeLevel,
+            messageSettings.cNoticeHorizontalEdge,
+            messageSettings.cNoticeYFraction,
+            messageSettings.cNoticeIconSizeDp,
+            messageSettings.cNoticeOpacity,
+            messageSettings.cNoticeDimmedOpacity,
+            messageSettings.cNoticeGhostOpacity,
+            messageSettings.cNoticeEdgeMarginDp,
         ) {
             if (!MessageReminderPreviewController.isPreviewActive(style)) return@LaunchedEffect
             MessageReminderPreviewController.updatePreview(context, messageSettings)
@@ -261,6 +276,38 @@ fun NavEntryBuilder.notificationNavEntries(ctx: MainNavContext) {
             onFloatIconYFractionChange = viewModel::setMessageFloatIconYFraction,
             onSideFontSizeLevelChange = viewModel::setMessageSideFontSizeLevel,
             onDanmakuSpeedLevelChange = viewModel::setMessageDanmakuSpeedLevel,
+            onCNoticeOpacityChange = viewModel::setMessageCNoticeOpacity,
+            onCNoticeDimmedOpacityChange = viewModel::setMessageCNoticeDimmedOpacity,
+            onCNoticeGhostOpacityChange = viewModel::setMessageCNoticeGhostOpacity,
+            onCNoticeIconSizeDpChange = viewModel::setMessageCNoticeIconSizeDp,
+            onCNoticeMaxCountChange = viewModel::setMessageCNoticeMaxCount,
+            onCNoticeAutoDismissSecondsChange = viewModel::setMessageCNoticeAutoDismissSeconds,
+            onCNoticeDefaultCollapsedChange = viewModel::setMessageCNoticeDefaultCollapsed,
+            onCNoticePeekBannerEnabledChange = viewModel::setMessageCNoticePeekBannerEnabled,
+            onCNoticeLandscapeEnabledChange = viewModel::setMessageCNoticeLandscapeEnabled,
+            onCNoticeHorizontalEdgeChange = { edge ->
+                viewModel.setMessageCNoticeHorizontalEdge(edge.id)
+            },
+            onCNoticeYFractionPreviewChange = { fraction ->
+                MessageReminderPreviewController.previewSettings(
+                    context,
+                    messageSettings.copy(cNoticeYFraction = fraction),
+                )
+            },
+            onCNoticeYFractionPreviewCommit = {
+                MessageReminderPreviewController.clearPlacementBaseline()
+            },
+            onCNoticeYFractionChange = viewModel::setMessageCNoticeYFraction,
+            onCNoticeEdgeMarginPreviewChange = { marginDp ->
+                MessageReminderPreviewController.previewSettings(
+                    context,
+                    messageSettings.copy(cNoticeEdgeMarginDp = marginDp),
+                )
+            },
+            onCNoticeEdgeMarginPreviewCommit = {
+                MessageReminderPreviewController.clearPlacementBaseline()
+            },
+            onCNoticeEdgeMarginChange = viewModel::setMessageCNoticeEdgeMarginDp,
             onMessagePreviewChange = { previewSettings ->
                 MessageReminderPreviewController.previewSettings(context, previewSettings)
             },

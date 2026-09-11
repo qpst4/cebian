@@ -9,6 +9,7 @@ internal object MessageNotificationFilter {
     private const val DEDUP_WINDOW_MS = 15_000L
 
     private val recentPostKeys = LinkedHashMap<String, Long>()
+    private val lastDanmakuSignatureByConversation = LinkedHashMap<String, String>()
     private val dndUntilByPackage = mutableMapOf<String, Long>()
     private val dedupLock = Any()
 
@@ -62,6 +63,23 @@ internal object MessageNotificationFilter {
         return true
     }
 
+    /**
+     * 弹幕按会话内容去重：TG 等应用刷新通知时会更新 postTime，但消息内容未变。
+     */
+    fun acceptDanmaku(data: NotificationData): Boolean {
+        val conversationKey = data.conversationSourceKey.ifBlank { data.key }
+        val signature = NotificationMessagingHistory.danmakuContentSignature(data)
+        synchronized(dedupLock) {
+            if (lastDanmakuSignatureByConversation[conversationKey] == signature) return false
+            lastDanmakuSignatureByConversation[conversationKey] = signature
+            while (lastDanmakuSignatureByConversation.size > 200) {
+                val eldest = lastDanmakuSignatureByConversation.entries.firstOrNull() ?: break
+                lastDanmakuSignatureByConversation.remove(eldest.key)
+            }
+        }
+        return true
+    }
+
     fun applyDnd(packageName: String, durationMs: Long) {
         dndUntilByPackage[packageName] = System.currentTimeMillis() + durationMs
     }
@@ -69,6 +87,7 @@ internal object MessageNotificationFilter {
     internal fun resetForTesting() {
         synchronized(dedupLock) {
             recentPostKeys.clear()
+            lastDanmakuSignatureByConversation.clear()
         }
         dndUntilByPackage.clear()
     }
@@ -87,16 +106,19 @@ internal object MessagePlanBuilder {
 
         val showFloatIcon = settings.floatIconEnabled && !blockStackedStyles
         val showSideBubble = settings.sideBubbleEnabled && !blockStackedStyles
+        val showCNotice = settings.cNoticeEnabled &&
+            (!isLandscape || settings.cNoticeLandscapeEnabled)
         val showDanmaku = settings.danmakuEnabled &&
             if (isLandscape) settings.landscapeDanmaku else settings.portraitDanmaku
 
-        if (!showFloatIcon && !showSideBubble && !showDanmaku) return null
+        if (!showFloatIcon && !showSideBubble && !showDanmaku && !showCNotice) return null
 
         return MessageDisplayPlan(
             data = data,
             showFloatIcon = showFloatIcon,
             showSideBubble = showSideBubble,
             showDanmaku = showDanmaku,
+            showCNotice = showCNotice,
             sideTheme = if (showSideBubble) {
                 themePort.themeFor(MessageStyle.SideBubble, settings.sideThemeId)
             } else {

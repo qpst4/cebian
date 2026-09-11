@@ -19,6 +19,34 @@ object NotificationRemoteReply {
     fun hasReplyAction(notification: Notification?): Boolean =
         findReplyAction(notification) != null
 
+    fun hasMarkAsReadAction(notification: Notification?): Boolean =
+        findMarkAsReadAction(notification) != null
+
+    fun sendMarkAsRead(
+        context: Context,
+        key: String,
+        postTime: Long,
+    ): Boolean {
+        val sbn = NotificationSbnCache.find(key, postTime) ?: run {
+            Log.w(TAG, "SBN not found for mark-as-read key=$key postTime=$postTime")
+            return false
+        }
+        val action = findMarkAsReadAction(sbn.notification) ?: run {
+            Log.w(TAG, "No mark-as-read action on notification key=$key")
+            return false
+        }
+        return runCatching {
+            action.actionIntent.send(context, 0, null, null, null, null)
+            true
+        }.onFailure { error ->
+            if (error is PendingIntent.CanceledException) {
+                Log.w(TAG, "Mark-as-read PendingIntent canceled", error)
+            } else {
+                Log.e(TAG, "Failed to send mark-as-read", error)
+            }
+        }.getOrDefault(false)
+    }
+
     fun sendReply(
         context: Context,
         key: String,
@@ -58,6 +86,37 @@ object NotificationRemoteReply {
             action.remoteInputs?.isNotEmpty() == true
         }
     }
+
+    internal fun findMarkAsReadAction(notification: Notification?): Notification.Action? {
+        val actions = notification?.actions ?: return null
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            actions.firstOrNull { action ->
+                action.semanticAction == Notification.Action.SEMANTIC_ACTION_MARK_AS_READ
+            }?.let { return it }
+        }
+        return actions.firstOrNull { action ->
+            !isReplyAction(action) && actionTitleLooksLikeMarkAsRead(action.title)
+        }
+    }
+
+    private fun isReplyAction(action: Notification.Action): Boolean =
+        action.remoteInputs?.isNotEmpty() == true
+
+    private fun actionTitleLooksLikeMarkAsRead(title: CharSequence?): Boolean {
+        val normalized = title?.toString()?.trim()?.lowercase() ?: return false
+        if (normalized.isBlank()) return false
+        return MARK_AS_READ_TITLES.any { normalized == it || normalized.contains(it) }
+    }
+
+    private val MARK_AS_READ_TITLES = listOf(
+        "标记为已读",
+        "标记已读",
+        "标为已读",
+        "mark as read",
+        "mark read",
+        "既読",
+        "既読にする",
+    )
 
     private fun sendThroughAction(
         context: Context,

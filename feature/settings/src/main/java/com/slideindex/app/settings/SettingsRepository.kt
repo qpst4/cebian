@@ -843,6 +843,27 @@ class SettingsRepository @Inject constructor(
     suspend fun setMessageStyleId(styleId: String) = message.setMessageStyleId(styleId)
     suspend fun setMessagePrimaryStyleEnabled(enabled: Boolean) = message.setMessagePrimaryStyleEnabled(enabled)
     suspend fun setMessageDanmakuEnabled(enabled: Boolean) = message.setMessageDanmakuEnabled(enabled)
+    suspend fun setMessageCNoticeEnabled(enabled: Boolean) = message.setMessageCNoticeEnabled(enabled)
+    suspend fun setMessageCNoticeOpacity(opacity: Float) = message.setMessageCNoticeOpacity(opacity)
+    suspend fun setMessageCNoticeDimmedOpacity(opacity: Float) = message.setMessageCNoticeDimmedOpacity(opacity)
+    suspend fun setMessageCNoticeGhostOpacity(opacity: Float) = message.setMessageCNoticeGhostOpacity(opacity)
+    suspend fun setMessageCNoticeIconSizeDp(sizeDp: Float) = message.setMessageCNoticeIconSizeDp(sizeDp)
+    suspend fun setMessageCNoticeMaxCount(count: Int) = message.setMessageCNoticeMaxCount(count)
+    suspend fun setMessageCNoticeAutoDismissSeconds(seconds: Int) =
+        message.setMessageCNoticeAutoDismissSeconds(seconds)
+    suspend fun setMessageCNoticeHorizontalEdge(edge: String) = message.setMessageCNoticeHorizontalEdge(edge)
+    suspend fun setMessageCNoticeYFraction(fraction: Float) = message.setMessageCNoticeYFraction(fraction)
+    suspend fun setMessageCNoticeEdgeMarginDp(marginDp: Float) = message.setMessageCNoticeEdgeMarginDp(marginDp)
+    suspend fun setMessageCNoticeDimDelayMs(delayMs: Int) = message.setMessageCNoticeDimDelayMs(delayMs)
+    suspend fun setMessageCNoticeGhostDelayMs(delayMs: Int) = message.setMessageCNoticeGhostDelayMs(delayMs)
+    suspend fun setMessageCNoticeDefaultCollapsed(collapsed: Boolean) =
+        message.setMessageCNoticeDefaultCollapsed(collapsed)
+
+    suspend fun setMessageCNoticePeekBannerEnabled(enabled: Boolean) =
+        message.setMessageCNoticePeekBannerEnabled(enabled)
+
+    suspend fun setMessageCNoticeLandscapeEnabled(enabled: Boolean) =
+        message.setMessageCNoticeLandscapeEnabled(enabled)
     suspend fun setMessageThemeId(themeId: String) = message.setMessageThemeId(themeId)
     suspend fun setMessageSideThemeId(themeId: String) = message.setMessageSideThemeId(themeId)
     suspend fun setMessageDanmakuThemeId(themeId: String) = message.setMessageDanmakuThemeId(themeId)

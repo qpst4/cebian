@@ -4,6 +4,8 @@ import android.content.Context
 import com.slideindex.app.message.MessageAction
 import com.slideindex.app.message.MessageAppFilterRule
 import com.slideindex.app.message.MessageOverlayCorner
+import com.slideindex.app.message.MessageOverlayPort
+import com.slideindex.app.message.MessageStyle
 import com.slideindex.app.settings.SettingsRepository
 import com.slideindex.app.ui.feedback.UserMessageBus
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,6 +17,7 @@ class MessageSettingsViewModel @Inject constructor(
     settingsRepository: SettingsRepository,
     userMessageBus: UserMessageBus,
     @ApplicationContext context: Context,
+    private val overlayPort: MessageOverlayPort,
 ) : SettingsViewModel(settingsRepository, userMessageBus, context) {
     fun setMessageReminderEnabled(enabled: Boolean) = launchSettingsWrite {
         settingsRepository.setMessageReminderEnabled(enabled)
@@ -102,6 +105,62 @@ class MessageSettingsViewModel @Inject constructor(
 
     fun setMessageDanmakuEnabled(enabled: Boolean) = launchSettingsWrite {
         settingsRepository.setMessageDanmakuEnabled(enabled)
+    }
+
+    fun setMessageCNoticeEnabled(enabled: Boolean) = launchSettingsWrite {
+        val result = settingsRepository.setMessageCNoticeEnabled(enabled)
+        if (result.isSuccess && !enabled) {
+            overlayPort.dismissImmediate(MessageStyle.CNotice)
+        }
+        result
+    }
+
+    fun setMessageCNoticeOpacity(opacity: Float) = launchSettingsWrite {
+        settingsRepository.setMessageCNoticeOpacity(opacity)
+    }
+
+    fun setMessageCNoticeDimmedOpacity(opacity: Float) = launchSettingsWrite {
+        settingsRepository.setMessageCNoticeDimmedOpacity(opacity)
+    }
+
+    fun setMessageCNoticeGhostOpacity(opacity: Float) = launchSettingsWrite {
+        settingsRepository.setMessageCNoticeGhostOpacity(opacity)
+    }
+
+    fun setMessageCNoticeIconSizeDp(sizeDp: Float) = launchSettingsWrite {
+        settingsRepository.setMessageCNoticeIconSizeDp(sizeDp)
+    }
+
+    fun setMessageCNoticeMaxCount(count: Int) = launchSettingsWrite {
+        settingsRepository.setMessageCNoticeMaxCount(count)
+    }
+
+    fun setMessageCNoticeAutoDismissSeconds(seconds: Int) = launchSettingsWrite {
+        settingsRepository.setMessageCNoticeAutoDismissSeconds(seconds)
+    }
+
+    fun setMessageCNoticeDefaultCollapsed(collapsed: Boolean) = launchSettingsWrite {
+        settingsRepository.setMessageCNoticeDefaultCollapsed(collapsed)
+    }
+
+    fun setMessageCNoticePeekBannerEnabled(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setMessageCNoticePeekBannerEnabled(enabled)
+    }
+
+    fun setMessageCNoticeLandscapeEnabled(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setMessageCNoticeLandscapeEnabled(enabled)
+    }
+
+    fun setMessageCNoticeHorizontalEdge(edge: String) = launchSettingsWrite {
+        settingsRepository.setMessageCNoticeHorizontalEdge(edge)
+    }
+
+    fun setMessageCNoticeYFraction(fraction: Float) = launchSettingsWrite {
+        settingsRepository.setMessageCNoticeYFraction(fraction)
+    }
+
+    fun setMessageCNoticeEdgeMarginDp(marginDp: Float) = launchSettingsWrite {
+        settingsRepository.setMessageCNoticeEdgeMarginDp(marginDp)
     }
 
     fun setMessageDanmakuThemeId(themeId: String) = launchSettingsWrite {
