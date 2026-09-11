@@ -10,16 +10,8 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
 import android.widget.FrameLayout
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutLinearInEasing
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.Image
@@ -36,7 +28,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -45,7 +37,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -58,19 +49,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.message.CNoticeHistoryLoader
 import com.slideindex.app.message.MessageAction
@@ -240,13 +228,16 @@ private class CNoticeTouchHost(
         clipToPadding = false
     }
 
-    override fun onTouchEvent(event: MotionEvent): Boolean {
+    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
         if (event.action == MotionEvent.ACTION_OUTSIDE) {
             onOutsideTouch()
             return true
         }
-        onListInteraction()
-        return super.onTouchEvent(event)
+        val handled = super.dispatchTouchEvent(event)
+        if (handled) {
+            onListInteraction()
+        }
+        return handled
     }
 }
 
@@ -260,7 +251,6 @@ object CNoticeOverlayWindow {
     internal const val BALL_SPACING_DP = 8f
     internal const val REPOSITION_MS = 300
     internal const val PEEK_BANNER_GAP_DP = 6f
-    internal const val PEEK_BANNER_SLOT_WIDTH_DP = 200f
     private const val LIST_PLACEMENT_HEIGHT_EPSILON_DP = 4f
     private const val PEEK_BANNER_DURATION_MS = 3_000L
     private const val PEEK_BANNER_ANIM_MS = 200L
@@ -522,6 +512,7 @@ object CNoticeOverlayWindow {
             mainHandler.post { dismissImmediate() }
             return
         }
+        CNoticePeekBannerOverlayWindow.dismissImmediate()
         CNoticePanelOverlayWindow.dismissImmediate()
         items.toList().forEach { removeEntry(it, animate = false) }
     }
@@ -707,6 +698,7 @@ object CNoticeOverlayWindow {
                     onBallClick = ::onBallClick,
                     onListSized = ::onListSized,
                     onDragHandle = ::onDragHandle,
+                    onPeekBallAnchored = ::reportPeekBallAnchor,
                 )
             }
         }
@@ -787,6 +779,7 @@ object CNoticeOverlayWindow {
         rootLayoutParams = params
         runCatching { wm.updateViewLayout(host, params) }
             .onFailure { Log.w(TAG, "updateViewLayout failed", it) }
+        refreshPeekBannerPlacement()
     }
 
     private fun onListSized(widthPx: Int, heightPx: Int) {
@@ -809,6 +802,40 @@ object CNoticeOverlayWindow {
 
     private fun hasVisiblePeekBanner(): Boolean =
         items.any { !it.peekBannerTextState.value.isNullOrBlank() }
+
+    private fun reportPeekBallAnchor(
+        entry: CNoticeEntry,
+        anchor: CNoticePeekBannerOverlayWindow.BallAnchor,
+    ) {
+        val text = entry.peekBannerTextState.value?.trim()?.take(PEEK_BANNER_MAX_CHARS)
+        if (text.isNullOrBlank()) return
+        val host = touchHost ?: return
+        val hostContext = appContext ?: return
+        val hostLoc = IntArray(2)
+        host.getLocationOnScreen(hostLoc)
+        val screenAnchor = CNoticePeekBannerOverlayWindow.BallAnchor(
+            ballLeft = anchor.ballLeft + hostLoc[0],
+            ballTop = anchor.ballTop + hostLoc[1],
+            ballRight = anchor.ballRight + hostLoc[0],
+            ballBottom = anchor.ballBottom + hostLoc[1],
+        )
+        val gapPx = (PEEK_BANNER_GAP_DP * hostContext.resources.displayMetrics.density).roundToInt()
+        CNoticePeekBannerOverlayWindow.update(
+            context = hostContext,
+            anchor = screenAnchor,
+            text = text,
+            horizontalEdge = horizontalEdgeState.value,
+            gapPx = gapPx,
+        )
+    }
+
+    private fun refreshPeekBannerPlacement() {
+        if (!hasVisiblePeekBanner()) {
+            CNoticePeekBannerOverlayWindow.dismiss()
+            return
+        }
+        composeView?.invalidate()
+    }
 
     private fun onListInteraction() {
         listPhaseState.value = CNoticeListUiState.onListInteraction(listPhaseState.value)
@@ -1257,6 +1284,7 @@ object CNoticeOverlayWindow {
         }
         entry.peekBannerHideRunnable = runnable
         mainHandler.postDelayed(runnable, PEEK_BANNER_DURATION_MS)
+        composeView?.post { composeView?.invalidate() }
     }
 
     private fun clearPeekBanner(entry: CNoticeEntry) {
@@ -1272,6 +1300,7 @@ object CNoticeOverlayWindow {
 
     private fun onPeekBannerHidden() {
         if (hasVisiblePeekBanner()) return
+        CNoticePeekBannerOverlayWindow.dismiss()
         placementSettings?.let { resetTransparencyTimers(it) }
     }
 
@@ -1303,6 +1332,7 @@ object CNoticeOverlayWindow {
         cancelDimTimer()
         cancelIdleDimTimer()
         cancelGhostTimer()
+        CNoticePeekBannerOverlayWindow.dismissImmediate()
         CNoticePanelOverlayWindow.dismissImmediate()
         pendingReconcileRemovals.values.forEach { mainHandler.removeCallbacks(it) }
         pendingReconcileRemovals.clear()
@@ -1363,6 +1393,7 @@ private fun CNoticeListContent(
     onBallClick: (CNoticeEntry) -> Unit,
     onListSized: (Int, Int) -> Unit,
     onDragHandle: (deltaY: Float, deltaX: Float, ended: Boolean) -> Unit,
+    onPeekBallAnchored: (CNoticeEntry, CNoticePeekBannerOverlayWindow.BallAnchor) -> Unit,
 ) {
     val phase by listPhaseState
     val itemEntries = items.toList().sortedByDescending { it.latestActivityTime() }
@@ -1389,9 +1420,16 @@ private fun CNoticeListContent(
         SideBubbleHorizontalEdge.Left -> Alignment.Start
         SideBubbleHorizontalEdge.Right -> Alignment.End
     }
+    val horizontalEdge = horizontalEdgeState.value
+    val peekEntry = if (settings.cNoticePeekBannerEnabled) {
+        visibleEntries.firstOrNull { !it.peekBannerTextState.value.isNullOrBlank() }
+    } else {
+        null
+    }
     OverlayAwareModuleTheme {
         LazyColumn(
             modifier = Modifier
+                .wrapContentWidth()
                 .alpha(listAlpha)
                 .graphicsLayer { clip = false }
                 .onSizeChanged { size -> onListSized(size.width, size.height) },
@@ -1411,19 +1449,43 @@ private fun CNoticeListContent(
                 key = { it.conversationSourceKey },
             ) { entry ->
                 if (!entry.visible.value) return@items
+                val isPeekTarget = peekEntry?.conversationSourceKey == entry.conversationSourceKey
                 CNoticeBallRow(
                     entry = entry,
                     iconSizeDp = iconSizeDp,
-                    horizontalEdge = horizontalEdgeState.value,
+                    horizontalEdge = horizontalEdge,
                     onClick = { onBallClick(entry) },
-                    modifier = Modifier.animateItem(
-                        fadeInSpec = tween(0),
-                        placementSpec = tween(
-                            durationMillis = CNoticeOverlayWindow.REPOSITION_MS,
-                            easing = FastOutLinearInEasing,
+                    modifier = Modifier
+                        .animateItem(
+                            fadeInSpec = tween(0),
+                            placementSpec = tween(
+                                durationMillis = CNoticeOverlayWindow.REPOSITION_MS,
+                                easing = FastOutLinearInEasing,
+                            ),
+                            fadeOutSpec = tween(0),
+                        )
+                        .then(
+                            if (isPeekTarget) {
+                                Modifier.onGloballyPositioned { coordinates ->
+                                    if (!coordinates.isAttached) return@onGloballyPositioned
+                                    if (entry.peekBannerTextState.value.isNullOrBlank()) {
+                                        return@onGloballyPositioned
+                                    }
+                                    val bounds = coordinates.boundsInWindow()
+                                    onPeekBallAnchored(
+                                        entry,
+                                        CNoticePeekBannerOverlayWindow.BallAnchor(
+                                            ballLeft = bounds.left.roundToInt(),
+                                            ballTop = bounds.top.roundToInt(),
+                                            ballRight = bounds.right.roundToInt(),
+                                            ballBottom = bounds.bottom.roundToInt(),
+                                        ),
+                                    )
+                                }
+                            } else {
+                                Modifier
+                            },
                         ),
-                        fadeOutSpec = tween(0),
-                    ),
                 )
             }
         }
@@ -1491,138 +1553,14 @@ private fun CNoticeBallRow(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val peekText by entry.peekBannerTextState
-    val showBanner = !peekText.isNullOrBlank()
-    val settings = entry.plan.settings
-    val bannerGap = CNoticeOverlayWindow.PEEK_BANNER_GAP_DP.dp
-    val bannerSlotWidth = if (settings.cNoticePeekBannerEnabled) {
-        CNoticeOverlayWindow.PEEK_BANNER_SLOT_WIDTH_DP.dp
-    } else {
-        0.dp
-    }
-    val bannerSlidePx = with(LocalDensity.current) { 10.dp.roundToPx() }
-    val bannerFadeSpec = tween<Float>(durationMillis = 200, easing = FastOutSlowInEasing)
-    val slideOffset = when (horizontalEdge) {
-        SideBubbleHorizontalEdge.Right -> bannerSlidePx
-        SideBubbleHorizontalEdge.Left -> -bannerSlidePx
-    }
-    val bannerScaleOrigin = when (horizontalEdge) {
-        SideBubbleHorizontalEdge.Right -> TransformOrigin(1f, 0.5f)
-        SideBubbleHorizontalEdge.Left -> TransformOrigin(0f, 0.5f)
-    }
-    val bannerEnter = fadeIn(bannerFadeSpec) +
-        slideInHorizontally(
-            animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
-            initialOffsetX = { slideOffset },
-        ) +
-        scaleIn(
-            animationSpec = bannerFadeSpec,
-            initialScale = 0.92f,
-            transformOrigin = bannerScaleOrigin,
-        )
-    val bannerExit = fadeOut(bannerFadeSpec) +
-        slideOutHorizontally(
-            animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
-            targetOffsetX = { slideOffset },
-        ) +
-        scaleOut(
-            animationSpec = bannerFadeSpec,
-            targetScale = 0.92f,
-            transformOrigin = bannerScaleOrigin,
-        )
-    val bannerSlotAlignment = when (horizontalEdge) {
-        SideBubbleHorizontalEdge.Right -> Alignment.CenterEnd
-        SideBubbleHorizontalEdge.Left -> Alignment.CenterStart
-    }
-    val peekBanner: @Composable () -> Unit = {
-        AnimatedVisibility(
-            visible = showBanner,
-            enter = bannerEnter,
-            exit = bannerExit,
-        ) {
-            CNoticePeekBanner(
-                text = peekText.orEmpty(),
-                horizontalEdge = horizontalEdge,
-            )
-        }
-    }
-    Row(
-        modifier = modifier.graphicsLayer { clip = false },
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        when (horizontalEdge) {
-            SideBubbleHorizontalEdge.Right -> {
-                if (bannerSlotWidth > 0.dp) {
-                    Box(
-                        modifier = Modifier
-                            .width(bannerSlotWidth)
-                            .padding(end = bannerGap),
-                        contentAlignment = bannerSlotAlignment,
-                    ) {
-                        peekBanner()
-                    }
-                }
-                CNoticeBallItem(
-                    entry = entry,
-                    iconSizeDp = iconSizeDp,
-                    horizontalEdge = horizontalEdge,
-                    onClick = onClick,
-                )
-            }
-            SideBubbleHorizontalEdge.Left -> {
-                CNoticeBallItem(
-                    entry = entry,
-                    iconSizeDp = iconSizeDp,
-                    horizontalEdge = horizontalEdge,
-                    onClick = onClick,
-                )
-                if (bannerSlotWidth > 0.dp) {
-                    Spacer(Modifier.width(bannerGap))
-                    Box(
-                        modifier = Modifier.width(bannerSlotWidth),
-                        contentAlignment = bannerSlotAlignment,
-                    ) {
-                        peekBanner()
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun CNoticePeekBanner(
-    text: String,
-    horizontalEdge: SideBubbleHorizontalEdge,
-    modifier: Modifier = Modifier,
-) {
-    val shape = when (horizontalEdge) {
-        SideBubbleHorizontalEdge.Right -> RoundedCornerShape(
-            topStart = 12.dp,
-            bottomStart = 12.dp,
-            topEnd = 4.dp,
-            bottomEnd = 4.dp,
-        )
-        SideBubbleHorizontalEdge.Left -> RoundedCornerShape(
-            topStart = 4.dp,
-            bottomStart = 4.dp,
-            topEnd = 12.dp,
-            bottomEnd = 12.dp,
+    Box(modifier = modifier.graphicsLayer { clip = false }) {
+        CNoticeBallItem(
+            entry = entry,
+            iconSizeDp = iconSizeDp,
+            horizontalEdge = horizontalEdge,
+            onClick = onClick,
         )
     }
-    Text(
-        text = text,
-        modifier = modifier
-            .widthIn(max = 200.dp)
-            .shadow(4.dp, shape)
-            .clip(shape)
-            .background(MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.96f))
-            .padding(horizontal = 10.dp, vertical = 6.dp),
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurface,
-        maxLines = 2,
-        overflow = TextOverflow.Ellipsis,
-    )
 }
 
 @Composable
