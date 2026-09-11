@@ -128,6 +128,12 @@ android {
         ignoreAssetsPattern += "dict:.*"
     }
 
+    bundle {
+        language {
+            enableSplit = false
+        }
+    }
+
     sourceSets {
         named("full") {
             assets.directories.add("build/generated/release-assets")

@@ -55,6 +55,7 @@ public final class HoneycombOverlayView extends View {
     private final Paint namePillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint wallpaperPaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
     private final RectF wallpaperBounds = new RectF();
+    private final RectF blurBounds = new RectF();
     private final Rect iconOldBounds = new Rect();
     private final Path clipPath = new Path();
     private final ScaleGestureDetector scaleDetector;
@@ -541,8 +542,8 @@ public final class HoneycombOverlayView extends View {
         if (backgroundStyle == HoneycombDisplayConfig.BACKGROUND_BLUR) {
             int blurPx = Math.round(blurDp * density);
             int clampedBlurPx = Math.min(120, Math.max(1, blurPx));
-            RectF fullBounds = new RectF(0, statusBarHeight, getWidth(), getHeight());
-            frostedGlassDrawable.draw(canvas, fullBounds, 0f, clampedBlurPx, Color.TRANSPARENT, visible);
+            blurBounds.set(0, statusBarHeight, getWidth(), getHeight());
+            frostedGlassDrawable.draw(canvas, blurBounds, 0f, clampedBlurPx, Color.TRANSPARENT, visible);
         }
         boolean drawWallpaperBitmap = wallpaper != null && !wallpaper.isRecycled()
                 && (backgroundStyle == HoneycombDisplayConfig.BACKGROUND_WALLPAPER_BLUR

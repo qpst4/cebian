@@ -1,18 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">边栏</string>
-    <string name="main_settings_subtitle">边缘手势与侧边面板</string>
     <string name="main_nav_home">首页</string>
     <string name="main_nav_shake">晃动</string>
     <string name="main_nav_notification">消息</string>
     <string name="main_nav_extension">扩展</string>
-    <string name="extension_hub_subtitle">快捷启动、命令面板等扩展功能</string>
     <string name="extension_section_launch_panel">启动与面板</string>
     <string name="extension_section_shortcuts">快捷操作</string>
     <string name="extension_section_tools">工具</string>
     <string name="extension_section_maintenance">维护</string>
     <string name="shake_gestures_title">晃动手势</string>
-    <string name="shake_gestures_subtitle">通过晃动手机，触发对应功能</string>
     <string name="shake_gestures_section_basic">基础晃动动作</string>
     <string name="shake_gestures_section_advanced">高级晃动动作</string>
     <string name="shake_gestures_section_sensitivity">灵敏度与设置</string>
@@ -64,7 +61,6 @@
     <string name="face_down_gestures_audio_feedback_volume">反馈音量</string>
     <string name="face_down_gestures_audio_feedback_volume_value">%1$d%%</string>
     <string name="face_down_gestures_blacklist_hint">应用黑名单与晃动手势共用</string>
-    <string name="notification_hub_subtitle">管理通知与验证码</string>
     <string name="notification_hub_section_tools">工具</string>
     <string name="message_reminder_title">消息提醒</string>
     <string name="message_reminder_subtitle">拦截通知并以悬浮样式展示</string>
@@ -79,8 +75,6 @@
     <string name="message_reminder_intercept_notifications_desc">开启后通知栏不再弹出，仅通过下方提醒样式展示</string>
     <string name="message_reminder_open_last_on_unlock">解锁后进入最后一条消息</string>
     <string name="message_reminder_open_last_on_unlock_desc">锁屏期间收到消息时，解锁后自动打开该消息</string>
-    <string name="message_reminder_open_last_rules">解锁后打开规则</string>
-    <string name="message_reminder_open_last_rules_desc">设置各提醒应用是否始终允许打开</string>
     <string name="message_reminder_open_last_rules_title">解锁后打开规则</string>
     <string name="message_reminder_open_last_rules_desc_page">未设置为始终允许的应用，解锁后会先询问是否打开。</string>
     <string name="message_reminder_open_last_rules_always">始终允许解锁后打开</string>
@@ -119,7 +113,6 @@
     <string name="message_reminder_allowed_apps">提醒应用/规则</string>
     <string name="message_reminder_allowed_apps_subtitle">选择提醒应用，并为单个应用设置过滤规则</string>
     <string name="message_reminder_allowed_apps_title">提醒应用/规则</string>
-    <string name="message_reminder_allowed_apps_desc">仅展示已选应用的通知；未选择任何应用时，默认允许所有应用。</string>
     <string name="message_reminder_allowed_apps_section_configured">已选应用</string>
     <string name="message_reminder_allowed_apps_section_add">添加应用</string>
     <string name="message_reminder_allowed_apps_empty">尚未选择提醒应用</string>
@@ -129,7 +122,6 @@
     <string name="message_reminder_dnd_apps">免打扰应用</string>
     <string name="message_reminder_dnd_apps_subtitle">使用这些应用时，不展示提醒</string>
     <string name="message_reminder_dnd_apps_title">免打扰应用</string>
-    <string name="message_reminder_dnd_apps_desc">当前台正在使用这些应用时，不显示消息提醒。</string>
     <string name="message_reminder_dnd_apps_section_blocked">已选应用</string>
     <string name="message_reminder_dnd_apps_section_add">添加应用</string>
     <string name="message_reminder_dnd_apps_empty">尚未选择免打扰应用</string>
@@ -169,7 +161,6 @@
     <string name="message_style_c_notice_dimmed_opacity">触摸后半透明</string>
     <string name="message_style_c_notice_ghost_opacity">隐藏态不透明度</string>
     <string name="message_style_c_notice_max_count">保留会话数</string>
-    <string name="message_style_c_notice_max_count_desc">超出后移除最久未活动的会话</string>
     <string name="message_style_c_notice_default_collapsed">默认收起列表</string>
     <string name="message_style_c_notice_default_collapsed_desc">新消息到达时不自动展开列表</string>
     <string name="message_style_c_notice_peek_banner">新消息横幅</string>
@@ -187,14 +178,9 @@
     <string name="message_style_danmaku_overlay_hint">与侧边气泡共用主题皮肤，可与其他样式同时显示</string>
     <string name="message_style_side_position">气泡位置</string>
     <string name="message_style_side_position_hint">选择靠近左侧或右侧，并用滑条调整垂直位置</string>
-    <string name="message_style_side_horizontal_edge">靠近屏幕</string>
     <string name="message_style_side_edge_left">左侧</string>
     <string name="message_style_side_edge_right">右侧</string>
-    <string name="message_style_side_vertical_anchor">出现位置</string>
-    <string name="message_style_side_anchor_middle">中间</string>
-    <string name="message_style_side_anchor_bottom">底部</string>
     <string name="message_style_float_position">悬浮球位置</string>
-    <string name="message_style_float_icon_corner">角落</string>
     <string name="message_style_position_y">垂直位置</string>
     <string name="message_style_corner_top_start">左上</string>
     <string name="message_style_corner_top_end">右上</string>
@@ -412,13 +398,11 @@
     <string name="corner_gesture_slot_submenu_hint">手指停在槽位达到长按阈值并震动后，在图标上方展开快捷胶囊；松手命中子项则启动对应快捷方式。</string>
     <string name="corner_gesture_slot_submenu_enabled">启用二级菜单</string>
     <string name="corner_gesture_slot_submenu_enabled_desc">为该槽位配置停留后扇出的快捷项</string>
-    <string name="corner_gesture_slot_submenu_item_title">快捷项 %1$d</string>
     <string name="corner_gesture_slot_submenu_remove_item">移除快捷项</string>
     <string name="corner_gesture_slot_submenu_add">添加快捷项</string>
     <string name="corner_gesture_slot_submenu_add_desc">从系统快捷方式列表中选择</string>
     <string name="corner_gesture_slot_submenu_import">从应用导入</string>
     <string name="corner_gesture_slot_submenu_import_desc">根据槽位关联应用填充快捷项</string>
-    <string name="corner_gesture_slot_submenu_import_title">选择要导入的快捷方式</string>
     <string name="corner_gesture_slot_corner_left">左下角轮盘</string>
     <string name="corner_gesture_slot_corner_right">右下角轮盘</string>
     <string name="corner_gesture_layer_inner">内层（3）</string>
@@ -566,9 +550,6 @@
     <string name="settings_section_service">服务</string>
     <string name="settings_section_features">特色功能</string>
     <string name="settings_section_panel">索引与面板</string>
-    <string name="debug_section_title">调试</string>
-    <string name="debug_performance_monitor">性能监控</string>
-    <string name="debug_performance_monitor_desc">在 Logcat 输出 Overlay FPS 与主线程慢消息（仅 Debug 构建）</string>
     <string name="settings_section_apps">应用与启动</string>
     <string name="settings_section_feedback_appearance">交互与外观</string>
     <string name="settings_section_launch">启动方式</string>
@@ -586,7 +567,6 @@
     <string name="free_window_settings_title">小窗高级设置</string>
     <string name="free_window_enabled">启用</string>
     <string name="free_window_enabled_desc">开启后可使用小窗及相关启动策略</string>
-    <string name="free_window_portrait_only_hint">本应用仅支持竖屏，小窗预览与启动均按竖屏计算</string>
     <string name="free_window_launch_mode">厂商小窗模式</string>
     <string name="free_window_adjust_layout">调节小窗尺寸与位置</string>
     <string name="free_window_adjust_layout_desc">实时预览并自定义小窗</string>
@@ -615,7 +595,6 @@
     <string name="launch_policy_free_window_long_press_fullscreen">小窗，长按全屏</string>
     <string name="launch_policy_free_window_long_press_fullscreen_desc">默认小窗；在图标上按住达到设定时间后松开，以全屏打开</string>
     <string name="long_press_launch_duration">长按触发时间</string>
-    <string name="long_press_launch_duration_desc">在应用图标上按住达到该时间后，松开将使用另一种打开方式</string>
     <string name="long_press_launch_duration_value">%1$d 毫秒</string>
     <string name="hidden_apps_entry_title">隐藏应用</string>
     <string name="hidden_apps_entry_desc">从应用索引列表中隐藏指定应用</string>
@@ -695,36 +674,18 @@
     <string name="side_gestures_bottom_title">底部触钮</string>
     <string name="side_gestures_top_title">顶部触钮</string>
     <string name="side_gestures_desc">每个手势槽位均可独立配置动作，包括应用索引、滑动调节音量/亮度、快速启动器等。</string>
-    <string name="side_gestures_short_distance">短距离滑动</string>
     <string name="side_gestures_tab_short_distance">短距</string>
     <string name="side_gestures_tab_long_distance">长距</string>
     <string name="side_gestures_tab_compound">组合</string>
-    <string name="side_gestures_inward_entry_suffix">含 L 形与折返</string>
-    <string name="side_gestures_inward_swipe_subtitle">直滑、短滑后悬停与组合手势</string>
-    <string name="side_gestures_inward_swipe_path_hint">先短滑，在到达长滑距离前悬停，再拐弯或折返。</string>
-    <string name="side_gestures_path_pause">短滑后悬停</string>
     <string name="side_gestures_swipe_directions_section">滑动手势</string>
     <string name="side_gestures_direction_straight_section">直滑</string>
     <string name="side_gestures_direction_pause_section">短滑后悬停</string>
-    <string name="side_gestures_direction_after_pause_section">短滑后悬停再划</string>
-    <string name="side_gestures_direction_pause_release">松手触发</string>
-    <string name="side_gestures_inward_hold_section">短滑悬停</string>
-    <string name="side_gestures_inward_hold_slot">短滑后悬停</string>
-    <string name="side_gestures_inward_hold_hint">短滑后在到达长滑距离前悬停；时长见手势主页的「短滑后悬停时长」。</string>
     <string name="side_gestures_direction_short_slot">短滑</string>
     <string name="side_gestures_direction_long_slot">长滑</string>
-    <string name="side_gestures_direction_swipe_subtitle">短滑、长滑与短滑后悬停</string>
     <string name="side_gestures_inward_branch_hint">下列动作均须在短滑后悬停之后执行。</string>
-    <string name="side_gestures_inward_branch_slot_title">%1$s · %2$s</string>
     <string name="side_gestures_compound_slot_title">%1$s · %2$s</string>
-    <string name="side_gestures_inward_branch_turn_up">向上拐</string>
-    <string name="side_gestures_inward_branch_turn_down">向下拐</string>
-    <string name="side_gestures_inward_branch_return">折返</string>
     <string name="side_gestures_press_tap">点击与长按</string>
-    <string name="side_gestures_long_distance">长距离滑动</string>
-    <string name="side_gestures_hover">短滑后悬停</string>
     <string name="side_gestures_hover_duration">短滑后悬停时长</string>
-    <string name="side_gestures_hover_duration_desc">短滑后保持静止达到此时长，方判定为悬停；L 形与折返也依赖此设置。</string>
     <string name="side_gestures_hover_duration_value">%1$d 毫秒</string>
     <string name="gesture_swipe_in_left">向右滑动</string>
     <string name="gesture_swipe_in_right">向左滑动</string>
@@ -804,9 +765,7 @@
     <string name="holographic_settings_haptic_light">弱</string>
     <string name="holographic_settings_haptic_medium">中</string>
     <string name="holographic_settings_haptic_strong">强</string>
-    <string name="holographic_hidden_apps_entry_title">隐藏应用</string>
     <string name="holographic_hidden_apps_entry_desc">从全息球中隐藏指定应用</string>
-    <string name="holographic_hidden_apps_title">全息启动器隐藏应用</string>
     <string name="holographic_hidden_apps_desc">已隐藏的应用不会出现在全息球中，不影响边栏索引等其他列表。</string>
     <string name="gesture_action_task_switcher">任务切换器</string>
     <string name="gesture_action_back">返回键</string>
@@ -902,9 +861,7 @@
     <string name="key_event_long_press_title">模拟长按</string>
     <string name="key_event_long_press_summary" tools:ignore="TypographyDashes">使用 input keyevent --longpress 发送按键事件</string>
     <string name="key_event_permission_hint">提示：模拟按键需要 Root 权限或已激活 Shizuku 服务以注入按键事件。</string>
-    <string name="key_event_permission_toast">模拟按键失败：请确保已授予 Root 权限或 Shizuku 服务正在运行</string>
     <string name="key_event_failed_hint">模拟按键失败：%1$s</string>
-    <string name="one_handed_mode_not_supported_hint">单手模式未触发：请在系统设置中开启「单手模式」或授予 Shizuku 权限</string>
     <string name="current_app_info_not_found">未检测到当前前台应用</string>
     <string name="gesture_action_screen_off_keep_awake">息屏挂机 (伪息屏)</string>
     <string name="gesture_action_screen_off_keep_awake_desc">全屏全黑降至最低亮度并保持唤醒防烧屏，双击或按音量键退出</string>
@@ -964,25 +921,15 @@
     <string name="extension_back_tap_title">背部双击（实验性可能不灵敏）</string>
     <string name="extension_back_tap_subtitle">通过加速度计检测背部双击</string>
     <string name="freezer_permission_required">需要 Shizuku 或 Root 权限</string>
-    <string name="freezer_command_failed">冻结失败：%1$s</string>
     <string name="freezer_freeze_failed">冻结失败：%1$s</string>
     <string name="freezer_unfreeze_failed">解冻失败：%1$s</string>
     <string name="freezer_unfreeze_need_root">该应用先前以系统级方式冻结，请在特权模式中选择 Root，或授予 Shizuku Root 后再解冻</string>
-    <string name="freezer_tab_all">全部</string>
-    <string name="freezer_tab_frozen">已冻结</string>
-    <string name="freezer_tab_active">使用中</string>
     <string name="freezer_tab_all_count">全部 (%1$d)</string>
     <string name="freezer_tab_frozen_count">已冻结 (%1$d)</string>
     <string name="freezer_tab_active_count">使用中 (%1$d)</string>
     <string name="freezer_show_system_apps">添加时显示系统应用</string>
-    <string name="freezer_system_app_label">系统</string>
-    <string name="freezer_filter_title">筛选</string>
     <string name="freezer_apps_section_title">应用列表（%1$d）</string>
-    <string name="freezer_list_section_title">我的冰箱列表（%1$d）</string>
     <string name="freezer_list_empty">暂无应用，可从下方添加</string>
-    <string name="freezer_section_add">添加应用</string>
-    <string name="freezer_add_all_added">所有应用已加入列表</string>
-    <string name="freezer_batch_freeze_all">全部冻结</string>
     <string name="freezer_batch_unfreeze_all">全部解冻</string>
     <string name="freezer_status_frozen">已冻结</string>
     <string name="freezer_status_active">使用中</string>
@@ -993,7 +940,6 @@
     <string name="freezer_import_frozen_apps_desc">扫描系统中已禁用的桌面应用并加入冰箱列表</string>
     <string name="freezer_import_frozen_none">没有可导入的已冻结应用</string>
     <string name="freezer_add_to_list">加入冰箱列表</string>
-    <string name="freezer_launch_app">启动应用</string>
     <string name="freezer_launch_failed">无法启动该应用</string>
     <string name="freezer_shortcut_label">已冻结的应用</string>
     <string name="freezer_grid_search_hint">搜索已冻结的应用</string>
@@ -1010,16 +956,12 @@
     <string name="expand_panel_shortcuts_title">快捷应用</string>
     <string name="expand_panel_shortcut_add">添加快捷方式</string>
     <string name="expand_panel_shortcut_pick">选择应用</string>
-    <string name="expand_panel_edit">编辑</string>
-    <string name="expand_panel_done">完成</string>
     <string name="expand_panel_edit_hint">编辑中：点击槽位更换，点 − 移除；长按空白处退出</string>
     <string name="expand_panel_clear_slot">清除此槽位</string>
     <string name="expand_panel_editing_slot">正在编辑：第 %1$d 个槽位 · %2$s</string>
     <string name="expand_panel_slot_add_label">添加</string>
     <string name="freezer_shizuku_granted">Shizuku 已授权</string>
     <string name="freezer_shizuku_denied">Shizuku 未授权</string>
-    <string name="freezer_root_available">Root 可用</string>
-    <string name="freezer_root_unavailable">Root 不可用（部分机型需 Root 才能冻结）</string>
     <string name="back_tap_action">触发动作</string>
     <string name="back_tap_sensitivity">灵敏度</string>
     <string name="back_tap_range">双击间隔</string>
@@ -1053,10 +995,8 @@
     <string name="gesture_action_clipboard_panel">打开剪贴板</string>
     <string name="gesture_action_clipboard_panel_permission">需要开启边栏</string>
     <string name="gesture_action_clipboard_float">剪贴板小窗</string>
-    <string name="gesture_action_clipboard_float_desc">打开自由浮动剪贴板小窗</string>
     <string name="gesture_action_clipboard_float_permission">需要开启边栏与悬浮窗权限</string>
     <string name="clipboard_float_style_title">浮窗列表样式</string>
-    <string name="clipboard_float_style_desc">切换单行极简与多行卡片显示</string>
     <string name="clipboard_float_style_single_line">单行极简（高密度）</string>
     <string name="clipboard_float_style_card">多行卡片</string>
     <string name="clipboard_float_style_toggle">切换列表样式</string>
@@ -1080,7 +1020,6 @@
     <string name="gesture_action_toggle_wifi">Wi-Fi 开关</string>
     <string name="gesture_action_toggle_mobile_data">移动数据开关</string>
     <string name="gesture_action_switch_input_method">切换输入法</string>
-    <string name="gesture_action_toggle_shell_permission">需要 Shizuku 或 Root 权限</string>
     <string name="gesture_action_screen_record_permission">需要“显示在其他应用上层”权限</string>
     <string name="screen_record_channel_name">屏幕录制</string>
     <string name="screen_record_notification_recording">正在录制屏幕…</string>
@@ -1141,7 +1080,6 @@
     <string name="animation_style_color_picker_title">选择颜色</string>
     <string name="animation_style_color_hex_label">颜色值</string>
     <string name="animation_style_color_hex_invalid">请输入有效的十六进制颜色值</string>
-    <string name="animation_style_color_alpha_label">透明度</string>
     <string name="animation_style_color_outline">颜色轮廓</string>
     <string name="animation_style_shape_size">形状大小</string>
     <string name="animation_style_icon">图标</string>
@@ -1174,31 +1112,6 @@
     <string name="honeycomb_launcher_add">添加应用</string>
     <string name="honeycomb_launcher_editor_desc">配置蜂窝启动器显示的应用与快捷方式。建议将手势触发模式设为「持续触发」，按住滑动选择，松手启动。</string>
     <string name="honeycomb_launcher_entry_desc">为蜂窝启动器配置应用列表</string>
-    <string name="app_switcher_editor_title">圆环启动器</string>
-    <string name="app_switcher_editor_desc">配置圆环启动器的槽位。建议将手势触发模式设为「持续触发」，按住滑动选择，松手启动。</string>
-    <string name="app_switcher_add">添加应用</string>
-    <string name="app_switcher_entry_desc">为圆环启动器配置应用列表</string>
-    <string name="app_switcher_display_settings_title">圆环启动器外观</string>
-    <string name="app_switcher_display_settings_entry">外观与行为</string>
-    <string name="app_switcher_display_settings_entry_desc">图标大小、选中放大、驻留与背景</string>
-    <string name="app_switcher_display_section_layout">布局</string>
-    <string name="app_switcher_display_section_behavior">行为</string>
-    <string name="app_switcher_display_section_background">背景</string>
-    <string name="app_switcher_icon_size">图标大小</string>
-    <string name="app_switcher_spacing">槽位间距</string>
-    <string name="app_switcher_selection_scale">选中放大</string>
-    <string name="app_switcher_initial_radius_ratio">贴边半径</string>
-    <string name="app_switcher_pin_on_release">松手驻留</string>
-    <string name="app_switcher_pin_on_release_desc">未选中槽位时松手，面板留在屏幕上</string>
-    <string name="app_switcher_empty_tap_close">点空白关闭</string>
-    <string name="app_switcher_empty_tap_close_desc">驻留后点击面板外区域关闭</string>
-    <string name="app_switcher_show_selected_name">显示选中名称</string>
-    <string name="app_switcher_show_selected_name_desc">滑选时在顶部显示当前槽位名称</string>
-    <string name="app_switcher_slot_haptic">槽位触感反馈</string>
-    <string name="app_switcher_slot_haptic_desc">滑过槽位时提供轻微振动反馈</string>
-    <string name="app_switcher_dim_percent">背景变暗</string>
-    <string name="app_switcher_blur_dp">背景模糊</string>
-    <string name="app_switcher_selected_hint_icon_size">选中名称字号</string>
     <string name="fv_app_switcher_appearance_title">圆环外观与布局</string>
     <string name="fv_app_switcher_circle_count_title">显示圈数</string>
     <string name="fv_app_switcher_circle_count_desc">选择圆环启动器的同心圆层数</string>
@@ -1211,8 +1124,6 @@
     <string name="fv_app_switcher_base_radius_title">内圈起始半径</string>
     <string name="fv_app_switcher_layer_gap_title">同心圆环间距</string>
     <string name="fv_app_switcher_end_margin_title">扇区边距（间距）</string>
-    <string name="fv_app_switcher_link_axes_title">顶底与左右同步</string>
-    <string name="fv_app_switcher_link_axes_desc">开启后，垂直轴（顶/底）与水平轴（左/右）共用同一套圈数、外观与槽位</string>
     <string name="fv_app_switcher_link_appearance_axes_title">外观同步</string>
     <string name="fv_app_switcher_link_appearance_axes_desc">开启后，垂直轴与水平轴共用圈数、图标大小、形状与半径等外观</string>
     <string name="fv_app_switcher_link_slot_axes_title">槽位同步</string>
@@ -1284,7 +1195,6 @@
     <string name="quick_launcher_panel_pick_title">选择启动面板</string>
     <string name="quick_launcher_panel_pick_desc">不同手势槽位可绑定不同的启动面板。</string>
     <string name="gesture_action_quick_launcher_named">快速启动器 · %1$s</string>
-    <string name="quick_launcher_editor_desc">与悬浮窗面板相同的侧栏布局：+ 添加、− 编辑；编辑模式下可拖动排序或点红标删除。</string>
     <string name="quick_launcher_appearance_section">外观</string>
     <string name="quick_launcher_icon_size">图标大小</string>
     <string name="quick_launcher_icon_size_value">%1$d dp</string>
@@ -1320,7 +1230,6 @@
     <string name="task_switcher_close_all">全部关闭</string>
     <string name="task_switcher_empty">无后台任务</string>
     <string name="task_switcher_loading">加载中…</string>
-    <string name="task_switcher_no_shizuku">需要 Shizuku 权限以显示后台任务</string>
     <string name="task_switcher_menu_free_window">小窗打开</string>
     <string name="task_switcher_menu_app_info">应用信息</string>
     <string name="task_switcher_menu_force_stop">强行停止</string>
@@ -1405,41 +1314,24 @@
     <string name="translate_download_step_language">正在下载语言包（%1$d/%2$d）…</string>
     <string name="segmentation_engine_preparing">正在准备分词引擎…</string>
     <string name="native_engine_status_manage">管理</string>
-    <string name="about_advanced_section_title">高级</string>
     <string name="about_section_app_info">应用信息</string>
     <string name="about_section_open_source">开源与许可</string>
     <string name="about_section_community">社区</string>
     <string name="about_release_notes_subtitle">查看 GitHub Release 记录</string>
-    <string name="about_version_format">v%1$s (%2$d)</string>
     <string name="about_copyright_notice">© %1$d qpst4。依据 GNU AGPL v3.0 许可发布。</string>
-    <string name="about_native_engine_packs_entry_desc">单独安装、删除或重装运行时引擎包</string>
     <string name="diagnostic_report_entry_title">诊断与日志</string>
     <string name="diagnostic_report_entry_subtitle">Shizuku 实时 logcat、崩溃历史与诊断报告分享</string>
     <string name="diagnostic_log_title">诊断与日志</string>
-    <string name="diagnostic_log_subtitle">本应用 UID 的 logcat 实时流（需 Shizuku + READ_LOGS）</string>
-    <string name="diagnostic_log_tab_runtime">运行日志</string>
-    <string name="diagnostic_log_tab_crashes">崩溃历史</string>
-    <string name="diagnostic_log_waiting">等待日志…</string>
-    <string name="diagnostic_log_connecting">正在连接 logcat…</string>
-    <string name="diagnostic_log_stream_error">logcat 流中断，请返回后重试</string>
-    <string name="diagnostic_log_permission_required">需要 Shizuku 与读取日志权限</string>
-    <string name="diagnostic_log_permission_title">需要特权日志访问</string>
-    <string name="diagnostic_log_permission_desc">运行日志通过 Shizuku 在特权进程中读取 logcat。请先授权 Shizuku，再通过 Shizuku 授予 READ_LOGS。</string>
-    <string name="diagnostic_log_grant_shizuku">授权 Shizuku</string>
-    <string name="diagnostic_log_grant_read_logs">授予读取日志</string>
     <string name="diagnostic_log_clear">清空</string>
     <string name="diagnostic_log_share">分享诊断报告</string>
     <string name="diagnostic_log_copy">复制</string>
     <string name="diagnostic_log_crash_empty">（空文件）</string>
     <string name="diagnostic_log_crash_empty_list">暂无崩溃记录</string>
-    <string name="diagnostic_log_clear_runtime_title">清空运行日志？</string>
-    <string name="diagnostic_log_clear_runtime_message">仅清除当前屏幕上的日志缓冲，不影响 logcat 源。</string>
     <string name="diagnostic_log_clear_crash_title">清空崩溃历史？</string>
     <string name="diagnostic_log_clear_crash_message">将删除本机保存的所有崩溃报告文件，此操作不可撤销。</string>
     <string name="diagnostic_report_shared">已打开分享面板</string>
     <string name="diagnostic_report_copied">诊断与错误日志已复制至剪贴板</string>
     <string name="diagnostic_report_copied_truncated">分享不可用，已复制截断版至剪贴板</string>
-    <string name="diagnostic_report_shared_fallback">内容过大无法写入剪贴板，已打开分享以导出完整报告</string>
     <string name="diagnostic_report_export_failed">诊断报告导出失败，请稍后重试</string>
     <string name="diagnostic_report_share_chooser_title">分享诊断日志</string>
     <string name="diagnostic_report_share_subject">边栏诊断日志</string>
@@ -1472,7 +1364,6 @@
     <string name="ocr_engine_migration_success_message">应用已自动将 OCR 运行时引擎升级至 %1$s，与当前版本匹配。若识别异常，可在「运行时引擎」中重新安装。</string>
     <string name="ocr_engine_migration_download_title">需要更新 OCR 引擎</string>
     <string name="ocr_engine_migration_download_message">当前版本需要 %1$s 引擎包才能正常使用 OCR。请前往「运行时引擎」下载安装。</string>
-    <string name="ocr_engine_migration_acknowledge">去下载</string>
     <string name="ocr_engine_migration_later">稍后</string>
     <string name="ocr_engine_migration_download_action">去下载</string>
     <string name="ocr_engine_migration_version_fallback">最新版本</string>
@@ -1592,7 +1483,6 @@
     <string name="float_ball_gesture_single_tap">单击</string>
     <string name="float_ball_gesture_double_tap">双击</string>
     <string name="float_ball_gesture_long_press">长按</string>
-    <string name="float_ball_section_style">样式</string>
     <string name="float_ball_style_picker_title">悬浮球样式</string>
     <string name="float_ball_style_picker_summary">选择悬浮球外观样式</string>
     <string name="float_ball_style_pick_image">选择图片</string>
@@ -1680,7 +1570,6 @@
     <string name="search_engine_import_failed">导入失败：%1$s</string>
     <string name="search_engine_query_empty">请先选择或输入搜索内容</string>
     <string name="search_engine_accessibility_required">使用此功能需要开启边栏无障碍服务</string>
-    <string name="search_engine_shizuku_required">跳转未导出的 Activity 需要授权 Shizuku</string>
     <string name="search_engine_add_title">添加搜索引擎</string>
     <string name="search_engine_add_subtitle">配置自定义文字搜索引擎</string>
     <string name="search_engine_edit_title">编辑搜索引擎</string>
@@ -1719,10 +1608,7 @@
     <string name="search_panel_section_files">文件</string>
     <string name="search_panel_section_settings">设置</string>
     <string name="search_panel_section_menu">切换搜索类型</string>
-    <string name="search_engine_type_section">执行方式</string>
-    <string name="search_engine_search_link_hint">搜索链接</string>
     <string name="search_engine_search_link_support" formatted="false">使用 %s 或 %q 作为关键词占位符</string>
-    <string name="search_engine_optional_search_link_hint">备用搜索链接（可选）</string>
     <string name="search_engine_target_package_hint">目标包名（可选）</string>
     <string name="search_engine_target_activity_hint">目标 Activity</string>
     <string name="search_engine_extern_link_hint">Scheme / Intent 协议链接</string>
@@ -1749,7 +1635,6 @@
     <string name="search_engine_text_icon_title">设置文字图标</string>
     <string name="search_engine_text_icon_hint">输入 1 个字符或短文字</string>
     <string name="search_engine_text_icon_support">将显示首字作为图标</string>
-    <string name="search_engine_share_type_readonly">分享类引擎仅支持修改名称和排序</string>
     <string name="search_engine_share_image_target_section">图片分享目标</string>
     <string name="search_engine_share_image_target_not_set">未选择接收图片分享的应用</string>
     <string name="search_engine_pick_share_image_target">选择接收图片分享的应用</string>
@@ -1904,7 +1789,6 @@
     <string name="floating_pointer_edge_side_left">左边缘</string>
     <string name="floating_pointer_edge_side_right">右边缘</string>
     <string name="floating_pointer_edge_side_bottom">下边缘</string>
-    <string name="floating_pointer_edge_side_enabled_desc">启用该侧边缘动作</string>
     <string name="floating_pointer_edge_section_zones_count">区域（%1$d）</string>
     <string name="floating_pointer_edge_zone_title">区域 %1$d</string>
     <string name="floating_pointer_edge_add_zone">添加区域</string>
@@ -1965,7 +1849,6 @@
     <string name="notification_history_entry_summary">已记录 %1$d 条通知</string>
     <string name="notification_history_entry_permission_needed">需要开启通知读取权限</string>
     <string name="notification_history_title">通知滤盒</string>
-    <string name="notification_history_subtitle">查看通知栏实时通知与历史记录</string>
     <string name="notification_history_empty">暂无通知记录。开启通知读取权限后，新通知会自动保存到这里。</string>
     <string name="notification_history_search_hint">搜索通知…</string>
     <string name="notification_history_search_no_results">未找到匹配的通知</string>
@@ -2003,7 +1886,6 @@
     <string name="notification_filter_rules_action">任务规则</string>
     <string name="notification_filter_more_menu">更多</string>
     <string name="notification_filter_settings_title">滤盒设置</string>
-    <string name="notification_rules_screen_subtitle">按条件自动处理通知</string>
     <string name="otp_hub_entry_title">验证码</string>
     <string name="otp_hub_entry_desc">提取、记录与自动输入验证码</string>
     <string name="notification_filter_tab_rules">任务规则</string>
@@ -2076,7 +1958,6 @@
     <string name="notification_rule_action_webhook_body">请求体（可选）</string>
     <string name="notification_rule_export">导出规则</string>
     <string name="notification_settings_history_section">历史记录</string>
-    <string name="notification_settings_rules_hint">任务规则可从滤盒右上角「规则」入口管理。</string>
     <string name="notification_filter_hidden_empty">暂无已隐藏的通知</string>
     <string name="notification_restore_action">恢复</string>
     <string name="notification_history_menu_restore">恢复至通知栏</string>
@@ -2087,7 +1968,6 @@
     <string name="notification_history_max_count_title">历史记录保存条数</string>
     <string name="notification_history_group_by_app_title">按应用折叠</string>
     <string name="notification_history_group_by_app_desc">同一应用有多条通知时默认折叠显示，点击展开</string>
-    <string name="notification_history_group_count">%1$d 条</string>
     <string name="notification_history_group_latest_preview">最新：%1$s</string>
     <string name="notification_history_group_tap_expand">点击展开</string>
     <string name="notification_history_group_tap_collapse">点击收起</string>
@@ -2102,10 +1982,7 @@
     <string name="widget_picker_title">选择小部件</string>
     <string name="widget_picker_search_hint">搜索小部件…</string>
     <string name="widget_picker_empty">未找到可用的小组件</string>
-    <string name="widget_picker_span_size">%1$d × %2$d</string>
-    <string name="widget_picker_open_app_widgets">查看全部小组件</string>
     <string name="widget_panel_edit_mode">编辑模式</string>
-    <string name="widget_panel_exit_edit">退出编辑</string>
     <string name="widget_panel_edit_hint">长按空白处进入编辑</string>
     <string name="widget_loading">加载中…</string>
     <string name="shell_panel_title">Shell 命令面板</string>
@@ -2172,7 +2049,6 @@
     <string name="activity_shortcut_rename">重命名</string>
     <string name="activity_shortcut_rename_title">重命名直达项</string>
     <string name="activity_shortcut_name_hint">显示名称</string>
-    <string name="activity_shortcut_shizuku_required">此页面未导出，需要 Shizuku 权限才能打开</string>
     <string name="activity_shortcut_picker_section">我的直达</string>
     <string name="activity_shortcut_browse">浏览 Activity…</string>
     <string name="activity_shortcut_browse_hint">选择应用内的任意 Activity</string>
@@ -2335,7 +2211,6 @@
     <string name="cd_media_pause">暂停</string>
     <string name="cd_media_previous">上一首</string>
     <string name="cd_media_next">下一首</string>
-    <string name="cd_widget_preview">小组件预览</string>
     <string name="cd_shake_feedback">摇一摇反馈</string>
     <string name="cd_radial_menu_settings">径向菜单设置</string>
     <string name="cd_settings">设置</string>
@@ -2370,17 +2245,11 @@
     <string name="quick_launcher_new_folder">新建文件夹</string>
     <string name="quick_launcher_create_folder">创建文件夹</string>
     <string name="quick_launcher_folder_name">文件夹名称</string>
-    <string name="quick_launcher_folder_name_hint">请输入文件夹名称</string>
     <string name="quick_launcher_folder_empty">文件夹为空，可在编辑模式下添加</string>
-    <string name="quick_launcher_folder_edit_title">编辑文件夹</string>
-    <string name="quick_launcher_folder_add_items">添加快捷项</string>
-    <string name="quick_launcher_folder_delete">解散文件夹</string>
-    <string name="quick_launcher_folder_rename">重命名</string>
     <string name="quick_launcher_panel_switch">切换面板</string>
     <string name="adjust_volume_ring_label">铃</string>
     <string name="adjust_volume_notification_label">通</string>
     <string name="widget_panel_columns_title">列数: %1$d</string>
-    <string name="widget_panel_rows_title">行数: %1$d</string>
     <string name="widget_panel_visible_rows_title">显示行数: %1$d</string>
     <string name="widget_panel_cell_width_title">单元网格宽度: %1$d dp</string>
     <string name="widget_panel_margin_top_title">容器上边距: %1$d dp</string>
@@ -2394,9 +2263,7 @@
 
     <!-- Settings backup -->
     <string name="settings_backup_title">设置备份</string>
-    <string name="settings_backup_subtitle">导出或导入应用配置，便于换机恢复</string>
     <string name="settings_backup_section_actions">备份操作</string>
-    <string name="settings_backup_hint">导出或导入应用设置；验证码、通知历史、剪贴板等内容可选包含</string>
     <string name="settings_backup_include_sensitive">包含敏感记录与历史数据</string>
     <string name="settings_backup_sensitive_hint">包含验证码、通知历史、剪贴板、识图 OCR 历史、Shell 输出历史；仅保存在本地备份文件中。</string>
     <string name="settings_backup_export">导出设置</string>
@@ -2432,27 +2299,11 @@
     <string name="settings_domain_sensitive_otp_stats">OTP 自动填充统计</string>
 
     <!-- Onboarding -->
-    <string name="onboarding_skip">跳过</string>
     <string name="onboarding_next">下一步</string>
-    <string name="onboarding_get_started">开始使用</string>
-    <string name="onboarding_progress">第 %1$d / %2$d 步</string>
-    <string name="onboarding_welcome_title">欢迎使用边栏</string>
     <string name="onboarding_welcome_body">边栏通过边缘手势、摇一摇和通知增强，帮助你更高效地使用手机。接下来需要授予几项系统权限。</string>
     <string name="onboarding_overlay_title">悬浮窗权限</string>
-    <string name="onboarding_overlay_body">用于显示边缘触发条、侧滑面板和消息提醒等悬浮界面。</string>
     <string name="onboarding_grant_overlay">授予悬浮窗权限</string>
     <string name="onboarding_accessibility_title">无障碍服务</string>
-    <string name="onboarding_accessibility_body">边栏通过无障碍服务实现边缘手势、侧滑面板和系统操作（返回、主屏幕、多任务等）。</string>
-    <string name="onboarding_grant_accessibility">前往无障碍设置</string>
-    <string-array name="onboarding_accessibility_steps">
-        <item>点击下方按钮打开系统「无障碍」设置</item>
-        <item>进入「已下载的服务」或「已安装的服务」</item>
-        <item>找到「边栏」并开启开关</item>
-        <item>在弹窗中确认授权</item>
-    </string-array>
-    <string name="onboarding_done_title">准备就绪</string>
-    <string name="onboarding_done_body">核心权限已配置完成。你可以在首页继续调整手势，或在扩展页导入已有配置。</string>
-    <string name="onboarding_permission_granted">已授权</string>
     <string name="onboarding_back">返回</string>
     <string name="onboarding_enter_app">进入 App</string>
     <string name="onboarding_disclaimer_title">免责声明</string>
@@ -2563,7 +2414,6 @@
     <string name="about_check_update_title">检查更新</string>
     <string name="about_check_update_subtitle">查询 GitHub 最新版本</string>
     <string name="app_icon_theme_title">应用图标风格</string>
-    <string name="app_icon_theme_subtitle">点击切换图标与关于页色彩</string>
     <string name="app_icon_violet">科技紫罗兰</string>
     <string name="app_icon_violet_desc">灵动流光 · 经典默认</string>
     <string name="app_icon_blue">深海湛蓝</string>
@@ -2575,7 +2425,6 @@
     <string name="auto_check_update_title">自动检查更新</string>
     <string name="auto_check_update_hint">后台定期检查新版本并通知</string>
     <string name="update_available_title">发现新版本</string>
-    <string name="update_version_compare">%1$s → %2$s</string>
     <string name="update_now">立即更新</string>
     <string name="update_ignore_version">忽略此版本</string>
     <string name="update_downloading_label">下载中…</string>
@@ -2651,7 +2500,6 @@
     <string name="search_panel_calculator_desc">输入算式时在候选区显示计算结果</string>
     <string name="honeycomb_background_wallpaper_blur">壁纸模糊</string>
     <string name="wallpaper_blur_permission_title">所有文件访问权限</string>
-    <string name="wallpaper_blur_permission_granted">已授予，可用于壁纸模糊</string>
     <string name="wallpaper_blur_permission_missing">未授予，点击授予「所有文件访问权限」以读取系统壁纸</string>
     <string name="search_panel_input_behavior_title">打开时输入框行为</string>
     <string name="search_panel_input_behavior_select_all">全选输入框文本</string>
@@ -2744,7 +2592,6 @@
     <string name="stash_clipboard_entry_summary">%1$s · %2$s</string>
     <string name="stash_clipboard_entry_summary_clipboard_off">剪贴板监听已关闭</string>
     <string name="stash_clipboard_settings_title">暂存夹与剪贴板</string>
-    <string name="stash_clipboard_settings_desc">剪贴板历史与暂存夹管理</string>
     <string name="stash_clipboard_section_history">剪贴板历史</string>
     <string name="stash_clipboard_section_stash">暂存夹</string>
     <string name="stash_clipboard_index_nav_section">剪贴板与收纳面板</string>
@@ -2753,7 +2600,6 @@
     <string name="clipboard_history_settings_desc">剪贴板历史、截图与后台监听设置</string>
     <string name="stash_panel_settings_desc">收纳面板外观与贴边历史浮窗设置</string>
     <string name="clipboard_float_settings_desc">浮动剪贴板小窗外观与交互设置</string>
-    <string name="stash_clipboard_stash_desc">通过边栏手势「打开暂存夹」或悬浮球取词结果可存入暂存夹。</string>
     <string name="stash_panel_section_appearance">收纳面板</string>
     <string name="stash_panel_background_blur">背景模糊</string>
     <string name="stash_panel_background_blur_desc">Android 12+ 模糊面板后方窗口内容；顶栏在列表滚动时会模糊面板内内容</string>
@@ -2761,36 +2607,6 @@
     <string name="clipboard_background_monitoring_title">后台监听复制</string>
     <string name="clipboard_background_monitoring_desc">在其他应用复制后自动记录到剪贴板历史（通过 Shizuku/Root 特权监听）</string>
     <string name="clipboard_background_monitoring_mode_title">监听方式</string>
-    <string name="clipboard_monitoring_section_modes">监听模式与技术链路</string>
-    <string name="clipboard_monitoring_strategy_follow">跟随特权模式（推荐）</string>
-    <string name="clipboard_monitoring_strategy_follow_desc">跟随首页「特权执行方式」，当前为 %1$s</string>
-    <string name="clipboard_monitoring_strategy_manual">手动指定监听链路</string>
-    <string name="clipboard_monitoring_strategy_manual_desc">独立选择提权链路与捕获机制</string>
-    <string name="clipboard_monitoring_privilege_path_title">提权链路</string>
-    <string name="clipboard_monitoring_privilege_shizuku_hint">以 Shizuku 授权的 shell 身份运行监听后端。</string>
-    <string name="clipboard_monitoring_privilege_root_hint">以 su 提权的独立进程运行监听后端。</string>
-    <string name="clipboard_monitoring_principle_title">技术原理</string>
-    <string name="clipboard_monitoring_principle_shizuku_hidden_api">通过 Shizuku 绑定 UserService，以 shell 身份启动 app_process 加载监听器，反射注册 IClipboard.IOnPrimaryClipChangedListener 隐藏监听器。剪贴板变动时由系统直接回调，需前台服务保活宿主进程。</string>
-    <string name="clipboard_monitoring_principle_shizuku_logcat">通过 Shizuku 特权进程异步读取 logcat 管道（ClipboardService 标签），按日志行匹配剪贴板写入事件触发捕获，免反射、兼容性更好；部分机型可能仍需 READ_LOGS。</string>
-    <string name="clipboard_monitoring_principle_root_hidden_api">通过 su 启动 app_process 派生具有 Root 权限的独立守护进程，加载监听器反射绑定系统 ClipboardManager，经管道回传剪贴板事件，需前台服务。</string>
-    <string name="clipboard_monitoring_principle_root_logcat">通过 su 异步读取 logcat 管道并过滤 ClipboardService 剪贴板变动日志，作为免反射的通用备选链路。</string>
-    <string name="clipboard_monitoring_capture_title">捕获机制</string>
-    <string name="clipboard_monitoring_capture_hidden_api">系统隐藏 API</string>
-    <string name="clipboard_monitoring_capture_logcat">系统日志 (Logcat)</string>
-    <string name="clipboard_monitoring_status_section">当前工作状态</string>
-    <string name="clipboard_monitoring_status_running_headline">%1$s · %2$s · 监听正常</string>
-    <string name="clipboard_monitoring_status_stopped_headline">%1$s · %2$s · 未运行</string>
-    <string name="clipboard_monitoring_status_error_headline">%1$s · 不可用</string>
-    <string name="clipboard_monitoring_status_badge_running">前台服务运行中</string>
-    <string name="clipboard_monitoring_status_badge_no_root">无 Root 权限</string>
-    <string name="clipboard_monitoring_status_badge_no_shizuku">Shizuku 未授权</string>
-    <string name="clipboard_monitoring_status_badge_no_overlay">缺少悬浮窗权限</string>
-    <string name="clipboard_monitoring_status_badge_no_read_logs">缺少 READ_LOGS</string>
-    <string name="clipboard_monitoring_status_desc_no_root">无法执行 su 提权命令。请确认设备已 Root 且已授权给本应用。</string>
-    <string name="clipboard_monitoring_status_desc_no_shizuku">Shizuku 未运行或未授权。请启动 Shizuku 并完成授权。</string>
-    <string name="clipboard_monitoring_status_desc_no_overlay">后台读取剪贴板需要悬浮窗权限。请授予「显示在其他应用上层」。</string>
-    <string name="clipboard_monitoring_status_desc_no_read_logs">Shizuku 日志链路需要 READ_LOGS 权限。请通过 Shizuku 授予或切换为隐藏 API 链路。</string>
-    <string name="clipboard_monitoring_status_desc_stopped">监听服务未启动。请检查上方权限与环境后重试。</string>
     <string name="clipboard_monitoring_mode_follow_privilege">跟随特权模式（推荐）</string>
     <string name="clipboard_monitoring_mode_follow_privilege_desc">跟随「特权执行方式」，当前为 %1$s</string>
     <string name="clipboard_screenshot_monitoring_section">截图监听</string>
@@ -2900,7 +2716,6 @@
     <string name="clipboard_float_blacklist_remove">移除</string>
     <string name="clipboard_float_blacklist_section_add">添加应用</string>
     <string name="clipboard_float_opacity_title">悬浮窗透明度</string>
-    <string name="clipboard_float_opacity_desc">调节悬浮窗展示时的不透明度</string>
     <string name="clipboard_float_auto_dim_title">失焦自动半透明</string>
     <string name="clipboard_float_auto_dim_desc">钉住状态下点击屏幕外部自动变半透明，点击悬浮窗恢复</string>
     <string name="clipboard_float_auto_close_title">未钉住自动退出延时</string>
@@ -3303,8 +3118,4 @@ adb 模式应返回 uid=2000。
     <string name="task_switcher_quick_share">快速分享</string>
     <string name="toggle_gesture_enabled">手势已开启</string>
     <string name="toggle_gesture_disabled">手势已关闭</string>
-    <string name="settings_slider_milliseconds">%1$d 毫秒</string>
-    <string name="screenshot_keyword_screenshot_cn">截图</string>
-    <string name="screenshot_keyword_screencap_cn">截屏</string>
-    <string name="screenshot_keyword_screenshot_tw">截圖</string>
 </resources>

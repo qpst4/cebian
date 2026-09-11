@@ -59,6 +59,7 @@ class Ball3DView @JvmOverloads constructor(
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val shadowPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val hintPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val smallHintPaint = Paint(Paint.ANTI_ALIAS_FLAG)
 
     private var rotX = 0.3f
     private var rotY = 0f
@@ -102,6 +103,9 @@ class Ball3DView @JvmOverloads constructor(
         hintPaint.textSize = dm.density * 18f
         hintPaint.textAlign = Paint.Align.CENTER
         hintPaint.setShadowLayer(4f, 0f, 2f, Color.BLACK)
+        smallHintPaint.color = Color.WHITE
+        smallHintPaint.textAlign = Paint.Align.CENTER
+        smallHintPaint.setShadowLayer(4f, 0f, 2f, Color.BLACK)
     }
 
     fun setApps(apps: List<HolographicLauncherApp>) {
@@ -140,8 +144,8 @@ class Ball3DView @JvmOverloads constructor(
         val radius = minOf(cx, cy) * 0.98f
         if (nodes.isEmpty()) {
             canvas.drawText(context.getString(R.string.holographic_no_apps_loaded), cx, cy - 30f, hintPaint)
-            val smallHint = Paint(hintPaint).apply { textSize = resources.displayMetrics.density * 14f }
-            canvas.drawText(context.getString(R.string.holographic_check_settings_hint), cx, cy + 30f, smallHint)
+            smallHintPaint.textSize = resources.displayMetrics.density * 14f
+            canvas.drawText(context.getString(R.string.holographic_check_settings_hint), cx, cy + 30f, smallHintPaint)
             return
         }
         val drawableNodes = mutableListOf<AppNode>()

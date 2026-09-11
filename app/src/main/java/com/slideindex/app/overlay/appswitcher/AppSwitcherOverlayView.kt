@@ -9,7 +9,6 @@ import android.content.Intent
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
-import android.content.res.Configuration
 import android.view.MotionEvent
 import android.view.View
 import android.view.animation.DecelerateInterpolator
@@ -54,7 +53,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color as ComposeColor
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -763,9 +763,10 @@ private fun AppSwitcherAppearanceDialogContent(
         onSettingsChange(next)
     }
 
-    val configuration = LocalConfiguration.current
-    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-    val dialogMaxHeight = (configuration.screenHeightDp * 0.9f).dp
+    val windowSize = LocalWindowInfo.current.containerSize
+    val density = LocalDensity.current
+    val isLandscape = windowSize.width > windowSize.height
+    val dialogMaxHeight = with(density) { windowSize.height.toDp() * 0.9f }
     val surfaceVerticalPadding = if (isLandscape) 12.dp else 24.dp
 
     Box(

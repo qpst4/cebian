@@ -51,6 +51,15 @@ class BackTapDetector(
     private var wakeLock: PowerManager.WakeLock? = null
     private var isWakeLockHeld = false
 
+    private val wakeLockRenewRunnable = Runnable {
+        synchronized(this) {
+            if (!isWakeLockHeld || !isListening || isPaused || isScreenOn) return@Runnable
+            wakeLock?.release()
+            isWakeLockHeld = false
+            acquireWakeLock()
+        }
+    }
+
     // 信号处理
     private val hpX = HighPassFilter(CUTOFF_HP_HZ)
     private val hpY = HighPassFilter(CUTOFF_HP_HZ)
@@ -248,13 +257,16 @@ class BackTapDetector(
     private fun acquireWakeLock() {
         ensureWakeLock()
         if (!isWakeLockHeld) {
-            wakeLock?.acquire()
+            wakeLock?.acquire(WAKE_LOCK_TIMEOUT_MS)
             isWakeLockHeld = true
+            handler.removeCallbacks(wakeLockRenewRunnable)
+            handler.postDelayed(wakeLockRenewRunnable, WAKE_LOCK_RENEW_MS)
         }
     }
 
     private fun releaseWakeLock() {
         if (isWakeLockHeld) {
+            handler.removeCallbacks(wakeLockRenewRunnable)
             wakeLock?.release()
             isWakeLockHeld = false
         }
@@ -543,6 +555,9 @@ class BackTapDetector(
     }
 
     companion object {
+        private const val WAKE_LOCK_TIMEOUT_MS = 10 * 60 * 1000L
+        private const val WAKE_LOCK_RENEW_MS = WAKE_LOCK_TIMEOUT_MS - 60_000L
+
         // 滤波器截止频率
         private const val CUTOFF_HP_HZ = 5f
         private const val CUTOFF_LP_HZ = 80f

@@ -1104,9 +1104,9 @@ private suspend fun clearSearchSessionCookies() = kotlin.coroutines.suspendCorou
 
 private fun releaseSafeWebViewClient(
     onRenderProcessGone: (WebView) -> Unit = {},
-): WebViewClient = object : WebViewClient() {
-    override fun onRenderProcessGone(view: WebView?, detail: RenderProcessGoneDetail?): Boolean {
-        view?.let(onRenderProcessGone)
+): WebViewClient = object : RenderProcessSafeWebViewClient() {
+    override fun onRenderProcessGone(view: WebView, detail: RenderProcessGoneDetail): Boolean {
+        onRenderProcessGone(view)
         return true
     }
 }
@@ -1148,7 +1148,7 @@ private fun createSearchWebView(
         isVerticalScrollBarEnabled = false
         isHorizontalScrollBarEnabled = false
         CookieManager.getInstance().setAcceptThirdPartyCookies(this, true)
-        webViewClient = object : WebViewClient() {
+        webViewClient = object : RenderProcessSafeWebViewClient() {
             override fun doUpdateVisitedHistory(view: WebView?, url: String?, isReload: Boolean) {
                 super.doUpdateVisitedHistory(view, url, isReload)
                 view?.let { onCanGoBackChanged(it.canGoBack()) }
