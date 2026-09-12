@@ -1693,6 +1693,7 @@
     <string name="side_gestures_compound_slot_title">%1$s · %2$s</string>
     <string name="side_gestures_press_tap">Tap &amp; long-press</string>
     <string name="side_gestures_hover_duration">Hover duration after short swipe</string>
+    <string name="side_gestures_hover_duration_desc">Still time after a short swipe to count as hover</string>
     <string name="side_gestures_hover_duration_value">%1$d ms</string>
     <string name="gesture_swipe_in_left">Swipe right</string>
     <string name="gesture_swipe_in_right">Swipe left</string>

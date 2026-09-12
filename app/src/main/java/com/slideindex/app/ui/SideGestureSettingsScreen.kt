@@ -23,6 +23,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
@@ -44,6 +45,7 @@ import com.slideindex.app.settings.triggerHandle
 import com.slideindex.app.ui.miuix.CardItem
 import com.slideindex.app.ui.miuix.MiuixHintText
 import com.slideindex.app.ui.miuix.MiuixInsetCardComponentMargin
+import com.slideindex.app.ui.miuix.MiuixSliderRow
 import com.slideindex.app.ui.miuix.MiuixTabSettingsCard
 import top.yukonga.miuix.kmp.basic.BasicComponentDefaults
 import top.yukonga.miuix.kmp.basic.SmallTitle
@@ -52,7 +54,6 @@ import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.SettingSwitchRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffold
-import com.slideindex.app.ui.settings.components.SettingsSliderRow
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import kotlin.math.roundToInt
@@ -120,7 +121,9 @@ fun SideGestureSettingsScreen(
     val pressTapSectionTitle = stringResource(R.string.side_gestures_press_tap)
     val straightSectionTitle = stringResource(R.string.side_gestures_direction_straight_section)
     val hoverSectionTitle = stringResource(R.string.side_gestures_direction_pause_section)
+    val hoverDurationSummary = stringResource(R.string.side_gestures_hover_duration_desc)
     val compoundHint = stringResource(R.string.side_gestures_inward_branch_hint)
+    val resources = LocalContext.current.resources
 
     val pressTapItems = sideGestureSlotCardItems(
         settings = settings,
@@ -196,22 +199,6 @@ fun SideGestureSettingsScreen(
                         },
                     )
                 }
-                add(
-                    settingsCardScopeItem("swipe-hover-duration") {
-                        SettingsSliderRow(
-                            title = stringResource(R.string.side_gestures_hover_duration),
-                            value = settings.swipeHoverDurationMs.toFloat(),
-                            valueRange = SwipeHoverDurationLimits.MIN_MS.toFloat()..SwipeHoverDurationLimits.MAX_MS.toFloat(),
-                            steps = (SwipeHoverDurationLimits.MAX_MS - SwipeHoverDurationLimits.MIN_MS) / 10,
-                            enabled = serviceEnabled,
-                            label = stringResource(
-                                R.string.side_gestures_hover_duration_value,
-                                settings.swipeHoverDurationMs,
-                            ),
-                            onValueChange = { onSwipeHoverDurationChange(it.roundToInt()) },
-                        )
-                    },
-                )
             },
         )
 
@@ -256,6 +243,23 @@ fun SideGestureSettingsScreen(
                         SmallTitle(
                             text = hoverSectionTitle,
                             insideMargin = PaddingValues(top = 8.dp, bottom = 4.dp),
+                        )
+                        MiuixSliderRow(
+                            title = stringResource(R.string.side_gestures_hover_duration),
+                            summary = hoverDurationSummary,
+                            value = settings.swipeHoverDurationMs.toFloat(),
+                            valueRange = SwipeHoverDurationLimits.MIN_MS.toFloat()..SwipeHoverDurationLimits.MAX_MS.toFloat(),
+                            enabled = serviceEnabled,
+                            insideMargin = MiuixInsetCardComponentMargin,
+                            steps = (SwipeHoverDurationLimits.MAX_MS - SwipeHoverDurationLimits.MIN_MS) / 10,
+                            commitOnFinish = true,
+                            formatLabel = { ms ->
+                                resources.getString(
+                                    R.string.side_gestures_hover_duration_value,
+                                    ms.roundToInt(),
+                                )
+                            },
+                            onValueChange = { onSwipeHoverDurationChange(it.roundToInt()) },
                         )
                         RenderSideGestureSlotItems(
                             sideGestureSlotCardItems(

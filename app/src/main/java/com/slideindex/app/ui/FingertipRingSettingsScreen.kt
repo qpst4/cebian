@@ -1,8 +1,5 @@
 package com.slideindex.app.ui
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -11,28 +8,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.gesture.GestureAction
-import com.slideindex.app.launcher.isShellActivityShortcut
-import com.slideindex.app.launcher.showsShellActivityShortcutBadge
-import com.slideindex.app.launcher.showsShellCommandBadge
-import com.slideindex.app.overlay.ShellCommandBadgeOverlay
-import com.slideindex.app.overlay.ShortcutBadgeOverlay
-import com.slideindex.app.overlay.corner.CornerSlotIconBitmap
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.FingertipRingCodec
-import com.slideindex.app.ui.Md3PickerLaunchShortcutLeading
-import com.slideindex.app.ui.Md3PickerPackageLeading
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffold
 import com.slideindex.app.ui.settings.components.SettingsSliderRow
@@ -129,10 +111,10 @@ fun FingertipRingSettingsScreen(
                         settingsCardScopeItem("slot-$index") {
                             SettingNavigationRow(
                                 icon = { label ->
-                                    FingertipRingSlotActionIcon(
+                                    GestureSlotActionIcon(
                                         action = action,
                                         settings = settings,
-                                        contentDescription = label
+                                        contentDescription = label,
                                     )
                                 },
                                 title = stringResource(R.string.fingertip_ring_slot_title, index + 1),
@@ -169,82 +151,5 @@ fun FingertipRingSettingsScreen(
                 }
             }
         )
-    }
-}
-
-@Composable
-private fun FingertipRingSlotActionIcon(
-    action: GestureAction,
-    settings: AppSettings,
-    contentDescription: String?
-) {
-    when (action) {
-        is GestureAction.LaunchApp -> {
-            Md3PickerPackageLeading(
-                packageName = action.packageName,
-                contentDescription = contentDescription
-            )
-        }
-        is GestureAction.LaunchShortcut -> {
-            Md3PickerLaunchShortcutLeading(
-                action = action,
-                activityShortcuts = settings.activityShortcuts
-            )
-        }
-        is GestureAction.ExecuteShellCommand -> {
-            FingertipRingShellSlotIcon(
-                action = action,
-                settings = settings,
-                contentDescription = contentDescription
-            )
-        }
-        else -> {
-            Icon(
-                imageVector = gestureActionIcon(action),
-                contentDescription = contentDescription
-            )
-        }
-    }
-}
-
-@Composable
-private fun FingertipRingShellSlotIcon(
-    action: GestureAction.ExecuteShellCommand,
-    settings: AppSettings,
-    contentDescription: String?
-) {
-    val context = LocalContext.current
-    val density = LocalDensity.current
-    val iconSize = 28.dp
-    val iconPx = with(density) { iconSize.roundToPx() }.coerceAtLeast(12)
-    val bitmap by produceState<android.graphics.Bitmap?>(null, action, settings.shellCommands) {
-        value = CornerSlotIconBitmap.get(
-            context = context,
-            action = action,
-            sizePx = iconPx,
-            tintArgb = android.graphics.Color.WHITE,
-            activityShortcuts = settings.activityShortcuts,
-            shellCommands = settings.shellCommands
-        )
-    }
-    Box(
-        modifier = Modifier.size(40.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        if (bitmap != null) {
-            Image(
-                bitmap = bitmap!!.asImageBitmap(),
-                contentDescription = contentDescription,
-                modifier = Modifier.size(iconSize)
-            )
-        } else {
-            Icon(
-                imageVector = gestureActionIcon(action),
-                contentDescription = contentDescription
-            )
-        }
-        if (action.showsShellCommandBadge(settings.shellCommands)) {
-            ShellCommandBadgeOverlay(iconSize = iconSize)
-        }
     }
 }

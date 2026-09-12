@@ -69,7 +69,13 @@ fun CornerGestureSlotSettingsScreen(
                 add(
                     settingsCardScopeItem("main-action") {
                         SettingNavigationRow(
-                            icon = { label -> Icon(gestureActionIcon(currentAction), contentDescription = label) },
+                            icon = { label ->
+                                GestureSlotActionIcon(
+                                    action = currentAction,
+                                    settings = appSettings,
+                                    contentDescription = label,
+                                )
+                            },
                             title = mainActionTitle,
                             subtitle = mainActionLabel,
                             onClick = onPickMainAction

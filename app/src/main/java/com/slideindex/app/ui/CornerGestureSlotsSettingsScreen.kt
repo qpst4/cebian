@@ -3,7 +3,6 @@ package com.slideindex.app.ui
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.slideindex.app.R
@@ -13,6 +12,7 @@ import com.slideindex.app.settings.CornerRadialMenuCodec
 import com.slideindex.app.ui.miuix.CardItem
 import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
+import com.slideindex.app.ui.settings.components.SettingSwitchRow
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 import com.slideindex.app.ui.settings.components.settingsLazyTipCard
@@ -44,15 +44,15 @@ fun CornerGestureSlotsSettingsScreen(
         cornerLayerTitle(1),
         cornerLayerTitle(2)
     )
-    val unifiedLayer0 = cornerLayerCardItems(0, corner.leftSlots, slotsEnabled, onOpenLeftSlotActionPick)
-    val unifiedLayer1 = cornerLayerCardItems(1, corner.leftSlots, slotsEnabled, onOpenLeftSlotActionPick)
-    val unifiedLayer2 = cornerLayerCardItems(2, corner.leftSlots, slotsEnabled, onOpenLeftSlotActionPick)
-    val leftLayer0 = cornerLayerCardItems(0, corner.leftSlots, slotsEnabledLeft, onOpenLeftSlotActionPick)
-    val leftLayer1 = cornerLayerCardItems(1, corner.leftSlots, slotsEnabledLeft, onOpenLeftSlotActionPick)
-    val leftLayer2 = cornerLayerCardItems(2, corner.leftSlots, slotsEnabledLeft, onOpenLeftSlotActionPick)
-    val rightLayer0 = cornerLayerCardItems(0, corner.rightSlots, slotsEnabledRight, onOpenRightSlotActionPick)
-    val rightLayer1 = cornerLayerCardItems(1, corner.rightSlots, slotsEnabledRight, onOpenRightSlotActionPick)
-    val rightLayer2 = cornerLayerCardItems(2, corner.rightSlots, slotsEnabledRight, onOpenRightSlotActionPick)
+    val unifiedLayer0 = cornerLayerCardItems(0, corner.leftSlots, settings, slotsEnabled, onOpenLeftSlotActionPick)
+    val unifiedLayer1 = cornerLayerCardItems(1, corner.leftSlots, settings, slotsEnabled, onOpenLeftSlotActionPick)
+    val unifiedLayer2 = cornerLayerCardItems(2, corner.leftSlots, settings, slotsEnabled, onOpenLeftSlotActionPick)
+    val leftLayer0 = cornerLayerCardItems(0, corner.leftSlots, settings, slotsEnabledLeft, onOpenLeftSlotActionPick)
+    val leftLayer1 = cornerLayerCardItems(1, corner.leftSlots, settings, slotsEnabledLeft, onOpenLeftSlotActionPick)
+    val leftLayer2 = cornerLayerCardItems(2, corner.leftSlots, settings, slotsEnabledLeft, onOpenLeftSlotActionPick)
+    val rightLayer0 = cornerLayerCardItems(0, corner.rightSlots, settings, slotsEnabledRight, onOpenRightSlotActionPick)
+    val rightLayer1 = cornerLayerCardItems(1, corner.rightSlots, settings, slotsEnabledRight, onOpenRightSlotActionPick)
+    val rightLayer2 = cornerLayerCardItems(2, corner.rightSlots, settings, slotsEnabledRight, onOpenRightSlotActionPick)
 
     SettingsScreenScaffold(
         title = stringResource(R.string.corner_gesture_slots_section),
@@ -115,9 +115,10 @@ fun CornerGestureSlotsSettingsScreen(
                     settingsCardScopeItem("inner-zone-action") {
                         SettingNavigationRow(
                             icon = { label ->
-                                Icon(
-                                    imageVector = gestureActionIcon(corner.innerZoneAction, outlined = true),
-                                    contentDescription = label
+                                GestureSlotActionIcon(
+                                    action = corner.innerZoneAction,
+                                    settings = settings,
+                                    contentDescription = label,
                                 )
                             },
                             title = stringResource(R.string.corner_gesture_inner_zone_action),
@@ -143,8 +144,9 @@ private fun cornerLayerTitle(layer: Int): String = when (layer) {
 private fun cornerLayerCardItems(
     layer: Int,
     slots: List<GestureAction>,
+    settings: AppSettings,
     enabled: Boolean,
-    onOpenSlotActionPick: (Int) -> Unit
+    onOpenSlotActionPick: (Int) -> Unit,
 ): List<CardItem> {
     val start = CornerRadialMenuCodec.layerStartIndex(layer)
     val count = CornerRadialMenuCodec.slotCountInLayer(layer)
@@ -156,9 +158,10 @@ private fun cornerLayerCardItems(
                 settingsCardScopeItem("corner-slot-$index") {
                     SettingNavigationRow(
                         icon = { label ->
-                            Icon(
-                                imageVector = gestureActionIcon(action, outlined = true),
-                                contentDescription = label
+                            GestureSlotActionIcon(
+                                action = action,
+                                settings = settings,
+                                contentDescription = label,
                             )
                         },
                         title = stringResource(R.string.corner_gesture_slot_title, index + 1),

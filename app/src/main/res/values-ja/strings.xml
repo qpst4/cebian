@@ -685,6 +685,7 @@
     <string name="side_gestures_compound_slot_title">%1$s · %2$s</string>
     <string name="side_gestures_press_tap">タップと長押し</string>
     <string name="side_gestures_hover_duration">短スワイプ後のホバー時間</string>
+    <string name="side_gestures_hover_duration_desc">短スワイプ後の静止時間</string>
     <string name="side_gestures_hover_duration_value">%1$d ミリ秒</string>
     <string name="gesture_swipe_in_left">右にスワイプ</string>
     <string name="gesture_swipe_in_right">左にスワイプ</string>
