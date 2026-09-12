@@ -503,6 +503,12 @@
     <string name="settings_app_language_system">システムに従う</string>
     <string name="settings_section_interaction_feedback">操作フィードバック</string>
     <string name="haptic_strength">振動の強さ</string>
+    <string name="haptic_gesture_trigger_title">ジェスチャー認識触覚</string>
+    <string name="haptic_gesture_trigger_desc">トリガー距離に達した時やジェスチャーパネルを呼び出した時の触覚フィードバック</string>
+    <string name="haptic_slot_selection_title">項目選択触覚</string>
+    <string name="haptic_slot_selection_desc">ホイール、リング、アプリ切り替えなどでアイコンや項目を連続スライドした時の微小振動</string>
+    <string name="haptic_confirm_launch_title">離して実行触覚</string>
+    <string name="haptic_confirm_launch_desc">指を離してアクションの実行やアプリ起動を確定した時の触覚フィードバック</string>
     <string name="selected_hint_icon_size_value">%1$d dp</string>
     <string name="corner_gesture_selected_hint_icon_size">ヒットヒントアイコンサイズ</string>
     <string name="honeycomb_selected_hint_icon_size">ヒットヒントアイコンサイズ</string>

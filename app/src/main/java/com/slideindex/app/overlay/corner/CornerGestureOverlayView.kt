@@ -589,7 +589,7 @@ internal class CornerGestureOverlayView(
         if (isMenuRevealing()) return
         if (slot == lastHapticHighlightedSlot) return
         lastHapticHighlightedSlot = slot
-        if (slot < 0 || !cornerSettings.slotHapticEnabled) return
+        if (slot < 0) return
         HapticHelper.appTick(this, settings)
     }
 
@@ -597,7 +597,7 @@ internal class CornerGestureOverlayView(
         if (isMenuRevealing()) return
         if (index == lastHapticHighlightedShortcutIndex) return
         lastHapticHighlightedShortcutIndex = index
-        if (index < 0 || !cornerSettings.slotHapticEnabled) return
+        if (index < 0) return
         HapticHelper.appTick(this, settings)
     }
 

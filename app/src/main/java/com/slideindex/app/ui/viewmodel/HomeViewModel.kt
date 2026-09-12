@@ -59,6 +59,18 @@ class HomeViewModel @AssistedInject constructor(
         }
     }
 
+    fun setHapticGestureTriggerEnabled(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setHapticGestureTriggerEnabled(enabled)
+    }
+
+    fun setHapticSlotSelectionEnabled(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setHapticSlotSelectionEnabled(enabled)
+    }
+
+    fun setHapticConfirmLaunchEnabled(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setHapticConfirmLaunchEnabled(enabled)
+    }
+
     fun setGestureHintEnabled(enabled: Boolean) = launchSettingsWrite {
         settingsRepository.setGestureHintEnabled(enabled)
     }

@@ -14,22 +14,27 @@ object HapticHelper {
     private const val FLAGS = HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING
 
     fun gestureStart(view: View, settings: AppSettings) {
+        if (!settings.hapticGestureTriggerEnabled) return
         pulse(view, settings, PulseKind.GESTURE)
     }
 
     fun longThreshold(view: View, settings: AppSettings) {
+        if (!settings.hapticGestureTriggerEnabled) return
         pulse(view, settings, PulseKind.LONG_THRESHOLD)
     }
 
     fun letterTick(view: View, settings: AppSettings) {
+        if (!settings.hapticSlotSelectionEnabled) return
         pulse(view, settings, PulseKind.LETTER)
     }
 
     fun appTick(view: View, settings: AppSettings) {
+        if (!settings.hapticSlotSelectionEnabled) return
         pulse(view, settings, PulseKind.APP)
     }
 
     fun confirmLaunch(view: View, settings: AppSettings) {
+        if (!settings.hapticConfirmLaunchEnabled) return
         pulse(view, settings, PulseKind.CONFIRM)
     }
 

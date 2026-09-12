@@ -50,7 +50,7 @@ fun CornerGestureInteractionScreen(
     onBubbleSizeChange: (Float) -> Unit,
     onCancelOutsideWheelChange: (Boolean) -> Unit,
     onProgressiveLayersChange: (Boolean) -> Unit,
-    onSlotHapticChange: (Boolean) -> Unit,
+    onSlotHapticChange: (Boolean) -> Unit = {},
     onShowSelectedNameChange: (Boolean) -> Unit,
     onSelectedHintIconSizeChange: (Int) -> Unit,
     onBackgroundStyleChange: (Int) -> Unit,
@@ -326,17 +326,6 @@ fun CornerGestureInteractionScreen(
                             checked = corner.progressiveLayers,
                             enabled = serviceEnabled && corner.enabled,
                             onCheckedChange = onProgressiveLayersChange
-                        )
-                    }
-                )
-                add(
-                    settingsCardScopeItem("slot-haptic") {
-                        SettingSwitchRow(
-                            title = stringResource(R.string.corner_gesture_slot_haptic),
-                            subtitle = stringResource(R.string.corner_gesture_slot_haptic_desc),
-                            checked = corner.slotHapticEnabled,
-                            enabled = serviceEnabled && corner.enabled,
-                            onCheckedChange = onSlotHapticChange
                         )
                     }
                 )

@@ -504,6 +504,12 @@
     <string name="settings_app_language_label_ja" translatable="false">日本語</string>
     <string name="settings_section_interaction_feedback">交互反馈</string>
     <string name="haptic_strength">震动强度</string>
+    <string name="haptic_gesture_trigger_title">手势唤起振动</string>
+    <string name="haptic_gesture_trigger_desc">达到短滑/长滑距离、或唤出手势面板时的振动提示</string>
+    <string name="haptic_slot_selection_title">滑动选项目振动</string>
+    <string name="haptic_slot_selection_desc">轮盘、圆环、应用切换等连续滑动划过图标或动作项时的刻度微振</string>
+    <string name="haptic_confirm_launch_title">松手执行振动</string>
+    <string name="haptic_confirm_launch_desc">松手确认执行动作或启动选中应用时的确认振动</string>
     <string name="selected_hint_icon_size_value">%1$d dp</string>
     <string name="corner_gesture_selected_hint_icon_size">命中提示图标大小</string>
     <string name="honeycomb_selected_hint_icon_size">命中提示图标大小</string>

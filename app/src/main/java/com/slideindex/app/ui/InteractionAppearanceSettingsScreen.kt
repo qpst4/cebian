@@ -16,6 +16,7 @@ import com.slideindex.app.ui.miuix.MiuixBackNavigationIcon
 import com.slideindex.app.ui.miuix.MiuixListScaffold
 import com.slideindex.app.ui.miuix.MiuixListSettingsCard
 import top.yukonga.miuix.kmp.basic.SmallTitle
+import top.yukonga.miuix.kmp.preference.SwitchPreference
 import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.miuix.appLanguageSettingsCardItems
 import com.slideindex.app.ui.miuix.themeAppearanceSettingsCardItems
@@ -34,6 +35,9 @@ fun InteractionAppearanceSettingsScreen(
     onBack: () -> Unit,
     onHapticEnabledChange: (Boolean) -> Unit,
     onHapticStrengthChange: (Int) -> Unit,
+    onHapticGestureTriggerEnabledChange: (Boolean) -> Unit,
+    onHapticSlotSelectionEnabledChange: (Boolean) -> Unit,
+    onHapticConfirmLaunchEnabledChange: (Boolean) -> Unit,
     onSwipeDismissEnabledChange: (Boolean) -> Unit,
     onPredictiveBackEnabledChange: (Boolean) -> Unit,
     onDynamicColorChange: (Boolean) -> Unit,
@@ -173,6 +177,27 @@ fun InteractionAppearanceSettingsScreen(
                                 )
                             },
                             onValueChange = { onHapticStrengthChange(it.roundToInt()) },
+                        )
+                        SwitchPreference(
+                            title = stringResource(R.string.haptic_gesture_trigger_title),
+                            summary = stringResource(R.string.haptic_gesture_trigger_desc),
+                            checked = settings.hapticGestureTriggerEnabled,
+                            enabled = true,
+                            onCheckedChange = onHapticGestureTriggerEnabledChange,
+                        )
+                        SwitchPreference(
+                            title = stringResource(R.string.haptic_slot_selection_title),
+                            summary = stringResource(R.string.haptic_slot_selection_desc),
+                            checked = settings.hapticSlotSelectionEnabled,
+                            enabled = true,
+                            onCheckedChange = onHapticSlotSelectionEnabledChange,
+                        )
+                        SwitchPreference(
+                            title = stringResource(R.string.haptic_confirm_launch_title),
+                            summary = stringResource(R.string.haptic_confirm_launch_desc),
+                            checked = settings.hapticConfirmLaunchEnabled,
+                            enabled = true,
+                            onCheckedChange = onHapticConfirmLaunchEnabledChange,
                         )
                     }
                 },

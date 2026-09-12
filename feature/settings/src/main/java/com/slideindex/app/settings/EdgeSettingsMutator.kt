@@ -437,6 +437,18 @@ class EdgeSettingsMutator @Inject constructor(
         )
     }
 
+    suspend fun setHapticGestureTriggerEnabled(enabled: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.HAPTIC_GESTURE_TRIGGER_ENABLED] = enabled
+    }
+
+    suspend fun setHapticSlotSelectionEnabled(enabled: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.HAPTIC_SLOT_SELECTION_ENABLED] = enabled
+    }
+
+    suspend fun setHapticConfirmLaunchEnabled(enabled: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.HAPTIC_CONFIRM_LAUNCH_ENABLED] = enabled
+    }
+
     suspend fun addHiddenApp(packageName: String) = editor.edit {
         val current = it[SettingsPreferenceKeys.HIDDEN_APP_PACKAGES]?.toMutableSet() ?: mutableSetOf()
         current.add(packageName)

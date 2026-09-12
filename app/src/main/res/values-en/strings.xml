@@ -1572,6 +1572,12 @@
     <string name="settings_app_language_system">Follow system</string>
     <string name="settings_section_interaction_feedback">Interaction feedback</string>
     <string name="haptic_strength">Vibration strength</string>
+    <string name="haptic_gesture_trigger_title">Gesture trigger haptic</string>
+    <string name="haptic_gesture_trigger_desc">Haptic feedback when reaching trigger distance or invoking gesture panels</string>
+    <string name="haptic_slot_selection_title">Item selection haptic</string>
+    <string name="haptic_slot_selection_desc">Subtle tick feedback when sliding across icons or actions in wheel, ring, app switcher, etc.</string>
+    <string name="haptic_confirm_launch_title">Release confirm haptic</string>
+    <string name="haptic_confirm_launch_desc">Haptic feedback when releasing finger to confirm action execution or app launch</string>
     <string name="selected_hint_icon_size_value">%1$d dp</string>
     <string name="corner_gesture_selected_hint_icon_size">Hit hint icon size</string>
     <string name="honeycomb_selected_hint_icon_size">Hit hint icon size</string>

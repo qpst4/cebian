@@ -168,6 +168,9 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
             onBack = { ctx.navigateBackTo(AppNavKey.HomeMain) },
             onHapticEnabledChange = viewModel::setHapticEnabled,
             onHapticStrengthChange = viewModel::setHapticStrength,
+            onHapticGestureTriggerEnabledChange = viewModel::setHapticGestureTriggerEnabled,
+            onHapticSlotSelectionEnabledChange = viewModel::setHapticSlotSelectionEnabled,
+            onHapticConfirmLaunchEnabledChange = viewModel::setHapticConfirmLaunchEnabled,
             onSwipeDismissEnabledChange = viewModel::setSwipeDismissEnabled,
             onPredictiveBackEnabledChange = { enabled ->
                 viewModel.setPredictiveBackEnabled(enabled)

@@ -29,6 +29,9 @@ data class AppSettings(
     val panelOpacity: Float = 0.95f,
     val hapticEnabled: Boolean = true,
     val hapticStrengthLevel: Int = HapticStrength.MEDIUM.level,
+    val hapticGestureTriggerEnabled: Boolean = true,
+    val hapticSlotSelectionEnabled: Boolean = true,
+    val hapticConfirmLaunchEnabled: Boolean = true,
     val hideFromRecents: Boolean = false,
     val privilegeMode: PrivilegeMode = PrivilegeMode.SHIZUKU,
     /** Android 14+ 侧滑返回跟手动画（需系统预测性返回可用）。 */
