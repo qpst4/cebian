@@ -149,7 +149,7 @@ object TriggerHandleRenderer {
     /**
      * Quick Cursor draws glow with a radial gradient stretched along the edge strip,
      * extending [haloSize] * 2 from the screen edge. [widthPx] must be at least that wide
-     * (see [GestureZoneLayout.glowAwareEdgeWidthPx] / capture window sizing).
+     * Touch capture windows use trigger width only; glow may clip when the strip is narrower.
      */
     private fun drawGlow(
         canvas: Canvas,

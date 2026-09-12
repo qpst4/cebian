@@ -310,9 +310,15 @@ internal class SideOverlayWindowManager(
     fun attachCaptureWindows(presentation: EdgeGestureOverlayView) {
         if (overlayLayoutSuspended()) return
         val handles = ctrl.settings.triggerHandles(side)
+        val passthrough = shouldPassthroughCaptureTouches()
         computeCaptureWindowBounds().forEachIndexed { index, bounds ->
             val params = createCaptureLayoutParams()
             applyCaptureLayout(params, bounds)
+            if (passthrough || bounds.isZeroTouchStrip(side)) {
+                applyPresentationPassthroughFlags(params)
+            } else {
+                applyCaptureTouchFlags(params)
+            }
             val touchHandler = captureTouchHandler(presentation, index)
             val capture = EdgeTouchCaptureView(overlayContext, side, index, touchHandler)
             applyCaptureChrome(capture, handles.getOrNull(index)?.design)
@@ -380,11 +386,12 @@ internal class SideOverlayWindowManager(
         }
         bounds.forEachIndexed { index, bound ->
             val touchHandler = captureTouchHandler(presentation, index)
+            val stripPassthrough = passthrough || bound.isZeroTouchStrip(side)
             if (index >= touchCaptureWindows.size) {
                 if (!applyToWindowManager) return@forEachIndexed
                 val params = createCaptureLayoutParams()
                 applyCaptureLayout(params, bound)
-                if (passthrough) {
+                if (stripPassthrough) {
                     applyPresentationPassthroughFlags(params)
                 } else {
                     applyCaptureTouchFlags(params)
@@ -397,7 +404,7 @@ internal class SideOverlayWindowManager(
             } else {
                 val slot = touchCaptureWindows[index]
                 applyCaptureLayout(slot.params, bound)
-                if (passthrough) {
+                if (stripPassthrough) {
                     applyPresentationPassthroughFlags(slot.params)
                 } else {
                     applyCaptureTouchFlags(slot.params)
@@ -436,8 +443,8 @@ internal class SideOverlayWindowManager(
     }
 
     private fun computeCaptureWindowBounds(): List<CollapsedWindowBounds> =
-        // One window per handle for touch + chrome (SideGesture-style).
-        GestureZoneLayout.computeTriggerVisualWindowBounds(
+        // One window per handle: touch strip matches trigger width; halo may clip in chrome.
+        GestureZoneLayout.computeTouchCaptureWindowBounds(
             settings = ctrl.settings,
             side = side,
             screenWidthPx = ctrl.screenWidthPx,
@@ -585,3 +592,6 @@ internal class SideOverlayWindowManager(
         private const val TAG = "SideOverlayController"
     }
 }
+
+private fun CollapsedWindowBounds.isZeroTouchStrip(side: PanelSide): Boolean =
+    if (side.isVerticalEdge) heightPx <= 0 else widthPx <= 0

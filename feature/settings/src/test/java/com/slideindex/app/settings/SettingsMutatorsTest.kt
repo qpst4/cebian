@@ -71,12 +71,12 @@ class SettingsMutatorsTest {
     }
 
     @Test
-    fun triggerEdgeWidthDp_clampsToTwelveToThirtySix() = runBlocking {
-        repository.setTriggerEdgeWidthDp(PanelSide.LEFT, TriggerHandle.DEFAULT_ID, 5f)
+    fun triggerEdgeWidthDp_clampsToZeroToThirtySix() = runBlocking {
+        repository.setTriggerEdgeWidthDp(PanelSide.LEFT, TriggerHandle.DEFAULT_ID, -2f)
         val left = awaitSettings {
-            it.leftTriggerHandles.firstOrNull { handle -> handle.id == TriggerHandle.DEFAULT_ID }?.edgeWidthDp == 12f
+            it.leftTriggerHandles.firstOrNull { handle -> handle.id == TriggerHandle.DEFAULT_ID }?.edgeWidthDp == 0f
         }.leftTriggerHandles.first { it.id == TriggerHandle.DEFAULT_ID }
-        assertEquals(12f, left.edgeWidthDp)
+        assertEquals(0f, left.edgeWidthDp)
 
         repository.setTriggerEdgeWidthDp(PanelSide.RIGHT, TriggerHandle.DEFAULT_ID, 99f)
         val right = awaitSettings {

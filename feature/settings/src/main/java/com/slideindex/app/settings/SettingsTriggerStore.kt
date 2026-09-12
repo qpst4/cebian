@@ -17,38 +17,59 @@ internal object SettingsTriggerStore {
         val legacyLongSwipe = prefs[SettingsPreferenceKeys.LONG_SWIPE_DISTANCE_DP] ?: TriggerHandle.DEFAULT_LONG_SWIPE_DISTANCE_DP
         val leftWidth = prefs[SettingsPreferenceKeys.LEFT_EDGE_TRIGGER_WIDTH] ?: legacyWidth
         val rightWidth = prefs[SettingsPreferenceKeys.RIGHT_EDGE_TRIGGER_WIDTH] ?: legacyWidth
+        val legacyEdgeWidthInherit = prefs.legacyTriggerEdgeWidthInherits()
         return AppSettings(
             edgeTrigger = EdgeTriggerSettings(
                 leftEdgeTriggerWidthDp = leftWidth,
                 rightEdgeTriggerWidthDp = rightWidth,
                 leftTriggerHandles = prefs[SettingsPreferenceKeys.LEFT_TRIGGER_HANDLES]?.let {
-                    TriggerHandleCodec.decodeAll(it, legacyShortSwipe, legacyLongSwipe)
+                    TriggerHandleCodec.decodeAll(
+                        it,
+                        legacyShortSwipe,
+                        legacyLongSwipe,
+                        legacyEdgeWidthInherit,
+                    )
                 } ?: listOf(
                     TriggerHandle.default(
                         prefs[SettingsPreferenceKeys.LEFT_TRIGGER_TOP] ?: legacyTop,
                         prefs[SettingsPreferenceKeys.LEFT_TRIGGER_HEIGHT] ?: legacyHeight,
-                    ).copy(edgeWidthDp = leftWidth),
+                    ),
                 ),
                 rightTriggerHandles = prefs[SettingsPreferenceKeys.RIGHT_TRIGGER_HANDLES]?.let {
-                    TriggerHandleCodec.decodeAll(it, legacyShortSwipe, legacyLongSwipe)
+                    TriggerHandleCodec.decodeAll(
+                        it,
+                        legacyShortSwipe,
+                        legacyLongSwipe,
+                        legacyEdgeWidthInherit,
+                    )
                 } ?: listOf(
                     TriggerHandle.default(
                         prefs[SettingsPreferenceKeys.RIGHT_TRIGGER_TOP] ?: legacyTop,
                         prefs[SettingsPreferenceKeys.RIGHT_TRIGGER_HEIGHT] ?: legacyHeight,
-                    ).copy(edgeWidthDp = rightWidth),
+                    ),
                 ),
                 bottomTriggerHandles = prefs[SettingsPreferenceKeys.BOTTOM_TRIGGER_HANDLES]?.let { raw ->
                     if (raw.isEmpty()) {
                         emptyList()
                     } else {
-                        TriggerHandleCodec.decodeAll(raw, legacyShortSwipe, legacyLongSwipe)
+                        TriggerHandleCodec.decodeAll(
+                            raw,
+                            legacyShortSwipe,
+                            legacyLongSwipe,
+                            legacyEdgeWidthInherit,
+                        )
                     }
                 } ?: listOf(TriggerHandle.bottomDefault()),
                 topTriggerHandles = prefs[SettingsPreferenceKeys.TOP_TRIGGER_HANDLES]?.let { raw ->
                     if (raw.isEmpty()) {
                         emptyList()
                     } else {
-                        TriggerHandleCodec.decodeAll(raw, legacyShortSwipe, legacyLongSwipe)
+                        TriggerHandleCodec.decodeAll(
+                            raw,
+                            legacyShortSwipe,
+                            legacyLongSwipe,
+                            legacyEdgeWidthInherit,
+                        )
                     }
                 } ?: listOf(TriggerHandle.topDefault()),
             ),
@@ -65,6 +86,7 @@ internal object SettingsTriggerStore {
         prefs[SettingsPreferenceKeys.RIGHT_TRIGGER_HANDLES] = TriggerHandleCodec.encodeAll(settings.rightTriggerHandles)
         prefs[SettingsPreferenceKeys.BOTTOM_TRIGGER_HANDLES] = TriggerHandleCodec.encodeAll(settings.bottomTriggerHandles)
         prefs[SettingsPreferenceKeys.TOP_TRIGGER_HANDLES] = TriggerHandleCodec.encodeAll(settings.topTriggerHandles)
+        markTriggerEdgeWidthMigrated(prefs)
     }
 
     fun writeLandscapeTriggerHandles(prefs: MutablePreferences, settings: AppSettings) {
@@ -76,6 +98,11 @@ internal object SettingsTriggerStore {
             TriggerHandleCodec.encodeAll(settings.bottomTriggerHandlesLandscape)
         prefs[SettingsPreferenceKeys.TOP_TRIGGER_HANDLES_LANDSCAPE] =
             TriggerHandleCodec.encodeAll(settings.topTriggerHandlesLandscape)
+        markTriggerEdgeWidthMigrated(prefs)
+    }
+
+    private fun markTriggerEdgeWidthMigrated(prefs: MutablePreferences) {
+        prefs[SettingsPreferenceKeys.TRIGGER_EDGE_WIDTH_NULLABLE_MIGRATED] = true
     }
 
     fun writeLandscapeGestureSettings(prefs: MutablePreferences, settings: AppSettings) {

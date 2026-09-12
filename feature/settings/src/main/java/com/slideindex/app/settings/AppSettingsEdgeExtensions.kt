@@ -1,5 +1,6 @@
 package com.slideindex.app.settings
 
+import androidx.datastore.preferences.core.Preferences
 import com.slideindex.app.gesture.TriggerHandle
 import com.slideindex.app.overlay.PanelSide
 
@@ -20,9 +21,8 @@ fun AppSettings.edgeTriggerWidthDp(side: PanelSide): Float = when (side) {
 }
 
 fun AppSettings.maxEdgeTriggerWidthDp(side: PanelSide): Float {
-    val maxWidth = side.maxTriggerEdgeWidthDp()
     val fromHandles = triggerHandles(side).maxOfOrNull { handle ->
-        handle.edgeWidthDp.coerceIn(TriggerHandle.MIN_EDGE_WIDTH_DP, maxWidth)
+        triggerHandleEdgeWidthDp(side, handle.id)
     }
     return fromHandles ?: edgeTriggerWidthDp(side)
 }
@@ -30,41 +30,37 @@ fun AppSettings.maxEdgeTriggerWidthDp(side: PanelSide): Float {
 fun AppSettings.triggerHandleEdgeWidthDp(side: PanelSide, handleId: String): Float {
     val handle = triggerHandle(side, handleId) ?: primaryTriggerHandle(side)
     val maxWidth = side.maxTriggerEdgeWidthDp()
-    val width = handle.edgeWidthDp
-    return if (width > 0f) {
-        width.coerceIn(TriggerHandle.MIN_EDGE_WIDTH_DP, maxWidth)
-    } else {
-        edgeTriggerWidthDp(side)
-    }
+    return handle.edgeWidthDp?.coerceIn(TriggerHandle.MIN_EDGE_WIDTH_DP, maxWidth)
+        ?: edgeTriggerWidthDp(side)
 }
 
 fun AppSettings.withResolvedHandleEdgeWidths(): AppSettings {
-    fun resolve(handles: List<TriggerHandle>, side: PanelSide, sideWidth: Float): List<TriggerHandle> {
+    fun resolve(handles: List<TriggerHandle>, side: PanelSide): List<TriggerHandle> {
         val maxWidth = side.maxTriggerEdgeWidthDp()
         return handles.map { handle ->
-            if (handle.edgeWidthDp > 0f) {
+            val width = handle.edgeWidthDp
+            if (width != null) {
                 handle.copy(
-                    edgeWidthDp = handle.edgeWidthDp.coerceIn(
+                    edgeWidthDp = width.coerceIn(
                         TriggerHandle.MIN_EDGE_WIDTH_DP,
                         maxWidth,
                     ),
                 )
             } else {
-                handle.copy(
-                    edgeWidthDp = sideWidth.coerceIn(
-                        TriggerHandle.MIN_EDGE_WIDTH_DP,
-                        maxWidth,
-                    ),
-                )
+                handle
             }
         }
     }
     return copy(
         edgeTrigger = edgeTrigger.copy(
-            leftTriggerHandles = resolve(leftTriggerHandles, PanelSide.LEFT, leftEdgeTriggerWidthDp),
-            rightTriggerHandles = resolve(rightTriggerHandles, PanelSide.RIGHT, rightEdgeTriggerWidthDp),
-            bottomTriggerHandles = resolve(bottomTriggerHandles, PanelSide.BOTTOM, bottomEdgeTriggerWidthDp),
-            topTriggerHandles = resolve(topTriggerHandles, PanelSide.TOP, topEdgeTriggerWidthDp),
+            leftTriggerHandles = resolve(leftTriggerHandles, PanelSide.LEFT),
+            rightTriggerHandles = resolve(rightTriggerHandles, PanelSide.RIGHT),
+            bottomTriggerHandles = resolve(bottomTriggerHandles, PanelSide.BOTTOM),
+            topTriggerHandles = resolve(topTriggerHandles, PanelSide.TOP),
+            leftTriggerHandlesLandscape = resolve(leftTriggerHandlesLandscape, PanelSide.LEFT),
+            rightTriggerHandlesLandscape = resolve(rightTriggerHandlesLandscape, PanelSide.RIGHT),
+            bottomTriggerHandlesLandscape = resolve(bottomTriggerHandlesLandscape, PanelSide.BOTTOM),
+            topTriggerHandlesLandscape = resolve(topTriggerHandlesLandscape, PanelSide.TOP),
         ),
     )
 }
@@ -84,3 +80,6 @@ fun AppSettings.interceptWindowWidthDp(side: PanelSide): Float {
     val interceptWidth = if (limitMaxInterceptLength) 200f else 320f
     return maxOf(triggerWidth, interceptWidth)
 }
+
+internal fun Preferences.legacyTriggerEdgeWidthInherits(): Boolean =
+    this[SettingsPreferenceKeys.TRIGGER_EDGE_WIDTH_NULLABLE_MIGRATED] != true

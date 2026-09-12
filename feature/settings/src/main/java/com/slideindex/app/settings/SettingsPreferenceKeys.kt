@@ -19,6 +19,7 @@ internal object SettingsPreferenceKeys {
     val RIGHT_TRIGGER_TOP = floatPreferencesKey("right_trigger_top_fraction")
     val LEFT_TRIGGER_HEIGHT = floatPreferencesKey("left_trigger_height_fraction")
     val RIGHT_TRIGGER_HEIGHT = floatPreferencesKey("right_trigger_height_fraction")
+    val TRIGGER_EDGE_WIDTH_NULLABLE_MIGRATED = booleanPreferencesKey("trigger_edge_width_nullable_migrated")
     val LEFT_TRIGGER_HANDLES = stringSetPreferencesKey("left_trigger_handles")
     val RIGHT_TRIGGER_HANDLES = stringSetPreferencesKey("right_trigger_handles")
     val BOTTOM_TRIGGER_HANDLES = stringSetPreferencesKey("bottom_trigger_handles")

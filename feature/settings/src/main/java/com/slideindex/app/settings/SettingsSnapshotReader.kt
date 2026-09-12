@@ -54,45 +54,50 @@ internal object SettingsSnapshotReader {
         val rightHeight = prefs[SettingsPreferenceKeys.RIGHT_TRIGGER_HEIGHT] ?: legacyHeight
         val legacyShortSwipe = prefs[SettingsPreferenceKeys.SHORT_SWIPE_DISTANCE_DP] ?: TriggerHandle.DEFAULT_SHORT_SWIPE_DISTANCE_DP
         val legacyLongSwipe = prefs[SettingsPreferenceKeys.LONG_SWIPE_DISTANCE_DP] ?: TriggerHandle.DEFAULT_LONG_SWIPE_DISTANCE_DP
+        val legacyEdgeWidthInherit = prefs.legacyTriggerEdgeWidthInherits()
         val leftHandles = prefs[SettingsPreferenceKeys.LEFT_TRIGGER_HANDLES]?.let {
-            TriggerHandleCodec.decodeAll(it, legacyShortSwipe, legacyLongSwipe)
+            TriggerHandleCodec.decodeAll(it, legacyShortSwipe, legacyLongSwipe, legacyEdgeWidthInherit)
         } ?: listOf(TriggerHandle.default(leftTop, leftHeight))
         val rightHandles = prefs[SettingsPreferenceKeys.RIGHT_TRIGGER_HANDLES]?.let {
-            TriggerHandleCodec.decodeAll(it, legacyShortSwipe, legacyLongSwipe)
+            TriggerHandleCodec.decodeAll(it, legacyShortSwipe, legacyLongSwipe, legacyEdgeWidthInherit)
         } ?: listOf(TriggerHandle.default(rightTop, rightHeight))
         val bottomHandles = prefs[SettingsPreferenceKeys.BOTTOM_TRIGGER_HANDLES]?.let { raw ->
             if (raw.isEmpty()) {
                 emptyList()
             } else {
-                TriggerHandleCodec.decodeAll(raw, legacyShortSwipe, legacyLongSwipe)
+                TriggerHandleCodec.decodeAll(raw, legacyShortSwipe, legacyLongSwipe, legacyEdgeWidthInherit)
             }
         } ?: listOf(TriggerHandle.bottomDefault())
         val topHandles = prefs[SettingsPreferenceKeys.TOP_TRIGGER_HANDLES]?.let { raw ->
             if (raw.isEmpty()) {
                 emptyList()
             } else {
-                TriggerHandleCodec.decodeAll(raw, legacyShortSwipe, legacyLongSwipe)
+                TriggerHandleCodec.decodeAll(raw, legacyShortSwipe, legacyLongSwipe, legacyEdgeWidthInherit)
             }
         } ?: listOf(TriggerHandle.topDefault())
         val leftHandlesLandscape = decodeLandscapeHandles(
             prefs[SettingsPreferenceKeys.LEFT_TRIGGER_HANDLES_LANDSCAPE],
             legacyShortSwipe,
             legacyLongSwipe,
+            legacyEdgeWidthInherit,
         )
         val rightHandlesLandscape = decodeLandscapeHandles(
             prefs[SettingsPreferenceKeys.RIGHT_TRIGGER_HANDLES_LANDSCAPE],
             legacyShortSwipe,
             legacyLongSwipe,
+            legacyEdgeWidthInherit,
         )
         val bottomHandlesLandscape = decodeLandscapeHandles(
             prefs[SettingsPreferenceKeys.BOTTOM_TRIGGER_HANDLES_LANDSCAPE],
             legacyShortSwipe,
             legacyLongSwipe,
+            legacyEdgeWidthInherit,
         )
         val topHandlesLandscape = decodeLandscapeHandles(
             prefs[SettingsPreferenceKeys.TOP_TRIGGER_HANDLES_LANDSCAPE],
             legacyShortSwipe,
             legacyLongSwipe,
+            legacyEdgeWidthInherit,
         )
         val legacyAngleConfig = readGestureAngleConfig(prefs)
         return AppSettings(
@@ -1041,9 +1046,10 @@ internal object SettingsSnapshotReader {
         raw: Set<String>?,
         defaultShortSwipe: Float,
         defaultLongSwipe: Float,
+        legacyZeroMeansInherit: Boolean,
     ): List<TriggerHandle> {
         if (raw.isNullOrEmpty()) return emptyList()
-        return TriggerHandleCodec.decodeAll(raw, defaultShortSwipe, defaultLongSwipe)
+        return TriggerHandleCodec.decodeAll(raw, defaultShortSwipe, defaultLongSwipe, legacyZeroMeansInherit)
     }
 
     private fun hasAnyLandscapeHandleStorage(prefs: Preferences): Boolean =
