@@ -4,6 +4,7 @@ import android.content.ContentUris
 import android.content.Context
 import android.database.ContentObserver
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
@@ -44,7 +45,7 @@ class ScreenshotMonitor(
         val obs = object : ContentObserver(handler) {
             override fun onChange(selfChange: Boolean, uri: Uri?) {
                 if (!running) return
-                if (uri != null) {
+                if (uri != null && isQueryableMediaItemUri(uri)) {
                     scheduleProcess(uri)
                 } else {
                     scheduleQuickScan()
@@ -59,7 +60,7 @@ class ScreenshotMonitor(
         observer = obs
         runCatching {
             appContext.contentResolver.registerContentObserver(
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                externalImagesCollectionUri(),
                 true,
                 obs
             )
@@ -116,6 +117,10 @@ class ScreenshotMonitor(
     }
 
     private fun processUri(uri: Uri) {
+        if (!isQueryableMediaItemUri(uri)) {
+            quickScanLatest()
+            return
+        }
         val row = queryMedia(uri) ?: run {
             quickScanLatest()
             return
@@ -155,19 +160,22 @@ class ScreenshotMonitor(
             putInt(ContentResolverQueryArgs.SORT_DIRECTION, 1)
             putInt(ContentResolverQueryArgs.QUERY_ARG_LIMIT, 1)
         }
+        val collection = externalImagesCollectionUri()
         val cursor = runCatching {
             resolver.query(
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                collection,
                 projection,
                 bundle,
                 null
             )
+        }.onFailure { error ->
+            Log.w(TAG, "Failed to quick-scan latest screenshot", error)
         }.getOrNull() ?: return
 
         cursor.use {
             if (!it.moveToFirst()) return
             val id = it.getLongOrNull(it.getColumnIndexOrThrow(MediaStore.MediaColumns._ID)) ?: return
-            val uri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
+            val uri = ContentUris.withAppendedId(collection, id)
             val row = readRow(uri, it) ?: return
             if (row.isTrashed || row.isPending) return
             if (!shouldIngest(row)) return
@@ -176,8 +184,11 @@ class ScreenshotMonitor(
     }
 
     private fun queryMedia(uri: Uri): MediaRow? {
-        val cursor = appContext.contentResolver.query(uri, projection(), null, null, null)
-            ?: return null
+        val cursor = runCatching {
+            appContext.contentResolver.query(uri, projection(), null, null, null)
+        }.onFailure { error ->
+            Log.w(TAG, "Failed to query media uri=$uri", error)
+        }.getOrNull() ?: return null
         return cursor.use {
             if (!it.moveToFirst()) null else readRow(uri, it)
         }
@@ -297,6 +308,27 @@ class ScreenshotMonitor(
             "capture",
             "screen-shot"
         )
+
+        fun externalImagesCollectionUri(): Uri =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+            } else {
+                @Suppress("DEPRECATION")
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+            }
+
+        /**
+         * ContentObserver may deliver hidden root URIs (e.g. content://media/external) that
+         * third-party apps must not query on API 29+.
+         */
+        internal fun isQueryableMediaItemUri(uri: Uri): Boolean {
+            if (uri == Uri.EMPTY) return false
+            val path = uri.path ?: return false
+            if (path == "/external" || path.endsWith("/images/media")) return false
+            val id = runCatching { ContentUris.parseId(uri) }.getOrNull() ?: return false
+            if (id < 0L) return false
+            return uri.lastPathSegment == id.toString()
+        }
 
         fun isScreenshotCandidate(
             displayName: String?,
