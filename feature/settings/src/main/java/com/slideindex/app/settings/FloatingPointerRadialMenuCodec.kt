@@ -1,6 +1,8 @@
 package com.slideindex.app.settings
 
 import com.slideindex.app.gesture.GestureAction
+import com.slideindex.app.gesture.SlotPickerKind
+import com.slideindex.app.gesture.sanitizeForSlotPicker
 import com.slideindex.app.gesture.PointerSwipeConfig
 import com.slideindex.app.gesture.PointerSwipeDirection
 import com.slideindex.app.launcher.QuickLauncherItemCodec
@@ -40,10 +42,6 @@ object FloatingPointerRadialMenuCodec {
             "$index$SEP${QuickLauncherItemCodec.encodeActionPayload(sanitizeSlotAction(action))}"
         }.toSet()
 
-    private fun sanitizeSlotAction(action: GestureAction): GestureAction = when (action) {
-        is GestureAction.FloatingPointer,
-        is GestureAction.OpenFloatingPointerRadialMenu,
-        -> GestureAction.None
-        else -> action
-    }
+    private fun sanitizeSlotAction(action: GestureAction): GestureAction =
+        action.sanitizeForSlotPicker(SlotPickerKind.FloatingPointerRadialSlot)
 }

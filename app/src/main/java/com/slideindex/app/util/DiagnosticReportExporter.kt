@@ -39,6 +39,22 @@ object DiagnosticReportExporter {
         }
     }
 
+    fun shareCrashReport(context: Context, fileName: String) {
+        val appContext = context.applicationContext
+        val uiContext = context
+        exportScope.launch {
+            val shared = runCatching { shareCrashReportFile(uiContext, appContext, fileName) }
+                .getOrDefault(false)
+            withContext(Dispatchers.Main.immediate) {
+                if (shared) {
+                    Toast.makeText(appContext, R.string.diagnostic_report_shared, Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(appContext, R.string.diagnostic_report_export_failed, Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
+
     private fun buildExportOutcome(appContext: Context): ExportOutcome {
         val fullReport = LocalCrashHandler.generateDiagnosticReport(appContext)
         val stamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
@@ -97,11 +113,21 @@ object DiagnosticReportExporter {
         }.getOrDefault(false)
     }
 
-    private fun shareReport(context: Context, report: String, fileName: String): Boolean {
+    private fun shareCrashReportFile(
+        uiContext: Context,
+        appContext: Context,
+        fileName: String,
+    ): Boolean {
+        val file = LocalCrashHandler.crashReportFile(appContext, fileName) ?: return false
+        return shareFile(
+            context = uiContext,
+            file = file,
+            subject = fileName,
+        )
+    }
+
+    private fun shareFile(context: Context, file: File, subject: String): Boolean {
         return runCatching {
-            val dir = File(context.cacheDir, "diagnostics").apply { mkdirs() }
-            val file = File(dir, fileName)
-            file.writeText(report, Charsets.UTF_8)
             val uri = FileProvider.getUriForFile(
                 context,
                 "${context.packageName}.fileprovider",
@@ -111,7 +137,7 @@ object DiagnosticReportExporter {
                 Intent(Intent.ACTION_SEND).apply {
                     type = "text/plain"
                     putExtra(Intent.EXTRA_STREAM, uri)
-                    putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.diagnostic_report_share_subject))
+                    putExtra(Intent.EXTRA_SUBJECT, subject)
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 },
                 context.getString(R.string.diagnostic_report_share_chooser_title),
@@ -121,6 +147,19 @@ object DiagnosticReportExporter {
             }
             context.startActivity(chooser)
             true
+        }.getOrDefault(false)
+    }
+
+    private fun shareReport(context: Context, report: String, fileName: String): Boolean {
+        return runCatching {
+            val dir = File(context.cacheDir, "diagnostics").apply { mkdirs() }
+            val file = File(dir, fileName)
+            file.writeText(report, Charsets.UTF_8)
+            shareFile(
+                context = context,
+                file = file,
+                subject = context.getString(R.string.diagnostic_report_share_subject),
+            )
         }.getOrDefault(false)
     }
 

@@ -14,7 +14,8 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.yukonga.miuix.kmp.nav.core.NavEntryBuilder
 import com.slideindex.app.gesture.GestureActionPermissionAuditor
-import com.slideindex.app.ui.DiagnosticLogScreen
+import com.slideindex.app.ui.DiagnosticLogDetailScreen
+import com.slideindex.app.ui.DiagnosticLogListScreen
 import com.slideindex.app.ui.ExtensionAboutScreen
 import com.slideindex.app.ui.ExtensionHubScreen
 import com.slideindex.app.ui.ExternalInvocationHelpScreen
@@ -97,9 +98,21 @@ fun NavEntryBuilder.extensionHubNavEntries(ctx: MainNavContext) {
 
     hiltEntry<AppNavKey.ExtensionDiagnosticLogs> {
         val viewModel: DiagnosticLogViewModel = hiltViewModel()
-        DiagnosticLogScreen(
+        DiagnosticLogListScreen(
             viewModel = viewModel,
             onBack = { ctx.navigateBackTo(AppNavKey.ExtensionHub) },
+            onOpenDetail = { fileName ->
+                ctx.navigate(AppNavKey.ExtensionDiagnosticLogDetail(fileName))
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.ExtensionDiagnosticLogDetail> { key ->
+        val viewModel: DiagnosticLogViewModel = hiltViewModel()
+        DiagnosticLogDetailScreen(
+            fileName = key.fileName,
+            viewModel = viewModel,
+            onBack = { ctx.navigateBackTo(AppNavKey.ExtensionDiagnosticLogs) },
         )
     }
 

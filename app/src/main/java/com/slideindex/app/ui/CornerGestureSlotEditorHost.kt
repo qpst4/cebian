@@ -13,7 +13,9 @@ import com.slideindex.app.activity.activityShortcutFromQuickLauncherItem
 import com.slideindex.app.activity.toLaunchShortcut
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.GestureShortcutPayload
+import com.slideindex.app.gesture.ActionPickerCatalogPolicy
 import com.slideindex.app.gesture.GestureTriggerType
+import com.slideindex.app.gesture.SlotPickerKind
 import com.slideindex.app.launcher.QuickLauncherItemCodec
 import com.slideindex.app.launcher.QuickLauncherItemType
 import com.slideindex.app.overlay.corner.resolveHostPackageName
@@ -177,11 +179,9 @@ fun CornerGestureSlotEditorHost(
             GestureActionPickerScreen(
                 trigger = GestureTriggerType.SHORT_SWIPE_IN,
                 current = draftAction,
+                catalogPolicy = ActionPickerCatalogPolicy.Slot(SlotPickerKind.CornerWheel),
                 onDismiss = { page = CornerSlotEditorPage.SlotSettings },
                 onSelect = { action ->
-                    if (action is GestureAction.FloatingPointer) {
-                        return@GestureActionPickerScreen
-                    }
                     updateDraftAction(action)
                 },
                 onOpenMyShortcuts = { page = CornerSlotEditorPage.ActionPickMyShortcuts },

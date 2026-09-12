@@ -3,6 +3,8 @@ package com.slideindex.app.launcher
 import android.content.Intent
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.GestureActionType
+import com.slideindex.app.gesture.SlotPickerKind
+import com.slideindex.app.gesture.sanitizeForSlotPicker
 import com.slideindex.app.gesture.normalized
 
 enum class QuickLauncherItemType(val id: Int) {
@@ -79,7 +81,9 @@ data class QuickLauncherItem(
         fun action(action: GestureAction, label: String = "") =
             QuickLauncherItem(
                 QuickLauncherItemType.ACTION,
-                QuickLauncherItemCodec.encodeActionPayload(action),
+                QuickLauncherItemCodec.encodeActionPayload(
+                    action.sanitizeForSlotPicker(SlotPickerKind.OverlayTap),
+                ),
                 label,
             )
 
@@ -151,6 +155,21 @@ object QuickLauncherItemCodec {
         val actionPayload = payload.substring(index + 1)
         return GestureAction.from(GestureActionType.fromId(typeId), actionPayload).normalized()
     }
+
+    fun sanitizeOverlayTapItem(item: QuickLauncherItem): QuickLauncherItem = when (item.type) {
+        QuickLauncherItemType.ACTION -> {
+            val action = parseActionPayload(item.payload)?.sanitizeForSlotPicker(SlotPickerKind.OverlayTap)
+                ?: return item
+            item.copy(payload = encodeActionPayload(action))
+        }
+        QuickLauncherItemType.FOLDER -> item.withFolderItems(
+            item.folderItems().map { sanitizeOverlayTapItem(it) },
+        )
+        else -> item
+    }
+
+    fun sanitizeOverlayTapItems(items: List<QuickLauncherItem>): List<QuickLauncherItem> =
+        items.map { sanitizeOverlayTapItem(it) }
 
     fun actionKey(action: GestureAction): String = encodeActionPayload(action)
 

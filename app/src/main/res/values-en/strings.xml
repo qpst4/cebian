@@ -840,6 +840,9 @@
     <string name="diagnostic_log_crash_empty_list">No crash reports yet</string>
     <string name="diagnostic_log_clear_crash_title">Clear crash history?</string>
     <string name="diagnostic_log_clear_crash_message">Deletes all saved crash report files on this device. This cannot be undone.</string>
+    <string name="diagnostic_log_search_hint">Search crash reports</string>
+    <string name="diagnostic_log_search_empty">No matching crash reports</string>
+    <string name="diagnostic_log_crash_truncated">Large file (%1$s); showing first 256 KB only</string>
     <string name="diagnostic_report_shared">Share sheet opened</string>
     <string name="diagnostic_report_copied">Diagnostic report copied to clipboard</string>
     <string name="diagnostic_report_copied_truncated">Share unavailable; truncated copy saved to clipboard</string>

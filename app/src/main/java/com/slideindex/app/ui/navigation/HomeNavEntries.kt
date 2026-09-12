@@ -18,6 +18,8 @@ import com.slideindex.app.R
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.GestureTriggerMode
 import com.slideindex.app.gesture.GestureTriggerType
+import com.slideindex.app.gesture.ActionPickerCatalogPolicy
+import com.slideindex.app.gesture.SlotPickerKind
 import com.slideindex.app.gesture.InwardCompoundBranch
 import com.slideindex.app.gesture.directionFamily
 import com.slideindex.app.gesture.TriggerHandleDesign
@@ -439,9 +441,9 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
         GestureActionPickerScreen(
             trigger = GestureTriggerType.SHORT_SWIPE_IN,
             current = corner.innerZoneAction,
+            catalogPolicy = ActionPickerCatalogPolicy.Slot(SlotPickerKind.CornerInnerZone),
             onDismiss = { ctx.navigateBackTo(returnKey) },
             onSelect = { action ->
-                if (action is GestureAction.FloatingPointer) return@GestureActionPickerScreen
                 viewModel.setCornerGestureInnerZoneAction(action)
                 ctx.navigateBackTo(returnKey)
             },
@@ -761,9 +763,9 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
         GestureActionPickerScreen(
             trigger = GestureTriggerType.SHORT_SWIPE_IN,
             current = current,
+            catalogPolicy = ActionPickerCatalogPolicy.Slot(SlotPickerKind.FingertipRing),
             onDismiss = { ctx.navigateBackTo(returnKey) },
             onSelect = { action ->
-                if (action is GestureAction.FingertipRing) return@GestureActionPickerScreen
                 if (action is GestureAction.SimulatePointerSwipe) {
                     ctx.navigate(
                         AppNavKey.HomeSideGestureFingertipRingSwipeConfig(
@@ -844,6 +846,7 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
         GestureActionPickerScreen(
             trigger = trigger,
             current = currentAction,
+            catalogPolicy = ActionPickerCatalogPolicy.EdgeGesture,
             onDismiss = { ctx.navigateBackTo(slotConfigKey) },
             onSelect = { action ->
                 requestPermissionForAdjustAction(context, action)

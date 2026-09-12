@@ -1,6 +1,8 @@
 package com.slideindex.app.floatball
 
 import com.slideindex.app.gesture.GestureAction
+import com.slideindex.app.gesture.SlotPickerKind
+import com.slideindex.app.gesture.sanitizeForSlotPicker
 import com.slideindex.app.launcher.QuickLauncherItemCodec
 
 /** 悬浮球可配置手势类型（参考 FooView）。 */
@@ -47,7 +49,7 @@ object FloatBallGestureCodec {
     private const val SEP = "\u001E"
 
     fun encode(type: FloatBallGestureType, action: GestureAction): String =
-        "${type.id}$SEP${QuickLauncherItemCodec.encodeActionPayload(action)}"
+        "${type.id}$SEP${QuickLauncherItemCodec.encodeActionPayload(sanitizeAction(action))}"
 
     fun decode(raw: String): Pair<FloatBallGestureType, GestureAction>? {
         val index = raw.indexOf(SEP)
@@ -55,12 +57,16 @@ object FloatBallGestureCodec {
         val type = FloatBallGestureType.fromId(raw.substring(0, index).toIntOrNull() ?: return null)
             ?: return null
         val action = QuickLauncherItemCodec.parseActionPayload(raw.substring(index + 1))
+            ?.let(::sanitizeAction)
             ?: return null
         return type to action
     }
 
     fun encodeAll(actions: Map<FloatBallGestureType, GestureAction>): Set<String> =
-        actions.map { (type, action) -> encode(type, action) }.toSet()
+        actions.map { (type, action) -> encode(type, sanitizeAction(action)) }.toSet()
+
+    private fun sanitizeAction(action: GestureAction): GestureAction =
+        action.sanitizeForSlotPicker(SlotPickerKind.OverlayTap)
 
     fun decodeAll(raw: Set<String>): Map<FloatBallGestureType, GestureAction> =
         raw.mapNotNull { decode(it) }.toMap()

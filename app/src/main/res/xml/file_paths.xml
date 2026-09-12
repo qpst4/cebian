@@ -12,6 +12,9 @@
     <cache-path
         name="diagnostic_reports"
         path="diagnostics/" />
+    <files-path
+        name="crash_reports"
+        path="crashes/" />
     <external-cache-path
         name="update_external_cache"
         path="update/" />

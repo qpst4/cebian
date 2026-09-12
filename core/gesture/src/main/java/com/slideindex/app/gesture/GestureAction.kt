@@ -469,7 +469,7 @@ sealed class GestureAction {
         override val payload = ""
     }
 
-    /** 触钮手势指尖圆环：在手指位置弹出圆环槽位菜单。 */
+    /** 触钮手势指尖轮盘：在手指位置弹出轮盘槽位菜单。 */
     data object FingertipRing : GestureAction() {
         override val type = GestureActionType.FINGERTIP_RING
         override val payload = ""

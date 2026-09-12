@@ -15,11 +15,22 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+
+@Immutable
+data class CrashReportDetailState(
+    val loading: Boolean = true,
+    val text: String = "",
+    val truncated: Boolean = false,
+    val totalBytes: Long = 0L,
+)
 
 @Immutable
 data class IndexedLogLine(
@@ -45,6 +56,9 @@ class DiagnosticLogViewModel @Inject constructor(
 
     private val _crashReports = MutableStateFlow(LocalCrashHandler.listCrashReports(appContext))
     val crashReports: StateFlow<List<LocalCrashHandler.CrashReportEntry>> = _crashReports.asStateFlow()
+
+    private val _crashReportDetails = MutableStateFlow<Map<String, CrashReportDetailState>>(emptyMap())
+    val crashReportDetails: StateFlow<Map<String, CrashReportDetailState>> = _crashReportDetails.asStateFlow()
 
     private var collectJob: Job? = null
     private var flushJob: Job? = null
@@ -107,6 +121,27 @@ class DiagnosticLogViewModel @Inject constructor(
 
     fun readCrashReport(fileName: String): String? =
         LocalCrashHandler.readCrashReport(appContext, fileName)
+
+    fun loadCrashReportDetail(fileName: String) {
+        _crashReportDetails.update { current ->
+            current + (fileName to CrashReportDetailState(loading = true))
+        }
+        viewModelScope.launch {
+            val content = withContext(Dispatchers.IO) {
+                LocalCrashHandler.readCrashReportForDisplay(appContext, fileName)
+            }
+            _crashReportDetails.update { current ->
+                current + (
+                    fileName to CrashReportDetailState(
+                        loading = false,
+                        text = content?.text.orEmpty(),
+                        truncated = content?.truncated == true,
+                        totalBytes = content?.totalBytes ?: 0L,
+                    )
+                    )
+            }
+        }
+    }
 
     private fun appendLog(line: String) {
         buffer.addLast(IndexedLogLine(nextLogId++, line))

@@ -1,6 +1,8 @@
 package com.slideindex.app.settings
 
 import com.slideindex.app.gesture.GestureAction
+import com.slideindex.app.gesture.SlotPickerKind
+import com.slideindex.app.gesture.sanitizeForSlotPicker
 import com.slideindex.app.launcher.QuickLauncherItemCodec
 
 object CornerInnerZoneActionCodec {
@@ -20,11 +22,6 @@ object CornerInnerZoneActionCodec {
     fun encode(action: GestureAction): String =
         QuickLauncherItemCodec.encodeActionPayload(sanitize(action))
 
-    fun sanitize(action: GestureAction): GestureAction = when (action) {
-        is GestureAction.FloatingPointer,
-        is GestureAction.OpenFloatingPointerRadialMenu,
-        is GestureAction.None,
-        -> GestureAction.CornerInnerCancel
-        else -> action
-    }
+    fun sanitize(action: GestureAction): GestureAction =
+        action.sanitizeForSlotPicker(SlotPickerKind.CornerInnerZone)
 }

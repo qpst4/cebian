@@ -8,6 +8,8 @@ import com.slideindex.app.floatball.FloatBallGestureCodec
 import com.slideindex.app.floatball.FloatBallGestureType
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.GestureActionType
+import com.slideindex.app.gesture.SlotPickerKind
+import com.slideindex.app.gesture.sanitizeForSlotPicker
 import com.slideindex.app.gesture.GestureAngleConfig
 import com.slideindex.app.gesture.GestureRule
 import com.slideindex.app.gesture.GestureRuleCodec
@@ -665,7 +667,8 @@ internal object SettingsSnapshotReader {
             mode = BackTapMode.fromId(intPreference(prefs, SettingsPreferenceKeys.BACK_TAP_MODE, 0)),
             pauseWhileCharging = prefs[SettingsPreferenceKeys.BACK_TAP_PAUSE_CHARGING] ?: false,
             vibrationFeedbackEnabled = prefs[SettingsPreferenceKeys.BACK_TAP_VIBRATION_FEEDBACK_ENABLED] ?: true,
-            action = GestureAction.from(GestureActionType.fromId(actionType), actionPayload),
+            action = GestureAction.from(GestureActionType.fromId(actionType), actionPayload)
+                .sanitizeForSlotPicker(SlotPickerKind.OverlayTap),
         )
     }
 

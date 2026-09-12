@@ -6,6 +6,10 @@ import com.slideindex.app.R
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.GestureActionType
 import com.slideindex.app.gesture.GestureTriggerType
+import com.slideindex.app.gesture.ActionPickerCatalogPolicy
+import com.slideindex.app.gesture.SlotPickerKind
+import com.slideindex.app.gesture.isEligibleForSlotPicker
+import com.slideindex.app.gesture.slotPickerKindOrNull
 import com.slideindex.app.ui.gesturepicker.filterGestureActions
 
 enum class GestureActionCatalogScope {
@@ -33,13 +37,22 @@ object GestureActionCatalog {
         trigger: GestureTriggerType = GestureTriggerType.SHORT_SWIPE_IN,
         includePointerGestureActions: Boolean = false,
         includeCornerInnerZoneActions: Boolean = false,
-    ): List<GestureAction> = when (scope) {
-        GestureActionCatalogScope.GesturePicker -> buildGesturePickerActions(
-            trigger = trigger,
-            includePointerGestureActions = includePointerGestureActions,
-            includeCornerInnerZoneActions = includeCornerInnerZoneActions,
-        )
-        GestureActionCatalogScope.QuickLauncher -> buildQuickLauncherActions()
+        catalogPolicy: ActionPickerCatalogPolicy,
+    ): List<GestureAction> {
+        val actions = when (scope) {
+            GestureActionCatalogScope.GesturePicker -> buildGesturePickerActions(
+                trigger = trigger,
+                includePointerGestureActions = includePointerGestureActions,
+                includeCornerInnerZoneActions = includeCornerInnerZoneActions,
+            )
+            GestureActionCatalogScope.QuickLauncher -> buildQuickLauncherActions()
+        }
+        val slotPickerKind = catalogPolicy.slotPickerKindOrNull()
+        return if (slotPickerKind == null) {
+            actions
+        } else {
+            actions.filter { it.isEligibleForSlotPicker(slotPickerKind) }
+        }
     }
 
     fun filter(

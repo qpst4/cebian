@@ -71,6 +71,8 @@ fun gestureActionSearchAliases(context: Context, action: GestureAction): List<St
     GestureActionType.FINGERTIP_RING -> listOf(
         context.getString(R.string.gesture_search_fingertip_1),
         "fingertip ring",
+        "fingertip dial",
+        "dial",
         context.getString(R.string.gesture_search_fingertip_2),
         context.getString(R.string.gesture_search_fingertip_3),
         "radial",

@@ -1,6 +1,8 @@
 package com.slideindex.app.settings
 
 import com.slideindex.app.gesture.GestureAction
+import com.slideindex.app.gesture.SlotPickerKind
+import com.slideindex.app.gesture.sanitizeForSlotPicker
 import com.slideindex.app.launcher.QuickLauncherItemCodec
 
 object CornerRadialMenuCodec {
@@ -99,12 +101,6 @@ object CornerRadialMenuCodec {
 
     fun layerTitleResLayer(layer: Int): Int = layer + 1
 
-    private fun sanitizeSlotAction(action: GestureAction): GestureAction = when (action) {
-        is GestureAction.FloatingPointer,
-        is GestureAction.OpenFloatingPointerRadialMenu,
-        is GestureAction.CornerInnerCancel,
-        is GestureAction.CornerInnerPinWheel,
-        -> GestureAction.None
-        else -> action
-    }
+    private fun sanitizeSlotAction(action: GestureAction): GestureAction =
+        action.sanitizeForSlotPicker(SlotPickerKind.CornerWheel)
 }

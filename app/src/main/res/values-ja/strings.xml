@@ -1332,6 +1332,9 @@
     <string name="diagnostic_log_crash_empty_list">クラッシュレポートはまだありません</string>
     <string name="diagnostic_log_clear_crash_title">クラッシュ履歴を消去しますか？</string>
     <string name="diagnostic_log_clear_crash_message">このデバイス上の保存済みクラッシュレポートファイルをすべて削除します。元に戻せません。</string>
+    <string name="diagnostic_log_search_hint">クラッシュ記録を検索</string>
+    <string name="diagnostic_log_search_empty">一致するクラッシュ記録がありません</string>
+    <string name="diagnostic_log_crash_truncated">ファイルが大きいため（%1$s）、先頭 256 KB のみ表示</string>
     <string name="diagnostic_report_shared">共有シートを開きました</string>
     <string name="diagnostic_report_copied">診断レポートをクリップボードにコピーしました</string>
     <string name="diagnostic_report_copied_truncated">共有できません。切り詰めたコピーをクリップボードに保存しました</string>

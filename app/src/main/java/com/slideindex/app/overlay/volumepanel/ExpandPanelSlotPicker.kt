@@ -30,7 +30,9 @@ import com.slideindex.app.activity.subtitleDetail
 import com.slideindex.app.activity.toLaunchShortcut
 import com.slideindex.app.data.AppInfo
 import com.slideindex.app.gesture.GestureAction
+import com.slideindex.app.gesture.ActionPickerCatalogPolicy
 import com.slideindex.app.gesture.GestureTriggerType
+import com.slideindex.app.gesture.SlotPickerKind
 import com.slideindex.app.overlay.TaskSwitcherMenuItem
 import com.slideindex.app.ui.Md3PickerAppShortcutLeading
 import com.slideindex.app.ui.Md3PickerListRow
@@ -85,6 +87,7 @@ fun ExpandPanelSlotPicker(
         includePointerGestureActions = false,
         includeCornerInnerZoneActions = false,
         pinNoneAtTop = false,
+        catalogPolicy = ActionPickerCatalogPolicy.Slot(SlotPickerKind.OverlayTap),
     )
     val filteredApps = rememberActionPickerFilteredApps(allApps, searchQuery)
     val loadedCatalog = rememberLoadedShortcutCatalog(

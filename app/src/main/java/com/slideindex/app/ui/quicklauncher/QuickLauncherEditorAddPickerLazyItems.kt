@@ -26,6 +26,8 @@ import com.slideindex.app.ui.gesturepicker.gestureActionDescription
 import com.slideindex.app.ui.gesturepicker.gestureActionLabel
 import com.slideindex.app.ui.picker.FilteredShortcutCatalog
 import com.slideindex.app.ui.picker.GestureActionCatalog
+import com.slideindex.app.gesture.ActionPickerCatalogPolicy
+import com.slideindex.app.gesture.SlotPickerKind
 import com.slideindex.app.ui.picker.GestureActionCatalogScope
 import com.slideindex.app.ui.picker.activityShortcutPickerToggleSection
 import com.slideindex.app.ui.picker.shortcutFolderCardsSection
@@ -207,7 +209,10 @@ fun LazyListScope.quickLauncherAddPickerShortcutItems(
 fun rememberQuickLauncherFilteredActions(searchQuery: String): List<GestureAction> {
     val context = LocalContext.current
     val actionOptions = remember {
-        GestureActionCatalog.build(scope = GestureActionCatalogScope.QuickLauncher)
+        GestureActionCatalog.build(
+            scope = GestureActionCatalogScope.QuickLauncher,
+            catalogPolicy = ActionPickerCatalogPolicy.Slot(SlotPickerKind.OverlayTap),
+        )
     }
     return remember(actionOptions, searchQuery, context) {
         GestureActionCatalog.filter(context, actionOptions, searchQuery)

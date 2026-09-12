@@ -5,7 +5,9 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import top.yukonga.miuix.kmp.nav.core.NavEntryBuilder
 import com.slideindex.app.gesture.GestureAction
+import com.slideindex.app.gesture.ActionPickerCatalogPolicy
 import com.slideindex.app.gesture.GestureTriggerType
+import com.slideindex.app.gesture.SlotPickerKind
 import com.slideindex.app.gesture.PointerSwipeConfig
 import com.slideindex.app.settings.toMinimalAppSettings
 import com.slideindex.app.ui.FloatingPointerEdgeActionsSettingsScreen
@@ -146,13 +148,17 @@ fun NavEntryBuilder.floatingPointerNavEntries(ctx: MainNavContext) {
             FloatingPointerRadialActionTarget.SLOT ->
                 settings.floatingPointerRadialSlotActions.getOrElse(key.slotIndex) { GestureAction.None }
         }
+        val radialSlotPickerKind = when (key.target) {
+            FloatingPointerRadialActionTarget.LONG_PRESS -> SlotPickerKind.FloatingPointerRadialLongPress
+            FloatingPointerRadialActionTarget.SLOT -> SlotPickerKind.FloatingPointerRadialSlot
+        }
         GestureActionPickerScreen(
             trigger = GestureTriggerType.SHORT_SWIPE_IN,
             current = current,
             includePointerGestureActions = true,
+            catalogPolicy = ActionPickerCatalogPolicy.Slot(radialSlotPickerKind),
             onDismiss = { ctx.navigateBackTo(returnKey) },
             onSelect = { action ->
-                if (action is GestureAction.FloatingPointer) return@GestureActionPickerScreen
                 when (key.target) {
                     FloatingPointerRadialActionTarget.LONG_PRESS -> {
                         viewModel.setFloatingPointerJoystickLongPressAction(action)
@@ -375,6 +381,7 @@ fun NavEntryBuilder.floatingPointerNavEntries(ctx: MainNavContext) {
             trigger = GestureTriggerType.SHORT_SWIPE_IN,
             current = current,
             includePointerGestureActions = false,
+            catalogPolicy = ActionPickerCatalogPolicy.Slot(SlotPickerKind.OverlayTap),
             onDismiss = { ctx.navigateBackTo(returnKey) },
             onSelect = { action ->
                 viewModel.setFloatingPointerEdgeBarSlotAction(side, key.slotIndex, action)

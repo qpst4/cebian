@@ -499,15 +499,8 @@ internal fun GestureSession.dispatchQuickLauncherAction(
             return true
         }
         GestureAction.FingertipRing -> {
-            sessionContinuousPick.fingertipRing = false
-            if (confirmHaptic) sessionCallbacks.hapticConfirmLaunch()
-            sessionActionExecutor.execute(
-                GestureAction.FingertipRing,
-                sessionSettings,
-                anchorRawX = localX,
-                anchorRawY = rawY
-            )
-            return true
+            // 快速启动器 overlay 槽位禁止指尖环；旧数据应已清洗为 None，此处兜底忽略。
+            return false
         }
         GestureAction.AdjustVolume, GestureAction.AdjustBrightness -> {
             val mode = when (action) {

@@ -22,6 +22,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.slideindex.app.R
 import com.slideindex.app.data.AppInfo
 import com.slideindex.app.gesture.GestureAction
+import com.slideindex.app.gesture.ActionPickerCatalogPolicy
 import com.slideindex.app.gesture.GestureTriggerType
 import com.slideindex.app.gesture.launchShortcutFromCreated
 import com.slideindex.app.ui.compose.rememberAppRepository
@@ -58,7 +59,8 @@ fun GestureActionPickerScreen(
     onOpenSimulateKeyEvent: (GestureAction.SimulateKeyEvent) -> Unit = {},
     includePointerGestureActions: Boolean = false,
     includeCornerInnerZoneActions: Boolean = false,
-    pinNoneAtTop: Boolean = true
+    pinNoneAtTop: Boolean = true,
+    catalogPolicy: ActionPickerCatalogPolicy,
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
     var searchQuery by remember { mutableStateOf("") }
@@ -99,7 +101,8 @@ fun GestureActionPickerScreen(
         searchQuery = searchQuery,
         includePointerGestureActions = includePointerGestureActions,
         includeCornerInnerZoneActions = includeCornerInnerZoneActions,
-        pinNoneAtTop = pinNoneAtTop
+        pinNoneAtTop = pinNoneAtTop,
+        catalogPolicy = catalogPolicy,
     )
     val filteredApps = rememberActionPickerFilteredApps(allApps, searchQuery)
     val loadedCatalog = rememberLoadedShortcutCatalog(allApps)

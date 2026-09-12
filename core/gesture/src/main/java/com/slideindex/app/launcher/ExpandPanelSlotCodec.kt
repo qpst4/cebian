@@ -1,6 +1,8 @@
 package com.slideindex.app.launcher
 
 import com.slideindex.app.gesture.GestureAction
+import com.slideindex.app.gesture.SlotPickerKind
+import com.slideindex.app.gesture.sanitizeForSlotPicker
 
 object ExpandPanelSlotCodec {
     const val SLOT_COUNT = 8
@@ -11,7 +13,7 @@ object ExpandPanelSlotCodec {
             .joinToString(SLOT_SEP) { action ->
                 when {
                     action == null || action is GestureAction.None -> ""
-                    else -> QuickLauncherItemCodec.encodeActionPayload(action)
+                    else -> QuickLauncherItemCodec.encodeActionPayload(sanitizeAction(action))
                 }
             }
 
@@ -21,9 +23,12 @@ object ExpandPanelSlotCodec {
             val part = parts.getOrNull(index).orEmpty()
             when {
                 part.isBlank() -> null
-                else -> QuickLauncherItemCodec.parseActionPayload(part)
+                else -> QuickLauncherItemCodec.parseActionPayload(part)?.let(::sanitizeAction)
                     ?: GestureAction.LaunchApp(part)
             }
         }
     }
+
+    private fun sanitizeAction(action: GestureAction): GestureAction =
+        action.sanitizeForSlotPicker(SlotPickerKind.OverlayTap)
 }

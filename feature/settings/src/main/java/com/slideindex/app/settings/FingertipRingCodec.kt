@@ -1,17 +1,19 @@
 package com.slideindex.app.settings
 
 import com.slideindex.app.gesture.GestureAction
+import com.slideindex.app.gesture.SlotPickerKind
+import com.slideindex.app.gesture.sanitizeForSlotPicker
 import com.slideindex.app.launcher.QuickLauncherItemCodec
 
 object FingertipRingCodec {
     const val MIN_SLOT_COUNT = 3
     const val MAX_SLOT_COUNT = 8
     const val DEFAULT_SLOT_COUNT = 6
-    const val DEFAULT_ORBIT_RADIUS_PX = 320f
+    const val DEFAULT_ORBIT_RADIUS_PX = 176f
     const val MIN_ORBIT_RADIUS_PX = 80f
     const val MAX_ORBIT_RADIUS_PX = 550f
-    const val DEFAULT_ICON_SIZE_PX = 140f
-    const val MIN_ICON_SIZE_PX = 90f
+    const val DEFAULT_ICON_SIZE_PX = 94f
+    const val MIN_ICON_SIZE_PX = 60f
     const val MAX_ICON_SIZE_PX = 360f
     private const val SEP = "\u001D"
 
@@ -68,11 +70,6 @@ object FingertipRingCodec {
         }.toSet()
     }
 
-    private fun sanitizeSlotAction(action: GestureAction): GestureAction = when (action) {
-        is GestureAction.FingertipRing,
-        is GestureAction.FloatingPointer,
-        is GestureAction.OpenFloatingPointerRadialMenu,
-        -> GestureAction.None
-        else -> action
-    }
+    private fun sanitizeSlotAction(action: GestureAction): GestureAction =
+        action.sanitizeForSlotPicker(SlotPickerKind.FingertipRing)
 }

@@ -3,8 +3,6 @@ package com.slideindex.app.overlay.pickresult
 import com.slideindex.app.ui.theme.LocalAppDarkTheme
 
 import android.os.Build
-import android.window.OnBackInvokedCallback
-import android.window.OnBackInvokedDispatcher
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -41,7 +39,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -92,28 +89,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 private val pickResultTokenCache = android.util.LruCache<String, List<String>>(20)
-
-@Composable
-private fun PickResultEditModeBackHandler(
-    enabled: Boolean,
-    onBack: () -> Unit,
-) {
-    val view = LocalView.current
-    val currentOnBack by rememberUpdatedState(onBack)
-    DisposableEffect(enabled, view) {
-        if (!enabled || Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-            return@DisposableEffect onDispose {}
-        }
-        val callback = OnBackInvokedCallback { currentOnBack() }
-        view.findOnBackInvokedDispatcher()?.registerOnBackInvokedCallback(
-            OnBackInvokedDispatcher.PRIORITY_DEFAULT,
-            callback,
-        )
-        onDispose {
-            view.findOnBackInvokedDispatcher()?.unregisterOnBackInvokedCallback(callback)
-        }
-    }
-}
 
 @Composable
 internal fun PickResultInteractiveTextSection(
@@ -303,11 +278,6 @@ internal fun PickResultInteractiveTextSection(
         onTextModeChange(PickResultTextMode.WORD_TAP)
         view.post { view.requestFocus() }
     }
-
-    PickResultEditModeBackHandler(
-        enabled = textMode == PickResultTextMode.EDIT,
-        onBack = ::exitEditMode,
-    )
 
     val isEditMode = textMode == PickResultTextMode.EDIT
     val showTopToolbar = showSourceChips || showEditingToolbar || sectionTitle != null

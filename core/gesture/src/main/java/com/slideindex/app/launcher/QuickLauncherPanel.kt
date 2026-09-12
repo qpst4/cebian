@@ -63,13 +63,14 @@ object QuickLauncherPanelCodec {
     private const val FIELD_SEP = "\u001E"
 
     fun encodePanel(panel: QuickLauncherPanel): String {
+        val sanitized = panel.copy(items = QuickLauncherItemCodec.sanitizeOverlayTapItems(panel.items))
         val header = listOf(
-            panel.id,
-            panel.name,
-            panel.columnsPerPage.toString(),
-            panel.rowsPerPage.toString(),
+            sanitized.id,
+            sanitized.name,
+            sanitized.columnsPerPage.toString(),
+            sanitized.rowsPerPage.toString(),
         ).joinToString(FIELD_SEP)
-        val itemsBlob = QuickLauncherItemCodec.encodeAll(panel.items).singleOrNull().orEmpty()
+        val itemsBlob = QuickLauncherItemCodec.encodeAll(sanitized.items).singleOrNull().orEmpty()
         return if (itemsBlob.isEmpty()) header else "$header$FIELD_SEP$itemsBlob"
     }
 
@@ -90,8 +91,10 @@ object QuickLauncherPanelCodec {
         val columns = nextField()?.toIntOrNull()?.coerceIn(2, 6) ?: return null
         val rows = nextField()?.toIntOrNull()?.coerceIn(2, 9) ?: return null
         val itemsRaw = if (cursor < raw.length) raw.substring(cursor) else ""
-        val items = QuickLauncherItemCodec.decodeAll(
-            if (itemsRaw.isBlank()) emptySet() else setOf(itemsRaw),
+        val items = QuickLauncherItemCodec.sanitizeOverlayTapItems(
+            QuickLauncherItemCodec.decodeAll(
+                if (itemsRaw.isBlank()) emptySet() else setOf(itemsRaw),
+            ),
         )
         return QuickLauncherPanel(id, name, columns, rows, items)
     }

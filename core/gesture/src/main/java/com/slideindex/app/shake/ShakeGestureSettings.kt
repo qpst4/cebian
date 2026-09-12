@@ -1,6 +1,8 @@
 package com.slideindex.app.shake
 
 import com.slideindex.app.gesture.GestureAction
+import com.slideindex.app.gesture.SlotPickerKind
+import com.slideindex.app.gesture.sanitizeForSlotPicker
 import com.slideindex.app.launcher.QuickLauncherItemCodec
 
 enum class ShakeGestureType(val id: Int) {
@@ -60,7 +62,7 @@ object ShakeGestureCodec {
     private const val APP_SEP = "\u001F"
 
     fun encodeAction(type: ShakeGestureType, action: GestureAction): String =
-        "${type.id}$SEP${QuickLauncherItemCodec.encodeActionPayload(action)}"
+        "${type.id}$SEP${QuickLauncherItemCodec.encodeActionPayload(sanitizeAction(action))}"
 
     fun decodeAction(raw: String): Pair<ShakeGestureType, GestureAction>? {
         val index = raw.indexOf(SEP)
@@ -68,12 +70,16 @@ object ShakeGestureCodec {
         val type = ShakeGestureType.fromId(raw.substring(0, index).toIntOrNull() ?: return null)
             ?: return null
         val action = QuickLauncherItemCodec.parseActionPayload(raw.substring(index + 1))
+            ?.let(::sanitizeAction)
             ?: return null
         return type to action
     }
 
     fun encodeAllActions(actions: Map<ShakeGestureType, GestureAction>): Set<String> =
-        actions.map { (type, action) -> encodeAction(type, action) }.toSet()
+        actions.map { (type, action) -> encodeAction(type, sanitizeAction(action)) }.toSet()
+
+    private fun sanitizeAction(action: GestureAction): GestureAction =
+        action.sanitizeForSlotPicker(SlotPickerKind.OverlayTap)
 
     fun decodeAllActions(raw: Set<String>): Map<ShakeGestureType, GestureAction> {
         val decoded = raw.mapNotNull { decodeAction(it) }.toMap()

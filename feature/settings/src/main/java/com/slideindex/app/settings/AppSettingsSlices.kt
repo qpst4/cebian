@@ -173,7 +173,7 @@ data class FloatingPointerSettings(
         FloatingPointerEdgeActionsCodec.defaultConfig(),
 )
 
-/** 触钮手势「指尖圆环」：围绕手指圆形分布的快捷图标。 */
+/** 触钮手势「指尖轮盘」：围绕手指圆形分布的快捷图标。 */
 data class FingertipRingSettings(
     val slotCount: Int = FingertipRingCodec.DEFAULT_SLOT_COUNT,
     val slotActions: List<com.slideindex.app.gesture.GestureAction> = FingertipRingCodec.defaultSlots(),

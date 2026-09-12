@@ -11,7 +11,9 @@ import com.slideindex.app.ui.BackTapSettingsScreen
 import top.yukonga.miuix.kmp.nav.core.NavEntryBuilder
 import com.slideindex.app.R
 import com.slideindex.app.gesture.GestureAction
+import com.slideindex.app.gesture.ActionPickerCatalogPolicy
 import com.slideindex.app.gesture.GestureTriggerType
+import com.slideindex.app.gesture.SlotPickerKind
 import com.slideindex.app.shake.ShakeGestureSettings
 import com.slideindex.app.shake.ShakeGestureType
 import com.slideindex.app.ui.GestureActionPickerScreen
@@ -96,6 +98,7 @@ fun NavEntryBuilder.shakeNavEntries(ctx: MainNavContext) {
         GestureActionPickerScreen(
             trigger = trigger,
             current = currentAction,
+            catalogPolicy = ActionPickerCatalogPolicy.Slot(SlotPickerKind.OverlayTap),
             onDismiss = { ctx.navigateBackTo(returnKey) },
             onSelect = { action ->
                 applyShakePickedAction(viewModel, key.target, gestureType, key.packageName, action)
@@ -437,6 +440,7 @@ fun NavEntryBuilder.shakeNavEntries(ctx: MainNavContext) {
         GestureActionPickerScreen(
             trigger = GestureTriggerType.SHORT_SINGLE_TAP,
             current = current,
+            catalogPolicy = ActionPickerCatalogPolicy.Slot(SlotPickerKind.OverlayTap),
             onDismiss = { ctx.navigateBackTo(returnKey) },
             onSelect = { action ->
                 scope.launch {

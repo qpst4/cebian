@@ -25,12 +25,20 @@ object LocalCrashHandler {
     private const val CRASH_FILE_PREFIX = "crash_"
     private const val CRASH_FILE_SUFFIX = ".txt"
     private const val MAX_CRASH_FILES = 20
+    private const val MAX_CRASH_SAVE_CHARS = 64 * 1024
+    const val MAX_CRASH_DISPLAY_BYTES = 256 * 1024
     private var defaultHandler: Thread.UncaughtExceptionHandler? = null
 
     data class CrashReportEntry(
         val fileName: String,
         val timestampMs: Long,
         val previewLine: String,
+    )
+
+    data class CrashReportContent(
+        val text: String,
+        val truncated: Boolean,
+        val totalBytes: Long,
     )
 
     fun install(context: Context) {
@@ -67,7 +75,7 @@ object LocalCrashHandler {
             val sw = StringWriter()
             val pw = PrintWriter(sw)
             throwable.printStackTrace(pw)
-            val stackTrace = sw.toString()
+            val stackTrace = compactStackTrace(sw.toString())
 
             val time = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
             val info = buildString {
@@ -120,15 +128,78 @@ object LocalCrashHandler {
             )
         }
 
-    fun readCrashReport(context: Context, fileName: String): String? {
+    fun readCrashReport(context: Context, fileName: String): String? =
+        readCrashReportForDisplay(context, fileName)?.text
+
+    fun crashReportFile(context: Context, fileName: String): File? {
         val file = File(crashDir(context), fileName)
         if (!file.exists() || !file.isFile) return null
-        return runCatching { file.readText() }.getOrNull()
+        return file
+    }
+
+    fun readCrashReportForDisplay(context: Context, fileName: String): CrashReportContent? {
+        val file = File(crashDir(context), fileName)
+        if (!file.exists() || !file.isFile) return null
+        val totalBytes = file.length()
+        return runCatching {
+            file.inputStream().buffered().use { input ->
+                val buffer = ByteArray(MAX_CRASH_DISPLAY_BYTES.coerceAtLeast(1))
+                var read = 0
+                while (read < buffer.size) {
+                    val count = input.read(buffer, read, buffer.size - read)
+                    if (count <= 0) break
+                    read += count
+                }
+                val truncated = totalBytes > read
+                val text = buffer.decodeToString(0, read)
+                CrashReportContent(
+                    text = text,
+                    truncated = truncated,
+                    totalBytes = totalBytes,
+                )
+            }
+        }.getOrNull()
     }
 
     fun readLastCrashReport(context: Context): String? {
         val latest = listCrashReportFiles(context).firstOrNull() ?: return null
-        return runCatching { latest.readText() }.getOrNull()
+        return readCrashReport(context, latest.name)
+    }
+
+    private fun compactStackTrace(raw: String): String {
+        val deduped = dedupeConsecutiveStackLines(raw)
+        if (deduped.length <= MAX_CRASH_SAVE_CHARS) return deduped
+        return buildString {
+            append(deduped, 0, MAX_CRASH_SAVE_CHARS.coerceAtMost(deduped.length))
+            appendLine()
+            append("... stack trace truncated ...")
+        }
+    }
+
+    private fun dedupeConsecutiveStackLines(raw: String): String {
+        val lines = raw.lineSequence().toList()
+        if (lines.isEmpty()) return raw
+        return buildString {
+            var previous: String? = null
+            var duplicateCount = 0
+            fun flushDuplicates() {
+                when {
+                    duplicateCount >= 3 -> appendLine("\t... ${duplicateCount + 1} identical lines omitted ...")
+                    duplicateCount > 0 -> repeat(duplicateCount) { appendLine(previous) }
+                }
+                duplicateCount = 0
+            }
+            for (line in lines) {
+                if (line == previous) {
+                    duplicateCount++
+                    continue
+                }
+                flushDuplicates()
+                appendLine(line)
+                previous = line
+            }
+            flushDuplicates()
+        }
     }
 
     fun clearCrashReports(context: Context) {

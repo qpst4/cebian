@@ -12,7 +12,9 @@ import top.yukonga.miuix.kmp.nav.core.NavEntryBuilder
 import com.slideindex.app.R
 import com.slideindex.app.floatball.FloatBallGestureType
 import com.slideindex.app.gesture.GestureAction
+import com.slideindex.app.gesture.ActionPickerCatalogPolicy
 import com.slideindex.app.gesture.GestureTriggerType
+import com.slideindex.app.gesture.SlotPickerKind
 import com.slideindex.app.search.SearchEngineIconStorage
 import com.slideindex.app.settings.toMinimalAppSettings
 import com.slideindex.app.ui.FloatBallAppearanceSettingsScreen
@@ -383,6 +385,7 @@ fun NavEntryBuilder.floatBallNavEntries(ctx: MainNavContext) {
         GestureActionPickerScreen(
             trigger = GestureTriggerType.SHORT_SINGLE_TAP,
             current = settings.floatBallGestureActions[gestureType] ?: GestureAction.None,
+            catalogPolicy = ActionPickerCatalogPolicy.Slot(SlotPickerKind.OverlayTap),
             onDismiss = { ctx.navigateBackTo(returnKey) },
             onSelect = { action ->
                 viewModel.setFloatBallGestureAction(gestureType, action)

@@ -1,6 +1,8 @@
 package com.slideindex.app.settings
 
 import com.slideindex.app.gesture.GestureAction
+import com.slideindex.app.gesture.SlotPickerKind
+import com.slideindex.app.gesture.sanitizeForSlotPicker
 import com.slideindex.app.shake.FaceDownGestureCodec
 import com.slideindex.app.shake.FaceDownGestureSettings
 import com.slideindex.app.shake.ShakeGestureCodec
@@ -156,7 +158,8 @@ class ShakeSettingsMutator @Inject constructor(
     }
 
     suspend fun setBackTapAction(action: GestureAction) = editor.edit {
-        it[SettingsPreferenceKeys.BACK_TAP_ACTION_TYPE] = action.type.id
-        it[SettingsPreferenceKeys.BACK_TAP_ACTION_PAYLOAD] = action.payload
+        val sanitized = action.sanitizeForSlotPicker(SlotPickerKind.OverlayTap)
+        it[SettingsPreferenceKeys.BACK_TAP_ACTION_TYPE] = sanitized.type.id
+        it[SettingsPreferenceKeys.BACK_TAP_ACTION_PAYLOAD] = sanitized.payload
     }
 }

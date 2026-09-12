@@ -1,6 +1,8 @@
 package com.slideindex.app.shake
 
 import com.slideindex.app.gesture.GestureAction
+import com.slideindex.app.gesture.SlotPickerKind
+import com.slideindex.app.gesture.sanitizeForSlotPicker
 import com.slideindex.app.launcher.QuickLauncherItemCodec
 
 data class FaceDownGestureSettings(
@@ -39,9 +41,13 @@ data class FaceDownGestureSettings(
 
 object FaceDownGestureCodec {
     fun encodeAction(action: GestureAction): String =
-        QuickLauncherItemCodec.encodeActionPayload(action)
+        QuickLauncherItemCodec.encodeActionPayload(sanitizeAction(action))
 
     fun decodeAction(raw: String?): GestureAction =
         raw?.let { QuickLauncherItemCodec.parseActionPayload(it) }
+            ?.let(::sanitizeAction)
             ?: GestureAction.LockScreenAndSilenceRing
+
+    private fun sanitizeAction(action: GestureAction): GestureAction =
+        action.sanitizeForSlotPicker(SlotPickerKind.OverlayTap)
 }

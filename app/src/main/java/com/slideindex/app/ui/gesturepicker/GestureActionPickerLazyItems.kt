@@ -17,7 +17,9 @@ import com.slideindex.app.activity.ActivityShortcut
 import com.slideindex.app.data.AppInfo
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.GestureActionType
+import com.slideindex.app.gesture.ActionPickerCatalogPolicy
 import com.slideindex.app.gesture.GestureTriggerType
+import com.slideindex.app.gesture.SlotPickerKind
 import com.slideindex.app.ui.picker.FilteredShortcutCatalog
 import com.slideindex.app.ui.picker.GestureActionCatalog
 import com.slideindex.app.ui.picker.GestureActionCatalogScope
@@ -35,14 +37,21 @@ fun rememberActionPickerFilteredActions(
     includePointerGestureActions: Boolean,
     includeCornerInnerZoneActions: Boolean,
     pinNoneAtTop: Boolean,
+    catalogPolicy: ActionPickerCatalogPolicy,
 ): List<GestureAction> {
     val context = LocalContext.current
-    val actionOptions = remember(trigger, includePointerGestureActions, includeCornerInnerZoneActions) {
+    val actionOptions = remember(
+        trigger,
+        includePointerGestureActions,
+        includeCornerInnerZoneActions,
+        catalogPolicy,
+    ) {
         GestureActionCatalog.build(
             scope = GestureActionCatalogScope.GesturePicker,
             trigger = trigger,
             includePointerGestureActions = includePointerGestureActions,
             includeCornerInnerZoneActions = includeCornerInnerZoneActions,
+            catalogPolicy = catalogPolicy,
         )
     }
     return remember(

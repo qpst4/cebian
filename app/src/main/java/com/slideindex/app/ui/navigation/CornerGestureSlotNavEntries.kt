@@ -11,7 +11,9 @@ import com.slideindex.app.activity.activityShortcutFromQuickLauncherItem
 import com.slideindex.app.activity.toLaunchShortcut
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.GestureShortcutPayload
+import com.slideindex.app.gesture.ActionPickerCatalogPolicy
 import com.slideindex.app.gesture.GestureTriggerType
+import com.slideindex.app.gesture.SlotPickerKind
 import com.slideindex.app.launcher.QuickLauncherItemCodec
 import com.slideindex.app.launcher.QuickLauncherItemType
 import com.slideindex.app.overlay.corner.resolveHostPackageName
@@ -56,9 +58,9 @@ fun NavEntryBuilder.cornerGestureSlotNavEntries(ctx: MainNavContext) {
         GestureActionPickerScreen(
             trigger = GestureTriggerType.SHORT_SWIPE_IN,
             current = currentAction,
+            catalogPolicy = ActionPickerCatalogPolicy.Slot(SlotPickerKind.CornerWheel),
             onDismiss = { ctx.navigateBackTo(editorKey) },
             onSelect = { action ->
-                if (action is GestureAction.FloatingPointer) return@GestureActionPickerScreen
                 viewModel.setCornerSlotAction(key.corner, key.slotIndex, action)
                 ctx.navigateBackTo(editorKey)
             },
