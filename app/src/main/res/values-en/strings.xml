@@ -718,7 +718,7 @@
     <string name="image_search_engine_mode_hosted_url_desc">Uploads the image to a host, then searches by URL</string>
     <string name="image_search_engine_mode_direct_post_desc">Uploads the image directly to the search engine</string>
     <string name="image_search_engine_share_section">Share to app (%1$d)</string>
-    <string name="image_search_engine_share_hint">Shown on the screenshot bar. Tap to open the app directly. Long-press to reorder.</string>
+    <string name="image_search_engine_share_hint">Shown on the pick panel image bar. Tap to share to the target app; tap the arrow to switch targets. Long-press and swipe horizontally for quick switch (long-press in settings reorders).</string>
     <string name="image_search_engine_add_share_target">Add share target</string>
     <string name="image_search_engine_add_share_target_subtitle">Configure a screenshot sharing target</string>
     <string name="image_search_engine_share_empty">No share targets yet. Add apps such as Taobao or Xianyu.</string>
@@ -920,6 +920,9 @@
     <string name="float_ball_action_failed">Action failed</string>
     <string name="float_ball_screenshot_saved">Screenshot saved to gallery</string>
     <string name="float_ball_pick_result_image_section">Image</string>
+    <string name="pick_result_image_share_to_app">Share to app</string>
+    <string name="pick_result_image_share_pick_engine">Choose share target</string>
+    <string name="pick_result_image_share_system">System share</string>
     <string name="float_ball_action_stash">Save to stash</string>
     <string name="stash_empty">No stashed items yet</string>
     <string name="stash_saved">Saved to stash</string>

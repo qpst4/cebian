@@ -214,7 +214,6 @@ internal fun PickResultImageSectionGallery(
                 onSave = onSave,
                 onPinToScreen = onPinToScreen,
                 onStash = onStash,
-                onThumbnailClick = { onSectionExpandedChange(!sectionExpanded) }
             )
     }
 }

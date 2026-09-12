@@ -1412,6 +1412,9 @@
     <string name="float_ball_action_failed">操作に失敗しました</string>
     <string name="float_ball_screenshot_saved">スクリーンショットをギャラリーに保存しました</string>
     <string name="float_ball_pick_result_image_section">画像</string>
+    <string name="pick_result_image_share_to_app">アプリに共有</string>
+    <string name="pick_result_image_share_pick_engine">共有先を選択</string>
+    <string name="pick_result_image_share_system">システム共有</string>
     <string name="float_ball_action_stash">ストッシュに保存</string>
     <string name="stash_empty">ストッシュに項目はまだありません</string>
     <string name="stash_saved">ストッシュに保存しました</string>
@@ -1670,7 +1673,7 @@
     <string name="image_search_engine_mode_hosted_url_desc">画像をホストにアップロードし、URL で検索</string>
     <string name="image_search_engine_mode_direct_post_desc">画像を検索エンジンに直接アップロード</string>
     <string name="image_search_engine_share_section">アプリへ共有 (%1$d)</string>
-    <string name="image_search_engine_share_hint">スクリーンショットバーに表示。タップでアプリを直接開く。長押しで並べ替え。</string>
+    <string name="image_search_engine_share_hint">取詞パネルの画像バーに表示。タップで共有先アプリを開く。矢印で共有先を切り替え。長押し＋横スワイプでクイック切り替え（設定での長押しは並べ替え）。</string>
     <string name="image_search_engine_add_share_target">共有先を追加</string>
     <string name="image_search_engine_add_share_target_subtitle">スクリーンショット共有先を設定</string>
     <string name="image_search_engine_share_empty">共有先がまだありません。Taobao や Xianyu などのアプリを追加してください。</string>
