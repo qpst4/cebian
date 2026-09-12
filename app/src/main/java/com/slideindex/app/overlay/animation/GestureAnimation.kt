@@ -163,12 +163,12 @@ private fun CapsuleGestureAnimation(
                 GestureAnimationPosition.Left, GestureAnimationPosition.Right -> 0f
                 GestureAnimationPosition.Bottom, GestureAnimationPosition.Top ->
                     (originXAnimVal + (fingerXAnimVal - originXAnimVal) * centerShiftRatio)
-                        .coerceIn(thickness / 2f, size.width - thickness / 2f)
+                        .safeCoerceIn(thickness / 2f, size.width - thickness / 2f)
             }
             val centerY = when (button.position) {
                 GestureAnimationPosition.Left, GestureAnimationPosition.Right ->
                     (originYAnimVal + (fingerYAnimVal - originYAnimVal) * centerShiftRatio + yShift)
-                        .coerceIn(thickness / 2f, size.height - thickness / 2f)
+                        .safeCoerceIn(thickness / 2f, size.height - thickness / 2f)
                 GestureAnimationPosition.Bottom -> yShift
                 GestureAnimationPosition.Top -> size.height + yShift
             }
@@ -200,7 +200,7 @@ private fun CapsuleGestureAnimation(
             }
         }
         val radiusCap = minOf(rectSize.width, rectSize.height) / 2f
-        val cornerRadius = animationStyle.cornerRadius.toFloat().coerceIn(0f, radiusCap)
+        val cornerRadius = animationStyle.cornerRadius.toFloat().safeCoerceIn(0f, radiusCap)
         val canTriggered = animationState.canDistanceTriggered(button, isLongSlide = false)
         val isLongSlide = animationState.canDistanceTriggered(button, isLongSlide = true) ||
             animationState.triggerDirection.isLong ||
@@ -319,19 +319,19 @@ private fun BubbleGestureAnimation(
                     val anchorX = originXAnimVal +
                         (fingerXAnimVal - originXAnimVal) * centerShiftRatio
                     if (slideRight) {
-                        (anchorX + offset).coerceIn(radius, size.width - radius)
+                        (anchorX + offset).safeCoerceIn(radius, size.width - radius)
                     } else {
-                        (anchorX - offset).coerceIn(radius, size.width - radius)
+                        (anchorX - offset).safeCoerceIn(radius, size.width - radius)
                     }
                 } else {
                     (originXAnimVal + (fingerXAnimVal - originXAnimVal) * centerShiftRatio)
-                        .coerceIn(radius, size.width - radius)
+                        .safeCoerceIn(radius, size.width - radius)
                 }
         }
         val centerY = when (button.position) {
             GestureAnimationPosition.Left, GestureAnimationPosition.Right ->
                 (originYAnimVal + (fingerYAnimVal - originYAnimVal) * centerShiftRatio + yShift)
-                    .coerceIn(radius, size.height - radius)
+                    .safeCoerceIn(radius, size.height - radius)
             GestureAnimationPosition.Bottom ->
                 if (horizontalAlongEdge) {
                     size.height + radius + yShift
@@ -460,12 +460,12 @@ private fun WaveGestureAnimation(
         val transformOffset = when (button.position) {
             GestureAnimationPosition.Left, GestureAnimationPosition.Right -> originYAnimVal - fingerYAnimVal
             GestureAnimationPosition.Bottom, GestureAnimationPosition.Top -> fingerXAnimVal - originXAnimVal
-        }.coerceIn(-bezierTransformOffsetCoerce, bezierTransformOffsetCoerce)
+        }.safeCoerceIn(-bezierTransformOffsetCoerce, bezierTransformOffsetCoerce)
 
         val safeOrigin = when (button.position) {
             GestureAnimationPosition.Left, GestureAnimationPosition.Right -> originYDisplay - bezierOffset
             GestureAnimationPosition.Bottom, GestureAnimationPosition.Top -> originXAnimVal - bezierOffset
-        }.coerceIn(
+        }.safeCoerceIn(
             minimumValue = when (animationStyle.safeBounds) {
                 true -> bezierLengthHalf + bezierSpacing
                 else -> 0f
@@ -744,4 +744,10 @@ private fun leftRightTriggerRotationFallback(
         GestureAnimationPosition.Right -> -90f
         else -> 0f
     }
+}
+
+private fun Float.safeCoerceIn(minimumValue: Float, maximumValue: Float): Float = when {
+    isNaN() -> 0f
+    minimumValue <= maximumValue -> coerceIn(minimumValue, maximumValue)
+    else -> (minimumValue + maximumValue) / 2f
 }

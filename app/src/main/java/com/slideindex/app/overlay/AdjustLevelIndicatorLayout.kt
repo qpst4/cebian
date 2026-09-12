@@ -35,10 +35,13 @@ internal object AdjustLevelIndicatorLayoutEngine {
         val totalHeight = topBlock + pillHeight + blockBelowMedia + bottomBlock
         val edgeInset = 18f * density
         val marginY = 24f * density
-        val centerY = anchorY.coerceIn(
-            marginY + totalHeight / 2f,
-            viewHeight - marginY - totalHeight / 2f
-        )
+        val minY = marginY + totalHeight / 2f
+        val maxY = viewHeight - marginY - totalHeight / 2f
+        val centerY = if (minY <= maxY) {
+            anchorY.coerceIn(minY, maxY)
+        } else {
+            viewHeight / 2f
+        }
         val left = when (side) {
             PanelSide.LEFT, PanelSide.BOTTOM, PanelSide.TOP -> edgeInset - viewScreenX
             PanelSide.RIGHT -> screenWidthPx - edgeInset - pillWidth - viewScreenX
