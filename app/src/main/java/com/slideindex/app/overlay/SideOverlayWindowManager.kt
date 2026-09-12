@@ -563,7 +563,8 @@ internal class SideOverlayWindowManager(
             }.onFailure { Log.e(TAG, "Failed to re-add edge window", it) }
             return
         }
-        if (forceReAdd) {
+        val effectiveForceReAdd = forceReAdd && !OverlayDisplayRotationGate.suppressCaptureWindowReAdd
+        if (effectiveForceReAdd) {
             // updateViewLayout 不会改变 z-order；与悬浮球一致，remove+add 才能压到取词/搜图面板之上。
             runCatching {
                 windowManager.removeView(view)

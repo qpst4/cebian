@@ -25,6 +25,7 @@ import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.slideindex.app.R
 import com.slideindex.app.util.AppLocaleApplier
+import java.util.concurrent.ConcurrentHashMap
 
 class OverlayComposeOwner : LifecycleOwner, ViewModelStoreOwner, SavedStateRegistryOwner {
     private val registry = LifecycleRegistry(this)
@@ -48,6 +49,11 @@ class OverlayComposeOwner : LifecycleOwner, ViewModelStoreOwner, SavedStateRegis
 
 object OverlayCompose {
     private const val TAG = "OverlayCompose"
+    private val windowContextCache = ConcurrentHashMap<String, Context>()
+
+    fun clearWindowContextCache() {
+        windowContextCache.clear()
+    }
 
     /**
      * 为浮层 Compose 提供带主题的 UI Context。
@@ -81,20 +87,32 @@ object OverlayCompose {
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
         ).distinct()
         for (windowType in windowTypes) {
-            createWindowContextOrNull(context, display, windowType)?.let { return it }
+            cachedWindowContext(context, display, windowType)?.let { return it }
             val appContext = context.applicationContext
             if (appContext !== context) {
-                createWindowContextOrNull(appContext, display, windowType)?.let { return it }
+                cachedWindowContext(appContext, display, windowType)?.let { return it }
             }
         }
         val appContext = context.applicationContext
-        createWindowContextOrNull(
+        cachedWindowContext(
             appContext,
             display,
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
         )?.let { return it }
         Log.e(TAG, "resolveUiContext: all createWindowContext attempts failed for ${context.javaClass.name}")
         return context.applicationContext
+    }
+
+    private fun cachedWindowContext(
+        context: Context,
+        display: Display,
+        windowType: Int,
+    ): Context? {
+        val key = "${display.displayId}:$windowType"
+        windowContextCache[key]?.let { return it }
+        val created = createWindowContextOrNull(context, display, windowType) ?: return null
+        windowContextCache[key] = created
+        return created
     }
 
     private fun createWindowContextOrNull(

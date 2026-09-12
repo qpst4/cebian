@@ -94,7 +94,7 @@ class GestureAnimationOverlayController(
 
     private var appContext: Context? = null
 
-
+    private var themedOverlayContext: Context? = null
 
     val animationState: GestureAnimationState?
 
@@ -128,7 +128,9 @@ class GestureAnimationOverlayController(
 
         appContext = context.applicationContext
 
-        val overlayContext = OverlayCompose.themedContext(context)
+        val overlayContext = themedOverlayContext ?: OverlayCompose.themedContext(context).also {
+            themedOverlayContext = it
+        }
 
         this.parent = parent
 

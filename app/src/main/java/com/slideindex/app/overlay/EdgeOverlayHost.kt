@@ -38,6 +38,7 @@ class EdgeOverlayHost(
     private var previewActive = false
     private var previewContent: LayoutPreviewContent = LayoutPreviewContent.TRIGGER_ONLY
     private var previewFocus: LayoutPreviewFocus? = null
+    private var displayRotationMonitor: OverlayDisplayRotationMonitor? = null
 
     fun start() {
         if (overlayManager != null) return
@@ -64,6 +65,10 @@ class EdgeOverlayHost(
         }
         floatBallController = FloatBallController(context, scope, deps.settingsRepository)
         cornerGestureHost = CornerGestureHost(context, scope, deps).also { it.start() }
+        displayRotationMonitor = OverlayDisplayRotationMonitor(context) {
+            overlayManager?.relayoutTriggersForDisplayRotation()
+            refreshOverlaySuppression()
+        }.also { it.start() }
         OverlaySnoozeController.onStateChanged = {
             refreshOverlaySuppression()
         }
@@ -103,6 +108,9 @@ class EdgeOverlayHost(
         floatBallController = null
         cornerGestureHost?.stop()
         cornerGestureHost = null
+        displayRotationMonitor?.stop()
+        displayRotationMonitor = null
+        OverlayCompose.clearWindowContextCache()
         overlayManager?.destroy()
         overlayManager = null
         OverlayService.foregroundPackage = null

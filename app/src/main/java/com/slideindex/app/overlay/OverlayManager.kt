@@ -250,6 +250,10 @@ class OverlayManager(
         recoverTriggerInteraction(forceReAddChrome = false)
     }
 
+    fun relayoutTriggersForDisplayRotation() {
+        relayoutTriggersForConfigurationChange()
+    }
+
     fun recoverTriggerInteraction(forceReAddChrome: Boolean = false) {
         if (!currentSettings.serviceEnabled) return
         recoverOverlaysIfIdle()

@@ -103,9 +103,9 @@ internal class EdgeGestureOverlayHosts(
 
     override fun density(): Float = view.resources.displayMetrics.density
 
-    override fun screenWidthPx(): Int = view.resources.displayMetrics.widthPixels
+    override fun screenWidthPx(): Int = OverlayScreenMetrics.sizePx(view.context).first
 
-    override fun screenHeightPx(): Int = view.resources.displayMetrics.heightPixels
+    override fun screenHeightPx(): Int = OverlayScreenMetrics.sizePx(view.context).second
 
     override fun viewLocationOnScreen(): IntArray = IntArray(2).also { view.getLocationOnScreen(it) }
 

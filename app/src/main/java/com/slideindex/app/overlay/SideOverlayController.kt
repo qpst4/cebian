@@ -82,16 +82,11 @@ class SideOverlayController(
             return
         }
         val isLandscape = resolvedMetrics.isLandscape
-        val orientationChanged = lastIsLandscape != null && lastIsLandscape != isLandscape
         lastIsLandscape = isLandscape
 
         if (!isEdgeInitialized()) {
             showEdge(resolvedMetrics)
             return
-        }
-
-        if (orientationChanged) {
-            windowManager.detachTouchCaptureWindows()
         }
 
         screenWidthPx = resolvedMetrics.widthPx
@@ -190,7 +185,6 @@ class SideOverlayController(
     fun showEdge(metrics: ScreenMetricsSnapshot? = null) {
         val resolvedMetrics = metrics ?: OverlayScreenMetrics.snapshot(context)
         val isLandscape = resolvedMetrics.isLandscape
-        val orientationChanged = lastIsLandscape != null && lastIsLandscape != isLandscape
         lastIsLandscape = isLandscape
 
         screenWidthPx = resolvedMetrics.widthPx
@@ -198,9 +192,6 @@ class SideOverlayController(
         if (settings.triggerHandles(side).isEmpty()) {
             hideEdge()
             return
-        }
-        if (orientationChanged) {
-            windowManager.detachTouchCaptureWindows()
         }
         if (windowManager.overlayLayoutSuspended()) {
             windowManager.presentationView?.let { presentation ->

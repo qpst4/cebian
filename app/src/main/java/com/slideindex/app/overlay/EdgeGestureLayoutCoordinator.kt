@@ -48,21 +48,18 @@ internal class EdgeGestureLayoutCoordinator(
     fun syncZoneLayout() = syncZoneLayout(settingsProvider())
 
     fun syncZoneLayout(settings: AppSettings) {
-        val (screenW, screenH) = OverlayScreenMetrics.sizePx(context)
-        val (viewW, viewH) = viewSizeProvider()
-        val layoutW = maxOf(screenW, viewW)
-        val layoutH = maxOf(screenH, viewH)
+        val metrics = OverlayScreenMetrics.snapshot(context)
         zoneLayout.update(
             settings = settings,
-            viewWidth = layoutW,
-            viewHeight = layoutH,
+            viewWidth = metrics.widthPx,
+            viewHeight = metrics.heightPx,
             density = resources.displayMetrics.density,
             sessionActive = gestureSession.isActive(),
             previewMode = previewModeProvider(),
-            layoutHeight = layoutH,
+            layoutHeight = metrics.heightPx,
             windowOffsetY = 0f,
-            screenWidthPx = screenW,
-            screenHeightPx = screenH
+            screenWidthPx = metrics.widthPx,
+            screenHeightPx = metrics.heightPx
         )
     }
 
