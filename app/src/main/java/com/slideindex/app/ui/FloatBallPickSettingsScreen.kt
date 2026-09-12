@@ -42,6 +42,7 @@ fun FloatBallPickSettingsScreen(
     onPickTextSizeChange: (Float) -> Unit,
     onPickBottomTransitionChange: (Float) -> Unit,
     onPickTextFirstPanelChange: (Boolean) -> Unit,
+    onPickAutoSelectAllChange: (Boolean) -> Unit = {},
     onPickCopyDismissPanelChange: (Boolean) -> Unit,
     onPickPanelEnterAnimationMsChange: (Int) -> Unit,
     onPickPanelExitAnimationMsChange: (Int) -> Unit,
@@ -170,6 +171,17 @@ fun FloatBallPickSettingsScreen(
                             checked = settings.floatBallPickTextFirstPanel,
                             enabled = true,
                             onCheckedChange = onPickTextFirstPanelChange
+                        )
+                    }
+                )
+                add(
+                    settingsCardScopeItem("auto-select-all") {
+                        SettingSwitchRow(
+                            title = stringResource(R.string.float_ball_pick_auto_select_all),
+                            subtitle = stringResource(R.string.float_ball_pick_auto_select_all_desc),
+                            checked = settings.floatBallPickAutoSelectAll,
+                            enabled = true,
+                            onCheckedChange = onPickAutoSelectAllChange
                         )
                     }
                 )

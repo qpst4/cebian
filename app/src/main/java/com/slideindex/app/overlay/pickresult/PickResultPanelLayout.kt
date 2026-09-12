@@ -537,7 +537,8 @@ internal fun PickResultPanelTextSlot(
     onPinTextToScreen: (String) -> Unit,
     onStashText: (String) -> Unit,
     actionBarBottomPadding: Dp,
-    actionBarDragActive: Boolean = false
+    actionBarDragActive: Boolean = false,
+    autoSelectAll: Boolean = false,
 ) {
     Box(
         modifier = Modifier
@@ -583,7 +584,8 @@ internal fun PickResultPanelTextSlot(
             onPinToScreen = { onPinTextToScreen(activeText) },
             onStash = { onStashText(activeText) },
             actionBarBottomPadding = actionBarBottomPadding,
-            actionBarDragActive = actionBarDragActive
+            actionBarDragActive = actionBarDragActive,
+            autoSelectAll = autoSelectAll,
         )
     }
 }
@@ -1025,7 +1027,8 @@ internal fun PickResultCollapsePanelColumn(
             onPinTextToScreen = onPinTextToScreen,
             onStashText = onStashText,
             actionBarBottomPadding = actionBarBottomInset,
-            actionBarDragActive = searchCollapseDragActive
+            actionBarDragActive = searchCollapseDragActive,
+            autoSelectAll = appSettings.floatBallPickAutoSelectAll,
         )
     }
 

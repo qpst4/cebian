@@ -873,6 +873,10 @@ class OverlaySettingsMutator @Inject constructor(
         it[SettingsPreferenceKeys.FLOAT_BALL_PICK_TEXT_FIRST_PANEL] = enabled
     }
 
+    suspend fun setFloatBallPickAutoSelectAll(enabled: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.FLOAT_BALL_PICK_AUTO_SELECT_ALL] = enabled
+    }
+
     suspend fun setFloatBallPickCopyDismissPanel(enabled: Boolean) = editor.edit {
         it[SettingsPreferenceKeys.FLOAT_BALL_PICK_COPY_DISMISS_PANEL] = enabled
     }

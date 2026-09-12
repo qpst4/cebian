@@ -572,6 +572,10 @@ class ExtensionSettingsViewModel @Inject constructor(
         settingsRepository.setFloatBallPickTextFirstPanel(enabled)
     }
 
+    fun setFloatBallPickAutoSelectAll(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setFloatBallPickAutoSelectAll(enabled)
+    }
+
     fun setFloatBallPickCopyDismissPanel(enabled: Boolean) = launchSettingsWrite {
         settingsRepository.setFloatBallPickCopyDismissPanel(enabled)
     }

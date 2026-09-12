@@ -187,6 +187,7 @@ fun OverlaySettings.toMinimalAppSettings(): AppSettings = AppSettings(
         floatBallPickTextSizeSp = floatBallPickTextSizeSp,
         floatBallPickBottomTransitionFraction = floatBallPickBottomTransitionFraction,
         floatBallPickTextFirstPanel = floatBallPickTextFirstPanel,
+        floatBallPickAutoSelectAll = floatBallPickAutoSelectAll,
         floatBallPickCopyDismissPanel = floatBallPickCopyDismissPanel,
         floatBallPickPanelEnterAnimationMs = floatBallPickPanelEnterAnimationMs,
         floatBallPickPanelExitAnimationMs = floatBallPickPanelExitAnimationMs,

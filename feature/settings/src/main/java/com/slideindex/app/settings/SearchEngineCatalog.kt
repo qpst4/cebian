@@ -4,6 +4,9 @@ import android.content.Context
 import com.slideindex.app.settings.R
 
 object SearchEngineCatalog {
+    private fun safeString(context: Context, resId: Int, fallback: String): String =
+        runCatching { context.getString(resId) }.getOrDefault(fallback)
+
     fun defaultEngines(context: Context): List<SearchEngineConfig> = listOf(
         SearchEngineConfig(
             id = "default-google",
@@ -14,7 +17,7 @@ object SearchEngineCatalog {
         ),
         SearchEngineConfig(
             id = "default-bilibili",
-            name = context.getString(R.string.default_engine_bilibili),
+            name = safeString(context, R.string.default_engine_bilibili, "Bilibili"),
             engineType = SearchEngineType.DIRECT_LINK,
             searchLink = "bilibili://search?keyword=%q",
             targetPackage = "com.example.piliplus",
@@ -22,7 +25,7 @@ object SearchEngineCatalog {
         ),
         SearchEngineConfig(
             id = "default-taobao",
-            name = context.getString(R.string.default_engine_taobao),
+            name = safeString(context, R.string.default_engine_taobao, "淘宝"),
             engineType = SearchEngineType.DIRECT_LINK,
             searchLink = "tbopen://m.taobao.com/tbopen/index.html?h5Url=https://s.taobao.com/search?q=%s",
             targetPackage = "com.taobao.taobao",
@@ -30,7 +33,7 @@ object SearchEngineCatalog {
         ),
         SearchEngineConfig(
             id = "default-weibo",
-            name = context.getString(R.string.default_engine_weibo),
+            name = safeString(context, R.string.default_engine_weibo, "微博"),
             engineType = SearchEngineType.DIRECT_LINK,
             searchLink = "sinaweibo://searchall?q=%s",
             targetPackage = "com.sina.weibo",
@@ -38,7 +41,7 @@ object SearchEngineCatalog {
         ),
         SearchEngineConfig(
             id = "default-zhihu",
-            name = context.getString(R.string.default_engine_zhihu),
+            name = safeString(context, R.string.default_engine_zhihu, "知乎"),
             engineType = SearchEngineType.DIRECT_LINK,
             searchLink = "zhihu://search?q=%s",
             targetPackage = "com.zhihu.android",
@@ -46,7 +49,7 @@ object SearchEngineCatalog {
         ),
         SearchEngineConfig(
             id = "default-douyin",
-            name = context.getString(R.string.default_engine_douyin),
+            name = safeString(context, R.string.default_engine_douyin, "抖音"),
             engineType = SearchEngineType.JUMP_TO_ACTIVITY,
             searchLink = "snssdk1128://search/result?keyword=%s",
             targetPackage = "com.ss.android.ugc.aweme",
@@ -63,7 +66,7 @@ object SearchEngineCatalog {
         ),
         SearchEngineConfig(
             id = "default-wechat",
-            name = context.getString(R.string.default_engine_wechat),
+            name = safeString(context, R.string.default_engine_wechat, "微信"),
             engineType = SearchEngineType.JUMP_TO_ACTIVITY,
             targetPackage = "com.tencent.mm",
             targetActivity = "com.tencent.mm.plugin.fts.ui.FTSMainUI",
@@ -71,7 +74,7 @@ object SearchEngineCatalog {
         ),
         SearchEngineConfig(
             id = "default-meituan",
-            name = context.getString(R.string.default_engine_meituan),
+            name = safeString(context, R.string.default_engine_meituan, "美团"),
             engineType = SearchEngineType.DIRECT_LINK,
             searchLink = "imeituan://www.meituan.com/search?q=%s",
             targetPackage = "com.sankuai.meituan",
@@ -79,7 +82,7 @@ object SearchEngineCatalog {
         ),
         SearchEngineConfig(
             id = "default-xhs",
-            name = context.getString(R.string.default_engine_xhs),
+            name = safeString(context, R.string.default_engine_xhs, "小红书"),
             engineType = SearchEngineType.DIRECT_LINK,
             searchLink = "xhsdiscover://search/result?keyword=%s",
             targetPackage = "com.xingin.xhs",

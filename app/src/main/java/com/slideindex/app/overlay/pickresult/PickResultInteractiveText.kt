@@ -133,6 +133,7 @@ internal fun PickResultInteractiveTextSection(
     onStash: (() -> Unit)? = null,
     actionBarBottomPadding: Dp = PickResultTextActionBarBottomPaddingWhenAlone,
     actionBarDragActive: Boolean = false,
+    autoSelectAll: Boolean? = null,
 ) {
     // ?? remember(text)???? onTextChange ????text?key ??????????0??
     var textFieldValue by remember { mutableStateOf(TextFieldValue(text)) }
@@ -152,6 +153,7 @@ internal fun PickResultInteractiveTextSection(
             ?.settings
             ?.collect { appSettings = it }
     }
+    val effectiveAutoSelectAll = autoSelectAll ?: appSettings.floatBallPickAutoSelectAll
     var wordTokens by remember(text) { 
         mutableStateOf<List<String>>(pickResultTokenCache.get(text) ?: emptyList()) 
     }
@@ -171,14 +173,50 @@ internal fun PickResultInteractiveTextSection(
         }
     }
 
-    LaunchedEffect(text, textMode) {
-        if (textMode != PickResultTextMode.EDIT) {
-            textFieldValue = TextFieldValue(text)
-            selectedWordIndices = emptySet()
-            selectionStart = 0
-            selectionEnd = 0
-        } else if (text != textFieldValue.text) {
-            textFieldValue = TextFieldValue(text)
+    var autoSelectedKey by remember { mutableStateOf<Pair<String, PickResultTextMode>?>(null) }
+
+    LaunchedEffect(text, textMode, effectiveAutoSelectAll) {
+        if (!effectiveAutoSelectAll) {
+            if (textMode != PickResultTextMode.EDIT) {
+                textFieldValue = TextFieldValue(text)
+                selectedWordIndices = emptySet()
+                selectionStart = 0
+                selectionEnd = 0
+            } else if (text != textFieldValue.text) {
+                textFieldValue = TextFieldValue(text)
+            }
+            autoSelectedKey = null
+        }
+    }
+
+    LaunchedEffect(text, textMode, effectiveAutoSelectAll, effectiveWordTokens) {
+        if (effectiveAutoSelectAll && text.isNotBlank()) {
+            val currentKey = text to textMode
+            if (autoSelectedKey != currentKey) {
+                when (textMode) {
+                    PickResultTextMode.WORD_TAP -> {
+                        if (effectiveWordTokens.isNotEmpty()) {
+                            selectedWordIndices = effectiveWordTokens.indices.toSet()
+                            autoSelectedKey = currentKey
+                        }
+                    }
+                    PickResultTextMode.SELECT -> {
+                        selectionStart = 0
+                        selectionEnd = text.length
+                        selectAllRequest++
+                        autoSelectedKey = currentKey
+                    }
+                    PickResultTextMode.EDIT -> {
+                        if (autoSelectedKey?.second != PickResultTextMode.EDIT || text != textFieldValue.text) {
+                            textFieldValue = TextFieldValue(
+                                text = text,
+                                selection = TextRange(0, text.length),
+                            )
+                            autoSelectedKey = currentKey
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -202,6 +240,7 @@ internal fun PickResultInteractiveTextSection(
         return when (textMode) {
             PickResultTextMode.WORD_TAP -> {
                 if (selectedWordIndices.isEmpty()) text
+                else if (effectiveWordTokens.isNotEmpty() && selectedWordIndices.size == effectiveWordTokens.size) text
                 else selectedWordIndices.sorted().joinToString(separator = "") { index ->
                     val token = effectiveWordTokens.getOrElse(index) { "" }
                     if (PickResultWordTokenizer.isWhitespaceToken(token)) token else token.trim()
@@ -581,6 +620,7 @@ internal fun PickResultInteractiveTextSection(
                             bodyMaxHeight = if (fillTextBlock) constrainedHeight else maxBodyHeight,
                             expandToFill = expandToFill,
                             useInternalScroll = true,
+                            autoSelectAll = effectiveAutoSelectAll,
                             onTextFieldValueChange = { updated ->
                                 textFieldValue = updated
                                 onTextChange(updated.text)
@@ -660,6 +700,7 @@ internal fun PickResultInteractiveTextSection(
                     textSizeSp = textSizeSp,
                     bodyMaxHeight = bodyMaxHeight,
                     useInternalScroll = true,
+                    autoSelectAll = effectiveAutoSelectAll,
                     onTextFieldValueChange = { updated ->
                         textFieldValue = updated
                         onTextChange(updated.text)
@@ -1003,6 +1044,7 @@ internal fun PickResultTextBody(
     bodyMaxHeight: Dp? = null,
     expandToFill: Boolean = false,
     useInternalScroll: Boolean = true,
+    autoSelectAll: Boolean = false,
     onTextFieldValueChange: (TextFieldValue) -> Unit,
     onSelectionChanged: (start: Int, end: Int) -> Unit,
     onWordSelectionChange: (Set<Int>) -> Unit,
@@ -1204,12 +1246,24 @@ internal fun PickResultTextBody(
         }
         PickResultTextMode.SELECT -> {
             var selection by remember(textFieldValue.text) {
-                mutableStateOf(TextRange.Zero)
+                mutableStateOf(
+                    if (autoSelectAll && textFieldValue.text.isNotEmpty()) {
+                        TextRange(0, textFieldValue.text.length)
+                    } else {
+                        TextRange.Zero
+                    }
+                )
             }
             var lastSelectAllRequest by remember { mutableIntStateOf(0) }
             var lastDeselectAllRequest by remember { mutableIntStateOf(0) }
             LaunchedEffect(textFieldValue.text) {
-                selection = TextRange.Zero
+                if (autoSelectAll && textFieldValue.text.isNotEmpty()) {
+                    val range = TextRange(0, textFieldValue.text.length)
+                    selection = range
+                    onSelectionChanged(range.start, range.end)
+                } else {
+                    selection = TextRange.Zero
+                }
             }
             LaunchedEffect(selectAllRequest) {
                 if (selectAllRequest > lastSelectAllRequest) {
