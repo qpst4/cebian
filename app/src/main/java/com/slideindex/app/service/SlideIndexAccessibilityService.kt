@@ -526,17 +526,23 @@ class SlideIndexAccessibilityService : AccessibilityService() {
         scheduleOverlaySuppressionAfterConfigurationChange()
     }
 
+    private val configChangeSuppressionRunnable = Runnable {
+        syncForegroundPackageForOverlaySuppression()
+        edgeOverlayHost?.recoverTriggerInteraction(forceReAddChrome = false)
+        edgeOverlayHost?.refreshOverlaySuppression()
+    }
+
+    private val configChangeFinalSettleRunnable = Runnable {
+        syncForegroundPackageForOverlaySuppression()
+        edgeOverlayHost?.recoverTriggerInteraction(forceReAddChrome = false)
+        edgeOverlayHost?.refreshOverlaySuppression()
+    }
+
     private fun scheduleOverlaySuppressionAfterConfigurationChange() {
-        mainHandler.postDelayed({
-            syncForegroundPackageForOverlaySuppression()
-            edgeOverlayHost?.recoverTriggerInteraction(forceReAddChrome = false)
-            edgeOverlayHost?.refreshOverlaySuppression()
-        }, CONFIG_CHANGE_SUPPRESSION_RETRY_MS)
-        mainHandler.postDelayed({
-            syncForegroundPackageForOverlaySuppression()
-            edgeOverlayHost?.recoverTriggerInteraction(forceReAddChrome = false)
-            edgeOverlayHost?.refreshOverlaySuppression()
-        }, CONFIG_CHANGE_SUPPRESSION_RETRY_MS * 2)
+        mainHandler.removeCallbacks(configChangeSuppressionRunnable)
+        mainHandler.removeCallbacks(configChangeFinalSettleRunnable)
+        mainHandler.postDelayed(configChangeSuppressionRunnable, CONFIG_CHANGE_SUPPRESSION_RETRY_MS)
+        mainHandler.postDelayed(configChangeFinalSettleRunnable, CONFIG_CHANGE_SUPPRESSION_RETRY_MS * 2)
     }
 
     private fun syncForegroundPackageForOverlaySuppression() {
@@ -563,6 +569,8 @@ class SlideIndexAccessibilityService : AccessibilityService() {
         edgeOverlayHost?.dispatchExternalGestureAction(action, anchorRawY, panelSide) == true
 
     override fun onDestroy() {
+        mainHandler.removeCallbacks(configChangeSuppressionRunnable)
+        mainHandler.removeCallbacks(configChangeFinalSettleRunnable)
         ClipboardAccess.repository?.stopListening()
         if (::otpCoordinator.isInitialized) otpCoordinator.unregisterReceiver()
         if (::watchdog.isInitialized) {

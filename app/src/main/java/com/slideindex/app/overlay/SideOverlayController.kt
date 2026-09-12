@@ -44,6 +44,7 @@ class SideOverlayController(
     internal var previewMode = false
     private var previewContent: LayoutPreviewContent = LayoutPreviewContent.TRIGGER_ONLY
     private var previewFocus: LayoutPreviewFocus? = null
+    private var lastIsLandscape: Boolean? = null
 
     internal val overlayContext = OverlayCompose.themedContext(context)
     internal val windowManager = SideOverlayWindowManager(this)
@@ -80,6 +81,19 @@ class SideOverlayController(
             hideEdge()
             return
         }
+        val isLandscape = resolvedMetrics.isLandscape
+        val orientationChanged = lastIsLandscape != null && lastIsLandscape != isLandscape
+        lastIsLandscape = isLandscape
+
+        if (!isEdgeInitialized()) {
+            showEdge(resolvedMetrics)
+            return
+        }
+
+        if (orientationChanged) {
+            windowManager.detachTouchCaptureWindows()
+        }
+
         screenWidthPx = resolvedMetrics.widthPx
         screenHeightPx = resolvedMetrics.heightPx
         windowManager.presentationView?.applySettings(settings, resolvedMetrics.widthPx)
@@ -175,11 +189,18 @@ class SideOverlayController(
 
     fun showEdge(metrics: ScreenMetricsSnapshot? = null) {
         val resolvedMetrics = metrics ?: OverlayScreenMetrics.snapshot(context)
+        val isLandscape = resolvedMetrics.isLandscape
+        val orientationChanged = lastIsLandscape != null && lastIsLandscape != isLandscape
+        lastIsLandscape = isLandscape
+
         screenWidthPx = resolvedMetrics.widthPx
         screenHeightPx = resolvedMetrics.heightPx
         if (settings.triggerHandles(side).isEmpty()) {
             hideEdge()
             return
+        }
+        if (orientationChanged) {
+            windowManager.detachTouchCaptureWindows()
         }
         if (windowManager.overlayLayoutSuspended()) {
             windowManager.presentationView?.let { presentation ->

@@ -91,8 +91,12 @@ class OverlayManager(
             controller.hideEdge()
             return
         }
-        if (triggersShown && !controller.isEdgeInitialized()) {
-            controller.showEdge(metrics)
+        if (triggersShown) {
+            if (!controller.isEdgeInitialized()) {
+                controller.showEdge(metrics)
+            } else {
+                controller.updateSettings(settings, metrics)
+            }
         }
     }
 
@@ -229,8 +233,8 @@ class OverlayManager(
             clearAllOverlayBrightness()
             TaskManagerUtil.ensureServiceBound()
             triggersShown = true
-            ensureSideEdgesForHandles(currentSettings)
         }
+        ensureSideEdgesForHandles(currentSettings)
     }
 
     fun onEnvironmentChanged() {
@@ -251,10 +255,7 @@ class OverlayManager(
         recoverOverlaysIfIdle()
         resumeEdgeCapturesAfterPassthrough()
         val metrics = OverlayScreenMetrics.snapshot(context)
-        leftController?.updateSettings(currentSettings, metrics)
-        rightController?.updateSettings(currentSettings, metrics)
-        bottomController?.updateSettings(currentSettings, metrics)
-        topController?.updateSettings(currentSettings, metrics)
+        ensureSideEdgesForHandles(currentSettings, metrics)
         bringEdgeChromeAbovePanels(forceReAdd = forceReAddChrome)
     }
 
