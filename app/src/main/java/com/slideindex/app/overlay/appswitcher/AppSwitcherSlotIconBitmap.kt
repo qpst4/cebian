@@ -10,6 +10,7 @@ import com.slideindex.app.activity.ActivityShortcut
 import com.slideindex.app.data.AppRepository
 import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.launcher.QuickLauncherItemType
+import com.slideindex.app.settings.FvAppSwitcherSlotIconOverride
 import com.slideindex.app.shell.ShellCommand
 import com.slideindex.app.util.QuickLauncherIconResolver
 
@@ -25,8 +26,9 @@ internal object AppSwitcherSlotIconBitmap {
         shellCommands: List<ShellCommand>,
         resolvedIcon: Drawable? = null,
         appRepository: AppRepository? = null,
+        iconOverride: FvAppSwitcherSlotIconOverride? = null,
     ): Bitmap {
-        val cacheKey = "${item.type}:${item.payload}:${item.label}:$sizePx"
+        val cacheKey = "${item.type}:${item.payload}:${item.label}:$sizePx:${iconOverride?.iconPath}:${iconOverride?.textIcon}"
         cache.get(cacheKey)?.let { return it }
         val bitmap = resolveBitmap(
             context = context,
@@ -37,6 +39,7 @@ internal object AppSwitcherSlotIconBitmap {
             shellCommands = shellCommands,
             resolvedIcon = resolvedIcon,
             appRepository = appRepository,
+            iconOverride = iconOverride,
         ) ?: createPlaceholderBitmap(sizePx, item.label.ifBlank { item.payload })
         cache.put(cacheKey, bitmap)
         return bitmap
@@ -51,7 +54,16 @@ internal object AppSwitcherSlotIconBitmap {
         shellCommands: List<ShellCommand>,
         resolvedIcon: Drawable?,
         appRepository: AppRepository?,
+        iconOverride: FvAppSwitcherSlotIconOverride?,
     ): Bitmap? {
+        iconOverride?.takeIf { it.isConfigured() }?.let { override ->
+            FvAppSwitcherSlotIconResolver.resolveBitmap(
+                context = context,
+                override = override,
+                fallbackLabel = item.label.ifBlank { item.payload },
+                sizePx = sizePx,
+            )?.let { return it }
+        }
         resolvedIcon?.let { return drawableToBitmap(it, sizePx) }
         if (item.type == QuickLauncherItemType.APP && item.payload.isNotBlank() && appRepository != null) {
             appRepository.peekLaunchIconBitmap(item.payload, sizePx)?.let { return it }

@@ -5,6 +5,7 @@ import android.graphics.PixelFormat
 import android.os.Handler
 import android.os.Looper
 import android.view.Gravity
+import android.view.View
 import android.view.WindowInsets
 import android.view.WindowInsetsController
 import android.view.WindowManager
@@ -43,6 +44,8 @@ internal class AppSwitcherOverlayController(
     private var layoutParams: WindowManager.LayoutParams? = null
     private var attached = false
     private var windowTop = 0
+    private var suspendedForExternalActivity = false
+    private var savedFlagsBeforeSuspend: Int? = null
 
     fun isVisible(): Boolean = attached && view != null
 
@@ -193,6 +196,35 @@ internal class AppSwitcherOverlayController(
         runOnViewThread(current) { current.pinForLeaveOpen() }
     }
 
+    fun suspendForExternalActivity() {
+        val current = view ?: return
+        if (!attached || suspendedForExternalActivity) return
+        runOnViewThread(current) {
+            if (!attached || view !== current || suspendedForExternalActivity) return@runOnViewThread
+            val params = layoutParams ?: return@runOnViewThread
+            suspendedForExternalActivity = true
+            savedFlagsBeforeSuspend = params.flags
+            params.flags = params.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+            current.visibility = View.GONE
+            runCatching { windowManager?.updateViewLayout(current, params) }
+        }
+    }
+
+    fun resumeAfterExternalActivity() {
+        val current = view ?: return
+        if (!attached || !suspendedForExternalActivity) return
+        runOnViewThread(current) {
+            if (!attached || view !== current || !suspendedForExternalActivity) return@runOnViewThread
+            suspendedForExternalActivity = false
+            val params = layoutParams ?: return@runOnViewThread
+            savedFlagsBeforeSuspend?.let { params.flags = it }
+            savedFlagsBeforeSuspend = null
+            current.visibility = View.VISIBLE
+            runCatching { windowManager?.updateViewLayout(current, params) }
+            activateDirectTouch(current)
+        }
+    }
+
     private fun activateDirectTouch(current: AppSwitcherOverlayView) {
         val params = layoutParams ?: return
         params.flags = params.flags and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE.inv()
@@ -255,6 +287,8 @@ internal class AppSwitcherOverlayController(
     fun removeNow() {
         val current = view
         view = null
+        suspendedForExternalActivity = false
+        savedFlagsBeforeSuspend = null
         if (!attached || current == null || windowManager == null) {
             attached = false
             return

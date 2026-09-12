@@ -6,6 +6,7 @@ import android.graphics.RectF
 import android.util.Log
 import android.view.Gravity
 import android.view.MotionEvent
+import android.view.View
 import android.view.WindowManager
 import android.widget.FrameLayout
 import com.slideindex.app.data.AppRepository
@@ -14,6 +15,7 @@ import com.slideindex.app.overlay.OverlayPassthrough
 import com.slideindex.app.overlay.OverlayScreenMetrics
 import com.slideindex.app.overlay.OverlayWindowTypes
 import com.slideindex.app.service.OverlayService
+import com.slideindex.app.service.CornerGestureSlotPickTrampolineActivity
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.CornerGestureSettings
 import com.slideindex.app.shell.ShellCommand
@@ -32,6 +34,10 @@ internal class CornerGestureController(
     private val zoneLayout = CornerZoneLayout()
     private var settings = AppSettings()
     private var density = context.resources.displayMetrics.density
+    private var suspendedForExternalActivity = false
+    private var savedOverlayFlags: Int? = null
+    private var suspendedCaptureAnchor: CornerAnchor? = null
+    private var suspendedCaptureStrip: CornerZoneStrip? = null
 
     private data class CaptureSlot(
         val anchor: CornerAnchor,
@@ -130,6 +136,67 @@ internal class CornerGestureController(
         applySettings(settings)
     }
 
+    fun openSlotPicker(anchor: CornerAnchor, slotIndex: Int) {
+        val view = overlayView ?: return
+        if (!view.isOverlayVisible()) return
+        suspendOverlayForExternalActivity()
+        val corner = when (anchor) {
+            CornerAnchor.LEFT -> CornerGestureSlotPickTrampolineActivity.CORNER_LEFT
+            CornerAnchor.RIGHT -> CornerGestureSlotPickTrampolineActivity.CORNER_RIGHT
+        }
+        val intent = CornerGestureSlotPickTrampolineActivity.createIntent(context, corner, slotIndex).apply {
+            addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        runCatching { context.startActivity(intent) }
+    }
+
+    fun resumeAfterSlotPicker() {
+        if (!suspendedForExternalActivity) return
+        resumeOverlayAfterExternalActivity()
+    }
+
+    private fun suspendOverlayForExternalActivity() {
+        if (!overlayAttached || suspendedForExternalActivity) return
+        val root = overlayRoot ?: return
+        val params = overlayParams ?: return
+        val view = overlayView ?: return
+        if (!view.isOverlayVisible()) return
+        suspendedForExternalActivity = true
+        savedOverlayFlags = params.flags
+        suspendedCaptureAnchor = expandedCaptureAnchor
+        suspendedCaptureStrip = expandedCaptureStrip
+        restoreCaptureSize()
+        params.flags = params.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+        root.visibility = View.GONE
+        runCatching { windowManager.updateViewLayout(root, params) }
+    }
+
+    private fun resumeOverlayAfterExternalActivity() {
+        if (!suspendedForExternalActivity) return
+        suspendedForExternalActivity = false
+        if (!overlayAttached) {
+            savedOverlayFlags = null
+            suspendedCaptureAnchor = null
+            suspendedCaptureStrip = null
+            return
+        }
+        val root = overlayRoot ?: return
+        val params = overlayParams ?: return
+        savedOverlayFlags?.let { params.flags = it }
+        savedOverlayFlags = null
+        val anchor = suspendedCaptureAnchor
+        val strip = suspendedCaptureStrip
+        suspendedCaptureAnchor = null
+        suspendedCaptureStrip = null
+        if (anchor != null && strip != null) {
+            expandCaptureForSession(anchor, strip)
+        }
+        root.visibility = View.VISIBLE
+        OverlayWindowTypes.applyPresentationInteractiveFlags(params)
+        runCatching { windowManager.updateViewLayout(root, params) }
+        overlayView?.invalidate()
+    }
+
     private fun isCornerWheelSuppressed(settings: AppSettings): Boolean =
         OverlaySuppression.shouldSuppress(
             settings = settings,
@@ -214,6 +281,7 @@ internal class CornerGestureController(
                     detachOverlay()
                 },
                 onReleaseCapture = ::restoreCaptureSize,
+                onOpenSlotPicker = ::openSlotPicker,
                 onShellCommandsPersist = onShellCommandsPersist,
                 onMenuVisualActiveChange = ::syncOverlayBackgroundBlur,
             )
@@ -455,6 +523,10 @@ internal class CornerGestureController(
 
     private fun detachOverlay() {
         if (!overlayAttached) return
+        suspendedForExternalActivity = false
+        savedOverlayFlags = null
+        suspendedCaptureAnchor = null
+        suspendedCaptureStrip = null
         overlayView?.cancelSession()
         syncOverlayBackgroundBlur(active = false)
         overlayRoot?.let { runCatching { windowManager.removeView(it) } }

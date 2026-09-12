@@ -297,6 +297,13 @@
             android:theme="@style/Theme.SlideIndex.Transparent" />
 
         <activity
+            android:name=".service.AppSwitcherSlotIconEditorTrampolineActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:taskAffinity=""
+            android:theme="@style/Theme.SlideIndex.Transparent" />
+
+        <activity
             android:name=".service.ScreenCapturePermissionActivity"
             android:excludeFromRecents="true"
             android:exported="false"

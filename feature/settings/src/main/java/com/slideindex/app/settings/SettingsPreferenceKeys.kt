@@ -136,6 +136,7 @@ internal object SettingsPreferenceKeys {
     val FV_APP_SWITCHER_LAYER_GAP_DP = floatPreferencesKey("fv_app_switcher_layer_gap_dp")
     val FV_APP_SWITCHER_END_MARGIN_DEG = floatPreferencesKey("fv_app_switcher_end_margin_deg")
     val FV_APP_SWITCHER_SLOTS = stringSetPreferencesKey("fv_app_switcher_slots")
+    val FV_APP_SWITCHER_SLOT_ICON_OVERRIDES = stringSetPreferencesKey("fv_app_switcher_slot_icon_overrides")
     val FV_APP_SWITCHER_LINK_AXES = booleanPreferencesKey("fv_app_switcher_link_axes")
     val FV_APP_SWITCHER_LINK_APPEARANCE_AXES = booleanPreferencesKey("fv_app_switcher_link_appearance_axes")
     val FV_APP_SWITCHER_LINK_SLOT_AXES = booleanPreferencesKey("fv_app_switcher_link_slot_axes")
@@ -146,6 +147,8 @@ internal object SettingsPreferenceKeys {
     val FV_APP_SWITCHER_HORIZONTAL_LAYER_GAP_DP = floatPreferencesKey("fv_app_switcher_horizontal_layer_gap_dp")
     val FV_APP_SWITCHER_HORIZONTAL_END_MARGIN_DEG = floatPreferencesKey("fv_app_switcher_horizontal_end_margin_deg")
     val FV_APP_SWITCHER_HORIZONTAL_SLOTS = stringSetPreferencesKey("fv_app_switcher_horizontal_slots")
+    val FV_APP_SWITCHER_HORIZONTAL_SLOT_ICON_OVERRIDES =
+        stringSetPreferencesKey("fv_app_switcher_horizontal_slot_icon_overrides")
     val HOLOGRAPHIC_TIMEOUT_SECONDS = intPreferencesKey("holographic_timeout_seconds")
     val HOLOGRAPHIC_ROTATION_SENSITIVITY = floatPreferencesKey("holographic_rotation_sensitivity")
     val HOLOGRAPHIC_HAPTIC_LEVEL = intPreferencesKey("holographic_haptic_level")

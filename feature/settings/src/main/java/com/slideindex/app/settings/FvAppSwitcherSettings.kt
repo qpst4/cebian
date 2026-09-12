@@ -73,10 +73,13 @@ data class FvAppSwitcherSettings(
     val layerGapDp: Float = DEFAULT_LAYER_GAP_DP,
     val endMarginDeg: Float = DEFAULT_END_MARGIN_DEG,
     val slots: Map<Int, QuickLauncherItem> = emptyMap(),
+    val slotIconOverrides: Map<Int, FvAppSwitcherSlotIconOverride> = emptyMap(),
 ) {
     fun slotCount(): Int = slotCountForCircleCount(circleCount)
 
     fun itemAt(index: Int): QuickLauncherItem? = slots[index]
+
+    fun iconOverrideAt(index: Int): FvAppSwitcherSlotIconOverride? = slotIconOverrides[index]
 
     fun configuredCount(): Int = slots.values.count { it.payload.isNotBlank() }
 
@@ -90,7 +93,7 @@ data class FvAppSwitcherSettings(
     )
 
     fun withSlotsFrom(source: FvAppSwitcherSettings): FvAppSwitcherSettings =
-        copy(slots = source.slots)
+        copy(slots = source.slots, slotIconOverrides = source.slotIconOverrides)
 
     companion object {
         const val MIN_CIRCLE_COUNT = 1
@@ -192,6 +195,7 @@ data class FvAppSwitcherSettings(
             prefs[keys.endMarginDeg] =
                 settings.endMarginDeg.coerceIn(MIN_END_MARGIN_DEG, MAX_END_MARGIN_DEG)
             prefs[keys.slots] = FvAppSwitcherSlotCodec.encodeAll(settings.slots)
+            prefs[keys.slotIconOverrides] = FvAppSwitcherSlotIconOverrideCodec.encodeAll(settings.slotIconOverrides)
         }
 
         private fun readAxis(prefs: Preferences, axis: FvAppSwitcherAxis): FvAppSwitcherSettings {
@@ -203,6 +207,8 @@ data class FvAppSwitcherSettings(
             val layerGapDp = prefs[keys.layerGapDp] ?: DEFAULT_LAYER_GAP_DP
             val endMarginDeg = prefs[keys.endMarginDeg] ?: DEFAULT_END_MARGIN_DEG
             val slots = FvAppSwitcherSlotCodec.decodeAll(prefs[keys.slots] ?: emptySet())
+            val slotIconOverrides =
+                FvAppSwitcherSlotIconOverrideCodec.decodeAll(prefs[keys.slotIconOverrides] ?: emptySet())
             return FvAppSwitcherSettings(
                 circleCount = circleCount.coerceIn(MIN_CIRCLE_COUNT, MAX_CIRCLE_COUNT),
                 iconSizeDp = iconSizeDp.coerceIn(MIN_ICON_SIZE_DP, MAX_ICON_SIZE_DP),
@@ -211,6 +217,7 @@ data class FvAppSwitcherSettings(
                 layerGapDp = layerGapDp.coerceIn(MIN_LAYER_GAP_DP, MAX_LAYER_GAP_DP),
                 endMarginDeg = endMarginDeg.coerceIn(MIN_END_MARGIN_DEG, MAX_END_MARGIN_DEG),
                 slots = slots,
+                slotIconOverrides = slotIconOverrides,
             )
         }
 
@@ -221,7 +228,8 @@ data class FvAppSwitcherSettings(
             if (prefs[SettingsPreferenceKeys.FV_APP_SWITCHER_HORIZONTAL_BASE_RADIUS_DP] != null) return true
             if (prefs[SettingsPreferenceKeys.FV_APP_SWITCHER_HORIZONTAL_LAYER_GAP_DP] != null) return true
             if (prefs[SettingsPreferenceKeys.FV_APP_SWITCHER_HORIZONTAL_END_MARGIN_DEG] != null) return true
-            return prefs[SettingsPreferenceKeys.FV_APP_SWITCHER_HORIZONTAL_SLOTS]?.isNotEmpty() == true
+            return prefs[SettingsPreferenceKeys.FV_APP_SWITCHER_HORIZONTAL_SLOTS]?.isNotEmpty() == true ||
+                prefs[SettingsPreferenceKeys.FV_APP_SWITCHER_HORIZONTAL_SLOT_ICON_OVERRIDES]?.isNotEmpty() == true
         }
 
         private data class AxisKeys(
@@ -232,6 +240,7 @@ data class FvAppSwitcherSettings(
             val layerGapDp: Preferences.Key<Float>,
             val endMarginDeg: Preferences.Key<Float>,
             val slots: Preferences.Key<Set<String>>,
+            val slotIconOverrides: Preferences.Key<Set<String>>,
         )
 
         private fun keysFor(axis: FvAppSwitcherAxis): AxisKeys = when (axis) {
@@ -243,6 +252,7 @@ data class FvAppSwitcherSettings(
                 layerGapDp = SettingsPreferenceKeys.FV_APP_SWITCHER_LAYER_GAP_DP,
                 endMarginDeg = SettingsPreferenceKeys.FV_APP_SWITCHER_END_MARGIN_DEG,
                 slots = SettingsPreferenceKeys.FV_APP_SWITCHER_SLOTS,
+                slotIconOverrides = SettingsPreferenceKeys.FV_APP_SWITCHER_SLOT_ICON_OVERRIDES,
             )
             FvAppSwitcherAxis.HORIZONTAL -> AxisKeys(
                 circleCount = SettingsPreferenceKeys.FV_APP_SWITCHER_HORIZONTAL_CIRCLE_COUNT,
@@ -252,6 +262,7 @@ data class FvAppSwitcherSettings(
                 layerGapDp = SettingsPreferenceKeys.FV_APP_SWITCHER_HORIZONTAL_LAYER_GAP_DP,
                 endMarginDeg = SettingsPreferenceKeys.FV_APP_SWITCHER_HORIZONTAL_END_MARGIN_DEG,
                 slots = SettingsPreferenceKeys.FV_APP_SWITCHER_HORIZONTAL_SLOTS,
+                slotIconOverrides = SettingsPreferenceKeys.FV_APP_SWITCHER_HORIZONTAL_SLOT_ICON_OVERRIDES,
             )
         }
     }
@@ -270,6 +281,23 @@ fun MutableMap<Int, QuickLauncherItem>.moveFvAppSwitcherSlot(
     } else {
         remove(fromIndex)
         this[toIndex] = fromItem
+    }
+    return true
+}
+
+fun MutableMap<Int, FvAppSwitcherSlotIconOverride>.moveFvAppSwitcherSlotIconOverride(
+    fromIndex: Int,
+    toIndex: Int,
+): Boolean {
+    if (fromIndex == toIndex) return false
+    val fromOverride = this[fromIndex] ?: return false
+    val toOverride = this[toIndex]
+    if (toOverride != null) {
+        this[fromIndex] = toOverride
+        this[toIndex] = fromOverride
+    } else {
+        remove(fromIndex)
+        this[toIndex] = fromOverride
     }
     return true
 }

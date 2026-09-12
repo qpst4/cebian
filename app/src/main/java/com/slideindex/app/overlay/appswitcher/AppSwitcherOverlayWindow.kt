@@ -63,6 +63,25 @@ object AppSwitcherOverlayWindow {
 
     fun currentAxis(): FvAppSwitcherAxis = activeSide?.toAxis() ?: FvAppSwitcherAxis.VERTICAL
 
+    fun suspendForSlotIconEditor() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { suspendForSlotIconEditor() }
+            return
+        }
+        slotConfigDialogHost?.dismiss()
+        slotConfigDialogHost = null
+        controller?.suspendForExternalActivity()
+    }
+
+    fun resumeAfterSlotIconEditor() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { resumeAfterSlotIconEditor() }
+            return
+        }
+        controller?.resumeAfterExternalActivity()
+        refreshFromSettings()
+    }
+
     fun openSlotPicker(slotIndex: Int) {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             mainHandler.post { openSlotPicker(slotIndex) }
@@ -108,6 +127,12 @@ object AppSwitcherOverlayWindow {
                             deps.settingsRepository.setFvAppSwitcherSlot(axis, slotIndex, itemToSet)
                             refreshFromSettings()
                         }
+                    },
+                    onOpenCustomIconEditor = {
+                        suspendForSlotIconEditor()
+                        val intent = com.slideindex.app.service.AppSwitcherSlotIconEditorTrampolineActivity
+                            .createIntent(hostContext, axis, slotIndex)
+                        runCatching { hostContext.startActivity(intent) }
                     },
                     launchCreateShortcut = { createHost, onResult ->
                         CreateShortcutTrampoline.launch(

@@ -431,7 +431,7 @@ private fun QuickLauncherAddOverlayHeader(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 4.dp),
+                .padding(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (subScreen != QuickLauncherAddSubScreen.Main) {
@@ -500,7 +500,7 @@ private fun QuickLauncherAddOverlayHeader(
                 onQueryChange = onSearchChange,
                 focusRequester = searchFocusRequester,
                 hintResId = searchHintResId,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
             )
             if (subScreen is QuickLauncherAddSubScreen.Main || subScreen is QuickLauncherAddSubScreen.CreateFolder) {
                 MiuixTabRowWithContour(
@@ -512,7 +512,7 @@ private fun QuickLauncherAddOverlayHeader(
                     selectedTabIndex = selectedTab,
                     onTabSelected = onTabSelected,
                     contourHost = MiuixTabRowContourHost.SurfaceContainer,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
                 )
             }
         }

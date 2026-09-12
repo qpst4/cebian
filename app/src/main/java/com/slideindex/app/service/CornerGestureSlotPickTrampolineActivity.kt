@@ -15,6 +15,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.slideindex.app.di.AppDependencies
+import com.slideindex.app.overlay.corner.CornerGestureHost
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.CornerRadialMenuCodec
 import com.slideindex.app.ui.CornerGestureSlotEditorHost
@@ -83,6 +84,7 @@ class CornerGestureSlotPickTrampolineActivity : ComponentActivity() {
         finish()
         @Suppress("DEPRECATION")
         overridePendingTransition(0, 0)
+        CornerGestureHost.resumeAfterSlotPicker()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

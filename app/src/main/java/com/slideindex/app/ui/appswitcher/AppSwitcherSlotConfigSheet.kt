@@ -13,27 +13,21 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.RestartAlt
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -66,6 +60,7 @@ import com.slideindex.app.ui.quicklauncher.QuickLauncherAddSubScreen
 import com.slideindex.app.util.AppShortcutLoader
 import com.slideindex.app.util.AppShortcutLoader.CreatedShortcut
 import kotlinx.coroutines.delay
+import top.yukonga.miuix.kmp.basic.IconButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -77,6 +72,7 @@ fun AppSwitcherSlotConfigSheet(
     shellCommands: List<ShellCommand> = emptyList(),
     onDismiss: () -> Unit,
     onSelectItem: (QuickLauncherItem?) -> Unit,
+    onOpenCustomIconEditor: () -> Unit = {},
     launchCreateShortcut: (
         AppShortcutLoader.CreateShortcutHost,
         (CreatedShortcut?) -> Unit,
@@ -88,12 +84,15 @@ fun AppSwitcherSlotConfigSheet(
     var selectedTab by remember { mutableIntStateOf(0) }
     var searchExpanded by remember { mutableStateOf(false) }
     val searchFocusRequester = remember { FocusRequester() }
+    val slotBound = currentItem != null && currentItem.payload.isNotBlank()
+    val slotEmpty = !slotBound
+    val customIconTitle = stringResource(R.string.animation_style_custom_icon)
 
     val requestDismiss = remember { { visible = false } }
 
     val handleBack: () -> Unit = {
-        when (subScreen) {
-            QuickLauncherAddSubScreen.Main -> {
+        when {
+            subScreen == QuickLauncherAddSubScreen.Main -> {
                 if (
                     !consumeExpandableSearchBack(
                         expanded = searchExpanded,
@@ -105,12 +104,12 @@ fun AppSwitcherSlotConfigSheet(
                     requestDismiss()
                 }
             }
-            QuickLauncherAddSubScreen.PickApp -> subScreen = QuickLauncherAddSubScreen.Main
-            is QuickLauncherAddSubScreen.PickActivity -> subScreen = QuickLauncherAddSubScreen.PickApp
-            is QuickLauncherAddSubScreen.ShellCommandConfig -> subScreen = QuickLauncherAddSubScreen.Main
-            QuickLauncherAddSubScreen.CreateFolder -> subScreen = QuickLauncherAddSubScreen.Main
-            QuickLauncherAddSubScreen.MyShortcuts -> subScreen = QuickLauncherAddSubScreen.Main
-            QuickLauncherAddSubScreen.PresetShortcuts -> subScreen = QuickLauncherAddSubScreen.Main
+            subScreen == QuickLauncherAddSubScreen.PickApp -> subScreen = QuickLauncherAddSubScreen.Main
+            subScreen is QuickLauncherAddSubScreen.PickActivity -> subScreen = QuickLauncherAddSubScreen.PickApp
+            subScreen is QuickLauncherAddSubScreen.ShellCommandConfig -> subScreen = QuickLauncherAddSubScreen.Main
+            subScreen == QuickLauncherAddSubScreen.CreateFolder -> subScreen = QuickLauncherAddSubScreen.Main
+            subScreen == QuickLauncherAddSubScreen.MyShortcuts -> subScreen = QuickLauncherAddSubScreen.Main
+            subScreen == QuickLauncherAddSubScreen.PresetShortcuts -> subScreen = QuickLauncherAddSubScreen.Main
         }
     }
 
@@ -178,12 +177,15 @@ fun AppSwitcherSlotConfigSheet(
                 shadowElevation = 16.dp,
             ) {
                 Column(modifier = Modifier.fillMaxSize()) {
-                    val isFolderSubScreen = subScreen is QuickLauncherAddSubScreen.MyShortcuts || subScreen is QuickLauncherAddSubScreen.PresetShortcuts
-                    // Top Bar
+                    val isFolderSubScreen =
+                        subScreen is QuickLauncherAddSubScreen.MyShortcuts ||
+                            subScreen is QuickLauncherAddSubScreen.PresetShortcuts
+                    val showPickerChrome =
+                        subScreen == QuickLauncherAddSubScreen.Main || isFolderSubScreen
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 4.dp),
+                            .padding(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 4.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         if (subScreen != QuickLauncherAddSubScreen.Main) {
@@ -195,17 +197,24 @@ fun AppSwitcherSlotConfigSheet(
                             }
                         }
 
-                        val title = when (subScreen) {
-                            QuickLauncherAddSubScreen.Main -> stringResource(
+                        val title = when {
+                            subScreen == QuickLauncherAddSubScreen.Main -> stringResource(
                                 R.string.app_switcher_slot_title,
                                 slotIndex + 1,
                             )
-                            QuickLauncherAddSubScreen.MyShortcuts -> stringResource(R.string.quick_launcher_my_shortcuts)
-                            QuickLauncherAddSubScreen.PresetShortcuts -> stringResource(R.string.quick_launcher_preset_shortcuts)
-                            QuickLauncherAddSubScreen.PickApp -> stringResource(R.string.activity_shortcut_pick_app_title)
-                            is QuickLauncherAddSubScreen.PickActivity -> stringResource(R.string.search_engine_pick_activity_title)
-                            is QuickLauncherAddSubScreen.ShellCommandConfig -> stringResource(R.string.gesture_shell_command_config_title)
-                            QuickLauncherAddSubScreen.CreateFolder -> stringResource(R.string.quick_launcher_create_folder)
+                            subScreen == QuickLauncherAddSubScreen.MyShortcuts ->
+                                stringResource(R.string.quick_launcher_my_shortcuts)
+                            subScreen == QuickLauncherAddSubScreen.PresetShortcuts ->
+                                stringResource(R.string.quick_launcher_preset_shortcuts)
+                            subScreen == QuickLauncherAddSubScreen.PickApp ->
+                                stringResource(R.string.activity_shortcut_pick_app_title)
+                            subScreen is QuickLauncherAddSubScreen.PickActivity ->
+                                stringResource(R.string.search_engine_pick_activity_title)
+                            subScreen is QuickLauncherAddSubScreen.ShellCommandConfig ->
+                                stringResource(R.string.gesture_shell_command_config_title)
+                            subScreen == QuickLauncherAddSubScreen.CreateFolder ->
+                                stringResource(R.string.quick_launcher_create_folder)
+                            else -> stringResource(R.string.app_switcher_slot_title, slotIndex + 1)
                         }
 
                         Column(
@@ -220,7 +229,7 @@ fun AppSwitcherSlotConfigSheet(
                                 color = MaterialTheme.colorScheme.onSurface,
                             )
                             if (subScreen == QuickLauncherAddSubScreen.Main) {
-                                val statusText = if (currentItem != null && currentItem.payload.isNotBlank()) {
+                                val statusText = if (slotBound) {
                                     stringResource(
                                         R.string.app_switcher_slot_bound,
                                         currentItem.label.ifBlank { currentItem.payload },
@@ -238,27 +247,16 @@ fun AppSwitcherSlotConfigSheet(
                             }
                         }
 
-                        if (currentItem != null && currentItem.payload.isNotBlank() && subScreen == QuickLauncherAddSubScreen.Main) {
-                            TextButton(
-                                onClick = {
-                                    onSelectItem(null)
-                                    requestDismiss()
-                                },
-                                colors = ButtonDefaults.textButtonColors(
-                                    contentColor = MaterialTheme.colorScheme.error,
-                                ),
-                            ) {
+                        if (slotBound && subScreen == QuickLauncherAddSubScreen.Main) {
+                            IconButton(onClick = onOpenCustomIconEditor) {
                                 Icon(
-                                    imageVector = Icons.Outlined.RestartAlt,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(18.dp),
+                                    imageVector = Icons.Outlined.Image,
+                                    contentDescription = customIconTitle,
                                 )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text(text = stringResource(R.string.ocr_restore_default))
                             }
                         }
 
-                        if (subScreen == QuickLauncherAddSubScreen.Main || isFolderSubScreen) {
+                        if (showPickerChrome) {
                             MiuixExpandableSearchIconAction(
                                 expanded = searchExpanded,
                                 query = searchQuery,
@@ -275,14 +273,14 @@ fun AppSwitcherSlotConfigSheet(
                         }
                     }
 
-                    if (subScreen == QuickLauncherAddSubScreen.Main || isFolderSubScreen) {
+                    if (showPickerChrome) {
                         MiuixExpandableSearchFieldStrip(
                             expanded = searchExpanded,
                             query = searchQuery,
                             onQueryChange = { searchQuery = it },
                             focusRequester = searchFocusRequester,
                             hintResId = searchHintResId,
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
                         )
                     }
                     if (subScreen == QuickLauncherAddSubScreen.Main) {
@@ -295,7 +293,7 @@ fun AppSwitcherSlotConfigSheet(
                             selectedTabIndex = selectedTab,
                             onTabSelected = { selectedTab = it },
                             contourHost = MiuixTabRowContourHost.SurfaceContainer,
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
                         )
                     }
 
@@ -304,7 +302,6 @@ fun AppSwitcherSlotConfigSheet(
                         modifier = Modifier.padding(top = 4.dp),
                     )
 
-                    // Body
                     Box(
                         modifier = Modifier
                             .weight(1f)
@@ -330,6 +327,12 @@ fun AppSwitcherSlotConfigSheet(
                             onSubScreenChange = { subScreen = it },
                             selectedTab = selectedTab,
                             singleSelect = true,
+                            pinNoneAtTop = true,
+                            slotEmpty = slotEmpty,
+                            onClearSlot = {
+                                onSelectItem(null)
+                                requestDismiss()
+                            },
                         )
                     }
                 }

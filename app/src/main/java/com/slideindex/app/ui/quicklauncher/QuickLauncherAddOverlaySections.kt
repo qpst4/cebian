@@ -134,6 +134,9 @@ internal fun QuickLauncherAddOverlaySheetBody(
     onSubScreenChange: (QuickLauncherAddSubScreen) -> Unit,
     selectedTab: Int,
     singleSelect: Boolean = false,
+    pinNoneAtTop: Boolean = false,
+    slotEmpty: Boolean = false,
+    onClearSlot: () -> Unit = {},
     folderName: String = "",
     folderItems: List<QuickLauncherItem> = emptyList(),
     folderPickerActive: Boolean = false,
@@ -345,6 +348,9 @@ internal fun QuickLauncherAddOverlaySheetBody(
                             onSubScreenChange(QuickLauncherAddSubScreen.ShellCommandConfig())
                         },
                         singleSelect = singleSelect,
+                        pinNoneAtTop = pinNoneAtTop,
+                        noneSelected = slotEmpty,
+                        onSelectNone = onClearSlot,
                         modifier = Modifier.fillMaxSize(),
                     )
                 }
@@ -500,15 +506,14 @@ private fun QuickLauncherAddActionsTab(
     onOpenExecuteShellCommand: () -> Unit,
     modifier: Modifier,
     singleSelect: Boolean = false,
+    pinNoneAtTop: Boolean = false,
+    noneSelected: Boolean = false,
+    onSelectNone: () -> Unit = {},
 ) {
     val filtered = rememberQuickLauncherFilteredActions(searchQuery)
     LazyColumn(
         modifier = modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(
-            start = PickerListOverlayHorizontalPadding,
-            end = PickerListOverlayHorizontalPadding,
-            bottom = 8.dp,
-        ),
+        contentPadding = PaddingValues(bottom = 8.dp),
         verticalArrangement = Arrangement.spacedBy(pickerListSegmentedGap()),
     ) {
         quickLauncherAddPickerActionItems(
@@ -517,6 +522,10 @@ private fun QuickLauncherAddActionsTab(
             onToggleItem = onToggleItem,
             onOpenExecuteShellCommand = onOpenExecuteShellCommand,
             singleSelect = singleSelect,
+            pinNoneAtTop = pinNoneAtTop,
+            noneSelected = noneSelected,
+            onSelectNone = onSelectNone,
+            searchQuery = searchQuery,
         )
     }
 }
@@ -541,11 +550,7 @@ private fun QuickLauncherAddAppsTab(
     }
     LazyColumn(
         modifier = modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(
-            start = PickerListOverlayHorizontalPadding,
-            end = PickerListOverlayHorizontalPadding,
-            bottom = 8.dp,
-        ),
+        contentPadding = PaddingValues(bottom = 8.dp),
         verticalArrangement = Arrangement.spacedBy(pickerListSegmentedGap()),
     ) {
         quickLauncherAddPickerAppItems(
@@ -581,11 +586,7 @@ private fun QuickLauncherAddShortcutsTab(
 
     LazyColumn(
         modifier = modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(
-            start = PickerListOverlayHorizontalPadding,
-            end = PickerListOverlayHorizontalPadding,
-            bottom = 8.dp,
-        ),
+        contentPadding = PaddingValues(bottom = 8.dp),
         verticalArrangement = Arrangement.spacedBy(pickerListSegmentedGap()),
     ) {
         if (searchQuery.isBlank()) {
@@ -706,7 +707,7 @@ internal fun QuickLauncherCreateFolderScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 6.dp),
+                .padding(horizontal = 12.dp, vertical = 6.dp),
         ) {
             MiuixLabeledTextField(
                 value = folderName,

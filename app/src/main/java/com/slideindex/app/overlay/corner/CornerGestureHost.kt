@@ -16,7 +16,19 @@ class CornerGestureHost(
 ) {
     private var controller: CornerGestureController? = null
 
+    companion object {
+        @Volatile
+        private var active: CornerGestureHost? = null
+
+        fun resumeAfterSlotPicker() {
+            val host = active ?: return
+            host.controller?.resumeAfterSlotPicker()
+            host.controller?.applySettings(host.deps.settingsRepository.readSnapshot())
+        }
+    }
+
     fun start() {
+        active = this
         if (controller != null) return
         controller = CornerGestureController(
             context = context,
@@ -43,6 +55,9 @@ class CornerGestureHost(
     }
 
     fun stop() {
+        if (active === this) {
+            active = null
+        }
         controller?.destroy()
         controller = null
     }

@@ -2,12 +2,13 @@ package com.slideindex.app.ui
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.FileDownload
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
@@ -34,6 +35,7 @@ fun CornerGestureSlotSettingsScreen(
     subMenuConfig: CornerSlotSubMenuConfig,
     appSettings: AppSettings,
     onBack: () -> Unit,
+    onSave: () -> Unit,
     onPickMainAction: () -> Unit,
     onSubMenuEnabledChange: (Boolean) -> Unit,
     onRemoveSubMenuItem: (Int) -> Unit,
@@ -57,7 +59,15 @@ fun CornerGestureSlotSettingsScreen(
     SettingsScreenScaffold(
         title = slotTitle,
         pageHint = stringResource(R.string.corner_gesture_slots_entry_desc),
-        onBack = onBack
+        onBack = onBack,
+        actions = {
+            IconButton(onClick = onSave) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = stringResource(R.string.fv_app_switcher_done),
+                )
+            }
+        },
     ) {
         settingsLazyHint(
             key = "corner-slot-corner-hint",

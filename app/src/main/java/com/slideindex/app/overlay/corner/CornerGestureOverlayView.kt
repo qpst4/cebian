@@ -5,7 +5,6 @@ import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.Intent
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
@@ -19,7 +18,6 @@ import com.slideindex.app.gesture.ActionExecutor
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.isCornerInnerZoneOnly
 import com.slideindex.app.gesture.isEffective
-import com.slideindex.app.service.CornerGestureSlotPickTrampolineActivity
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.CornerGestureSettings
 import com.slideindex.app.settings.CornerRadialMenuCodec
@@ -37,6 +35,7 @@ internal class CornerGestureOverlayView(
     private val appRepository: AppRepository,
     private val onSessionEnd: () -> Unit,
     private val onReleaseCapture: () -> Unit = {},
+    private val onOpenSlotPicker: (CornerAnchor, Int) -> Unit = { _, _ -> },
     private val onShellCommandsPersist: (List<ShellCommand>) -> Unit,
     private val onMenuVisualActiveChange: (Boolean) -> Unit = {},
 ) : View(context) {
@@ -210,8 +209,7 @@ internal class CornerGestureOverlayView(
                 return true
             }
             mode == SessionMode.EDIT && slot >= 0 -> {
-                openSlotPicker(anchor, slot)
-                dismissWheel()
+                onOpenSlotPicker(anchor, slot)
                 return true
             }
             innerRelease && innerAction is GestureAction.CornerInnerPinWheel -> {
@@ -757,17 +755,6 @@ internal class CornerGestureOverlayView(
 
     private fun GestureAction.usesLaunchPolicy(): Boolean =
         this is GestureAction.LaunchApp || this is GestureAction.LaunchShortcut
-
-    private fun openSlotPicker(anchor: CornerAnchor, slotIndex: Int) {
-        val corner = when (anchor) {
-            CornerAnchor.LEFT -> CornerGestureSlotPickTrampolineActivity.CORNER_LEFT
-            CornerAnchor.RIGHT -> CornerGestureSlotPickTrampolineActivity.CORNER_RIGHT
-        }
-        val intent = CornerGestureSlotPickTrampolineActivity.createIntent(context, corner, slotIndex).apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
-        runCatching { context.startActivity(intent) }
-    }
 
     private fun anchorCenter(anchor: CornerAnchor): Pair<Float, Float> = when (anchor) {
         CornerAnchor.LEFT -> 0f to height.toFloat()

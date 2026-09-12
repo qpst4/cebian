@@ -724,6 +724,7 @@ internal class AppSwitcherOverlayView(
             editDragFromSlot = editDragFromSlot,
             editDragX = editDragX,
             editDragY = editDragY,
+            slotIconOverrides = fvSettings.slotIconOverrides,
         )
     }
 

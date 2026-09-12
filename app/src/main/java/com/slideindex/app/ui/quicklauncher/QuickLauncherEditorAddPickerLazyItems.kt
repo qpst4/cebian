@@ -21,8 +21,9 @@ import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.launcher.QuickLauncherItemCodec
 import com.slideindex.app.overlay.TaskSwitcherMenuItem
 import com.slideindex.app.ui.AppPackageEntry
-import com.slideindex.app.ui.gestureActionDescription
-import com.slideindex.app.ui.gestureActionLabel
+import com.slideindex.app.ui.gestureActionIcon
+import com.slideindex.app.ui.gesturepicker.gestureActionDescription
+import com.slideindex.app.ui.gesturepicker.gestureActionLabel
 import com.slideindex.app.ui.picker.FilteredShortcutCatalog
 import com.slideindex.app.ui.picker.GestureActionCatalog
 import com.slideindex.app.ui.picker.GestureActionCatalogScope
@@ -41,15 +42,45 @@ fun LazyListScope.quickLauncherAddPickerActionItems(
     onToggleItem: (QuickLauncherItem, Boolean) -> Unit,
     onOpenExecuteShellCommand: () -> Unit,
     singleSelect: Boolean = false,
+    pinNoneAtTop: Boolean = false,
+    noneSelected: Boolean = false,
+    onSelectNone: () -> Unit = {},
+    searchQuery: String = "",
 ) {
+    if (pinNoneAtTop) {
+        item(key = "ql-action-none") {
+            val noneLabel = stringResource(R.string.gesture_action_none)
+            val showNone = searchQuery.isBlank() || noneLabel.contains(searchQuery, ignoreCase = true)
+            if (showNone) {
+                com.slideindex.app.ui.Md3PickerListRow(
+                    segmentIndex = 0,
+                    segmentCount = 1,
+                    title = noneLabel,
+                    subtitle = null,
+                    selected = noneSelected,
+                    onClick = onSelectNone,
+                    leadingContent = {
+                        com.slideindex.app.ui.Md3PickerIconLeading(
+                            icon = gestureActionIcon(GestureAction.None, outlined = true),
+                            selected = noneSelected,
+                        )
+                    },
+                    trailingMode = com.slideindex.app.ui.PickerTrailingMode.Radio,
+                )
+            }
+        }
+    }
+
     if (filtered.isEmpty()) {
-        item(key = "actions_empty") {
-            Text(
-                text = stringResource(R.string.search_no_actions),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 28.dp, vertical = 24.dp),
-            )
+        if (!pinNoneAtTop || !searchQuery.isBlank()) {
+            item(key = "actions_empty") {
+                Text(
+                    text = stringResource(R.string.search_no_actions),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 28.dp, vertical = 24.dp),
+                )
+            }
         }
         return
     }

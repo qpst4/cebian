@@ -526,12 +526,15 @@ class OverlaySettingsMutator @Inject constructor(
             listOf(axis)
         }
         targetAxes.forEach { targetAxis ->
-            val current = FvAppSwitcherSettings.fromPreferences(prefs, targetAxis).slots.toMutableMap()
+            val currentSettings = FvAppSwitcherSettings.fromPreferences(prefs, targetAxis)
+            val current = currentSettings.slots.toMutableMap()
+            val overrides = currentSettings.slotIconOverrides.toMutableMap()
             if (!current.moveFvAppSwitcherSlot(fromIndex, toIndex)) return@forEach
+            overrides.moveFvAppSwitcherSlotIconOverride(fromIndex, toIndex)
             FvAppSwitcherSettings.writeSlotsAxis(
                 prefs,
                 targetAxis,
-                FvAppSwitcherSettings.fromPreferences(prefs, targetAxis).copy(slots = current),
+                currentSettings.copy(slots = current, slotIconOverrides = overrides),
             )
         }
     }
@@ -549,16 +552,47 @@ class OverlaySettingsMutator @Inject constructor(
             listOf(axis)
         }
         targetAxes.forEach { targetAxis ->
-            val current = FvAppSwitcherSettings.fromPreferences(prefs, targetAxis).slots.toMutableMap()
+            val currentSettings = FvAppSwitcherSettings.fromPreferences(prefs, targetAxis)
+            val current = currentSettings.slots.toMutableMap()
+            val overrides = currentSettings.slotIconOverrides.toMutableMap()
             if (item.payload.isBlank()) {
                 current.remove(index)
+                overrides.remove(index)
             } else {
                 current[index] = item
             }
             FvAppSwitcherSettings.writeSlotsAxis(
                 prefs,
                 targetAxis,
-                FvAppSwitcherSettings.fromPreferences(prefs, targetAxis).copy(slots = current),
+                currentSettings.copy(slots = current, slotIconOverrides = overrides),
+            )
+        }
+    }
+
+    suspend fun setFvAppSwitcherSlotIconOverride(
+        axis: FvAppSwitcherAxis,
+        index: Int,
+        override: FvAppSwitcherSlotIconOverride?,
+    ) = editor.edit { prefs ->
+        val linkSlots = prefs[SettingsPreferenceKeys.FV_APP_SWITCHER_LINK_SLOT_AXES]
+            ?: FvAppSwitcherSettings.linkFlagsFromPreferences(prefs).linkSlotAxes
+        val targetAxes = if (linkSlots) {
+            listOf(FvAppSwitcherAxis.VERTICAL, FvAppSwitcherAxis.HORIZONTAL)
+        } else {
+            listOf(axis)
+        }
+        targetAxes.forEach { targetAxis ->
+            val currentSettings = FvAppSwitcherSettings.fromPreferences(prefs, targetAxis)
+            val overrides = currentSettings.slotIconOverrides.toMutableMap()
+            if (override == null || !override.isConfigured()) {
+                overrides.remove(index)
+            } else {
+                overrides[index] = override
+            }
+            FvAppSwitcherSettings.writeSlotsAxis(
+                prefs,
+                targetAxis,
+                currentSettings.copy(slotIconOverrides = overrides),
             )
         }
     }

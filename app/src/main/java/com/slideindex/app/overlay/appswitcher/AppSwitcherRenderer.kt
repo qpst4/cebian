@@ -23,6 +23,7 @@ import com.slideindex.app.overlay.layout.FvAppSwitcherSide
 import com.slideindex.app.overlay.layout.FvCircleLayoutEngine
 import com.slideindex.app.overlay.layout.FvPanelLayout
 import com.slideindex.app.overlay.layout.FvToolbarButton
+import com.slideindex.app.settings.FvAppSwitcherSlotIconOverride
 import com.slideindex.app.shell.ShellCommand
 import kotlin.math.min
 
@@ -87,6 +88,7 @@ internal object AppSwitcherRenderer {
         editDragFromSlot: Int = -1,
         editDragX: Float = 0f,
         editDragY: Float = 0f,
+        slotIconOverrides: Map<Int, FvAppSwitcherSlotIconOverride> = emptyMap(),
     ) {
         val progress = revealProgress.coerceIn(0f, 1f)
         if (progress <= 0.01f) return
@@ -147,6 +149,7 @@ internal object AppSwitcherRenderer {
                         shellCommands = shellCommands,
                         resolvedIcon = target.icon,
                         appRepository = appRepository,
+                        iconOverride = slotIconOverrides[slot],
                     )
                     drawAppIcon(
                         canvas = canvas,
@@ -204,6 +207,7 @@ internal object AppSwitcherRenderer {
                     shellCommands = shellCommands,
                     resolvedIcon = dragTarget.icon,
                     appRepository = appRepository,
+                    iconOverride = slotIconOverrides[editDragFromSlot],
                 )
                 drawAppIcon(
                     canvas = canvas,
@@ -235,6 +239,7 @@ internal object AppSwitcherRenderer {
                     shellCommands = shellCommands,
                     resolvedIcon = target.icon,
                     appRepository = appRepository,
+                    iconOverride = slotIconOverrides[highlightedSlot],
                 )
                 val previewBadgeInfo = drawSelectionPreview(
                     canvas = canvas,

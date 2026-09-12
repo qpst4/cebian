@@ -15,7 +15,7 @@ import com.slideindex.app.gesture.GestureTriggerType
 import com.slideindex.app.launcher.QuickLauncherItemCodec
 import com.slideindex.app.launcher.QuickLauncherItemType
 import com.slideindex.app.overlay.corner.resolveHostPackageName
-import com.slideindex.app.ui.CornerGestureSlotSettingsScreen
+import com.slideindex.app.ui.CornerGestureSlotEditorHost
 import com.slideindex.app.ui.CornerSlotSubMenuShortcutPickScreen
 import com.slideindex.app.ui.GestureActionPickerScreen
 import com.slideindex.app.ui.GestureExecuteShellCommandScreen
@@ -34,71 +34,16 @@ import top.yukonga.miuix.kmp.nav.core.NavEntryBuilder
 
 fun NavEntryBuilder.cornerGestureSlotNavEntries(ctx: MainNavContext) {
     hiltEntry<AppNavKey.HomeCornerGestureSlotEditor> { key ->
-        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
-        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
-        val appSettings by viewModel.settings.collectAsStateWithLifecycle()
-        val cornerSettings = overlaySettings.cornerGestureSettings
-        val currentAction = cornerSlotCurrentAction(key.corner, key.slotIndex, cornerSettings)
-        val subMenuConfig = cornerSlotSubMenuConfig(key.corner, key.slotIndex, cornerSettings)
-        val editorKey = cornerSlotEditorKey(key.corner, key.slotIndex)
-        val context = LocalContext.current
-        val scope = rememberCoroutineScope()
         val cornerTitle = when (key.corner) {
             CORNER_SLOT_CORNER_RIGHT -> stringResource(R.string.corner_gesture_slot_corner_right)
             else -> stringResource(R.string.corner_gesture_slot_corner_left)
         }
-        CornerGestureSlotSettingsScreen(
+        CornerGestureSlotEditorHost(
+            corner = key.corner,
             slotIndex = key.slotIndex,
             cornerTitle = cornerTitle,
-            currentAction = currentAction,
-            subMenuConfig = subMenuConfig,
-            appSettings = appSettings,
-            onBack = { ctx.navigateBackTo(AppNavKey.HomeCornerGestureSlots) },
-            onPickMainAction = {
-                ctx.navigate(AppNavKey.HomeCornerGestureSlotActionPick(key.corner, key.slotIndex))
-            },
-            onSubMenuEnabledChange = { enabled ->
-                viewModel.setCornerSlotSubMenu(
-                    key.corner,
-                    key.slotIndex,
-                    subMenuConfig.copy(enabled = enabled),
-                )
-            },
-            onRemoveSubMenuItem = { index ->
-                val items = subMenuConfig.items.toMutableList()
-                if (index in items.indices) {
-                    items.removeAt(index)
-                    viewModel.setCornerSlotSubMenu(
-                        key.corner,
-                        key.slotIndex,
-                        subMenuConfig.copy(items = items),
-                    )
-                }
-            },
-            onAddSubMenuShortcut = {
-                ctx.navigate(AppNavKey.HomeCornerGestureSlotSubMenuPick(key.corner, key.slotIndex))
-            },
-            onImportFromApp = {
-                scope.launch {
-                    val pkg = currentAction.resolveHostPackageName() ?: return@launch
-                    val loaded = withContext(Dispatchers.IO) {
-                        AppShortcutLoader.loadFastShortcuts(context, pkg)
-                    }
-                    val existing = subMenuConfig.items.map { it.payloadKey }
-                    val shortcuts = loaded.map { item ->
-                        taskSwitcherItemToLaunchShortcut(item, pkg)
-                    }.filter { it.payloadKey !in existing }
-                    viewModel.setCornerSlotSubMenu(
-                        key.corner,
-                        key.slotIndex,
-                        subMenuConfig.copy(
-                            enabled = true,
-                            items = subMenuConfig.items + shortcuts,
-                        ),
-                    )
-                }
-            },
-            canImportFromHost = currentAction.resolveHostPackageName() != null,
+            onExit = { ctx.navigateBackTo(AppNavKey.HomeCornerGestureSlots) },
+            settingsRepository = ctx.deps.settingsRepository,
         )
     }
 
