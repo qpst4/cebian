@@ -48,7 +48,7 @@ import top.yukonga.miuix.kmp.basic.DropdownEntry
 import top.yukonga.miuix.kmp.basic.DropdownItem
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
-import top.yukonga.miuix.kmp.menu.WindowIconDropdownMenu
+import top.yukonga.miuix.kmp.menu.OverlayIconDropdownMenu
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -60,7 +60,7 @@ fun FreezerPanelContent(
     onBack: (() -> Unit)? = null,
     onManageApps: (() -> Unit)? = null,
     onAppLaunched: (() -> Unit)? = null,
-    overlayMode: Boolean = false
+    overlayMode: Boolean = false,
 ) {
     val context = LocalContext.current
     val resources = LocalResources.current
@@ -182,19 +182,19 @@ fun FreezerPanelContent(
                         Icon(
                             imageVector = Icons.Default.MoreVert,
                             contentDescription = stringResource(R.string.freezer_batch_menu),
-                            tint = MiuixTheme.colorScheme.onBackground
+                            tint = MiuixTheme.colorScheme.onBackground,
                         )
                     }
                     DropdownMenu(
                         expanded = overflowMenuExpanded,
-                        onDismissRequest = { overflowMenuExpanded = false }
+                        onDismissRequest = { overflowMenuExpanded = false },
                     ) {
                         DropdownMenuItem(
                             text = { Text(importFrozenLabel) },
                             onClick = {
                                 overflowMenuExpanded = false
                                 importFrozenApps()
-                            }
+                            },
                         )
                         DropdownMenuItem(
                             text = { Text(unfreezeAllLabel) },
@@ -205,16 +205,16 @@ fun FreezerPanelContent(
                                         freezeStateRevision++
                                     }
                                 }
-                            }
+                            },
                         )
                     }
                 }
             } else {
-                WindowIconDropdownMenu(entry = overflowMenuEntry) {
+                OverlayIconDropdownMenu(entry = overflowMenuEntry) {
                     Icon(
                         imageVector = Icons.Default.MoreVert,
                         contentDescription = stringResource(R.string.freezer_batch_menu),
-                        tint = MiuixTheme.colorScheme.onBackground
+                        tint = MiuixTheme.colorScheme.onBackground,
                     )
                 }
             }
@@ -264,7 +264,7 @@ fun FreezerPanelContent(
                     modifier = Modifier.fillMaxSize(),
                     onAppLaunched = onAppLaunched,
                     onManageApps = onManageApps,
-                    overlayMode = overlayMode
+                    overlayMode = overlayMode,
                 )
             }
         }

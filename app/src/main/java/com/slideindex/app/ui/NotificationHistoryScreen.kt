@@ -18,7 +18,7 @@ import top.yukonga.miuix.kmp.basic.DropdownEntry
 import top.yukonga.miuix.kmp.basic.DropdownItem
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
-import top.yukonga.miuix.kmp.menu.WindowIconDropdownMenu
+import top.yukonga.miuix.kmp.menu.OverlayIconDropdownMenu
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -225,7 +225,7 @@ fun NotificationHistoryScreen(
                     tint = MiuixTheme.colorScheme.onBackground,
                 )
             }
-            WindowIconDropdownMenu(entry = moreMenuEntry) {
+            OverlayIconDropdownMenu(entry = moreMenuEntry) {
                 Icon(
                     Icons.Default.MoreVert,
                     contentDescription = stringResource(R.string.notification_filter_more_menu),

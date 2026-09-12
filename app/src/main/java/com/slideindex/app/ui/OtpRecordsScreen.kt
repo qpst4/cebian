@@ -51,7 +51,7 @@ import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
-import top.yukonga.miuix.kmp.menu.WindowIconDropdownMenu
+import top.yukonga.miuix.kmp.menu.OverlayIconDropdownMenu
 import top.yukonga.miuix.kmp.squircle.squircleSurface
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.preference.RadioButtonLocation
@@ -315,7 +315,7 @@ private fun OtpRecordsFilterSortActions(
     IconButton(onClick = onShowFilterSheet) {
         Icon(Icons.Default.FilterList, contentDescription = stringResource(R.string.otp_records_filter))
     }
-    WindowIconDropdownMenu(entry = sortEntry) {
+    OverlayIconDropdownMenu(entry = sortEntry) {
         Icon(
             Icons.Default.SwapVert,
             contentDescription = stringResource(R.string.otp_records_sort),

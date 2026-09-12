@@ -63,7 +63,7 @@ import top.yukonga.miuix.kmp.basic.BasicComponent
 import top.yukonga.miuix.kmp.basic.DropdownEntry
 import top.yukonga.miuix.kmp.basic.DropdownItem
 import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
-import top.yukonga.miuix.kmp.menu.WindowIconDropdownMenu
+import top.yukonga.miuix.kmp.menu.OverlayIconDropdownMenu
 import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
@@ -492,7 +492,7 @@ private fun ActivityShortcutSavedRowContent(
             }
         },
         endActions = {
-            WindowIconDropdownMenu(entry = menuEntry) {
+            OverlayIconDropdownMenu(entry = menuEntry) {
                 MiuixIcon(
                     imageVector = Icons.Default.MoreVert,
                     contentDescription = moreMenuDesc,

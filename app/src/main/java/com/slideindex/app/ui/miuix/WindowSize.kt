@@ -16,16 +16,31 @@ import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.slideindex.app.ui.mainAppPrefersWideContentLayout
 import com.slideindex.app.ui.LocalMainNavContentStartInset
+import com.slideindex.app.ui.theme.LocalPlatformDensity
+
+/** 宽屏阈值：与 Material [androidx.window.core.layout.WindowSizeClass.WIDTH_DP_MEDIUM_LOWER_BOUND] 一致。 */
+private val WideScreenMinWidth: Dp = 600.dp
 
 /** 宽屏下设置列表内容的最大宽度；LazyColumn 本身保持全宽，通过 contentPadding 居中限宽。 */
 val SettingsContentMaxWidth: Dp = 720.dp
 
 /** 列表内容与屏幕边缘的基础水平间距（叠加 [WideContentBox] 的 sidePadding）。 */
 val SettingsListHorizontalPadding: Dp = 12.dp
+
+/**
+ * 是否宽屏：用缩放前的 [LocalPlatformDensity] 量宽，避免界面缩放与外壳/内容居中判定不一致。
+ */
+@Composable
+fun rememberIsWideScreen(): Boolean {
+    val containerSize = LocalWindowInfo.current.containerSize
+    val density = LocalPlatformDensity.current ?: LocalDensity.current
+    return with(density) { containerSize.width.toDp() >= WideScreenMinWidth }
+}
 
 /**
  * 宽屏内容居中：算出单侧留白 [sidePadding]，交给调用方加进 LazyColumn 的 `contentPadding`。
@@ -36,7 +51,7 @@ fun WideContentBox(
     modifier: Modifier = Modifier,
     content: @Composable (sidePadding: Dp) -> Unit,
 ) {
-    val isWideScreen = mainAppPrefersWideContentLayout()
+    val isWideScreen = rememberIsWideScreen()
     val structuralStartInset = LocalMainNavContentStartInset.current
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val availableWidth = (maxWidth - structuralStartInset).coerceAtLeast(0.dp)

@@ -51,6 +51,8 @@ data class AppSettings(
     val customColorEnabled: Boolean = false,
     val darkBackgroundStyleId: Int = DarkBackgroundStyle.QUIET_BLUE.id,
     val themeColorSpecId: Int = AppColorSpec.SPEC_2025.id,
+    /** 应用内 Compose 界面密度缩放（0.8–1.1，不含系统字体大小）。 */
+    val uiDensityScale: Float = UiDensityScaleLimits.DEFAULT_SCALE,
     /** 底栏内容模式（图标+文字 / 仅图标）。 */
     val bottomNavStyleId: Int = BottomNavStyle.FLOATING_NAV.id,
     val bottomNavModeId: Int = BottomNavMode.ICON_AND_TEXT.id,

@@ -1582,6 +1582,9 @@
     <string name="theme_palette_content">Content</string>
     <string name="theme_palette_rainbow">Rainbow</string>
     <string name="theme_palette_fruit_salad">Fruit salad</string>
+    <string name="theme_ui_density_scale">UI scale</string>
+    <string name="theme_ui_density_scale_desc">Resize in-app UI elements without changing system font size</string>
+    <string name="theme_ui_density_scale_value">%1$d%%</string>
     <string name="theme_mode">Theme mode</string>
     <string name="theme_mode_system">System</string>
     <string name="theme_mode_light">Light</string>

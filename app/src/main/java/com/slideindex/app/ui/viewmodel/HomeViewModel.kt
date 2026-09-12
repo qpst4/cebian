@@ -17,6 +17,7 @@ import com.slideindex.app.settings.PrivilegeMode
 import com.slideindex.app.settings.SettingsRepository
 import com.slideindex.app.settings.ThemePaletteStyle
 import com.slideindex.app.settings.TopAppBarBlurStyle
+import com.slideindex.app.settings.UiDensityScaleLimits
 import com.slideindex.app.ui.feedback.UserMessageBus
 
 interface HomeScreenEffects {
@@ -131,6 +132,13 @@ class HomeViewModel @AssistedInject constructor(
     fun setSwipeDismissEnabled(enabled: Boolean) = launchSettingsWrite {
         settingsRepository.setSwipeDismissEnabled(enabled)
     }
+
+    fun setUiDensityScale(scale: Float) = launchOptimisticSettingsWrite(
+        optimisticUpdate = { settings ->
+            settings.copy(uiDensityScale = UiDensityScaleLimits.normalize(scale))
+        },
+        block = { settingsRepository.setUiDensityScale(scale) },
+    )
 
     fun setBottomNavBlurRadiusDp(value: Float) = launchOptimisticSettingsWrite(
         optimisticUpdate = { settings ->

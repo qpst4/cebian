@@ -75,6 +75,10 @@ class OverlaySettingsMutator @Inject constructor(
         it[SettingsPreferenceKeys.TOP_APP_BAR_BLUR_STYLE] = style.id
     }
 
+    suspend fun setUiDensityScale(scale: Float) = editor.edit {
+        it[SettingsPreferenceKeys.UI_DENSITY_SCALE] = UiDensityScaleLimits.normalize(scale)
+    }
+
     suspend fun setFreeWindowEnabled(enabled: Boolean) = editor.edit { it[SettingsPreferenceKeys.FREE_WINDOW_ENABLED] = enabled }
     suspend fun setFreeWindowModeId(id: Int) = editor.edit {
         it[SettingsPreferenceKeys.FREE_WINDOW_MODE] = FreeWindowMode.fromId(id).id

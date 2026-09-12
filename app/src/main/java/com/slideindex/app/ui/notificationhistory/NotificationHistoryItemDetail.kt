@@ -26,7 +26,7 @@ import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.DropdownDefaults
 import top.yukonga.miuix.kmp.basic.DropdownEntry
 import top.yukonga.miuix.kmp.basic.DropdownItem
-import top.yukonga.miuix.kmp.popup.WindowDropdownPopup
+import top.yukonga.miuix.kmp.popup.OverlayDropdownPopup
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -282,13 +282,14 @@ internal fun NotificationHistoryRow(
                 }
             }
         }
-        WindowDropdownPopup(
-            entry = menuEntry,
+        OverlayDropdownPopup(
+            entries = listOf(menuEntry),
             show = showMenu,
             onDismiss = { showMenu = false },
             onDismissFinished = {},
             maxHeight = null,
             dropdownColors = DropdownDefaults.dropdownColors(),
+            renderInRootScaffold = true,
         )
     }
 }

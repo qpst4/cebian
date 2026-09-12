@@ -521,6 +521,9 @@
     <string name="theme_palette_content">コンテンツ</string>
     <string name="theme_palette_rainbow">レインボー</string>
     <string name="theme_palette_fruit_salad">フルーツサラダ</string>
+    <string name="theme_ui_density_scale">画面の拡大</string>
+    <string name="theme_ui_density_scale_desc">アプリ内の UI 要素の大きさを調整（システムの文字サイズは変更しません）</string>
+    <string name="theme_ui_density_scale_value">%1$d%%</string>
     <string name="theme_mode">テーマモード</string>
     <string name="theme_mode_system">システム</string>
     <string name="theme_mode_light">ライト</string>

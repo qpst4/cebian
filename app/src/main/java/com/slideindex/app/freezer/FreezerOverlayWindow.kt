@@ -277,7 +277,7 @@ private fun FreezerOverlayRoot(
                             context.startActivity(FreezerPanelIntents.manageApps(context))
                         },
                         onAppLaunched = onDismiss,
-                        overlayMode = true
+                        overlayMode = true,
                     )
                 }
             }

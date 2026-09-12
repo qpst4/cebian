@@ -135,7 +135,6 @@ fun MiuixListScaffold(
             }
         },
         floatingActionButton = floatingActionButton,
-        popupHost = { },
     ) { innerPadding ->
         val layoutDirection = LocalLayoutDirection.current
         WideContentBox { sidePadding ->
@@ -227,7 +226,6 @@ fun MiuixSettingsScreenScaffold(
             },
             floatingActionButton = floatingActionButton,
             bottomBar = bottomBar,
-            popupHost = { },
         ) { innerPadding ->
             val layoutDirection = LocalLayoutDirection.current
             val listModifier = Modifier

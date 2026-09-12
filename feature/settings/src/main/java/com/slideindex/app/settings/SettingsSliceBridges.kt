@@ -94,6 +94,7 @@ fun OverlaySettings.toMinimalAppSettings(): AppSettings = AppSettings(
     themeModeId = themeModeId,
     customColorEnabled = customColorEnabled,
     themeColorSpecId = themeColorSpecId,
+    uiDensityScale = uiDensityScale,
     bottomNavStyleId = bottomNavStyleId,
     bottomNavModeId = bottomNavModeId,
     bottomNavGlassEnabled = bottomNavGlassEnabled,

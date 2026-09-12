@@ -7,8 +7,11 @@ import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MotionScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import com.materialkolor.PaletteStyle
 import com.materialkolor.dynamicColorScheme
 import com.materialkolor.dynamiccolor.ColorSpec
@@ -19,8 +22,10 @@ import com.slideindex.app.settings.DarkBackgroundStyle
 import com.slideindex.app.settings.OverlaySettings
 import com.slideindex.app.settings.ThemePaletteStyle
 import com.slideindex.app.settings.TopAppBarBlurStyle
+import com.slideindex.app.settings.UiDensityScaleLimits
 import com.slideindex.app.ui.miuix.LocalTopAppBarBlurStyle
 import com.slideindex.app.ui.theme.LocalAppDarkTheme
+import com.slideindex.app.ui.theme.LocalPlatformDensity
 import top.yukonga.miuix.kmp.theme.ColorSchemeMode
 import top.yukonga.miuix.kmp.theme.LocalContentColor
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -71,18 +76,32 @@ fun ModuleTheme(
         defaultMiuixMaterialScheme(darkTheme, DarkBackgroundStyle.fromId(settings.darkBackgroundStyleId))
     }
 
+    val currentDensity = LocalDensity.current
+    val densityScale = UiDensityScaleLimits.normalize(settings.uiDensityScale)
+    val appDensity = remember(currentDensity, densityScale) {
+        Density(
+            density = currentDensity.density * densityScale,
+            fontScale = currentDensity.fontScale,
+        )
+    }
+
     MiuixTheme(controller = controller) {
-        MaterialExpressiveTheme(
-            colorScheme = materialScheme,
-            motionScheme = MotionScheme.expressive(),
+        CompositionLocalProvider(
+            LocalPlatformDensity provides currentDensity,
+            LocalDensity provides appDensity,
+            LocalContentColor provides MiuixTheme.colorScheme.onBackground,
+            LocalAppDarkTheme provides darkTheme,
+            LocalTopAppBarBlurStyle provides TopAppBarBlurStyle.fromId(settings.topAppBarBlurStyleId),
         ) {
-            CompositionLocalProvider(
-                LocalContentColor provides MiuixTheme.colorScheme.onBackground,
-                Material3LocalContentColor provides materialScheme.onBackground,
-                LocalAppDarkTheme provides darkTheme,
-                LocalTopAppBarBlurStyle provides TopAppBarBlurStyle.fromId(settings.topAppBarBlurStyleId),
+            MaterialExpressiveTheme(
+                colorScheme = materialScheme,
+                motionScheme = MotionScheme.expressive(),
             ) {
-                content()
+                CompositionLocalProvider(
+                    Material3LocalContentColor provides materialScheme.onBackground,
+                ) {
+                    content()
+                }
             }
         }
     }
@@ -121,6 +140,7 @@ fun OverlaySettings.toModuleThemeSettings(): AppSettings = AppSettings(
     customColorEnabled = customColorEnabled,
     darkBackgroundStyleId = darkBackgroundStyleId,
     themeColorSpecId = themeColorSpecId,
+    uiDensityScale = uiDensityScale,
     topAppBarBlurStyleId = topAppBarBlurStyleId,
 )
 

@@ -12,6 +12,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -25,6 +26,7 @@ import com.slideindex.app.settings.BottomNavStyle
 import com.slideindex.app.settings.DarkBackgroundStyle
 import com.slideindex.app.settings.ThemePaletteStyle
 import com.slideindex.app.settings.TopAppBarBlurStyle
+import com.slideindex.app.settings.UiDensityScaleLimits
 import com.slideindex.app.ui.HomeLeadingIcons
 import com.slideindex.app.ui.miuix.theme.supportsMiuixSpec2025
 import com.slideindex.app.ui.settings.components.settingsCardItem
@@ -32,7 +34,7 @@ import kotlin.math.roundToInt
 import top.yukonga.miuix.kmp.basic.BasicComponent
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.blur.isRuntimeShaderSupported
-import top.yukonga.miuix.kmp.preference.WindowDropdownPreference
+import top.yukonga.miuix.kmp.preference.OverlayDropdownPreference
 
 @Composable
 fun themeAppearanceSettingsCardItems(
@@ -49,6 +51,7 @@ fun themeAppearanceSettingsCardItems(
     bottomNavGlassEnabled: Boolean,
     bottomNavBlurRadiusDp: Float,
     topAppBarBlurStyleId: Int,
+    uiDensityScale: Float,
     onThemeModeChange: (AppThemeMode) -> Unit,
     onCustomColorChange: (Boolean) -> Unit,
     onDarkBackgroundStyleChange: (DarkBackgroundStyle) -> Unit,
@@ -61,6 +64,7 @@ fun themeAppearanceSettingsCardItems(
     onBottomNavGlassEnabledChange: (Boolean) -> Unit,
     onBottomNavBlurRadiusChange: (Float) -> Unit,
     onTopAppBarBlurStyleChange: (TopAppBarBlurStyle) -> Unit,
+    onUiDensityScaleChange: (Float) -> Unit,
     onBottomNavBlurPreviewChange: (Float) -> Unit = {},
     onBottomNavBlurPreviewStop: () -> Unit = {},
 ): List<CardItem> {
@@ -73,6 +77,7 @@ fun themeAppearanceSettingsCardItems(
     val topAppBarBlurStyle = TopAppBarBlurStyle.fromId(topAppBarBlurStyleId)
     val spec2025Supported = paletteStyle.supportsMiuixSpec2025()
     val effectiveColorSpec = if (spec2025Supported) colorSpec else AppColorSpec.SPEC_2021
+    val resources = LocalContext.current.resources
     var showSeedColorPicker by remember { mutableStateOf(false) }
 
     MiuixThemeSeedColorDialog(
@@ -85,7 +90,7 @@ fun themeAppearanceSettingsCardItems(
     return buildList {
         add(
             settingsCardItem("theme-mode") {
-                WindowDropdownPreference(
+                OverlayDropdownPreference(
                     title = stringResource(R.string.theme_mode),
                     items = AppThemeMode.entries.map { stringResource(it.labelRes()) },
                     selectedIndex = AppThemeMode.entries.indexOf(themeMode).coerceAtLeast(0),
@@ -126,7 +131,7 @@ fun themeAppearanceSettingsCardItems(
                         )
                     }
                     val paletteEntries = ThemePaletteStyle.entries
-                    WindowDropdownPreference(
+                    OverlayDropdownPreference(
                         title = stringResource(R.string.theme_palette_style),
                         summary = stringResource(R.string.theme_palette_style_desc),
                         items = paletteEntries.map { stringResource(it.labelRes()) },
@@ -141,7 +146,7 @@ fun themeAppearanceSettingsCardItems(
                     } else {
                         listOf(AppColorSpec.SPEC_2021)
                     }
-                    WindowDropdownPreference(
+                    OverlayDropdownPreference(
                         title = stringResource(R.string.theme_color_spec),
                         summary = if (!spec2025Supported) {
                             stringResource(R.string.theme_color_spec_2025_unsupported)
@@ -160,7 +165,7 @@ fun themeAppearanceSettingsCardItems(
         val darkBackgroundEntries = DarkBackgroundStyle.entries
         add(
             settingsCardItem("theme-dark-background") {
-                WindowDropdownPreference(
+                OverlayDropdownPreference(
                     title = stringResource(R.string.theme_dark_background),
                     summary = stringResource(darkBackgroundStyle.labelRes()),
                     items = darkBackgroundEntries.map { stringResource(it.labelRes()) },
@@ -176,7 +181,7 @@ fun themeAppearanceSettingsCardItems(
             val topAppBarBlurStyleEntries = TopAppBarBlurStyle.entries
             add(
                 settingsCardItem("top-app-bar-blur-style") {
-                    WindowDropdownPreference(
+                    OverlayDropdownPreference(
                         title = stringResource(R.string.top_app_bar_blur_style),
                         summary = stringResource(R.string.top_app_bar_blur_style_desc),
                         items = topAppBarBlurStyleEntries.map { stringResource(it.labelRes()) },
@@ -191,7 +196,7 @@ fun themeAppearanceSettingsCardItems(
         val bottomNavStyleEntries = BottomNavStyle.entries
         add(
             settingsCardItem("bottom-nav-style") {
-                WindowDropdownPreference(
+                OverlayDropdownPreference(
                     title = stringResource(R.string.bottom_nav_style),
                     items = bottomNavStyleEntries.map { stringResource(it.labelRes()) },
                     selectedIndex = bottomNavStyleEntries.indexOf(bottomNavStyle).coerceAtLeast(0),
@@ -202,7 +207,7 @@ fun themeAppearanceSettingsCardItems(
         val bottomNavModeEntries = BottomNavMode.entries
         add(
             settingsCardItem("bottom-nav-mode") {
-                WindowDropdownPreference(
+                OverlayDropdownPreference(
                     title = stringResource(R.string.bottom_nav_mode),
                     items = bottomNavModeEntries.map { stringResource(it.labelRes()) },
                     selectedIndex = bottomNavModeEntries.indexOf(bottomNavMode).coerceAtLeast(0),
@@ -232,6 +237,27 @@ fun themeAppearanceSettingsCardItems(
                         onValueChange = onBottomNavBlurRadiusChange,
                     )
                 }
+            },
+        )
+        add(
+            settingsCardItem("theme-ui-density-scale") {
+                MiuixSliderRow(
+                    title = stringResource(R.string.theme_ui_density_scale),
+                    summary = stringResource(R.string.theme_ui_density_scale_desc),
+                    value = UiDensityScaleLimits.scaleToPercent(uiDensityScale),
+                    valueRange = UiDensityScaleLimits.MIN_PERCENT.toFloat()..UiDensityScaleLimits.MAX_PERCENT.toFloat(),
+                    keyPoints = UiDensityScaleLimits.KEY_POINT_PERCENTS,
+                    commitOnFinish = true,
+                    formatLabel = { percent ->
+                        resources.getString(
+                            R.string.theme_ui_density_scale_value,
+                            percent.roundToInt(),
+                        )
+                    },
+                    onValueChange = { percent ->
+                        onUiDensityScaleChange(UiDensityScaleLimits.percentToScale(percent))
+                    },
+                )
             },
         )
     }

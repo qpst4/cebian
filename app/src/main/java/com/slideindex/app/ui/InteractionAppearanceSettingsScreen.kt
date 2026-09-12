@@ -48,6 +48,7 @@ fun InteractionAppearanceSettingsScreen(
     onBottomNavGlassEnabledChange: (Boolean) -> Unit,
     onBottomNavBlurRadiusChange: (Float) -> Unit,
     onTopAppBarBlurStyleChange: (TopAppBarBlurStyle) -> Unit,
+    onUiDensityScaleChange: (Float) -> Unit,
     onAppUiLanguageChange: (com.slideindex.app.settings.AppUiLanguage) -> Unit,
     onBottomNavBlurPreviewChange: (Float) -> Unit = {},
     onBottomNavBlurPreviewStop: () -> Unit = {},
@@ -79,6 +80,7 @@ fun InteractionAppearanceSettingsScreen(
         bottomNavGlassEnabled = settings.bottomNavGlassEnabled,
         bottomNavBlurRadiusDp = settings.bottomNavBlurRadiusDp,
         topAppBarBlurStyleId = settings.topAppBarBlurStyleId,
+        uiDensityScale = settings.uiDensityScale,
         onThemeModeChange = onThemeModeChange,
         onCustomColorChange = onCustomColorChange,
         onDarkBackgroundStyleChange = onDarkBackgroundStyleChange,
@@ -91,6 +93,7 @@ fun InteractionAppearanceSettingsScreen(
         onBottomNavGlassEnabledChange = onBottomNavGlassEnabledChange,
         onBottomNavBlurRadiusChange = onBottomNavBlurRadiusChange,
         onTopAppBarBlurStyleChange = onTopAppBarBlurStyleChange,
+        onUiDensityScaleChange = onUiDensityScaleChange,
         onBottomNavBlurPreviewChange = onBottomNavBlurPreviewChange,
         onBottomNavBlurPreviewStop = onBottomNavBlurPreviewStop,
     )

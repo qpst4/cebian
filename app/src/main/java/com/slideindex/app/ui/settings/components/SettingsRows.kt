@@ -34,8 +34,8 @@ import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.preference.RadioButtonLocation
 import top.yukonga.miuix.kmp.preference.RadioButtonPreference
 import top.yukonga.miuix.kmp.preference.SwitchPreference
-import top.yukonga.miuix.kmp.preference.WindowDropdownPreference
-import top.yukonga.miuix.kmp.preference.WindowSpinnerPreference
+import top.yukonga.miuix.kmp.preference.OverlayDropdownPreference
+import top.yukonga.miuix.kmp.preference.OverlaySpinnerPreference
 import top.yukonga.miuix.kmp.basic.DropdownItem
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
@@ -273,7 +273,7 @@ fun SettingsCardScope.SettingDropdownRow(
     onSelectedIndexChange: (Int) -> Unit,
 ) {
     SettingsCardRow(key = title) { position ->
-        WindowDropdownPreference(
+        OverlayDropdownPreference(
             modifier = Modifier.settingsGroupedRowBackground(position.index, position.count),
             title = title,
             summary = subtitle,
@@ -298,7 +298,7 @@ fun SettingsCardScope.SettingSpinnerRow(
     onSelectedIndexChange: (Int) -> Unit,
 ) {
     SettingsCardRow(key = title) { position ->
-        WindowSpinnerPreference(
+        OverlaySpinnerPreference(
             modifier = Modifier.settingsGroupedRowBackground(position.index, position.count),
             title = title,
             summary = subtitle,

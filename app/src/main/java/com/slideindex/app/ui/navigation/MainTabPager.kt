@@ -168,7 +168,6 @@ internal fun MainTabPagerHost(
                 }
             }
         },
-        popupHost = { },
     ) { _ ->
         Box(
             modifier = Modifier

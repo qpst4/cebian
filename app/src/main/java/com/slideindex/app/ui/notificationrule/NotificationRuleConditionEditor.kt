@@ -27,7 +27,7 @@ import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.preference.CheckboxPreference
-import top.yukonga.miuix.kmp.preference.WindowDropdownPreference
+import top.yukonga.miuix.kmp.preference.OverlayDropdownPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -100,7 +100,7 @@ internal fun NotificationRuleConditionEditor(
                 stringResource(R.string.notification_rule_app_mode_include),
                 stringResource(R.string.notification_rule_app_mode_exclude),
             )
-            WindowDropdownPreference(
+            OverlayDropdownPreference(
                 title = stringResource(R.string.notification_rule_section_apps),
                 items = appModeLabels,
                 selectedIndex = appModes.indexOf(appMode).coerceAtLeast(0),
@@ -132,7 +132,7 @@ internal fun NotificationRuleConditionEditor(
                 stringResource(R.string.notification_rule_text_mode_regex),
                 stringResource(R.string.notification_rule_text_mode_advanced),
             )
-            WindowDropdownPreference(
+            OverlayDropdownPreference(
                 title = stringResource(R.string.notification_rule_section_text),
                 items = textModeLabels,
                 selectedIndex = textModes.indexOf(textMode).coerceAtLeast(0),

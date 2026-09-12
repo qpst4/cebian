@@ -7,6 +7,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.window.core.layout.WindowSizeClass
 import com.slideindex.app.settings.BottomNavStyle
+import com.slideindex.app.ui.miuix.rememberIsWideScreen
 
 val MainNavRailWidth = 80.dp
 
@@ -25,9 +26,9 @@ fun mainAppPrefersNavigationRail(): Boolean {
     )
 }
 
-/** 非 Compact 宽度时限制设置内容最大宽度并居中（与 Google 大屏单栏建议一致）。 */
+/** 非 Compact 宽度时限制设置内容最大宽度并居中（用平台 density 量宽，与界面缩放解耦）。 */
 @Composable
-fun mainAppPrefersWideContentLayout(): Boolean = mainAppPrefersNavigationRail()
+fun mainAppPrefersWideContentLayout(): Boolean = rememberIsWideScreen()
 
 fun mainAppRootBottomContentPadding(
     prefersNavigationRail: Boolean,

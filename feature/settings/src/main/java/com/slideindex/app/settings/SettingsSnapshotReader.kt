@@ -234,6 +234,9 @@ internal object SettingsSnapshotReader {
             darkBackgroundStyleId = prefs[SettingsPreferenceKeys.DARK_BACKGROUND_STYLE]
                 ?: DarkBackgroundStyle.QUIET_BLUE.id,
             themeColorSpecId = prefs[SettingsPreferenceKeys.THEME_COLOR_SPEC] ?: AppColorSpec.SPEC_2025.id,
+            uiDensityScale = UiDensityScaleLimits.normalize(
+                prefs[SettingsPreferenceKeys.UI_DENSITY_SCALE] ?: UiDensityScaleLimits.DEFAULT_SCALE,
+            ),
             bottomNavStyleId = prefs[SettingsPreferenceKeys.BOTTOM_NAV_STYLE]
                 ?: BottomNavStyle.FLOATING_NAV.id,
             bottomNavModeId = prefs[SettingsPreferenceKeys.BOTTOM_NAV_MODE]
