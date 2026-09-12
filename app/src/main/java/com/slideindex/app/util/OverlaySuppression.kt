@@ -3,6 +3,7 @@ package com.slideindex.app.util
 import android.accessibilityservice.AccessibilityService
 import android.content.Context
 import android.content.res.Configuration
+import android.view.WindowManager
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.ExcludedAppScopes
 
@@ -38,6 +39,11 @@ object OverlaySuppression {
     }
 
     fun isLandscape(context: Context): Boolean {
+        val wm = context.getSystemService(WindowManager::class.java)
+        val bounds = runCatching { wm?.currentWindowMetrics?.bounds }.getOrNull()
+        if (bounds != null && bounds.width() > 0 && bounds.height() > 0) {
+            return bounds.width() > bounds.height()
+        }
         val metrics = context.resources.displayMetrics
         if (metrics.widthPixels > 0 && metrics.heightPixels > 0) {
             return metrics.widthPixels > metrics.heightPixels

@@ -739,7 +739,7 @@ object FloatBallPickResultPanel {
                 clearTranslateState()
                 applyPanelShellPassive()
                 panelDismissing = false
-                com.slideindex.app.service.SlideIndexAccessibilityService.recoverTriggerInteraction()
+                com.slideindex.app.service.SlideIndexAccessibilityService.recoverTriggerInteraction(forceReAddChrome = true)
                 com.slideindex.app.service.SlideIndexAccessibilityService.refreshOverlaySuppression()
             }
         } else {

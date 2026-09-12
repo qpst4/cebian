@@ -7,6 +7,7 @@ import android.view.WindowManager
 import com.slideindex.app.data.AppRepository
 import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.settings.runtimeTriggerHandles
 import com.slideindex.app.settings.triggerHandles
 import com.slideindex.app.overlay.compositor.OverlayCompositor
 import com.slideindex.app.util.TaskManagerUtil
@@ -52,7 +53,8 @@ class OverlayManager(
             return
         }
 
-        syncControllers(settings)
+        val metrics = OverlayScreenMetrics.snapshot(context)
+        syncControllers(settings, metrics)
         if (settings.serviceEnabled) {
             clearAllOverlayBrightness()
         }
@@ -62,27 +64,35 @@ class OverlayManager(
         bottomController?.setRuntimeVisualsSuppressed(suppressRuntimeVisuals)
         topController?.setRuntimeVisualsSuppressed(suppressRuntimeVisuals)
         recoverOverlaysIfIdle()
-        ensureSideEdgesForHandles(settings)
+        ensureSideEdgesForHandles(settings, metrics)
         refreshTriggerVisibility()
     }
 
-    private fun ensureSideEdgesForHandles(settings: AppSettings) {
+    private fun ensureSideEdgesForHandles(
+        settings: AppSettings,
+        metrics: ScreenMetricsSnapshot = OverlayScreenMetrics.snapshot(context)
+    ) {
         if (!settings.serviceEnabled || triggersSuppressed) return
-        ensureSideEdge(PanelSide.LEFT, leftController, settings)
-        ensureSideEdge(PanelSide.RIGHT, rightController, settings)
-        ensureSideEdge(PanelSide.BOTTOM, bottomController, settings)
-        ensureSideEdge(PanelSide.TOP, topController, settings)
+        ensureSideEdge(PanelSide.LEFT, leftController, settings, metrics)
+        ensureSideEdge(PanelSide.RIGHT, rightController, settings, metrics)
+        ensureSideEdge(PanelSide.BOTTOM, bottomController, settings, metrics)
+        ensureSideEdge(PanelSide.TOP, topController, settings, metrics)
     }
 
-    private fun ensureSideEdge(side: PanelSide, controller: SideOverlayController?, settings: AppSettings) {
+    private fun ensureSideEdge(
+        side: PanelSide,
+        controller: SideOverlayController?,
+        settings: AppSettings,
+        metrics: ScreenMetricsSnapshot
+    ) {
         if (controller == null) return
-        val hasHandles = settings.triggerHandles(side).isNotEmpty()
+        val hasHandles = settings.runtimeTriggerHandles(side, metrics.isLandscape).isNotEmpty()
         if (!hasHandles) {
             controller.hideEdge()
             return
         }
         if (triggersShown && !controller.isEdgeInitialized()) {
-            controller.showEdge()
+            controller.showEdge(metrics)
         }
     }
 
@@ -117,9 +127,10 @@ class OverlayManager(
         refreshTriggerVisibility()
     }
 
-    private fun syncControllers(settings: AppSettings) {
-        val screenWidth = context.resources.displayMetrics.widthPixels
-
+    private fun syncControllers(
+        settings: AppSettings,
+        metrics: ScreenMetricsSnapshot = OverlayScreenMetrics.snapshot(context)
+    ) {
         if (leftController == null) {
             leftController = SideOverlayController(
                 context = context,
@@ -133,7 +144,7 @@ class OverlayManager(
                 onComposeOverlayDialogStateChanged = ::onComposeOverlayDialogStateChanged
             )
         }
-        leftController?.updateSettings(settings, screenWidth)
+        leftController?.updateSettings(settings, metrics)
 
         if (rightController == null) {
             rightController = SideOverlayController(
@@ -148,7 +159,7 @@ class OverlayManager(
                 onComposeOverlayDialogStateChanged = ::onComposeOverlayDialogStateChanged
             )
         }
-        rightController?.updateSettings(settings, screenWidth)
+        rightController?.updateSettings(settings, metrics)
 
         if (bottomController == null) {
             bottomController = SideOverlayController(
@@ -163,7 +174,7 @@ class OverlayManager(
                 onComposeOverlayDialogStateChanged = ::onComposeOverlayDialogStateChanged
             )
         }
-        bottomController?.updateSettings(settings, screenWidth)
+        bottomController?.updateSettings(settings, metrics)
 
         if (topController == null) {
             topController = SideOverlayController(
@@ -178,7 +189,7 @@ class OverlayManager(
                 onComposeOverlayDialogStateChanged = ::onComposeOverlayDialogStateChanged
             )
         }
-        topController?.updateSettings(settings, screenWidth)
+        topController?.updateSettings(settings, metrics)
 
         applyPreviewToControllers()
     }
@@ -232,19 +243,19 @@ class OverlayManager(
             refreshTriggerVisibilityNow()
             return
         }
-        recoverTriggerInteraction()
+        recoverTriggerInteraction(forceReAddChrome = false)
     }
 
-    fun recoverTriggerInteraction() {
+    fun recoverTriggerInteraction(forceReAddChrome: Boolean = false) {
         if (!currentSettings.serviceEnabled) return
         recoverOverlaysIfIdle()
         resumeEdgeCapturesAfterPassthrough()
-        val screenWidth = context.resources.displayMetrics.widthPixels
-        leftController?.updateSettings(currentSettings, screenWidth)
-        rightController?.updateSettings(currentSettings, screenWidth)
-        bottomController?.updateSettings(currentSettings, screenWidth)
-        topController?.updateSettings(currentSettings, screenWidth)
-        bringEdgeChromeAbovePanels(forceReAdd = true)
+        val metrics = OverlayScreenMetrics.snapshot(context)
+        leftController?.updateSettings(currentSettings, metrics)
+        rightController?.updateSettings(currentSettings, metrics)
+        bottomController?.updateSettings(currentSettings, metrics)
+        topController?.updateSettings(currentSettings, metrics)
+        bringEdgeChromeAbovePanels(forceReAdd = forceReAddChrome)
     }
 
     fun refreshTriggerVisuals() {

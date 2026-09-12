@@ -315,8 +315,8 @@ class SlideIndexAccessibilityService : AccessibilityService() {
             instance?.edgeOverlayHost?.refreshOverlaySuppression()
         }
 
-        fun recoverTriggerInteraction() {
-            instance?.edgeOverlayHost?.recoverTriggerInteraction()
+        fun recoverTriggerInteraction(forceReAddChrome: Boolean = false) {
+            instance?.edgeOverlayHost?.recoverTriggerInteraction(forceReAddChrome)
         }
 
         fun refreshTriggerVisuals() {
@@ -529,12 +529,12 @@ class SlideIndexAccessibilityService : AccessibilityService() {
     private fun scheduleOverlaySuppressionAfterConfigurationChange() {
         mainHandler.postDelayed({
             syncForegroundPackageForOverlaySuppression()
-            edgeOverlayHost?.recoverTriggerInteraction()
+            edgeOverlayHost?.recoverTriggerInteraction(forceReAddChrome = false)
             edgeOverlayHost?.refreshOverlaySuppression()
         }, CONFIG_CHANGE_SUPPRESSION_RETRY_MS)
         mainHandler.postDelayed({
             syncForegroundPackageForOverlaySuppression()
-            edgeOverlayHost?.recoverTriggerInteraction()
+            edgeOverlayHost?.recoverTriggerInteraction(forceReAddChrome = false)
             edgeOverlayHost?.refreshOverlaySuppression()
         }, CONFIG_CHANGE_SUPPRESSION_RETRY_MS * 2)
     }

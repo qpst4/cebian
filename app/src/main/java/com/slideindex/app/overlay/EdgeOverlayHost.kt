@@ -109,8 +109,8 @@ class EdgeOverlayHost(
         previewActive = false
     }
 
-    fun recoverTriggerInteraction() {
-        overlayManager?.recoverTriggerInteraction()
+    fun recoverTriggerInteraction(forceReAddChrome: Boolean = false) {
+        overlayManager?.recoverTriggerInteraction(forceReAddChrome)
     }
 
     fun onConfigurationChanged() {

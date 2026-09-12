@@ -9,8 +9,25 @@ import android.content.Context
 import android.util.DisplayMetrics
 import android.view.WindowManager
 
+data class ScreenMetricsSnapshot(
+    val widthPx: Int,
+    val heightPx: Int
+) {
+    val isLandscape: Boolean get() = widthPx > heightPx
+}
+
 /** 覆盖层布局用真实屏幕尺寸（含导航栏区域），与 SideGesture ScreenUtils 一致。 */
 internal object OverlayScreenMetrics {
+    fun snapshot(context: Context): ScreenMetricsSnapshot {
+        val (w, h) = sizePx(context)
+        return ScreenMetricsSnapshot(w, h)
+    }
+
+    fun snapshot(wm: WindowManager, fallback: DisplayMetrics): ScreenMetricsSnapshot {
+        val (w, h) = sizePx(wm, fallback)
+        return ScreenMetricsSnapshot(w, h)
+    }
+
     fun sizePx(context: Context): Pair<Int, Int> {
         val wm = context.getSystemService(WindowManager::class.java)
         val fallback = context.resources.displayMetrics
@@ -19,9 +36,10 @@ internal object OverlayScreenMetrics {
 
     fun sizePx(wm: WindowManager, fallback: DisplayMetrics): Pair<Int, Int> {
         val bounds = runCatching { wm.currentWindowMetrics.bounds }.getOrNull()
-        if (bounds != null) {
+        if (bounds != null && bounds.width() > 0 && bounds.height() > 0) {
             return bounds.width() to bounds.height()
         }
         return fallback.widthPixels to fallback.heightPixels
     }
 }
+

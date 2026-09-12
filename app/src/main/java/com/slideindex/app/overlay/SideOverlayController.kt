@@ -56,8 +56,10 @@ class SideOverlayController(
 
     internal val density get() = context.resources.displayMetrics.density
 
-    private fun effectiveSettings(source: AppSettings = settings): AppSettings =
-        source.withRuntimeLandscapeSettings(TriggerVisibility.isLandscape(context))
+    private fun effectiveSettings(
+        source: AppSettings = settings,
+        metrics: ScreenMetricsSnapshot = OverlayScreenMetrics.snapshot(context)
+    ): AppSettings = source.withRuntimeLandscapeSettings(metrics.isLandscape)
 
     internal fun shouldShowRuntimeVisuals(): Boolean = !runtimeVisualsSuppressed && !previewMode
 
@@ -69,18 +71,18 @@ class SideOverlayController(
         }
     }
 
-    fun updateSettings(newSettings: AppSettings, screenWidth: Int) {
-        val effective = effectiveSettings(newSettings)
+    fun updateSettings(newSettings: AppSettings, metrics: ScreenMetricsSnapshot? = null) {
+        val resolvedMetrics = metrics ?: OverlayScreenMetrics.snapshot(context)
+        val effective = effectiveSettings(newSettings, resolvedMetrics)
         val hiddenChanged = effective.hiddenAppPackages != settings.hiddenAppPackages
         settings = effective
         if (settings.triggerHandles(side).isEmpty()) {
             hideEdge()
             return
         }
-        val (metricsWidthPx, metricsHeightPx) = OverlayScreenMetrics.sizePx(context)
-        screenWidthPx = metricsWidthPx
-        screenHeightPx = metricsHeightPx
-        windowManager.presentationView?.applySettings(settings, metricsWidthPx)
+        screenWidthPx = resolvedMetrics.widthPx
+        screenHeightPx = resolvedMetrics.heightPx
+        windowManager.presentationView?.applySettings(settings, resolvedMetrics.widthPx)
         if (windowManager.presentationView != null) {
             preloadApps(force = hiddenChanged)
         }
@@ -99,6 +101,10 @@ class SideOverlayController(
         } else {
             windowManager.detachPresentationUnlessRequired()
         }
+    }
+
+    fun updateSettings(newSettings: AppSettings, screenWidth: Int) {
+        updateSettings(newSettings, null)
     }
 
     fun isEdgeInitialized(): Boolean = windowManager.presentationView != null
@@ -167,9 +173,10 @@ class SideOverlayController(
         }
     }
 
-    fun showEdge() {
-        screenWidthPx = OverlayScreenMetrics.sizePx(context).first
-        screenHeightPx = OverlayScreenMetrics.sizePx(context).second
+    fun showEdge(metrics: ScreenMetricsSnapshot? = null) {
+        val resolvedMetrics = metrics ?: OverlayScreenMetrics.snapshot(context)
+        screenWidthPx = resolvedMetrics.widthPx
+        screenHeightPx = resolvedMetrics.heightPx
         if (settings.triggerHandles(side).isEmpty()) {
             hideEdge()
             return
