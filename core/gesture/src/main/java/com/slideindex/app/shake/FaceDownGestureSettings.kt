@@ -32,8 +32,17 @@ data class FaceDownGestureSettings(
             List(5) { index -> HOLD_DURATION_MIN_SECONDS + span * index / 4f }
         }
 
+        const val COOLDOWN_MIN_SECONDS = 1f
+        const val COOLDOWN_MAX_SECONDS = 10f
+        const val DEFAULT_COOLDOWN_SECONDS = 4f
+
+        val COOLDOWN_KEY_POINTS_SECONDS: List<Float> = run {
+            val span = COOLDOWN_MAX_SECONDS - COOLDOWN_MIN_SECONDS
+            List(5) { index -> COOLDOWN_MIN_SECONDS + span * index / 4f }
+        }
+
         fun clampHoldDurationMs(value: Long): Long = value.coerceIn(500L, 1_500L)
-        fun clampCooldownMs(value: Long): Long = value.coerceIn(2_000L, 10_000L)
+        fun clampCooldownMs(value: Long): Long = value.coerceIn(1_000L, 10_000L)
         fun clampAudioFeedbackVolume(value: Int): Int =
             value.coerceIn(MIN_AUDIO_FEEDBACK_VOLUME, MAX_AUDIO_FEEDBACK_VOLUME)
     }

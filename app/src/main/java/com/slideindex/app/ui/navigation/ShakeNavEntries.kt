@@ -335,6 +335,7 @@ fun NavEntryBuilder.shakeNavEntries(ctx: MainNavContext) {
             onBack = { ctx.navigateBackTo(AppNavKey.ShakeGestures) },
             onEnabledChange = { enabled -> viewModel.setFaceDownEnabled(enabled) },
             onHoldDurationChange = { ms -> viewModel.setFaceDownHoldDurationMs(ms) },
+            onCooldownChange = { ms -> viewModel.setFaceDownCooldownMs(ms) },
             onRequireProximityChange = { enabled -> viewModel.setFaceDownRequireProximity(enabled) },
             onDisableInLandscapeChange = { enabled -> viewModel.setFaceDownDisableInLandscape(enabled) },
             onVibrationFeedbackChange = { enabled -> viewModel.setFaceDownVibrationFeedbackEnabled(enabled) },

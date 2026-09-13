@@ -81,6 +81,8 @@
     <string name="face_down_gestures_action">Action</string>
     <string name="face_down_gestures_hold_duration">Hold duration</string>
     <string name="face_down_gestures_hold_duration_value">%.1f s</string>
+    <string name="face_down_gestures_cooldown">Trigger cooldown</string>
+    <string name="face_down_gestures_cooldown_value">%.0f s</string>
     <string name="face_down_gestures_require_proximity">Require near object</string>
     <string name="face_down_gestures_require_proximity_desc">Proximity sensor must read near (ignored if unavailable)</string>
     <string name="face_down_gestures_disable_landscape">Disable in landscape</string>

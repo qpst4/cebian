@@ -42,6 +42,7 @@ fun FaceDownSettingsScreen(
     onBack: () -> Unit,
     onEnabledChange: (Boolean) -> Unit,
     onHoldDurationChange: (Long) -> Unit,
+    onCooldownChange: (Long) -> Unit,
     onRequireProximityChange: (Boolean) -> Unit,
     onDisableInLandscapeChange: (Boolean) -> Unit,
     onVibrationFeedbackChange: (Boolean) -> Unit,
@@ -52,6 +53,9 @@ fun FaceDownSettingsScreen(
     val resources = LocalResources.current
     val formatHoldDuration: (Float) -> String = remember(resources) {
         { seconds -> resources.getString(R.string.face_down_gestures_hold_duration_value, seconds) }
+    }
+    val formatCooldown: (Float) -> String = remember(resources) {
+        { seconds -> resources.getString(R.string.face_down_gestures_cooldown_value, seconds) }
     }
     val formatAudioVolume: (Float) -> String = remember(resources) {
         { percent -> resources.getString(R.string.face_down_gestures_audio_feedback_volume_value, percent.toInt()) }
@@ -97,13 +101,31 @@ fun FaceDownSettingsScreen(
                         SettingsSliderRow(
                             title = stringResource(R.string.face_down_gestures_hold_duration),
                             value = faceDownSettings.holdDurationMs / 1000f,
-                            valueRange = 0.5f..1.5f,
+                            valueRange = FaceDownGestureSettings.HOLD_DURATION_MIN_SECONDS..
+                                FaceDownGestureSettings.HOLD_DURATION_MAX_SECONDS,
                             enabled = faceDownSettings.enabled,
                             label = formatHoldDuration(faceDownSettings.holdDurationMs / 1000f),
                             formatLabel = formatHoldDuration,
                             keyPoints = FaceDownGestureSettings.HOLD_DURATION_KEY_POINTS_SECONDS,
                             onValueChange = { seconds ->
                                 onHoldDurationChange((seconds * 1000f).toLong())
+                            }
+                        )
+                    }
+                )
+                add(
+                    settingsCardScopeItem("face-down-cooldown") {
+                        SettingsSliderRow(
+                            title = stringResource(R.string.face_down_gestures_cooldown),
+                            value = faceDownSettings.cooldownMs / 1000f,
+                            valueRange = FaceDownGestureSettings.COOLDOWN_MIN_SECONDS..
+                                FaceDownGestureSettings.COOLDOWN_MAX_SECONDS,
+                            enabled = faceDownSettings.enabled,
+                            label = formatCooldown(faceDownSettings.cooldownMs / 1000f),
+                            formatLabel = formatCooldown,
+                            keyPoints = FaceDownGestureSettings.COOLDOWN_KEY_POINTS_SECONDS,
+                            onValueChange = { seconds ->
+                                onCooldownChange((seconds * 1000f).toLong())
                             }
                         )
                     }

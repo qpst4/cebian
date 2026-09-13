@@ -52,6 +52,8 @@
     <string name="face_down_gestures_action">执行动作</string>
     <string name="face_down_gestures_hold_duration">静止时长</string>
     <string name="face_down_gestures_hold_duration_value">%.1f 秒</string>
+    <string name="face_down_gestures_cooldown">触发冷却</string>
+    <string name="face_down_gestures_cooldown_value">%.0f 秒</string>
     <string name="face_down_gestures_require_proximity">要求贴近物体</string>
     <string name="face_down_gestures_require_proximity_desc">需要近接传感器检测到贴近（无传感器时无效）</string>
     <string name="face_down_gestures_disable_landscape">横屏禁用</string>

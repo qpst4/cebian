@@ -52,6 +52,8 @@
     <string name="face_down_gestures_action">アクション</string>
     <string name="face_down_gestures_hold_duration">保持時間</string>
     <string name="face_down_gestures_hold_duration_value">%.1f 秒</string>
+    <string name="face_down_gestures_cooldown">トリガー冷却</string>
+    <string name="face_down_gestures_cooldown_value">%.0f 秒</string>
     <string name="face_down_gestures_require_proximity">近接物体を要求</string>
     <string name="face_down_gestures_require_proximity_desc">近接センサーが near を検出する必要があります（利用不可の場合は無視）</string>
     <string name="face_down_gestures_disable_landscape">横向きで無効</string>

@@ -235,6 +235,10 @@ class ShakeHubViewModel @Inject constructor(
         settingsRepository.setFaceDownHoldDurationMs(value)
     }
 
+    fun setFaceDownCooldownMs(value: Long) = launchSettingsWrite {
+        settingsRepository.setFaceDownCooldownMs(value)
+    }
+
     fun setFaceDownRequireProximity(enabled: Boolean) = launchSettingsWrite {
         settingsRepository.setFaceDownRequireProximity(enabled)
     }
