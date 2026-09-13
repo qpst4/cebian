@@ -94,6 +94,7 @@ internal class OverlayViewBackHandler(
     }
 
     private fun resolveBackInvokedDispatcher(): OnBackInvokedDispatcher? {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return null
         view.findOnBackInvokedDispatcher()?.let { return it }
         val root = view.rootView
         if (root !== view) {
@@ -103,6 +104,7 @@ internal class OverlayViewBackHandler(
     }
 
     private fun registerOnBackInvoked(dispatcher: OnBackInvokedDispatcher) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
         val callback = OnBackInvokedCallback { dispatchBack() }
         backInvokedCallback = callback
         dispatcher.registerOnBackInvokedCallback(
