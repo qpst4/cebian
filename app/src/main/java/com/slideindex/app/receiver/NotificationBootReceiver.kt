@@ -41,6 +41,13 @@ class NotificationBootReceiver : BroadcastReceiver() {
                     AppGraphEntryPoint::class.java,
                 ).dependencies()
                 OverlayServiceLifecycle.syncFromSettings(appContext, deps.settingsRepository)
+                if (action == Intent.ACTION_MY_PACKAGE_REPLACED) {
+                    val settings = deps.settingsRepository.readSnapshot()
+                    OverlayServiceLifecycle.recoverAccessibilityBindingWithRetries(
+                        appContext,
+                        settings,
+                    )
+                }
                 Log.i(TAG, "Gesture boot recovery completed after $action")
             } catch (error: Exception) {
                 Log.w(TAG, "Gesture boot recovery failed after $action", error)

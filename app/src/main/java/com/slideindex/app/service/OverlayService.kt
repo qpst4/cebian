@@ -19,7 +19,6 @@ import com.slideindex.app.overlay.LayoutPreviewFocus
 import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.shake.FaceDownGestureHost
 import com.slideindex.app.shake.ShakeGestureHost
-import com.slideindex.app.util.SecureSettingsHelper
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
@@ -43,6 +42,12 @@ class OverlayService : LifecycleService() {
         GestureToggleTileWarmup.requestListening(this, "overlayService")
         shakeGestureHost.start(lifecycleScope)
         faceDownGestureHost.start(lifecycleScope)
+        lifecycleScope.launch {
+            OverlayServiceLifecycle.recoverAccessibilityBinding(
+                this@OverlayService,
+                deps.settingsRepository.readSnapshot(),
+            )
+        }
         startAccessibilityWatchdog()
     }
 
@@ -50,11 +55,8 @@ class OverlayService : LifecycleService() {
         lifecycleScope.launch {
             while (isActive) {
                 delay(ACCESSIBILITY_WATCHDOG_INTERVAL_MS)
-                val deps = this@OverlayService.deps
                 val settings = deps.settingsRepository.settings.first()
-                if (!settings.accessibilityKeepAliveEnabled) continue
                 if (!settings.serviceEnabled) continue
-                if (!SecureSettingsHelper.hasWriteSecureSettings(this@OverlayService)) continue
                 OverlayServiceLifecycle.recoverAccessibilityBinding(this@OverlayService, settings)
             }
         }
