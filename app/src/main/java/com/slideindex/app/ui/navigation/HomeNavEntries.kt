@@ -106,21 +106,8 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
             factory.create(homeEffects)
         }
         val settings by viewModel.homeMainSettings.collectAsStateWithLifecycle()
-        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
         val appSettings by viewModel.settings.collectAsStateWithLifecycle()
         val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
-        val configuration = LocalConfiguration.current
-        val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-        val keyboardTriggerBehavior = if (isLandscape) {
-            gestureSettings.keyboardTriggerBehaviorLandscape
-        } else {
-            gestureSettings.keyboardTriggerBehaviorPortrait
-        }
-        val keyboardTriggerNarrowPercent = if (isLandscape) {
-            gestureSettings.keyboardTriggerNarrowPercentLandscape
-        } else {
-            gestureSettings.keyboardTriggerNarrowPercentPortrait
-        }
         var privilegedAccessGranted by remember { mutableStateOf(false) }
         var rootAccessGranted by remember { mutableStateOf(false) }
         LaunchedEffect(appSettings.privilegeMode, permissions.shizukuGranted) {
@@ -159,14 +146,6 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
             onOpenPreviousAppBlacklist = { ctx.navigate(AppNavKey.HomePreviousAppBlacklist) },
             onOpenInteractionAppearanceSettings = { ctx.navigate(AppNavKey.HomeInteractionAppearance) },
             onOpenTriggerCollection = { ctx.navigate(AppNavKey.HomeTriggerCollection) },
-            keyboardTriggerBehavior = keyboardTriggerBehavior,
-            keyboardTriggerNarrowPercent = keyboardTriggerNarrowPercent,
-            onKeyboardTriggerBehaviorChange = { behavior ->
-                viewModel.setKeyboardTriggerBehavior(behavior, isLandscape)
-            },
-            onKeyboardTriggerNarrowPercentChange = { percent ->
-                viewModel.setKeyboardTriggerNarrowPercent(percent, isLandscape)
-            },
             onOpenCornerWheel = { ctx.navigate(AppNavKey.HomeCornerGesture) },
             onOpenGestureAngle = { ctx.navigate(AppNavKey.HomeGestureAngle) },
             onOpenSystemBackGestureWidth = { ctx.navigate(AppNavKey.HomeSystemBackGestureWidth) },
@@ -181,13 +160,39 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
     }
 
     hiltEntry<AppNavKey.HomeInteractionAppearance> {
+        val permissions = ctx.collectPermissions()
         val homeEffects = remember(ctx) { MainNavHomeEffects(ctx) }
         val viewModel: HomeViewModel = hiltViewModel<HomeViewModel, HomeViewModel.Factory> { factory ->
             factory.create(homeEffects)
         }
         val settings by viewModel.homeMainSettings.collectAsStateWithLifecycle()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val configuration = LocalConfiguration.current
+        val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        val keyboardTriggerBehavior = if (isLandscape) {
+            gestureSettings.keyboardTriggerBehaviorLandscape
+        } else {
+            gestureSettings.keyboardTriggerBehaviorPortrait
+        }
+        val keyboardTriggerNarrowPercent = if (isLandscape) {
+            gestureSettings.keyboardTriggerNarrowPercentLandscape
+        } else {
+            gestureSettings.keyboardTriggerNarrowPercentPortrait
+        }
+        val gestureActive = settings.serviceEnabled &&
+            permissions.accessibilityGranted &&
+            permissions.notificationGranted
         InteractionAppearanceSettingsScreen(
             settings = settings,
+            gestureActive = gestureActive,
+            keyboardTriggerBehavior = keyboardTriggerBehavior,
+            keyboardTriggerNarrowPercent = keyboardTriggerNarrowPercent,
+            onKeyboardTriggerBehaviorChange = { behavior ->
+                viewModel.setKeyboardTriggerBehavior(behavior, isLandscape)
+            },
+            onKeyboardTriggerNarrowPercentChange = { percent ->
+                viewModel.setKeyboardTriggerNarrowPercent(percent, isLandscape)
+            },
             onBack = { ctx.navigateBackTo(AppNavKey.HomeMain) },
             onHapticEnabledChange = viewModel::setHapticEnabled,
             onHapticStrengthChange = viewModel::setHapticStrength,

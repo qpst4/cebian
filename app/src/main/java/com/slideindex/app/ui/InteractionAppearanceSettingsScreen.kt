@@ -10,6 +10,7 @@ import androidx.compose.ui.res.stringResource
 import com.slideindex.app.R
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.HomeMainSettings
+import com.slideindex.app.settings.KeyboardTriggerBehavior
 import com.slideindex.app.settings.TopAppBarBlurStyle
 import com.slideindex.app.ui.HomeLeadingIcons
 import com.slideindex.app.ui.miuix.MiuixBackNavigationIcon
@@ -20,6 +21,8 @@ import top.yukonga.miuix.kmp.preference.SwitchPreference
 import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.miuix.appLanguageSettingsCardItems
 import com.slideindex.app.ui.miuix.themeAppearanceSettingsCardItems
+import com.slideindex.app.ui.settings.components.SETTINGS_SLIDER_PERCENT_KEY_POINTS_100
+import com.slideindex.app.ui.settings.components.SettingExpandableDropdownRow
 import com.slideindex.app.ui.settings.components.SettingExpandableSwitchRow
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.SettingSwitchRow
@@ -32,6 +35,11 @@ import kotlin.math.roundToInt
 @Composable
 fun InteractionAppearanceSettingsScreen(
     settings: HomeMainSettings,
+    gestureActive: Boolean,
+    keyboardTriggerBehavior: KeyboardTriggerBehavior,
+    keyboardTriggerNarrowPercent: Int,
+    onKeyboardTriggerBehaviorChange: (KeyboardTriggerBehavior) -> Unit,
+    onKeyboardTriggerNarrowPercentChange: (Int) -> Unit,
     onBack: () -> Unit,
     onHapticEnabledChange: (Boolean) -> Unit,
     onHapticStrengthChange: (Int) -> Unit,
@@ -106,6 +114,8 @@ fun InteractionAppearanceSettingsScreen(
         appUiLanguageTag = settings.appUiLanguageTag,
         onAppUiLanguageChange = onAppUiLanguageChange,
     )
+    val keyboardBehaviorEntries = KeyboardTriggerBehavior.selectable
+    val keyboardBehaviorIndex = keyboardBehaviorEntries.indexOf(keyboardTriggerBehavior).coerceAtLeast(0)
 
     MiuixListScaffold(
         title = stringResource(R.string.interaction_appearance_settings_title),
@@ -147,6 +157,35 @@ fun InteractionAppearanceSettingsScreen(
                     ,
             )
         }
+        MiuixListSettingsCard(
+            keyPrefix = "interaction-keyboard-trigger",
+            items = listOf(
+                settingsCardScopeItem("keyboard-trigger-behavior") {
+                    SettingExpandableDropdownRow(
+                        title = stringResource(R.string.keyboard_trigger_behavior_title),
+                        subtitle = keyboardTriggerBehaviorLabel(keyboardTriggerBehavior),
+                        items = keyboardBehaviorEntries.map { keyboardTriggerBehaviorLabel(it) },
+                        selectedIndex = keyboardBehaviorIndex,
+                        expanded = keyboardTriggerBehavior == KeyboardTriggerBehavior.NARROW,
+                        enabled = gestureActive,
+                        onSelectedIndexChange = {
+                            onKeyboardTriggerBehaviorChange(keyboardBehaviorEntries[it])
+                        },
+                    ) {
+                        SettingsSliderRow(
+                            title = stringResource(R.string.keyboard_trigger_narrow_percent_title),
+                            value = keyboardTriggerNarrowPercent.toFloat(),
+                            valueRange = 1f..99f,
+                            enabled = gestureActive,
+                            label = "${keyboardTriggerNarrowPercent}%",
+                            formatLabel = { "${it.roundToInt()}%" },
+                            keyPoints = SETTINGS_SLIDER_PERCENT_KEY_POINTS_100,
+                            onValueChange = { onKeyboardTriggerNarrowPercentChange(it.roundToInt()) },
+                        )
+                    }
+                },
+            ),
+        )
         MiuixListSettingsCard(
             keyPrefix = "interaction-haptic",
             items = listOf(
