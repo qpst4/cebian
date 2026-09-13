@@ -130,8 +130,7 @@ jobs:
           LITE_APK=$(find release-apk-lite -name "cebian-*-lite.apk" | head -n 1)
           python scripts/update-release-manifest.py \
             --version "${{ github.ref_name }}" \
-            --apk-file "$LITE_APK" \
-            --purge-jsdelivr
+            --apk-file "$LITE_APK"
 
       - name: Commit & Push update.json to main
         run: |
@@ -145,10 +144,13 @@ jobs:
             git push origin HEAD:main
           fi
 
+      - name: Purge jsDelivr Cache
+        run: python scripts/update-release-manifest.py --version "${{ github.ref_name }}" --purge-only
+
       - name: Verify Remote Manifests
         run: |
           LITE_APK=$(find release-apk-lite -name "cebian-*-lite.apk" | head -n 1)
           python scripts/update-release-manifest.py \
             --version "${{ github.ref_name }}" \
             --apk-file "$LITE_APK" \
-            --verify-remote
+            --verify-only

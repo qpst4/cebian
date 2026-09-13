@@ -7,6 +7,7 @@ import argparse
 import json
 import re
 import sys
+import time
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -104,17 +105,19 @@ def purge_jsdelivr(repo: str = "qpst4/cebian") -> None:
         print(f"WARNING: jsDelivr cache purge failed (non-fatal): {e}", file=sys.stderr)
 
 
-def verify_remote(
-    version: str, apk_size: int, repo: str = "qpst4/cebian"
+def verify_remote_url(
+    url: str,
+    version: str,
+    apk_size: int,
+    retries: int = 1,
+    retry_delay_sec: float = 0.0,
 ) -> None:
-    urls = [
-        f"https://raw.githubusercontent.com/{repo}/main/update.json",
-        f"https://cdn.jsdelivr.net/gh/{repo}@main/update.json",
-    ]
-    for url in urls:
+    last_error: Exception | None = None
+    for attempt in range(1, retries + 1):
         try:
             req = urllib.request.Request(
-                url, headers={"User-Agent": "Cebian-Release-Bot", "Cache-Control": "no-cache"}
+                url,
+                headers={"User-Agent": "Cebian-Release-Bot", "Cache-Control": "no-cache"},
             )
             with urllib.request.urlopen(req, timeout=30) as resp:
                 data = json.loads(resp.read().decode("utf-8"))
@@ -129,9 +132,36 @@ def verify_remote(
                         f"Remote apkSize mismatch at {url}: {remote_size} (expected {apk_size})"
                     )
                 print(f"Verified {url} (version={remote_version}, apkSize={remote_size})")
+                return
         except Exception as e:
-            print(f"ERROR: Failed to verify {url}: {e}", file=sys.stderr)
-            raise
+            last_error = e
+            if attempt < retries:
+                print(
+                    f"WARNING: Verify attempt {attempt}/{retries} failed for {url}: {e}",
+                    file=sys.stderr,
+                )
+                time.sleep(retry_delay_sec)
+    print(f"ERROR: Failed to verify {url}: {last_error}", file=sys.stderr)
+    raise last_error
+
+
+def verify_remote(
+    version: str,
+    apk_size: int,
+    repo: str = "qpst4/cebian",
+    jsdelivr_retries: int = 6,
+    jsdelivr_retry_delay_sec: float = 10.0,
+) -> None:
+    raw_url = f"https://raw.githubusercontent.com/{repo}/main/update.json"
+    jsdelivr_url = f"https://cdn.jsdelivr.net/gh/{repo}@main/update.json"
+    verify_remote_url(raw_url, version=version, apk_size=apk_size)
+    verify_remote_url(
+        jsdelivr_url,
+        version=version,
+        apk_size=apk_size,
+        retries=jsdelivr_retries,
+        retry_delay_sec=jsdelivr_retry_delay_sec,
+    )
 
 
 def main():
@@ -150,11 +180,31 @@ def main():
     parser.add_argument("--gradle-file", default="app/build.gradle.kts", help="Path to build.gradle.kts")
     parser.add_argument("--repo", default="qpst4/cebian", help="GitHub repo in owner/name format")
     parser.add_argument("--purge-jsdelivr", action="store_true", help="Purge jsDelivr cache")
+    parser.add_argument("--purge-only", action="store_true", help="Only purge jsDelivr cache and exit")
     parser.add_argument("--verify-remote", action="store_true", help="Verify raw & jsDelivr remote manifests")
+    parser.add_argument("--verify-only", action="store_true", help="Only verify remote manifests and exit")
 
     args = parser.parse_args()
 
     v = args.version.lstrip("v")
+
+    if args.purge_only:
+        purge_jsdelivr(repo=args.repo)
+        return
+
+    if args.verify_only:
+        apk_size = args.apk_size
+        if apk_size is None and args.apk_file:
+            apk_path = Path(args.apk_file)
+            if not apk_path.is_file():
+                print(f"ERROR: APK file not found: {apk_path}", file=sys.stderr)
+                sys.exit(1)
+            apk_size = apk_path.stat().st_size
+        if apk_size is None or apk_size <= 0:
+            print("ERROR: --apk-size or valid --apk-file must be provided (> 0).", file=sys.stderr)
+            sys.exit(1)
+        verify_remote(version=v, apk_size=apk_size, repo=args.repo)
+        return
 
     # Resolve APK size
     apk_size = args.apk_size
