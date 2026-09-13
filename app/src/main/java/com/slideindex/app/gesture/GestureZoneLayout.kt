@@ -6,8 +6,11 @@ package com.slideindex.app.gesture
  */
 
 import android.graphics.RectF
+import com.slideindex.app.overlay.KeyboardTriggerImeState
 import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.settings.keyboardTriggerBehavior
+import com.slideindex.app.settings.keyboardTriggerNarrowScale
 import com.slideindex.app.settings.maxEdgeTriggerWidthDp
 import com.slideindex.app.settings.triggerHandleEdgeWidthDp
 import com.slideindex.app.settings.interceptWindowWidthDp
@@ -202,14 +205,29 @@ class GestureZoneLayout(
         if (screenWidthPx <= 0 || screenHeightPx <= 0) return RectF()
         val index = settings.triggerHandles(side).indexOfFirst { it.id == handle.id }
         if (index < 0) return RectF()
-        val bounds = computeTouchCaptureWindowBounds(
+        return keyboardAdjustedCaptureBounds()
+            .getOrNull(index)
+            ?.toScreenRect(side, screenWidthPx, screenHeightPx)
+            ?: RectF()
+    }
+
+    private fun keyboardAdjustedCaptureBounds(): List<CollapsedWindowBounds> {
+        val raw = computeTouchCaptureWindowBounds(
             settings = settings,
             side = side,
             screenWidthPx = screenWidthPx,
             screenHeightPx = screenHeightPx,
-            density = density
+            density = density,
         )
-        return bounds.getOrNull(index)?.toScreenRect(side, screenWidthPx, screenHeightPx) ?: RectF()
+        val isLandscape = screenWidthPx > screenHeightPx
+        return KeyboardTriggerBoundsAdjuster.adjustCollapsedBounds(
+            bounds = raw,
+            side = side,
+            behavior = settings.keyboardTriggerBehavior(isLandscape),
+            imeTop = KeyboardTriggerImeState.imeTopOrNull(),
+            density = density,
+            narrowScale = settings.keyboardTriggerNarrowScale(isLandscape),
+        )
     }
 
     private fun screenHitRectForHandle(handle: TriggerHandle): RectF =

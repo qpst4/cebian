@@ -67,6 +67,14 @@ data class EdgeTriggerSettings(
     val inwardHoverCompoundEnabled: Boolean = true,
     val animationStyles: AnimationStyles = AnimationStyles(),
     val gestureAngles: GestureAngles = GestureAngles(),
+    /** 竖屏下软键盘弹出时如何影响触发器（悬浮球 + 侧边触钮）。 */
+    val keyboardTriggerBehaviorPortrait: KeyboardTriggerBehavior = KeyboardTriggerBehavior.OVERLAY,
+    /** 横屏下软键盘弹出时如何影响触发器（悬浮球 + 侧边触钮）。 */
+    val keyboardTriggerBehaviorLandscape: KeyboardTriggerBehavior = KeyboardTriggerBehavior.OVERLAY,
+    /** 竖屏下键盘「收窄」时触发器缩至初始宽度的百分比（1–99）。 */
+    val keyboardTriggerNarrowPercentPortrait: Int = KeyboardTriggerNarrowPercents.DEFAULT,
+    /** 横屏下键盘「收窄」时触发器缩至初始宽度的百分比（1–99）。 */
+    val keyboardTriggerNarrowPercentLandscape: Int = KeyboardTriggerNarrowPercents.DEFAULT,
 )
 
 /** 启动策略、应用过滤、快捷启动 / 蜂窝 / 圆环启动器槽位与命令。 */

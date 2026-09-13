@@ -44,16 +44,19 @@ internal class FloatBallSceneState(initialSettings: AppSettings) {
         metrics: DisplayMetrics,
         activeSide: FloatBallSide,
         screenWidthPx: Int = metrics.widthPixels,
-        screenHeightPx: Int = metrics.heightPixels
+        screenHeightPx: Int = metrics.heightPixels,
+        isLandscape: Boolean = false,
     ): Offset {
-        val (cx, cy) = FloatBallLayout.ballCenterPx(
-            settings,
-            metrics,
-            activeSide,
-            screenWidthPx,
-            screenHeightPx
+        val ballSizePx = FloatBallLayout.ballSizePx(settings, metrics.density)
+        val (left, top) = FloatBallLayout.keyboardAdjustedBallTopLeft(
+            settings = settings,
+            metrics = metrics,
+            activeSide = activeSide,
+            isLandscape = isLandscape,
+            screenWidthPx = screenWidthPx,
+            screenHeightPx = screenHeightPx,
         )
-        return Offset(cx, cy)
+        return Offset(left + ballSizePx / 2f, top + ballSizePx / 2f)
     }
 
     /** 当前球心：拖拽优先，否则停靠。 */
@@ -62,13 +65,15 @@ internal class FloatBallSceneState(initialSettings: AppSettings) {
         metrics: DisplayMetrics,
         activeSide: FloatBallSide,
         screenWidthPx: Int = metrics.widthPixels,
-        screenHeightPx: Int = metrics.heightPixels
+        screenHeightPx: Int = metrics.heightPixels,
+        isLandscape: Boolean = false,
     ): Offset = ballCenterPx.value ?: dockBallCenter(
         settings,
         metrics,
         activeSide,
         screenWidthPx,
-        screenHeightPx
+        screenHeightPx,
+        isLandscape,
     )
 
     /** 球体窗口左上角，用于 Display 层定位（含半隐藏停靠）。 */
@@ -99,9 +104,17 @@ internal class FloatBallSceneState(initialSettings: AppSettings) {
         metrics: DisplayMetrics,
         activeSide: FloatBallSide,
         screenWidthPx: Int = metrics.widthPixels,
-        screenHeightPx: Int = metrics.heightPixels
+        screenHeightPx: Int = metrics.heightPixels,
+        isLandscape: Boolean = false,
     ): Rect {
-        val center = resolveBallCenter(settings, metrics, activeSide, screenWidthPx, screenHeightPx)
+        val center = resolveBallCenter(
+            settings,
+            metrics,
+            activeSide,
+            screenWidthPx,
+            screenHeightPx,
+            isLandscape,
+        )
         val ballSizePx = FloatBallLayout.ballSizePx(settings, metrics.density)
         val (left, top) = ballWindowTopLeft(settings, metrics, activeSide, center, screenHeightPx)
         return Rect(left, top, left + ballSizePx, top + ballSizePx)
@@ -112,13 +125,15 @@ internal class FloatBallSceneState(initialSettings: AppSettings) {
         metrics: DisplayMetrics,
         inactiveSide: FloatBallSide,
         screenWidthPx: Int = metrics.widthPixels,
-        screenHeightPx: Int = metrics.heightPixels
-    ): Rect = FloatBallLayout.lineStripBounds(
-        settings,
-        metrics,
-        inactiveSide,
-        screenWidthPx,
-        screenHeightPx
+        screenHeightPx: Int = metrics.heightPixels,
+        isLandscape: Boolean = false,
+    ): Rect = FloatBallLayout.keyboardAdjustedLineStripBounds(
+        settings = settings,
+        metrics = metrics,
+        side = inactiveSide,
+        isLandscape = isLandscape,
+        screenWidthPx = screenWidthPx,
+        screenHeightPx = screenHeightPx,
     )
 
     /** 空闲态球体触摸窗 bounds（仅球区；线条由独立触摸窗覆盖）。 */
@@ -127,6 +142,7 @@ internal class FloatBallSceneState(initialSettings: AppSettings) {
         metrics: DisplayMetrics,
         activeSide: FloatBallSide,
         screenWidthPx: Int = metrics.widthPixels,
-        screenHeightPx: Int = metrics.heightPixels
-    ): Rect = ballHitRect(settings, metrics, activeSide, screenWidthPx, screenHeightPx)
+        screenHeightPx: Int = metrics.heightPixels,
+        isLandscape: Boolean = false,
+    ): Rect = ballHitRect(settings, metrics, activeSide, screenWidthPx, screenHeightPx, isLandscape)
 }

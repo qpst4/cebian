@@ -91,6 +91,9 @@ class EdgeOverlayHost(
                 floatBallController?.apply(effectiveSettings)
                 updatePerformanceMonitor(effectiveSettings.debugPerformanceMonitorEnabled)
                 overlayManager?.applySettings(effectiveSettings)
+                if (KeyboardTriggerImeState.imeVisible) {
+                    FloatBallOverlay.onKeyboardImeChanged()
+                }
                 if (previewActive) {
                     overlayManager?.setPreviewMode(true, previewContent, previewFocus)
                 }
@@ -119,6 +122,10 @@ class EdgeOverlayHost(
 
     fun recoverTriggerInteraction(forceReAddChrome: Boolean = false) {
         overlayManager?.recoverTriggerInteraction(forceReAddChrome)
+    }
+
+    fun onKeyboardImeChanged() {
+        overlayManager?.onKeyboardImeChanged()
     }
 
     fun onConfigurationChanged() {

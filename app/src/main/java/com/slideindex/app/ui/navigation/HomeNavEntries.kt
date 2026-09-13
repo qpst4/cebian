@@ -1,5 +1,6 @@
 package com.slideindex.app.ui.navigation
 
+import android.content.res.Configuration
 import android.os.Build
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -7,6 +8,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -104,8 +106,21 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
             factory.create(homeEffects)
         }
         val settings by viewModel.homeMainSettings.collectAsStateWithLifecycle()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
         val appSettings by viewModel.settings.collectAsStateWithLifecycle()
         val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val configuration = LocalConfiguration.current
+        val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        val keyboardTriggerBehavior = if (isLandscape) {
+            gestureSettings.keyboardTriggerBehaviorLandscape
+        } else {
+            gestureSettings.keyboardTriggerBehaviorPortrait
+        }
+        val keyboardTriggerNarrowPercent = if (isLandscape) {
+            gestureSettings.keyboardTriggerNarrowPercentLandscape
+        } else {
+            gestureSettings.keyboardTriggerNarrowPercentPortrait
+        }
         var privilegedAccessGranted by remember { mutableStateOf(false) }
         var rootAccessGranted by remember { mutableStateOf(false) }
         LaunchedEffect(appSettings.privilegeMode, permissions.shizukuGranted) {
@@ -144,6 +159,14 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
             onOpenPreviousAppBlacklist = { ctx.navigate(AppNavKey.HomePreviousAppBlacklist) },
             onOpenInteractionAppearanceSettings = { ctx.navigate(AppNavKey.HomeInteractionAppearance) },
             onOpenTriggerCollection = { ctx.navigate(AppNavKey.HomeTriggerCollection) },
+            keyboardTriggerBehavior = keyboardTriggerBehavior,
+            keyboardTriggerNarrowPercent = keyboardTriggerNarrowPercent,
+            onKeyboardTriggerBehaviorChange = { behavior ->
+                viewModel.setKeyboardTriggerBehavior(behavior, isLandscape)
+            },
+            onKeyboardTriggerNarrowPercentChange = { percent ->
+                viewModel.setKeyboardTriggerNarrowPercent(percent, isLandscape)
+            },
             onOpenCornerWheel = { ctx.navigate(AppNavKey.HomeCornerGesture) },
             onOpenGestureAngle = { ctx.navigate(AppNavKey.HomeGestureAngle) },
             onOpenSystemBackGestureWidth = { ctx.navigate(AppNavKey.HomeSystemBackGestureWidth) },

@@ -66,6 +66,9 @@ class OverlayManager(
         recoverOverlaysIfIdle()
         ensureSideEdgesForHandles(settings, metrics)
         refreshTriggerVisibility()
+        if (KeyboardTriggerImeState.imeVisible) {
+            onKeyboardImeChanged()
+        }
     }
 
     private fun ensureSideEdgesForHandles(
@@ -248,6 +251,15 @@ class OverlayManager(
             return
         }
         recoverTriggerInteraction(forceReAddChrome = false)
+    }
+
+    fun onKeyboardImeChanged() {
+        if (!currentSettings.serviceEnabled) return
+        if (shouldSuppressTrigger()) return
+        leftController?.windowManager?.syncCaptureWindowLayout()
+        rightController?.windowManager?.syncCaptureWindowLayout()
+        bottomController?.windowManager?.syncCaptureWindowLayout()
+        topController?.windowManager?.syncCaptureWindowLayout()
     }
 
     fun relayoutTriggersForDisplayRotation() {

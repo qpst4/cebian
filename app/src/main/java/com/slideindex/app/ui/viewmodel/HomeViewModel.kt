@@ -13,6 +13,7 @@ import com.slideindex.app.settings.BottomNavBlurDefaults
 import com.slideindex.app.settings.BottomNavMode
 import com.slideindex.app.settings.BottomNavStyle
 import com.slideindex.app.settings.DarkBackgroundStyle
+import com.slideindex.app.settings.KeyboardTriggerBehavior
 import com.slideindex.app.settings.PrivilegeMode
 import com.slideindex.app.settings.SettingsRepository
 import com.slideindex.app.settings.ThemePaletteStyle
@@ -85,6 +86,22 @@ class HomeViewModel @AssistedInject constructor(
 
     fun setHideTriggerOnLauncher(enabled: Boolean) = launchSettingsWrite {
         settingsRepository.setHideTriggerOnLauncher(enabled)
+    }
+
+    fun setKeyboardTriggerBehavior(behavior: KeyboardTriggerBehavior, landscape: Boolean) = launchSettingsWrite {
+        if (landscape) {
+            settingsRepository.setKeyboardTriggerBehaviorLandscape(behavior)
+        } else {
+            settingsRepository.setKeyboardTriggerBehaviorPortrait(behavior)
+        }
+    }
+
+    fun setKeyboardTriggerNarrowPercent(percent: Int, landscape: Boolean) = launchSettingsWrite {
+        if (landscape) {
+            settingsRepository.setKeyboardTriggerNarrowPercentLandscape(percent)
+        } else {
+            settingsRepository.setKeyboardTriggerNarrowPercentPortrait(percent)
+        }
     }
 
     fun setDynamicColorEnabled(enabled: Boolean) = launchSettingsWrite {

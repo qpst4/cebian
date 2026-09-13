@@ -35,7 +35,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
+import android.content.res.Configuration
 import androidx.compose.ui.viewinterop.AndroidView
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.FloatBallPositionMode
@@ -70,6 +72,7 @@ internal fun FloatBallLineChrome(
         FloatBallScreenMetrics.sizePx(context)
     }
     val activeSide = sceneState.resolvedActiveSide(settings, dragActiveSideOverride)
+    val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     val isCustom = settings.floatBallPositionMode == FloatBallPositionMode.CUSTOM
     val lineColor = Color(settings.themeColorArgb)
         .copy(alpha = settings.floatBallLineOpacity.coerceIn(0f, 1f))
@@ -82,7 +85,8 @@ internal fun FloatBallLineChrome(
                 metrics,
                 inactiveSide,
                 screenWidthPx,
-                screenHeightPx
+                screenHeightPx,
+                isLandscape,
             )
             Box(
                 modifier = Modifier

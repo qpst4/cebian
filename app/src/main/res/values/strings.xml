@@ -350,6 +350,16 @@
     <string name="trigger_collection_title">触钮集合</string>
     <string name="trigger_collection_side">侧边触钮</string>
     <string name="trigger_collection_desc">管理左/右/顶/底部触钮，可单独配置与移除</string>
+    <string name="keyboard_trigger_behavior_title">键盘弹出时</string>
+    <string name="keyboard_trigger_behavior_overlay">触发器覆盖</string>
+    <string name="keyboard_trigger_behavior_overlay_desc">键盘弹出时，触发器位置不变</string>
+    <string name="keyboard_trigger_behavior_move_up">触发器上移</string>
+    <string name="keyboard_trigger_behavior_move_up_desc">键盘弹出时，触发器移动到键盘上方</string>
+    <string name="keyboard_trigger_behavior_narrow">触发器收窄</string>
+    <string name="keyboard_trigger_behavior_narrow_desc">触发器将收窄，减少误触</string>
+    <string name="keyboard_trigger_narrow_percent_title">变窄比例</string>
+    <string name="keyboard_trigger_behavior_disable">禁止触发器</string>
+    <string name="keyboard_trigger_behavior_disable_desc">键盘弹出时，完全禁止触发器以免误操作</string>
     <string name="trigger_collection_long_press_remove_hint">点击行进入配置，长按可删除触钮</string>
     <string name="trigger_bottom_default_title">底部触钮</string>
     <string name="trigger_top_default_title">顶部触钮</string>

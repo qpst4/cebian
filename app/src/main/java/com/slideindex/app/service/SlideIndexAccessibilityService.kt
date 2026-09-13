@@ -20,6 +20,7 @@ import com.slideindex.app.translate.overlay.ScreenTranslationController
 import com.slideindex.app.clipboard.ClipboardPermissionHelper
 import com.slideindex.app.clipboard.monitor.ClipboardMonitorStartup
 import com.slideindex.app.clipboardfloat.ClipboardFloatImeCoordinator
+import com.slideindex.app.overlay.KeyboardTriggerImeCoordinator
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.PointerSwipeConfig
 import com.slideindex.app.message.MessageReminderOrchestrator
@@ -59,10 +60,13 @@ class SlideIndexAccessibilityService : AccessibilityService() {
         when (event.eventType) {
             AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED -> {
                 foregroundTracker.handleWindowStateChanged(event)
+                ClipboardFloatImeCoordinator.onWindowsChanged(this)
+                KeyboardTriggerImeCoordinator.onWindowsChanged(this)
             }
             AccessibilityEvent.TYPE_WINDOWS_CHANGED -> {
                 foregroundTracker.handleWindowsChanged()
                 ClipboardFloatImeCoordinator.onWindowsChanged(this)
+                KeyboardTriggerImeCoordinator.onWindowsChanged(this)
             }
             AccessibilityEvent.TYPE_VIEW_FOCUSED,
             AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED,
@@ -317,6 +321,10 @@ class SlideIndexAccessibilityService : AccessibilityService() {
 
         fun recoverTriggerInteraction(forceReAddChrome: Boolean = false) {
             instance?.edgeOverlayHost?.recoverTriggerInteraction(forceReAddChrome)
+        }
+
+        fun onKeyboardImeChanged() {
+            instance?.edgeOverlayHost?.onKeyboardImeChanged()
         }
 
         fun refreshTriggerVisuals() {

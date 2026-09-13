@@ -156,6 +156,10 @@ data class AppSettings(
     val inwardHoverCompoundEnabled get() = edgeTrigger.inwardHoverCompoundEnabled
     val animationStyles get() = edgeTrigger.animationStyles
     val gestureAngles get() = edgeTrigger.gestureAngles
+    val keyboardTriggerBehaviorPortrait get() = edgeTrigger.keyboardTriggerBehaviorPortrait
+    val keyboardTriggerBehaviorLandscape get() = edgeTrigger.keyboardTriggerBehaviorLandscape
+    val keyboardTriggerNarrowPercentPortrait get() = edgeTrigger.keyboardTriggerNarrowPercentPortrait
+    val keyboardTriggerNarrowPercentLandscape get() = edgeTrigger.keyboardTriggerNarrowPercentLandscape
 
     val appLaunchPolicyId get() = launcher.appLaunchPolicyId
     val longPressLaunchDurationMs get() = launcher.longPressLaunchDurationMs

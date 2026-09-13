@@ -286,6 +286,43 @@ fun SettingsCardScope.SettingDropdownRow(
     }
 }
 
+/** 下拉 + 条件子行（展开/收起动画），与 [SettingExpandableSwitchRow] 同结构。 */
+@Composable
+fun SettingsCardScope.SettingExpandableDropdownRow(
+    title: String,
+    subtitle: String? = null,
+    items: List<String>,
+    selectedIndex: Int,
+    expanded: Boolean,
+    enabled: Boolean = true,
+    icon: (@Composable (accessibilityLabel: String) -> Unit)? = null,
+    onSelectedIndexChange: (Int) -> Unit,
+    expandedContent: @Composable () -> Unit,
+) {
+    SettingsCardRow(key = "$title-expandable-dropdown") { position ->
+        Column(modifier = Modifier.settingsGroupedRowBackground(position.index, position.count)) {
+            OverlayDropdownPreference(
+                title = title,
+                summary = subtitle,
+                items = items,
+                selectedIndex = selectedIndex.coerceIn(0, items.lastIndex.coerceAtLeast(0)),
+                enabled = enabled,
+                startAction = icon?.let { { SettingIconContainer { it(title) } } },
+                onSelectedIndexChange = onSelectedIndexChange,
+            )
+            AnimatedVisibility(
+                visible = expanded && enabled,
+                enter = expandVertically(expandFrom = Alignment.Top) + fadeIn(),
+                exit = shrinkVertically(shrinkTowards = Alignment.Top) + fadeOut(),
+            ) {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    expandedContent()
+                }
+            }
+        }
+    }
+}
+
 @Composable
 fun SettingsCardScope.SettingSpinnerRow(
     title: String,

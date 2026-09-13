@@ -169,6 +169,20 @@ internal object SettingsSnapshotReader {
             inwardHoverCompoundEnabled = prefs[SettingsPreferenceKeys.INWARD_HOVER_COMPOUND_ENABLED] ?: true,
             animationStyles = AnimationStyleCodec.decode(prefs[SettingsPreferenceKeys.ANIMATION_STYLES]),
             gestureAngles = GestureAnglesCodec.read(prefs, legacyAngleConfig),
+            keyboardTriggerBehaviorPortrait = KeyboardTriggerBehavior.fromStorageKey(
+                prefs[SettingsPreferenceKeys.KEYBOARD_TRIGGER_BEHAVIOR_PORTRAIT],
+            ),
+            keyboardTriggerBehaviorLandscape = KeyboardTriggerBehavior.fromStorageKey(
+                prefs[SettingsPreferenceKeys.KEYBOARD_TRIGGER_BEHAVIOR_LANDSCAPE],
+            ),
+            keyboardTriggerNarrowPercentPortrait = KeyboardTriggerNarrowPercents.coerce(
+                prefs[SettingsPreferenceKeys.KEYBOARD_TRIGGER_NARROW_PERCENT_PORTRAIT]
+                    ?: KeyboardTriggerNarrowPercents.DEFAULT,
+            ),
+            keyboardTriggerNarrowPercentLandscape = KeyboardTriggerNarrowPercents.coerce(
+                prefs[SettingsPreferenceKeys.KEYBOARD_TRIGGER_NARROW_PERCENT_LANDSCAPE]
+                    ?: KeyboardTriggerNarrowPercents.DEFAULT,
+            ),
             ),
             indexHeightFraction = prefs[SettingsPreferenceKeys.INDEX_HEIGHT] ?: 0.42f,
             hideEmptyIndexLetters = prefs[SettingsPreferenceKeys.HIDE_EMPTY_INDEX_LETTERS] ?: true,

@@ -19,6 +19,7 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.CornerSlotSubMenuConfig
 import com.slideindex.app.settings.SettingsRepository
 import kotlinx.coroutines.flow.first
+import com.slideindex.app.settings.KeyboardTriggerBehavior
 import com.slideindex.app.settings.WaveStyle
 import com.slideindex.app.settings.withAddedBottomTriggerHandle
 import com.slideindex.app.settings.withAddedTopTriggerHandle
@@ -71,6 +72,14 @@ class HomeDetailSettingsViewModel @Inject constructor(
             landscapeInitMutex.withLock {
                 settingsRepository.ensureLandscapeTriggerHandlesInitialized()
             }
+        }
+    }
+
+    fun setKeyboardTriggerBehavior(behavior: KeyboardTriggerBehavior, landscape: Boolean) = launchSettingsWrite {
+        if (landscape) {
+            settingsRepository.setKeyboardTriggerBehaviorLandscape(behavior)
+        } else {
+            settingsRepository.setKeyboardTriggerBehaviorPortrait(behavior)
         }
     }
 

@@ -582,6 +582,24 @@ class EdgeSettingsMutator @Inject constructor(
             if (scopes.suppressFloatBall) "1" else "0",
         ).joinToString(",")
 
+    suspend fun setKeyboardTriggerBehaviorPortrait(behavior: KeyboardTriggerBehavior) = editor.edit {
+        it[SettingsPreferenceKeys.KEYBOARD_TRIGGER_BEHAVIOR_PORTRAIT] = behavior.storageKey
+    }
+
+    suspend fun setKeyboardTriggerBehaviorLandscape(behavior: KeyboardTriggerBehavior) = editor.edit {
+        it[SettingsPreferenceKeys.KEYBOARD_TRIGGER_BEHAVIOR_LANDSCAPE] = behavior.storageKey
+    }
+
+    suspend fun setKeyboardTriggerNarrowPercentPortrait(percent: Int) = editor.edit {
+        it[SettingsPreferenceKeys.KEYBOARD_TRIGGER_NARROW_PERCENT_PORTRAIT] =
+            KeyboardTriggerNarrowPercents.coerce(percent)
+    }
+
+    suspend fun setKeyboardTriggerNarrowPercentLandscape(percent: Int) = editor.edit {
+        it[SettingsPreferenceKeys.KEYBOARD_TRIGGER_NARROW_PERCENT_LANDSCAPE] =
+            KeyboardTriggerNarrowPercents.coerce(percent)
+    }
+
     suspend fun setHideTriggerInLandscape(enabled: Boolean) =
         editor.edit { it[SettingsPreferenceKeys.HIDE_TRIGGER_LANDSCAPE] = enabled }
 

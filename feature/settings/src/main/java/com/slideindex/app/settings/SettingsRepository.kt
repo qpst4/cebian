@@ -235,6 +235,18 @@ class SettingsRepository @Inject constructor(
     suspend fun setExcludedAppSuppressFloatBall(enabled: Boolean) = edge.setExcludedAppDefaultSuppressFloatBall(enabled)
     suspend fun setExcludedAppScopes(packageName: String, scopes: ExcludedAppScopes) =
         edge.setExcludedAppScopes(packageName, scopes)
+    suspend fun setKeyboardTriggerBehaviorPortrait(behavior: KeyboardTriggerBehavior) =
+        edge.setKeyboardTriggerBehaviorPortrait(behavior)
+
+    suspend fun setKeyboardTriggerBehaviorLandscape(behavior: KeyboardTriggerBehavior) =
+        edge.setKeyboardTriggerBehaviorLandscape(behavior)
+
+    suspend fun setKeyboardTriggerNarrowPercentPortrait(percent: Int) =
+        edge.setKeyboardTriggerNarrowPercentPortrait(percent)
+
+    suspend fun setKeyboardTriggerNarrowPercentLandscape(percent: Int) =
+        edge.setKeyboardTriggerNarrowPercentLandscape(percent)
+
     suspend fun setHideTriggerInLandscape(enabled: Boolean) = edge.setHideTriggerInLandscape(enabled)
     suspend fun setHideTriggerOnLockScreen(enabled: Boolean) = edge.setHideTriggerOnLockScreen(enabled)
     suspend fun setHideTriggerOnLauncher(enabled: Boolean) = edge.setHideTriggerOnLauncher(enabled)

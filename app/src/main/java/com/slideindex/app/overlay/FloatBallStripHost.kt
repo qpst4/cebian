@@ -2,6 +2,7 @@ package com.slideindex.app.overlay
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.res.Configuration
 import android.view.MotionEvent
 import android.view.View
 import android.widget.FrameLayout
@@ -150,12 +151,14 @@ internal class FloatBallStripHost(
         val metrics = resources.displayMetrics
         val inactiveSide = FloatBallSide.opposite(activeSideProvider())
         val (screenW, screenH) = screenSizeProvider()
+        val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
         val rect = sceneState.lineHitRect(
             settings = settings,
             metrics = metrics,
             inactiveSide = inactiveSide,
             screenWidthPx = screenW,
-            screenHeightPx = screenH
+            screenHeightPx = screenH,
+            isLandscape = isLandscape,
         )
         return rect.contains(x.roundToInt(), y.roundToInt())
     }

@@ -10,17 +10,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlin.math.roundToInt
 import com.slideindex.app.R
 import com.slideindex.app.settings.CornerGestureSettings
 import com.slideindex.app.settings.HomeMainSettings
+import com.slideindex.app.settings.KeyboardTriggerBehavior
 import com.slideindex.app.settings.PrivilegeMode
 import com.slideindex.app.ui.animationstyle.GestureAnimationSettingsRows
 import com.slideindex.app.ui.miuix.MiuixHubScaffold
 import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.LazySettingsItem
+import com.slideindex.app.ui.settings.components.SETTINGS_SLIDER_PERCENT_KEY_POINTS_100
+import com.slideindex.app.ui.settings.components.SettingExpandableDropdownRow
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 import com.slideindex.app.ui.settings.components.SettingsCardScopeContent
+import com.slideindex.app.ui.settings.components.SettingsSliderRow
 import com.slideindex.app.ui.settings.components.settingsCardItem
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 
@@ -52,6 +57,10 @@ fun MainScreen(
     onOpenPreviousAppBlacklist: () -> Unit,
     onOpenInteractionAppearanceSettings: () -> Unit,
     onOpenTriggerCollection: () -> Unit,
+    keyboardTriggerBehavior: KeyboardTriggerBehavior,
+    keyboardTriggerNarrowPercent: Int,
+    onKeyboardTriggerBehaviorChange: (KeyboardTriggerBehavior) -> Unit,
+    onKeyboardTriggerNarrowPercentChange: (Int) -> Unit,
     onOpenCornerWheel: () -> Unit,
     onOpenGestureAngle: () -> Unit,
     onOpenSystemBackGestureWidth: () -> Unit,
@@ -66,6 +75,8 @@ fun MainScreen(
     val gestureActive = settings.serviceEnabled && accessibilityGranted && notificationGranted
     val gestureSwitchChecked = gestureActive
     val listState = rememberLazyListState()
+    val keyboardBehaviorEntries = KeyboardTriggerBehavior.selectable
+    val keyboardBehaviorIndex = keyboardBehaviorEntries.indexOf(keyboardTriggerBehavior).coerceAtLeast(0)
     BottomNavReselectScrollEffect(
         reselectCount = bottomNavReselectCount,
         listState = listState,
@@ -263,6 +274,34 @@ fun MainScreen(
         groupedCardItems(
             keyPrefix = "main_gestures",
             items = buildList {
+                add(
+                    settingsCardItem("keyboard-trigger-behavior") {
+                        SettingsCardScopeContent {
+                            SettingExpandableDropdownRow(
+                                title = stringResource(R.string.keyboard_trigger_behavior_title),
+                                subtitle = keyboardTriggerBehaviorLabel(keyboardTriggerBehavior),
+                                items = keyboardBehaviorEntries.map { keyboardTriggerBehaviorLabel(it) },
+                                selectedIndex = keyboardBehaviorIndex,
+                                expanded = keyboardTriggerBehavior == KeyboardTriggerBehavior.NARROW,
+                                enabled = gestureActive,
+                                onSelectedIndexChange = {
+                                    onKeyboardTriggerBehaviorChange(keyboardBehaviorEntries[it])
+                                },
+                            ) {
+                                SettingsSliderRow(
+                                    title = stringResource(R.string.keyboard_trigger_narrow_percent_title),
+                                    value = keyboardTriggerNarrowPercent.toFloat(),
+                                    valueRange = 1f..99f,
+                                    enabled = gestureActive,
+                                    label = "${keyboardTriggerNarrowPercent}%",
+                                    formatLabel = { "${it.roundToInt()}%" },
+                                    keyPoints = SETTINGS_SLIDER_PERCENT_KEY_POINTS_100,
+                                    onValueChange = { onKeyboardTriggerNarrowPercentChange(it.roundToInt()) },
+                                )
+                            }
+                        }
+                    },
+                )
                 add(
                     settingsCardItem("trigger-collection") {
                         SettingsCardScopeContent {

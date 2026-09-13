@@ -46,6 +46,8 @@ class SideOverlayController(
     private var previewFocus: LayoutPreviewFocus? = null
     private var lastIsLandscape: Boolean? = null
 
+    internal fun isLandscapeLayout(): Boolean = lastIsLandscape == true
+
     internal val overlayContext = OverlayCompose.themedContext(context)
     internal val windowManager = SideOverlayWindowManager(this)
     internal val renderer = SideOverlayRenderer(this)

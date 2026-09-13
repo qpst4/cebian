@@ -2,9 +2,11 @@ package com.slideindex.app.overlay
 
 import android.util.DisplayMetrics
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.settings.EdgeTriggerSettings
 import com.slideindex.app.settings.FloatBallPositionMode
 import com.slideindex.app.settings.FloatBallSettings
 import com.slideindex.app.settings.FloatBallSide
+import com.slideindex.app.settings.KeyboardTriggerBehavior
 import com.slideindex.app.settings.FreeWindowMode
 import com.slideindex.app.settings.FreeWindowSettings
 import org.junit.Assert.assertEquals
@@ -20,9 +22,13 @@ class FloatBallLayoutTest {
     heightPixels = 2400
   }
 
-  private fun testSettings(floatBall: FloatBallSettings) = AppSettings(
+  private fun testSettings(
+    floatBall: FloatBallSettings,
+    edgeTrigger: EdgeTriggerSettings = EdgeTriggerSettings(),
+  ) = AppSettings(
     freeWindow = FreeWindowSettings(freeWindowModeId = FreeWindowMode.STANDARD.id),
     floatBall = floatBall,
+    edgeTrigger = edgeTrigger,
   )
 
   @Test
@@ -143,6 +149,24 @@ class FloatBallLayoutTest {
 
     assertEquals(expectedLeft, left)
     assertTrue(left + ballSizePx > metrics.widthPixels)
+  }
+
+  @Test
+  fun keyboardNarrow_onePercent_doesNotClampToHalfVisible() {
+    KeyboardTriggerImeState.update(visible = true, top = 1800)
+    try {
+      val settings = testSettings(
+        floatBall = FloatBallSettings(floatBallVisibleFraction = 1f),
+        edgeTrigger = EdgeTriggerSettings(
+          keyboardTriggerBehaviorPortrait = KeyboardTriggerBehavior.NARROW,
+          keyboardTriggerNarrowPercentPortrait = 1,
+        ),
+      )
+      val fraction = FloatBallLayout.keyboardAdjustedVisibleFraction(settings, isLandscape = false)
+      assertEquals(0.01f, fraction, 0.0001f)
+    } finally {
+      KeyboardTriggerImeState.update(visible = false, top = null)
+    }
   }
 
   @Test

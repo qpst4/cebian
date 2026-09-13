@@ -7,8 +7,11 @@ import android.view.WindowManager
 import android.widget.FrameLayout
 import com.slideindex.app.gesture.CollapsedWindowBounds
 import com.slideindex.app.gesture.GestureZoneLayout
+import com.slideindex.app.gesture.KeyboardTriggerBoundsAdjuster
 import com.slideindex.app.gesture.TriggerHandleDesign
 import com.slideindex.app.overlay.compositor.OverlaySceneController
+import com.slideindex.app.settings.keyboardTriggerBehavior
+import com.slideindex.app.settings.keyboardTriggerNarrowScale
 import com.slideindex.app.settings.triggerHandles
 import com.slideindex.app.util.OverlayBrightnessControl
 
@@ -442,15 +445,24 @@ internal class SideOverlayWindowManager(
         OverlayWindowTypes.ensureNoBrightnessOverride(params)
     }
 
-    private fun computeCaptureWindowBounds(): List<CollapsedWindowBounds> =
-        // One window per handle: touch strip matches trigger width; halo may clip in chrome.
-        GestureZoneLayout.computeTouchCaptureWindowBounds(
+    private fun computeCaptureWindowBounds(): List<CollapsedWindowBounds> {
+        val raw = GestureZoneLayout.computeTouchCaptureWindowBounds(
             settings = ctrl.settings,
             side = side,
             screenWidthPx = ctrl.screenWidthPx,
             screenHeightPx = ctrl.screenHeightPx,
-            density = ctrl.density
+            density = ctrl.density,
         )
+        val isLandscape = ctrl.isLandscapeLayout()
+        return KeyboardTriggerBoundsAdjuster.adjustCollapsedBounds(
+            bounds = raw,
+            side = side,
+            behavior = ctrl.settings.keyboardTriggerBehavior(isLandscape),
+            imeTop = KeyboardTriggerImeState.imeTopOrNull(),
+            density = ctrl.density,
+            narrowScale = ctrl.settings.keyboardTriggerNarrowScale(isLandscape),
+        )
+    }
 
     private fun applyPresentationTouchFlags(
         view: EdgeGestureOverlayView,
@@ -595,4 +607,4 @@ internal class SideOverlayWindowManager(
 }
 
 private fun CollapsedWindowBounds.isZeroTouchStrip(side: PanelSide): Boolean =
-    if (side.isVerticalEdge) heightPx <= 0 else widthPx <= 0
+    widthPx <= 0 || heightPx <= 0

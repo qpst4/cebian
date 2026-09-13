@@ -3,6 +3,7 @@ package com.slideindex.app.overlay
 import android.content.BroadcastReceiver
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.res.Configuration
 import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.PixelFormat
@@ -760,6 +761,11 @@ object FloatBallOverlay {
         }
     }
 
+    fun onKeyboardImeChanged() {
+        if (!isShowing || isDragging) return
+        relayout()
+    }
+
     private fun relayoutNow() {
         if (captureSuppressed) return
         val currentSettings = settingsState?.value ?: return
@@ -1341,12 +1347,14 @@ object FloatBallOverlay {
             val metrics = view.resources.displayMetrics
             val (screenW, screenH) = FloatBallScreenMetrics.sizePx(view.context, wm)
             val inactiveSide = FloatBallSide.opposite(effectiveActiveSide(settings))
+            val isLandscape = isLandscapeLayout()
             val bounds = state.lineHitRect(
                 settings = settings,
                 metrics = metrics,
                 inactiveSide = inactiveSide,
                 screenWidthPx = screenW,
-                screenHeightPx = screenH
+                screenHeightPx = screenH,
+                isLandscape = isLandscape,
             )
             params.x = bounds.left
             params.y = bounds.top
@@ -1467,6 +1475,14 @@ object FloatBallOverlay {
         val wm = windowManager ?: return
         val params = touchLayoutParams ?: return
         val state = sceneState ?: return
+        val isLandscape = isLandscapeLayout()
+        if (FloatBallLayout.isKeyboardTriggerDisabled(settings, isLandscape)) {
+            params.flags = params.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+            params.width = 1
+            params.height = 1
+            runCatching { wm.updateViewLayout(view, params) }
+            return
+        }
         val metrics = view.resources.displayMetrics
         val (screenW, screenH) = FloatBallScreenMetrics.sizePx(view.context, wm)
         val activeSide = effectiveActiveSide(settings)
@@ -1475,7 +1491,8 @@ object FloatBallOverlay {
             metrics = metrics,
             activeSide = activeSide,
             screenWidthPx = screenW,
-            screenHeightPx = screenH
+            screenHeightPx = screenH,
+            isLandscape = isLandscape,
         )
         if (captureSuppressed || passthroughRestorePending) {
             params.flags = params.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
@@ -1502,10 +1519,12 @@ object FloatBallOverlay {
         val wm = windowManager ?: return
         val params = lineTouchLayoutParams ?: return
         val state = sceneState ?: return
+        val isLandscape = isLandscapeLayout()
         val showLine = state.lineVisible.value &&
             FloatBallLayout.shouldShowLine(settings) &&
             !captureSuppressed &&
-            !passthroughRestorePending
+            !passthroughRestorePending &&
+            !FloatBallLayout.isKeyboardTriggerDisabled(settings, isLandscape)
         if (!showLine) {
             setLineTouchHostEnabled(false)
             return
@@ -1518,7 +1537,8 @@ object FloatBallOverlay {
             metrics = metrics,
             inactiveSide = inactiveSide,
             screenWidthPx = screenW,
-            screenHeightPx = screenH
+            screenHeightPx = screenH,
+            isLandscape = isLandscape,
         )
         view.visibility = View.VISIBLE
         params.flags = params.flags and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE.inv()
@@ -2058,12 +2078,14 @@ object FloatBallOverlay {
         val metrics = host.resources.displayMetrics
         val activeSide = effectiveActiveSide(settings)
         val (screenWidthPx, screenHeightPx) = FloatBallScreenMetrics.sizePx(host.context, windowManager)
+        val isLandscape = isLandscapeLayout()
         val center = overrideCenter ?: state.ballCenterPx.value ?: state.dockBallCenter(
             settings,
             metrics,
             activeSide,
             screenWidthPx,
-            screenHeightPx
+            screenHeightPx,
+            isLandscape,
         )
         val (left, top) = state.ballWindowTopLeft(settings, metrics, activeSide, center, screenHeightPx)
         val sizePx = FloatBallLayout.ballSizePx(settings, metrics.density)
@@ -2091,6 +2113,14 @@ object FloatBallOverlay {
         val state = sceneState ?: return
         if (captureSuppressed) {
             state.chromeVisible.value = false
+            syncTouchWindowLayout(settings)
+            displayView?.setBallVisible(false)
+            return
+        }
+        if (FloatBallLayout.isKeyboardTriggerDisabled(settings, isLandscapeLayout())) {
+            state.chromeVisible.value = false
+            state.ballVisible.value = false
+            state.lineVisible.value = false
             syncTouchWindowLayout(settings)
             displayView?.setBallVisible(false)
             return
@@ -3105,5 +3135,10 @@ object FloatBallOverlay {
             append('|')
             append(settings.floatBallSlideshowUris.joinToString(","))
         }
+    }
+
+    private fun isLandscapeLayout(): Boolean {
+        val view = displayView ?: touchHost ?: lineTouchHost ?: return false
+        return view.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
     }
 }

@@ -352,6 +352,16 @@
     <string name="trigger_collection_title">ハンドルセット</string>
     <string name="trigger_collection_side">側面ハンドル</string>
     <string name="trigger_collection_desc">左・右・上・下のエッジトリガーを個別に管理</string>
+    <string name="keyboard_trigger_behavior_title">キーボード表示時</string>
+    <string name="keyboard_trigger_behavior_overlay">トリガーをそのまま</string>
+    <string name="keyboard_trigger_behavior_overlay_desc">キーボード表示時もトリガー位置は変わりません</string>
+    <string name="keyboard_trigger_behavior_move_up">トリガーを上に移動</string>
+    <string name="keyboard_trigger_behavior_move_up_desc">キーボード表示時、トリガーをキーボードの上に移動します</string>
+    <string name="keyboard_trigger_behavior_narrow">トリガーを狭く</string>
+    <string name="keyboard_trigger_behavior_narrow_desc">トリガーを狭くして誤タップを減らします</string>
+    <string name="keyboard_trigger_narrow_percent_title">狭くする割合</string>
+    <string name="keyboard_trigger_behavior_disable">トリガーを禁止</string>
+    <string name="keyboard_trigger_behavior_disable_desc">キーボード表示中はトリガーを完全に無効化します</string>
     <string name="trigger_collection_long_press_remove_hint">行をタップで設定、長押しで削除</string>
     <string name="trigger_bottom_default_title">下部ハンドル</string>
     <string name="trigger_top_default_title">上部ハンドル</string>

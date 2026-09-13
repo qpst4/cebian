@@ -407,6 +407,16 @@
     <string name="quick_launcher_page_previous">Previous page</string>
     <string name="quick_launcher_page_next">Next page</string>
     <string name="trigger_collection_desc">Manage left, right, top, and bottom edge triggers independently</string>
+    <string name="keyboard_trigger_behavior_title">When keyboard opens</string>
+    <string name="keyboard_trigger_behavior_overlay">Keep in place</string>
+    <string name="keyboard_trigger_behavior_overlay_desc">Triggers stay where they are when the keyboard opens</string>
+    <string name="keyboard_trigger_behavior_move_up">Move above keyboard</string>
+    <string name="keyboard_trigger_behavior_move_up_desc">Move triggers above the keyboard when it opens</string>
+    <string name="keyboard_trigger_behavior_narrow">Narrow triggers</string>
+    <string name="keyboard_trigger_behavior_narrow_desc">Triggers become narrower to reduce accidental touches</string>
+    <string name="keyboard_trigger_narrow_percent_title">Narrow amount</string>
+    <string name="keyboard_trigger_behavior_disable">Disable triggers</string>
+    <string name="keyboard_trigger_behavior_disable_desc">Disable triggers while the keyboard is open</string>
     <string name="trigger_collection_long_press_remove_hint">Tap a row to configure; long-press to remove</string>
     <string name="trigger_bottom_default_title">Bottom handle</string>
     <string name="trigger_top_default_title">Top handle</string>

@@ -2,10 +2,14 @@ package com.slideindex.app.overlay
 
 import android.graphics.Rect
 import android.util.DisplayMetrics
+import com.slideindex.app.gesture.KeyboardTriggerBoundsAdjuster
 import com.slideindex.app.settings.AppSettings
-import com.slideindex.app.settings.FloatBallPositionMode
 import com.slideindex.app.settings.FloatBallPositionFractions
+import com.slideindex.app.settings.FloatBallPositionMode
 import com.slideindex.app.settings.FloatBallSide
+import com.slideindex.app.settings.KeyboardTriggerBehavior
+import com.slideindex.app.settings.keyboardTriggerBehavior
+import com.slideindex.app.settings.keyboardTriggerNarrowScale
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -171,5 +175,89 @@ internal object FloatBallLayout {
     ): Int = when (activeSide) {
         FloatBallSide.LEFT -> (-ballSizePx * (1f - visibleFraction)).roundToInt()
         FloatBallSide.RIGHT -> (screenWidth - ballSizePx * visibleFraction).roundToInt()
+    }
+
+    fun keyboardAdjustedVisibleFraction(
+        settings: AppSettings,
+        isLandscape: Boolean,
+    ): Float {
+        val base = coerceVisibleFraction(settings.floatBallVisibleFraction)
+        val behavior = settings.keyboardTriggerBehavior(isLandscape)
+        val imeTop = KeyboardTriggerImeState.imeTopOrNull()
+        if (imeTop == null || behavior != KeyboardTriggerBehavior.NARROW) {
+            return base
+        }
+        val narrowed = base * settings.keyboardTriggerNarrowScale(isLandscape)
+        return FloatBallPositionFractions.coerceKeyboardNarrowVisible(narrowed)
+    }
+
+    fun keyboardAdjustedLineStripBounds(
+        settings: AppSettings,
+        metrics: DisplayMetrics,
+        side: FloatBallSide,
+        isLandscape: Boolean,
+        screenWidthPx: Int = metrics.widthPixels,
+        screenHeightPx: Int = metrics.heightPixels,
+    ): Rect {
+        val base = lineStripBounds(settings, metrics, side, screenWidthPx, screenHeightPx)
+        return KeyboardTriggerBoundsAdjuster.adjustRect(
+            rect = base,
+            behavior = settings.keyboardTriggerBehavior(isLandscape),
+            imeTop = KeyboardTriggerImeState.imeTopOrNull(),
+            density = metrics.density,
+            narrowScale = settings.keyboardTriggerNarrowScale(isLandscape),
+        )
+    }
+
+    fun keyboardAdjustedBallTopLeft(
+        settings: AppSettings,
+        metrics: DisplayMetrics,
+        activeSide: FloatBallSide,
+        isLandscape: Boolean,
+        screenWidthPx: Int = metrics.widthPixels,
+        screenHeightPx: Int = metrics.heightPixels,
+    ): Pair<Int, Int> {
+        val density = metrics.density
+        val ballSizePx = ballSizePx(settings, density)
+        val marginPx = marginPx(density)
+        val centerY = dockCenterY(settings, screenHeightPx)
+        val visibleFraction = keyboardAdjustedVisibleFraction(
+            settings = settings,
+            isLandscape = isLandscape,
+        )
+        val left = when (settings.floatBallPositionMode) {
+            FloatBallPositionMode.CUSTOM -> {
+                val centerX = coerceCustomCenterXFraction(settings.floatBallCustomCenterXFraction) * screenWidthPx
+                (centerX - ballSizePx / 2f).roundToInt()
+            }
+            else -> dockedBallLeftPx(
+                activeSide = activeSide,
+                ballSizePx = ballSizePx,
+                screenWidth = screenWidthPx,
+                visibleFraction = visibleFraction,
+            )
+        }
+        var top = (centerY - ballSizePx / 2f).roundToInt()
+            .coerceIn(marginPx, screenHeightPx - ballSizePx - marginPx)
+        val behavior = settings.keyboardTriggerBehavior(isLandscape)
+        val imeTop = KeyboardTriggerImeState.imeTopOrNull()
+        if (imeTop != null && behavior != KeyboardTriggerBehavior.OVERLAY) {
+            val ballRect = Rect(left, top, left + ballSizePx, top + ballSizePx)
+            val adjusted = KeyboardTriggerBoundsAdjuster.adjustRect(
+                rect = ballRect,
+                behavior = behavior,
+                imeTop = imeTop,
+                density = density,
+                narrowScale = settings.keyboardTriggerNarrowScale(isLandscape),
+            )
+            top = adjusted.top
+        }
+        return left to top
+    }
+
+    fun isKeyboardTriggerDisabled(settings: AppSettings, isLandscape: Boolean): Boolean {
+        val imeTop = KeyboardTriggerImeState.imeTopOrNull() ?: return false
+        return settings.keyboardTriggerBehavior(isLandscape) == KeyboardTriggerBehavior.DISABLE &&
+            imeTop > 0
     }
 }
