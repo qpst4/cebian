@@ -36,6 +36,8 @@ class FaceDownGestureHost @Inject constructor(
     private var cooldownActive = false
     private var cooldownRunnable: Runnable? = null
     private var pendingExecuteRunnable: Runnable? = null
+    private var runningHoldDurationMs: Long? = null
+    private var runningRequireProximity: Boolean? = null
 
     private val screenReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -77,6 +79,8 @@ class FaceDownGestureHost @Inject constructor(
         unregisterScreenReceiver()
         detector?.stop()
         detector = null
+        runningHoldDurationMs = null
+        runningRequireProximity = null
         Log.d(TAG, "stopped")
     }
 
@@ -119,6 +123,8 @@ class FaceDownGestureHost @Inject constructor(
             }
             detector?.stop()
             detector = null
+            runningHoldDurationMs = null
+            runningRequireProximity = null
             return
         }
 
@@ -137,16 +143,25 @@ class FaceDownGestureHost @Inject constructor(
             return
         }
 
+        val configChanged = faceDown.holdDurationMs != runningHoldDurationMs ||
+            faceDown.requireProximity != runningRequireProximity
+
         activeDetector.configure(
             holdDurationMs = faceDown.holdDurationMs,
             requireProximity = faceDown.requireProximity,
         )
-        activeDetector.start()
-        Log.d(
-            TAG,
-            "detector running hold=${faceDown.holdDurationMs}ms " +
-                "requireProximity=${faceDown.requireProximity}",
-        )
+
+        if (!activeDetector.isRunning || configChanged) {
+            activeDetector.start()
+            Log.d(
+                TAG,
+                "detector running hold=${faceDown.holdDurationMs}ms " +
+                    "requireProximity=${faceDown.requireProximity}",
+            )
+        }
+
+        runningHoldDurationMs = faceDown.holdDurationMs
+        runningRequireProximity = faceDown.requireProximity
     }
 
     private fun handleFaceDownDetected() {

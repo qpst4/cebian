@@ -132,8 +132,8 @@ class EdgeOverlayHost(
         overlayManager?.recoverTriggerInteraction(forceReAddChrome)
     }
 
-    fun onKeyboardImeChanged() {
-        overlayManager?.onKeyboardImeChanged()
+    fun onKeyboardImeChanged(visibilityChanged: Boolean = false) {
+        overlayManager?.onKeyboardImeChanged(visibilityChanged)
     }
 
     fun onConfigurationChanged() {

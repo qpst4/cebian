@@ -67,6 +67,26 @@ class FaceDownClassifierTest {
     }
 
     @Test
+    fun hasSeenScreenUp_rejectsFaceDownAndVibrationPeak() {
+        assertFalse(FaceDownClassifier.hasSeenScreenUp(-9.8f))
+        assertFalse(FaceDownClassifier.hasSeenScreenUp(-4.0f))
+        assertFalse(FaceDownClassifier.hasSeenScreenUp(FaceDownClassifier.FLIP_PEAK_AZ_MIN))
+    }
+
+    @Test
+    fun hasSeenScreenUp_acceptsFlipThroughScreenUp() {
+        assertTrue(FaceDownClassifier.hasSeenScreenUp(9.8f))
+        assertTrue(FaceDownClassifier.hasSeenScreenUp(3.5f))
+    }
+
+    @Test
+    fun isNonFaceDown_canMisfireOnVibrationWhileFaceDown() {
+        // 旧武装条件：扣桌振动时 horizontalMag 可能 > 4，但 peakAz 仍不足以翻转门禁
+        assertTrue(FaceDownClassifier.isNonFaceDown(4.5f, 0f, -9.0f))
+        assertFalse(FaceDownClassifier.hasSeenScreenUp(-9.0f))
+    }
+
+    @Test
     fun isNonFaceDown_rejectsFaceDownRestingPosture() {
         // Face down flat on table
         assertFalse(FaceDownClassifier.isNonFaceDown(0f, 0f, -9.8f))

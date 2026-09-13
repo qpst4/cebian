@@ -325,6 +325,7 @@
 %1$s</string>
     <string name="secure_settings_adb_copy">コマンドをコピー</string>
     <string name="secure_settings_adb_copied">クリップボードにコピーしました</string>
+    <string name="accessibility_recover_reopen_app_hint">エッジジェスチャーが接続されていません。アプリを完全終了してから再度開いてください。</string>
     <string name="hide_from_recents_title">最近使ったアプリから非表示</string>
     <string name="hide_from_recents_desc">有効にすると、このアプリの設定画面はシステムの最近使ったアプリ一覧に表示されません</string>
     <string name="live_preview_hint">スライダーをドラッグしてライブプレビュー。それ以外は画面端でジェスチャーをお試しください。</string>

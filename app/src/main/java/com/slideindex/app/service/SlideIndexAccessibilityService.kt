@@ -323,8 +323,8 @@ class SlideIndexAccessibilityService : AccessibilityService() {
             instance?.edgeOverlayHost?.recoverTriggerInteraction(forceReAddChrome)
         }
 
-        fun onKeyboardImeChanged() {
-            instance?.edgeOverlayHost?.onKeyboardImeChanged()
+        fun onKeyboardImeChanged(visibilityChanged: Boolean = false) {
+            instance?.edgeOverlayHost?.onKeyboardImeChanged(visibilityChanged)
         }
 
         fun refreshTriggerVisuals() {

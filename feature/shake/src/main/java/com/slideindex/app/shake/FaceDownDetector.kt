@@ -22,12 +22,13 @@ class FaceDownDetector(
     private val sensorHandler = Handler(Looper.getMainLooper())
 
     val isAvailable: Boolean get() = accelerometer != null
+    val isRunning: Boolean get() = listenerRegistered
 
     private var listenerRegistered = false
     private var holdDurationMs = FaceDownGestureSettings.clampHoldDurationMs(800L)
     private var requireProximity = false
 
-    private var isArmed = false
+    private var peakAzSinceCycle = Float.NEGATIVE_INFINITY
     private var holdStartMs = 0L
     private var lastAccel = floatArrayOf(0f, 0f, 0f)
     private var accelReady = false
@@ -56,7 +57,7 @@ class FaceDownDetector(
         gyroStill = !hasGyroscope
         accelReady = false
         holdStartMs = 0L
-        isArmed = false
+        peakAzSinceCycle = Float.NEGATIVE_INFINITY
 
         var registered = sensorManager.registerListener(
             this,
@@ -95,7 +96,7 @@ class FaceDownDetector(
         }
         holdStartMs = 0L
         accelReady = false
-        isArmed = false
+        peakAzSinceCycle = Float.NEGATIVE_INFINITY
     }
 
     override fun onSensorChanged(event: SensorEvent?) {
@@ -113,27 +114,22 @@ class FaceDownDetector(
         val ax = event.values[0]
         val ay = event.values[1]
         val az = event.values[2]
+        peakAzSinceCycle = maxOf(peakAzSinceCycle, az)
+
         if (!accelReady) {
             lastAccel[0] = ax
             lastAccel[1] = ay
             lastAccel[2] = az
             accelReady = true
-            if (FaceDownClassifier.isNonFaceDown(ax, ay, az)) {
-                isArmed = true
-            }
             return
         }
 
-        if (!isArmed) {
-            if (FaceDownClassifier.isNonFaceDown(ax, ay, az)) {
-                isArmed = true
-                Log.d(TAG, "detector armed (non-face-down state detected)")
-            } else {
-                lastAccel[0] = ax
-                lastAccel[1] = ay
-                lastAccel[2] = az
-                return
-            }
+        if (!FaceDownClassifier.hasSeenScreenUp(peakAzSinceCycle)) {
+            resetHold()
+            lastAccel[0] = ax
+            lastAccel[1] = ay
+            lastAccel[2] = az
+            return
         }
 
         val now = System.currentTimeMillis()
@@ -177,8 +173,8 @@ class FaceDownDetector(
             now - holdStartMs
         }
         if (elapsedMs >= holdDurationMs) {
-            Log.i(TAG, "face-down hold satisfied after ${elapsedMs}ms")
-            isArmed = false
+            Log.i(TAG, "face-down hold satisfied after ${elapsedMs}ms peakAz=$peakAzSinceCycle")
+            peakAzSinceCycle = Float.NEGATIVE_INFINITY
             resetHold()
             onTriggered()
         }

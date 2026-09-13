@@ -10,6 +10,8 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.runtimeTriggerHandles
 import com.slideindex.app.settings.triggerHandles
 import com.slideindex.app.overlay.compositor.OverlayCompositor
+import com.slideindex.app.overlay.compositor.OverlayScene
+import com.slideindex.app.overlay.compositor.OverlaySceneController
 import com.slideindex.app.util.TaskManagerUtil
 import com.slideindex.app.util.TriggerVisibility
 import kotlinx.coroutines.CoroutineScope
@@ -254,9 +256,16 @@ class OverlayManager(
         recoverTriggerInteraction(forceReAddChrome = false)
     }
 
-    fun onKeyboardImeChanged() {
+    fun onKeyboardImeChanged(visibilityChanged: Boolean = false) {
         if (!currentSettings.serviceEnabled) return
         if (shouldSuppressTrigger()) return
+        // IME is inserted above chrome after a content panel raised triggers; re-add while it is visible.
+        if (KeyboardTriggerImeState.imeVisible &&
+            OverlaySceneController.scene is OverlayScene.ContentPanelVisible
+        ) {
+            FloatBallOverlay.bringChromeAbovePanelsForce()
+            bringEdgeChromeAbovePanels(forceReAdd = true)
+        }
         leftController?.windowManager?.syncCaptureWindowLayout()
         rightController?.windowManager?.syncCaptureWindowLayout()
         bottomController?.windowManager?.syncCaptureWindowLayout()

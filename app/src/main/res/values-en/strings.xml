@@ -348,6 +348,7 @@
     <string name="secure_settings_adb_dialog_message">Connect via USB or wireless debugging and run this command in a terminal (re-run after reinstalling the app):\n\n%1$s</string>
     <string name="secure_settings_adb_copy">Copy command</string>
     <string name="secure_settings_adb_copied">Copied to clipboard</string>
+    <string name="accessibility_recover_reopen_app_hint">Edge gestures are not connected. Force stop the app, then open it again.</string>
     <string name="gesture_action_switch_input_method">Switch input method</string>
     <string name="hide_from_recents_title">Hide from recents</string>
     <string name="hide_from_recents_desc">When enabled, this app\'s settings screen won\'t appear in the system recents list</string>

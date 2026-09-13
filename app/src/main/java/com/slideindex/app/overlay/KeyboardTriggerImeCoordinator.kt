@@ -24,7 +24,7 @@ object KeyboardTriggerImeCoordinator {
         KeyboardTriggerImeState.update(visible = visible, top = top)
         if (shouldRelayout) {
             FloatBallOverlay.onKeyboardImeChanged()
-            SlideIndexAccessibilityService.onKeyboardImeChanged()
+            SlideIndexAccessibilityService.onKeyboardImeChanged(visibilityChanged)
         }
         lastImeVisible = visible
         lastImeTop = top

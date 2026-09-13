@@ -323,6 +323,7 @@
     <string name="secure_settings_adb_dialog_message">请用 USB 或无线调试连接电脑，在终端执行以下命令（重装应用后需重新执行）：\n\n%1$s</string>
     <string name="secure_settings_adb_copy">复制命令</string>
     <string name="secure_settings_adb_copied">已复制到剪贴板</string>
+    <string name="accessibility_recover_reopen_app_hint">边缘手势未连接，请完全关闭后重新打开本应用</string>
     <string name="hide_from_recents_title">在最近任务列表中隐藏</string>
     <string name="hide_from_recents_desc">开启后，本应用设置界面不会出现在系统多任务界面</string>
     <string name="live_preview_hint">拖动滑块可实时预览；平时可在屏幕边缘试用手势</string>

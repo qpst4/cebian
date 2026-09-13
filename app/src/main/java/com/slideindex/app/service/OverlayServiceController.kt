@@ -72,7 +72,11 @@ class OverlayServiceController(
 
     fun refreshServiceState() {
         scope.launch {
-            OverlayServiceLifecycle.syncFromSettings(context, settingsRepository)
+            OverlayServiceLifecycle.syncFromSettings(
+                context,
+                settingsRepository,
+                accessibilityRecoverRetries = true,
+            )
             permissionStates.accessibilityGranted.value =
                 PermissionHelper.isAccessibilityServiceEnabled(context)
         }

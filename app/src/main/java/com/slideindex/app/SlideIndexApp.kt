@@ -93,7 +93,11 @@ class SlideIndexApp : Application() {
         deps.applicationScope.launch {
             HistoryFloatLifecycle.syncFromSettings(this@SlideIndexApp, deps.settingsRepository)
             ClipboardFloatLifecycle.syncFromSettings(this@SlideIndexApp, deps.settingsRepository)
-            OverlayServiceLifecycle.syncFromSettings(this@SlideIndexApp, deps.settingsRepository)
+            OverlayServiceLifecycle.syncFromSettings(
+                this@SlideIndexApp,
+                deps.settingsRepository,
+                accessibilityRecoverRetries = true,
+            )
         }
         GestureToggleTileWarmup.requestListening(this, "appOnCreate")
         deps.applicationScope.launch {

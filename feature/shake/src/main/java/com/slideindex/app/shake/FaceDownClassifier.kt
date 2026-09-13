@@ -11,6 +11,8 @@ internal object FaceDownClassifier {
     const val GRAVITY_MAG_MAX = 11.5f
     const val ACCEL_DELTA_MAX = 0.35f
     const val GYRO_STILL_MAX = 0.15f
+    /** 本检测周期内 az 峰值超过此值，才认为用户曾将屏幕翻过朝上。 */
+    const val FLIP_PEAK_AZ_MIN = 3.0f
 
     fun isFaceDownFlat(ax: Float, ay: Float, az: Float): Boolean {
         if (az > -FACE_DOWN_Z_ABS_MIN) return false
@@ -20,9 +22,11 @@ internal object FaceDownClassifier {
         return magnitude in GRAVITY_MAG_MIN..GRAVITY_MAG_MAX
     }
 
+    /** 本周期内是否经历过屏幕朝上（翻转门禁，防振铃振动误武装）。 */
+    fun hasSeenScreenUp(peakAz: Float): Boolean = peakAz > FLIP_PEAK_AZ_MIN
+
     /**
-     * 判断设备是否处于非倒扣状态（如屏幕朝上、立起或明显倾斜）。
-     * 用于武装（Arm）检测器：只有经历过非倒扣状态，后续再进入倒扣平放才算有效的翻转动作。
+     * 判断单帧是否像非倒扣姿态。保留供测试参考；detector 武装已改用 [hasSeenScreenUp]。
      */
     fun isNonFaceDown(ax: Float, ay: Float, az: Float): Boolean {
         if (az > -5.0f) return true
