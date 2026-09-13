@@ -15,6 +15,7 @@ import com.slideindex.app.settings.BubbleStyle
 import com.slideindex.app.settings.CapsuleStyle
 import com.slideindex.app.settings.GestureHintStyle
 import com.slideindex.app.settings.ExcludedAppScopes
+import com.slideindex.app.settings.AppCarouselSwitcherSettings
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.CornerSlotSubMenuConfig
 import com.slideindex.app.settings.SettingsRepository
@@ -519,5 +520,9 @@ class HomeDetailSettingsViewModel @Inject constructor(
 
     fun setFingertipRingIconSizePx(value: Float) = launchSettingsWrite {
         settingsRepository.setFingertipRingIconSizePx(value)
+    }
+
+    fun setAppCarouselSwitcherSettings(settings: AppCarouselSwitcherSettings) = launchSettingsWrite {
+        settingsRepository.setAppCarouselSwitcherSettings(settings)
     }
 }

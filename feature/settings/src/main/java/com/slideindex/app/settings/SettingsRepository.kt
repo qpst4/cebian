@@ -436,6 +436,9 @@ class SettingsRepository @Inject constructor(
     suspend fun setHoneycombDisplaySettings(settings: HoneycombDisplaySettings) =
         overlay.setHoneycombDisplaySettings(settings)
 
+    suspend fun setAppCarouselSwitcherSettings(settings: AppCarouselSwitcherSettings) =
+        overlay.setAppCarouselSwitcherSettings(settings)
+
     suspend fun setHolographicLauncherTimeoutSeconds(value: Int) =
         overlay.setHolographicLauncherTimeoutSeconds(value)
 

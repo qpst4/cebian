@@ -10,7 +10,19 @@ import com.slideindex.app.settings.AppSettings
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 @Singleton
@@ -18,9 +30,13 @@ class AppRepository @Inject constructor(
     @ApplicationContext private val context: Context,
     private val appLaunchPort: AppLaunchPort,
     private val launchIconCache: AppLaunchIconCache,
+    private val applicationScope: CoroutineScope,
 ) {
-    @Volatile
-    private var cachedApps: List<AppInfo> = emptyList()
+    private val _apps = MutableStateFlow<List<AppInfo>>(emptyList())
+    val apps: StateFlow<List<AppInfo>> = _apps.asStateFlow()
+
+    private val _appsRevision = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    val appsRevision: SharedFlow<Unit> = _appsRevision.asSharedFlow()
 
     @Volatile
     private var cachedFreezerApps: List<AppInfo> = emptyList()
@@ -28,11 +44,26 @@ class AppRepository @Inject constructor(
     @Volatile
     private var appsByPackage: Map<String, AppInfo> = emptyMap()
 
+    private val refreshMutex = Mutex()
+    private var debouncedRefreshJob: Job? = null
+
     suspend fun loadApps(force: Boolean = false): List<AppInfo> {
-        if (!force && cachedApps.isNotEmpty()) return cachedApps
-        val apps = withContext(Dispatchers.IO) { queryLaunchableApps() }
-        cacheApps(apps)
-        return apps
+        if (!force && _apps.value.isNotEmpty()) return _apps.value
+        return refreshApps()
+    }
+
+    suspend fun refreshApps(): List<AppInfo> = refreshMutex.withLock {
+        val queried = withContext(Dispatchers.IO) { queryLaunchableApps() }
+        publishApps(queried)
+        queried
+    }
+
+    fun requestRefresh(reason: String) {
+        debouncedRefreshJob?.cancel()
+        debouncedRefreshJob = applicationScope.launch {
+            delay(REFRESH_DEBOUNCE_MS)
+            runCatching { refreshApps() }
+        }
     }
 
     suspend fun loadFreezerApps(force: Boolean = false): List<AppInfo> {
@@ -48,9 +79,9 @@ class AppRepository @Inject constructor(
         }.sortedBy { it.pinyinKey }
     }
 
-    fun getCachedApps(): List<AppInfo> = cachedApps
+    fun getCachedApps(): List<AppInfo> = _apps.value
 
-    fun hasCachedApps(): Boolean = cachedApps.isNotEmpty()
+    fun hasCachedApps(): Boolean = _apps.value.isNotEmpty()
 
     fun lookupApp(packageName: String): AppInfo? {
         appsByPackage[packageName]?.let { return it }
@@ -83,8 +114,6 @@ class AppRepository @Inject constructor(
     fun resolveInstalledPackage(identifier: String): String? {
         val trimmed = identifier.trim()
         if (trimmed.isBlank()) return null
-        // Try the raw identifier first — package names like com.eg.android.AlipayGphone must not
-        // be normalized before lookup (normalize strips uppercase last segments).
         resolveByPackageManager(trimmed)?.let { return it }
         val normalized = RecentPackageResolver.normalizeIdentifier(trimmed)
         if (normalized != trimmed) {
@@ -129,7 +158,6 @@ class AppRepository @Inject constructor(
     }
 
     fun invalidate() {
-        cachedApps = emptyList()
         cachedFreezerApps = emptyList()
         appsByPackage = emptyMap()
         launchIconCache.clear()
@@ -151,10 +179,11 @@ class AppRepository @Inject constructor(
         launchIconCache.warmBitmapsAsync(packageNames, sizePx)
     }
 
-    private fun cacheApps(apps: List<AppInfo>) {
-        cachedApps = apps
+    private fun publishApps(apps: List<AppInfo>) {
         appsByPackage = apps.associateBy { it.packageName }
         launchIconCache.retainPackages(apps.map { it.packageName })
+        _apps.value = apps
+        _appsRevision.tryEmit(Unit)
     }
 
     fun groupedItems(apps: List<AppInfo>): List<AppListItem> {
@@ -269,4 +298,8 @@ class AppRepository @Inject constructor(
             pinyinKey = PinyinHelper.sortKey(label),
             isSystem = isSystem,
         )
+
+    companion object {
+        private const val REFRESH_DEBOUNCE_MS = 400L
+    }
 }

@@ -12,8 +12,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import com.slideindex.app.ui.compose.rememberAppRepository
-import androidx.compose.runtime.LaunchedEffect
+import com.slideindex.app.ui.compose.collectLaunchableAppsAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,15 +38,9 @@ fun MessageReminderAllowedAppsScreen(
     onSaveFilterRule: (MessageAppFilterRule) -> Unit,
     onOpenFilterEditor: (String) -> Unit,
 ) {
-    val appRepository = rememberAppRepository()
-    var allApps by remember { mutableStateOf<List<AppInfo>>(emptyList()) }
-    var isLoading by remember { mutableStateOf(true) }
+    val allApps by collectLaunchableAppsAsState()
     var searchQuery by remember { mutableStateOf("") }
-
-    LaunchedEffect(Unit) {
-        allApps = appRepository.loadApps(force = true)
-        isLoading = false
-    }
+    val isLoading = allApps.isEmpty()
 
     val appsByPackage = remember(allApps) { allApps.associateBy { it.packageName } }
     val configuredEntries = remember(settings.enabledPackages, allApps) {

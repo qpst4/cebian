@@ -92,6 +92,7 @@ fun LazyListScope.actionPickerActionItems(
     current: GestureAction,
     onSelect: (GestureAction) -> Unit,
     onOpenExecuteShellCommand: () -> Unit,
+    onOpenOpenLink: () -> Unit = {},
     onOpenSimulateKeyEvent: (() -> Unit)? = null,
 ) {
     if (filtered.isEmpty()) {
@@ -117,7 +118,20 @@ fun LazyListScope.actionPickerActionItems(
         ) { index ->
             val action = section.actions[index]
             val context = LocalContext.current
-            if (action.type == GestureActionType.EXECUTE_SHELL_COMMAND) {
+            if (action.type == GestureActionType.OPEN_LINK) {
+                val linkSubtitle = if (current is GestureAction.OpenLink) {
+                    gestureActionSettingSubtitle(current)
+                } else {
+                    gestureActionDescription(action)
+                }
+                ActionPickerOpenLinkRow(
+                    action = action,
+                    segmentIndex = index,
+                    segmentCount = section.actions.size,
+                    subtitle = linkSubtitle,
+                    onOpenConfig = onOpenOpenLink,
+                )
+            } else if (action.type == GestureActionType.EXECUTE_SHELL_COMMAND) {
                 val shellSubtitle = if (
                     current is GestureAction.ExecuteShellCommand &&
                     current.command.isNotBlank()

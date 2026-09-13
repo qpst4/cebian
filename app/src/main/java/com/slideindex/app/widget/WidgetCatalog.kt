@@ -74,6 +74,13 @@ object WidgetCatalog {
 
   private var isPreloading = false
 
+  fun invalidate() {
+    cachedGroups = null
+    cachedInstalledApps = null
+    cachedShortcuts = null
+    isPreloading = false
+  }
+
   fun preload(context: Context) {
     if (isPreloading) return
     isPreloading = true

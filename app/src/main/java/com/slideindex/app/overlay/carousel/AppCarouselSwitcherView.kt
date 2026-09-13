@@ -19,8 +19,8 @@ import android.view.View
 import android.view.animation.DecelerateInterpolator
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.toBitmap
-import androidx.core.graphics.withClip
 import com.slideindex.app.R
+import com.slideindex.app.settings.AppCarouselSwitcherSettings
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.util.HapticHelper
 import com.slideindex.app.util.PermissionHelper
@@ -56,8 +56,7 @@ class AppCarouselSwitcherView @JvmOverloads constructor(
     private val cardBaseHeight = 84f * density
     private val cardSpacing = 16f * density
     private val cornerRadius = 22f * density
-    private val verticalCancelEdgePx = 72f * density
-
+    private var carouselSettings: AppCarouselSwitcherSettings = AppCarouselSwitcherSettings()
     private var appSettings: AppSettings? = null
     private val items = mutableListOf<AppCarouselItem>()
     private var selectedIndex = 0
@@ -107,6 +106,7 @@ class AppCarouselSwitcherView @JvmOverloads constructor(
 
     fun configure(settings: AppSettings, anchorX: Float, anchorY: Float) {
         this.appSettings = settings
+        this.carouselSettings = settings.appCarouselSwitcher
         this.initialTouchX = anchorX
         this.initialTouchY = anchorY
         this.currentTouchX = anchorX
@@ -206,7 +206,7 @@ class AppCarouselSwitcherView @JvmOverloads constructor(
         currentTouchX = rawX
         currentTouchY = rawY
 
-        val shouldCancel = isInVerticalCancelZone(rawY)
+        val shouldCancel = isCancelDistanceExceeded(rawY)
         if (shouldCancel != isVerticalCancelled) {
             isVerticalCancelled = shouldCancel
             animate().alpha(if (isVerticalCancelled) 0.35f else 1.0f).setDuration(120L).start()
@@ -360,14 +360,15 @@ class AppCarouselSwitcherView @JvmOverloads constructor(
             // 图标居中裁剪（保持 1:1 原比例不拉伸变形）
             clipPath.reset()
             clipPath.addRoundRect(cardRect, currentCorner, currentCorner, Path.Direction.CW)
-            canvas.withClip(clipPath) {
-                val iconPad = 13f * density * scale
-                val iconSize = (minOf(cardW, cardH) - 2 * iconPad).coerceAtLeast(16f * density)
-                val iconLeft = left + (cardW - iconSize) / 2f
-                val iconTop = top + (cardH - iconSize) / 2f
-                iconRect.set(iconLeft, iconTop, iconLeft + iconSize, iconTop + iconSize)
-                drawBitmap(item.iconBitmap, null, iconRect, iconPaint)
-            }
+            val clipSaveCount = canvas.save()
+            canvas.clipPath(clipPath)
+            val iconPad = 13f * density * scale
+            val iconSize = (minOf(cardW, cardH) - 2 * iconPad).coerceAtLeast(16f * density)
+            val iconLeft = left + (cardW - iconSize) / 2f
+            val iconTop = top + (cardH - iconSize) / 2f
+            iconRect.set(iconLeft, iconTop, iconLeft + iconSize, iconTop + iconSize)
+            canvas.drawBitmap(item.iconBitmap, null, iconRect, iconPaint)
+            canvas.restoreToCount(clipSaveCount)
 
             // 高亮外描边
             if (isSelected) {
@@ -396,13 +397,16 @@ class AppCarouselSwitcherView @JvmOverloads constructor(
         }
     }
 
-    private fun isInVerticalCancelZone(rawY: Float): Boolean {
-        val screenH = if (height > 0) {
-            height.toFloat()
+    private fun isCancelDistanceExceeded(rawY: Float): Boolean {
+        val centerY = if (height > 0) {
+            height / 2f
         } else {
-            resources.displayMetrics.heightPixels.toFloat()
+            resources.displayMetrics.heightPixels / 2f
         }
-        return rawY <= verticalCancelEdgePx || rawY >= screenH - verticalCancelEdgePx
+        val offsetY = rawY - centerY
+        val downPx = carouselSettings.cancelDistanceDownPx(density)
+        val upPx = carouselSettings.cancelDistanceUpPx(density)
+        return offsetY > downPx || offsetY < -upPx
     }
 
     private fun launchPackage(packageName: String) {

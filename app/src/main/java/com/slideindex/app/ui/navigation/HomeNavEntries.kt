@@ -707,6 +707,8 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
                     ),
                 )
             },
+            appCarouselSettings = settings.appCarouselSwitcher,
+            onAppCarouselSettingsChange = viewModel::setAppCarouselSwitcherSettings,
         )
     }
 

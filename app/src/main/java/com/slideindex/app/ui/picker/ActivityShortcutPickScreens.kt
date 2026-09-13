@@ -38,6 +38,7 @@ import com.slideindex.app.ui.PickerListHorizontalPadding
 import com.slideindex.app.ui.PickerSearchListHeader
 import com.slideindex.app.ui.PickerTrailingMode
 import com.slideindex.app.ui.SearchBar
+import com.slideindex.app.ui.compose.collectLaunchableAppsAsState
 import com.slideindex.app.ui.compose.rememberAppRepository
 import com.slideindex.app.ui.pickerListSegmentedGap
 import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffoldWithExpandableSearch
@@ -58,16 +59,14 @@ fun ActivityShortcutPickAppScreen(
     enableBackHandler: Boolean = true,
 ) {
     val appRepository = rememberAppRepository()
-    var apps by remember { mutableStateOf(appRepository.getCachedApps()) }
-    var loading by remember { mutableStateOf(appRepository.getCachedApps().isEmpty()) }
+    val apps by collectLaunchableAppsAsState()
+    val loading = apps.isEmpty()
     var query by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
         if (apps.isEmpty()) {
-            loading = true
+            appRepository.loadApps()
         }
-        apps = appRepository.loadApps(force = apps.isEmpty())
-        loading = false
     }
 
     val filtered = remember(apps, query, excludePackageNames) {

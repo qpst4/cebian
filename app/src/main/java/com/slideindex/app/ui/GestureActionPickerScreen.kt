@@ -4,6 +4,8 @@ import android.app.Activity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.runtime.Composable
@@ -88,6 +90,11 @@ fun GestureActionPickerScreen(
     val shellConfigInitialCommand = remember(current) {
         (current as? GestureAction.ExecuteShellCommand)?.command.orEmpty()
     }
+    val openLinkInitial = remember(current) {
+        val link = current as? GestureAction.OpenLink
+        link?.url.orEmpty() to link?.label.orEmpty()
+    }
+    var openLinkConfigVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         withFrameNanos { }
@@ -178,6 +185,7 @@ fun GestureActionPickerScreen(
                         onOpenExecuteShellCommand = {
                             onOpenExecuteShellCommand(shellConfigInitialCommand)
                         },
+                        onOpenOpenLink = { openLinkConfigVisible = true },
                         onOpenSimulateKeyEvent = {
                             onOpenSimulateKeyEvent(
                                 current as? GestureAction.SimulateKeyEvent ?: GestureAction.SimulateKeyEvent()
@@ -222,6 +230,24 @@ fun GestureActionPickerScreen(
                         }
                     )
                 }
+            }
+        }
+
+        if (openLinkConfigVisible) {
+            Dialog(
+                onDismissRequest = { openLinkConfigVisible = false },
+                properties = DialogProperties(usePlatformDefaultWidth = false),
+            ) {
+                GestureOpenLinkScreen(
+                    initialUrl = openLinkInitial.first,
+                    initialLabel = openLinkInitial.second,
+                    onBack = { openLinkConfigVisible = false },
+                    onConfirm = { url, label ->
+                        openLinkConfigVisible = false
+                        safeSelect(GestureAction.OpenLink(url = url, label = label))
+                    },
+                    overlayMode = true,
+                )
             }
         }
     }

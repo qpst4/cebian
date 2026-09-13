@@ -35,6 +35,7 @@ import com.slideindex.app.launcher.QuickLauncherItemCodec
 import com.slideindex.app.launcher.QuickLauncherItemType
 import com.slideindex.app.launcher.QuickLauncherPanelDefaults
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.ui.compose.collectLaunchableAppsAsState
 import com.slideindex.app.ui.compose.rememberAppRepository
 import com.slideindex.app.ui.miuix.MiuixExpandableSearchIconAction
 import com.slideindex.app.ui.miuix.MiuixLabeledTextField
@@ -64,16 +65,12 @@ fun QuickLauncherAddPickerScreen(
 ) {
     val context = LocalContext.current
     val appRepository = rememberAppRepository()
-    var allApps by remember { mutableStateOf(appRepository.getCachedApps()) }
+    val allApps by collectLaunchableAppsAsState()
     var searchQuery by remember { mutableStateOf("") }
     var selectedTab by remember { mutableIntStateOf(0) }
     var searchExpanded by remember { mutableStateOf(false) }
     val searchFocusRequester = remember { FocusRequester() }
     val tabs = remember { QuickLauncherEditorAddTab.entries }
-
-    LaunchedEffect(Unit) {
-        allApps = appRepository.loadApps(force = false)
-    }
 
     val appsByPackage = remember(allApps) { allApps.associateBy { it.packageName } }
 
@@ -256,7 +253,7 @@ fun QuickLauncherCreateFolderScreen(
     val context = LocalContext.current
     val defaultFolderName = stringResource(R.string.quick_launcher_default_folder_name)
     val appRepository = rememberAppRepository()
-    var allApps by remember { mutableStateOf(appRepository.getCachedApps()) }
+    val allApps by collectLaunchableAppsAsState()
     val folderName = draft?.name.orEmpty()
     val folderItems = draft?.items.orEmpty()
     var searchExpanded by remember { mutableStateOf(false) }
@@ -264,10 +261,6 @@ fun QuickLauncherCreateFolderScreen(
     val searchFocusRequester = remember { FocusRequester() }
     val tabs = remember { QuickLauncherEditorAddTab.entries }
     var folderSelectedTab by remember { mutableIntStateOf(0) }
-
-    LaunchedEffect(Unit) {
-        allApps = appRepository.loadApps(force = false)
-    }
 
     val appsByPackage = remember(allApps) { allApps.associateBy { it.packageName } }
 

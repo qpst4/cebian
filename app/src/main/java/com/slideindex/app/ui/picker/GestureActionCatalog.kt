@@ -157,6 +157,7 @@ object GestureActionCatalog {
         GestureActionType.HONEYCOMB_LAUNCHER,
         GestureActionType.HOLOGRAPHIC_LAUNCHER,
         GestureActionType.SEARCH_PANEL,
+        GestureActionType.OPEN_LINK,
         GestureActionType.VOLUME_PANEL,
         GestureActionType.OPEN_CLIPBOARD_PANEL,
         GestureActionType.OPEN_CLIPBOARD_FLOAT,
@@ -287,6 +288,7 @@ object GestureActionCatalog {
         // 4. 面板与启动器 (Panels & Launchers)
         GestureAction.AppCarouselSwitcher,
         GestureAction.SearchPanel,
+        GestureAction.OpenLink(url = ""),
         GestureAction.VolumePanel,
         GestureAction.ClipboardPanel,
         GestureAction.ClipboardFloat,

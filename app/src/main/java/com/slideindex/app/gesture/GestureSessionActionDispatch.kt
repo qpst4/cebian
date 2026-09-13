@@ -423,6 +423,7 @@ internal fun GestureSession.handleClassifiedGesture(
         is GestureAction.SimulateKeyEvent,
         is GestureAction.SimulatePointerSwipe,
         is GestureAction.ExecuteShellCommand,
+        is GestureAction.OpenLink,
         -> {
             sessionCallbacks.hapticConfirmLaunch()
             sessionActionExecutor.execute(

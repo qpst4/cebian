@@ -217,6 +217,11 @@ class ExtensionSettingsViewModel @Inject constructor(
         settingsRepository.setWidgetPanelPages(pages)
     }
 
+    fun setAppCarouselSwitcherSettings(settings: com.slideindex.app.settings.AppCarouselSwitcherSettings) =
+        launchSettingsWrite {
+            settingsRepository.setAppCarouselSwitcherSettings(settings)
+        }
+
     fun setWidgetPanelBlurEnabled(enabled: Boolean) = launchSettingsWrite {
         settingsRepository.setWidgetPanelBlurEnabled(enabled)
     }

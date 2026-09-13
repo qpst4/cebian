@@ -152,6 +152,7 @@ fun gestureActionDescriptionText(context: Context, action: GestureAction): Strin
         GestureActionType.FULLSCREEN_SCREENSHOT_PICK -> context.getString(R.string.gesture_action_fullscreen_screenshot_pick_desc)
         GestureActionType.REGIONAL_SCREENSHOT_PICK -> context.getString(R.string.gesture_action_regional_screenshot_pick_desc)
         GestureActionType.SEARCH_PANEL -> context.getString(R.string.gesture_action_search_panel_desc)
+        GestureActionType.OPEN_LINK -> context.getString(R.string.gesture_action_open_link_desc)
         GestureActionType.VOLUME_PANEL -> context.getString(R.string.gesture_action_volume_panel_desc)
         GestureActionType.SCREEN_TRANSLATE -> context.getString(R.string.gesture_action_screen_translate_desc)
         GestureActionType.REMIND -> context.getString(R.string.gesture_action_remind_desc)
@@ -194,6 +195,14 @@ fun gestureActionLabelText(context: Context, action: GestureAction): String = wh
                 R.string.gesture_action_execute_shell_command_named,
                 gestureExecuteShellCommandPreview(action.command),
             )
+        }
+    }
+    is GestureAction.OpenLink -> {
+        val display = action.label.ifBlank { action.url }
+        if (display.isBlank()) {
+            context.getString(R.string.gesture_action_open_link)
+        } else {
+            display
         }
     }
     is GestureAction.SimulateKeyEvent -> {
@@ -240,6 +249,7 @@ fun gestureActionLabelText(context: Context, action: GestureAction): String = wh
         GestureActionType.FULLSCREEN_SCREENSHOT_PICK -> context.getString(R.string.gesture_action_fullscreen_screenshot_pick)
         GestureActionType.REGIONAL_SCREENSHOT_PICK -> context.getString(R.string.gesture_action_regional_screenshot_pick)
         GestureActionType.SEARCH_PANEL -> context.getString(R.string.gesture_action_search_panel)
+        GestureActionType.OPEN_LINK -> context.getString(R.string.gesture_action_open_link)
         GestureActionType.VOLUME_PANEL -> context.getString(R.string.gesture_action_volume_panel)
         GestureActionType.SCREEN_TRANSLATE -> context.getString(R.string.gesture_action_screen_translate)
         GestureActionType.REMIND,
@@ -382,6 +392,7 @@ fun gestureActionLabel(action: GestureAction, settings: AppSettings? = null): St
         GestureActionType.FULLSCREEN_SCREENSHOT_PICK -> stringResource(R.string.gesture_action_fullscreen_screenshot_pick)
         GestureActionType.REGIONAL_SCREENSHOT_PICK -> stringResource(R.string.gesture_action_regional_screenshot_pick)
         GestureActionType.SEARCH_PANEL -> stringResource(R.string.gesture_action_search_panel)
+        GestureActionType.OPEN_LINK -> stringResource(R.string.gesture_action_open_link)
         GestureActionType.VOLUME_PANEL -> stringResource(R.string.gesture_action_volume_panel)
         GestureActionType.SCREEN_TRANSLATE -> stringResource(R.string.gesture_action_screen_translate)
         GestureActionType.REMIND,
@@ -464,6 +475,7 @@ fun gestureActionDescription(action: GestureAction): String? = when (action.type
     GestureActionType.FULLSCREEN_SCREENSHOT_PICK -> stringResource(R.string.gesture_action_fullscreen_screenshot_pick_desc)
     GestureActionType.REGIONAL_SCREENSHOT_PICK -> stringResource(R.string.gesture_action_regional_screenshot_pick_desc)
     GestureActionType.SEARCH_PANEL -> stringResource(R.string.gesture_action_search_panel_desc)
+    GestureActionType.OPEN_LINK -> stringResource(R.string.gesture_action_open_link_desc)
     GestureActionType.VOLUME_PANEL -> stringResource(R.string.gesture_action_volume_panel_desc)
     GestureActionType.SCREEN_TRANSLATE -> stringResource(R.string.gesture_action_screen_translate_desc)
     GestureActionType.UNIVERSAL_COPY -> stringResource(R.string.gesture_action_universal_copy_desc)

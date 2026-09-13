@@ -20,7 +20,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,7 +31,7 @@ import com.slideindex.app.R
 import com.slideindex.app.data.AppInfo
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.ExcludedAppScopes
-import com.slideindex.app.ui.compose.rememberAppRepository
+import com.slideindex.app.ui.compose.collectLaunchableAppsAsState
 import com.slideindex.app.ui.picker.ActivityShortcutPickAppScreen
 import com.slideindex.app.ui.miuix.CardItem
 import com.slideindex.app.ui.miuix.groupedCardItems
@@ -52,15 +51,9 @@ fun ExcludedAppsScreen(
     onRemoveExcludedApp: (String) -> Unit,
     onExcludedAppScopesChange: (String, ExcludedAppScopes) -> Unit
 ) {
-    val appRepository = rememberAppRepository()
-    var allApps by remember { mutableStateOf<List<AppInfo>>(emptyList()) }
-    var isLoading by remember { mutableStateOf(true) }
+    val allApps by collectLaunchableAppsAsState()
     var editingEntry by remember { mutableStateOf<EditingExcludedApp?>(null) }
-
-    LaunchedEffect(Unit) {
-        allApps = appRepository.loadApps(force = false)
-        isLoading = false
-    }
+    val isLoading = allApps.isEmpty()
 
     val excludedPackages = settings.excludedAppScopes.keys
     val appsByPackage = remember(allApps) { allApps.associateBy { it.packageName } }

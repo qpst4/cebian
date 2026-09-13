@@ -13,6 +13,7 @@ import com.slideindex.app.overlay.compositor.OverlayCompositor
 import com.slideindex.app.util.TaskManagerUtil
 import com.slideindex.app.util.TriggerVisibility
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 class OverlayManager(
     private val context: Context,
@@ -361,10 +362,16 @@ class OverlayManager(
     }
 
     fun reloadApps() {
-        leftController?.reloadApps()
-        rightController?.reloadApps()
-        bottomController?.reloadApps()
-        topController?.reloadApps()
+        scope.launch {
+            appRepository.refreshApps()
+        }
+    }
+
+    fun syncApps(apps: List<com.slideindex.app.data.AppInfo>) {
+        leftController?.syncApps(apps)
+        rightController?.syncApps(apps)
+        bottomController?.syncApps(apps)
+        topController?.syncApps(apps)
     }
 
     fun suspendAllEdgeOverlays() {

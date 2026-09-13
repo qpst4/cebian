@@ -49,7 +49,7 @@ fun ExtensionHubScreen(
     onOpenSettingsBackup: () -> Unit,
     onOpenNativeEnginePacks: () -> Unit,
     onOpenDiagnosticLogs: () -> Unit,
-    onOpenAbout: () -> Unit
+    onOpenAbout: () -> Unit,
 ) {
     val listState = rememberLazyListState()
     BottomNavReselectScrollEffect(

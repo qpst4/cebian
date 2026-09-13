@@ -95,6 +95,7 @@ data class LauncherSettings(
     val quickLauncherDisplay: QuickLauncherDisplaySettings = QuickLauncherDisplaySettings(),
     val honeycombLauncher: List<com.slideindex.app.launcher.QuickLauncherItem> = emptyList(),
     val honeycombDisplay: HoneycombDisplaySettings = HoneycombDisplaySettings(),
+    val appCarouselSwitcher: AppCarouselSwitcherSettings = AppCarouselSwitcherSettings(),
     val fvAppSwitcherVertical: FvAppSwitcherSettings = FvAppSwitcherSettings(),
     val fvAppSwitcherHorizontal: FvAppSwitcherSettings = FvAppSwitcherSettings(),
     /** 为 true 时顶/底与左/右共用同一套外观（圈数、尺寸、半径等）。 */

@@ -14,8 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -25,10 +23,13 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,7 +39,6 @@ import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.service.WidgetPickerTrampoline
@@ -52,18 +52,17 @@ import com.slideindex.app.widget.WidgetPanelPage
 import com.slideindex.app.ui.miuix.CardSegment
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import com.slideindex.app.ui.miuix.groupedCardItems
-import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.SettingsCardSegmentContent
 import com.slideindex.app.ui.settings.components.SettingsCardScope
-import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
+import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffold
 import com.slideindex.app.ui.settings.components.SettingExpandableSwitchRow
+import com.slideindex.app.ui.widgetpanel.WidgetPanelPageManagementSection
 import com.slideindex.app.ui.settings.components.SettingsSliderRow
 import com.slideindex.app.ui.settings.components.SETTINGS_SLIDER_PERCENT_KEY_POINTS_01
 import com.slideindex.app.ui.settings.components.settingsCardItems
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 import com.slideindex.app.ui.settings.components.settingsLazyTipCard
-import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.clickable
 import kotlin.math.roundToInt
@@ -87,6 +86,7 @@ fun WidgetPanelSettingsScreen(
     uiState = uiState,
     onBack = onBack,
     onSavePages = viewModel::setPages,
+    onSelectPage = viewModel::selectPage,
     onBlurEnabledChange = viewModel::setBlurEnabled,
     onBlurRadiusChange = viewModel::setBlurRadius,
     onGridInteractionActiveChange = viewModel::setGridInteractionActive,
@@ -109,8 +109,11 @@ fun WidgetPanelSettingsScreen(
 ) {
   val pages = WidgetPanelDefaults.effectivePages(settings.widgetPanelPages)
     .map { WidgetPanelGridLogic.fitPageToGrid(it) }
+  var selectedPageIndex by remember { mutableIntStateOf(0) }
+  val safeIndex = selectedPageIndex.coerceIn(0, (pages.size - 1).coerceAtLeast(0))
   val uiState = WidgetPanelUiState(
     pages = pages,
+    selectedPageIndex = safeIndex,
     blurEnabled = settings.widgetPanelBlurEnabled,
     blurRadiusDp = settings.widgetPanelBlurRadiusDp,
   )
@@ -118,6 +121,7 @@ fun WidgetPanelSettingsScreen(
     uiState = uiState,
     onBack = onBack,
     onSavePages = onSavePages,
+    onSelectPage = { selectedPageIndex = it },
     onBlurEnabledChange = onBlurEnabledChange,
     onBlurRadiusChange = onBlurRadiusChange,
     onGridInteractionActiveChange = {},
@@ -134,19 +138,20 @@ fun WidgetPanelSettingsContent(
   uiState: WidgetPanelUiState,
   onBack: () -> Unit,
   onSavePages: (List<WidgetPanelPage>) -> Unit,
+  onSelectPage: (Int) -> Unit,
   onBlurEnabledChange: (Boolean) -> Unit,
   onBlurRadiusChange: (Int) -> Unit = {},
   onGridInteractionActiveChange: (Boolean) -> Unit = {},
 ) {
-  val pagerState = rememberPagerState(pageCount = { uiState.pages.size })
   val settingsDesc = stringResource(R.string.widget_panel_settings_desc)
   val blurTitle = stringResource(R.string.widget_panel_blur)
   val blurDesc = stringResource(R.string.widget_panel_blur_desc)
-  val gridSectionTitle = stringResource(R.string.widget_panel_grid_section)
 
-  SettingsScreenScaffold(
+  SettingsLazyScreenScaffold(
     title = stringResource(R.string.widget_panel_settings_title),
     onBack = onBack,
+    modifier = Modifier.fillMaxSize(),
+    userScrollEnabled = !uiState.isGridInteractionActive,
   ) {
     settingsLazyTipCard(
       key = "widget-panel-desc",
@@ -182,34 +187,28 @@ fun WidgetPanelSettingsContent(
         },
       ),
     )
-    settingsLazySmallTitle(
-      key = "widget-panel-grid-section",
-      title = gridSectionTitle,
-    )
-    LazySettingsItem(key = "widget-panel-pager") {
-      Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(0.dp),
-      ) {
-        HorizontalPager(
-          state = pagerState,
-          modifier = Modifier
-            .fillMaxWidth()
-            .wrapContentHeight(),
-        ) { pageIndex ->
-          val page = uiState.pages.getOrElse(pageIndex) { WidgetPanelDefaults.defaultPage }
+    item(key = "widget-panel-pages") {
+      Column(modifier = Modifier.fillMaxWidth()) {
+        WidgetPanelPageManagementSection(
+          pages = uiState.pages,
+          selectedIndex = uiState.selectedPageIndex,
+          onPagesChange = onSavePages,
+          onSelectedIndexChange = onSelectPage,
+          modifier = Modifier.fillMaxWidth(),
+        )
+        Box(
+          modifier = Modifier.fillMaxWidth(),
+          contentAlignment = Alignment.Center,
+        ) {
           Box(
-            modifier = Modifier.fillMaxWidth(),
-            contentAlignment = Alignment.Center,
+            modifier = Modifier
+              .fillMaxWidth()
+              .widthIn(max = 520.dp),
           ) {
-            Box(
-              modifier = Modifier
-                .fillMaxWidth()
-                .widthIn(max = 520.dp),
-            ) {
+            key(uiState.currentPage.id) {
               WidgetPanelGridEditor(
-                page = page,
-                pageIndex = pageIndex,
+                page = uiState.currentPage,
+                pageIndex = uiState.selectedPageIndex,
                 allPages = uiState.pages,
                 widgetPanelBlurEnabled = uiState.blurEnabled,
                 gridScrollEnabled = !uiState.isGridInteractionActive,
@@ -218,15 +217,6 @@ fun WidgetPanelSettingsContent(
               )
             }
           }
-        }
-
-        if (uiState.pages.size > 1) {
-          Text(
-            text = stringResource(R.string.widget_panel_page_indicator, pagerState.currentPage + 1, uiState.pages.size),
-            style = MaterialTheme.typography.labelMedium,
-            modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Center,
-          )
         }
       }
     }

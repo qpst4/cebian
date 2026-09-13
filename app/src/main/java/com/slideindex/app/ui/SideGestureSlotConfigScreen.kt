@@ -15,6 +15,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 
 import androidx.compose.ui.Modifier
 
@@ -32,6 +37,7 @@ import com.slideindex.app.gesture.GestureTriggerType
 
 import com.slideindex.app.overlay.PanelSide
 
+import com.slideindex.app.settings.AppCarouselSwitcherSettings
 import com.slideindex.app.settings.AppSettings
 
 import com.slideindex.app.settings.slotAction
@@ -79,6 +85,10 @@ fun SideGestureSlotConfigScreen(
 
     onOpenFingertipRingConfig: () -> Unit = {},
 
+    appCarouselSettings: AppCarouselSwitcherSettings = AppCarouselSwitcherSettings(),
+
+    onAppCarouselSettingsChange: (AppCarouselSwitcherSettings) -> Unit = {},
+
 ) {
 
     val configSide = settings.gestureConfigSide(side, handleId)
@@ -86,6 +96,13 @@ fun SideGestureSlotConfigScreen(
     val selectedAction = settings.slotAction(configSide, trigger, handleId)
 
     val selectedMode = settings.slotTriggerMode(configSide, trigger, handleId)
+
+    var localAppCarouselSettings by remember(appCarouselSettings) {
+        mutableStateOf(appCarouselSettings)
+    }
+    LaunchedEffect(appCarouselSettings) {
+        localAppCarouselSettings = appCarouselSettings
+    }
 
     val sideDefaultMode = settings.defaultTriggerModeFor(configSide)
 
@@ -100,6 +117,8 @@ fun SideGestureSlotConfigScreen(
     val shellCommandSectionTitle = stringResource(R.string.gesture_shell_command_config_title)
 
     val fingertipRingSectionTitle = stringResource(R.string.fingertip_ring_config_section)
+
+    val appCarouselSectionTitle = stringResource(R.string.app_carousel_settings_title)
 
     val triggerModeSectionTitle = stringResource(R.string.slot_trigger_mode)
 
@@ -220,6 +239,42 @@ fun SideGestureSlotConfigScreen(
                     )
 
                 },
+
+            )
+
+        }
+
+
+
+        if (selectedAction == GestureAction.AppCarouselSwitcher) {
+
+            settingsLazySmallTitle(
+
+                key = "slot-app-carousel-section",
+
+                title = appCarouselSectionTitle,
+
+            )
+
+            groupedCardItems(
+
+                keyPrefix = "side-gesture-app-carousel",
+
+                items = appCarouselSwitcherSettingsCardItems(
+
+                    keyPrefix = "side-gesture-app-carousel",
+
+                    local = localAppCarouselSettings,
+
+                    onUpdate = { next ->
+
+                        localAppCarouselSettings = next
+
+                        onAppCarouselSettingsChange(next)
+
+                    },
+
+                ),
 
             )
 

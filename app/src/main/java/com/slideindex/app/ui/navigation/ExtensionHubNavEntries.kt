@@ -28,6 +28,7 @@ import com.slideindex.app.ui.SettingsBackupScreen
 import com.slideindex.app.ui.ThirdPartyNoticesScreen
 import com.slideindex.app.ui.viewmodel.DiagnosticLogViewModel
 import com.slideindex.app.ui.viewmodel.ExtensionHubViewModel
+import com.slideindex.app.ui.viewmodel.ExtensionSettingsViewModel
 import com.slideindex.app.ui.viewmodel.SettingsBackupViewModel
 
 fun NavEntryBuilder.extensionHubNavEntries(ctx: MainNavContext) {

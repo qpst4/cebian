@@ -4,6 +4,21 @@ import android.content.Context
 import com.slideindex.app.R
 
 object WidgetPanelMutator {
+  fun addPage(pages: List<WidgetPanelPage>): List<WidgetPanelPage> {
+    val effective = WidgetPanelDefaults.effectivePages(pages).toMutableList()
+    val newId = (effective.maxOfOrNull { it.id } ?: 0L) + 1L
+    effective.add(WidgetPanelPage(id = newId))
+    return effective
+  }
+
+  fun removePage(pages: List<WidgetPanelPage>, pageIndex: Int): List<WidgetPanelPage>? {
+    val effective = WidgetPanelDefaults.effectivePages(pages).toMutableList()
+    if (effective.size <= 1) return null
+    val index = pageIndex.coerceIn(0, effective.lastIndex)
+    effective.removeAt(index)
+    return effective
+  }
+
   fun addWidgetToPage(
     context: Context,
     pages: List<WidgetPanelPage>,

@@ -2,6 +2,7 @@ package com.slideindex.app.di
 
 import com.slideindex.app.clipboard.ClipboardHistoryRepository
 import com.slideindex.app.data.AppRepository
+import com.slideindex.app.data.LauncherAppsCallbackBridge
 import com.slideindex.app.notification.NotificationFilterPreferences
 import com.slideindex.app.notification.NotificationFilterRepository
 import com.slideindex.app.notification.NotificationHistoryRecorder
@@ -24,6 +25,7 @@ import kotlinx.coroutines.CoroutineScope
 @Singleton
 class AppDependencies @Inject constructor(
     override val appRepository: AppRepository,
+    val launcherAppsCallbackBridge: LauncherAppsCallbackBridge,
     override val settingsRepository: SettingsRepository,
     val notificationHistoryRepository: NotificationHistoryRepository,
     val notificationHistoryRecorder: NotificationHistoryRecorder,

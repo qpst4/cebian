@@ -10,7 +10,6 @@ import android.graphics.Path
 import android.graphics.RectF
 import android.graphics.Shader
 import android.graphics.Typeface
-import androidx.core.graphics.withClip
 import android.text.TextPaint
 import android.text.TextUtils
 import com.slideindex.app.activity.ActivityShortcut
@@ -316,11 +315,12 @@ internal object AppSwitcherRenderer {
         } else {
             iconClipPath.addRoundRect(iconDstRect, cornerRadius, cornerRadius, Path.Direction.CW)
         }
-        canvas.withClip(iconClipPath) {
-            iconPaint.isFilterBitmap = true
-            iconPaint.alpha = 255
-            drawBitmap(bitmap, null, iconDstRect, iconPaint)
-        }
+        val iconClipSaveCount = canvas.save()
+        canvas.clipPath(iconClipPath)
+        iconPaint.isFilterBitmap = true
+        iconPaint.alpha = 255
+        canvas.drawBitmap(bitmap, null, iconDstRect, iconPaint)
+        canvas.restoreToCount(iconClipSaveCount)
 
         strokePaint.style = Paint.Style.STROKE
         strokePaint.pathEffect = null
@@ -507,12 +507,13 @@ internal object AppSwitcherRenderer {
         } else {
             iconClipPath.addRoundRect(iconRect, previewCornerRadius, previewCornerRadius, Path.Direction.CW)
         }
-        canvas.withClip(iconClipPath) {
-            val previewIconPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply {
-                this.alpha = alpha
-            }
-            drawBitmap(bitmap, null, iconRect, previewIconPaint)
+        val previewClipSaveCount = canvas.save()
+        canvas.clipPath(iconClipPath)
+        val previewIconPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply {
+            this.alpha = alpha
         }
+        canvas.drawBitmap(bitmap, null, iconRect, previewIconPaint)
+        canvas.restoreToCount(previewClipSaveCount)
 
         if (label.isNotBlank()) {
             val textPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {

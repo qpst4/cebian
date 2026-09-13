@@ -53,6 +53,7 @@ class SlideIndexApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        deps.launcherAppsCallbackBridge.register()
         runBlocking(Dispatchers.IO) {
             val language = AppUiLanguage.fromStorageTag(
                 runCatching { deps.settingsRepository.readFreshSnapshot().appUiLanguageTag }.getOrDefault("")

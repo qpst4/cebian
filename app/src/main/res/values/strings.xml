@@ -837,6 +837,11 @@
     <string name="gesture_action_regional_screenshot_pick_permission">需要开启无障碍服务</string>
     <string name="gesture_action_search_panel">搜索面板</string>
     <string name="gesture_action_search_panel_desc">全局唤出面板进行文字或图片搜索</string>
+    <string name="gesture_action_open_link">打开链接</string>
+    <string name="gesture_action_open_link_desc">打开已保存的外部链接、Deeplink 或 Intent URI</string>
+    <string name="gesture_open_link_url_field">链接</string>
+    <string name="gesture_open_link_label_field">显示名称（可选）</string>
+    <string name="gesture_open_link_config_hint">支持 http(s)://、intent://、tel:、mailto: 及 cebian:// 等可打开 URI</string>
     <string name="gesture_action_volume_panel">扩展面板</string>
     <string name="gesture_action_volume_panel_desc">弹出面板调节亮度、闹钟/通知/铃声/媒体音量</string>
     <string name="volume_panel_brightness">亮度</string>
@@ -2007,6 +2012,9 @@
     <string name="widget_panel_add_widget">添加小组件</string>
     <string name="widget_panel_add_widget_failed">无法添加小组件：未找到小组件信息</string>
     <string name="widget_panel_page_indicator">第 %1$d / %2$d 页</string>
+    <string name="widget_panel_add_page">新增面板</string>
+    <string name="widget_panel_remove_page">删除当前面板</string>
+    <string name="widget_panel_remove_page_confirm">删除第 %1$d 页？此操作不可撤销。</string>
     <string name="widget_picker_title">选择小部件</string>
     <string name="widget_picker_search_hint">搜索小部件…</string>
     <string name="widget_picker_empty">未找到可用的小组件</string>
@@ -3052,7 +3060,14 @@ adb 模式应返回 uid=2000。
 若 Shizuku 以 Root 启动，请改用无线调试/adb 方式启动 Shizuku，
 或在 APatch 中取消 Shell 的永久 Root 授权。</string>
     <string name="shell_no_response">Shell 服务无响应。请完全关闭并重启 Shizuku，然后重新打开本应用</string>
-    <string name="app_carousel_cancel_hint">移至屏幕顶部或底部松手取消</string>
+    <string name="app_carousel_cancel_hint">甩离卡片区域松手取消</string>
+    <string name="app_carousel_settings_title">卡片应用切换器</string>
+    <string name="app_carousel_settings_desc">从屏幕中心向上或向下滑动超过设定距离后松手，可取消切换</string>
+    <string name="app_carousel_cancel_distance">取消距离</string>
+    <string name="app_carousel_separate_cancel_distances">分别设置上下距离</string>
+    <string name="app_carousel_cancel_distance_up">向上取消距离</string>
+    <string name="app_carousel_cancel_distance_down">向下取消距离</string>
+    <string name="app_carousel_cancel_both_directions">上下双向取消</string>
     <string name="extension_about_subtitle">版本、更新与隐私协议</string>
     <string name="external_invocation_keyword_example"> "关键词"</string>
     <string name="search_panel_aggregated_image_search">聚合搜图</string>

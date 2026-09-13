@@ -47,6 +47,7 @@ import com.slideindex.app.util.QuickToolsHelper
 import com.slideindex.app.util.ScreenRecordHelper
 import com.slideindex.app.util.SystemGestureActions
 import com.slideindex.app.util.OverlaySnoozeController
+import com.slideindex.app.search.SearchEngineLauncher
 import com.slideindex.app.util.VolumeControlHelper
 
 class ActionExecutor(
@@ -134,6 +135,10 @@ class ActionExecutor(
             -> overlayPanels.showEdgeHostedPanel(action, anchorRawY, resolvedSide)
             GestureAction.ShellCommandPanel -> overlayPanels.openShellCommandPanelStandalone()
             is GestureAction.ExecuteShellCommand -> executeShellCommand(action)
+            is GestureAction.OpenLink -> {
+                if (action.url.isBlank()) return false
+                SearchEngineLauncher.launchOpenableUri(context, action.url, settings, longPressArmed)
+            }
             GestureAction.None, GestureAction.ClickPassthrough,
             GestureAction.CornerInnerCancel, GestureAction.CornerInnerPinWheel,
             -> false

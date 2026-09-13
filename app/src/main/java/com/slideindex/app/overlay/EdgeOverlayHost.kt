@@ -35,6 +35,7 @@ class EdgeOverlayHost(
     private var floatBallController: FloatBallController? = null
     private var cornerGestureHost: CornerGestureHost? = null
     private var settingsJob: Job? = null
+    private var appsJob: Job? = null
     private var previewActive = false
     private var previewContent: LayoutPreviewContent = LayoutPreviewContent.TRIGGER_ONLY
     private var previewFocus: LayoutPreviewFocus? = null
@@ -59,6 +60,11 @@ class EdgeOverlayHost(
         )
         scope.launch(Dispatchers.Default) {
             deps.appRepository.loadApps()
+        }
+        appsJob = scope.launch {
+            deps.appRepository.apps.collectLatest { apps ->
+                overlayManager?.syncApps(apps)
+            }
         }
         if (TaskManagerUtil.hasPermission()) {
             TaskManagerUtil.warmUpPrivilegedBackend()
@@ -107,6 +113,8 @@ class EdgeOverlayHost(
         OverlayPerformanceMonitorBinding.onOverlayHidden(context)
         settingsJob?.cancel()
         settingsJob = null
+        appsJob?.cancel()
+        appsJob = null
         floatBallController?.stop()
         floatBallController = null
         cornerGestureHost?.stop()

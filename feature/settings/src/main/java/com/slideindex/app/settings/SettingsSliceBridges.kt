@@ -72,6 +72,7 @@ fun GestureSettings.toMinimalAppSettings(): AppSettings = AppSettings(
         quickLauncherDisplay = quickLauncherDisplay,
         honeycombLauncher = honeycombLauncher,
         honeycombDisplay = honeycombDisplay,
+        appCarouselSwitcher = appCarouselSwitcher,
         fvAppSwitcherVertical = fvAppSwitcherVertical,
         fvAppSwitcherHorizontal = fvAppSwitcherHorizontal,
         fvAppSwitcherLinkAppearanceAxes = fvAppSwitcherLinkAppearanceAxes,

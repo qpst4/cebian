@@ -18,11 +18,15 @@ import javax.inject.Inject
 
 data class WidgetPanelUiState(
     val pages: List<WidgetPanelPage> = emptyList(),
+    val selectedPageIndex: Int = 0,
     val blurEnabled: Boolean = false,
     val blurRadiusDp: Int = 16,
     val isGridInteractionActive: Boolean = false,
     val isLoading: Boolean = false,
-)
+) {
+    val currentPage: WidgetPanelPage
+        get() = pages.getOrElse(selectedPageIndex) { WidgetPanelDefaults.defaultPage }
+}
 
 @HiltViewModel
 class WidgetPanelEditorViewModel @Inject constructor(
@@ -31,15 +35,20 @@ class WidgetPanelEditorViewModel @Inject constructor(
     @ApplicationContext context: Context,
 ) : SettingsViewModel(settingsRepository, userMessageBus, context) {
 
+    private val _selectedPageIndex = MutableStateFlow(0)
     private val _isGridInteractionActive = MutableStateFlow(false)
 
     val uiState: StateFlow<WidgetPanelUiState> = combine(
         this.settings,
+        _selectedPageIndex,
         _isGridInteractionActive,
-    ) { currentSettings, gridActive ->
+    ) { currentSettings, selectedIndex, gridActive ->
+        val pages = WidgetPanelDefaults.effectivePages(currentSettings.widgetPanelPages)
+            .map { WidgetPanelGridLogic.fitPageToGrid(it) }
+        val safeIndex = selectedIndex.coerceIn(0, (pages.size - 1).coerceAtLeast(0))
         WidgetPanelUiState(
-            pages = WidgetPanelDefaults.effectivePages(currentSettings.widgetPanelPages)
-                .map { WidgetPanelGridLogic.fitPageToGrid(it) },
+            pages = pages,
+            selectedPageIndex = safeIndex,
             blurEnabled = currentSettings.widgetPanelBlurEnabled,
             blurRadiusDp = currentSettings.widgetPanelBlurRadiusDp,
             isGridInteractionActive = gridActive,
@@ -50,6 +59,10 @@ class WidgetPanelEditorViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = WidgetPanelUiState(isLoading = true),
     )
+
+    fun selectPage(index: Int) {
+        _selectedPageIndex.value = index
+    }
 
     fun setGridInteractionActive(active: Boolean) {
         _isGridInteractionActive.value = active

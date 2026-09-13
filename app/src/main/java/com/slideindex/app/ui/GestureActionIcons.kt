@@ -1,6 +1,7 @@
 package com.slideindex.app.ui
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.filled.SwipeDown
 import androidx.compose.material.icons.filled.SwipeLeft
 import androidx.compose.material.icons.filled.SwipeRight
@@ -30,6 +31,7 @@ fun gestureActionImageVector(action: GestureAction, outlined: Boolean = false): 
                 pointerSwipeDirectionThinIcon(action.config.direction)
             }
         is GestureAction.ExecuteShellCommand -> ThinActionIcons.Code
+        is GestureAction.OpenLink -> Icons.Outlined.Link
         is GestureAction.SimulateKeyEvent -> ThinActionIcons.Keyboard
         else ->
             if (outlined) {

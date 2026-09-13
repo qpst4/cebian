@@ -456,7 +456,15 @@ class SideOverlayController(
     }
 
     fun reloadApps() {
-        preloadApps(force = true)
+        scope.launch {
+            appRepository.refreshApps()
+        }
+    }
+
+    fun syncApps(apps: List<com.slideindex.app.data.AppInfo>) {
+        if (windowManager.edgeOverlayDetached || windowManager.overlayLayoutSuspended()) return
+        val filtered = apps.filter { it.packageName !in settings.hiddenAppPackages }
+        windowManager.presentationView?.setApps(filtered)
     }
 
     fun refreshTriggerVisualWindows() {

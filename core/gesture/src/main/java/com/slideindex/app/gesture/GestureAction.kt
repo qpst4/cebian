@@ -78,6 +78,7 @@ enum class GestureActionType(val id: Int) {
     FORCE_LANDSCAPE(75),
     OPEN_INTERNET_PANEL(76),
     OPEN_VOLUME_PANEL(77),
+    OPEN_LINK(78),
     CURRENT_APP_INFO(79),
     SIMULATE_KEY_EVENT(80),
     SCREEN_OFF_KEEP_AWAKE(81),
@@ -314,6 +315,40 @@ sealed class GestureAction {
     data object ShellCommandPanel : GestureAction() {
         override val type = GestureActionType.SHELL_COMMAND_PANEL
         override val payload = ""
+    }
+
+    /** Opens an external URL, deeplink, or intent URI. */
+    data class OpenLink(
+        val url: String,
+        val label: String = "",
+    ) : GestureAction() {
+        override val type = GestureActionType.OPEN_LINK
+        override val payload = encodePayload(url, label)
+
+        companion object {
+            private const val SEP = '\u001F'
+
+            fun encodePayload(url: String, label: String): String {
+                val trimmedUrl = url.trim()
+                val trimmedLabel = label.trim()
+                return if (trimmedLabel.isBlank()) {
+                    trimmedUrl
+                } else {
+                    "$trimmedUrl$SEP$trimmedLabel"
+                }
+            }
+
+            fun fromPayload(payload: String): OpenLink {
+                val separatorIndex = payload.indexOf(SEP)
+                if (separatorIndex < 0) {
+                    return OpenLink(url = payload.trim())
+                }
+                return OpenLink(
+                    url = payload.substring(0, separatorIndex).trim(),
+                    label = payload.substring(separatorIndex + 1).trim(),
+                )
+            }
+        }
     }
 
     /** Runs a saved shell command when the gesture fires. */
@@ -683,6 +718,7 @@ sealed class GestureAction {
                 GestureActionType.SCROLL_TO_BOTTOM -> ScrollToBottom
                 GestureActionType.SHELL_COMMAND_PANEL -> ShellCommandPanel
                 GestureActionType.EXECUTE_SHELL_COMMAND -> ExecuteShellCommand(payload)
+                GestureActionType.OPEN_LINK -> OpenLink.fromPayload(payload)
                 GestureActionType.QUICK_TOOLS_OVERLAY -> QuickToolsOverlay
                 GestureActionType.WIDGET_POPUP_OVERLAY -> WidgetPopupOverlay
                 GestureActionType.OPEN_STASH_PANEL -> StashPanel

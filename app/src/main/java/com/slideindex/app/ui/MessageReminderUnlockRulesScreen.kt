@@ -9,7 +9,6 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -20,7 +19,7 @@ import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.data.AppInfo
 import com.slideindex.app.message.MessageSettings
-import com.slideindex.app.ui.compose.rememberAppRepository
+import com.slideindex.app.ui.compose.collectLaunchableAppsAsState
 import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffoldWithExpandableSearch
 import com.slideindex.app.ui.settings.components.SettingsSliderRow
@@ -37,8 +36,7 @@ fun MessageReminderUnlockRulesScreen(
     onAlwaysAllowChange: (String, Boolean) -> Unit,
     onUnlockConfirmationAutoDismissSecondsChange: (Int) -> Unit,
 ) {
-    val appRepository = rememberAppRepository()
-    var allApps by remember { mutableStateOf<List<AppInfo>>(emptyList()) }
+    val allApps by collectLaunchableAppsAsState()
     var searchQuery by remember { mutableStateOf("") }
     val controlsEnabled = settings.enabled && settings.openLastMessageOnUnlock
     val neverDismissLabel = stringResource(R.string.message_reminder_unlock_auto_dismiss_never)
@@ -48,10 +46,6 @@ fun MessageReminderUnlockRulesScreen(
     val alwaysAllowSectionTitle = stringResource(R.string.message_reminder_open_last_rules_always)
     val emptyAppsText = stringResource(R.string.message_reminder_open_last_rules_empty)
     val autoDismissSeconds = settings.unlockConfirmationAutoDismissSeconds
-
-    LaunchedEffect(Unit) {
-        allApps = appRepository.loadApps(force = true)
-    }
 
     val apps = remember(allApps, settings.enabledPackages, searchQuery) {
         val query = searchQuery.trim().lowercase()

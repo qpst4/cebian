@@ -681,6 +681,10 @@ class OverlaySettingsMutator @Inject constructor(
             )
     }
 
+    suspend fun setAppCarouselSwitcherSettings(settings: AppCarouselSwitcherSettings) = editor.edit { prefs ->
+        AppCarouselSwitcherSettings.writeToPreferences(settings, prefs)
+    }
+
     suspend fun setHoneycombDisplaySettings(settings: HoneycombDisplaySettings) = editor.edit { prefs ->
         prefs[SettingsPreferenceKeys.HONEYCOMB_MODE] =
             settings.mode.coerceIn(HoneycombDisplaySettings.MODE_BROWSE, HoneycombDisplaySettings.MODE_HOLD)
