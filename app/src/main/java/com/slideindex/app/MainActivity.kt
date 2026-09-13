@@ -29,9 +29,11 @@ import com.slideindex.app.di.AppDependencies
 import com.slideindex.app.freezer.FreezerLaunchState
 import com.slideindex.app.freezer.FreezerTab
 import com.slideindex.app.notification.NotificationHistoryLaunchState
+import com.slideindex.app.overlay.FloatBallPickResultPanel
 import com.slideindex.app.overlay.LayoutPreviewContent
 import com.slideindex.app.overlay.LayoutPreviewFocus
 import com.slideindex.app.overlay.WidgetPickerOverlayWindow
+import com.slideindex.app.overlay.WidgetPopupOverlayWindow
 import com.slideindex.app.service.OverlayService
 import com.slideindex.app.service.OverlayServiceController
 import com.slideindex.app.service.QuickLauncherAddTrampoline
@@ -380,6 +382,8 @@ class MainActivity : ComponentActivity() {
 
     internal fun applyPredictiveBackEnabled(enabled: Boolean) {
         PredictiveBackHelper.applyEnabled(applicationInfo, enabled)
+        FloatBallPickResultPanel.refreshBackHandlingIfShowing()
+        WidgetPopupOverlayWindow.refreshBackHandlingIfVisible()
     }
 
     @Suppress("DEPRECATION")

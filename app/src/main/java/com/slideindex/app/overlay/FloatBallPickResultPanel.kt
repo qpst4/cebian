@@ -268,6 +268,16 @@ object FloatBallPickResultPanel {
         handlePanelBack()
     }
 
+    /** Re-bind back handling after predictive-back setting changes while the panel is visible. */
+    internal fun refreshBackHandlingIfShowing() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { refreshBackHandlingIfShowing() }
+            return
+        }
+        if (!pickPanelVisible || composeView?.visibility != View.VISIBLE) return
+        activatePanelBackHandling()
+    }
+
     internal fun requestPanelFocus() {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             mainHandler.post { requestPanelFocus() }
@@ -817,6 +827,7 @@ object FloatBallPickResultPanel {
 
     /** Invisible prefetch shell: must not intercept touches beneath float-ball chrome. */
     private fun applyPanelShellPassive() {
+        deactivatePanelBackHandling()
         val wm = windowManager ?: return
         val view = composeView ?: return
         val params = layoutParams ?: return
@@ -839,6 +850,25 @@ object FloatBallPickResultPanel {
             params.flags or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
         }
         runCatching { wm.updateViewLayout(view, params) }
+        if (focusable) {
+            view.isFocusable = true
+            view.isFocusableInTouchMode = true
+            view.requestFocus()
+            activatePanelBackHandling()
+        } else {
+            deactivatePanelBackHandling()
+        }
+    }
+
+    private fun activatePanelBackHandling() {
+        val view = composeView ?: return
+        backHandler?.detach()
+        backHandler = OverlayViewBackHandler(view, ::handlePanelBack).also { it.attach() }
+    }
+
+    private fun deactivatePanelBackHandling() {
+        backHandler?.detach()
+        backHandler = null
     }
 
     private fun ensureWindow(context: Context) {
@@ -1179,7 +1209,6 @@ object FloatBallPickResultPanel {
         owner = dialogOwner
         layoutParams = params
         appContext = context.applicationContext as android.app.Application
-        backHandler = OverlayViewBackHandler(compose, ::handlePanelBack).also { it.attach() }
         registerScreenOffReceiver(context)
         applyPanelShellPassive()
     }

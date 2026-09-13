@@ -241,6 +241,16 @@ object WidgetPopupOverlayWindow {
     }
   }
 
+  /** Re-bind back handling after predictive-back setting changes while the popup is visible. */
+  fun refreshBackHandlingIfVisible() {
+    if (Looper.myLooper() != Looper.getMainLooper()) {
+      mainHandler.post { refreshBackHandlingIfVisible() }
+      return
+    }
+    if (!isVisible || suspendedForPicker || isWidgetAddFlowActive) return
+    activateBackHandling()
+  }
+
   fun dismiss() {
     if (Looper.myLooper() != Looper.getMainLooper()) {
       mainHandler.post { dismiss() }

@@ -17,20 +17,12 @@ object ImeBoundsDetector {
 
     private fun detectFromAccessibilityWindows(service: AccessibilityService): Rect? {
         val minHeightPx = (MIN_IME_HEIGHT_DP * service.resources.displayMetrics.density).roundToInt()
-        val imePackages = imePackages(service)
         var best: Rect? = null
         for (window in service.windows) {
+            if (window.type != AccessibilityWindowInfo.TYPE_INPUT_METHOD) continue
             val bounds = Rect()
             window.getBoundsInScreen(bounds)
             if (bounds.isEmpty) continue
-            val isIme = when {
-                window.type == AccessibilityWindowInfo.TYPE_INPUT_METHOD -> true
-                else -> {
-                    val packageName = window.root?.packageName?.toString()
-                    packageName != null && packageName in imePackages
-                }
-            }
-            if (!isIme) continue
             if (bounds.height() < minHeightPx) continue
             if (best == null || bounds.height() > best.height()) {
                 best = bounds
@@ -51,10 +43,4 @@ object ImeBoundsDetector {
         return Rect(0, top, metrics.widthPixels, metrics.heightPixels)
     }
 
-    private fun imePackages(service: AccessibilityService): Set<String> {
-        val imm = service.getSystemService(InputMethodManager::class.java) ?: return emptySet()
-        return runCatching {
-            imm.enabledInputMethodList.map { it.packageName }.toSet()
-        }.getOrDefault(emptySet())
-    }
 }
