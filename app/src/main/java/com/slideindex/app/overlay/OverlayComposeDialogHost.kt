@@ -179,7 +179,12 @@ class OverlayComposeDialogHost(
         if (detachedFromWindow) return
         runCatching {
             windowManager.updateViewLayout(view, params)
-            view.requestFocus()
+            // IME 弹出会触发 syncOverlayDialogZOrder → bringToFront；若子 View（如搜索框）
+            // 已持有焦点，根 View 再 requestFocus 会抢走焦点并立刻收起输入法。
+            val focused = view.findFocus()
+            if (focused == null || focused === view) {
+                view.requestFocus()
+            }
         }.onFailure { error -> Log.e(TAG, "Failed to bring overlay dialog to front", error) }
     }
 
