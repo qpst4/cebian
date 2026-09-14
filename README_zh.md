@@ -390,9 +390,11 @@ cd cebian
 
 [![GitHub Discussions](https://img.shields.io/badge/GitHub-Discussions-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/qpst4/cebian/discussions)
 [![GitHub Issues](https://img.shields.io/badge/GitHub-Issues%20反馈-EA4AAA?style=for-the-badge&logo=github&logoColor=white)](https://github.com/qpst4/cebian/issues)
+[![Telegram 讨论群](https://img.shields.io/badge/Telegram-Cebian_·_边栏-26A5E4?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/+NtcG5HPiKXVmNTU1)
+[![Telegram 公告](https://img.shields.io/badge/Telegram-Releases-26A5E4?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/cebian_channel)
 [![QQ Group](art/qq_group_badge.svg)](https://qm.qq.com/q/Zx4wd2LB4G)
 
-> 官方 QQ 交流群号：**1042783385**
+> 官方 QQ 交流群号：**1042783385** · Telegram：[讨论群](https://t.me/+NtcG5HPiKXVmNTU1) · [发版频道 @cebian_channel](https://t.me/cebian_channel)
 
 </div>
 

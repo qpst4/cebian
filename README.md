@@ -390,9 +390,11 @@ Welcome to join the community discussions and provide feedback or feature reques
 
 [![GitHub Discussions](https://img.shields.io/badge/GitHub-Discussions-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/qpst4/cebian/discussions)
 [![GitHub Issues](https://img.shields.io/badge/GitHub-Issues-EA4AAA?style=for-the-badge&logo=github&logoColor=white)](https://github.com/qpst4/cebian/issues)
+[![Telegram Chat](https://img.shields.io/badge/Telegram-Chat-26A5E4?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/+NtcG5HPiKXVmNTU1)
+[![Telegram Releases](https://img.shields.io/badge/Telegram-Releases-26A5E4?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/cebian_channel)
 [![QQ Group](art/qq_group_badge.svg)](https://qm.qq.com/q/Zx4wd2LB4G)
 
-> Official QQ Group: **1042783385**
+> Telegram: [chat group](https://t.me/+NtcG5HPiKXVmNTU1) (Cebian · 边栏) · [release channel @cebian_channel](https://t.me/cebian_channel) · QQ Group: **1042783385**
 
 </div>
 
