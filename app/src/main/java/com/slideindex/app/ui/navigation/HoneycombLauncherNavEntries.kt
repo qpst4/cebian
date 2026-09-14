@@ -12,6 +12,7 @@ import com.slideindex.app.launcher.QuickLauncherItemType
 import com.slideindex.app.overlay.honeycombRuntimeItems
 import com.slideindex.app.settings.toMinimalAppSettings
 import com.slideindex.app.ui.GestureExecuteShellCommandScreen
+import com.slideindex.app.ui.GestureOpenLinkScreen
 import com.slideindex.app.ui.GestureSimulateKeyEventScreen
 import com.slideindex.app.ui.HoneycombDisplaySettingsScreen
 import com.slideindex.app.ui.HoneycombLauncherEditorScreen
@@ -48,6 +49,8 @@ fun NavEntryBuilder.honeycombLauncherNavEntries(ctx: MainNavContext) {
             onMyShortcuts = { ctx.navigate(AppNavKey.HoneycombLauncherMyShortcuts) },
             onPresetShortcuts = { ctx.navigate(AppNavKey.HoneycombLauncherPresetShortcuts) },
             onOpenExecuteShellCommand = { cmd -> ctx.navigate(AppNavKey.HoneycombLauncherShellCommand(cmd)) },
+            onOpenOpenLink = { ctx.navigate(AppNavKey.HoneycombLauncherOpenLink()) },
+            onOpenSimulateKeyEvent = { ctx.navigate(AppNavKey.HoneycombLauncherSimulateKeyEvent()) },
         )
     }
 
@@ -156,6 +159,25 @@ fun NavEntryBuilder.honeycombLauncherNavEntries(ctx: MainNavContext) {
                         keyEventAction,
                         label,
                     ),
+                )
+                ctx.navigateBackTo(AppNavKey.HoneycombLauncherAdd)
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.HoneycombLauncherOpenLink> { key ->
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        GestureOpenLinkScreen(
+            initialUrl = key.initialUrl,
+            initialLabel = key.initialLabel,
+            onBack = { ctx.navigateBackTo(AppNavKey.HoneycombLauncherAdd) },
+            onConfirm = { url, label ->
+                val trimmedUrl = url.trim()
+                val trimmedLabel = label.trim()
+                val action = GestureAction.OpenLink(url = trimmedUrl, label = trimmedLabel)
+                val itemLabel = trimmedLabel.ifBlank { trimmedUrl }
+                viewModel.addHoneycombItem(
+                    QuickLauncherItem.action(action, itemLabel),
                 )
                 ctx.navigateBackTo(AppNavKey.HoneycombLauncherAdd)
             },

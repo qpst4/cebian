@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.data.AppInfo
 import com.slideindex.app.gesture.GestureAction
+import com.slideindex.app.gesture.KeyEventPresets
 import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.launcher.QuickLauncherItemCodec
 import com.slideindex.app.launcher.QuickLauncherItemType
@@ -54,6 +55,8 @@ import com.slideindex.app.activity.ActivityShortcut
 import com.slideindex.app.ui.PickerListOverlayHorizontalPadding
 import com.slideindex.app.ui.PickerTrailingMode
 import com.slideindex.app.ui.GestureExecuteShellCommandScreen
+import com.slideindex.app.ui.GestureOpenLinkScreen
+import com.slideindex.app.ui.GestureSimulateKeyEventScreen
 import com.slideindex.app.ui.displayLabelForExecuteShellCommand
 import com.slideindex.app.ui.gestureActionIcon
 import com.slideindex.app.ui.miuix.MiuixLabeledTextField
@@ -87,6 +90,15 @@ internal sealed interface QuickLauncherAddSubScreen {
     data object PickApp : QuickLauncherAddSubScreen
     data class PickActivity(val packageName: String) : QuickLauncherAddSubScreen
     data class ShellCommandConfig(val initialCommand: String = "") : QuickLauncherAddSubScreen
+    data class OpenLinkConfig(
+        val initialUrl: String = "",
+        val initialLabel: String = "",
+    ) : QuickLauncherAddSubScreen
+    data class SimulateKeyEventConfig(
+        val initialKeyCode: Int = 82,
+        val initialKeyName: String = "",
+        val initialIsLongPress: Boolean = false,
+    ) : QuickLauncherAddSubScreen
     data object CreateFolder : QuickLauncherAddSubScreen
     data object MyShortcuts : QuickLauncherAddSubScreen
     data object PresetShortcuts : QuickLauncherAddSubScreen
@@ -97,6 +109,8 @@ internal fun QuickLauncherAddSubScreen.navDepth(): Int = when (this) {
     QuickLauncherAddSubScreen.PickApp -> 1
     is QuickLauncherAddSubScreen.PickActivity -> 2
     is QuickLauncherAddSubScreen.ShellCommandConfig -> 1
+    is QuickLauncherAddSubScreen.OpenLinkConfig -> 1
+    is QuickLauncherAddSubScreen.SimulateKeyEventConfig -> 1
     QuickLauncherAddSubScreen.CreateFolder -> 1
     QuickLauncherAddSubScreen.MyShortcuts -> 1
     QuickLauncherAddSubScreen.PresetShortcuts -> 1
@@ -107,6 +121,8 @@ private fun QuickLauncherAddSubScreen.contentKey(): Any = when (this) {
     QuickLauncherAddSubScreen.PickApp -> "pickApp"
     is QuickLauncherAddSubScreen.PickActivity -> "pickActivity:$packageName"
     is QuickLauncherAddSubScreen.ShellCommandConfig -> "shellConfig"
+    is QuickLauncherAddSubScreen.OpenLinkConfig -> "openLinkConfig"
+    is QuickLauncherAddSubScreen.SimulateKeyEventConfig -> "simulateKeyConfig"
     QuickLauncherAddSubScreen.CreateFolder -> "createFolder"
     QuickLauncherAddSubScreen.MyShortcuts -> "myShortcuts"
     QuickLauncherAddSubScreen.PresetShortcuts -> "presetShortcuts"
@@ -144,6 +160,7 @@ internal fun QuickLauncherAddOverlaySheetBody(
     onToggleFolderItem: (QuickLauncherItem, Boolean) -> Unit = { _, _ -> },
     onEnterFolderLibrary: () -> Unit = {},
     onClearFolderDraft: () -> Unit = {},
+    onReportEmbedParentConfirm: (QuickLauncherEmbedParentConfirm?) -> Unit = {},
 ) {
     var visitedTabs by remember { mutableStateOf(setOf(selectedTab)) }
     LaunchedEffect(selectedTab) {
@@ -168,6 +185,7 @@ internal fun QuickLauncherAddOverlaySheetBody(
                     embedInParentChrome = true,
                     overlayMode = true,
                     enableBackHandler = false,
+                    onRegisterEmbedParentConfirm = onReportEmbedParentConfirm,
                     onBack = {
                         onSubScreenChange(
                             if (folderPickerActive) {
@@ -181,6 +199,75 @@ internal fun QuickLauncherAddOverlaySheetBody(
                         val label = displayLabelForExecuteShellCommand(command, shellCommands)
                         val action = com.slideindex.app.gesture.GestureAction.ExecuteShellCommand(command)
                         val item = QuickLauncherItem.action(action, label)
+                        if (folderPickerActive) {
+                            onToggleFolderItem(item, false)
+                            onSubScreenChange(QuickLauncherAddSubScreen.CreateFolder)
+                        } else {
+                            onToggle(item, false)
+                            onSubScreenChange(QuickLauncherAddSubScreen.Main)
+                        }
+                    },
+                )
+            }
+            is QuickLauncherAddSubScreen.OpenLinkConfig -> {
+                GestureOpenLinkScreen(
+                    initialUrl = screen.initialUrl,
+                    initialLabel = screen.initialLabel,
+                    embedInParentChrome = true,
+                    overlayMode = true,
+                    enableBackHandler = false,
+                    onRegisterEmbedParentConfirm = onReportEmbedParentConfirm,
+                    onBack = {
+                        onSubScreenChange(
+                            if (folderPickerActive) {
+                                QuickLauncherAddSubScreen.CreateFolder
+                            } else {
+                                QuickLauncherAddSubScreen.Main
+                            },
+                        )
+                    },
+                    onConfirm = { url, label ->
+                        val trimmedUrl = url.trim()
+                        val trimmedLabel = label.trim()
+                        val action = GestureAction.OpenLink(url = trimmedUrl, label = trimmedLabel)
+                        val itemLabel = trimmedLabel.ifBlank { trimmedUrl }
+                        val item = QuickLauncherItem.action(action, itemLabel)
+                        if (folderPickerActive) {
+                            onToggleFolderItem(item, false)
+                            onSubScreenChange(QuickLauncherAddSubScreen.CreateFolder)
+                        } else {
+                            onToggle(item, false)
+                            onSubScreenChange(QuickLauncherAddSubScreen.Main)
+                        }
+                    },
+                )
+            }
+            is QuickLauncherAddSubScreen.SimulateKeyEventConfig -> {
+                val context = LocalContext.current
+                GestureSimulateKeyEventScreen(
+                    initialAction = GestureAction.SimulateKeyEvent(
+                        keyCode = screen.initialKeyCode,
+                        keyName = screen.initialKeyName,
+                        isLongPress = screen.initialIsLongPress,
+                    ),
+                    embedInParentChrome = true,
+                    overlayMode = true,
+                    enableBackHandler = false,
+                    onRegisterEmbedParentConfirm = onReportEmbedParentConfirm,
+                    onBack = {
+                        onSubScreenChange(
+                            if (folderPickerActive) {
+                                QuickLauncherAddSubScreen.CreateFolder
+                            } else {
+                                QuickLauncherAddSubScreen.Main
+                            },
+                        )
+                    },
+                    onConfirm = { keyEventAction ->
+                        val label = keyEventAction.keyName.ifBlank {
+                            KeyEventPresets.getDisplayName(context, keyEventAction.keyCode)
+                        }
+                        val item = QuickLauncherItem.action(keyEventAction, label)
                         if (folderPickerActive) {
                             onToggleFolderItem(item, false)
                             onSubScreenChange(QuickLauncherAddSubScreen.CreateFolder)
@@ -347,6 +434,12 @@ internal fun QuickLauncherAddOverlaySheetBody(
                         onOpenExecuteShellCommand = {
                             onSubScreenChange(QuickLauncherAddSubScreen.ShellCommandConfig())
                         },
+                        onOpenOpenLink = {
+                            onSubScreenChange(QuickLauncherAddSubScreen.OpenLinkConfig())
+                        },
+                        onOpenSimulateKeyEvent = {
+                            onSubScreenChange(QuickLauncherAddSubScreen.SimulateKeyEventConfig())
+                        },
                         singleSelect = singleSelect,
                         pinNoneAtTop = pinNoneAtTop,
                         noneSelected = slotEmpty,
@@ -504,6 +597,8 @@ private fun QuickLauncherAddActionsTab(
     configuredActionKeys: Set<String>,
     onToggleItem: (QuickLauncherItem, Boolean) -> Unit,
     onOpenExecuteShellCommand: () -> Unit,
+    onOpenOpenLink: () -> Unit,
+    onOpenSimulateKeyEvent: () -> Unit,
     modifier: Modifier,
     singleSelect: Boolean = false,
     pinNoneAtTop: Boolean = false,
@@ -521,6 +616,8 @@ private fun QuickLauncherAddActionsTab(
             configuredActionKeys = configuredActionKeys,
             onToggleItem = onToggleItem,
             onOpenExecuteShellCommand = onOpenExecuteShellCommand,
+            onOpenOpenLink = onOpenOpenLink,
+            onOpenSimulateKeyEvent = onOpenSimulateKeyEvent,
             singleSelect = singleSelect,
             pinNoneAtTop = pinNoneAtTop,
             noneSelected = noneSelected,
@@ -741,6 +838,12 @@ internal fun QuickLauncherCreateFolderScreen(
                     onToggleItem = onToggleFolderItem,
                     onOpenExecuteShellCommand = {
                         onSubScreenChange(QuickLauncherAddSubScreen.ShellCommandConfig())
+                    },
+                    onOpenOpenLink = {
+                        onSubScreenChange(QuickLauncherAddSubScreen.OpenLinkConfig())
+                    },
+                    onOpenSimulateKeyEvent = {
+                        onSubScreenChange(QuickLauncherAddSubScreen.SimulateKeyEventConfig())
                     },
                     singleSelect = false,
                     modifier = Modifier.fillMaxSize(),

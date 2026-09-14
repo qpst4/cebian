@@ -23,6 +23,8 @@ import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.shell.ShellCommand
+import com.slideindex.app.ui.quicklauncher.QuickLauncherEmbedParentConfirm
+import com.slideindex.app.ui.quicklauncher.ReportQuickLauncherEmbedParentConfirm
 import com.slideindex.app.ui.miuix.MiuixHintText
 import com.slideindex.app.ui.miuix.MiuixLabeledTextField
 import top.yukonga.miuix.kmp.basic.SmallTitle
@@ -46,7 +48,8 @@ fun GestureExecuteShellCommandScreen(
     onConfirm: (String) -> Unit,
     embedInParentChrome: Boolean = false,
     overlayMode: Boolean = false,
-    enableBackHandler: Boolean = true
+    enableBackHandler: Boolean = true,
+    onRegisterEmbedParentConfirm: (QuickLauncherEmbedParentConfirm?) -> Unit = {},
 ) {
     var command by remember(initialCommand) { mutableStateOf(initialCommand) }
     val canSave = command.isNotBlank()
@@ -116,20 +119,12 @@ fun GestureExecuteShellCommandScreen(
                 text = stringResource(R.string.gesture_shell_command_config_hint),
                 modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
             )
-
-            Button(
-                onClick = { onConfirm(command.trim()) },
-                enabled = canSave,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 12.dp, bottom = 16.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.shell_panel_save),
-                    fontWeight = FontWeight.Bold
-                )
-            }
         }
+        ReportQuickLauncherEmbedParentConfirm(
+            enabled = canSave,
+            onConfirm = { onConfirm(command.trim()) },
+            onReport = onRegisterEmbedParentConfirm,
+        )
         return
     }
 

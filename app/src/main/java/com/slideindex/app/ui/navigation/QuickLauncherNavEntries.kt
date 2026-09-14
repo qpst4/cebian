@@ -13,6 +13,7 @@ import com.slideindex.app.launcher.QuickLauncherItemType
 import com.slideindex.app.launcher.QuickLauncherPanelDefaults
 import com.slideindex.app.settings.toMinimalAppSettings
 import com.slideindex.app.ui.GestureExecuteShellCommandScreen
+import com.slideindex.app.ui.GestureOpenLinkScreen
 import com.slideindex.app.ui.GestureSimulateKeyEventScreen
 import com.slideindex.app.ui.QuickLauncherEditorScreen
 import com.slideindex.app.ui.displayLabelForExecuteShellCommand
@@ -50,6 +51,8 @@ fun NavEntryBuilder.quickLauncherNavEntries(ctx: MainNavContext) {
             onPresetShortcuts = { ctx.navigate(AppNavKey.QuickLauncherPresetShortcuts(key.panelId)) },
             onOpenExecuteShellCommand = { cmd -> ctx.navigate(AppNavKey.QuickLauncherShellCommand(key.panelId, cmd)) },
             onOpenCreateFolder = { ctx.navigate(AppNavKey.QuickLauncherCreateFolder(key.panelId)) },
+            onOpenOpenLink = { ctx.navigate(AppNavKey.QuickLauncherOpenLink(key.panelId)) },
+            onOpenSimulateKeyEvent = { ctx.navigate(AppNavKey.QuickLauncherSimulateKeyEvent(key.panelId)) },
         )
     }
 
@@ -204,6 +207,28 @@ fun NavEntryBuilder.quickLauncherNavEntries(ctx: MainNavContext) {
         )
     }
 
+    hiltEntry<AppNavKey.QuickLauncherOpenLink> { key ->
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel(ctx.activity)
+        GestureOpenLinkScreen(
+            initialUrl = key.initialUrl,
+            initialLabel = key.initialLabel,
+            onBack = { ctx.backStack.removeLastOrNull() },
+            onConfirm = { url, label ->
+                val trimmedUrl = url.trim()
+                val trimmedLabel = label.trim()
+                val action = GestureAction.OpenLink(url = trimmedUrl, label = trimmedLabel)
+                val itemLabel = trimmedLabel.ifBlank { trimmedUrl }
+                val item = QuickLauncherItem.action(action, itemLabel)
+                if (key.fromCreateFolder) {
+                    viewModel.addFolderDraftItem(item)
+                } else {
+                    viewModel.addQuickLauncherPanelItem(key.panelId, item)
+                }
+                ctx.backStack.removeLastOrNull()
+            },
+        )
+    }
+
     hiltEntry<AppNavKey.QuickLauncherCreateFolder> { key ->
         val viewModel: ExtensionSettingsViewModel = hiltViewModel(ctx.activity)
         val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
@@ -231,6 +256,22 @@ fun NavEntryBuilder.quickLauncherNavEntries(ctx: MainNavContext) {
                     AppNavKey.QuickLauncherShellCommand(
                         panelId = key.panelId,
                         initialCommand = cmd,
+                        fromCreateFolder = true,
+                    ),
+                )
+            },
+            onOpenOpenLink = {
+                ctx.navigate(
+                    AppNavKey.QuickLauncherOpenLink(
+                        panelId = key.panelId,
+                        fromCreateFolder = true,
+                    ),
+                )
+            },
+            onOpenSimulateKeyEvent = {
+                ctx.navigate(
+                    AppNavKey.QuickLauncherSimulateKeyEvent(
+                        panelId = key.panelId,
                         fromCreateFolder = true,
                     ),
                 )

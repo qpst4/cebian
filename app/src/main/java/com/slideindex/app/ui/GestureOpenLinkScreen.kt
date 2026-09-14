@@ -1,7 +1,12 @@
 package com.slideindex.app.ui
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -10,6 +15,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import com.slideindex.app.ui.quicklauncher.QuickLauncherEmbedParentConfirm
+import com.slideindex.app.ui.quicklauncher.ReportQuickLauncherEmbedParentConfirm
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -33,6 +40,7 @@ fun GestureOpenLinkScreen(
     embedInParentChrome: Boolean = false,
     overlayMode: Boolean = false,
     enableBackHandler: Boolean = true,
+    onRegisterEmbedParentConfirm: (QuickLauncherEmbedParentConfirm?) -> Unit = {},
 ) {
     var url by remember(initialUrl) { mutableStateOf(initialUrl) }
     var label by remember(initialLabel) { mutableStateOf(initialLabel) }
@@ -66,7 +74,24 @@ fun GestureOpenLinkScreen(
     }
 
     if (embedInParentChrome) {
-        formCard.RenderRows()
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            formCard.RenderRows()
+            MiuixHintText(
+                text = stringResource(R.string.gesture_open_link_config_hint),
+                modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
+            )
+        }
+        ReportQuickLauncherEmbedParentConfirm(
+            enabled = canSave,
+            onConfirm = { onConfirm(url.trim(), label.trim()) },
+            onReport = onRegisterEmbedParentConfirm,
+        )
         return
     }
 

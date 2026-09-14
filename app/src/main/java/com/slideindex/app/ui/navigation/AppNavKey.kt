@@ -329,6 +329,12 @@ sealed interface AppNavKey : NavKey {
         val initialIsLongPress: Boolean = false,
         val fromCreateFolder: Boolean = false,
     ) : AppNavKey
+    @Serializable data class QuickLauncherOpenLink(
+        val panelId: String,
+        val initialUrl: String = "",
+        val initialLabel: String = "",
+        val fromCreateFolder: Boolean = false,
+    ) : AppNavKey
     @Serializable data class QuickLauncherCreateFolder(val panelId: String) : AppNavKey
 
     @Serializable data object HoneycombLauncher : AppNavKey
@@ -342,6 +348,10 @@ sealed interface AppNavKey : NavKey {
         val initialKeyCode: Int = 82,
         val initialKeyName: String = "",
         val initialIsLongPress: Boolean = false,
+    ) : AppNavKey
+    @Serializable data class HoneycombLauncherOpenLink(
+        val initialUrl: String = "",
+        val initialLabel: String = "",
     ) : AppNavKey
     @Serializable data object HoneycombDisplaySettings : AppNavKey
     @Serializable data object HolographicLauncherSettings : AppNavKey

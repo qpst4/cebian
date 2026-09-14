@@ -43,6 +43,8 @@ fun LazyListScope.quickLauncherAddPickerActionItems(
     configuredActionKeys: Set<String>,
     onToggleItem: (QuickLauncherItem, Boolean) -> Unit,
     onOpenExecuteShellCommand: () -> Unit,
+    onOpenOpenLink: () -> Unit = {},
+    onOpenSimulateKeyEvent: () -> Unit = {},
     singleSelect: Boolean = false,
     pinNoneAtTop: Boolean = false,
     noneSelected: Boolean = false,
@@ -99,7 +101,16 @@ fun LazyListScope.quickLauncherAddPickerActionItems(
             val action = section.actions[index]
             val context = LocalContext.current
             val label = gestureActionLabel(action)
-            if (action.type == GestureActionType.EXECUTE_SHELL_COMMAND) {
+            if (action.type == GestureActionType.OPEN_LINK) {
+                QuickLauncherShellCommandActionRow(
+                    action = action,
+                    segmentIndex = index,
+                    segmentCount = section.actions.size,
+                    label = label,
+                    subtitle = gestureActionDescription(action),
+                    onOpenConfig = onOpenOpenLink,
+                )
+            } else if (action.type == GestureActionType.EXECUTE_SHELL_COMMAND) {
                 QuickLauncherShellCommandActionRow(
                     action = action,
                     segmentIndex = index,
@@ -109,6 +120,18 @@ fun LazyListScope.quickLauncherAddPickerActionItems(
                     onOpenConfig = {
                         requestPermissionForAdjustAction(context, action)
                         onOpenExecuteShellCommand()
+                    },
+                )
+            } else if (action.type == GestureActionType.SIMULATE_KEY_EVENT) {
+                QuickLauncherShellCommandActionRow(
+                    action = action,
+                    segmentIndex = index,
+                    segmentCount = section.actions.size,
+                    label = stringResource(R.string.gesture_action_simulate_key_event),
+                    subtitle = gestureActionDescription(action),
+                    onOpenConfig = {
+                        requestPermissionForAdjustAction(context, action)
+                        onOpenSimulateKeyEvent()
                     },
                 )
             } else {

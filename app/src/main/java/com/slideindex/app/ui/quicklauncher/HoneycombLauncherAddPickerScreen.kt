@@ -52,6 +52,8 @@ fun HoneycombLauncherAddPickerScreen(
     onMyShortcuts: () -> Unit,
     onPresetShortcuts: () -> Unit,
     onOpenExecuteShellCommand: (String) -> Unit,
+    onOpenOpenLink: () -> Unit = {},
+    onOpenSimulateKeyEvent: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val appRepository = rememberAppRepository()
@@ -171,6 +173,8 @@ fun HoneycombLauncherAddPickerScreen(
                         onToggleItem(item, added)
                     },
                     onOpenExecuteShellCommand = { onOpenExecuteShellCommand("") },
+                    onOpenOpenLink = onOpenOpenLink,
+                    onOpenSimulateKeyEvent = onOpenSimulateKeyEvent,
                 )
             }
             QuickLauncherEditorAddTab.APPS -> {

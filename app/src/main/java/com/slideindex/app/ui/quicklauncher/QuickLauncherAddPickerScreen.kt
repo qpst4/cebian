@@ -62,6 +62,8 @@ fun QuickLauncherAddPickerScreen(
     onPresetShortcuts: () -> Unit,
     onOpenExecuteShellCommand: (String) -> Unit,
     onOpenCreateFolder: () -> Unit,
+    onOpenOpenLink: () -> Unit = {},
+    onOpenSimulateKeyEvent: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val appRepository = rememberAppRepository()
@@ -197,6 +199,8 @@ fun QuickLauncherAddPickerScreen(
                         onToggleItem(item, added)
                     },
                     onOpenExecuteShellCommand = { onOpenExecuteShellCommand("") },
+                    onOpenOpenLink = onOpenOpenLink,
+                    onOpenSimulateKeyEvent = onOpenSimulateKeyEvent,
                 )
             }
             QuickLauncherEditorAddTab.APPS -> {
@@ -243,6 +247,8 @@ fun QuickLauncherCreateFolderScreen(
     onBack: () -> Unit,
     onConfirmCreateFolder: (String, List<QuickLauncherItem>) -> Unit,
     onOpenExecuteShellCommand: (String) -> Unit,
+    onOpenOpenLink: () -> Unit = {},
+    onOpenSimulateKeyEvent: () -> Unit = {},
     onPickApp: () -> Unit,
     onMyShortcuts: () -> Unit,
     onPresetShortcuts: () -> Unit,
@@ -409,6 +415,8 @@ fun QuickLauncherCreateFolderScreen(
                         onToggleItem(item, added)
                     },
                     onOpenExecuteShellCommand = { onOpenExecuteShellCommand("") },
+                    onOpenOpenLink = onOpenOpenLink,
+                    onOpenSimulateKeyEvent = onOpenSimulateKeyEvent,
                 )
             }
             QuickLauncherEditorAddTab.APPS -> {

@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Image
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -53,6 +54,7 @@ import com.slideindex.app.ui.miuix.MiuixExpandableSearchIconAction
 import com.slideindex.app.ui.miuix.MiuixTabRowContourHost
 import com.slideindex.app.ui.miuix.MiuixTabRowWithContour
 import com.slideindex.app.ui.miuix.consumeExpandableSearchBack
+import com.slideindex.app.ui.quicklauncher.QuickLauncherEmbedParentConfirm
 import com.slideindex.app.ui.quicklauncher.QUICK_LAUNCHER_SHEET_ENTER_MS
 import com.slideindex.app.ui.quicklauncher.QUICK_LAUNCHER_SHEET_EXIT_MS
 import com.slideindex.app.ui.quicklauncher.QuickLauncherAddOverlaySheetBody
@@ -80,6 +82,7 @@ fun AppSwitcherSlotConfigSheet(
 ) {
     var visible by remember { mutableStateOf(false) }
     var subScreen by remember { mutableStateOf<QuickLauncherAddSubScreen>(QuickLauncherAddSubScreen.Main) }
+    var embedParentConfirm by remember { mutableStateOf<QuickLauncherEmbedParentConfirm?>(null) }
     var searchQuery by remember { mutableStateOf("") }
     var selectedTab by remember { mutableIntStateOf(0) }
     var searchExpanded by remember { mutableStateOf(false) }
@@ -107,6 +110,8 @@ fun AppSwitcherSlotConfigSheet(
             subScreen == QuickLauncherAddSubScreen.PickApp -> subScreen = QuickLauncherAddSubScreen.Main
             subScreen is QuickLauncherAddSubScreen.PickActivity -> subScreen = QuickLauncherAddSubScreen.PickApp
             subScreen is QuickLauncherAddSubScreen.ShellCommandConfig -> subScreen = QuickLauncherAddSubScreen.Main
+            subScreen is QuickLauncherAddSubScreen.OpenLinkConfig -> subScreen = QuickLauncherAddSubScreen.Main
+            subScreen is QuickLauncherAddSubScreen.SimulateKeyEventConfig -> subScreen = QuickLauncherAddSubScreen.Main
             subScreen == QuickLauncherAddSubScreen.CreateFolder -> subScreen = QuickLauncherAddSubScreen.Main
             subScreen == QuickLauncherAddSubScreen.MyShortcuts -> subScreen = QuickLauncherAddSubScreen.Main
             subScreen == QuickLauncherAddSubScreen.PresetShortcuts -> subScreen = QuickLauncherAddSubScreen.Main
@@ -212,6 +217,10 @@ fun AppSwitcherSlotConfigSheet(
                                 stringResource(R.string.search_engine_pick_activity_title)
                             subScreen is QuickLauncherAddSubScreen.ShellCommandConfig ->
                                 stringResource(R.string.gesture_shell_command_config_title)
+                            subScreen is QuickLauncherAddSubScreen.OpenLinkConfig ->
+                                stringResource(R.string.gesture_action_open_link)
+                            subScreen is QuickLauncherAddSubScreen.SimulateKeyEventConfig ->
+                                stringResource(R.string.gesture_action_simulate_key_event)
                             subScreen == QuickLauncherAddSubScreen.CreateFolder ->
                                 stringResource(R.string.quick_launcher_create_folder)
                             else -> stringResource(R.string.app_switcher_slot_title, slotIndex + 1)
@@ -263,6 +272,15 @@ fun AppSwitcherSlotConfigSheet(
                                 onExpandedChange = { searchExpanded = it },
                                 onQueryChange = { searchQuery = it },
                             )
+                        }
+
+                        embedParentConfirm?.let { confirm ->
+                            IconButton(onClick = confirm.onConfirm, enabled = confirm.enabled) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = stringResource(R.string.confirm),
+                                )
+                            }
                         }
 
                         IconButton(onClick = requestDismiss) {
@@ -333,6 +351,7 @@ fun AppSwitcherSlotConfigSheet(
                                 onSelectItem(null)
                                 requestDismiss()
                             },
+                            onReportEmbedParentConfirm = { embedParentConfirm = it },
                         )
                     }
                 }

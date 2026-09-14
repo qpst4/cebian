@@ -26,8 +26,10 @@ import com.slideindex.app.ui.miuix.CardItem
 import com.slideindex.app.ui.miuix.MiuixHintText
 import com.slideindex.app.ui.miuix.MiuixLabeledTextField
 import com.slideindex.app.ui.miuix.MiuixSearchField
-import top.yukonga.miuix.kmp.basic.SmallTitle
 import com.slideindex.app.ui.miuix.groupedCardItems
+import top.yukonga.miuix.kmp.basic.SmallTitle
+import com.slideindex.app.ui.quicklauncher.QuickLauncherEmbedParentConfirm
+import com.slideindex.app.ui.quicklauncher.ReportQuickLauncherEmbedParentConfirm
 import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
@@ -47,7 +49,8 @@ fun GestureSimulateKeyEventScreen(
     onConfirm: (GestureAction.SimulateKeyEvent) -> Unit,
     embedInParentChrome: Boolean = false,
     overlayMode: Boolean = false,
-    enableBackHandler: Boolean = true
+    enableBackHandler: Boolean = true,
+    onRegisterEmbedParentConfirm: (QuickLauncherEmbedParentConfirm?) -> Unit = {},
 ) {
     var selectedCode by remember(initialAction) {
         mutableIntStateOf(initialAction?.keyCode ?: 82)
@@ -249,19 +252,12 @@ fun GestureSimulateKeyEventScreen(
                     }
                 }
             }
-
-            Button(
-                onClick = handleSave,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp, bottom = 16.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.shell_panel_save),
-                    fontWeight = FontWeight.Bold
-                )
-            }
         }
+        ReportQuickLauncherEmbedParentConfirm(
+            enabled = true,
+            onConfirm = handleSave,
+            onReport = onRegisterEmbedParentConfirm,
+        )
     } else {
         SettingsScreenScaffold(
             title = stringResource(R.string.key_event_config_title),

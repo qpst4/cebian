@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.CreateNewFolder
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -56,6 +57,7 @@ import com.slideindex.app.ui.miuix.MiuixExpandableSearchIconAction
 import com.slideindex.app.ui.miuix.MiuixTabRowContourHost
 import com.slideindex.app.ui.miuix.MiuixTabRowWithContour
 import com.slideindex.app.ui.miuix.consumeExpandableSearchBack
+import com.slideindex.app.ui.quicklauncher.QuickLauncherEmbedParentConfirm
 import com.slideindex.app.ui.quicklauncher.QUICK_LAUNCHER_SHEET_ENTER_MS
 import com.slideindex.app.ui.quicklauncher.QUICK_LAUNCHER_SHEET_EXIT_MS
 import com.slideindex.app.ui.quicklauncher.QuickLauncherAddOverlaySheetBody
@@ -99,6 +101,7 @@ fun QuickLauncherAddOverlaySheet(
 ) {
     var visible by remember { mutableStateOf(false) }
     var subScreen by remember { mutableStateOf<QuickLauncherAddSubScreen>(QuickLauncherAddSubScreen.Main) }
+    var embedParentConfirm by remember { mutableStateOf<QuickLauncherEmbedParentConfirm?>(null) }
     var folderName by remember { mutableStateOf("") }
     var folderItems by remember { mutableStateOf<List<QuickLauncherItem>>(emptyList()) }
     var folderPickerActive by remember { mutableStateOf(false) }
@@ -133,6 +136,16 @@ fun QuickLauncherAddOverlaySheet(
             }
             is QuickLauncherAddSubScreen.PickActivity -> subScreen = QuickLauncherAddSubScreen.PickApp
             is QuickLauncherAddSubScreen.ShellCommandConfig -> subScreen = if (folderPickerActive) {
+                QuickLauncherAddSubScreen.CreateFolder
+            } else {
+                QuickLauncherAddSubScreen.Main
+            }
+            is QuickLauncherAddSubScreen.OpenLinkConfig -> subScreen = if (folderPickerActive) {
+                QuickLauncherAddSubScreen.CreateFolder
+            } else {
+                QuickLauncherAddSubScreen.Main
+            }
+            is QuickLauncherAddSubScreen.SimulateKeyEventConfig -> subScreen = if (folderPickerActive) {
                 QuickLauncherAddSubScreen.CreateFolder
             } else {
                 QuickLauncherAddSubScreen.Main
@@ -224,6 +237,7 @@ fun QuickLauncherAddOverlaySheet(
                     val isFolderSubScreen = subScreen is QuickLauncherAddSubScreen.MyShortcuts || subScreen is QuickLauncherAddSubScreen.PresetShortcuts
                     QuickLauncherAddOverlayHeader(
                         subScreen = subScreen,
+                        embedParentConfirm = embedParentConfirm,
                         onBack = handleOverlayBack,
                         onDone = requestDismiss,
                         onCreateFolder = {
@@ -300,6 +314,7 @@ fun QuickLauncherAddOverlaySheet(
                         },
                         onEnterFolderLibrary = { folderPickerActive = true },
                         onClearFolderDraft = clearFolderDraft,
+                        onReportEmbedParentConfirm = { embedParentConfirm = it },
                     )
                 }
             }
@@ -335,6 +350,7 @@ private fun QuickLauncherAddOverlaySheetContent(
     onToggleFolderItem: (QuickLauncherItem, Boolean) -> Unit = { _, _ -> },
     onEnterFolderLibrary: () -> Unit = {},
     onClearFolderDraft: () -> Unit = {},
+    onReportEmbedParentConfirm: (QuickLauncherEmbedParentConfirm?) -> Unit = {},
 ) {
     var addedAppPackages by remember { mutableStateOf(configuredAppPackages) }
     var addedShortcutKeys by remember { mutableStateOf(configuredShortcutKeys) }
@@ -394,12 +410,14 @@ private fun QuickLauncherAddOverlaySheetContent(
         onToggleFolderItem = onToggleFolderItem,
         onEnterFolderLibrary = onEnterFolderLibrary,
         onClearFolderDraft = onClearFolderDraft,
+        onReportEmbedParentConfirm = onReportEmbedParentConfirm,
     )
 }
 
 @Composable
 private fun QuickLauncherAddOverlayHeader(
     subScreen: QuickLauncherAddSubScreen,
+    embedParentConfirm: QuickLauncherEmbedParentConfirm?,
     onBack: () -> Unit,
     onDone: () -> Unit,
     onCreateFolder: () -> Unit,
@@ -420,6 +438,10 @@ private fun QuickLauncherAddOverlayHeader(
             stringResource(R.string.search_engine_pick_activity_title)
         is QuickLauncherAddSubScreen.ShellCommandConfig ->
             stringResource(R.string.gesture_shell_command_config_title)
+        is QuickLauncherAddSubScreen.OpenLinkConfig ->
+            stringResource(R.string.gesture_action_open_link)
+        is QuickLauncherAddSubScreen.SimulateKeyEventConfig ->
+            stringResource(R.string.gesture_action_simulate_key_event)
         QuickLauncherAddSubScreen.CreateFolder ->
             stringResource(R.string.quick_launcher_create_folder)
         QuickLauncherAddSubScreen.MyShortcuts -> stringResource(R.string.quick_launcher_my_shortcuts)
@@ -463,6 +485,15 @@ private fun QuickLauncherAddOverlayHeader(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+            embedParentConfirm?.let { confirm ->
+                IconButton(onClick = confirm.onConfirm, enabled = confirm.enabled) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = stringResource(R.string.confirm),
+                        tint = MaterialTheme.colorScheme.onSurface,
                     )
                 }
             }
