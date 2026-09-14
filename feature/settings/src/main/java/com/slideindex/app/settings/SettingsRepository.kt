@@ -673,6 +673,9 @@ class SettingsRepository @Inject constructor(
     suspend fun setClipboardFloatPasteHapticEnabled(enabled: Boolean) =
         overlay.setClipboardFloatPasteHapticEnabled(enabled)
 
+    suspend fun setClipboardPasteFvStyleEnabled(enabled: Boolean) =
+        overlay.setClipboardPasteFvStyleEnabled(enabled)
+
     suspend fun recordClipboardFloatPasteResult(success: Boolean) =
         overlay.recordClipboardFloatPasteResult(success)
 

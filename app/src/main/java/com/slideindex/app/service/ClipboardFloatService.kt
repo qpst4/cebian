@@ -37,6 +37,7 @@ import com.slideindex.app.clipboard.hasImageContent
 import com.slideindex.app.clipboardfloat.ClipboardFloatDisplayMode
 import com.slideindex.app.clipboardfloat.ClipboardFloatListController
 import com.slideindex.app.clipboardfloat.ClipboardFloatRoot
+import com.slideindex.app.clipboardfloat.ClipboardPasteCoordinator
 import com.slideindex.app.clipboardfloat.ClipboardPasteHelper
 import com.slideindex.app.clipboardfloat.PasteFailureReason
 import com.slideindex.app.clipboardfloat.PasteResult
@@ -880,42 +881,65 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
             Toast.makeText(this, R.string.search_engine_accessibility_required, Toast.LENGTH_SHORT).show()
             return
         }
-        when (
-            val result = ClipboardPasteHelper.performEntryAction(
-                service = service,
-                context = this,
-                entry = entry,
-                action = clickAction
-            )
-        ) {
-            PasteResult.Success -> {
-                if (clickAction != ClipboardFloatEntryClickAction.COPY) {
-                    lifecycleScope.launch(Dispatchers.IO) {
-                        deps.settingsRepository.recordClipboardFloatPasteResult(success = true)
+        when (clickAction) {
+            ClipboardFloatEntryClickAction.COPY -> {
+                when (
+                    val result = ClipboardPasteHelper.performEntryAction(
+                        service = service,
+                        context = this,
+                        entry = entry,
+                        action = clickAction
+                    )
+                ) {
+                    PasteResult.Success -> {
+                        if (!panelPinned) collapseAfterEntryAction()
                     }
-                    performPasteHapticIfEnabled()
-                }
-                if (!panelPinned) {
-                    collapseAfterEntryAction()
+                    is PasteResult.Failure -> showPasteFailureToast(result)
                 }
             }
-            is PasteResult.Failure -> {
-                if (clickAction != ClipboardFloatEntryClickAction.COPY) {
-                    lifecycleScope.launch(Dispatchers.IO) {
-                        deps.settingsRepository.recordClipboardFloatPasteResult(success = false)
-                    }
-                }
-                val messageRes = when (result.reason) {
-                    PasteFailureReason.NO_ACTIVE_WINDOW ->
-                        R.string.clipboard_float_paste_no_window
-                    PasteFailureReason.NO_EDITABLE_FOCUS ->
-                        R.string.clipboard_float_paste_failed
-                    PasteFailureReason.PASTE_AND_INSERT_FAILED ->
-                        R.string.clipboard_float_paste_insert_failed
-                }
-                Toast.makeText(this, messageRes, Toast.LENGTH_SHORT).show()
+            ClipboardFloatEntryClickAction.PASTE,
+            ClipboardFloatEntryClickAction.COPY_AND_PASTE -> {
+                val fvStyle = deps.settingsRepository.readSnapshot().clipboardPasteFvStyleEnabled
+                ClipboardPasteCoordinator.pasteEntry(
+                    service = service,
+                    context = this,
+                    entry = entry,
+                    writeToClipboardFirst = clickAction == ClipboardFloatEntryClickAction.COPY_AND_PASTE,
+                    fvStyle = fvStyle,
+                ) { result -> handleClipboardFloatPasteResult(result) }
             }
         }
+    }
+
+    private fun handleClipboardFloatPasteResult(result: PasteResult?) {
+        when (result) {
+            null -> Unit
+            PasteResult.Success -> {
+                lifecycleScope.launch(Dispatchers.IO) {
+                    deps.settingsRepository.recordClipboardFloatPasteResult(success = true)
+                }
+                performPasteHapticIfEnabled()
+                if (!panelPinned) collapseAfterEntryAction()
+            }
+            is PasteResult.Failure -> {
+                lifecycleScope.launch(Dispatchers.IO) {
+                    deps.settingsRepository.recordClipboardFloatPasteResult(success = false)
+                }
+                showPasteFailureToast(result)
+            }
+        }
+    }
+
+    private fun showPasteFailureToast(result: PasteResult.Failure) {
+        val messageRes = when (result.reason) {
+            PasteFailureReason.NO_ACTIVE_WINDOW ->
+                R.string.clipboard_float_paste_no_window
+            PasteFailureReason.NO_EDITABLE_FOCUS ->
+                R.string.clipboard_float_paste_failed
+            PasteFailureReason.PASTE_AND_INSERT_FAILED ->
+                R.string.clipboard_float_paste_insert_failed
+        }
+        Toast.makeText(this, messageRes, Toast.LENGTH_SHORT).show()
     }
 
     private fun toggleListStyle() {

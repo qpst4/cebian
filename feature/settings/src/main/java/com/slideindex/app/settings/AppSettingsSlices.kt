@@ -327,6 +327,8 @@ data class ClipboardSettings(
     val clipboardFloatPanelY: Int = ClipboardFloatWindowMetrics.UNSET_POSITION,
     val clipboardFloatBlockedPackages: Set<String> = emptySet(),
     val clipboardFloatPasteHapticEnabled: Boolean = false,
+    /** When true: scan targets / multi-field picker / rect paste; when false: paste into focused field only. */
+    val clipboardPasteFvStyleEnabled: Boolean = false,
     val clipboardFloatPasteSuccessCount: Int = 0,
     val clipboardFloatPasteFailCount: Int = 0,
     val clipboardFloatAlpha: Float = 1.0f,

@@ -492,6 +492,8 @@ internal object SettingsPreferenceKeys {
     val CLIPBOARD_FLOAT_CHIP_Y_LANDSCAPE = intPreferencesKey("clipboard_float_chip_y_landscape")
     val CLIPBOARD_FLOAT_BLOCKED_PACKAGES = stringSetPreferencesKey("clipboard_float_blocked_packages")
     val CLIPBOARD_FLOAT_PASTE_HAPTIC_ENABLED = booleanPreferencesKey("clipboard_float_paste_haptic_enabled")
+    /** FV-style multi-target paste (red frames / rect tap); off = focused field only. */
+    val CLIPBOARD_PASTE_FV_STYLE_ENABLED = booleanPreferencesKey("clipboard_paste_fv_style_enabled")
     val CLIPBOARD_FLOAT_PASTE_SUCCESS_COUNT = intPreferencesKey("clipboard_float_paste_success_count")
     val CLIPBOARD_FLOAT_PASTE_FAIL_COUNT = intPreferencesKey("clipboard_float_paste_fail_count")
     val CLIPBOARD_FLOAT_ALPHA = floatPreferencesKey("clipboard_float_alpha")

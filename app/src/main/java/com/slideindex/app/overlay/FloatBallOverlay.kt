@@ -23,8 +23,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.ComposeView
 import com.slideindex.app.clipboard.ClipboardAccess
-import com.slideindex.app.clipboardfloat.ClipboardPasteHelper
+import com.slideindex.app.clipboardfloat.ClipboardPasteCoordinator
 import com.slideindex.app.clipboardfloat.PasteResult
+import android.widget.Toast
+import com.slideindex.app.R
 import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.overlay.compositor.OverlayCompositor
 import com.slideindex.app.overlay.compositor.OverlaySceneController
@@ -50,7 +52,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
 private const val RECT_MIN_SIDE_DP = 48f
@@ -2371,24 +2372,44 @@ object FloatBallOverlay {
     private fun tryFloatBallDragPaste(settings: AppSettings, anchor: Offset): Boolean {
         if (!settings.floatBallDragPasteEnabled) return false
         if (dragPastePickUpgraded) return false
-        val lockedIntent = lockedDragPasteEditableRect != null
+        val hadPasteIntent = lockedDragPasteEditableRect != null
         val editableRect = lockedDragPasteEditableRect?.let { Rect(it) }
             ?: FloatBallPreviewBoundsCache.hitTestEditableAt(anchor.x, anchor.y)?.let { Rect(it) }
         lockedDragPasteEditableRect = null
         if (editableRect == null) return false
-        val service = SlideIndexAccessibilityService.accessibilityInstance() ?: return lockedIntent
-        val host = appContext ?: return lockedIntent
-        val repo = ClipboardAccess.repository ?: return lockedIntent
-        if (repo.entryCount.value <= 0) return lockedIntent
-        val entry = runBlocking(Dispatchers.IO) { repo.peekLatestEntry() } ?: return lockedIntent
-        val result = ClipboardPasteHelper.pasteAtScreenRect(
-            service = service,
-            context = host,
-            entry = entry,
-            rect = editableRect
-        )
-        if (result is PasteResult.Success) return true
-        return lockedIntent
+        val service = SlideIndexAccessibilityService.accessibilityInstance()
+        val host = appContext
+        val repo = ClipboardAccess.repository
+        if (service == null || host == null || repo == null) {
+            if (hadPasteIntent) {
+                Toast.makeText(host ?: appContext, R.string.search_engine_accessibility_required, Toast.LENGTH_SHORT)
+                    .show()
+            }
+            return hadPasteIntent
+        }
+        if (repo.entryCount.value <= 0) {
+            Toast.makeText(host, R.string.clipboard_empty, Toast.LENGTH_SHORT).show()
+            return true
+        }
+        val rect = editableRect
+        val fvStyle = settings.clipboardPasteFvStyleEnabled
+        overlayScope.launch {
+            val entry = withContext(Dispatchers.IO) { repo.peekLatestEntry() }
+            if (entry == null) return@launch
+            ClipboardPasteCoordinator.pasteEntryAtScreenRect(
+                service = service,
+                context = host,
+                entry = entry,
+                rect = rect,
+                fvStyle = fvStyle,
+                onFinished = { result ->
+                    if (result is PasteResult.Failure) {
+                        ClipboardPasteCoordinator.toastPasteFailure(host, result.reason)
+                    }
+                },
+            )
+        }
+        return true
     }
 
     private fun snapBallToEdge(settings: AppSettings) {

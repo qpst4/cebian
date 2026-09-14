@@ -837,6 +837,9 @@
     <string name="float_ball_pick_copy_dismiss_panel_desc">When enabled, tapping Copy selection closes the pick panel; long-press copy keeps the panel open</string>
     <string name="float_ball_drag_paste_enabled">Drag float ball to paste</string>
     <string name="float_ball_drag_paste_enabled_desc">Pause over an input field and release to paste the latest clipboard history entry (no pick panel)</string>
+    <string name="clipboard_paste_behavior_section">Paste behavior</string>
+    <string name="clipboard_paste_fv_style_enabled">Smart multi-field paste</string>
+    <string name="clipboard_paste_fv_style_enabled_desc">On: detect input fields, red-frame picker when several, better for QQ and similar apps. Off: paste only into the currently focused field (faster; tap the field first)</string>
     <string name="float_ball_pick_panel_enter_animation">Pick panel enter animation</string>
     <string name="float_ball_pick_panel_exit_animation">Pick panel exit animation</string>
     <string name="float_ball_pick_panel_animation_ms_value">%1$d ms</string>
@@ -1929,7 +1932,8 @@
     <string name="gesture_action_clipboard_pick_desc">Read the system clipboard and open the text pick panel</string>
     <string name="gesture_action_clipboard_pick_permission">Requires Cebian enabled</string>
     <string name="gesture_action_clipboard_paste">Paste</string>
-    <string name="gesture_action_clipboard_paste_desc">Paste the latest clipboard history entry into the focused input field</string>
+    <string name="gesture_action_clipboard_paste_desc">Paste the latest clipboard history entry; tap a field when several inputs are shown</string>
+    <string name="clipboard_paste_pick_content_desc">Tap the input field to paste into</string>
     <string name="gesture_action_clipboard_paste_permission">Requires accessibility service</string>
     <string name="gesture_action_toggle_dnd">Toggle Do Not Disturb</string>
     <string name="gesture_action_toggle_dnd_failed">Could not change Do Not Disturb</string>
@@ -2779,7 +2783,7 @@ Questions: open a GitHub Issue on the project repository.</string>
     <string name="clipboard_float_collapse">Collapse</string>
     <string name="clipboard_float_close">Close</string>
     <string name="clipboard_float_meta_image">Image</string>
-    <string name="clipboard_float_paste_failed">Paste failed. Focus an input field first.</string>
+    <string name="clipboard_float_paste_failed">Paste failed. No pasteable input field found.</string>
     <string name="clipboard_float_paste_no_window">Paste failed. No active input window found.</string>
     <string name="clipboard_float_paste_insert_failed">Paste failed. This app does not support automatic insertion.</string>
     <string name="clipboard_float_paste_haptic_title">Vibrate on successful paste</string>

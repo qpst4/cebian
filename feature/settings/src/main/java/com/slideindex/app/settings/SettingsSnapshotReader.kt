@@ -519,6 +519,8 @@ internal object SettingsSnapshotReader {
                 prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_BLOCKED_PACKAGES] ?: emptySet(),
             clipboardFloatPasteHapticEnabled =
                 prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PASTE_HAPTIC_ENABLED] ?: false,
+            clipboardPasteFvStyleEnabled =
+                prefs[SettingsPreferenceKeys.CLIPBOARD_PASTE_FV_STYLE_ENABLED] ?: false,
             clipboardFloatPasteSuccessCount =
                 prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PASTE_SUCCESS_COUNT] ?: 0,
             clipboardFloatPasteFailCount =

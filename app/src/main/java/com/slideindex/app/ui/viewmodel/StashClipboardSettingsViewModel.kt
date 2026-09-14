@@ -56,6 +56,12 @@ class StashClipboardSettingsViewModel @Inject constructor(
         }
     }
 
+    fun setClipboardPasteFvStyleEnabled(enabled: Boolean) = launchOptimisticSettingsWrite(
+        optimisticUpdate = { it.copy(clipboard = it.clipboard.copy(clipboardPasteFvStyleEnabled = enabled)) },
+    ) {
+        settingsRepository.setClipboardPasteFvStyleEnabled(enabled)
+    }
+
     fun setClipboardHistoryMaxEntries(maxEntries: Int) = launchSettingsWrite {
         settingsRepository.setClipboardHistoryMaxEntries(maxEntries).also { result ->
             if (result.isSuccess) {

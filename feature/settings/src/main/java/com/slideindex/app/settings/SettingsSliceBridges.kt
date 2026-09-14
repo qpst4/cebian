@@ -240,6 +240,7 @@ fun OverlaySettings.toMinimalAppSettings(): AppSettings = AppSettings(
         clipboardFloatPanelY = clipboardFloatPanelY,
         clipboardFloatBlockedPackages = clipboardFloatBlockedPackages,
         clipboardFloatPasteHapticEnabled = clipboardFloatPasteHapticEnabled,
+        clipboardPasteFvStyleEnabled = clipboardPasteFvStyleEnabled,
         clipboardFloatPasteSuccessCount = clipboardFloatPasteSuccessCount,
         clipboardFloatPasteFailCount = clipboardFloatPasteFailCount,
         clipboardFloatAlpha = clipboardFloatAlpha,

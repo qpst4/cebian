@@ -403,7 +403,7 @@ sealed class GestureAction {
         override val payload = ""
     }
 
-    /** Pastes the latest clipboard history entry into the current input focus. */
+    /** Pastes the latest clipboard history entry; multiple fields open a tap-to-pick overlay. */
     data object ClipboardPaste : GestureAction() {
         override val type = GestureActionType.CLIPBOARD_PASTE
         override val payload = ""

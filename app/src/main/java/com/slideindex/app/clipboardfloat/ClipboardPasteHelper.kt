@@ -4,9 +4,11 @@ import android.accessibilityservice.AccessibilityService
 import android.content.Context
 import android.os.Build
 import android.os.Bundle
+import android.os.Looper
 import android.graphics.Rect
 import android.os.SystemClock
 import android.view.accessibility.AccessibilityNodeInfo
+import android.view.accessibility.AccessibilityWindowInfo
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
 import com.slideindex.app.clipboard.ClipboardBlockKind
 import com.slideindex.app.clipboard.ClipboardEntry
@@ -16,6 +18,7 @@ import com.slideindex.app.clipboard.ClipboardWriter
 import com.slideindex.app.clipboard.hasImageContent
 import com.slideindex.app.clipboard.isPureImageEntry
 import com.slideindex.app.clipboard.resolvedContentBlocks
+import com.slideindex.app.service.SlideIndexAccessibilityGestureInjector
 import com.slideindex.app.settings.ClipboardFloatEntryClickAction
 
 enum class PasteFailureReason {
@@ -33,7 +36,12 @@ object ClipboardPasteHelper {
 
     private const val PASTE_SETTLE_MS = 80L
 
-    fun isPasteTarget(node: AccessibilityNodeInfo): Boolean = canPaste(node)
+    fun isPasteTarget(node: AccessibilityNodeInfo): Boolean {
+        if (canPaste(node)) return true
+        if (isKnownInputContainer(node)) return true
+        if (isLikelyInputField(node)) return true
+        return isLikelyInputFieldRelaxed(node) && !node.isVisibleToUser
+    }
 
     /** FV E3: paste clipboard entry into the editable under screen point (no per-frame tree walk). */
     fun pasteAtScreenPoint(
@@ -45,22 +53,17 @@ object ClipboardPasteHelper {
     ): PasteResult {
         val px = x.toInt()
         val py = y.toInt()
-        val root = service.rootInActiveWindow ?: return PasteResult.Failure(PasteFailureReason.NO_ACTIVE_WINDOW)
+        focusAtScreenPoint(service, px.toFloat(), py.toFloat())
+        val target = findPasteTargetAtPointAcrossWindows(service, px, py)
+            ?: return PasteResult.Failure(PasteFailureReason.NO_EDITABLE_FOCUS)
         return try {
-            val target = findPasteTargetAtPoint(root, px, py)
-                ?: return PasteResult.Failure(PasteFailureReason.NO_EDITABLE_FOCUS)
-            try {
-                pasteIntoNode(
-                    context = context,
-                    node = target,
-                    entry = entry,
-                    clipboardAlreadyPrepared = false
-                )
-            } finally {
-                recycleNode(target)
-            }
+            pasteIntoResolvedTarget(
+                context = context,
+                node = target,
+                entry = entry,
+            )
         } finally {
-            recycleNode(root)
+            recycleNode(target)
         }
     }
 
@@ -74,22 +77,57 @@ object ClipboardPasteHelper {
         if (rect.width() <= 0 || rect.height() <= 0) {
             return PasteResult.Failure(PasteFailureReason.NO_EDITABLE_FOCUS)
         }
-        val root = service.rootInActiveWindow ?: return PasteResult.Failure(PasteFailureReason.NO_ACTIVE_WINDOW)
+        focusAtRectCenter(service, rect)
+        val target = findPasteTargetInRectAcrossWindows(service, rect)
+            ?: return PasteResult.Failure(PasteFailureReason.NO_EDITABLE_FOCUS)
         return try {
-            val target = findPasteTargetInRect(root, rect)
-                ?: return PasteResult.Failure(PasteFailureReason.NO_EDITABLE_FOCUS)
-            try {
-                pasteIntoNode(
-                    context = context,
-                    node = target,
-                    entry = entry,
-                    clipboardAlreadyPrepared = false
-                )
-            } finally {
-                recycleNode(target)
-            }
+            pasteIntoResolvedTarget(
+                context = context,
+                node = target,
+                entry = entry,
+            )
         } finally {
-            recycleNode(root)
+            recycleNode(target)
+        }
+    }
+
+    private fun pasteIntoResolvedTarget(
+        context: Context,
+        node: AccessibilityNodeInfo,
+        entry: ClipboardEntry,
+    ): PasteResult {
+        val resolved = refinePasteTarget(node)
+        val owned = resolved !== node
+        return try {
+            pasteIntoNode(
+                context = context,
+                node = resolved,
+                entry = entry,
+                clipboardAlreadyPrepared = false
+            )
+        } finally {
+            if (owned) recycleNode(resolved)
+        }
+    }
+
+    private fun focusAtRectCenter(service: AccessibilityService, rect: Rect) {
+        focusAtScreenPoint(service, rect.exactCenterX(), rect.exactCenterY())
+    }
+
+    private fun focusAtScreenPoint(service: AccessibilityService, x: Float, y: Float) {
+        val px = x.toInt()
+        val py = y.toInt()
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            SlideIndexAccessibilityGestureInjector.dispatchTapSync(service, x, y)
+            SystemClock.sleep(PASTE_SETTLE_MS)
+        }
+        val node = findPasteTargetAtPointAcrossWindows(service, px, py)
+            ?: findFocusableClickableAtPointAcrossWindows(service, px, py)
+        if (node == null) return
+        try {
+            prepareNodeForPaste(node)
+        } finally {
+            recycleNode(node)
         }
     }
 
@@ -141,23 +179,17 @@ object ClipboardPasteHelper {
         entry: ClipboardEntry,
         clipboardAlreadyPrepared: Boolean
     ): PasteResult {
-        val root = service.rootInActiveWindow ?: return PasteResult.Failure(PasteFailureReason.NO_ACTIVE_WINDOW)
+        val focused = findFocusedEditableAcrossWindows(service)
+            ?: return PasteResult.Failure(PasteFailureReason.NO_EDITABLE_FOCUS)
         return try {
-            val focused = findFocusedEditableNode(root) ?: return PasteResult.Failure(
-                PasteFailureReason.NO_EDITABLE_FOCUS
+            pasteIntoNode(
+                context = context,
+                node = focused,
+                entry = entry,
+                clipboardAlreadyPrepared = clipboardAlreadyPrepared
             )
-            try {
-                pasteIntoNode(
-                    context = context,
-                    node = focused,
-                    entry = entry,
-                    clipboardAlreadyPrepared = clipboardAlreadyPrepared
-                )
-            } finally {
-                recycleNode(focused)
-            }
         } finally {
-            recycleNode(root)
+            recycleNode(focused)
         }
     }
 
@@ -185,7 +217,7 @@ object ClipboardPasteHelper {
                 }
             }
             // Fall back to SET_TEXT with enhanced hint detection.
-            if (entryText != null && supportsSetText(node)) {
+            if (entryText != null && canTrySetText(node)) {
                 return insertViaSetText(node, entryText)
             }
             return PasteResult.Failure(PasteFailureReason.PASTE_AND_INSERT_FAILED)
@@ -196,7 +228,7 @@ object ClipboardPasteHelper {
                 ClipboardWriter.writeForPaste(context, entry)
             } catch (_: RuntimeException) {
                 // TransactionTooLargeException fallback: try text-only paste.
-                if (entryText != null && supportsSetText(node)) {
+                if (entryText != null && canTrySetText(node)) {
                     return insertViaSetText(node, entryText)
                 }
                 return PasteResult.Failure(PasteFailureReason.PASTE_AND_INSERT_FAILED)
@@ -209,11 +241,14 @@ object ClipboardPasteHelper {
             return PasteResult.Success
         }
 
-        if (entryText != null && supportsSetText(node)) {
+        if (entryText != null && canTrySetText(node)) {
             return insertViaSetText(node, entryText)
         }
         return PasteResult.Failure(PasteFailureReason.PASTE_AND_INSERT_FAILED)
     }
+
+    private fun canTrySetText(node: AccessibilityNodeInfo): Boolean =
+        supportsSetText(node) || isLikelyInputFieldRelaxed(node)
 
     private fun insertViaSetText(
         node: AccessibilityNodeInfo,
@@ -340,15 +375,216 @@ object ClipboardPasteHelper {
         return if (end >= 0) end else textLength
     }
 
-    private fun findPasteTargetInRect(root: AccessibilityNodeInfo, rect: Rect): AccessibilityNodeInfo? {
-        val focused = findFocusedEditableNode(root)
-        if (focused != null) {
+    private fun findPasteTargetAtPointAcrossWindows(
+        service: AccessibilityService,
+        px: Int,
+        py: Int,
+    ): AccessibilityNodeInfo? {
+        var best: AccessibilityNodeInfo? = null
+        var bestArea = Int.MAX_VALUE
+        fun considerRoot(root: AccessibilityNodeInfo) {
+            val hit = findPasteTargetAtPoint(root, px, py)
+            if (hit == null) return
             val bounds = Rect()
-            focused.getBoundsInScreen(bounds)
-            if (Rect.intersects(bounds, rect)) {
-                return focused
+            hit.getBoundsInScreen(bounds)
+            val area = bounds.width().coerceAtLeast(1) * bounds.height().coerceAtLeast(1)
+            if (area < bestArea) {
+                recycleNode(best)
+                best = hit
+                bestArea = area
+            } else {
+                recycleNode(hit)
             }
-            recycleNode(focused)
+        }
+        for (window in service.windows) {
+            if (shouldSkipPasteWindow(window)) continue
+            val root = window.root ?: continue
+            try {
+                considerRoot(root)
+            } finally {
+                recycleNode(root)
+            }
+        }
+        val active = service.rootInActiveWindow
+        if (active != null) {
+            try {
+                considerRoot(active)
+            } finally {
+                recycleNode(active)
+            }
+        }
+        return best
+    }
+
+    private fun findFocusableClickableAtPointAcrossWindows(
+        service: AccessibilityService,
+        px: Int,
+        py: Int,
+    ): AccessibilityNodeInfo? {
+        var best: AccessibilityNodeInfo? = null
+        var bestArea = Int.MAX_VALUE
+        val bounds = Rect()
+        fun considerRoot(root: AccessibilityNodeInfo) {
+            val stack = ArrayDeque<AccessibilityNodeInfo>()
+            stack.addLast(root)
+            while (stack.isNotEmpty()) {
+                val current = stack.removeLast()
+                val owned = current !== root
+                try {
+                    if (shouldSkipNodeForPointHit(current)) continue
+                    current.getBoundsInScreen(bounds)
+                    if (!bounds.contains(px, py)) continue
+                    if (current.isFocusable || current.isClickable || isKnownInputContainer(current)) {
+                        val area = bounds.width().coerceAtLeast(1) * bounds.height().coerceAtLeast(1)
+                        if (area < bestArea) {
+                            recycleNode(best)
+                            best = copyNode(current)
+                            bestArea = area
+                        }
+                    }
+                    for (i in current.childCount - 1 downTo 0) {
+                        current.getChild(i)?.let { stack.addLast(it) }
+                    }
+                } finally {
+                    if (owned) recycleNode(current)
+                }
+            }
+        }
+        for (window in service.windows) {
+            if (shouldSkipPasteWindow(window)) continue
+            val root = window.root ?: continue
+            try {
+                considerRoot(root)
+            } finally {
+                recycleNode(root)
+            }
+        }
+        return best
+    }
+
+    private fun refinePasteTarget(node: AccessibilityNodeInfo): AccessibilityNodeInfo {
+        if (canPaste(node) || isLikelyInputField(node) || isLikelyInputFieldRelaxed(node)) {
+            return node
+        }
+        val inner = findSmallestPasteDescendant(node)
+        return inner ?: node
+    }
+
+    private fun findSmallestPasteDescendant(root: AccessibilityNodeInfo): AccessibilityNodeInfo? {
+        var best: AccessibilityNodeInfo? = null
+        var bestArea = Int.MAX_VALUE
+        val bounds = Rect()
+        val stack = ArrayDeque<AccessibilityNodeInfo>()
+        stack.addLast(root)
+        while (stack.isNotEmpty()) {
+            val current = stack.removeLast()
+            val owned = current !== root
+            try {
+                if (canPaste(current) || isLikelyInputField(current) || isLikelyInputFieldRelaxed(current)) {
+                    current.getBoundsInScreen(bounds)
+                    val area = bounds.width().coerceAtLeast(1) * bounds.height().coerceAtLeast(1)
+                    if (area < bestArea) {
+                        recycleNode(best)
+                        best = copyNode(current)
+                        bestArea = area
+                    }
+                }
+                for (i in 0 until current.childCount) {
+                    current.getChild(i)?.let { stack.addLast(it) }
+                }
+            } finally {
+                if (owned) recycleNode(current)
+            }
+        }
+        return best
+    }
+
+    private fun findPasteTargetInRectAcrossWindows(
+        service: AccessibilityService,
+        rect: Rect,
+    ): AccessibilityNodeInfo? {
+        var best: AccessibilityNodeInfo? = null
+        var bestArea = Int.MAX_VALUE
+        fun considerRoot(root: AccessibilityNodeInfo) {
+            val hit = findPasteTargetInRect(root, rect, preferFocus = false)
+            if (hit == null) return
+            val bounds = Rect()
+            hit.getBoundsInScreen(bounds)
+            val area = bounds.width().coerceAtLeast(1) * bounds.height().coerceAtLeast(1)
+            if (area < bestArea) {
+                recycleNode(best)
+                best = hit
+                bestArea = area
+            } else {
+                recycleNode(hit)
+            }
+        }
+        for (window in service.windows) {
+            if (shouldSkipPasteWindow(window)) continue
+            val root = window.root ?: continue
+            try {
+                considerRoot(root)
+            } finally {
+                recycleNode(root)
+            }
+        }
+        val active = service.rootInActiveWindow
+        if (active != null) {
+            try {
+                considerRoot(active)
+            } finally {
+                recycleNode(active)
+            }
+        }
+        return best
+    }
+
+    private fun shouldSkipPasteWindow(window: AccessibilityWindowInfo): Boolean {
+        return when (window.type) {
+            AccessibilityWindowInfo.TYPE_ACCESSIBILITY_OVERLAY,
+            AccessibilityWindowInfo.TYPE_INPUT_METHOD,
+            -> true
+            else -> false
+        }
+    }
+
+    private fun findFocusedEditableAcrossWindows(service: AccessibilityService): AccessibilityNodeInfo? {
+        for (window in service.windows) {
+            if (shouldSkipPasteWindow(window)) continue
+            val root = window.root ?: continue
+            try {
+                val focused = findFocusedEditableNode(root)
+                if (focused != null) return focused
+            } finally {
+                recycleNode(root)
+            }
+        }
+        val active = service.rootInActiveWindow
+        if (active != null) {
+            try {
+                return findFocusedEditableNode(active)
+            } finally {
+                recycleNode(active)
+            }
+        }
+        return null
+    }
+
+    private fun findPasteTargetInRect(
+        root: AccessibilityNodeInfo,
+        rect: Rect,
+        preferFocus: Boolean = true,
+    ): AccessibilityNodeInfo? {
+        if (preferFocus) {
+            val focused = findFocusedEditableNode(root)
+            if (focused != null) {
+                val bounds = Rect()
+                focused.getBoundsInScreen(bounds)
+                if (Rect.intersects(bounds, rect)) {
+                    return focused
+                }
+                recycleNode(focused)
+            }
         }
         var best: AccessibilityNodeInfo? = null
         var bestArea = Int.MAX_VALUE
@@ -362,7 +598,7 @@ object ClipboardPasteHelper {
                 if (shouldSkipNodeForPointHit(current)) continue
                 current.getBoundsInScreen(nodeBounds)
                 if (!Rect.intersects(nodeBounds, rect)) continue
-                if (canPaste(current)) {
+                if (isPasteTarget(current)) {
                     val area = nodeBounds.width().coerceAtLeast(1) * nodeBounds.height().coerceAtLeast(1)
                     if (area < bestArea) {
                         recycleNode(best)
@@ -395,7 +631,7 @@ object ClipboardPasteHelper {
                 if (shouldSkipNodeForPointHit(current)) continue
                 current.getBoundsInScreen(bounds)
                 if (!bounds.contains(px, py)) continue
-                if (canPaste(current)) {
+                if (isPasteTarget(current)) {
                     val area = bounds.width().coerceAtLeast(1) * bounds.height().coerceAtLeast(1)
                     if (area < bestArea) {
                         recycleNode(best)
@@ -405,16 +641,7 @@ object ClipboardPasteHelper {
                 }
                 for (i in current.childCount - 1 downTo 0) {
                     val child = current.getChild(i) ?: continue
-                    var keepChild = false
-                    try {
-                        child.getBoundsInScreen(childBounds)
-                        if (childBounds.contains(px, py)) {
-                            stack.addLast(child)
-                            keepChild = true
-                        }
-                    } finally {
-                        if (!keepChild) recycleNode(child)
-                    }
+                    stack.addLast(child)
                 }
             } finally {
                 if (owned) recycleNode(current)
@@ -424,16 +651,18 @@ object ClipboardPasteHelper {
     }
 
     private fun shouldSkipNodeForPointHit(node: AccessibilityNodeInfo): Boolean {
-        if (!node.isVisibleToUser) return true
+        if (!node.isVisibleToUser) {
+            return !isLikelyInputFieldRelaxed(node) && !isKnownInputContainer(node)
+        }
         return false
     }
 
     private fun findFocusedEditableNode(root: AccessibilityNodeInfo): AccessibilityNodeInfo? {
         val inputFocus = root.findFocus(AccessibilityNodeInfo.FOCUS_INPUT)
-        if (inputFocus != null && canPaste(inputFocus)) return inputFocus
+        if (inputFocus != null && isPasteTarget(inputFocus)) return inputFocus
         recycleNode(inputFocus)
         val accessibilityFocus = root.findFocus(AccessibilityNodeInfo.FOCUS_ACCESSIBILITY)
-        if (accessibilityFocus != null && canPaste(accessibilityFocus)) return accessibilityFocus
+        if (accessibilityFocus != null && isPasteTarget(accessibilityFocus)) return accessibilityFocus
         recycleNode(accessibilityFocus)
         return findBestEditableNode(root)
     }
@@ -446,7 +675,7 @@ object ClipboardPasteHelper {
             val node = stack.removeFirst()
             val owned = node !== root
             try {
-                if (canPaste(node)) {
+                if (isPasteTarget(node)) {
                     candidates.add(copyNode(node))
                 }
                 for (index in 0 until node.childCount) {
@@ -466,6 +695,35 @@ object ClipboardPasteHelper {
     private fun canPaste(node: AccessibilityNodeInfo): Boolean {
         if (!node.isVisibleToUser || !node.isEnabled) return false
         return node.isEditable || supportsSetText(node) || supportsPaste(node)
+    }
+
+    /** QQ search etc.: EditText before IME exposes PASTE / editable flags. */
+    private fun isLikelyInputField(node: AccessibilityNodeInfo): Boolean {
+        if (!node.isEnabled || !node.isVisibleToUser) return false
+        return isLikelyInputFieldRelaxed(node)
+    }
+
+    private fun isLikelyInputFieldRelaxed(node: AccessibilityNodeInfo): Boolean {
+        if (!node.isEnabled) return false
+        val cls = node.className?.toString().orEmpty()
+        return cls.contains("EditText", ignoreCase = true) ||
+            cls.contains("AutoCompleteTextView", ignoreCase = true)
+    }
+
+    /** QQ chat/search outer input host (e.g. zaq). */
+    private fun isKnownInputContainer(node: AccessibilityNodeInfo): Boolean {
+        if (!node.isEnabled || !node.isVisibleToUser) return false
+        val id = node.viewIdResourceName ?: return false
+        if (id.endsWith(":id/zaq")) return true
+        if (id.endsWith(":id/input")) return true
+        if (id.endsWith(":id/et_search")) return true
+        if (id.contains("mobileqq") && id.contains("search", ignoreCase = true)) return true
+        if (id.contains("search", ignoreCase = true) &&
+            (id.contains("edit", ignoreCase = true) || id.contains("input", ignoreCase = true))
+        ) {
+            return true
+        }
+        return false
     }
 
     private fun supportsSetText(node: AccessibilityNodeInfo): Boolean {

@@ -312,6 +312,7 @@ data class AppSettings(
     val clipboardFloatPanelY get() = clipboard.clipboardFloatPanelY
     val clipboardFloatBlockedPackages get() = clipboard.clipboardFloatBlockedPackages
     val clipboardFloatPasteHapticEnabled get() = clipboard.clipboardFloatPasteHapticEnabled
+    val clipboardPasteFvStyleEnabled get() = clipboard.clipboardPasteFvStyleEnabled
     val clipboardFloatPasteSuccessCount get() = clipboard.clipboardFloatPasteSuccessCount
     val clipboardFloatPasteFailCount get() = clipboard.clipboardFloatPasteFailCount
     val clipboardFloatAlpha get() = clipboard.clipboardFloatAlpha

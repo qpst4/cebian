@@ -170,6 +170,7 @@ fun ClipboardHistorySettingsScreen(
     onClipboardScreenshotMonitoringChange: (Boolean) -> Unit,
     onClipboardMonitoringChange: (Boolean) -> Unit,
     onClipboardMonitoringModeChange: (ClipboardMonitoringMode) -> Unit,
+    onClipboardPasteFvStyleEnabledChange: (Boolean) -> Unit,
     onOpenOverlayPermission: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -224,6 +225,8 @@ fun ClipboardHistorySettingsScreen(
     var showShizukuReadLogsDialog by remember { mutableStateOf(false) }
 
     val historySectionTitle = stringResource(R.string.stash_clipboard_section_history)
+    val pasteBehaviorSectionTitle = stringResource(R.string.clipboard_paste_behavior_section)
+    val accessibilityGranted = SlideIndexAccessibilityService.accessibilityInstance() != null
     val screenshotSectionTitle = stringResource(R.string.clipboard_screenshot_monitoring_section)
     val backgroundSectionTitle = stringResource(R.string.clipboard_background_monitoring_section)
     val modeEntries = ClipboardMonitoringMode.entries
@@ -266,6 +269,24 @@ fun ClipboardHistorySettingsScreen(
                     },
                 )
             },
+        )
+        settingsLazySmallTitle(
+            key = "clipboard-paste-behavior-section",
+            title = pasteBehaviorSectionTitle,
+        )
+        groupedCardItems(
+            keyPrefix = "clipboard-paste-behavior",
+            items = listOf(
+                settingsCardScopeItem("paste-fv-style") {
+                    SettingSwitchRow(
+                        title = stringResource(R.string.clipboard_paste_fv_style_enabled),
+                        subtitle = stringResource(R.string.clipboard_paste_fv_style_enabled_desc),
+                        checked = settings.clipboardPasteFvStyleEnabled,
+                        enabled = accessibilityGranted,
+                        onCheckedChange = onClipboardPasteFvStyleEnabledChange,
+                    )
+                },
+            ),
         )
         settingsLazySmallTitle(
             key = "clipboard-screenshot-section",

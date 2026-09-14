@@ -1105,6 +1105,10 @@ class OverlaySettingsMutator @Inject constructor(
         it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PASTE_HAPTIC_ENABLED] = enabled
     }
 
+    suspend fun setClipboardPasteFvStyleEnabled(enabled: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.CLIPBOARD_PASTE_FV_STYLE_ENABLED] = enabled
+    }
+
     suspend fun recordClipboardFloatPasteResult(success: Boolean) = editor.edit {
         val key = if (success) {
             SettingsPreferenceKeys.CLIPBOARD_FLOAT_PASTE_SUCCESS_COUNT
