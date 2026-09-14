@@ -3,6 +3,7 @@ package com.slideindex.app.gesture
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
+import android.widget.Toast
 import android.view.KeyEvent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -11,6 +12,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.slideindex.app.clipboard.ClipboardAccess
 import com.slideindex.app.clipboardfloat.ClipboardPasteHelper
+import com.slideindex.app.clipboardfloat.PasteFailureReason
+import com.slideindex.app.clipboardfloat.PasteResult
+import com.slideindex.app.R
 import com.slideindex.app.data.AppRepository
 import com.slideindex.app.gesture.executor.ActionExecutorLaunch
 import com.slideindex.app.gesture.executor.ActionExecutorMediaSystem
@@ -243,11 +247,26 @@ class ActionExecutor(
                 val repo = ClipboardAccess.repository ?: return false
                 pasteScope.launch {
                     val entry = withContext(Dispatchers.IO) { repo.peekLatestEntry() } ?: return@launch
-                    ClipboardPasteHelper.pasteEntryToFocusedField(
-                        service = service,
-                        context = context,
-                        entry = entry
-                    )
+                    when (
+                        val result = ClipboardPasteHelper.pasteEntryToFocusedField(
+                            service = service,
+                            context = context,
+                            entry = entry
+                        )
+                    ) {
+                        PasteResult.Success -> Unit
+                        is PasteResult.Failure -> {
+                            val messageRes = when (result.reason) {
+                                PasteFailureReason.NO_ACTIVE_WINDOW ->
+                                    R.string.clipboard_float_paste_no_window
+                                PasteFailureReason.NO_EDITABLE_FOCUS ->
+                                    R.string.clipboard_float_paste_failed
+                                PasteFailureReason.PASTE_AND_INSERT_FAILED ->
+                                    R.string.clipboard_float_paste_insert_failed
+                            }
+                            Toast.makeText(context, messageRes, Toast.LENGTH_SHORT).show()
+                        }
+                    }
                 }
                 true
             }

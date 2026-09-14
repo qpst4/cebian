@@ -24,6 +24,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.ComposeView
 import com.slideindex.app.clipboard.ClipboardAccess
 import com.slideindex.app.clipboardfloat.ClipboardPasteHelper
+import com.slideindex.app.clipboardfloat.PasteResult
 import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.overlay.compositor.OverlayCompositor
 import com.slideindex.app.overlay.compositor.OverlaySceneController
@@ -49,6 +50,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
 private const val RECT_MIN_SIDE_DP = 48f
@@ -149,6 +151,8 @@ object FloatBallOverlay {
     private var lastCacheRefreshX = Float.NaN
     private var lastCacheRefreshY = Float.NaN
     private var lastDragPasteHintActive = false
+    /** Locked at hover pause when paste icon is shown (FV getSelectedRect). */
+    private var lockedDragPasteEditableRect: Rect? = null
     private var captureSuppressed = false
     private var chromeDetachedForCapture = false
     private var isDragging = false
@@ -2361,22 +2365,24 @@ object FloatBallOverlay {
 
     private fun tryFloatBallDragPaste(settings: AppSettings, anchor: Offset): Boolean {
         if (!settings.floatBallDragPasteEnabled) return false
-        if (FloatBallPreviewBoundsCache.hitTestEditableAt(anchor.x, anchor.y) == null) return false
-        val service = SlideIndexAccessibilityService.accessibilityInstance() ?: return false
-        val host = appContext ?: return false
-        val repo = ClipboardAccess.repository ?: return false
-        if (repo.entryCount.value <= 0) return false
-        overlayScope.launch {
-            val entry = withContext(Dispatchers.IO) { repo.peekLatestEntry() } ?: return@launch
-            ClipboardPasteHelper.pasteAtScreenPoint(
-                service = service,
-                context = host,
-                entry = entry,
-                x = anchor.x,
-                y = anchor.y
-            )
-        }
-        return true
+        val lockedIntent = lockedDragPasteEditableRect != null
+        val editableRect = lockedDragPasteEditableRect?.let { Rect(it) }
+            ?: FloatBallPreviewBoundsCache.hitTestEditableAt(anchor.x, anchor.y)?.let { Rect(it) }
+        lockedDragPasteEditableRect = null
+        if (editableRect == null) return false
+        val service = SlideIndexAccessibilityService.accessibilityInstance() ?: return lockedIntent
+        val host = appContext ?: return lockedIntent
+        val repo = ClipboardAccess.repository ?: return lockedIntent
+        if (repo.entryCount.value <= 0) return lockedIntent
+        val entry = runBlocking(Dispatchers.IO) { repo.peekLatestEntry() } ?: return lockedIntent
+        val result = ClipboardPasteHelper.pasteAtScreenRect(
+            service = service,
+            context = host,
+            entry = entry,
+            rect = editableRect
+        )
+        if (result is PasteResult.Success) return true
+        return lockedIntent
     }
 
     private fun snapBallToEdge(settings: AppSettings) {
@@ -2725,6 +2731,7 @@ object FloatBallOverlay {
         lastCacheRefreshX = Float.NaN
         lastCacheRefreshY = Float.NaN
         lastDragPasteHintActive = false
+        lockedDragPasteEditableRect = null
         dragScreenBounds = null
         currentDragPickAnchor = Offset.Zero
         regionalPickActive = false
@@ -2951,15 +2958,28 @@ object FloatBallOverlay {
         cancelPauseTimer()
         regionalPickActive = false
         cursorAnchorState?.value = anchor
-        val bounds = FloatBallPreviewBoundsCache.hitTestAt(anchor.x, anchor.y)
         selectionStartState?.value = anchor
         cursorPausedState?.value = true
         lockActivePickGestureFromPause()
-        if (bounds != null) {
-            selectionPreviewBoundsState?.value = bounds
-            maybeStartPickPrefetch()
+        val settings = settingsState?.value
+        val editableForPaste = if (settings?.floatBallDragPasteEnabled == true) {
+            FloatBallPreviewBoundsCache.hitTestEditableAt(anchor.x, anchor.y)
         } else {
-            launchPreviewBoundsLookupFallback(anchor)
+            null
+        }
+        if (editableForPaste != null) {
+            lockedDragPasteEditableRect = Rect(editableForPaste)
+            // Paste mode: frame the editable rect, not the outer text container (QQ zaq).
+            selectionPreviewBoundsState?.value = Rect(editableForPaste)
+        } else {
+            lockedDragPasteEditableRect = null
+            val bounds = FloatBallPreviewBoundsCache.hitTestAt(anchor.x, anchor.y)
+            if (bounds != null) {
+                selectionPreviewBoundsState?.value = bounds
+                maybeStartPickPrefetch()
+            } else {
+                launchPreviewBoundsLookupFallback(anchor)
+            }
         }
         syncCursorChromeAppearance()
     }
