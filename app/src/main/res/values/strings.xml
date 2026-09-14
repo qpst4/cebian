@@ -1035,6 +1035,9 @@
     <string name="gesture_action_clipboard_pick">剪贴板取词</string>
     <string name="gesture_action_clipboard_pick_desc">读取系统剪贴板并打开取词分词面板</string>
     <string name="gesture_action_clipboard_pick_permission">需要开启边栏</string>
+    <string name="gesture_action_clipboard_paste">粘贴</string>
+    <string name="gesture_action_clipboard_paste_desc">将剪贴板历史最新一条粘贴到当前输入焦点</string>
+    <string name="gesture_action_clipboard_paste_permission">需要开启无障碍服务</string>
     <string name="gesture_action_floating_pointer">悬浮指针</string>
     <string name="gesture_action_floating_pointer_permission">需要开启边栏</string>
     <string name="gesture_action_pointer_gesture_recorder">指针手势录制</string>
@@ -1306,6 +1309,8 @@
     <string name="float_ball_pick_auto_select_all_desc">取词或截图后弹出的面板，文字直接自动全选</string>
     <string name="float_ball_pick_copy_dismiss_panel">复制后自动收起面板</string>
     <string name="float_ball_pick_copy_dismiss_panel_desc">开启后，点击「复制选中」将自动关闭取词面板；长按复制则保留面板</string>
+    <string name="float_ball_drag_paste_enabled">拖动悬浮球粘贴</string>
+    <string name="float_ball_drag_paste_enabled_desc">悬停在输入框上松手，将剪贴板历史最新一条粘贴到该输入框（不打开取词面板）</string>
     <string name="float_ball_pick_panel_enter_animation">取词面板弹出动画</string>
     <string name="float_ball_pick_panel_exit_animation">取词面板消失动画</string>
     <string name="float_ball_pick_panel_animation_ms_value">%1$d 毫秒</string>

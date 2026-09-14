@@ -22,6 +22,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.ComposeView
+import com.slideindex.app.clipboard.ClipboardAccess
+import com.slideindex.app.clipboardfloat.ClipboardPasteHelper
 import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.overlay.compositor.OverlayCompositor
 import com.slideindex.app.overlay.compositor.OverlaySceneController
@@ -146,6 +148,7 @@ object FloatBallOverlay {
     private var initialCacheRunnable: Runnable? = null
     private var lastCacheRefreshX = Float.NaN
     private var lastCacheRefreshY = Float.NaN
+    private var lastDragPasteHintActive = false
     private var captureSuppressed = false
     private var chromeDetachedForCapture = false
     private var isDragging = false
@@ -1940,13 +1943,20 @@ object FloatBallOverlay {
         )
     }
 
-    /** 悬停提示：区域截图→截图图标；线侧悬停→A；球侧悬停→A。 */
+    /** 悬停提示：区域截图→截图图标；输入框→粘贴；其余→取词 A。 */
     private fun resolveCursorHintMode(): FloatBallCursorPreviewView.HintMode {
         if (cursorVisibleState?.value != true || cursorPausedState?.value != true) {
             return FloatBallCursorPreviewView.HintMode.HIDDEN
         }
         if (regionalPickActive) {
             return FloatBallCursorPreviewView.HintMode.SCREENSHOT
+        }
+        val settings = settingsState?.value
+        if (settings?.floatBallDragPasteEnabled == true) {
+            val anchor = currentPickAnchor()
+            if (anchor != null && FloatBallPreviewBoundsCache.hitTestEditableAt(anchor.x, anchor.y) != null) {
+                return FloatBallCursorPreviewView.HintMode.PASTE
+            }
         }
         return FloatBallCursorPreviewView.HintMode.TEXT
     }
@@ -2320,6 +2330,7 @@ object FloatBallOverlay {
                 PickPerf.endSession("END", sessionTag)
             }
         } else {
+            if (tryFloatBallDragPaste(settings, end)) return
             var previewBounds = selectionPreviewBoundsState?.value
             if (previewBounds == null) {
                 ensurePreviewBoundsForPick()
@@ -2346,6 +2357,26 @@ object FloatBallOverlay {
                 PickPerf.endSession("END", "preview_bounds")
             }
         }
+    }
+
+    private fun tryFloatBallDragPaste(settings: AppSettings, anchor: Offset): Boolean {
+        if (!settings.floatBallDragPasteEnabled) return false
+        if (FloatBallPreviewBoundsCache.hitTestEditableAt(anchor.x, anchor.y) == null) return false
+        val service = SlideIndexAccessibilityService.accessibilityInstance() ?: return false
+        val host = appContext ?: return false
+        val repo = ClipboardAccess.repository ?: return false
+        if (repo.entryCount.value <= 0) return false
+        overlayScope.launch {
+            val entry = withContext(Dispatchers.IO) { repo.peekLatestEntry() } ?: return@launch
+            ClipboardPasteHelper.pasteAtScreenPoint(
+                service = service,
+                context = host,
+                entry = entry,
+                x = anchor.x,
+                y = anchor.y
+            )
+        }
+        return true
     }
 
     private fun snapBallToEdge(settings: AppSettings) {
@@ -2693,6 +2724,7 @@ object FloatBallOverlay {
         lastPauseScheduleY = Float.NaN
         lastCacheRefreshX = Float.NaN
         lastCacheRefreshY = Float.NaN
+        lastDragPasteHintActive = false
         dragScreenBounds = null
         currentDragPickAnchor = Offset.Zero
         regionalPickActive = false
@@ -2876,6 +2908,12 @@ object FloatBallOverlay {
         if (regionalPickActive) return
         if (cursorPausedState?.value == true && selectionStartState?.value != null) return
         val anchor = currentPickAnchor() ?: return
+        val pasteHintActive = settingsState?.value?.floatBallDragPasteEnabled == true &&
+            FloatBallPreviewBoundsCache.hitTestEditableAt(anchor.x, anchor.y) != null
+        if (pasteHintActive != lastDragPasteHintActive) {
+            lastDragPasteHintActive = pasteHintActive
+            syncCursorChromeAppearance()
+        }
         val bounds = FloatBallPreviewBoundsCache.hitTestAt(anchor.x, anchor.y) ?: return
         val current = selectionPreviewBoundsState?.value
         val density = displayView?.resources?.displayMetrics?.density ?: 1f

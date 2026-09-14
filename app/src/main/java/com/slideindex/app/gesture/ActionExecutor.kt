@@ -6,7 +6,11 @@ import android.os.Looper
 import android.view.KeyEvent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import com.slideindex.app.clipboard.ClipboardAccess
+import com.slideindex.app.clipboardfloat.ClipboardPasteHelper
 import com.slideindex.app.data.AppRepository
 import com.slideindex.app.gesture.executor.ActionExecutorLaunch
 import com.slideindex.app.gesture.executor.ActionExecutorMediaSystem
@@ -58,6 +62,7 @@ class ActionExecutor(
     private val side: PanelSide? = null,
     onShellCommandsPersist: ((List<ShellCommand>) -> Unit)? = null
 ) {
+    private val pasteScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private val mainHandler = Handler(Looper.getMainLooper())
     private val mediaSystem = ActionExecutorMediaSystem(context, overlayBrightness)
     private val overlayPanels = ActionExecutorOverlayPanels(context, onShellCommandsPersist)
@@ -230,6 +235,19 @@ class ActionExecutor(
             GestureAction.ClipboardPick -> {
                 ClipboardFocusReader.read(context) { payload ->
                     PickResultFromHistoryCoordinator.openFromClipboardPayload(context, payload)
+                }
+                true
+            }
+            GestureAction.ClipboardPaste -> {
+                val service = SlideIndexAccessibilityService.accessibilityInstance() ?: return false
+                val repo = ClipboardAccess.repository ?: return false
+                pasteScope.launch {
+                    val entry = withContext(Dispatchers.IO) { repo.peekLatestEntry() } ?: return@launch
+                    ClipboardPasteHelper.pasteEntryToFocusedField(
+                        service = service,
+                        context = context,
+                        entry = entry
+                    )
                 }
                 true
             }

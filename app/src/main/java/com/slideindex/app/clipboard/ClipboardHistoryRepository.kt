@@ -397,6 +397,10 @@ class ClipboardHistoryRepository @Inject constructor(
         }
     }
 
+    suspend fun peekLatestEntry(): ClipboardEntry? = withContext(Dispatchers.IO) {
+        store.queryLatest()
+    }
+
     suspend fun loadHistoryPage(
         createdBeforeMs: Long? = null,
         limit: Int

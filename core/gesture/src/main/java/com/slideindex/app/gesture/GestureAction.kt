@@ -86,6 +86,8 @@ enum class GestureActionType(val id: Int) {
     APP_CAROUSEL_SWITCHER(83),
     FOREGROUND_ACTIVITY_INSPECTOR(84),
     FINGERTIP_RING(85),
+    /** Paste latest clipboard history entry into the focused input field (FV gesture action 12). */
+    CLIPBOARD_PASTE(86),
     ;
 
     companion object {
@@ -398,6 +400,12 @@ sealed class GestureAction {
     /** Reads the current system clipboard and opens the text pick panel. */
     data object ClipboardPick : GestureAction() {
         override val type = GestureActionType.CLIPBOARD_PICK
+        override val payload = ""
+    }
+
+    /** Pastes the latest clipboard history entry into the current input focus. */
+    data object ClipboardPaste : GestureAction() {
+        override val type = GestureActionType.CLIPBOARD_PASTE
         override val payload = ""
     }
 
@@ -725,6 +733,7 @@ sealed class GestureAction {
                 GestureActionType.OPEN_CLIPBOARD_PANEL -> ClipboardPanel
                 GestureActionType.OPEN_CLIPBOARD_FLOAT -> ClipboardFloat
                 GestureActionType.CLIPBOARD_PICK -> ClipboardPick
+                GestureActionType.CLIPBOARD_PASTE -> ClipboardPaste
                 GestureActionType.FLOATING_POINTER -> FloatingPointer
                 GestureActionType.SIMULATE_POINTER_SWIPE -> SimulatePointerSwipe.fromPayload(payload)
                 GestureActionType.POINTER_GESTURE_RECORDER -> PointerGestureRecorder

@@ -17,12 +17,15 @@ import java.util.concurrent.atomic.AtomicReference
 object FloatBallPreviewBoundsCache {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val entriesRef = AtomicReference<List<AccessibilityTextExtractor.PreviewBoundsEntry>>(emptyList())
+    private val editableEntriesRef =
+        AtomicReference<List<AccessibilityTextExtractor.PreviewBoundsEntry>>(emptyList())
     @Volatile
     private var cacheEra = 0
 
     fun invalidate() {
         cacheEra++
         entriesRef.set(emptyList())
+        editableEntriesRef.set(emptyList())
     }
 
     fun isReady(): Boolean = entriesRef.get().isNotEmpty()
@@ -35,6 +38,14 @@ object FloatBallPreviewBoundsCache {
         )
     }
 
+    fun hitTestEditableAt(rawX: Float, rawY: Float): Rect? {
+        return AccessibilityTextExtractor.hitTestEditableBounds(
+            entries = editableEntriesRef.get(),
+            px = rawX.toInt(),
+            py = rawY.toInt()
+        )
+    }
+
     fun refresh(
         service: AccessibilityService,
         onReady: (() -> Unit)? = null
@@ -42,10 +53,13 @@ object FloatBallPreviewBoundsCache {
         val era = cacheEra
         scope.launch {
             val built = runInterruptible {
-                AccessibilityTextExtractor.collectPreviewBoundsCache(service)
+                val preview = AccessibilityTextExtractor.collectPreviewBoundsCache(service)
+                val editable = AccessibilityTextExtractor.collectEditableBoundsCache(service)
+                preview to editable
             }
             if (era != cacheEra) return@launch
-            entriesRef.set(built)
+            entriesRef.set(built.first)
+            editableEntriesRef.set(built.second)
             if (onReady != null) {
                 withContext(Dispatchers.Main) {
                     if (era == cacheEra) {

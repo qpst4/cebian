@@ -270,6 +270,7 @@ data class AppSettings(
     val floatBallPickTextFirstPanel get() = floatBall.floatBallPickTextFirstPanel
     val floatBallPickAutoSelectAll get() = floatBall.floatBallPickAutoSelectAll
     val floatBallPickCopyDismissPanel get() = floatBall.floatBallPickCopyDismissPanel
+    val floatBallDragPasteEnabled get() = floatBall.floatBallDragPasteEnabled
     val floatBallPickPanelEnterAnimationMs get() = floatBall.floatBallPickPanelEnterAnimationMs
     val floatBallPickPanelExitAnimationMs get() = floatBall.floatBallPickPanelExitAnimationMs
     val floatBallPointerSlopDp get() = floatBall.floatBallPointerSlopDp

@@ -44,6 +44,7 @@ fun FloatBallPickSettingsScreen(
     onPickTextFirstPanelChange: (Boolean) -> Unit,
     onPickAutoSelectAllChange: (Boolean) -> Unit = {},
     onPickCopyDismissPanelChange: (Boolean) -> Unit,
+    onDragPasteEnabledChange: (Boolean) -> Unit,
     onPickPanelEnterAnimationMsChange: (Int) -> Unit,
     onPickPanelExitAnimationMsChange: (Int) -> Unit,
     onPointerSlopChange: (Float) -> Unit,
@@ -253,6 +254,17 @@ fun FloatBallPickSettingsScreen(
         groupedCardItems(
             keyPrefix = "fb-pick-operation",
             items = buildList {
+                add(
+                    settingsCardScopeItem("drag-paste") {
+                        SettingSwitchRow(
+                            title = stringResource(R.string.float_ball_drag_paste_enabled),
+                            subtitle = stringResource(R.string.float_ball_drag_paste_enabled_desc),
+                            checked = settings.floatBallDragPasteEnabled,
+                            enabled = accessibilityGranted,
+                            onCheckedChange = onDragPasteEnabledChange
+                        )
+                    }
+                )
                 add(
                     settingsCardScopeItem("cross-arm") {
                         SettingsSliderRow(

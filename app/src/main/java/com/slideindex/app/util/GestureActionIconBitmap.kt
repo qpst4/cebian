@@ -120,6 +120,7 @@ object GestureActionIconBitmap {
             GestureActionType.OPEN_CLIPBOARD_PANEL,
             GestureActionType.OPEN_CLIPBOARD_FLOAT,
             GestureActionType.CLIPBOARD_PICK,
+            GestureActionType.CLIPBOARD_PASTE,
             GestureActionType.QUICK_LAUNCHER,
             GestureActionType.HONEYCOMB_LAUNCHER,
             GestureActionType.APP_SWITCHER,

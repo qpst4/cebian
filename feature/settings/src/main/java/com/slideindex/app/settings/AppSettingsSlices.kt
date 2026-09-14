@@ -253,6 +253,8 @@ data class FloatBallSettings(
     val floatBallPickAutoSelectAll: Boolean = false,
     /** Pick panel: dismiss after tapping copy; long-press copy keeps the panel open. */
     val floatBallPickCopyDismissPanel: Boolean = false,
+    /** FV enable_main_icon_paste: drag float ball over an input field and release to paste latest history. */
+    val floatBallDragPasteEnabled: Boolean = true,
     /** Bottom pick panel slide-in duration in ms (0 = no animation). */
     val floatBallPickPanelEnterAnimationMs: Int = 64,
     /** Bottom pick panel slide-out duration in ms (0 = no animation). */

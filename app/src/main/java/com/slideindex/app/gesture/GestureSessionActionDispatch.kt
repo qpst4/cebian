@@ -399,6 +399,7 @@ internal fun GestureSession.handleClassifiedGesture(
         GestureAction.ClipboardPanel,
         GestureAction.ClipboardFloat,
         GestureAction.ClipboardPick,
+        GestureAction.ClipboardPaste,
         GestureAction.FloatingPointer,
         GestureAction.PointerGestureRecorder,
         GestureAction.PointerRealtimeGesture,

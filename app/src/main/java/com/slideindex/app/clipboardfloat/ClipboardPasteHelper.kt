@@ -4,6 +4,7 @@ import android.accessibilityservice.AccessibilityService
 import android.content.Context
 import android.os.Build
 import android.os.Bundle
+import android.graphics.Rect
 import android.view.accessibility.AccessibilityNodeInfo
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
 import com.slideindex.app.clipboard.ClipboardBlockKind
@@ -28,6 +29,37 @@ sealed class PasteResult {
 }
 
 object ClipboardPasteHelper {
+
+    fun isPasteTarget(node: AccessibilityNodeInfo): Boolean = canPaste(node)
+
+    /** FV E3: paste clipboard entry into the editable under screen point (no per-frame tree walk). */
+    fun pasteAtScreenPoint(
+        service: AccessibilityService,
+        context: Context,
+        entry: ClipboardEntry,
+        x: Float,
+        y: Float,
+    ): PasteResult {
+        val px = x.toInt()
+        val py = y.toInt()
+        val root = service.rootInActiveWindow ?: return PasteResult.Failure(PasteFailureReason.NO_ACTIVE_WINDOW)
+        return try {
+            val target = findPasteTargetAtPoint(root, px, py)
+                ?: return PasteResult.Failure(PasteFailureReason.NO_EDITABLE_FOCUS)
+            try {
+                pasteIntoNode(
+                    context = context,
+                    node = target,
+                    entry = entry,
+                    clipboardAlreadyPrepared = false
+                )
+            } finally {
+                recycleNode(target)
+            }
+        } finally {
+            recycleNode(root)
+        }
+    }
 
     fun performEntryAction(
         service: AccessibilityService,
@@ -59,6 +91,17 @@ object ClipboardPasteHelper {
             }
         }
     }
+
+    fun pasteEntryToFocusedField(
+        service: AccessibilityService,
+        context: Context,
+        entry: ClipboardEntry,
+    ): PasteResult = pasteIntoFocusedField(
+        service = service,
+        context = context,
+        entry = entry,
+        clipboardAlreadyPrepared = false
+    )
 
     private fun pasteIntoFocusedField(
         service: AccessibilityService,
@@ -211,6 +254,53 @@ object ClipboardPasteHelper {
             AccessibilityNodeInfoCompat.wrap(node).textSelectionEnd
         }
         return if (end >= 0) end else textLength
+    }
+
+    private fun findPasteTargetAtPoint(root: AccessibilityNodeInfo, px: Int, py: Int): AccessibilityNodeInfo? {
+        var best: AccessibilityNodeInfo? = null
+        var bestArea = Int.MAX_VALUE
+        val bounds = Rect()
+        val childBounds = Rect()
+        val stack = ArrayDeque<AccessibilityNodeInfo>()
+        stack.addLast(root)
+        while (stack.isNotEmpty()) {
+            val current = stack.removeLast()
+            val owned = current !== root
+            try {
+                if (shouldSkipNodeForPointHit(current)) continue
+                current.getBoundsInScreen(bounds)
+                if (!bounds.contains(px, py)) continue
+                if (canPaste(current)) {
+                    val area = bounds.width().coerceAtLeast(1) * bounds.height().coerceAtLeast(1)
+                    if (area < bestArea) {
+                        recycleNode(best)
+                        best = copyNode(current)
+                        bestArea = area
+                    }
+                }
+                for (i in current.childCount - 1 downTo 0) {
+                    val child = current.getChild(i) ?: continue
+                    var keepChild = false
+                    try {
+                        child.getBoundsInScreen(childBounds)
+                        if (childBounds.contains(px, py)) {
+                            stack.addLast(child)
+                            keepChild = true
+                        }
+                    } finally {
+                        if (!keepChild) recycleNode(child)
+                    }
+                }
+            } finally {
+                if (owned) recycleNode(current)
+            }
+        }
+        return best
+    }
+
+    private fun shouldSkipNodeForPointHit(node: AccessibilityNodeInfo): Boolean {
+        if (!node.isVisibleToUser) return true
+        return false
     }
 
     private fun findFocusedEditableNode(root: AccessibilityNodeInfo): AccessibilityNodeInfo? {

@@ -160,6 +160,7 @@ fun gestureActionDescriptionText(context: Context, action: GestureAction): Strin
         GestureActionType.FREEZER_PANEL -> context.getString(R.string.gesture_action_freezer_panel_desc)
         GestureActionType.REFREEZE -> context.getString(R.string.gesture_action_refreeze_desc)
         GestureActionType.CLIPBOARD_PICK -> context.getString(R.string.gesture_action_clipboard_pick_desc)
+        GestureActionType.CLIPBOARD_PASTE -> context.getString(R.string.gesture_action_clipboard_paste_desc)
         GestureActionType.POINTER_REALTIME_GESTURE -> context.getString(R.string.gesture_action_pointer_realtime_gesture_desc)
         GestureActionType.TOGGLE_MUTE -> context.getString(R.string.gesture_action_toggle_mute_desc)
         GestureActionType.LOCK_SCREEN_AND_SILENCE_RING -> context.getString(R.string.gesture_action_lock_screen_and_silence_ring_desc)
@@ -275,6 +276,7 @@ fun gestureActionLabelText(context: Context, action: GestureAction): String = wh
         GestureActionType.OPEN_CLIPBOARD_PANEL -> context.getString(R.string.gesture_action_clipboard_panel)
         GestureActionType.OPEN_CLIPBOARD_FLOAT -> context.getString(R.string.gesture_action_clipboard_float)
         GestureActionType.CLIPBOARD_PICK -> context.getString(R.string.gesture_action_clipboard_pick)
+        GestureActionType.CLIPBOARD_PASTE -> context.getString(R.string.gesture_action_clipboard_paste)
         GestureActionType.FLOATING_POINTER -> context.getString(R.string.gesture_action_floating_pointer)
         GestureActionType.SIMULATE_POINTER_SWIPE -> context.getString(R.string.gesture_action_pointer_swipe)
         GestureActionType.POINTER_GESTURE_RECORDER -> context.getString(R.string.gesture_action_pointer_gesture_recorder)
@@ -418,6 +420,7 @@ fun gestureActionLabel(action: GestureAction, settings: AppSettings? = null): St
         GestureActionType.OPEN_CLIPBOARD_PANEL -> stringResource(R.string.gesture_action_clipboard_panel)
         GestureActionType.OPEN_CLIPBOARD_FLOAT -> stringResource(R.string.gesture_action_clipboard_float)
         GestureActionType.CLIPBOARD_PICK -> stringResource(R.string.gesture_action_clipboard_pick)
+        GestureActionType.CLIPBOARD_PASTE -> stringResource(R.string.gesture_action_clipboard_paste)
         GestureActionType.FLOATING_POINTER -> stringResource(R.string.gesture_action_floating_pointer)
         GestureActionType.SIMULATE_POINTER_SWIPE -> stringResource(R.string.gesture_action_pointer_swipe)
         GestureActionType.POINTER_GESTURE_RECORDER -> stringResource(R.string.gesture_action_pointer_gesture_recorder)
@@ -482,6 +485,7 @@ fun gestureActionDescription(action: GestureAction): String? = when (action.type
     GestureActionType.FREEZER_PANEL -> stringResource(R.string.gesture_action_freezer_panel_desc)
     GestureActionType.REFREEZE -> stringResource(R.string.gesture_action_refreeze_desc)
     GestureActionType.CLIPBOARD_PICK -> stringResource(R.string.gesture_action_clipboard_pick_desc)
+    GestureActionType.CLIPBOARD_PASTE -> stringResource(R.string.gesture_action_clipboard_paste_desc)
     GestureActionType.SIMULATE_POINTER_SWIPE -> stringResource(R.string.gesture_action_pointer_swipe_desc)
     GestureActionType.POINTER_GESTURE_RECORDER -> stringResource(R.string.gesture_action_pointer_gesture_recorder_desc)
     GestureActionType.POINTER_REALTIME_GESTURE -> stringResource(R.string.gesture_action_pointer_realtime_gesture_desc)
@@ -613,6 +617,10 @@ fun gestureActionPermissionHintText(context: Context, action: GestureAction): St
             if (PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) return null
             context.getString(R.string.gesture_action_clipboard_pick_permission)
         }
+        GestureActionType.CLIPBOARD_PASTE -> {
+            if (PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) return null
+            context.getString(R.string.gesture_action_clipboard_paste_permission)
+        }
         GestureActionType.FLOATING_POINTER -> {
             if (PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) return null
             context.getString(R.string.gesture_action_floating_pointer_permission)
@@ -696,6 +704,11 @@ fun requestPermissionForAdjustAction(context: Context, action: GestureAction) {
             }
         }
         GestureAction.ClipboardPick -> {
+            if (!PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) {
+                context.startActivity(PermissionHelper.accessibilitySettingsIntent())
+            }
+        }
+        GestureAction.ClipboardPaste -> {
             if (!PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) {
                 context.startActivity(PermissionHelper.accessibilitySettingsIntent())
             }

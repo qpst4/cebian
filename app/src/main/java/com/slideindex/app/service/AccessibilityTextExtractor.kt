@@ -5,6 +5,7 @@ import android.graphics.Rect
 import android.os.Build
 import android.view.accessibility.AccessibilityNodeInfo
 import android.view.accessibility.AccessibilityWindowInfo
+import com.slideindex.app.clipboardfloat.ClipboardPasteHelper
 import com.slideindex.app.overlay.FloatBallOcrRegions
 
 /**
@@ -415,6 +416,84 @@ object AccessibilityTextExtractor {
             }
         }
         return best?.rect
+    }
+
+    /**
+     * Editable / paste-target bounds for float-ball drag-paste (FV p1 list).
+     * Built once per cache refresh; hit-test prefers the smallest containing rect.
+     */
+    fun collectEditableBoundsCache(service: AccessibilityService): List<PreviewBoundsEntry> {
+        val results = ArrayList<PreviewBoundsEntry>(64)
+        val nodeBounds = Rect()
+        val budget = NodeTraversalBudget(DEFAULT_MAX_TRAVERSAL_NODES)
+        for (window in service.windows) {
+            if (shouldSkipPickWindow(window)) continue
+            val root = window.root ?: continue
+            if (shouldSkipWindowRoot(root, service)) {
+                releaseNode(root)
+                continue
+            }
+            try {
+                collectEditableBoundsInNode(root, results, nodeBounds, budget)
+            } finally {
+                releaseNode(root)
+            }
+        }
+        val active = service.rootInActiveWindow
+        if (active != null && !shouldSkipWindowRoot(active, service)) {
+            try {
+                collectEditableBoundsInNode(active, results, nodeBounds, budget)
+            } finally {
+                releaseNode(active)
+            }
+        }
+        return results
+    }
+
+    fun hitTestEditableBounds(
+        entries: List<PreviewBoundsEntry>,
+        px: Int,
+        py: Int
+    ): Rect? {
+        var best: PreviewBoundsEntry? = null
+        for (entry in entries) {
+            if (!entry.rect.contains(px, py)) continue
+            if (best == null || entry.score < best.score) {
+                best = entry
+            }
+        }
+        return best?.rect
+    }
+
+    private fun collectEditableBoundsInNode(
+        node: AccessibilityNodeInfo,
+        results: MutableList<PreviewBoundsEntry>,
+        bounds: Rect,
+        budget: NodeTraversalBudget
+    ) {
+        val stack = ArrayDeque<AccessibilityNodeInfo>()
+        stack.addLast(node)
+        while (stack.isNotEmpty()) {
+            if (!budget.consume()) break
+            val current = stack.removeLast()
+            val owned = current !== node
+            try {
+                if (shouldSkipAccessibilityNode(current)) continue
+                if (ClipboardPasteHelper.isPasteTarget(current)) {
+                    current.getBoundsInScreen(bounds)
+                    if (bounds.width() > 0 && bounds.height() > 0) {
+                        val area = bounds.width().coerceAtLeast(1) * bounds.height().coerceAtLeast(1)
+                        results.add(PreviewBoundsEntry(Rect(bounds), area))
+                    }
+                }
+                for (i in current.childCount - 1 downTo 0) {
+                    val child = current.getChild(i) ?: continue
+                    stack.addLast(child)
+                }
+            } finally {
+                if (owned) releaseNode(current)
+            }
+        }
     }
 
     private fun collectPreviewBoundsInNode(

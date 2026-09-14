@@ -42,6 +42,7 @@ internal fun gestureActionTypeOutlinedIcon(type: GestureActionType): ImageVector
     GestureActionType.OPEN_CLIPBOARD_PANEL -> ThinActionIcons.ContentPaste
     GestureActionType.OPEN_CLIPBOARD_FLOAT -> ThinActionIcons.ContentPaste
     GestureActionType.CLIPBOARD_PICK -> ThinActionIcons.TextFields
+    GestureActionType.CLIPBOARD_PASTE -> ThinActionIcons.ContentPaste
     GestureActionType.FLOATING_POINTER -> ThinActionIcons.MyLocation
     GestureActionType.SIMULATE_POINTER_SWIPE -> ThinActionIcons.TouchApp
     GestureActionType.BACK -> ThinActionIcons.Back
@@ -128,6 +129,7 @@ internal fun gestureActionTypeThinIcon(type: GestureActionType): ImageVector = w
     GestureActionType.OPEN_CLIPBOARD_PANEL -> ThinActionIcons.ContentPaste
     GestureActionType.OPEN_CLIPBOARD_FLOAT -> ThinActionIcons.ContentPaste
     GestureActionType.CLIPBOARD_PICK -> ThinActionIcons.TextFields
+    GestureActionType.CLIPBOARD_PASTE -> ThinActionIcons.ContentPaste
     GestureActionType.FLOATING_POINTER -> ThinActionIcons.MyLocation
     GestureActionType.SIMULATE_POINTER_SWIPE -> ThinActionIcons.TouchApp
     GestureActionType.BACK -> ThinActionIcons.Back

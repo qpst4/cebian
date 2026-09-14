@@ -22,6 +22,7 @@ internal class FloatBallCursorPreviewView(context: Context) : View(context) {
     enum class HintMode {
         HIDDEN,
         TEXT,
+        PASTE,
         SCREENSHOT,
     }
 
@@ -43,6 +44,8 @@ internal class FloatBallCursorPreviewView(context: Context) : View(context) {
         ResourcesCompat.getDrawable(context.resources, R.drawable.float_ball_hint_text, null)
     private val screenshotHintIcon: Drawable? =
         ResourcesCompat.getDrawable(context.resources, R.drawable.float_ball_hint_screenshot, null)
+    private val pasteHintIcon: Drawable? =
+        ResourcesCompat.getDrawable(context.resources, R.drawable.float_ball_hint_paste, null)
 
     private var layerVisible = false
     private var paused = false
@@ -199,6 +202,7 @@ internal class FloatBallCursorPreviewView(context: Context) : View(context) {
     private fun drawHint(canvas: Canvas, anchorX: Float, anchorY: Float) {
         val icon = when (hintMode) {
             HintMode.TEXT -> textHintIcon
+            HintMode.PASTE -> pasteHintIcon
             HintMode.SCREENSHOT -> screenshotHintIcon
             HintMode.HIDDEN -> return
         } ?: return

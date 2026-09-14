@@ -422,6 +422,7 @@ internal object SettingsPreferenceKeys {
     val FLOAT_BALL_PICK_TEXT_FIRST_PANEL = booleanPreferencesKey("float_ball_pick_text_first_panel")
     val FLOAT_BALL_PICK_AUTO_SELECT_ALL = booleanPreferencesKey("float_ball_pick_auto_select_all")
     val FLOAT_BALL_PICK_COPY_DISMISS_PANEL = booleanPreferencesKey("float_ball_pick_copy_dismiss_panel")
+    val FLOAT_BALL_DRAG_PASTE_ENABLED = booleanPreferencesKey("float_ball_drag_paste_enabled")
     val FLOAT_BALL_PICK_PANEL_ENTER_ANIMATION_MS =
         intPreferencesKey("float_ball_pick_panel_enter_animation_ms")
     val FLOAT_BALL_PICK_PANEL_EXIT_ANIMATION_MS =
