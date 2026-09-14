@@ -58,6 +58,7 @@ fun gestureTriggerIconImageVector(side: PanelSide, trigger: GestureTriggerType):
     else -> when {
         trigger.isLongPress -> MaterialTouchIcons.LongPress
         trigger.isSingleTap -> MaterialTouchIcons.SingleTap
+        trigger.isDoubleTap -> MaterialTouchIcons.DoubleTap
         trigger.isLongDistance -> ThinActionIcons.DoubleArrowRight
         else -> ThinActionIcons.ArrowRight
     }
@@ -65,7 +66,7 @@ fun gestureTriggerIconImageVector(side: PanelSide, trigger: GestureTriggerType):
 
 /** 与 SideGesture `TriggerDirection` × `Position` 旋转表一致；[PanelSide.TOP] 按内滑几何补全。 */
 fun gestureTriggerIconRotationZ(side: PanelSide, trigger: GestureTriggerType): Float {
-    if (trigger.isLongPress || trigger.isSingleTap) return 0f
+    if (trigger.isLongPress || trigger.isSingleTap || trigger.isDoubleTap) return 0f
     return when (side) {
         PanelSide.LEFT -> when (trigger.directionKind()) {
             TriggerDirectionKind.In -> 0f

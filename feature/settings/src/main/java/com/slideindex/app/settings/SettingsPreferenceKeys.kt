@@ -46,6 +46,7 @@ internal object SettingsPreferenceKeys {
     val GESTURE_HINT_STYLE = intPreferencesKey("gesture_hint_style")
     val GESTURE_HINT_FINGER_OFFSET_DP = floatPreferencesKey("gesture_hint_finger_offset_dp")
     val SWIPE_HOVER_DURATION_MS = intPreferencesKey("swipe_hover_duration_ms")
+    val TRIGGER_DOUBLE_TAP_INTERVAL_MS = intPreferencesKey("trigger_double_tap_interval_ms")
     val INWARD_HOVER_COMPOUND_ENABLED = booleanPreferencesKey("inward_hover_compound_enabled")
     val ANIMATION_STYLES = stringPreferencesKey("animation_styles")
     val GESTURE_ANGLE_UP = floatPreferencesKey("gesture_angle_up")

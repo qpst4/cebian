@@ -295,6 +295,10 @@ class HomeDetailSettingsViewModel @Inject constructor(
         settingsRepository.setSwipeHoverDurationMs(value)
     }
 
+    fun setTriggerDoubleTapIntervalMs(value: Int) = launchSettingsWrite {
+        settingsRepository.setTriggerDoubleTapIntervalMs(value)
+    }
+
     fun setInwardHoverCompoundEnabled(enabled: Boolean) = launchSettingsWrite {
         settingsRepository.setInwardHoverCompoundEnabled(enabled)
     }

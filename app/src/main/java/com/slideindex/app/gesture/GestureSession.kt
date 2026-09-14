@@ -489,6 +489,33 @@ class GestureSession(
                     return
                 }
 
+                if (classification.trigger == GestureTriggerType.SHORT_SINGLE_TAP) {
+                    val slopPx = pathRecognizer.tapDisqualifyMovementPx(classifyOptions())
+                    val dispatch: (SwipeClassification) -> Unit = { resolved ->
+                        handleClassifiedGesture(resolved, rawX, rawY, localX, localY, gestureStartRawY)
+                    }
+                    EdgeTriggerDoubleTapCoordinator.onSingleTapCandidate(
+                        settings = sessionSettings,
+                        side = side,
+                        handleId = sessionActiveHandleId,
+                        upX = rawX,
+                        upY = rawY,
+                        slopPx = slopPx,
+                        onSingleTap = { dispatch(classification) },
+                        onDoubleTap = {
+                            dispatch(
+                                SwipeClassification(
+                                    trigger = GestureTriggerType.SHORT_DOUBLE_TAP,
+                                    inwardDelta = classification.inwardDelta,
+                                    verticalDelta = classification.verticalDelta,
+                                )
+                            )
+                        },
+                    )
+                    finishLeaveOpenFingerTracking()
+                    return
+                }
+
                 handleClassifiedGesture(classification, rawX, rawY, localX, localY, gestureStartRawY)
                 // ON_RELEASE 打开 leave-open 面板后结束手指跟踪，避免 active 一直为 true。
                 finishLeaveOpenFingerTracking()

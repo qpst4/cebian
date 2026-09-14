@@ -1762,6 +1762,9 @@
     <string name="side_gestures_hover_duration">Hover duration after short swipe</string>
     <string name="side_gestures_hover_duration_desc">Still time after a short swipe to count as hover</string>
     <string name="side_gestures_hover_duration_value">%1$d ms</string>
+    <string name="trigger_double_tap_interval">Double-tap interval</string>
+    <string name="trigger_double_tap_interval_desc">Max time between two taps; 0 ms cannot form a double tap</string>
+    <string name="trigger_double_tap_interval_value">%1$d ms</string>
     <string name="gesture_swipe_in_left">Swipe right</string>
     <string name="gesture_swipe_in_right">Swipe left</string>
     <string name="gesture_swipe_in_bottom">Swipe up</string>
@@ -1808,6 +1811,7 @@
     <string name="gesture_short_swipe_right">Swipe right</string>
     <string name="gesture_short_long_press">Long-press</string>
     <string name="gesture_short_single_tap">Tap</string>
+    <string name="gesture_short_double_tap">Double tap</string>
     <string name="gesture_long_swipe_up">Swipe up</string>
     <string name="gesture_long_swipe_down">Swipe down</string>
     <string name="gesture_long_swipe_left">Swipe left</string>

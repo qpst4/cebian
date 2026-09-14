@@ -756,6 +756,10 @@
     <string name="gesture_short_swipe_right">向右滑动</string>
     <string name="gesture_short_long_press">长按</string>
     <string name="gesture_short_single_tap">单击</string>
+    <string name="gesture_short_double_tap">双击</string>
+    <string name="trigger_double_tap_interval">双击间隔</string>
+    <string name="trigger_double_tap_interval_desc">两次点击的最大间隔；为 0 时无法构成双击</string>
+    <string name="trigger_double_tap_interval_value">%1$d 毫秒</string>
     <string name="gesture_long_swipe_up">向上滑动</string>
     <string name="gesture_long_swipe_down">向下滑动</string>
     <string name="gesture_long_swipe_left">向左滑动</string>

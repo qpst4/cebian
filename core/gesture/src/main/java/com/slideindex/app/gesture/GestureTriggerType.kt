@@ -25,6 +25,7 @@ enum class GestureTriggerType(val id: Int, val isLongDistance: Boolean) {
     SHORT_SWIPE_DOWN_RIGHT_HOVER(21, false),
     SHORT_SWIPE_UP_HOVER(22, false),
     SHORT_SWIPE_DOWN_HOVER(23, false),
+    SHORT_DOUBLE_TAP(24, false),
     ;
 
     val isReturnSwipe: Boolean
@@ -50,6 +51,9 @@ enum class GestureTriggerType(val id: Int, val isLongDistance: Boolean) {
 
     val isSingleTap: Boolean
         get() = this == SHORT_SINGLE_TAP || this == LONG_SINGLE_TAP
+
+    val isDoubleTap: Boolean
+        get() = this == SHORT_DOUBLE_TAP
 
     val isPressOrTap: Boolean
         get() = this == SHORT_LONG_PRESS || this == SHORT_SINGLE_TAP ||
@@ -78,7 +82,7 @@ enum class GestureTriggerType(val id: Int, val isLongDistance: Boolean) {
             entries.filter { it.isHoverSwipe }
 
         fun pressTapEntries(): List<GestureTriggerType> =
-            listOf(SHORT_LONG_PRESS, SHORT_SINGLE_TAP)
+            listOf(SHORT_LONG_PRESS, SHORT_SINGLE_TAP, SHORT_DOUBLE_TAP)
 
         fun longDistanceEntries(): List<GestureTriggerType> =
             entries.filter { it.isLongDistance && !it.isPressOrTap && !it.isCompoundSwipe }

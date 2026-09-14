@@ -624,6 +624,7 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
                 }
             },
             onSwipeHoverDurationChange = viewModel::setSwipeHoverDurationMs,
+            onTriggerDoubleTapIntervalChange = viewModel::setTriggerDoubleTapIntervalMs,
         )
     }
 

@@ -371,6 +371,10 @@ class EdgeSettingsMutator @Inject constructor(
             )
     }
 
+    suspend fun setTriggerDoubleTapIntervalMs(value: Int) = editor.edit {
+        it[SettingsPreferenceKeys.TRIGGER_DOUBLE_TAP_INTERVAL_MS] = value.coerceIn(0, 800)
+    }
+
     suspend fun setInwardHoverCompoundEnabled(enabled: Boolean) = editor.edit {
         it[SettingsPreferenceKeys.INWARD_HOVER_COMPOUND_ENABLED] = enabled
     }

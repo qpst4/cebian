@@ -734,6 +734,8 @@ fun triggerLabel(side: PanelSide, trigger: GestureTriggerType): String = stringR
 
         GestureTriggerType.SHORT_SINGLE_TAP -> R.string.gesture_short_single_tap
 
+        GestureTriggerType.SHORT_DOUBLE_TAP -> R.string.gesture_short_double_tap
+
         GestureTriggerType.LONG_SWIPE_UP -> when (side) {
 
             PanelSide.BOTTOM, PanelSide.TOP -> R.string.gesture_long_swipe_left

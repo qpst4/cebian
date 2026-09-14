@@ -166,6 +166,8 @@ internal object SettingsSnapshotReader {
             gestureHintStyleId = prefs[SettingsPreferenceKeys.GESTURE_HINT_STYLE] ?: GestureHintStyle.BUBBLE.id,
             gestureHintFingerOffsetDp = prefs[SettingsPreferenceKeys.GESTURE_HINT_FINGER_OFFSET_DP] ?: 0f,
             swipeHoverDurationMs = prefs[SettingsPreferenceKeys.SWIPE_HOVER_DURATION_MS] ?: 250,
+            triggerDoubleTapIntervalMs =
+                prefs[SettingsPreferenceKeys.TRIGGER_DOUBLE_TAP_INTERVAL_MS]?.coerceIn(0, 800) ?: 300,
             inwardHoverCompoundEnabled = prefs[SettingsPreferenceKeys.INWARD_HOVER_COMPOUND_ENABLED] ?: true,
             animationStyles = AnimationStyleCodec.decode(prefs[SettingsPreferenceKeys.ANIMATION_STYLES]),
             gestureAngles = GestureAnglesCodec.read(prefs, legacyAngleConfig),
