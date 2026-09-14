@@ -98,6 +98,35 @@ class QuickLauncherItemCodecTest {
     }
 
     @Test
+    fun encodeAll_decodeAll_openLinkWithDisplayName_roundTrip() {
+        val action = GestureAction.OpenLink(url = "https://example.com", label = "示例名称")
+        val item = QuickLauncherItem.action(action, "示例名称")
+        val other = QuickLauncherItem.app("com.example.app", "App")
+
+        val decoded = QuickLauncherItemCodec.decodeAll(
+            QuickLauncherItemCodec.encodeAll(listOf(item, other)),
+        )
+
+        assertEquals(2, decoded.size)
+        assertEquals(item, decoded[0])
+        assertEquals(other, decoded[1])
+        val parsed = QuickLauncherItemCodec.parseActionPayload(decoded[0].payload)
+        assertTrue(parsed is GestureAction.OpenLink)
+        assertEquals(action, parsed)
+    }
+
+    @Test
+    fun encodeAll_decodeAll_legacyOpenLinkLabelSeparator_roundTrip() {
+        val legacyPayload = GestureAction.from(
+            com.slideindex.app.gesture.GestureActionType.OPEN_LINK,
+            "https://example.com\u001FLegacy",
+        )
+        val item = QuickLauncherItem.action(legacyPayload, "Legacy")
+        val decoded = QuickLauncherItemCodec.decodeAll(QuickLauncherItemCodec.encodeAll(listOf(item)))
+        assertEquals(listOf(item), decoded)
+    }
+
+    @Test
     fun folderItem_antiNesting_preventsFoldersInsideFolders() {
         val childFolder = QuickLauncherItem.folder("子文件夹", listOf(QuickLauncherItem.app("com.app", "App")))
         val normalChild = QuickLauncherItem.app("com.app.main", "Main")

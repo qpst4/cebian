@@ -46,6 +46,10 @@ class GestureActionNormalizedTest {
         assertEquals(GestureAction.OpenVolumePanel, GestureAction.from(GestureActionType.OPEN_VOLUME_PANEL, ""))
         assertEquals(
             GestureAction.OpenLink(url = "https://example.com", label = "Example"),
+            GestureAction.from(GestureActionType.OPEN_LINK, "https://example.com\u001DExample"),
+        )
+        assertEquals(
+            GestureAction.OpenLink(url = "https://example.com", label = "Example"),
             GestureAction.from(GestureActionType.OPEN_LINK, "https://example.com\u001FExample"),
         )
         assertEquals(GestureAction.CurrentAppInfo, GestureAction.from(GestureActionType.CURRENT_APP_INFO, ""))

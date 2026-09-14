@@ -305,17 +305,51 @@ object QuickLauncherItemCodec {
 
     fun decodeAll(raw: Set<String>): List<QuickLauncherItem> {
         if (raw.isEmpty()) return emptyList()
-        val decoded = if (raw.size == 1) {
-            val only = raw.first()
-            if (LIST_SEP in only) {
-                only.split(LIST_SEP).mapNotNull { decode(it) }
-            } else {
-                listOfNotNull(decode(only))
-            }
+        return if (raw.size == 1) {
+            decodeConcatenatedItems(raw.first())
         } else {
             raw.mapNotNull { decode(it) }
         }
-        return decoded
+    }
+
+    /**
+     * 多项 blob 用 [LIST_SEP] 拼接；项内 payload（如带显示名的 OPEN_LINK）也可能含 \\u001F，
+     * 仅在「下一项」边界（[LIST_SEP] + typeId + [SEP]）处切开。
+     */
+    private fun decodeConcatenatedItems(blob: String): List<QuickLauncherItem> {
+        if (blob.isBlank()) return emptyList()
+        val splitIndices = mutableListOf<Int>()
+        var searchFrom = 0
+        while (searchFrom < blob.length) {
+            val sepIndex = blob.indexOf(LIST_SEP, searchFrom)
+            if (sepIndex < 0) break
+            if (isEncodedItemBoundary(blob, sepIndex)) {
+                splitIndices.add(sepIndex)
+            }
+            searchFrom = sepIndex + LIST_SEP.length
+        }
+        if (splitIndices.isEmpty()) {
+            return listOfNotNull(decode(blob))
+        }
+        val items = mutableListOf<QuickLauncherItem>()
+        var start = 0
+        for (splitAt in splitIndices) {
+            decode(blob.substring(start, splitAt))?.let { items.add(it) }
+            start = splitAt + LIST_SEP.length
+        }
+        decode(blob.substring(start))?.let { items.add(it) }
+        return items
+    }
+
+    private fun isEncodedItemBoundary(blob: String, listSepIndex: Int): Boolean {
+        val afterListSep = listSepIndex + LIST_SEP.length
+        if (afterListSep >= blob.length) return false
+        val typeChar = blob[afterListSep]
+        if (typeChar !in '0'..'9') return false
+        val typeId = typeChar.code - '0'.code
+        if (QuickLauncherItemType.entries.none { it.id == typeId }) return false
+        val fieldSepIndex = afterListSep + 1
+        return fieldSepIndex < blob.length && blob[fieldSepIndex] == SEP[0]
     }
 }
 

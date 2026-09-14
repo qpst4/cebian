@@ -15,7 +15,7 @@ fun ReportQuickLauncherEmbedParentConfirm(
     onConfirm: () -> Unit,
     onReport: (QuickLauncherEmbedParentConfirm?) -> Unit,
 ) {
-    SideEffect(enabled) {
+    SideEffect(enabled, onConfirm) {
         onReport(QuickLauncherEmbedParentConfirm(enabled, onConfirm))
     }
     DisposableEffect(onReport) {

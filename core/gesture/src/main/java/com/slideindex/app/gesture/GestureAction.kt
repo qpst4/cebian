@@ -328,7 +328,9 @@ sealed class GestureAction {
         override val payload = encodePayload(url, label)
 
         companion object {
-            private const val SEP = '\u001F'
+            /** 勿用 \\u001F：与 [com.slideindex.app.launcher.QuickLauncherItemCodec] 多项拼接分隔符冲突。 */
+            private const val SEP = '\u001D'
+            private const val LEGACY_LABEL_SEP = '\u001F'
 
             fun encodePayload(url: String, label: String): String {
                 val trimmedUrl = url.trim()
@@ -341,7 +343,7 @@ sealed class GestureAction {
             }
 
             fun fromPayload(payload: String): OpenLink {
-                val separatorIndex = payload.indexOf(SEP)
+                val separatorIndex = indexOfLabelSeparator(payload)
                 if (separatorIndex < 0) {
                     return OpenLink(url = payload.trim())
                 }
@@ -349,6 +351,17 @@ sealed class GestureAction {
                     url = payload.substring(0, separatorIndex).trim(),
                     label = payload.substring(separatorIndex + 1).trim(),
                 )
+            }
+
+            private fun indexOfLabelSeparator(payload: String): Int {
+                var best = -1
+                for (sep in charArrayOf(SEP, LEGACY_LABEL_SEP)) {
+                    val index = payload.indexOf(sep)
+                    if (index >= 0 && (best < 0 || index < best)) {
+                        best = index
+                    }
+                }
+                return best
             }
         }
     }

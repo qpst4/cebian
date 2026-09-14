@@ -46,7 +46,7 @@ fun GestureOpenLinkScreen(
     var label by remember(initialLabel) { mutableStateOf(initialLabel) }
     val canSave = url.trim().isNotBlank()
 
-    val formCard = settingsCardItems(url, label) {
+    val formCard = settingsCardItems {
         SettingsCardRow(key = "open_link_url_row") {
             MiuixLabeledTextField(
                 value = url,
