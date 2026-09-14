@@ -18,6 +18,8 @@ enum class VlmProvider(
     val defaultBaseUrl: String,
     val defaultModel: String,
     val presetModels: List<String>,
+    val defaultTranslateModel: String,
+    val presetTranslateModels: List<String>,
     @StringRes val websiteHintRes: Int,
 ) {
     DASHSCOPE(
@@ -27,6 +29,8 @@ enum class VlmProvider(
         defaultBaseUrl = "https://dashscope.aliyuncs.com/compatible-mode/v1",
         defaultModel = "qwen-vl-plus",
         presetModels = listOf("qwen-vl-plus", "qwen-vl-max", "qwen-vl-ocr"),
+        defaultTranslateModel = "qwen-plus",
+        presetTranslateModels = listOf("qwen-plus", "qwen-turbo", "qwen3-max"),
         websiteHintRes = R.string.vlm_provider_dashscope_hint,
     ),
     ZHIPU(
@@ -36,6 +40,8 @@ enum class VlmProvider(
         defaultBaseUrl = "https://open.bigmodel.cn/api/paas/v4/",
         defaultModel = "glm-4v-plus",
         presetModels = listOf("glm-4v-plus", "glm-4v", "glm-4v-flash"),
+        defaultTranslateModel = "glm-4-plus",
+        presetTranslateModels = listOf("glm-4-plus", "glm-4-flash", "glm-4-air"),
         websiteHintRes = R.string.vlm_provider_zhipu_hint,
     ),
     SILICONFLOW(
@@ -50,6 +56,12 @@ enum class VlmProvider(
             "Qwen/Qwen2-VL-7B-Instruct",
             "THUDM/glm-4v-9b",
         ),
+        defaultTranslateModel = "Qwen/Qwen3-32B",
+        presetTranslateModels = listOf(
+            "Qwen/Qwen3-32B",
+            "deepseek-ai/DeepSeek-V3",
+            "zai-org/GLM-4.5",
+        ),
         websiteHintRes = R.string.vlm_provider_siliconflow_hint,
     ),
     CUSTOM(
@@ -59,6 +71,8 @@ enum class VlmProvider(
         defaultBaseUrl = "https://api.openai.com/v1",
         defaultModel = "gpt-4o",
         presetModels = listOf("gpt-4o", "gpt-4o-mini", "claude-3-5-sonnet"),
+        defaultTranslateModel = "gpt-4o-mini",
+        presetTranslateModels = listOf("gpt-4o-mini", "gpt-4o", "claude-3-5-sonnet"),
         websiteHintRes = R.string.vlm_provider_custom_hint,
     );
 
@@ -72,6 +86,16 @@ enum class VlmProvider(
         fun fromId(id: String): VlmProvider =
             entries.firstOrNull { it.id.equals(id, ignoreCase = true) } ?: DASHSCOPE
     }
+}
+
+/** 云端大模型调用凭据（翻译等纯文本场景）。 */
+data class CloudLlmEndpointCredentials(
+    val apiKey: String,
+    val baseUrl: String,
+    val model: String,
+) {
+    val isConfigured: Boolean
+        get() = apiKey.isNotBlank()
 }
 
 /**
@@ -88,6 +112,7 @@ class VlmOcrConfigManager @Inject constructor(
     companion object {
         private const val PREF_NAME = "vlm_ocr_config"
         private const val KEY_ACTIVE_PROVIDER = "active_provider"
+        private const val KEY_TRANSLATE_ACTIVE_PROVIDER = "translate_active_provider"
         private const val KEY_PROMPT = "system_prompt"
 
         private const val PREFIX_API_KEY = "provider_api_key_"
@@ -96,6 +121,8 @@ class VlmOcrConfigManager @Inject constructor(
         private const val PREFIX_CUSTOM_MODELS = "provider_custom_models_"
         private const val PREFIX_PROMPT = "provider_prompt_"
         private const val PREFIX_PROMPT_ENABLED = "provider_prompt_enabled_"
+        private const val PREFIX_TRANSLATE_MODEL = "provider_translate_model_"
+        private const val PREFIX_TRANSLATE_CUSTOM_MODELS = "provider_translate_custom_models_"
 
         // 遗留旧配置 key（用于平滑迁移）
         private const val LEGACY_KEY_API_KEY = "api_key"
@@ -125,7 +152,16 @@ class VlmOcrConfigManager @Inject constructor(
 
     init {
         migrateLegacyIfNeeded()
+        migrateTranslateActiveProviderIfNeeded()
         migrateProviderPromptFlagsIfNeeded()
+    }
+
+    private fun migrateTranslateActiveProviderIfNeeded() {
+        if (!prefs.contains(KEY_TRANSLATE_ACTIVE_PROVIDER)) {
+            prefs.edit()
+                .putString(KEY_TRANSLATE_ACTIVE_PROVIDER, activeProviderId)
+                .apply()
+        }
     }
 
     private fun migrateLegacyIfNeeded() {
@@ -152,6 +188,19 @@ class VlmOcrConfigManager @Inject constructor(
 
     fun setActiveProvider(provider: VlmProvider) {
         activeProviderId = provider.id
+    }
+
+    // --- 翻译专用激活服务商（与 OCR 视觉激活服务商独立） ---
+    var translateActiveProviderId: String
+        get() = prefs.getString(KEY_TRANSLATE_ACTIVE_PROVIDER, VlmProvider.DASHSCOPE.id)
+            ?: VlmProvider.DASHSCOPE.id
+        set(value) = prefs.edit().putString(KEY_TRANSLATE_ACTIVE_PROVIDER, value).apply()
+
+    val translateActiveProvider: VlmProvider
+        get() = VlmProvider.fromId(translateActiveProviderId)
+
+    fun setTranslateActiveProvider(provider: VlmProvider) {
+        translateActiveProviderId = provider.id
     }
 
     // --- 单个厂商配置存取 ---
@@ -192,6 +241,41 @@ class VlmOcrConfigManager @Inject constructor(
             updated.add(trimmed)
             prefs.edit().putStringSet(PREFIX_CUSTOM_MODELS + provider.id, updated).apply()
         }
+    }
+
+    // --- 云端文本翻译模型（与 OCR 视觉模型分离） ---
+    fun getTranslateModel(provider: VlmProvider): String =
+        prefs.getString(PREFIX_TRANSLATE_MODEL + provider.id, provider.defaultTranslateModel)
+            ?.ifBlank { null }
+            ?: provider.defaultTranslateModel
+
+    fun setTranslateModel(provider: VlmProvider, model: String) {
+        val trimmed = model.trim().ifBlank { provider.defaultTranslateModel }
+        prefs.edit().putString(PREFIX_TRANSLATE_MODEL + provider.id, trimmed).apply()
+        if (trimmed !in provider.presetTranslateModels) {
+            addTranslateCustomModel(provider, trimmed)
+        }
+    }
+
+    fun getTranslateCustomModels(provider: VlmProvider): Set<String> =
+        prefs.getStringSet(PREFIX_TRANSLATE_CUSTOM_MODELS + provider.id, emptySet()) ?: emptySet()
+
+    fun addTranslateCustomModel(provider: VlmProvider, model: String) {
+        val trimmed = model.trim()
+        if (trimmed.isNotBlank() && trimmed !in provider.presetTranslateModels) {
+            val updated = getTranslateCustomModels(provider).toMutableSet()
+            updated.add(trimmed)
+            prefs.edit().putStringSet(PREFIX_TRANSLATE_CUSTOM_MODELS + provider.id, updated).apply()
+        }
+    }
+
+    fun activeTranslateCredentials(): CloudLlmEndpointCredentials {
+        val provider = translateActiveProvider
+        return CloudLlmEndpointCredentials(
+            apiKey = getApiKey(provider),
+            baseUrl = getBaseUrl(provider),
+            model = getTranslateModel(provider),
+        )
     }
 
     private fun migrateProviderPromptFlagsIfNeeded() {

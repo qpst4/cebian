@@ -23,6 +23,9 @@ import com.slideindex.app.ui.floatBallGestureLabel
 import com.slideindex.app.ui.FloatBallPickSettingsScreen
 import com.slideindex.app.ui.FloatBallSettingsScreen
 import com.slideindex.app.ui.FloatBallStyleSettingsScreen
+import com.slideindex.app.ui.CloudTranslateModelPickerScreen
+import com.slideindex.app.ui.CloudTranslateSettingsScreen
+import com.slideindex.app.ocr.vlm.VlmProvider
 import com.slideindex.app.ui.FloatBallTranslationSettingsScreen
 import com.slideindex.app.ui.GestureActionPickerScreen
 import com.slideindex.app.ui.GestureExecuteShellCommandScreen
@@ -46,6 +49,7 @@ import com.slideindex.app.ui.picker.ShareTargetPickScreen
 import com.slideindex.app.ui.resolveImageSearchEngine
 import com.slideindex.app.ui.viewmodel.ExtensionSettingsViewModel
 import com.slideindex.app.ui.viewmodel.FloatBallPickSettingsViewModel
+import com.slideindex.app.ui.viewmodel.CloudTranslateSettingsViewModel
 import com.slideindex.app.ui.viewmodel.OcrModelSettingsViewModel
 import com.slideindex.app.ui.viewmodel.SearchEngineSettingsViewModel
 import com.slideindex.app.ui.viewmodel.ShareImageOcrHistoryViewModel
@@ -671,6 +675,42 @@ fun NavEntryBuilder.floatBallNavEntries(ctx: MainNavContext) {
             onEngineChange = viewModel::setTranslateEngine,
             onTargetLangChange = viewModel::setTranslateTargetLang,
             onOpenMlKitModels = { ctx.navigate(AppNavKey.TranslateModels) },
+            onOpenCloudTranslateSettings = { ctx.navigate(AppNavKey.CloudTranslateSettings) },
+        )
+    }
+
+    hiltEntry<AppNavKey.CloudTranslateSettings> {
+        val viewModel: CloudTranslateSettingsViewModel = hiltViewModel()
+        val remoteModels by viewModel.remoteModels.collectAsStateWithLifecycle()
+        val connectionTest by viewModel.connectionTest.collectAsStateWithLifecycle()
+        CloudTranslateSettingsScreen(
+            vlmConfigManager = viewModel.vlmConfigManager,
+            remoteModelsState = remoteModels,
+            connectionTestState = connectionTest,
+            onLoadRemoteModels = viewModel::loadRemoteModels,
+            onTestConnection = viewModel::testConnection,
+            onApiCredentialsChanged = viewModel::onApiCredentialsChanged,
+            onBack = { ctx.navigateBackTo(AppNavKey.FloatBallTranslation) },
+            onOpenModelPicker = { providerId ->
+                ctx.navigate(AppNavKey.CloudTranslateModelPicker(providerId))
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.CloudTranslateModelPicker> { key ->
+        val viewModel: CloudTranslateSettingsViewModel = hiltViewModel()
+        val remoteModels by viewModel.remoteModels.collectAsStateWithLifecycle()
+        val provider = VlmProvider.fromId(key.providerId)
+        CloudTranslateModelPickerScreen(
+            provider = provider,
+            vlmConfigManager = viewModel.vlmConfigManager,
+            remoteModelsState = remoteModels,
+            onLoadRemoteModels = { viewModel.loadRemoteModels(provider, false) },
+            onSelectModel = { modelId ->
+                viewModel.vlmConfigManager.setTranslateModel(provider, modelId)
+                ctx.navigateBackTo(AppNavKey.CloudTranslateSettings)
+            },
+            onBack = { ctx.navigateBackTo(AppNavKey.CloudTranslateSettings) },
         )
     }
 

@@ -9,6 +9,8 @@ internal fun translateErrorMessage(context: Context, code: String): String = whe
     "wifi_required" -> context.getString(R.string.float_ball_translate_error_wifi_required)
     "unsupported_language" -> context.getString(R.string.float_ball_translate_error_unsupported_language)
     "translate_unavailable" -> context.getString(R.string.float_ball_translate_error_unavailable)
+    "cloud_api_key_not_configured" -> context.getString(R.string.float_ball_translate_error_cloud_not_configured)
+    "cloud_translate_empty" -> context.getString(R.string.float_ball_translate_error_cloud_empty)
     "network_error", "http_403", "http_429", "http_500" ->
         context.getString(R.string.float_ball_translate_error_network)
     else -> code

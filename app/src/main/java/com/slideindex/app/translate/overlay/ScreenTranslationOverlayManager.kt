@@ -145,7 +145,8 @@ class ScreenTranslationOverlayManager {
         val targetLang = settings?.floatBallTranslateTargetLang?.ifBlank { "zh-CN" } ?: "zh-CN"
         val engine = when (settings?.floatBallTranslateEngine) {
             FloatBallTranslateEngine.ML_KIT -> TranslateEngine.ML_KIT
-            else -> TranslateEngine.GOOGLE
+            FloatBallTranslateEngine.CLOUD_LLM -> TranslateEngine.CLOUD_LLM
+            FloatBallTranslateEngine.GOOGLE, null -> TranslateEngine.GOOGLE
         }
         val translateService = TranslateDependencyAccess.translateService(service)
             ?: return emptyList()

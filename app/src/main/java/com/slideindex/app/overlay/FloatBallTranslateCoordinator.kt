@@ -39,6 +39,7 @@ object FloatBallTranslateCoordinator {
         val engine = when (settings.floatBallTranslateEngine) {
             FloatBallTranslateEngine.GOOGLE -> TranslateEngine.GOOGLE
             FloatBallTranslateEngine.ML_KIT -> TranslateEngine.ML_KIT
+            FloatBallTranslateEngine.CLOUD_LLM -> TranslateEngine.CLOUD_LLM
         }
 
         FloatBallPickResultPanel.showTranslateLoading()
@@ -68,6 +69,8 @@ object FloatBallTranslateCoordinator {
         "translate_engine_not_installed" -> "translate_engine_not_installed"
         "wifi_required" -> "wifi_required"
         "unsupported_target_language" -> "unsupported_language"
+        "api_key_not_configured" -> "cloud_api_key_not_configured"
+        "cloud_empty" -> "cloud_translate_empty"
         else -> code
     }
 }

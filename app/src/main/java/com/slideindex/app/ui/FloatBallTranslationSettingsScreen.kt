@@ -1,6 +1,7 @@
 package com.slideindex.app.ui
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material3.Icon
@@ -23,7 +24,8 @@ fun FloatBallTranslationSettingsScreen(
     onInstantTranslateChange: (Boolean) -> Unit,
     onEngineChange: (FloatBallTranslateEngine) -> Unit,
     onTargetLangChange: (String) -> Unit,
-    onOpenMlKitModels: () -> Unit
+    onOpenMlKitModels: () -> Unit,
+    onOpenCloudTranslateSettings: () -> Unit,
 ) {
     val engineEntries = FloatBallTranslateEngine.entries
     val langOptions = TranslateLanguageCatalog.options
@@ -92,6 +94,24 @@ fun FloatBallTranslationSettingsScreen(
                 }
             )
         }
+        if (settings.floatBallTranslateEngine == FloatBallTranslateEngine.CLOUD_LLM) {
+            groupedCardItems(
+                keyPrefix = "fb-translation-cloud",
+                items = buildList {
+                    add(
+                        settingsCardScopeItem("cloud-translate-config") {
+                            SettingNavigationRow(
+                                icon = { label -> Icon(Icons.Default.Cloud, contentDescription = label) },
+                                title = stringResource(R.string.cloud_translate_settings_title),
+                                subtitle = stringResource(R.string.float_ball_translate_cloud_config_desc),
+                                enabled = true,
+                                onClick = onOpenCloudTranslateSettings,
+                            )
+                        }
+                    )
+                }
+            )
+        }
     }
 }
 
@@ -99,4 +119,5 @@ fun FloatBallTranslationSettingsScreen(
 private fun translateEngineLabel(engine: FloatBallTranslateEngine): String = when (engine) {
     FloatBallTranslateEngine.GOOGLE -> stringResource(R.string.float_ball_translate_engine_google)
     FloatBallTranslateEngine.ML_KIT -> stringResource(R.string.float_ball_translate_engine_mlkit)
+    FloatBallTranslateEngine.CLOUD_LLM -> stringResource(R.string.float_ball_translate_engine_cloud)
 }

@@ -173,6 +173,8 @@ private fun floatBallTranslationSubtitle(settings: AppSettings): String {
             stringResource(R.string.float_ball_translate_engine_google)
         com.slideindex.app.settings.FloatBallTranslateEngine.ML_KIT ->
             stringResource(R.string.float_ball_translate_engine_mlkit)
+        com.slideindex.app.settings.FloatBallTranslateEngine.CLOUD_LLM ->
+            stringResource(R.string.float_ball_translate_engine_cloud)
     }
     val mode = if (settings.floatBallInstantTranslate) {
         stringResource(R.string.float_ball_instant_translate_on)

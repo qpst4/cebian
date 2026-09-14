@@ -7,6 +7,7 @@ import javax.inject.Singleton
 class TranslateService @Inject constructor(
     private val googleTranslateClient: GoogleTranslateClient,
     private val mlKitTranslateEngine: MlKitTranslateEngine,
+    private val cloudLlmTranslateClient: CloudLlmTranslateClient,
 ) {
     suspend fun translate(
         text: String,
@@ -15,5 +16,6 @@ class TranslateService @Inject constructor(
     ): TranslateResult = when (engine) {
         TranslateEngine.GOOGLE -> googleTranslateClient.translate(text, targetLang)
         TranslateEngine.ML_KIT -> mlKitTranslateEngine.translate(text, targetLang)
+        TranslateEngine.CLOUD_LLM -> cloudLlmTranslateClient.translate(text, targetLang)
     }
 }
