@@ -56,6 +56,9 @@ internal object TriggerZonePreviewRenderer {
 
             if (!handle.design.isVisible) {
                 drawZoneWidthPreview(canvas, zone, corner, dp, hidden = true)
+                if (showSwipeDistances && isFocusedHandle) {
+                    drawSwipeDistancePreview(canvas, side, settings, zone, handleId, dp)
+                }
                 return@forEach
             }
 
