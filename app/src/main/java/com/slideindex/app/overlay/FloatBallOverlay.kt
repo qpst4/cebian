@@ -73,6 +73,8 @@ object FloatBallOverlay {
     private const val CACHE_REFRESH_MS = 400L
     /** FV G4: defer first preview-bounds cache build after drag starts. */
     private const val INITIAL_CACHE_DELAY_MS = 300L
+    /** Dwell after paste hint before upgrading to a11y text pick (A). */
+    private const val DRAG_PASTE_PICK_UPGRADE_MS = 800L
     /** Defer chrome z-order sync until side-panel enter animation settles. */
     private const val CHROME_RAISE_DEFER_MS = 320L
     /** After deferred pick screenshot lands, let panel layout settle before chrome WM work. */
@@ -153,6 +155,9 @@ object FloatBallOverlay {
     private var lastDragPasteHintActive = false
     /** Locked at hover pause when paste icon is shown (FV getSelectedRect). */
     private var lockedDragPasteEditableRect: Rect? = null
+    /** After paste-hint dwell, release commits a11y pick (A) instead of paste. */
+    private var dragPastePickUpgraded = false
+    private var dragPasteUpgradeRunnable: Runnable? = null
     private var captureSuppressed = false
     private var chromeDetachedForCapture = false
     private var isDragging = false
@@ -1956,7 +1961,7 @@ object FloatBallOverlay {
             return FloatBallCursorPreviewView.HintMode.SCREENSHOT
         }
         val settings = settingsState?.value
-        if (settings?.floatBallDragPasteEnabled == true) {
+        if (settings?.floatBallDragPasteEnabled == true && !dragPastePickUpgraded) {
             val anchor = currentPickAnchor()
             if (anchor != null && FloatBallPreviewBoundsCache.hitTestEditableAt(anchor.x, anchor.y) != null) {
                 return FloatBallCursorPreviewView.HintMode.PASTE
@@ -2365,6 +2370,7 @@ object FloatBallOverlay {
 
     private fun tryFloatBallDragPaste(settings: AppSettings, anchor: Offset): Boolean {
         if (!settings.floatBallDragPasteEnabled) return false
+        if (dragPastePickUpgraded) return false
         val lockedIntent = lockedDragPasteEditableRect != null
         val editableRect = lockedDragPasteEditableRect?.let { Rect(it) }
             ?: FloatBallPreviewBoundsCache.hitTestEditableAt(anchor.x, anchor.y)?.let { Rect(it) }
@@ -2732,6 +2738,8 @@ object FloatBallOverlay {
         lastCacheRefreshY = Float.NaN
         lastDragPasteHintActive = false
         lockedDragPasteEditableRect = null
+        dragPastePickUpgraded = false
+        cancelDragPastePickUpgradeTimer()
         dragScreenBounds = null
         currentDragPickAnchor = Offset.Zero
         regionalPickActive = false
@@ -2804,6 +2812,9 @@ object FloatBallOverlay {
         regionalPickActive = true
         boundsLookupGeneration++
         PickPrefetchCache.invalidate()
+        lockedDragPasteEditableRect = null
+        dragPastePickUpgraded = false
+        cancelDragPastePickUpgradeTimer()
         selectionPreviewBoundsState?.value = null
         syncCursorChromeAppearance()
     }
@@ -2815,6 +2826,9 @@ object FloatBallOverlay {
         selectionStartState?.value = null
         unlockActivePickGestureFromPause()
         cancelPauseTimer()
+        lockedDragPasteEditableRect = null
+        dragPastePickUpgraded = false
+        cancelDragPastePickUpgradeTimer()
         lastPauseScheduleX = Float.NaN
         lastPauseScheduleY = Float.NaN
         boundsLookupGeneration++
@@ -2916,6 +2930,7 @@ object FloatBallOverlay {
         if (cursorPausedState?.value == true && selectionStartState?.value != null) return
         val anchor = currentPickAnchor() ?: return
         val pasteHintActive = settingsState?.value?.floatBallDragPasteEnabled == true &&
+            !dragPastePickUpgraded &&
             FloatBallPreviewBoundsCache.hitTestEditableAt(anchor.x, anchor.y) != null
         if (pasteHintActive != lastDragPasteHintActive) {
             lastDragPasteHintActive = pasteHintActive
@@ -2968,11 +2983,16 @@ object FloatBallOverlay {
             null
         }
         if (editableForPaste != null) {
+            dragPastePickUpgraded = false
+            cancelDragPastePickUpgradeTimer()
             lockedDragPasteEditableRect = Rect(editableForPaste)
             // Paste mode: frame the editable rect, not the outer text container (QQ zaq).
             selectionPreviewBoundsState?.value = Rect(editableForPaste)
+            scheduleDragPastePickUpgrade()
         } else {
             lockedDragPasteEditableRect = null
+            dragPastePickUpgraded = false
+            cancelDragPastePickUpgradeTimer()
             val bounds = FloatBallPreviewBoundsCache.hitTestAt(anchor.x, anchor.y)
             if (bounds != null) {
                 selectionPreviewBoundsState?.value = bounds
@@ -3067,6 +3087,41 @@ object FloatBallOverlay {
     private fun cancelPauseTimer() {
         pauseRunnable?.let { mainHandler.removeCallbacks(it) }
         pauseRunnable = null
+    }
+
+    /** FV: second dwell on editable upgrades paste hint to a11y text pick (A). */
+    private fun scheduleDragPastePickUpgrade() {
+        cancelDragPastePickUpgradeTimer()
+        if (settingsState?.value?.floatBallDragPasteEnabled != true) return
+        val runnable = Runnable { upgradeDragPasteToPick() }
+        dragPasteUpgradeRunnable = runnable
+        mainHandler.postDelayed(runnable, DRAG_PASTE_PICK_UPGRADE_MS)
+    }
+
+    private fun cancelDragPastePickUpgradeTimer() {
+        dragPasteUpgradeRunnable?.let { mainHandler.removeCallbacks(it) }
+        dragPasteUpgradeRunnable = null
+    }
+
+    private fun upgradeDragPasteToPick() {
+        dragPasteUpgradeRunnable = null
+        if (!isDragging || cursorVisibleState?.value != true) return
+        if (cursorPausedState?.value != true) return
+        if (settingsState?.value?.floatBallDragPasteEnabled != true) return
+        if (regionalPickActive) return
+        val anchor = currentPickAnchor() ?: return
+        if (FloatBallPreviewBoundsCache.hitTestEditableAt(anchor.x, anchor.y) == null) return
+        dragPastePickUpgraded = true
+        lockedDragPasteEditableRect = null
+        lastDragPasteHintActive = false
+        val bounds = FloatBallPreviewBoundsCache.hitTestAt(anchor.x, anchor.y)
+        if (bounds != null) {
+            selectionPreviewBoundsState?.value = bounds
+            maybeStartPickPrefetch()
+        } else {
+            launchPreviewBoundsLookupFallback(anchor)
+        }
+        syncCursorChromeAppearance()
     }
 
     private fun cancelDragChromeLayoutFrame() {
