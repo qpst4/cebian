@@ -70,8 +70,8 @@ object FloatBallOverlay {
     private const val EDGE_MARGIN_DP = 8f
     /** FV O0: reschedule cache rebuild after finger moves this many dp. */
     private const val CACHE_REFRESH_MOVE_DP = 3f
-    /** FV O0: delay before rebuilding preview bounds cache during drag. */
-    private const val CACHE_REFRESH_MS = 400L
+    /** FV O0 / I0: delay before rebuilding preview bounds cache during drag. */
+    private const val CACHE_REFRESH_MS = 100L
     /** FV G4: defer first preview-bounds cache build after drag starts. */
     private const val INITIAL_CACHE_DELAY_MS = 300L
     /** Dwell after paste hint before upgrading to a11y text pick (A). */
@@ -2887,8 +2887,10 @@ object FloatBallOverlay {
     /** FV G4: async full-tree scan into preview bounds cache. */
     private fun startPreviewBoundsCache() {
         val service = SlideIndexAccessibilityService.accessibilityInstance() ?: return
+        val includeEditable = settingsState?.value?.floatBallDragPasteEnabled == true
         FloatBallPreviewBoundsCache.refresh(
             service = service,
+            includeEditable = includeEditable,
             onReady = {
                 if (!isDragging || cursorVisibleState?.value != true) return@refresh
                 applyPreviewBoundsFromCache()

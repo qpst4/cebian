@@ -6,15 +6,19 @@ import com.slideindex.app.service.AccessibilityTextExtractor
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
 import java.util.concurrent.atomic.AtomicReference
 
 /**
- * FV-style preview bounds cache: async full-tree scan (G4), per-frame point hit-test (o1.r).
+ * FV-style preview bounds cache: async full-tree scan (G4 / u0), per-frame point hit-test (o1.r).
+ * Scan order: active root, then other windows (IME/overlay skipped).
  */
 object FloatBallPreviewBoundsCache {
+    private const val STACK_OVERFLOW_RETRY_MS = 500L
+
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val entriesRef = AtomicReference<List<AccessibilityTextExtractor.PreviewBoundsEntry>>(emptyList())
     private val editableEntriesRef =
@@ -48,18 +52,14 @@ object FloatBallPreviewBoundsCache {
 
     fun refresh(
         service: AccessibilityService,
+        includeEditable: Boolean = false,
         onReady: (() -> Unit)? = null
     ) {
         val era = cacheEra
         scope.launch {
-            val built = runInterruptible {
-                val preview = AccessibilityTextExtractor.collectPreviewBoundsCache(service)
-                val editable = AccessibilityTextExtractor.collectEditableBoundsCache(service)
-                preview to editable
-            }
-            if (era != cacheEra) return@launch
-            entriesRef.set(built.first)
-            editableEntriesRef.set(built.second)
+            val built = buildCaches(service, includeEditable, era) ?: return@launch
+            entriesRef.set(built.preview)
+            editableEntriesRef.set(if (includeEditable) built.editable else emptyList())
             if (onReady != null) {
                 withContext(Dispatchers.Main) {
                     if (era == cacheEra) {
@@ -68,5 +68,35 @@ object FloatBallPreviewBoundsCache {
                 }
             }
         }
+    }
+
+    /** FV a3: retry once after StackOverflow on deep a11y trees. */
+    private suspend fun buildCaches(
+        service: AccessibilityService,
+        includeEditable: Boolean,
+        era: Int
+    ): AccessibilityTextExtractor.FloatBallBoundsCacheSnapshot? {
+        suspend fun scanOnce(): AccessibilityTextExtractor.FloatBallBoundsCacheSnapshot {
+            return runInterruptible {
+                AccessibilityTextExtractor.collectFloatBallBoundsCache(
+                    service = service,
+                    collectPreview = true,
+                    collectEditable = includeEditable
+                )
+            }
+        }
+        val first = try {
+            scanOnce()
+        } catch (_: StackOverflowError) {
+            if (era != cacheEra) return null
+            delay(STACK_OVERFLOW_RETRY_MS)
+            if (era != cacheEra) return null
+            try {
+                scanOnce()
+            } catch (_: StackOverflowError) {
+                return null
+            }
+        }
+        return if (era == cacheEra) first else null
     }
 }

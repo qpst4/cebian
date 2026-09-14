@@ -41,7 +41,8 @@ import kotlinx.coroutines.withContext
 object RegionalPickOverlay {
     private const val TAG = "RegionalPickOverlay"
     private const val REGIONAL_RECT_MIN_SIDE_DP = 3f
-    private const val CACHE_REFRESH_MS = 400L
+    /** FV I0: rebuild preview bounds cache after finger moves. */
+    private const val CACHE_REFRESH_MS = 100L
     private const val CACHE_REFRESH_MOVE_DP = 3f
     private const val EDGE_MARGIN_DP = 8f
     /** Defer first a11y bounds scan — avoids stacking work with WM attach (~300ms crash window). */

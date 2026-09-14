@@ -370,36 +370,91 @@ object AccessibilityTextExtractor {
         return entriesToScreenTextBlocks(entries)
     }
 
+    data class FloatBallBoundsCacheSnapshot(
+        val preview: List<PreviewBoundsEntry>,
+        val editable: List<PreviewBoundsEntry>,
+    )
+
+    /**
+     * One DFS pass for float-ball preview (and optional editable lists). FV u0/t0: active root
+     * first, then other [AccessibilityService.getWindows] (single publish when this returns).
+     */
+    fun collectFloatBallBoundsCache(
+        service: AccessibilityService,
+        collectPreview: Boolean = true,
+        collectEditable: Boolean = false,
+    ): FloatBallBoundsCacheSnapshot {
+        if (!collectPreview && !collectEditable) {
+            return FloatBallBoundsCacheSnapshot(emptyList(), emptyList())
+        }
+        val previewResults = if (collectPreview) ArrayList<PreviewBoundsEntry>(256) else null
+        val editableResults = if (collectEditable) ArrayList<PreviewBoundsEntry>(64) else null
+        val nodeBounds = Rect()
+        val budget = NodeTraversalBudget(DEFAULT_MAX_TRAVERSAL_NODES)
+        val active = service.rootInActiveWindow
+        var activeWindowId = Int.MIN_VALUE
+        if (active != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                activeWindowId = active.windowId
+            }
+            appendFloatBallBoundsFromRoot(
+                service = service,
+                root = active,
+                previewResults = previewResults,
+                editableResults = editableResults,
+                nodeBounds = nodeBounds,
+                budget = budget
+            )
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            val windows = service.windows
+            if (windows != null) {
+                for (window in windows) {
+                    if (shouldSkipPickWindow(window)) continue
+                    if (window.id == activeWindowId) continue
+                    val root = window.root ?: continue
+                    appendFloatBallBoundsFromRoot(
+                        service = service,
+                        root = root,
+                        previewResults = previewResults,
+                        editableResults = editableResults,
+                        nodeBounds = nodeBounds,
+                        budget = budget
+                    )
+                }
+            }
+        }
+        return FloatBallBoundsCacheSnapshot(
+            preview = previewResults ?: emptyList(),
+            editable = editableResults ?: emptyList(),
+        )
+    }
+
+    private fun appendFloatBallBoundsFromRoot(
+        service: AccessibilityService,
+        root: AccessibilityNodeInfo,
+        previewResults: MutableList<PreviewBoundsEntry>?,
+        editableResults: MutableList<PreviewBoundsEntry>?,
+        nodeBounds: Rect,
+        budget: NodeTraversalBudget
+    ) {
+        if (shouldSkipWindowRoot(root, service)) {
+            releaseNode(root)
+            return
+        }
+        try {
+            collectFloatBallBoundsInNode(root, previewResults, editableResults, nodeBounds, budget)
+        } finally {
+            releaseNode(root)
+        }
+    }
+
     /**
      * Full-tree preview bounds cache (FV G4 / o1.u). Built once on a background thread,
      * then hit-tested on every drag MOVE via [hitTestPreviewBounds].
      */
     fun collectPreviewBoundsCache(service: AccessibilityService): List<PreviewBoundsEntry> {
-        val results = ArrayList<PreviewBoundsEntry>(256)
-        val nodeBounds = Rect()
-        val budget = NodeTraversalBudget(DEFAULT_MAX_TRAVERSAL_NODES)
-        for (window in service.windows) {
-            if (shouldSkipPickWindow(window)) continue
-            val root = window.root ?: continue
-            if (shouldSkipWindowRoot(root, service)) {
-                releaseNode(root)
-                continue
-            }
-            try {
-                collectPreviewBoundsInNode(root, results, nodeBounds, budget)
-            } finally {
-                releaseNode(root)
-            }
-        }
-        val active = service.rootInActiveWindow
-        if (active != null && !shouldSkipWindowRoot(active, service)) {
-            try {
-                collectPreviewBoundsInNode(active, results, nodeBounds, budget)
-            } finally {
-                releaseNode(active)
-            }
-        }
-        return results
+        return collectFloatBallBoundsCache(service, collectPreview = true, collectEditable = false).preview
     }
 
     /** FV o1.getSelectedRect: point-in-rect over cached candidates, best score wins. */
@@ -423,31 +478,7 @@ object AccessibilityTextExtractor {
      * Built once per cache refresh; hit-test prefers the smallest containing rect.
      */
     fun collectEditableBoundsCache(service: AccessibilityService): List<PreviewBoundsEntry> {
-        val results = ArrayList<PreviewBoundsEntry>(64)
-        val nodeBounds = Rect()
-        val budget = NodeTraversalBudget(DEFAULT_MAX_TRAVERSAL_NODES)
-        for (window in service.windows) {
-            if (shouldSkipPickWindow(window)) continue
-            val root = window.root ?: continue
-            if (shouldSkipWindowRoot(root, service)) {
-                releaseNode(root)
-                continue
-            }
-            try {
-                collectEditableBoundsInNode(root, results, nodeBounds, budget)
-            } finally {
-                releaseNode(root)
-            }
-        }
-        val active = service.rootInActiveWindow
-        if (active != null && !shouldSkipWindowRoot(active, service)) {
-            try {
-                collectEditableBoundsInNode(active, results, nodeBounds, budget)
-            } finally {
-                releaseNode(active)
-            }
-        }
-        return results
+        return collectFloatBallBoundsCache(service, collectPreview = false, collectEditable = true).editable
     }
 
     fun hitTestEditableBounds(
@@ -465,9 +496,10 @@ object AccessibilityTextExtractor {
         return best?.rect
     }
 
-    private fun collectEditableBoundsInNode(
+    private fun collectFloatBallBoundsInNode(
         node: AccessibilityNodeInfo,
-        results: MutableList<PreviewBoundsEntry>,
+        previewResults: MutableList<PreviewBoundsEntry>?,
+        editableResults: MutableList<PreviewBoundsEntry>?,
         bounds: Rect,
         budget: NodeTraversalBudget
     ) {
@@ -479,43 +511,18 @@ object AccessibilityTextExtractor {
             val owned = current !== node
             try {
                 if (shouldSkipAccessibilityNode(current)) continue
-                if (ClipboardPasteHelper.isPasteTarget(current)) {
-                    current.getBoundsInScreen(bounds)
-                    if (bounds.width() > 0 && bounds.height() > 0) {
-                        val area = bounds.width().coerceAtLeast(1) * bounds.height().coerceAtLeast(1)
-                        results.add(PreviewBoundsEntry(Rect(bounds), area))
-                    }
-                }
-                for (i in current.childCount - 1 downTo 0) {
-                    val child = current.getChild(i) ?: continue
-                    stack.addLast(child)
-                }
-            } finally {
-                if (owned) releaseNode(current)
-            }
-        }
-    }
-
-    private fun collectPreviewBoundsInNode(
-        node: AccessibilityNodeInfo,
-        results: MutableList<PreviewBoundsEntry>,
-        bounds: Rect,
-        budget: NodeTraversalBudget
-    ) {
-        val stack = ArrayDeque<AccessibilityNodeInfo>()
-        stack.addLast(node)
-        while (stack.isNotEmpty()) {
-            if (!budget.consume()) break
-            val current = stack.removeLast()
-            val owned = current !== node
-            try {
-                if (shouldSkipAccessibilityNode(current)) continue
-                if (includeNodeForPickTraversal(current) && isMeaningfulPickTarget(current)) {
-                    current.getBoundsInScreen(bounds)
-                    if (bounds.width() > 0 && bounds.height() > 0) {
-                        val area = bounds.width().coerceAtLeast(1) * bounds.height().coerceAtLeast(1)
+                current.getBoundsInScreen(bounds)
+                if (bounds.width() > 0 && bounds.height() > 0) {
+                    val area = bounds.width().coerceAtLeast(1) * bounds.height().coerceAtLeast(1)
+                    if (previewResults != null &&
+                        includeNodeForPickTraversal(current) &&
+                        isMeaningfulPickTarget(current)
+                    ) {
                         val score = controlTargetScore(current) * 1_000_000 + area
-                        results.add(PreviewBoundsEntry(Rect(bounds), score))
+                        previewResults.add(PreviewBoundsEntry(Rect(bounds), score))
+                    }
+                    if (editableResults != null && ClipboardPasteHelper.isPasteTarget(current)) {
+                        editableResults.add(PreviewBoundsEntry(Rect(bounds), area))
                     }
                 }
                 for (i in current.childCount - 1 downTo 0) {
