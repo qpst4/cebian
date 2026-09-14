@@ -12,6 +12,9 @@
     <cache-path
         name="diagnostic_reports"
         path="diagnostics/" />
+    <cache-path
+        name="float_ball_share"
+        path="float_ball_share/" />
     <files-path
         name="crash_reports"
         path="crashes/" />

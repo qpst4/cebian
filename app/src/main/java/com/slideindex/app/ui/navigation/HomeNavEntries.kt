@@ -624,7 +624,6 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
                 }
             },
             onSwipeHoverDurationChange = viewModel::setSwipeHoverDurationMs,
-            onTriggerDoubleTapIntervalChange = viewModel::setTriggerDoubleTapIntervalMs,
         )
     }
 
@@ -708,6 +707,7 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
                     ),
                 )
             },
+            onTriggerDoubleTapIntervalChange = viewModel::setTriggerDoubleTapIntervalMs,
             appCarouselSettings = settings.appCarouselSwitcher,
             onAppCarouselSettingsChange = viewModel::setAppCarouselSwitcherSettings,
         )

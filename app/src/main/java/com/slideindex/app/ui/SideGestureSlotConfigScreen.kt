@@ -23,6 +23,8 @@ import androidx.compose.runtime.setValue
 
 import androidx.compose.ui.Modifier
 
+import androidx.compose.ui.platform.LocalContext
+
 import androidx.compose.ui.res.stringResource
 
 import androidx.compose.ui.unit.dp
@@ -50,12 +52,18 @@ import com.slideindex.app.settings.gestureConfigSide
 
 import com.slideindex.app.gesture.supportsAction
 
+import com.slideindex.app.ui.miuix.MiuixSliderRow
+
 import com.slideindex.app.ui.miuix.groupedCardItems
 
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 
 import com.slideindex.app.ui.settings.components.settingsLazyHint
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
+
+import kotlin.math.roundToInt
+
+import top.yukonga.miuix.kmp.basic.BasicComponentDefaults
 
 
 
@@ -84,6 +92,8 @@ fun SideGestureSlotConfigScreen(
     onOpenQuickLauncherPanel: (String) -> Unit = {},
 
     onOpenFingertipRingConfig: () -> Unit = {},
+
+    onTriggerDoubleTapIntervalChange: (Int) -> Unit = {},
 
     appCarouselSettings: AppCarouselSwitcherSettings = AppCarouselSwitcherSettings(),
 
@@ -121,6 +131,10 @@ fun SideGestureSlotConfigScreen(
     val appCarouselSectionTitle = stringResource(R.string.app_carousel_settings_title)
 
     val triggerModeSectionTitle = stringResource(R.string.slot_trigger_mode)
+
+    val doubleTapIntervalSectionTitle = stringResource(R.string.trigger_double_tap_interval)
+
+    val resources = LocalContext.current.resources
 
 
 
@@ -383,6 +397,70 @@ fun SideGestureSlotConfigScreen(
                                 subtitle = stringResource(R.string.gesture_shell_command_config_title),
 
                                 onClick = { onOpenShellCommand(selectedAction.command) },
+
+                            )
+
+                        },
+
+                    )
+
+                },
+
+            )
+
+        }
+
+
+
+        if (trigger == GestureTriggerType.SHORT_DOUBLE_TAP) {
+
+            settingsLazySmallTitle(
+
+                key = "slot-double-tap-interval-section",
+
+                title = doubleTapIntervalSectionTitle,
+
+            )
+
+            groupedCardItems(
+
+                keyPrefix = "side-gesture-double-tap-interval",
+
+                items = buildList {
+
+                    add(
+
+                        settingsCardScopeItem("slot-double-tap-interval") {
+
+                            MiuixSliderRow(
+
+                                title = doubleTapIntervalSectionTitle,
+
+                                summary = stringResource(R.string.trigger_double_tap_interval_desc),
+
+                                value = settings.triggerDoubleTapIntervalMs.toFloat(),
+
+                                valueRange = 0f..800f,
+
+                                insideMargin = BasicComponentDefaults.InsideMargin,
+
+                                steps = 16,
+
+                                commitOnFinish = true,
+
+                                formatLabel = { ms ->
+
+                                    resources.getString(
+
+                                        R.string.trigger_double_tap_interval_value,
+
+                                        ms.roundToInt(),
+
+                                    )
+
+                                },
+
+                                onValueChange = { onTriggerDoubleTapIntervalChange(it.roundToInt()) },
 
                             )
 

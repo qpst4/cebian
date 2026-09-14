@@ -219,7 +219,6 @@ fun CornerGestureSlotEditorHost(
 
         CornerSlotEditorPage.ActionPickPickApp -> {
             ActivityShortcutPickAppScreen(
-                embedInParentChrome = true,
                 onBack = { page = CornerSlotEditorPage.ActionPick },
                 onSelectApp = { app ->
                     page = CornerSlotEditorPage.ActionPickPickActivity(app.packageName)
@@ -230,7 +229,6 @@ fun CornerGestureSlotEditorHost(
         is CornerSlotEditorPage.ActionPickPickActivity -> {
             ActivityShortcutPickActivityScreen(
                 packageName = screen.packageName,
-                embedInParentChrome = true,
                 onBack = { page = CornerSlotEditorPage.ActionPickPickApp },
                 onSelectActivity = { activity ->
                     val component = "${activity.packageName}/${activity.className}"
@@ -298,7 +296,6 @@ fun CornerGestureSlotEditorHost(
 
         CornerSlotEditorPage.SubMenuPickApp -> {
             ActivityShortcutPickAppScreen(
-                embedInParentChrome = true,
                 onBack = { page = CornerSlotEditorPage.SubMenuShortcutPick },
                 onSelectApp = { app ->
                     page = CornerSlotEditorPage.SubMenuPickActivity(app.packageName)
@@ -309,7 +306,6 @@ fun CornerGestureSlotEditorHost(
         is CornerSlotEditorPage.SubMenuPickActivity -> {
             ActivityShortcutPickActivityScreen(
                 packageName = screen.packageName,
-                embedInParentChrome = true,
                 onBack = { page = CornerSlotEditorPage.SubMenuPickApp },
                 onSelectActivity = { activity ->
                     val component = "${activity.packageName}/${activity.className}"

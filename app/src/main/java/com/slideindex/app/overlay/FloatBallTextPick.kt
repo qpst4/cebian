@@ -12,6 +12,7 @@ import android.os.Handler
 import android.os.Looper
 import android.provider.MediaStore
 import android.widget.Toast
+import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import com.slideindex.app.clipboard.ClipboardAccess
 import com.slideindex.app.clipboard.ClipboardPayload
@@ -19,12 +20,24 @@ import com.slideindex.app.clipboard.ClipboardReader
 import com.slideindex.app.R
 import com.slideindex.app.search.SearchEngineLauncher
 import com.slideindex.app.settings.AppSettings
+import java.io.File
+import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 object FloatBallTextPick {
+    private const val SHARE_CACHE_DIR = "float_ball_share"
+
     private val mainHandler = Handler(Looper.getMainLooper())
+
+    private fun shareCacheDir(context: Context): File =
+        File(context.cacheDir, SHARE_CACHE_DIR).apply { mkdirs() }
+
+    private fun deleteShareImageUri(context: Context, uri: Uri) {
+        val name = uri.lastPathSegment ?: return
+        File(shareCacheDir(context), name).delete()
+    }
 
     fun deliverResult(context: Context?, text: String?, showEmptyToast: Boolean = true) {
         val appContext = context?.applicationContext ?: return
@@ -161,24 +174,18 @@ object FloatBallTextPick {
 
     fun createShareImageUri(context: Context, bitmap: Bitmap): Uri? {
         val fileName = "float_ball_share_${System.currentTimeMillis()}.png"
-        val values = android.content.ContentValues().apply {
-            put(MediaStore.Images.Media.DISPLAY_NAME, fileName)
-            put(MediaStore.Images.Media.MIME_TYPE, "image/png")
-            put(MediaStore.Images.Media.RELATIVE_PATH, "${Environment.DIRECTORY_PICTURES}/SlideIndex/Share")
-            put(MediaStore.Images.Media.IS_PENDING, 1)
-        }
-        val resolver = context.contentResolver
-        val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values) ?: return null
+        val file = File(shareCacheDir(context), fileName)
         return runCatching {
-            resolver.openOutputStream(uri)?.use { out ->
+            FileOutputStream(file).use { out ->
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
-            } ?: error("no stream")
-            values.clear()
-            values.put(MediaStore.Images.Media.IS_PENDING, 0)
-            resolver.update(uri, values, null, null)
-            uri
+            }
+            FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.fileprovider",
+                file,
+            )
         }.onFailure {
-            resolver.delete(uri, null, null)
+            file.delete()
         }.getOrNull()
     }
 
@@ -199,7 +206,7 @@ object FloatBallTextPick {
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             context.startActivity(chooser)
         }.onFailure {
-            context.contentResolver.delete(uri, null, null)
+            deleteShareImageUri(context, uri)
             Toast.makeText(context, R.string.float_ball_action_failed, Toast.LENGTH_SHORT).show()
         }
     }
@@ -228,7 +235,7 @@ object FloatBallTextPick {
             }
             true
         }.getOrElse {
-            context.contentResolver.delete(uri, null, null)
+            deleteShareImageUri(context, uri)
             Toast.makeText(context, R.string.float_ball_action_failed, Toast.LENGTH_SHORT).show()
             false
         }
@@ -251,7 +258,7 @@ object FloatBallTextPick {
             context.startActivity(intent)
             true
         }.getOrElse {
-            context.contentResolver.delete(uri, null, null)
+            deleteShareImageUri(context, uri)
             Toast.makeText(context, R.string.float_ball_action_failed, Toast.LENGTH_SHORT).show()
             false
         }

@@ -78,7 +78,6 @@ fun SideGestureSettingsScreen(
     onOpenSlotConfig: (GestureTriggerType) -> Unit,
     onAlignOppositeGesturesChange: (enabled: Boolean, mirrorSourceSide: PanelSide?) -> Unit = { _, _ -> },
     onSwipeHoverDurationChange: (Int) -> Unit = {},
-    onTriggerDoubleTapIntervalChange: (Int) -> Unit = {},
     onPreviewStart: () -> Unit = {},
     onPreviewStop: () -> Unit = {},
 ) {
@@ -315,22 +314,6 @@ fun SideGestureSettingsScreen(
             key = "section-press-tap",
             title = pressTapSectionTitle,
         )
-        item(key = "trigger-double-tap-interval") {
-            MiuixSliderRow(
-                title = stringResource(R.string.trigger_double_tap_interval),
-                summary = stringResource(R.string.trigger_double_tap_interval_desc),
-                value = settings.triggerDoubleTapIntervalMs.toFloat(),
-                valueRange = 0f..800f,
-                enabled = serviceEnabled,
-                insideMargin = MiuixInsetCardComponentMargin,
-                steps = 16,
-                commitOnFinish = true,
-                formatLabel = { ms ->
-                    resources.getString(R.string.trigger_double_tap_interval_value, ms.roundToInt())
-                },
-                onValueChange = { onTriggerDoubleTapIntervalChange(it.roundToInt()) },
-            )
-        }
         groupedCardItems("side-gesture-press-tap", pressTapItems)
 
         item(key = "side-gesture-bottom-spacer") {
