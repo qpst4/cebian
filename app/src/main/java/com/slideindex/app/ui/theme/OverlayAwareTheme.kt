@@ -9,6 +9,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.ui.miuix.MiuixOverlayComposeLocals
 import com.slideindex.app.ui.miuix.theme.ModuleTheme
 
 /**
@@ -26,5 +27,7 @@ fun OverlayAwareModuleTheme(
             ?: return@LaunchedEffect
         repo.settings.collect { settings = it }
     }
-    ModuleTheme(settings = settings, content = content)
+    MiuixOverlayComposeLocals {
+        ModuleTheme(settings = settings, content = content)
+    }
 }

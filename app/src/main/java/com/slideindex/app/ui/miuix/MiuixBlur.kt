@@ -2,8 +2,10 @@ package com.slideindex.app.ui.miuix
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
@@ -25,6 +27,11 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 /** 顶栏毛玻璃算法，由 [ModuleTheme] 从用户设置注入。 */
 val LocalTopAppBarBlurStyle = staticCompositionLocalOf { TopAppBarBlurStyle.PROGRESSIVE }
 
+/**
+ * 浮层等场景由 [MiuixOverlayComposeLocals] 设为 false，避免软件 Canvas 上绘制 RuntimeShader。
+ */
+val LocalMiuixBlurBackdropEnabled = compositionLocalOf { true }
+
 /** 与当前设置页顶栏 [rememberMiuixBlurBackdrop] 共用，供 `scrollContent = false` 时嵌套列表参与毛玻璃采样。 */
 val LocalMiuixScreenBackdrop = staticCompositionLocalOf<LayerBackdrop?> { null }
 
@@ -37,7 +44,14 @@ fun Modifier.miuixScreenListBackdrop(): Modifier {
 @Composable
 fun rememberMiuixBlurBackdrop(enabled: Boolean = true): LayerBackdrop? {
     // 与 Mishka 一致：真正 textureBlur 依赖 RuntimeShader（API 33+），更低版本返回 null → 纯色栏。
-    if (!enabled || !isRuntimeShaderSupported()) return null
+    if (
+        !enabled ||
+        !LocalMiuixBlurBackdropEnabled.current ||
+        !isRuntimeShaderSupported() ||
+        !LocalView.current.isHardwareAccelerated
+    ) {
+        return null
+    }
     val surfaceColor = MiuixTheme.colorScheme.surface
     return rememberLayerBackdrop {
         drawRect(surfaceColor)

@@ -48,7 +48,6 @@ import com.slideindex.app.overlay.compositor.OverlaySceneController
 import com.slideindex.app.service.SlideIndexAccessibilityService
 import com.slideindex.app.service.WidgetPickerTrampoline
 import com.slideindex.app.ui.WidgetPickerScreen
-import com.slideindex.app.ui.miuix.LocalMiuixSquircleEnabled
 import com.slideindex.app.ui.theme.OverlayAwareModuleTheme
 import com.slideindex.app.util.PermissionHelper
 import com.slideindex.app.widget.WidgetPopupHost
@@ -130,7 +129,6 @@ object WidgetPickerOverlayWindow {
             ).toTypedArray())
           ) {
             OverlayAwareModuleTheme {
-              CompositionLocalProvider(LocalMiuixSquircleEnabled provides false) {
                 var picked by remember { mutableStateOf(false) }
                 WidgetPickerOverlayRoot(
                 onAnimatedDismissReady = { handler -> requestAnimatedDismiss = handler },
@@ -148,7 +146,6 @@ object WidgetPickerOverlayWindow {
                   }
                 }
                 )
-              }
             }
           }
         }
