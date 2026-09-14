@@ -102,9 +102,26 @@ class VlmOcrConfigManager @Inject constructor(
         private const val LEGACY_KEY_BASE_URL = "base_url"
         private const val LEGACY_KEY_MODEL = "model"
         private const val LEGACY_PROMPT_PREFIX = "你是一个专业的学术与数学公式 OCR 识别工具"
+
+        /** 第三代简短默认（i18n 误替换）；升级后回退到当前 [defaultPrompt]。 */
+        private fun isThirdGenerationStoredPrompt(stored: String): Boolean {
+            val normalized = stored.trim().replace("\r\n", "\n")
+            if (normalized.contains("普通文本与段落")) return false
+            if (normalized.contains("Plain text and paragraphs")) return false
+            if (normalized.contains("通常のテキストと段落")) return false
+            return normalized.contains("无法辨认时输出空字符串") ||
+                normalized.contains("Output an empty string if unreadable") ||
+                normalized.contains("読めない場合は空文字を出力")
+        }
     }
 
     private fun defaultPrompt(): String = VlmFormulaOcrEngine.defaultSystemPrompt(context)
+
+    private fun shouldUseDefaultPrompt(stored: String?): Boolean {
+        if (stored.isNullOrBlank()) return true
+        if (stored.startsWith(LEGACY_PROMPT_PREFIX)) return true
+        return isThirdGenerationStoredPrompt(stored)
+    }
 
     init {
         migrateLegacyIfNeeded()
@@ -259,10 +276,10 @@ class VlmOcrConfigManager @Inject constructor(
     var commonPrompt: String
         get() {
             val stored = prefs.getString(KEY_PROMPT, null)
-            if (stored.isNullOrBlank() || stored.startsWith(LEGACY_PROMPT_PREFIX)) {
+            if (shouldUseDefaultPrompt(stored)) {
                 return defaultPrompt()
             }
-            return stored
+            return stored!!
         }
         set(value) = prefs.edit().putString(KEY_PROMPT, value.trim().ifBlank { defaultPrompt() }).apply()
 
