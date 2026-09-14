@@ -1,6 +1,8 @@
 package com.slideindex.app.ui
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -8,6 +10,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.platform.LocalContext
 import com.slideindex.app.activity.activityShortcutFromQuickLauncherItem
 import com.slideindex.app.activity.toLaunchShortcut
@@ -28,6 +32,7 @@ import com.slideindex.app.ui.picker.ActivityShortcutPickAppScreen
 import com.slideindex.app.ui.picker.ActivityShortcutPickActivityScreen
 import com.slideindex.app.ui.picker.MyShortcutsFolderScreen
 import com.slideindex.app.ui.picker.PresetShortcutsFolderScreen
+import com.slideindex.app.ui.picker.pickerHorizontalSlideTransitionByDepth
 import com.slideindex.app.util.AppShortcutLoader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -47,6 +52,34 @@ internal sealed interface CornerSlotEditorPage {
     data object SubMenuPickApp : CornerSlotEditorPage
     data class SubMenuPickActivity(val packageName: String) : CornerSlotEditorPage
     data class ShellCommand(val initialCommand: String) : CornerSlotEditorPage
+}
+
+internal fun CornerSlotEditorPage.navDepth(): Int = when (this) {
+    CornerSlotEditorPage.SlotSettings -> 0
+    CornerSlotEditorPage.ActionPick, CornerSlotEditorPage.SubMenuShortcutPick -> 1
+    CornerSlotEditorPage.ActionPickMyShortcuts,
+    CornerSlotEditorPage.ActionPickPresetShortcuts,
+    is CornerSlotEditorPage.ShellCommand,
+    CornerSlotEditorPage.SubMenuMyShortcuts,
+    CornerSlotEditorPage.SubMenuPresetShortcuts,
+    -> 2
+    CornerSlotEditorPage.ActionPickPickApp, CornerSlotEditorPage.SubMenuPickApp -> 3
+    is CornerSlotEditorPage.ActionPickPickActivity, is CornerSlotEditorPage.SubMenuPickActivity -> 4
+}
+
+private fun CornerSlotEditorPage.contentKey(): Any = when (this) {
+    CornerSlotEditorPage.SlotSettings -> "slotSettings"
+    CornerSlotEditorPage.ActionPick -> "actionPick"
+    CornerSlotEditorPage.ActionPickMyShortcuts -> "actionPickMyShortcuts"
+    CornerSlotEditorPage.ActionPickPresetShortcuts -> "actionPickPresetShortcuts"
+    CornerSlotEditorPage.ActionPickPickApp -> "actionPickPickApp"
+    is CornerSlotEditorPage.ActionPickPickActivity -> "actionPickPickActivity:$packageName"
+    CornerSlotEditorPage.SubMenuShortcutPick -> "subMenuShortcutPick"
+    CornerSlotEditorPage.SubMenuMyShortcuts -> "subMenuMyShortcuts"
+    CornerSlotEditorPage.SubMenuPresetShortcuts -> "subMenuPresetShortcuts"
+    CornerSlotEditorPage.SubMenuPickApp -> "subMenuPickApp"
+    is CornerSlotEditorPage.SubMenuPickActivity -> "subMenuPickActivity:$packageName"
+    is CornerSlotEditorPage.ShellCommand -> "shellCommand"
 }
 
 @Composable
@@ -131,7 +164,16 @@ fun CornerGestureSlotEditorHost(
         }
     }
 
-    when (val screen = page) {
+    AnimatedContent(
+        targetState = page,
+        modifier = Modifier
+            .fillMaxSize()
+            .clipToBounds(),
+        transitionSpec = { pickerHorizontalSlideTransitionByDepth(CornerSlotEditorPage::navDepth) },
+        contentKey = { it.contentKey() },
+        label = "cornerSlotEditorNav",
+    ) { screen ->
+    when (screen) {
         CornerSlotEditorPage.SlotSettings -> {
             CornerGestureSlotSettingsScreen(
                 slotIndex = slotIndex,
@@ -327,6 +369,7 @@ fun CornerGestureSlotEditorHost(
                 },
             )
         }
+    }
     }
 }
 
