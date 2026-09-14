@@ -4,6 +4,12 @@ All notable changes to Cebian are documented in this file.
 
 ## [Unreleased]
 
+## [1.9.63] - 2026-09-14
+
+### Fixed
+- **快速启动器**：修复打开链接、执行 Shell、模拟按键不进配置页；悬浮窗与圆环选槽 overlay 配置子页顶栏统一 ✓ 保存；修复打开链接 embed 表单重叠
+- **悬浮层**：不可见触钮设计下仍绘制短/长滑距离预览
+
 ## [1.9.60] - 2026-09-13
 
 ### Added
