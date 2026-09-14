@@ -2487,6 +2487,12 @@
     <string name="about_help_translate_title">翻訳に参加</string>
     <string name="about_help_translate_desc">このアプリの翻訳にご協力ください</string>
     <string name="about_weblate_url">https://hosted.weblate.org/engage/cebian/</string>
+    <string name="about_telegram_chat_title">Telegram チャット</string>
+    <string name="about_telegram_chat_desc">Cebian · 边栏</string>
+    <string name="about_telegram_chat_url">https://t.me/+NtcG5HPiKXVmNTU1</string>
+    <string name="about_telegram_releases_title">Telegram Releases</string>
+    <string name="about_telegram_releases_desc">@cebian_channel</string>
+    <string name="about_telegram_releases_url">https://t.me/cebian_channel</string>
     <string name="about_qq_group_title">QQ グループ</string>
     <string name="about_qq_group_desc">1042783385</string>
     <string name="about_qq_group_url">https://qm.qq.com/q/Zx4wd2LB4G</string>

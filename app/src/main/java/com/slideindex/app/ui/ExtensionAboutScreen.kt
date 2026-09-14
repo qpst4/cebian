@@ -238,8 +238,11 @@ private fun AboutContent(
     val projectUrl = stringResource(R.string.about_project_url_desc)
     val weblateUrl = stringResource(R.string.about_weblate_url)
     val qqGroupUrl = stringResource(R.string.about_qq_group_url)
+    val telegramChatUrl = stringResource(R.string.about_telegram_chat_url)
+    val telegramReleasesUrl = stringResource(R.string.about_telegram_releases_url)
     val appInfoTitle = stringResource(R.string.about_section_app_info)
     val communityTitle = stringResource(R.string.about_section_community)
+    val helpTranslateTitle = stringResource(R.string.about_help_translate_title)
     val openSourceTitle = stringResource(R.string.about_section_open_source)
 
     BgEffectBackground(
@@ -441,13 +444,26 @@ private fun AboutContent(
                         }
                     )
                     add(
-                        settingsCardScopeItem("help-translate") {
+                        settingsCardScopeItem("telegram-chat") {
                             SettingNavigationRow(
-                                icon = { label -> Icon(Icons.Outlined.Language, contentDescription = label) },
-                                title = stringResource(R.string.about_help_translate_title),
-                                subtitle = stringResource(R.string.about_help_translate_desc),
+                                icon = { label -> Icon(MiuixIcons.Community, contentDescription = label) },
+                                title = stringResource(R.string.about_telegram_chat_title),
+                                subtitle = stringResource(R.string.about_telegram_chat_desc),
                                 onClick = {
-                                    val uri = weblateUrl.toUri()
+                                    val uri = telegramChatUrl.toUri()
+                                    context.startActivity(Intent(Intent.ACTION_VIEW, uri))
+                                }
+                            )
+                        }
+                    )
+                    add(
+                        settingsCardScopeItem("telegram-releases") {
+                            SettingNavigationRow(
+                                icon = { label -> Icon(Icons.Outlined.NewReleases, contentDescription = label) },
+                                title = stringResource(R.string.about_telegram_releases_title),
+                                subtitle = stringResource(R.string.about_telegram_releases_desc),
+                                onClick = {
+                                    val uri = telegramReleasesUrl.toUri()
                                     context.startActivity(Intent(Intent.ACTION_VIEW, uri))
                                 }
                             )
@@ -461,6 +477,29 @@ private fun AboutContent(
                                 subtitle = stringResource(R.string.about_qq_group_desc),
                                 onClick = {
                                     val uri = qqGroupUrl.toUri()
+                                    context.startActivity(Intent(Intent.ACTION_VIEW, uri))
+                                }
+                            )
+                        }
+                    )
+                }
+            )
+
+            settingsLazySmallTitle(
+                key = "community_translate_section",
+                title = helpTranslateTitle,
+            )
+            groupedCardItems(
+                keyPrefix = "about_community_translate",
+                items = buildList {
+                    add(
+                        settingsCardScopeItem("help-translate") {
+                            SettingNavigationRow(
+                                icon = { label -> Icon(Icons.Outlined.Language, contentDescription = label) },
+                                title = stringResource(R.string.about_help_translate_title),
+                                subtitle = stringResource(R.string.about_help_translate_desc),
+                                onClick = {
+                                    val uri = weblateUrl.toUri()
                                     context.startActivity(Intent(Intent.ACTION_VIEW, uri))
                                 }
                             )
