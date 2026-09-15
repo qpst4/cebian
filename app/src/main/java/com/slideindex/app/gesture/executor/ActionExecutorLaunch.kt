@@ -15,15 +15,14 @@ import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.launcher.QuickLauncherItemCodec
 import com.slideindex.app.launcher.QuickLauncherItemType
 import com.slideindex.app.overlay.TaskSwitcherMenuItem
-import com.slideindex.app.service.OverlayService
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.shouldLaunchFullscreen
 import com.slideindex.app.shell.ShellCommand
 import com.slideindex.app.util.AppShortcutLoader
 import com.slideindex.app.util.ShellCommandRunner
+import com.slideindex.app.util.ForegroundHostPackageResolver
 import com.slideindex.app.util.FreeWindowLauncher
 import com.slideindex.app.util.RecentTasksLoader
-import com.slideindex.app.util.TaskExclusions
 import com.slideindex.app.util.TaskManagerUtil
 
 internal class ActionExecutorLaunch(
@@ -130,8 +129,8 @@ internal class ActionExecutorLaunch(
 
     fun freeWindowForegroundApp(settings: AppSettings) {
         val effectiveSettings = settings.copy(freeWindow = settings.freeWindow.copy(freeWindowEnabled = true))
-        val targetPackage = resolveFreeWindowTargetPackage()
         val runMove = Runnable {
+            val targetPackage = ForegroundHostPackageResolver.resolveForFreeWindow(context)
             Thread {
                 try {
                     if (!TaskManagerUtil.hasPermission()) {
@@ -379,14 +378,6 @@ internal class ActionExecutorLaunch(
         } else {
             FreeWindowLauncher.launch(context, intent, settings, fullscreen = false)
         }
-    }
-
-    private fun resolveFreeWindowTargetPackage(): String? {
-        val selfPackage = context.packageName
-        return listOfNotNull(
-            OverlayService.gestureForegroundPackage,
-            OverlayService.foregroundPackage,
-        ).firstOrNull { !TaskExclusions.shouldSkipFreeWindow(it, selfPackage) }
     }
 
     private fun launchFreeWindowFallback(packageName: String, settings: AppSettings) {

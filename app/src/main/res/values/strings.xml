@@ -601,9 +601,11 @@
     <string name="free_window_mode_magicos">自由窗口 3（MagicOS）</string>
     <string name="free_window_mode_magicos_desc">Mode 102，适用于 MagicOS 系统</string>
     <string name="free_window_mode_originos">自由窗口 4（OriginOS）</string>
-    <string name="free_window_mode_originos_desc">适用于 OriginOS 等支持小窗分享的系统</string>
+    <string name="free_window_mode_originos_desc">Mode 106，适用于 OriginOS / vivo 小窗</string>
     <string name="free_window_mode_flyme">自由窗口 5（FlymeOS）</string>
     <string name="free_window_mode_flyme_desc">Mode 11，适用于 FlymeOS 系统</string>
+    <string name="free_window_mode_nubia">自由窗口 6（努比亚/红魔）</string>
+    <string name="free_window_mode_nubia_desc">通过系统窗中回复标识启动小窗，无需 Shizuku</string>
     <string name="free_window_preview_title">调节小窗尺寸与位置</string>
     <string name="free_window_preview_save">完成预览并保存</string>
     <string name="free_window_portrait_preview">竖屏预览</string>

@@ -58,20 +58,35 @@ class ActionExecutorPolicyTest {
         assertNull(
             ActionExecutorPolicy.resolveFreeWindowTargetPackage(
                 selfPackage = "com.slideindex.app",
+                liveForegroundPackage = "com.slideindex.app",
                 gestureForegroundPackage = "com.slideindex.app",
-                foregroundPackage = "com.android.systemui",
+                cachedForegroundPackage = "com.android.systemui",
             ),
         )
     }
 
     @Test
-    fun resolveFreeWindowTargetPackage_prefersGestureForegroundPackage() {
+    fun resolveFreeWindowTargetPackage_prefersLiveForegroundPackage() {
+        assertEquals(
+            "com.live.app",
+            ActionExecutorPolicy.resolveFreeWindowTargetPackage(
+                selfPackage = "com.slideindex.app",
+                liveForegroundPackage = "com.live.app",
+                gestureForegroundPackage = "com.example.app",
+                cachedForegroundPackage = "com.other.app",
+            ),
+        )
+    }
+
+    @Test
+    fun resolveFreeWindowTargetPackage_fallsBackToGestureSnapshot() {
         assertEquals(
             "com.example.app",
             ActionExecutorPolicy.resolveFreeWindowTargetPackage(
                 selfPackage = "com.slideindex.app",
+                liveForegroundPackage = null,
                 gestureForegroundPackage = "com.example.app",
-                foregroundPackage = "com.other.app",
+                cachedForegroundPackage = "com.other.app",
             ),
         )
     }

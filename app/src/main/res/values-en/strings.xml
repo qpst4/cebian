@@ -1703,9 +1703,11 @@
     <string name="free_window_mode_magicos">Freeform 3 (MagicOS)</string>
     <string name="free_window_mode_magicos_desc">Mode 102, for MagicOS</string>
     <string name="free_window_mode_originos">Freeform 4 (OriginOS)</string>
-    <string name="free_window_mode_originos_desc">For OriginOS and systems that support freeform sharing</string>
+    <string name="free_window_mode_originos_desc">Mode 106, for OriginOS / vivo freeform</string>
     <string name="free_window_mode_flyme">Freeform 5 (FlymeOS)</string>
     <string name="free_window_mode_flyme_desc">Mode 11, for FlymeOS</string>
+    <string name="free_window_mode_nubia">Freeform 6 (Nubia/RedMagic)</string>
+    <string name="free_window_mode_nubia_desc">Uses system window-reply identifier; no Shizuku required</string>
     <string name="free_window_preview_title">Adjust freeform size &amp; position</string>
     <string name="free_window_preview_save">Finish preview and save</string>
     <string name="free_window_portrait_preview">Portrait preview</string>

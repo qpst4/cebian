@@ -21,9 +21,10 @@ internal object ActionExecutorPolicy {
 
     fun resolveFreeWindowTargetPackage(
         selfPackage: String,
+        liveForegroundPackage: String?,
         gestureForegroundPackage: String?,
-        foregroundPackage: String?
+        cachedForegroundPackage: String?,
     ): String? =
-        listOfNotNull(gestureForegroundPackage, foregroundPackage)
+        listOfNotNull(liveForegroundPackage, gestureForegroundPackage, cachedForegroundPackage)
             .firstOrNull { !TaskExclusions.shouldSkipFreeWindow(it, selfPackage) }
 }

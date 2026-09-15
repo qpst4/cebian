@@ -9,8 +9,9 @@ enum class FreeWindowMode(
     STANDARD(0, 5),
     COLOROS(1, 100),
     MAGICOS(2, 102),
-    ORIGINOS(3, 5),
+    ORIGINOS(3, 106),
     FLYME(4, 11),
+    NUBIA(5, 5),
     ;
 
     companion object {
@@ -21,6 +22,8 @@ enum class FreeWindowMode(
             val manufacturer = Build.MANUFACTURER.lowercase()
             val brand = Build.BRAND.lowercase()
             return when {
+                manufacturer.contains("nubia") || brand.contains("nubia") ||
+                    manufacturer.contains("redmagic") || brand.contains("redmagic") -> NUBIA
                 manufacturer.contains("meizu") || brand.contains("meizu") -> FLYME
                 manufacturer.contains("xiaomi") || brand.contains("redmi") -> STANDARD
                 manufacturer.contains("oppo") || manufacturer.contains("realme") ||
@@ -35,3 +38,5 @@ enum class FreeWindowMode(
 }
 
 fun AppSettings.resolvedFreeWindowMode(): FreeWindowMode = FreeWindowMode.fromId(freeWindowModeId)
+
+fun FreeWindowMode.usesNubiaFreeformIdentifier(): Boolean = this == FreeWindowMode.NUBIA

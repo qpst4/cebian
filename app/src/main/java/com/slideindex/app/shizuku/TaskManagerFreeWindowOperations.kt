@@ -70,7 +70,7 @@ internal class TaskManagerFreeWindowOperations(
     }
 
     private fun candidateWindowingModes(primary: Int): IntArray =
-        linkedSetOf(primary, 11, 5, 100, 102).toIntArray()
+        linkedSetOf(primary, 11, 5, 100, 102, 106).toIntArray()
 
     private fun moveTaskToFreeWindowViaRecents(taskId: Int, windowingMode: Int, bounds: Rect): Boolean {
         return try {

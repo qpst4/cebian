@@ -8,9 +8,11 @@ import android.os.Build
 import android.os.Bundle
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.resolvedFreeWindowMode
+import com.slideindex.app.settings.usesNubiaFreeformIdentifier
 
 object FreeWindowLauncher {
     private const val KEY_WINDOWING_MODE = "android.activity.windowingMode"
+    private const val NUBIA_FREEFORM_INTENT_IDENTIFIER = "_WindowReply"
 
     fun launch(context: Context, intent: Intent, settings: AppSettings, fullscreen: Boolean) {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -22,11 +24,28 @@ object FreeWindowLauncher {
             return
         }
 
+        val mode = settings.resolvedFreeWindowMode()
+        if (mode.usesNubiaFreeformIdentifier()) {
+            launchNubiaFreeform(context, intent)
+            return
+        }
+
         val bundle = launchOptionsBundle(context, settings) ?: Bundle()
         runCatching {
             context.startActivity(intent, bundle)
         }.onFailure { error ->
             android.util.Log.e("FreeWindowLauncher", "startActivity failed", error)
+        }
+    }
+
+    private fun launchNubiaFreeform(context: Context, intent: Intent) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            intent.identifier = NUBIA_FREEFORM_INTENT_IDENTIFIER
+        }
+        runCatching {
+            context.startActivity(intent, Bundle())
+        }.onFailure { error ->
+            android.util.Log.e("FreeWindowLauncher", "nubia freeform startActivity failed", error)
         }
     }
 

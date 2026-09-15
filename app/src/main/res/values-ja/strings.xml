@@ -600,9 +600,11 @@
     <string name="free_window_mode_magicos">フリーフォーム 3（MagicOS）</string>
     <string name="free_window_mode_magicos_desc">モード 102、MagicOS 向け</string>
     <string name="free_window_mode_originos">フリーフォーム 4（OriginOS）</string>
-    <string name="free_window_mode_originos_desc">OriginOS およびフリーフォーム共有に対応したシステム向け</string>
+    <string name="free_window_mode_originos_desc">モード 106、OriginOS / vivo 向け</string>
     <string name="free_window_mode_flyme">フリーフォーム 5（FlymeOS）</string>
     <string name="free_window_mode_flyme_desc">モード 11、FlymeOS 向け</string>
+    <string name="free_window_mode_nubia">フリーフォーム 6（Nubia/RedMagic）</string>
+    <string name="free_window_mode_nubia_desc">システムのウィンドウ返信識別子で起動（Shizuku 不要）</string>
     <string name="free_window_preview_title">フリーフォームのサイズと位置を調整</string>
     <string name="free_window_preview_save">プレビューを終了して保存</string>
     <string name="free_window_portrait_preview">縦向きプレビュー</string>

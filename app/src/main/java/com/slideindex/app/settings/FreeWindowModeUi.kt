@@ -9,6 +9,7 @@ val FreeWindowMode.titleRes: Int
         FreeWindowMode.MAGICOS -> R.string.free_window_mode_magicos
         FreeWindowMode.ORIGINOS -> R.string.free_window_mode_originos
         FreeWindowMode.FLYME -> R.string.free_window_mode_flyme
+        FreeWindowMode.NUBIA -> R.string.free_window_mode_nubia
     }
 
 val FreeWindowMode.descRes: Int
@@ -18,4 +19,5 @@ val FreeWindowMode.descRes: Int
         FreeWindowMode.MAGICOS -> R.string.free_window_mode_magicos_desc
         FreeWindowMode.ORIGINOS -> R.string.free_window_mode_originos_desc
         FreeWindowMode.FLYME -> R.string.free_window_mode_flyme_desc
+        FreeWindowMode.NUBIA -> R.string.free_window_mode_nubia_desc
     }
