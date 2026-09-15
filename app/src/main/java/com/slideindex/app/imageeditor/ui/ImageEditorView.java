@@ -1,5 +1,6 @@
 package com.slideindex.app.imageeditor.ui;
 
+import com.slideindex.app.imageeditor.EditorNumberTouchController;
 import com.slideindex.app.imageeditor.EditorViewMetrics;
 
 import android.content.Context;
@@ -103,6 +104,7 @@ public final class ImageEditorView extends View {
     private boolean textGestureMoved;
     private final Paint textHandlePaint;
     private EditorUiState uiState;
+    private EditorNumberTouchController numberTouchController;
 
     private enum GestureKind {
         NONE, PAN, CROP, PATH, SHAPE_DRAW, SHAPE_DRAG, SHAPE_RESIZE, SHAPE_TAP, TEXT_DRAG, TEXT_RESIZE, TEXT_TAP
@@ -154,6 +156,10 @@ public final class ImageEditorView extends View {
             try {
                 iArr[EditorMode.TEXT.ordinal()] = 7;
             } catch (NoSuchFieldError unused7) {
+            }
+            try {
+                iArr[EditorMode.NUMBER.ordinal()] = 8;
+            } catch (NoSuchFieldError unused7b) {
             }
             $EnumSwitchMapping$0 = iArr;
             int[] iArr2 = new int[CropDragMode.values().length];
@@ -332,6 +338,15 @@ public final class ImageEditorView extends View {
                 return true;
             }
         });
+        this.numberTouchController = new EditorNumberTouchController(
+                () -> buildActionId(),
+                () -> suggestedTextSizeForInsert(),
+                () -> minTextSizeInImageSpace(),
+                () -> {
+                    invalidate();
+                    return kotlin.Unit.INSTANCE;
+                }
+        );
     }
 
     public final Callback getCallback() {
@@ -409,6 +424,7 @@ public final class ImageEditorView extends View {
         if (state.getCurrentMode() != EditorMode.TEXT) {
             ImageEditorView.selectedTextId = null;
         }
+        ImageEditorView.numberTouchController.clearSelectionIfLeavingMode(state.getCurrentMode());
         if (z) {
             ImageEditorView.ensureCropSelectionInitialized();
         }
@@ -533,6 +549,14 @@ public final class ImageEditorView extends View {
         invalidate();
     }
 
+    public final Rect peekCropBitmapRect() {
+        Bitmap baseBitmap = getBaseBitmap();
+        if (baseBitmap == null) {
+            return null;
+        }
+        return buildCropBitmapRect(baseBitmap);
+    }
+
     public final boolean applyCropSelection() {
         Rect buildCropBitmapRect;
         Bitmap cropByRect;
@@ -629,6 +653,12 @@ public final class ImageEditorView extends View {
             canvas.drawRect(EditorRenderUtils.INSTANCE.buildTextBounds(selectedTextAction, 12f), this.selectionPaint);
             drawSelectedTextDeleteHandle(canvas, selectedTextAction);
             drawSelectedTextHandle(canvas, selectedTextAction);
+        }
+        EditAction.NumberBadge selectedNumberBadge = this.numberTouchController.selectedBadge(this.uiState);
+        if (selectedNumberBadge != null && this.uiState.getCurrentMode() == EditorMode.NUMBER) {
+            canvas.drawRect(EditorRenderUtils.INSTANCE.buildNumberBadgeBounds(selectedNumberBadge, 12f), this.selectionPaint);
+            drawSelectedNumberDeleteHandle(canvas, selectedNumberBadge, baseBitmap);
+            drawSelectedNumberHandle(canvas, selectedNumberBadge, baseBitmap);
         }
         canvas.restore();
         drawCenterBrushPreview(canvas);
@@ -837,6 +867,22 @@ public final class ImageEditorView extends View {
                 }
                 invalidate();
                 return;
+            case 8:
+                if (screenToImagePointUnbounded != null) {
+                    screenToImagePoint = screenToImagePointUnbounded;
+                }
+                if (screenToImagePoint == null) {
+                    this.gestureKind = GestureKind.PAN;
+                    return;
+                }
+                if (deleteNumberBadgeIfDeleteHandleHit(screenToImagePoint)) {
+                    this.gestureKind = GestureKind.NONE;
+                    invalidate();
+                    return;
+                }
+                this.numberTouchController.onActionDown(this.session, this.uiState, screenToImagePoint);
+                this.gestureKind = GestureKind.NONE;
+                return;
             default:
                 throw new NoWhenBranchMatchedException();
         }
@@ -846,6 +892,13 @@ public final class ImageEditorView extends View {
         EditorPoint editorPoint;
         final EditAction.Shape shape;
         RectF rectF;
+        if (this.uiState.getCurrentMode() == EditorMode.NUMBER) {
+            EditorPoint screenToImagePointUnboundedForNumber = screenToImagePointUnbounded(bitmap, x, y);
+            if (screenToImagePointUnboundedForNumber != null) {
+                this.numberTouchController.onActionMove(this.session, screenToImagePointUnboundedForNumber);
+            }
+            return;
+        }
         EditorPoint screenToImagePoint = screenToImagePoint(bitmap, x, y);
         final EditorPoint screenToImagePointUnbounded = screenToImagePointUnbounded(bitmap, x, y);
         switch (WhenMappings.$EnumSwitchMapping$2[this.gestureKind.ordinal()]) {
@@ -1032,6 +1085,13 @@ public final class ImageEditorView extends View {
     }
 
     private void handleActionUp(Bitmap bitmap) {
+        if (this.uiState.getCurrentMode() == EditorMode.NUMBER) {
+            EditorSession editorSession = this.session;
+            this.numberTouchController.onActionUp(editorSession);
+            resetGestureState();
+            invalidate();
+            return;
+        }
         int i = WhenMappings.$EnumSwitchMapping$2[this.gestureKind.ordinal()];
         if (i == 2 || i == 9) {
             EditAction.Text selectedTextAction = selectedTextAction();
@@ -1106,6 +1166,7 @@ public final class ImageEditorView extends View {
             case 1:
             case 2:
             case 7:
+            case 8:
                 return;
             case 3:
             case 4:
@@ -1173,6 +1234,16 @@ public final class ImageEditorView extends View {
             return;
         }
         drawControlCircle(canvas, buildTextResizeHandleCenter$default, getTextResizeHandleRadiusPx() / currentDisplayScale(baseBitmap), this.textHandlePaint);
+    }
+
+    private void drawSelectedNumberDeleteHandle(Canvas canvas, EditAction.NumberBadge action, Bitmap baseBitmap) {
+        EditorPoint center = EditorRenderUtils.INSTANCE.buildNumberBadgeDeleteHandleCenter(action, 12f);
+        drawDeleteHandle(canvas, center, getDeleteHandleRadiusPx() / currentDisplayScale(baseBitmap));
+    }
+
+    private void drawSelectedNumberHandle(Canvas canvas, EditAction.NumberBadge action, Bitmap baseBitmap) {
+        EditorPoint center = EditorRenderUtils.INSTANCE.buildNumberBadgeResizeHandleCenter(action, 12f);
+        drawControlCircle(canvas, center, getTextResizeHandleRadiusPx() / currentDisplayScale(baseBitmap), this.textHandlePaint);
     }
 
     private void drawSelectedShapeDeleteHandle(Canvas canvas, EditAction.Shape action) {
@@ -1360,6 +1431,37 @@ public final class ImageEditorView extends View {
         this.dragStartImagePoint = null;
         this.shapeGestureMoved = false;
         return true;
+    }
+
+    private final boolean deleteNumberBadgeIfDeleteHandleHit(EditorPoint point) {
+        EditorSession editorSession = this.session;
+        if (editorSession == null) {
+            return false;
+        }
+        List<EditAction> visibleActions = this.uiState.getVisibleActions();
+        for (int i = visibleActions.size() - 1; i >= 0; i--) {
+            EditAction action = visibleActions.get(i);
+            if (!(action instanceof EditAction.NumberBadge)) {
+                continue;
+            }
+            EditAction.NumberBadge badge = (EditAction.NumberBadge) action;
+            if (!isNumberDeleteHandleHit(badge, point)) {
+                continue;
+            }
+            editorSession.removeAction(badge.getId());
+            this.numberTouchController.clearSelection();
+            this.numberTouchController.resetGesture();
+            return true;
+        }
+        return false;
+    }
+
+    private final boolean isNumberDeleteHandleHit(EditAction.NumberBadge action, EditorPoint point) {
+        Bitmap baseBitmap = getBaseBitmap();
+        if (baseBitmap == null) {
+            return false;
+        }
+        return distance(point, EditorRenderUtils.INSTANCE.buildNumberBadgeDeleteHandleCenter(action, 12f)) <= (getDeleteHandleRadiusPx() + getDeleteHandleHitSlopPx()) / currentDisplayScale(baseBitmap);
     }
 
     private final boolean deleteSelectedTextIfHit(EditorPoint point) {
@@ -1716,6 +1818,7 @@ public final class ImageEditorView extends View {
         this.dragStartTextRadius = 0.0f;
         this.pendingTextTapPoint = null;
         this.textGestureMoved = false;
+        this.numberTouchController.resetGesture();
     }
 
     private void releaseBaseBitmap() {
@@ -1949,6 +2052,20 @@ public final class ImageEditorView extends View {
             return null;
         }
         if (!(action instanceof EditAction.Text)) {
+            if (action instanceof EditAction.NumberBadge) {
+                EditAction.NumberBadge badge = (EditAction.NumberBadge) action;
+                if (RectF.intersects(EditorRenderUtils.INSTANCE.buildNumberBadgeBounds(badge, 12f), rectF)) {
+                    return new EditAction.NumberBadge(
+                            badge.getId(),
+                            badge.getNumber(),
+                            offsetByCrop(badge.getAnchor(), cropRect),
+                            badge.getColor(),
+                            badge.getStyle(),
+                            badge.getBadgeSize()
+                    );
+                }
+                return null;
+            }
             throw new NoWhenBranchMatchedException();
         }
         EditAction.Text text = (EditAction.Text) action;

@@ -10,6 +10,7 @@ import android.graphics.PorterDuffXfermode
 import android.graphics.RectF
 import com.slideindex.app.imageeditor.model.EditAction
 import com.slideindex.app.imageeditor.model.EditorPoint
+import com.slideindex.app.imageeditor.model.NumberBadgeStyle
 import com.slideindex.app.imageeditor.model.ShapeType
 import kotlin.math.max
 import kotlin.math.min
@@ -51,7 +52,99 @@ object EditorRenderUtils {
             is EditAction.Shape -> drawShape(canvas, action)
             is EditAction.Text -> drawText(canvas, action, overrideTextAlpha)
             is EditAction.Mosaic -> drawMosaic(canvas, action, mosaicBitmap)
+            is EditAction.NumberBadge -> drawNumberBadge(canvas, action)
         }
+    }
+
+    fun buildNumberBadgeBounds(action: EditAction.NumberBadge, padding: Float = 8f): RectF {
+        val radius = badgeRadius(action.badgeSize)
+        return RectF(
+            action.anchor.x - radius - padding,
+            action.anchor.y - radius - padding,
+            action.anchor.x + radius + padding,
+            action.anchor.y + radius + padding,
+        )
+    }
+
+    fun buildNumberBadgeResizeHandleCenter(action: EditAction.NumberBadge, padding: Float = 8f): EditorPoint {
+        val bounds = buildNumberBadgeBounds(action, padding)
+        return EditorPoint(bounds.right, bounds.bottom)
+    }
+
+    fun buildNumberBadgeDeleteHandleCenter(action: EditAction.NumberBadge, padding: Float = 8f): EditorPoint {
+        val bounds = buildNumberBadgeBounds(action, padding)
+        return EditorPoint(bounds.left, bounds.top)
+    }
+
+    private fun badgeRadius(badgeSize: Float): Float = badgeSize * 0.52f
+
+    /** 序号本体命中半径（不含选区 padding），用于空白处落点。 */
+    fun numberBadgeBodyHitRadius(badgeSize: Float): Float = badgeRadius(badgeSize) * 1.08f
+
+    private fun drawNumberBadge(canvas: Canvas, action: EditAction.NumberBadge) {
+        val radius = badgeRadius(action.badgeSize)
+        val label = action.number.toString()
+        when (action.style) {
+            NumberBadgeStyle.FILLED_CIRCLE -> {
+                val fill = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                    style = Paint.Style.FILL
+                    color = action.color
+                }
+                canvas.drawCircle(action.anchor.x, action.anchor.y, radius, fill)
+                drawNumberLabel(canvas, label, action.anchor, action.badgeSize, contrastingTextColor(action.color))
+            }
+            NumberBadgeStyle.OUTLINE_CIRCLE -> {
+                val stroke = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                    style = Paint.Style.STROKE
+                    strokeWidth = max(3f, action.badgeSize * 0.08f)
+                    color = action.color
+                }
+                canvas.drawCircle(action.anchor.x, action.anchor.y, radius, stroke)
+                drawNumberLabel(canvas, label, action.anchor, action.badgeSize, action.color)
+            }
+            NumberBadgeStyle.FILLED_SQUARE -> {
+                val half = radius * 0.92f
+                val rect = RectF(
+                    action.anchor.x - half,
+                    action.anchor.y - half,
+                    action.anchor.x + half,
+                    action.anchor.y + half,
+                )
+                val fill = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                    style = Paint.Style.FILL
+                    color = action.color
+                }
+                val corner = half * 0.28f
+                canvas.drawRoundRect(rect, corner, corner, fill)
+                drawNumberLabel(canvas, label, action.anchor, action.badgeSize, contrastingTextColor(action.color))
+            }
+        }
+    }
+
+    private fun drawNumberLabel(
+        canvas: Canvas,
+        label: String,
+        anchor: EditorPoint,
+        badgeSize: Float,
+        color: Int,
+    ) {
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            this.color = color
+            textSize = badgeSize * 0.52f
+            textAlign = Paint.Align.CENTER
+            isFakeBoldText = true
+        }
+        val metrics = paint.fontMetrics
+        val baseline = anchor.y - (metrics.ascent + metrics.descent) / 2f
+        canvas.drawText(label, anchor.x, baseline, paint)
+    }
+
+    private fun contrastingTextColor(background: Int): Int {
+        val r = Color.red(background)
+        val g = Color.green(background)
+        val b = Color.blue(background)
+        val luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255.0
+        return if (luminance > 0.62) Color.BLACK else Color.WHITE
     }
 
     fun buildTextBounds(action: EditAction.Text, padding: Float = 12f): RectF {

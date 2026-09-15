@@ -98,6 +98,31 @@
             <LinearLayout
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
+                android:id="@+id/compactNumberStylePanel"
+                android:focusable="true"
+                android:visibility="gone"
+                android:clickable="true"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:foreground="?attr/selectableItemBackgroundBorderless"
+                android:paddingStart="6dp"
+                android:paddingEnd="6dp">
+                <FrameLayout
+                    android:id="@+id/compactNumberStylePreviewContainer"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp">
+                    <com.slideindex.app.imageeditor.ui.NumberBadgeStylePreviewView
+                        android:id="@+id/compactNumberStylePreview"
+                        android:padding="4dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"/>
+                </FrameLayout>
+            </LinearLayout>
+            <LinearLayout
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
                 android:id="@+id/compactColorPanel"
                 android:focusable="true"
                 android:visibility="gone"
@@ -245,6 +270,18 @@
                             android:minWidth="0dp"
                             android:minHeight="0dp"
                             android:text="@string/inspire_image_edit_mode_mosaic"
+                            android:insetTop="0dp"
+                            android:insetBottom="0dp"
+                            android:paddingStart="14dp"
+                            android:paddingEnd="14dp"
+                            style="@style/Widget.Material3.Button.TextButton"/>
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/modeNumber"
+                            android:layout_width="wrap_content"
+                            android:layout_height="40dp"
+                            android:minWidth="0dp"
+                            android:minHeight="0dp"
+                            android:text="@string/inspire_image_edit_mode_number"
                             android:insetTop="0dp"
                             android:insetBottom="0dp"
                             android:paddingStart="14dp"

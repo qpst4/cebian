@@ -33,4 +33,13 @@ sealed interface EditAction {
         val points: List<EditorPoint>,
         val strokeWidth: Float,
     ) : EditAction
+
+    data class NumberBadge(
+        override val id: String,
+        val number: Int,
+        val anchor: EditorPoint,
+        val color: Int,
+        val style: NumberBadgeStyle,
+        val badgeSize: Float,
+    ) : EditAction
 }

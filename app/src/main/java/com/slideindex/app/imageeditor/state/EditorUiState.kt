@@ -3,6 +3,7 @@ package com.slideindex.app.imageeditor.state
 import android.graphics.Color
 import com.slideindex.app.imageeditor.model.EditAction
 import com.slideindex.app.imageeditor.model.EditorMode
+import com.slideindex.app.imageeditor.model.NumberBadgeStyle
 import com.slideindex.app.imageeditor.model.ShapeType
 
 data class EditorUiState(
@@ -13,6 +14,8 @@ data class EditorUiState(
     val shapeStrokeWidth: Float = 18f,
     val mosaicStrokeWidth: Float = 42f,
     val currentShapeType: ShapeType = ShapeType.RECTANGLE,
+    val currentNumberStyle: NumberBadgeStyle = NumberBadgeStyle.FILLED_CIRCLE,
+    val numberBadgeSize: Float = 48f,
     val undoStack: List<EditAction> = emptyList(),
     val redoStack: List<EditAction> = emptyList(),
 ) {
@@ -33,8 +36,11 @@ data class EditorUiState(
         EditorMode.ERASER -> eraserStrokeWidth
         EditorMode.SHAPE -> shapeStrokeWidth
         EditorMode.MOSAIC -> mosaicStrokeWidth
-        EditorMode.NAVIGATE, EditorMode.CROP, EditorMode.TEXT -> doodleStrokeWidth
+        EditorMode.NAVIGATE, EditorMode.CROP, EditorMode.TEXT, EditorMode.NUMBER -> doodleStrokeWidth
     }
+
+    fun nextNumberValue(): Int =
+        visibleActions.filterIsInstance<EditAction.NumberBadge>().maxOfOrNull { it.number }?.plus(1) ?: 1
 
     companion object {
         @JvmStatic

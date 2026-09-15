@@ -24,11 +24,13 @@ import com.slideindex.app.R
 import com.slideindex.app.databinding.ActivityInspireImageEditorBinding
 import com.slideindex.app.databinding.PopupInspireImageEditorScrubBinding
 import com.slideindex.app.imageeditor.model.EditorMode
+import com.slideindex.app.imageeditor.model.NumberBadgeStyle
 import com.slideindex.app.imageeditor.model.ShapeType
 import com.slideindex.app.imageeditor.state.EditorSession
 import com.slideindex.app.imageeditor.state.EditorUiState
 import com.slideindex.app.imageeditor.ui.BrushSizePreviewView
 import com.slideindex.app.imageeditor.ui.ImageEditorView
+import com.slideindex.app.imageeditor.ui.NumberBadgeStylePreviewView
 import com.slideindex.app.imageeditor.ui.ShapeTypePreviewView
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -44,6 +46,7 @@ class ImageEditorQuickToolsCoordinator(
     private var colorScrubOptions: List<ScrubOption<Int>> = emptyList()
     private var shapeScrubOptions: List<ScrubOption<ShapeType>> = emptyList()
     private var brushScrubOptions: List<ScrubOption<Float>> = emptyList()
+    private var numberStyleScrubOptions: List<ScrubOption<NumberBadgeStyle>> = emptyList()
 
     private var colorScrubStartX = 0f
     private var isColorScrubbing = false
@@ -96,15 +99,16 @@ class ImageEditorQuickToolsCoordinator(
         colorScrubOptions = emptyList()
         shapeScrubOptions = emptyList()
         brushScrubOptions = emptyList()
+        numberStyleScrubOptions = emptyList()
     }
 
     fun supportsColorSelection(mode: EditorMode): Boolean =
-        mode == EditorMode.DOODLE || mode == EditorMode.SHAPE || mode == EditorMode.TEXT
+        mode == EditorMode.DOODLE || mode == EditorMode.SHAPE || mode == EditorMode.TEXT || mode == EditorMode.NUMBER
 
     fun supportsBrushSize(mode: EditorMode): Boolean = brushModes().contains(mode)
 
     fun supportsModeQuickTools(mode: EditorMode): Boolean =
-        supportsColorSelection(mode) || supportsBrushSize(mode) || mode == EditorMode.SHAPE
+        supportsColorSelection(mode) || supportsBrushSize(mode) || mode == EditorMode.SHAPE || mode == EditorMode.NUMBER
 
     fun setupCompactColorControls() {
         binding.compactColorPanel.setOnClickListener { toggleColorScrubPopup(it) }
@@ -126,6 +130,21 @@ class ImageEditorQuickToolsCoordinator(
         binding.compactShapePanel.setOnTouchListener { view, event ->
             handleCompactShapeTouch(view, event)
         }
+    }
+
+    fun setupCompactNumberStyleControls() {
+        binding.compactNumberStylePanel.setOnClickListener { toggleNumberStyleScrubPopup(it) }
+    }
+
+    fun renderNumberStyleSelection(state: EditorUiState) {
+        val tintColor = if (state.currentColor == Color.WHITE) {
+            MaterialColors.getColor(binding.root, com.google.android.material.R.attr.colorOnSurface)
+        } else {
+            state.currentColor
+        }
+        binding.compactNumberStylePreview.setStylePreview(state.currentNumberStyle, tintColor)
+        updateNumberStyleScrubSelection(state.currentNumberStyle, tintColor)
+        binding.compactNumberStylePanel.contentDescription = numberStyleDescription(state.currentNumberStyle)
     }
 
     fun renderBrushControls(state: EditorUiState) {
@@ -189,6 +208,8 @@ class ImageEditorQuickToolsCoordinator(
             if (expanded && supportsColorSelection(state.currentMode)) View.VISIBLE else View.GONE
         binding.compactShapePanel.visibility =
             if (expanded && state.currentMode == EditorMode.SHAPE) View.VISIBLE else View.GONE
+        binding.compactNumberStylePanel.visibility =
+            if (expanded && state.currentMode == EditorMode.NUMBER) View.VISIBLE else View.GONE
         binding.compactBrushPanel.visibility =
             if (expanded && supportsBrushSize(state.currentMode)) View.VISIBLE else View.GONE
         binding.compactAddTextButton.visibility =
@@ -211,6 +232,7 @@ class ImageEditorQuickToolsCoordinator(
             binding.compactAddTextButton,
             binding.compactBrushPanel,
             binding.compactShapePanel,
+            binding.compactNumberStylePanel,
             binding.compactColorPanel,
         ).filter { it.visibility == View.VISIBLE }
 
@@ -405,6 +427,10 @@ class ImageEditorQuickToolsCoordinator(
         if (isShapeScrubPopupShowing()) dismissScrubPopup() else showShapeScrubPopup(anchor)
     }
 
+    private fun toggleNumberStyleScrubPopup(anchor: View) {
+        if (isNumberStyleScrubPopupShowing()) dismissScrubPopup() else showNumberStyleScrubPopup(anchor)
+    }
+
     private fun isColorScrubPopupShowing(): Boolean {
         val popup = scrubPopupWindow
         return popup != null && popup.isShowing && colorScrubOptions.isNotEmpty()
@@ -420,6 +446,11 @@ class ImageEditorQuickToolsCoordinator(
         return popup != null && popup.isShowing && shapeScrubOptions.isNotEmpty()
     }
 
+    private fun isNumberStyleScrubPopupShowing(): Boolean {
+        val popup = scrubPopupWindow
+        return popup != null && popup.isShowing && numberStyleScrubOptions.isNotEmpty()
+    }
+
     private fun ensureColorScrubPopup(anchor: View) {
         if (!isColorScrubPopupShowing()) showColorScrubPopup(anchor)
     }
@@ -430,6 +461,32 @@ class ImageEditorQuickToolsCoordinator(
 
     private fun ensureShapeScrubPopup(anchor: View) {
         if (!isShapeScrubPopupShowing()) showShapeScrubPopup(anchor)
+    }
+
+    private fun showNumberStyleScrubPopup(anchor: View) {
+        val tintColor = if (editorSession.state.currentColor == Color.WHITE) {
+            MaterialColors.getColor(binding.root, com.google.android.material.R.attr.colorOnSurface)
+        } else {
+            editorSession.state.currentColor
+        }
+        val current = editorSession.state.currentNumberStyle
+        numberStyleScrubOptions = showScrubPopup(
+            anchor = anchor,
+            options = availableNumberBadgeStyles(),
+            selected = current,
+            createView = { createNumberStyleScrubView(it, tintColor) },
+            applySelection = { view, style, selected ->
+                applyNumberStyleScrubSelection(view, style, selected, tintColor)
+            },
+            onOptionClick = { style ->
+                if (editorSession.state.currentNumberStyle != style) {
+                    editorSession.updateNumberStyle(style)
+                }
+            },
+        )
+        colorScrubOptions = emptyList()
+        shapeScrubOptions = emptyList()
+        brushScrubOptions = emptyList()
     }
 
     private fun showColorScrubPopup(anchor: View) {
@@ -450,6 +507,7 @@ class ImageEditorQuickToolsCoordinator(
         )
         shapeScrubOptions = emptyList()
         brushScrubOptions = emptyList()
+        numberStyleScrubOptions = emptyList()
     }
 
     private fun showBrushScrubPopup(anchor: View) {
@@ -497,6 +555,7 @@ class ImageEditorQuickToolsCoordinator(
         )
         colorScrubOptions = emptyList()
         brushScrubOptions = emptyList()
+        numberStyleScrubOptions = emptyList()
     }
 
     private fun <T> showScrubPopup(
@@ -534,6 +593,7 @@ class ImageEditorQuickToolsCoordinator(
                 colorScrubOptions = emptyList()
                 shapeScrubOptions = emptyList()
                 brushScrubOptions = emptyList()
+                numberStyleScrubOptions = emptyList()
             }
         }
         popupBinding.root.measure(
@@ -614,6 +674,12 @@ class ImageEditorQuickToolsCoordinator(
         }
     }
 
+    private fun updateNumberStyleScrubSelection(currentStyle: NumberBadgeStyle, tintColor: Int) {
+        updateScrubSelection(numberStyleScrubOptions, currentStyle) { view, style, selected ->
+            applyNumberStyleScrubSelection(view, style, selected, tintColor)
+        }
+    }
+
     private fun updateColorFromHorizontalScrub(rawX: Float) {
         val color = scrubValueAtRawX(colorScrubOptions, rawX) ?: return
         if (editorSession.state.currentColor != color) {
@@ -657,6 +723,12 @@ class ImageEditorQuickToolsCoordinator(
         ShapeType.ARROW,
         ShapeType.DIAMOND,
         ShapeType.TRIANGLE,
+    )
+
+    private fun availableNumberBadgeStyles(): List<NumberBadgeStyle> = listOf(
+        NumberBadgeStyle.FILLED_CIRCLE,
+        NumberBadgeStyle.OUTLINE_CIRCLE,
+        NumberBadgeStyle.FILLED_SQUARE,
     )
 
     private fun brushModes(): List<EditorMode> =
@@ -871,6 +943,62 @@ class ImageEditorQuickToolsCoordinator(
             ShapeType.TRIANGLE -> R.string.inspire_image_edit_shape_triangle
         }
         return activity.getString(res)
+    }
+
+    private fun numberStyleDescription(style: NumberBadgeStyle): String {
+        val res = when (style) {
+            NumberBadgeStyle.FILLED_CIRCLE -> R.string.inspire_image_edit_number_style_filled_circle
+            NumberBadgeStyle.OUTLINE_CIRCLE -> R.string.inspire_image_edit_number_style_outline_circle
+            NumberBadgeStyle.FILLED_SQUARE -> R.string.inspire_image_edit_number_style_filled_square
+        }
+        return activity.getString(res)
+    }
+
+    private fun createNumberStyleScrubView(style: NumberBadgeStyle, tintColor: Int): View {
+        return FrameLayout(activity).apply {
+            layoutParams = ViewGroup.MarginLayoutParams(dpToPx(30), dpToPx(28)).apply {
+                marginStart = dpToPx(2)
+                marginEnd = dpToPx(2)
+            }
+            addView(
+                NumberBadgeStylePreviewView(activity).apply {
+                    layoutParams = FrameLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                    )
+                    setPadding(dpToPx(3), dpToPx(3), dpToPx(3), dpToPx(3))
+                    setStylePreview(style, tintColor)
+                },
+            )
+        }
+    }
+
+    private fun applyNumberStyleScrubSelection(
+        view: View,
+        style: NumberBadgeStyle,
+        selected: Boolean,
+        tintColor: Int,
+    ) {
+        (view as? FrameLayout)?.getChildAt(0)?.let { child ->
+            (child as? NumberBadgeStylePreviewView)?.setStylePreview(style, tintColor)
+        }
+        view.alpha = if (selected) 1f else 0.72f
+        view.scaleX = if (selected) 1.05f else 1f
+        view.scaleY = if (selected) 1.05f else 1f
+        val bg = GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            cornerRadius = dp(12f)
+            if (selected) {
+                setColor(
+                    MaterialColors.getColor(binding.root, com.google.android.material.R.attr.colorSecondaryContainer),
+                )
+                setStroke(
+                    dp(0.8f).roundToInt().coerceAtLeast(1),
+                    MaterialColors.getColor(binding.root, com.google.android.material.R.attr.colorSecondary),
+                )
+            }
+        }
+        view.background = bg
     }
 
     private fun dp(value: Float): Float = EditorViewMetrics.dp(activity, value)

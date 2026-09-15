@@ -2,6 +2,8 @@ package com.slideindex.app.imageeditor.state
 
 import com.slideindex.app.imageeditor.model.EditAction
 import com.slideindex.app.imageeditor.model.EditorMode
+import com.slideindex.app.imageeditor.model.EditorPoint
+import com.slideindex.app.imageeditor.model.NumberBadgeStyle
 import com.slideindex.app.imageeditor.model.ShapeType
 import kotlin.math.max
 
@@ -39,7 +41,7 @@ class EditorSession {
                 EditorMode.ERASER -> current.copy(eraserStrokeWidth = width)
                 EditorMode.SHAPE -> current.copy(shapeStrokeWidth = width)
                 EditorMode.MOSAIC -> current.copy(mosaicStrokeWidth = width)
-                EditorMode.NAVIGATE, EditorMode.CROP, EditorMode.TEXT -> current
+                EditorMode.NAVIGATE, EditorMode.CROP, EditorMode.TEXT, EditorMode.NUMBER -> current
             }
         }
     }
@@ -52,13 +54,31 @@ class EditorSession {
                 EditorMode.ERASER -> current.copy(eraserStrokeWidth = width)
                 EditorMode.SHAPE -> current.copy(shapeStrokeWidth = width)
                 EditorMode.MOSAIC -> current.copy(mosaicStrokeWidth = width)
-                EditorMode.NAVIGATE, EditorMode.CROP, EditorMode.TEXT -> current
+                EditorMode.NAVIGATE, EditorMode.CROP, EditorMode.TEXT, EditorMode.NUMBER -> current
             }
         }
     }
 
     fun updateShapeType(shapeType: ShapeType) {
         updateState { it.copy(currentShapeType = shapeType) }
+    }
+
+    fun updateNumberStyle(style: NumberBadgeStyle) {
+        updateState { it.copy(currentNumberStyle = style) }
+    }
+
+    fun updateNumberBadgeSize(size: Float) {
+        updateState { it.copy(numberBadgeSize = max(size, 12f)) }
+    }
+
+    fun updateNumberAction(id: String, transform: (EditAction.NumberBadge) -> EditAction.NumberBadge) {
+        updateState { current ->
+            current.copy(
+                undoStack = current.undoStack.map { action ->
+                    if (action is EditAction.NumberBadge && action.id == id) transform(action) else action
+                },
+            )
+        }
     }
 
     fun addAction(action: EditAction) {
@@ -68,6 +88,21 @@ class EditorSession {
                 redoStack = emptyList(),
             )
         }
+    }
+
+    fun nextNumberValue(): Int = state.nextNumberValue()
+
+    fun addNumberBadge(anchor: EditorPoint, badgeSize: Float, id: String) {
+        addAction(
+            EditAction.NumberBadge(
+                id = id,
+                number = nextNumberValue(),
+                anchor = anchor,
+                color = state.currentColor,
+                style = state.currentNumberStyle,
+                badgeSize = badgeSize,
+            ),
+        )
     }
 
     fun replaceActions(actions: List<EditAction>) {

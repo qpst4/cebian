@@ -8,4 +8,5 @@ enum class EditorMode {
     SHAPE,
     TEXT,
     MOSAIC,
+    NUMBER,
 }

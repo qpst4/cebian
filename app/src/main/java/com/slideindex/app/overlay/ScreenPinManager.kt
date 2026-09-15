@@ -1310,7 +1310,14 @@ private fun ScreenPinContent(
                         .size(contentW, contentH)
                         .alpha(alpha),
                     contentScale = if (content.screenRect != null) {
-                        ContentScale.FillBounds
+                        val bmpAspect =
+                            content.bitmap.width.toFloat() / content.bitmap.height.coerceAtLeast(1)
+                        val boxAspect = displayW.toFloat() / displayH.coerceAtLeast(1)
+                        if (kotlin.math.abs(bmpAspect - boxAspect) <= 0.02f) {
+                            ContentScale.FillBounds
+                        } else {
+                            ContentScale.Fit
+                        }
                     } else {
                         ContentScale.Fit
                     }

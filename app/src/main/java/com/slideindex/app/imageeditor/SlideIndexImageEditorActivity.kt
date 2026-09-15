@@ -81,6 +81,7 @@ class SlideIndexImageEditorActivity : AppCompatActivity() {
     private var lastPersistedMode: EditorMode? = null
     private var lastPersistedColor: Int? = null
     private var lastPersistedShapeType: ShapeType? = null
+    private var lastObservedChromeState: EditorUiState? = null
 
     private val prefs by lazy {
         getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -162,6 +163,7 @@ class SlideIndexImageEditorActivity : AppCompatActivity() {
             binding.modeShape to EditorMode.SHAPE,
             binding.modeText to EditorMode.TEXT,
             binding.modeMosaic to EditorMode.MOSAIC,
+            binding.modeNumber to EditorMode.NUMBER,
         )
         modeButtons.forEach { (button, mode) ->
             button.setOnClickListener {
@@ -189,6 +191,7 @@ class SlideIndexImageEditorActivity : AppCompatActivity() {
         quickTools.setupCompactColorControls()
         quickTools.setupCompactBrushControls()
         quickTools.setupCompactShapeControls()
+        quickTools.setupCompactNumberStyleControls()
 
         binding.editorView.setOnTouchListener { _, event ->
             if (event.actionMasked == MotionEvent.ACTION_DOWN) {
@@ -202,7 +205,20 @@ class SlideIndexImageEditorActivity : AppCompatActivity() {
         binding.btnTopClearCrop.setOnClickListener { binding.editorView.clearCropSelection() }
         binding.btnTopApplyCrop.setOnClickListener {
             binding.editorView.cancelOngoingInteraction()
+            val bitmapSize = binding.editorView.currentBitmapSize()
+            val cropRect = binding.editorView.peekCropBitmapRect()
             if (binding.editorView.applyCropSelection()) {
+                if (bitmapSize != null && cropRect != null) {
+                    val (newRect, newMeta) = ImageEditorPinMeta.applyCropToPinMeta(
+                        screenRect = pinScreenRect,
+                        layoutMeta = pinLayoutMeta,
+                        cropRectInBitmap = cropRect,
+                        bitmapWidth = bitmapSize.first,
+                        bitmapHeight = bitmapSize.second,
+                    )
+                    pinScreenRect = newRect
+                    pinLayoutMeta = newMeta
+                }
                 applyAdaptiveBrushSizeIfNeeded()
                 quickTools.dismissQuickToolPopup()
                 editorSession.switchMode(EditorMode.NAVIGATE)
@@ -236,12 +252,26 @@ class SlideIndexImageEditorActivity : AppCompatActivity() {
             override fun onStateChanged(state: EditorUiState) {
                 binding.btnUndo.isEnabled = state.canUndo
                 binding.btnRedo.isEnabled = state.canRedo
-                renderModeSelection(state.currentMode)
-                quickTools.renderColorSelection(state.currentColor)
-                quickTools.renderShapeSelection(state.currentShapeType)
-                quickTools.renderBrushControls(state)
-                quickTools.renderModeQuickTools(state)
-                persistLastUsedEditorPreferencesIfChanged(state)
+                val prev = lastObservedChromeState
+                val chromeChanged = prev == null ||
+                    prev.currentMode != state.currentMode ||
+                    prev.currentColor != state.currentColor ||
+                    prev.currentShapeType != state.currentShapeType ||
+                    prev.currentNumberStyle != state.currentNumberStyle ||
+                    prev.doodleStrokeWidth != state.doodleStrokeWidth ||
+                    prev.eraserStrokeWidth != state.eraserStrokeWidth ||
+                    prev.shapeStrokeWidth != state.shapeStrokeWidth ||
+                    prev.mosaicStrokeWidth != state.mosaicStrokeWidth
+                if (chromeChanged) {
+                    renderModeSelection(state.currentMode)
+                    quickTools.renderColorSelection(state.currentColor)
+                    quickTools.renderShapeSelection(state.currentShapeType)
+                    quickTools.renderNumberStyleSelection(state)
+                    quickTools.renderBrushControls(state)
+                    quickTools.renderModeQuickTools(state)
+                    persistLastUsedEditorPreferencesIfChanged(state)
+                }
+                lastObservedChromeState = state
             }
         })
     }
@@ -312,6 +342,13 @@ class SlideIndexImageEditorActivity : AppCompatActivity() {
         ).also { pinLayoutMeta = it }
     }
 
+    /** 取词 [pinScreenRect] 已是屏幕像素钉图框时不再传 layoutMeta，避免二次 map 导致位置/尺寸错误。 */
+    private fun layoutMetaForPin(bitmap: Bitmap): ScreenshotLayoutMeta? {
+        val rect = pinScreenRect
+        if (rect != null && !rect.isEmpty) return null
+        return resolvePinLayoutMeta(bitmap)
+    }
+
     private fun runEnterAnimationIfNeeded() {
         if (enterAnimationPlayed) return
         enterAnimationPlayed = true
@@ -370,7 +407,7 @@ class SlideIndexImageEditorActivity : AppCompatActivity() {
             EditorMode.DOODLE -> f * 0.012f + 2f
             EditorMode.ERASER -> f * 0.026f + 4f
             EditorMode.SHAPE -> f * 0.015f + 2f
-            EditorMode.NAVIGATE, EditorMode.CROP, EditorMode.TEXT ->
+            EditorMode.NAVIGATE, EditorMode.CROP, EditorMode.TEXT, EditorMode.NUMBER ->
                 editorSession.state.brushWidthFor(EditorMode.DOODLE)
         }
         return raw.coerceIn(BRUSH_SIZE_MIN, BRUSH_SIZE_MAX)
@@ -423,8 +460,7 @@ class SlideIndexImageEditorActivity : AppCompatActivity() {
         }
         exportJob = lifecycleScope.launch {
             val ctx = overlayContext()
-            val meta = resolvePinLayoutMeta(bitmap)
-            StashCoordinator.pinImageToScreen(ctx, bitmap, pinScreenRect, meta)
+            StashCoordinator.pinImageToScreen(ctx, bitmap, pinScreenRect, layoutMetaForPin(bitmap))
             finishAndRemoveTask()
         }
     }
@@ -438,7 +474,7 @@ class SlideIndexImageEditorActivity : AppCompatActivity() {
         exportJob = lifecycleScope.launch {
             val ctx = overlayContext()
             val metrics = ctx.resources.displayMetrics
-            val meta = resolvePinLayoutMeta(bitmap)
+            val meta = layoutMetaForPin(bitmap)
             val (displayW, displayH) = resolvePinImageDisplaySizePx(
                 bitmap = bitmap,
                 screenRect = pinScreenRect,
