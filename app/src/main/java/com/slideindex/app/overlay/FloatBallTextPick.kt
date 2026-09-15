@@ -12,6 +12,7 @@ import android.os.Handler
 import android.os.Looper
 import android.provider.MediaStore
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import com.slideindex.app.clipboard.ClipboardAccess
@@ -142,7 +143,10 @@ object FloatBallTextPick {
         }
     }
 
-    fun saveScreenshot(context: Context, bitmap: Bitmap): Boolean {
+    fun saveScreenshot(context: Context, bitmap: Bitmap): Boolean =
+        saveScreenshotReturningUri(context, bitmap) != null
+
+    fun saveScreenshotReturningUri(context: Context, bitmap: Bitmap): Uri? {
         val fileName = screenshotFileName()
         val values = android.content.ContentValues().apply {
             put(MediaStore.Images.Media.DISPLAY_NAME, fileName)
@@ -152,7 +156,7 @@ object FloatBallTextPick {
         }
         val resolver = context.contentResolver
         val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
-            ?: return false
+            ?: return null
         return runCatching {
             resolver.openOutputStream(uri)?.use { out ->
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
@@ -161,10 +165,10 @@ object FloatBallTextPick {
             values.put(MediaStore.Images.Media.IS_PENDING, 0)
             resolver.update(uri, values, null, null)
             ClipboardAccess.repository?.ingestScreenshot(uri, fileName)
-            true
+            uri
         }.onFailure {
             resolver.delete(uri, null, null)
-        }.getOrDefault(false)
+        }.getOrNull()
     }
 
     private fun screenshotFileName(): String {
@@ -212,6 +216,39 @@ object FloatBallTextPick {
     }
 
     fun viewScreenshot(context: Context, bitmap: Bitmap, targetPackage: String? = null): Boolean {
+        if (targetPackage == com.slideindex.app.imageeditor.ImageEditorOpenTargets.BUILTIN_PACKAGE) {
+            return openBuiltinImageEditor(context, bitmap)
+        }
+        if (targetPackage.isNullOrBlank()) {
+            showImageViewerPicker(context, bitmap)
+            return true
+        }
+        return viewScreenshotWithPackage(context, bitmap, targetPackage)
+    }
+
+    private fun showImageViewerPicker(context: Context, bitmap: Bitmap) {
+        val options = com.slideindex.app.ui.viewmodel.FloatBallPickSettingsViewModel
+            .buildImageViewerOptions(context)
+        if (options.isEmpty()) {
+            Toast.makeText(context, R.string.float_ball_action_failed, Toast.LENGTH_SHORT).show()
+            return
+        }
+        val labels = options.map { it.label }.toTypedArray()
+        AlertDialog.Builder(context)
+            .setTitle(R.string.float_ball_action_open_image)
+            .setItems(labels) { _, which ->
+                val selected = options.getOrNull(which) ?: return@setItems
+                when (val pkg = selected.packageName) {
+                    com.slideindex.app.imageeditor.ImageEditorOpenTargets.BUILTIN_PACKAGE ->
+                        openBuiltinImageEditor(context, bitmap)
+                    null -> showImageViewerPicker(context, bitmap)
+                    else -> viewScreenshotWithPackage(context, bitmap, pkg)
+                }
+            }
+            .show()
+    }
+
+    private fun viewScreenshotWithPackage(context: Context, bitmap: Bitmap, targetPackage: String): Boolean {
         val uri = createShareImageUri(context, bitmap)
             ?: run {
                 Toast.makeText(context, R.string.float_ball_action_failed, Toast.LENGTH_SHORT).show()
@@ -222,20 +259,24 @@ object FloatBallTextPick {
                 setDataAndType(uri, "image/*")
                 clipData = ClipData.newUri(context.contentResolver, "image", uri)
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                setPackage(targetPackage)
             }
-            if (!targetPackage.isNullOrBlank()) {
-                intent.setPackage(targetPackage)
-                context.startActivity(intent)
-            } else {
-                val chooser = Intent.createChooser(
-                    intent,
-                    context.getString(R.string.float_ball_action_open_image)
-                ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                context.startActivity(chooser)
-            }
+            context.startActivity(intent)
             true
         }.getOrElse {
             deleteShareImageUri(context, uri)
+            Toast.makeText(context, R.string.float_ball_action_failed, Toast.LENGTH_SHORT).show()
+            false
+        }
+    }
+
+    fun openBuiltinImageEditor(context: Context, bitmap: Bitmap): Boolean {
+        return runCatching {
+            val copy = bitmap.copy(Bitmap.Config.ARGB_8888, false) ?: return false
+            com.slideindex.app.imageeditor.ImageEditorLaunchCache.put(copy)
+            com.slideindex.app.imageeditor.SlideIndexImageEditorActivity.launch(context)
+            true
+        }.getOrElse {
             Toast.makeText(context, R.string.float_ball_action_failed, Toast.LENGTH_SHORT).show()
             false
         }

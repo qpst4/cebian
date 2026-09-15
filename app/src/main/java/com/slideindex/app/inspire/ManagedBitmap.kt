@@ -22,6 +22,8 @@ class ManagedBitmap private constructor(
 
     fun requireBitmap(): Bitmap = bitmap
 
+    fun getBitmapOrNull(): Bitmap? = bitmap.takeIf { !it.isRecycled }
+
     override fun close() {
         if (refCount.decrementAndGet() == 0 && !bitmap.isRecycled) {
             bitmap.recycle()
@@ -29,6 +31,7 @@ class ManagedBitmap private constructor(
     }
 
     companion object {
+        @JvmStatic
         fun from(bitmap: Bitmap): ManagedBitmap = ManagedBitmap(bitmap)
     }
 }

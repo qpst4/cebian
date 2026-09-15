@@ -122,6 +122,7 @@ android {
         compose = true
         aidl = true
         buildConfig = true
+        viewBinding = true
     }
 
     androidResources {

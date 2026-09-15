@@ -218,6 +218,11 @@
             android:theme="@style/Theme.SlideIndex.Transparent" />
 
         <activity
+            android:name=".imageeditor.SlideIndexImageEditorActivity"
+            android:exported="false"
+            android:theme="@style/Theme.SlideIndex.ImageEditor" />
+
+        <activity
             android:name=".service.CreateShortcutTrampolineActivity"
             android:excludeFromRecents="true"
             android:exported="false"

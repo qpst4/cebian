@@ -60,6 +60,13 @@ class FloatBallPickSettingsViewModel @Inject constructor(
                         iconBitmap = null,
                     ),
                 )
+                add(
+                    ImageViewerDropdownOption(
+                        packageName = com.slideindex.app.imageeditor.ImageEditorOpenTargets.BUILTIN_PACKAGE,
+                        label = context.getString(R.string.image_viewer_builtin_editor),
+                        iconBitmap = null,
+                    ),
+                )
                 ImageViewTargetResolver.listTargets(context).forEach { target ->
                     val iconBitmap = target.icon
                         ?.toBitmap(ICON_SIZE_PX, ICON_SIZE_PX)
