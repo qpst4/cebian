@@ -21,7 +21,6 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.FrameMetricsAggregator;
 import androidx.core.app.NotificationCompat;
 import androidx.core.graphics.ColorUtils;
-import androidx.core.view.ViewCompat;
 import com.google.android.material.R;
 import com.google.android.material.color.MaterialColors;
 import com.slideindex.app.inspire.ManagedBitmap;
@@ -327,7 +326,7 @@ public final class ImageEditorView extends View {
         };
         this.imageZoom = 1.0f;
         this.gestureKind = GestureKind.NONE;
-        this.activePoints = new ArrayList();
+        this.activePoints = new ArrayList<>();
         this.cropDragMode = CropDragMode.NEW;
         this.lastObservedMode = this.uiState.getCurrentMode();
         this.scaleDetector = new ScaleGestureDetector(context, new ScaleGestureDetector.SimpleOnScaleGestureListener() { // from class: com.slideindex.app.imageeditor.ui.ImageEditorView$scaleDetector$1
@@ -575,22 +574,21 @@ public final class ImageEditorView extends View {
             return false;
         }
         List<EditAction> visibleActions = this.uiState.getVisibleActions();
-        ArrayList arrayList = new ArrayList();
-        Iterator it = visibleActions.iterator();
+        ArrayList<EditAction> croppedActions = new ArrayList<>();
+        Iterator<EditAction> it = visibleActions.iterator();
         while (it.hasNext()) {
-            EditAction transformActionForCrop = transformActionForCrop((EditAction) it.next(), buildCropBitmapRect);
+            EditAction transformActionForCrop = transformActionForCrop(it.next(), buildCropBitmapRect);
             if (transformActionForCrop != null) {
-                arrayList.add(transformActionForCrop);
+                croppedActions.add(transformActionForCrop);
             }
         }
-        ArrayList arrayList2 = arrayList;
         ManagedBitmap from = ManagedBitmap.from(cropByRect);
         try {
             setImageBitmap(from);
             from.close();
             EditorSession editorSession = this.session;
             if (editorSession != null) {
-                editorSession.replaceActions(arrayList2);
+                editorSession.replaceActions(croppedActions);
             }
             clearCropSelection();
             return true;
@@ -634,9 +632,8 @@ public final class ImageEditorView extends View {
         canvas.scale(currentDisplayScale, currentDisplayScale);
         canvas.drawBitmap(baseBitmap, 0.0f, 0.0f, (Paint) null);
         int saveLayer = canvas.saveLayer(0.0f, 0.0f, baseBitmap.getWidth(), baseBitmap.getHeight(), null);
-        Iterator it = this.uiState.getVisibleActions().iterator();
-        while (it.hasNext()) {
-            EditorRenderUtils.INSTANCE.drawAction(canvas, (EditAction) it.next(), this.mosaicBitmap, null);
+        for (EditAction action : this.uiState.getVisibleActions()) {
+            EditorRenderUtils.INSTANCE.drawAction(canvas, action, this.mosaicBitmap, null);
         }
         drawTemporaryAction(canvas);
         drawCropMask(canvas, baseBitmap);
@@ -919,12 +916,10 @@ public final class ImageEditorView extends View {
                     }
                     EditorSession editorSession = this.session;
                     if (editorSession != null) {
-                        editorSession.updateShapeAction(str, new Function1() { // from class: com.slideindex.app.imageeditor.ui.ImageEditorView$$ExternalSyntheticLambda1
-                            @Override // kotlin.jvm.functions.Function1
-                            public final Object invoke(Object obj) {
-                                EditAction.Shape handleActionMove$lambda$19;
-                                handleActionMove$lambda$19 = ImageEditorView.handleActionMove$lambda$19(ImageEditorView.this, shape, rectF2, screenToImagePointUnbounded, (EditAction.Shape) obj);
-                                return handleActionMove$lambda$19;
+                        editorSession.updateShapeAction(str, new Function1<EditAction.Shape, EditAction.Shape>() {
+                            @Override
+                            public EditAction.Shape invoke(EditAction.Shape obj) {
+                                return ImageEditorView.handleActionMove$lambda$19(ImageEditorView.this, shape, rectF2, screenToImagePointUnbounded, obj);
                             }
                         });
                     }
@@ -937,12 +932,10 @@ public final class ImageEditorView extends View {
                     }
                     EditorSession editorSession2 = this.session;
                     if (editorSession2 != null) {
-                        editorSession2.updateShapeAction(str, new Function1() { // from class: com.slideindex.app.imageeditor.ui.ImageEditorView$$ExternalSyntheticLambda2
-                            @Override // kotlin.jvm.functions.Function1
-                            public final Object invoke(Object obj) {
-                                EditAction.Shape handleActionMove$lambda$20;
-                                handleActionMove$lambda$20 = ImageEditorView.handleActionMove$lambda$20(shape, x2, y2, (EditAction.Shape) obj);
-                                return handleActionMove$lambda$20;
+                        editorSession2.updateShapeAction(str, new Function1<EditAction.Shape, EditAction.Shape>() {
+                            @Override
+                            public EditAction.Shape invoke(EditAction.Shape obj) {
+                                return ImageEditorView.handleActionMove$lambda$20(shape, x2, y2, obj);
                             }
                         });
                     }
@@ -981,12 +974,10 @@ public final class ImageEditorView extends View {
                         final float f2 = coerceAtLeast / this.dragStartTextRadius;
                         EditorSession editorSession3 = this.session;
                         if (editorSession3 != null) {
-                            editorSession3.updateTextAction(str2, new Function1() { // from class: com.slideindex.app.imageeditor.ui.ImageEditorView$$ExternalSyntheticLambda3
-                                @Override // kotlin.jvm.functions.Function1
-                                public final Object invoke(Object obj) {
-                                    EditAction.Text handleActionMove$lambda$21;
-                                    handleActionMove$lambda$21 = ImageEditorView.handleActionMove$lambda$21(floatValue, f2, ImageEditorView.this, (EditAction.Text) obj);
-                                    return handleActionMove$lambda$21;
+                            editorSession3.updateTextAction(str2, new Function1<EditAction.Text, EditAction.Text>() {
+                                @Override
+                                public EditAction.Text invoke(EditAction.Text obj) {
+                                    return ImageEditorView.handleActionMove$lambda$21(floatValue, f2, ImageEditorView.this, obj);
                                 }
                             });
                             return;
@@ -1007,12 +998,10 @@ public final class ImageEditorView extends View {
                 }
                 EditorSession editorSession4 = this.session;
                 if (editorSession4 != null) {
-                    editorSession4.updateTextAction(str2, new Function1() { // from class: com.slideindex.app.imageeditor.ui.ImageEditorView$$ExternalSyntheticLambda4
-                        @Override // kotlin.jvm.functions.Function1
-                        public final Object invoke(Object obj) {
-                            EditAction.Text handleActionMove$lambda$22;
-                            handleActionMove$lambda$22 = ImageEditorView.handleActionMove$lambda$22(editorPoint4, x3, y3, (EditAction.Text) obj);
-                            return handleActionMove$lambda$22;
+                    editorSession4.updateTextAction(str2, new Function1<EditAction.Text, EditAction.Text>() {
+                        @Override
+                        public EditAction.Text invoke(EditAction.Text obj) {
+                            return ImageEditorView.handleActionMove$lambda$22(editorPoint4, x3, y3, obj);
                         }
                     });
                     return;
@@ -1293,7 +1282,7 @@ public final class ImageEditorView extends View {
             if (WhenMappings.$EnumSwitchMapping$0[this.uiState.getCurrentMode().ordinal()] == 4) {
                 i = MaterialColors.getColor(this, R.attr.colorOnSurface);
             } else {
-                i = ColorUtils.calculateLuminance(alphaComponent) > 0.5d ? ViewCompat.MEASURED_STATE_MASK : -1;
+                i = ColorUtils.calculateLuminance(alphaComponent) > 0.5d ? Color.BLACK : -1;
             }
             this.centerBrushPreviewFillPaint.setColor(alphaComponent);
             this.centerBrushPreviewOutlinePaint.setColor(ColorUtils.setAlphaComponent(i, 230));
@@ -1322,97 +1311,75 @@ public final class ImageEditorView extends View {
     }
 
     private final EditAction.Text findTextAtPoint(EditorPoint point) {
-        Object obj;
-        List asReversed = CollectionsKt.asReversed(this.uiState.getVisibleActions());
-        ArrayList arrayList = new ArrayList();
-        for (Object obj2 : asReversed) {
-            if (obj2 instanceof EditAction.Text) {
-                arrayList.add(obj2);
+        EditAction.Text found = null;
+        List<EditAction> asReversed = CollectionsKt.asReversed(this.uiState.getVisibleActions());
+        ArrayList<EditAction.Text> texts = new ArrayList<>();
+        for (EditAction action : asReversed) {
+            if (action instanceof EditAction.Text) {
+                texts.add((EditAction.Text) action);
             }
         }
-        Iterator it = arrayList.iterator();
-        while (true) {
-            obj = null;
-            if (!it.hasNext()) {
-                break;
-            }
-            Object next = it.next();
-            if (EditorRenderUtils.INSTANCE.buildTextBounds((EditAction.Text) next, 12f).contains(point.getX(), point.getY())) {
-                obj = next;
+        for (EditAction.Text candidate : texts) {
+            if (EditorRenderUtils.INSTANCE.buildTextBounds(candidate, 12f).contains(point.getX(), point.getY())) {
+                found = candidate;
                 break;
             }
         }
-        return (EditAction.Text) obj;
+        return found;
     }
 
     private final EditAction.Shape findShapeAtPoint(EditorPoint point) {
-        Object obj;
-        List asReversed = CollectionsKt.asReversed(this.uiState.getVisibleActions());
-        ArrayList arrayList = new ArrayList();
-        for (Object obj2 : asReversed) {
-            if (obj2 instanceof EditAction.Shape) {
-                arrayList.add(obj2);
+        EditAction.Shape found = null;
+        List<EditAction> asReversed = CollectionsKt.asReversed(this.uiState.getVisibleActions());
+        ArrayList<EditAction.Shape> shapes = new ArrayList<>();
+        for (EditAction action : asReversed) {
+            if (action instanceof EditAction.Shape) {
+                shapes.add((EditAction.Shape) action);
             }
         }
-        Iterator it = arrayList.iterator();
-        while (true) {
-            obj = null;
-            if (!it.hasNext()) {
-                break;
-            }
-            Object next = it.next();
-            if (EditorRenderUtils.INSTANCE.buildShapeBounds((EditAction.Shape) next, 12f).contains(point.getX(), point.getY())) {
-                obj = next;
+        for (EditAction.Shape candidate : shapes) {
+            if (EditorRenderUtils.INSTANCE.buildShapeBounds(candidate, 12f).contains(point.getX(), point.getY())) {
+                found = candidate;
                 break;
             }
         }
-        return (EditAction.Shape) obj;
+        return found;
     }
 
     private final EditAction.Shape findShapeHandleAtPoint(EditorPoint point) {
-        Object obj;
-        List asReversed = CollectionsKt.asReversed(this.uiState.getVisibleActions());
-        ArrayList arrayList = new ArrayList();
-        for (Object obj2 : asReversed) {
-            if (obj2 instanceof EditAction.Shape) {
-                arrayList.add(obj2);
+        EditAction.Shape found = null;
+        List<EditAction> asReversed = CollectionsKt.asReversed(this.uiState.getVisibleActions());
+        ArrayList<EditAction.Shape> shapes = new ArrayList<>();
+        for (EditAction action : asReversed) {
+            if (action instanceof EditAction.Shape) {
+                shapes.add((EditAction.Shape) action);
             }
         }
-        Iterator it = arrayList.iterator();
-        while (true) {
-            if (!it.hasNext()) {
-                obj = null;
-                break;
-            }
-            obj = it.next();
-            if (isShapeResizeHandleHit((EditAction.Shape) obj, point)) {
+        for (EditAction.Shape candidate : shapes) {
+            if (isShapeResizeHandleHit(candidate, point)) {
+                found = candidate;
                 break;
             }
         }
-        return (EditAction.Shape) obj;
+        return found;
     }
 
     private final EditAction.Text findTextHandleAtPoint(EditorPoint point) {
-        Object obj;
-        List asReversed = CollectionsKt.asReversed(this.uiState.getVisibleActions());
-        ArrayList arrayList = new ArrayList();
-        for (Object obj2 : asReversed) {
-            if (obj2 instanceof EditAction.Text) {
-                arrayList.add(obj2);
+        EditAction.Text found = null;
+        List<EditAction> asReversed = CollectionsKt.asReversed(this.uiState.getVisibleActions());
+        ArrayList<EditAction.Text> texts = new ArrayList<>();
+        for (EditAction action : asReversed) {
+            if (action instanceof EditAction.Text) {
+                texts.add((EditAction.Text) action);
             }
         }
-        Iterator it = arrayList.iterator();
-        while (true) {
-            if (!it.hasNext()) {
-                obj = null;
-                break;
-            }
-            obj = it.next();
-            if (isTextResizeHandleHit((EditAction.Text) obj, point)) {
+        for (EditAction.Text candidate : texts) {
+            if (isTextResizeHandleHit(candidate, point)) {
+                found = candidate;
                 break;
             }
         }
-        return (EditAction.Text) obj;
+        return found;
     }
 
     private final boolean deleteSelectedShapeIfHit(EditorPoint point) {
@@ -1488,56 +1455,42 @@ public final class ImageEditorView extends View {
 
     private final EditAction.Shape selectedShapeAction() {
         String str = this.selectedShapeId;
-        Object obj = null;
         if (str == null) {
             return null;
         }
         List<EditAction> visibleActions = this.uiState.getVisibleActions();
-        ArrayList arrayList = new ArrayList();
-        for (Object obj2 : visibleActions) {
-            if (obj2 instanceof EditAction.Shape) {
-                arrayList.add(obj2);
+        ArrayList<EditAction.Shape> shapes = new ArrayList<>();
+        for (EditAction action : visibleActions) {
+            if (action instanceof EditAction.Shape) {
+                shapes.add((EditAction.Shape) action);
             }
         }
-        Iterator it = arrayList.iterator();
-        while (true) {
-            if (!it.hasNext()) {
-                break;
-            }
-            Object next = it.next();
-            if (Intrinsics.areEqual(((EditAction.Shape) next).getId(), str)) {
-                obj = next;
-                break;
+        for (EditAction.Shape shape : shapes) {
+            if (Intrinsics.areEqual(shape.getId(), str)) {
+                return shape;
             }
         }
-        return (EditAction.Shape) obj;
+        return null;
     }
 
     private final EditAction.Text selectedTextAction() {
         String str = this.selectedTextId;
-        Object obj = null;
         if (str == null) {
             return null;
         }
         List<EditAction> visibleActions = this.uiState.getVisibleActions();
-        ArrayList arrayList = new ArrayList();
-        for (Object obj2 : visibleActions) {
-            if (obj2 instanceof EditAction.Text) {
-                arrayList.add(obj2);
+        ArrayList<EditAction.Text> texts = new ArrayList<>();
+        for (EditAction action : visibleActions) {
+            if (action instanceof EditAction.Text) {
+                texts.add((EditAction.Text) action);
             }
         }
-        Iterator it = arrayList.iterator();
-        while (true) {
-            if (!it.hasNext()) {
-                break;
-            }
-            Object next = it.next();
-            if (Intrinsics.areEqual(((EditAction.Text) next).getId(), str)) {
-                obj = next;
-                break;
+        for (EditAction.Text text : texts) {
+            if (Intrinsics.areEqual(text.getId(), str)) {
+                return text;
             }
         }
-        return (EditAction.Text) obj;
+        return null;
     }
 
     private void handleTextTap(EditAction.Text action) {
@@ -1599,7 +1552,7 @@ public final class ImageEditorView extends View {
         int color = MaterialColors.getColor(ImageEditorView, android.R.attr.colorPrimary);
         int color2 = MaterialColors.getColor(ImageEditorView, R.attr.colorOnPrimary);
         int color3 = MaterialColors.getColor(ImageEditorView, androidx.appcompat.R.attr.colorError);
-        int i = ColorUtils.calculateLuminance(color3) > 0.5d ? ViewCompat.MEASURED_STATE_MASK : -1;
+        int i = ColorUtils.calculateLuminance(color3) > 0.5d ? Color.BLACK : -1;
         this.selectionPaint.setColor(color);
         this.selectionPaint.setStrokeWidth(EditorViewMetrics.dp(getContext(), 2.0f) * coerceAtLeast);
         this.selectionPaint.setPathEffect(new DashPathEffect(new float[]{EditorViewMetrics.dp(getContext(), 18.0f) * coerceAtLeast, EditorViewMetrics.dp(getContext(), 10.0f) * coerceAtLeast}, 0.0f));
@@ -2024,12 +1977,11 @@ public final class ImageEditorView extends View {
                 return null;
             }
             List<EditorPoint> points = doodle.getPoints();
-            ArrayList arrayList = new ArrayList(CollectionsKt.collectionSizeOrDefault(points, 10));
-            Iterator it = points.iterator();
-            while (it.hasNext()) {
-                arrayList.add(offsetByCrop((EditorPoint) it.next(), cropRect));
+            ArrayList<EditorPoint> shiftedPoints = new ArrayList<>(CollectionsKt.collectionSizeOrDefault(points, 10));
+            for (EditorPoint point : points) {
+                shiftedPoints.add(offsetByCrop(point, cropRect));
             }
-            return new EditAction.Doodle(doodle.getId(), arrayList, doodle.getColor(), doodle.getStrokeWidth(), doodle.isEraser());
+            return new EditAction.Doodle(doodle.getId(), shiftedPoints, doodle.getColor(), doodle.getStrokeWidth(), doodle.isEraser());
         }
         if (action instanceof EditAction.Mosaic) {
             EditAction.Mosaic mosaic = (EditAction.Mosaic) action;
@@ -2037,12 +1989,11 @@ public final class ImageEditorView extends View {
                 return null;
             }
             List<EditorPoint> points2 = mosaic.getPoints();
-            ArrayList arrayList2 = new ArrayList(CollectionsKt.collectionSizeOrDefault(points2, 10));
-            Iterator it2 = points2.iterator();
-            while (it2.hasNext()) {
-                arrayList2.add(offsetByCrop((EditorPoint) it2.next(), cropRect));
+            ArrayList<EditorPoint> shiftedPoints = new ArrayList<>(CollectionsKt.collectionSizeOrDefault(points2, 10));
+            for (EditorPoint point : points2) {
+                shiftedPoints.add(offsetByCrop(point, cropRect));
             }
-            return new EditAction.Mosaic(mosaic.getId(), arrayList2, mosaic.getStrokeWidth());
+            return new EditAction.Mosaic(mosaic.getId(), shiftedPoints, mosaic.getStrokeWidth());
         }
         if (action instanceof EditAction.Shape) {
             EditAction.Shape shape = (EditAction.Shape) action;
@@ -2079,10 +2030,11 @@ public final class ImageEditorView extends View {
         if (points.isEmpty()) {
             return new RectF();
         }
-        float x = ((EditorPoint) CollectionsKt.first((List) points)).getX();
-        float y = ((EditorPoint) CollectionsKt.first((List) points)).getY();
-        float x2 = ((EditorPoint) CollectionsKt.first((List) points)).getX();
-        float y2 = ((EditorPoint) CollectionsKt.first((List) points)).getY();
+        EditorPoint first = points.get(0);
+        float x = first.getX();
+        float y = first.getY();
+        float x2 = first.getX();
+        float y2 = first.getY();
         for (EditorPoint editorPoint : CollectionsKt.drop(points, 1)) {
             x = Math.min(x, editorPoint.getX());
             y = Math.min(y, editorPoint.getY());
