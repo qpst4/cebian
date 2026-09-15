@@ -1001,11 +1001,19 @@ object FloatBallPickResultPanel {
                     searchEngineShowLabels = settings.searchEngineShowLabels,
                     appSettings = settings,
                     onImageClick = {
-                        screenshot?.let {
+                        screenshot?.let { bmp ->
+                            val ctx = appContext ?: overlayContext
+                            val meta = layoutMeta ?: buildScreenshotLayoutMeta(
+                                bitmap = bmp,
+                                screenWidthPx = overlayContext.resources.displayMetrics.widthPixels,
+                                screenHeightPx = overlayContext.resources.displayMetrics.heightPixels,
+                            )
                             val opened = FloatBallTextPick.viewScreenshot(
-                                appContext ?: overlayContext,
-                                it,
-                                settings.defaultImageViewerPackage
+                                ctx,
+                                bmp,
+                                settings.defaultImageViewerPackage,
+                                screenRect,
+                                meta,
                             )
                             if (opened) {
                                 dismiss()

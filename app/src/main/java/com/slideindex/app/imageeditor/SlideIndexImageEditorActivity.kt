@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.graphics.Rect
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -37,7 +38,11 @@ import com.slideindex.app.imageeditor.state.EditorSession
 import com.slideindex.app.imageeditor.state.EditorUiState
 import com.slideindex.app.imageeditor.ui.ImageEditorView
 import com.slideindex.app.inspire.ManagedBitmap
+import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.overlay.FloatBallTextPick
+import com.slideindex.app.overlay.ScreenshotLayoutMeta
+import com.slideindex.app.overlay.buildScreenshotLayoutMeta
+import com.slideindex.app.overlay.resolvePinImageDisplaySizePx
 import com.slideindex.app.search.SearchEngineLauncher
 import com.slideindex.app.settings.SearchEngineStore
 import com.slideindex.app.settings.SettingsRepository
@@ -66,6 +71,9 @@ class SlideIndexImageEditorActivity : AppCompatActivity() {
     private var loadBitmapJob: Job? = null
     private var exportJob: Job? = null
     private var enterAnimationPlayed = false
+
+    private var pinScreenRect: Rect? = null
+    private var pinLayoutMeta: ScreenshotLayoutMeta? = null
 
     private lateinit var modeButtons: List<Pair<MaterialButton, EditorMode>>
     private val adaptiveStrokeWidths = linkedMapOf<EditorMode, Float>()
@@ -272,20 +280,36 @@ class SlideIndexImageEditorActivity : AppCompatActivity() {
     private suspend fun loadSourceBitmap() {
         loadBitmapJob?.cancel()
         loadBitmapJob = lifecycleScope.launch {
-            val bitmap = withContext(Dispatchers.Default) {
+            val payload = withContext(Dispatchers.Default) {
                 ImageEditorLaunchCache.take()
             }
-            if (bitmap == null) {
+            if (payload == null) {
                 toast(R.string.inspire_image_edit_load_failed)
                 finish()
                 return@launch
             }
-            val handle = ManagedBitmap.from(bitmap)
+            pinScreenRect = payload.screenRect
+            pinLayoutMeta = payload.layoutMeta
+            val handle = ManagedBitmap.from(payload.bitmap)
             sourceBitmapHandle = handle.acquire()
             binding.editorView.setImageBitmap(handle)
             applyAdaptiveBrushSizeIfNeeded()
             runEnterAnimationIfNeeded()
         }
+    }
+
+    private fun overlayContext(): Context =
+        OverlayDependencyAccess.overlayHostContext() ?: applicationContext
+
+    private fun resolvePinLayoutMeta(bitmap: Bitmap): ScreenshotLayoutMeta {
+        val existing = pinLayoutMeta
+        if (existing != null) return existing
+        val metrics = overlayContext().resources.displayMetrics
+        return buildScreenshotLayoutMeta(
+            bitmap = bitmap,
+            screenWidthPx = metrics.widthPixels,
+            screenHeightPx = metrics.heightPixels,
+        ).also { pinLayoutMeta = it }
     }
 
     private fun runEnterAnimationIfNeeded() {
@@ -398,8 +422,10 @@ class SlideIndexImageEditorActivity : AppCompatActivity() {
             return
         }
         exportJob = lifecycleScope.launch {
-            StashCoordinator.pinImageToScreen(this@SlideIndexImageEditorActivity, bitmap)
-            finish()
+            val ctx = overlayContext()
+            val meta = resolvePinLayoutMeta(bitmap)
+            StashCoordinator.pinImageToScreen(ctx, bitmap, pinScreenRect, meta)
+            finishAndRemoveTask()
         }
     }
 
@@ -410,9 +436,27 @@ class SlideIndexImageEditorActivity : AppCompatActivity() {
             return
         }
         exportJob = lifecycleScope.launch {
-            StashCoordinator.addImage(bitmap) { success ->
-                if (!success) toast(R.string.float_ball_action_failed)
-                finish()
+            val ctx = overlayContext()
+            val metrics = ctx.resources.displayMetrics
+            val meta = resolvePinLayoutMeta(bitmap)
+            val (displayW, displayH) = resolvePinImageDisplaySizePx(
+                bitmap = bitmap,
+                screenRect = pinScreenRect,
+                layoutMeta = meta,
+                screenWidthPx = metrics.widthPixels,
+                screenHeightPx = metrics.heightPixels,
+            )
+            StashCoordinator.addImage(
+                bitmap = bitmap,
+                pinDisplayWidthPx = displayW,
+                pinDisplayHeightPx = displayH,
+            ) { success ->
+                Toast.makeText(
+                    ctx,
+                    if (success) R.string.stash_saved else R.string.stash_save_failed,
+                    Toast.LENGTH_SHORT,
+                ).show()
+                finishAndRemoveTask()
             }
         }
     }
