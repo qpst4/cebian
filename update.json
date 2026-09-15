@@ -1,7 +1,7 @@
 {
-  "version": "1.9.63",
-  "versionCode": 54,
-  "apkUrl": "https://github.com/qpst4/cebian/releases/download/v1.9.63/cebian-1.9.63-lite.apk",
-  "apkSize": 26568679,
-  "notes": "## 修复\n- 快速启动器：修复打开链接、执行 Shell、模拟按键不进配置页；悬浮窗与圆环选槽 overlay 配置子页顶栏统一 ✓ 保存；修复打开链接 embed 表单重叠\n- 悬浮层：不可见触钮设计下仍绘制短/长滑距离预览"
+  "version": "1.10.0",
+  "versionCode": 55,
+  "apkUrl": "https://github.com/qpst4/cebian/releases/download/v1.10.0/cebian-1.10.0-lite.apk",
+  "apkSize": 27467575,
+  "notes": "## 新增\n- 内置图片编辑器：取词/分享等入口打开 GestureEVO 风格编辑器（裁剪、涂鸦、橡皮、形状、文字、马赛克、序号标注）；支持钉图/暂存、保存与主题同步\n- 悬浮球：拖动粘贴与手势「粘贴」动作；剪贴板 FV 式多框粘贴与智能粘贴开关\n- 翻译：悬浮球云端大模型翻译与独立配置页、模型选择\n- 手势：边缘触钮双击槽位与可调双击间隔\n- 角轮：槽位编辑子页横向滑入动画\n- 关于：Telegram 社区讨论群与发版频道入口\n## 变更\n- 悬浮球：预览边界缓存合并扫描、100ms 刷新与 FV 窗序优化\n- 文档：README 社区 badge 与 Telegram 说明\n## 修复\n- 图片编辑器：取词钉图元数据透传、裁切后钉图 1:1、序号触控/删除与 Java 编译告警\n- 悬浮层：禁用 RuntimeShader 毛玻璃/squircle，避免软件 Canvas 崩溃；取词分享图片不落相册；角轮 Activity 选择与主 App 一致\n- 快速启动器：带显示名的打开链接可写入面板\n- 悬浮球：拖贴锁定可编辑框、久悬停升级无障碍取词、粘贴注入强化\n- OCR：恢复 VLM 默认详细 prompt 并迁移短默认"
 }
