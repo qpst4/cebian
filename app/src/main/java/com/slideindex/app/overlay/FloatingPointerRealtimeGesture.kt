@@ -4,14 +4,13 @@ import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
 import android.graphics.Path
 import android.graphics.Point
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 
 /**
- * Quick Cursor-style real-time gesture.
- *
- * While the user moves the pointer, each new position is injected as a continuation of the
- * current [GestureDescription.StrokeDescription] via [continueStroke]. This matches the
- * behaviour of QC's `mt0` class.
+ * Quick Cursor [mt0]: one [dispatchGesture] at a time; each segment uses
+ * [GestureDescription.StrokeDescription.continueStroke] with 1 ms duration.
  */
 internal class FloatingPointerRealtimeGesture(
     private val service: AccessibilityService,
@@ -20,13 +19,12 @@ internal class FloatingPointerRealtimeGesture(
     private val onError: () -> Unit = {},
     private val onFinished: () -> Unit = {}
 ) {
-    private var currentStroke: GestureDescription.StrokeDescription?
+    private var currentStroke: GestureDescription.StrokeDescription? = null
     private var lastDispatchedPoint: Point
     private var dispatchInFlight = false
     private var finishing = false
-    private var pendingX: Float? = null
-    private var pendingY: Float? = null
     private val callback = RealtimeGestureCallback()
+    private val mainHandler = Handler(Looper.getMainLooper())
 
     var currentX: Float = startX
         private set
@@ -34,75 +32,84 @@ internal class FloatingPointerRealtimeGesture(
         private set
 
     init {
-        lastDispatchedPoint = Point(startX.toInt(), startY.toInt())
-        val path = pathFrom(startX, startY, startX, startY)
-        currentStroke = GestureDescription.StrokeDescription(path, 0L, 1L, true)
-        dispatchCurrentStroke("init")
+        val x = startX.toInt()
+        val y = startY.toInt()
+        lastDispatchedPoint = Point(x, y)
+        currentX = startX
+        currentY = startY
+        val path = segmentPath(x.toFloat(), y.toFloat(), x.toFloat(), y.toFloat())
+        currentStroke = GestureDescription.StrokeDescription(path, 0L, SEGMENT_DURATION_MS, true)
+        dispatchStroke("init")
     }
 
     fun updatePosition(x: Float, y: Float) {
         currentX = x
         currentY = y
-        if (dispatchInFlight) {
-            pendingX = x
-            pendingY = y
-            return
-        }
-        dispatchMoveTo(x, y)
+        tryDispatchMove()
     }
 
     fun finish() {
-        if (finishing) return
         finishing = true
-        if (dispatchInFlight) return
+        if (dispatchInFlight) {
+            mainHandler.postDelayed({ finish() }, FINISH_RETRY_DELAY_MS)
+            return
+        }
         dispatchFinishStroke()
     }
 
-    private fun dispatchMoveTo(x: Float, y: Float) {
-        val last = lastDispatchedPoint
-        if (x.toInt() == last.x && y.toInt() == last.y) return
-        val path = pathFrom(last.x.toFloat(), last.y.toFloat(), x, y)
+    private fun tryDispatchMove() {
+        if (dispatchInFlight || finishing) return
+        val x = currentX.toInt()
+        val y = currentY.toInt()
+        if (x == lastDispatchedPoint.x && y == lastDispatchedPoint.y) return
         val stroke = currentStroke ?: return
+        val path = segmentPath(
+            lastDispatchedPoint.x.toFloat(),
+            lastDispatchedPoint.y.toFloat(),
+            x.toFloat(),
+            y.toFloat()
+        )
         val continued = try {
-            stroke.continueStroke(path, 0L, 1L, true)
+            stroke.continueStroke(path, 0L, SEGMENT_DURATION_MS, true)
         } catch (e: Exception) {
             Log.e(TAG, "continueStroke failed", e)
             reportError("continueStroke")
             return
         }
         currentStroke = continued
-        lastDispatchedPoint = Point(x.toInt(), y.toInt())
-        dispatchInFlight = true
-        dispatch(continued, "move")
+        lastDispatchedPoint = Point(x, y)
+        dispatchStroke("move")
     }
 
     private fun dispatchFinishStroke() {
-        val last = lastDispatchedPoint
-        val path = pathFrom(last.x.toFloat(), last.y.toFloat(), currentX, currentY)
         val stroke = currentStroke ?: run {
             onFinished()
             return
         }
+        val last = lastDispatchedPoint
+        val endX = currentX.toInt()
+        val endY = currentY.toInt()
+        val path = segmentPath(
+            last.x.toFloat(),
+            last.y.toFloat(),
+            endX.toFloat(),
+            endY.toFloat()
+        )
         val continued = try {
-            stroke.continueStroke(path, 0L, 1L, false)
+            stroke.continueStroke(path, 0L, SEGMENT_DURATION_MS, false)
         } catch (e: Exception) {
             Log.e(TAG, "finish continueStroke failed", e)
             reportError("finish")
             return
         }
         currentStroke = continued
-        lastDispatchedPoint = Point(currentX.toInt(), currentY.toInt())
-        dispatchInFlight = true
-        dispatch(continued, "finish")
+        lastDispatchedPoint = Point(endX, endY)
+        dispatchStroke("finish")
     }
 
-    private fun dispatchCurrentStroke(label: String) {
+    private fun dispatchStroke(label: String) {
         dispatchInFlight = true
         val stroke = currentStroke ?: return
-        dispatch(stroke, label)
-    }
-
-    private fun dispatch(stroke: GestureDescription.StrokeDescription, label: String) {
         val builder = GestureDescription.Builder().addStroke(stroke)
         val dispatched = try {
             service.dispatchGesture(builder.build(), callback, null)
@@ -116,25 +123,17 @@ internal class FloatingPointerRealtimeGesture(
         }
     }
 
-    private fun flushPendingMove() {
-        val x = pendingX ?: return
-        val y = pendingY ?: return
-        pendingX = null
-        pendingY = null
-        if (finishing) return
-        dispatchMoveTo(x, y)
-    }
-
-    private fun onDispatchCompleted() {
+    private fun onSegmentCompleted() {
         dispatchInFlight = false
-        if (pendingX != null && pendingY != null) {
-            flushPendingMove()
-            return
-        }
         if (finishing) {
-            dispatchFinishStroke()
+            if (currentStroke?.willContinue() != true) {
+                onFinished()
+            } else {
+                dispatchFinishStroke()
+            }
             return
         }
+        tryDispatchMove()
     }
 
     private fun reportError(label: String) {
@@ -142,7 +141,7 @@ internal class FloatingPointerRealtimeGesture(
         onError()
     }
 
-    private fun pathFrom(startX: Float, startY: Float, endX: Float, endY: Float): Path =
+    private fun segmentPath(startX: Float, startY: Float, endX: Float, endY: Float): Path =
         Path().apply {
             moveTo(startX, startY)
             lineTo(endX, endY)
@@ -153,22 +152,19 @@ internal class FloatingPointerRealtimeGesture(
             dispatchInFlight = false
             if (finishing) {
                 onFinished()
-                return
+            } else {
+                reportError("cancelled")
             }
-            flushPendingMove()
         }
 
         override fun onCompleted(gestureDescription: GestureDescription?) {
-            if (finishing && currentStroke?.willContinue() != true) {
-                dispatchInFlight = false
-                onFinished()
-                return
-            }
-            onDispatchCompleted()
+            onSegmentCompleted()
         }
     }
 
     companion object {
         private const val TAG = "FpRealtimeGesture"
+        private const val SEGMENT_DURATION_MS = 1L
+        private const val FINISH_RETRY_DELAY_MS = 1L
     }
 }

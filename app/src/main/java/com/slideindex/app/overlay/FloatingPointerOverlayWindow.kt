@@ -423,29 +423,33 @@ object FloatingPointerOverlayWindow {
         Log.i(TAG, "startRealtimeGesture at ($pointerX, $pointerY)")
         suppressOutsideDismissForInjectedGesture()
         windowLifecycle.expandTouchCapture()
+        val endRealtimeCapture = {
+            extendOutsideDismissSuppressAfterInjectedGesture()
+            windowLifecycle.setTouchOverlayPassthrough(false)
+            pointerSession.clearTrail()
+            val settings = settingsState?.value
+            pointerSession.pointerVisible.value =
+                settings?.floatingPointerHideWhenJoystickReleased != true
+            val (dockX, dockY) = pointerSession.takeGestureCaptureDock()
+                ?: (pointerSession.joystickCenterX.floatValue to pointerSession.joystickCenterY.floatValue)
+            windowLifecycle.collapseTouchCapture(
+                dockX,
+                dockY,
+                forceCollapse = true
+            )
+            settingsSync.resetIdleTimer()
+        }
         pointerSession.startRealtimeGesture(
             service = service,
             pointerX = pointerX,
             pointerY = pointerY,
             onError = {
                 Log.w(TAG, "realtime gesture error")
+                endRealtimeCapture()
             },
             onFinished = {
                 Log.i(TAG, "realtime gesture finished")
-                extendOutsideDismissSuppressAfterInjectedGesture()
-                windowLifecycle.setTouchOverlayPassthrough(false)
-                pointerSession.clearTrail()
-                val settings = settingsState?.value
-                pointerSession.pointerVisible.value =
-                    settings?.floatingPointerHideWhenJoystickReleased != true
-                val (dockX, dockY) = pointerSession.takeGestureCaptureDock()
-                    ?: (pointerSession.joystickCenterX.floatValue to pointerSession.joystickCenterY.floatValue)
-                windowLifecycle.collapseTouchCapture(
-                    dockX,
-                    dockY,
-                    forceCollapse = true
-                )
-                settingsSync.resetIdleTimer()
+                endRealtimeCapture()
             }
         )
     }
