@@ -131,14 +131,10 @@ fun NavEntryBuilder.floatBallNavEntries(ctx: MainNavContext) {
                 initialEngine = initialEngine,
                 draft = currentDraft,
                 editorCategory = SearchEngineEditorCategory.TEXT,
-                onBack = {
-                    viewModel.clearDraft()
-                    ctx.navigateBackTo(AppNavKey.FloatBallSearchEngine)
-                },
+                onBack = { ctx.backStack.removeLastOrNull() },
                 onSave = { result ->
                     viewModel.upsertEngine(result)
-                    viewModel.clearDraft()
-                    ctx.navigateBackTo(AppNavKey.FloatBallSearchEngine)
+                    ctx.backStack.removeLastOrNull()
                 },
                 onUpdateDraft = viewModel::updateDraft,
                 onPickApp = { target, titleResId, pkg ->
@@ -551,14 +547,10 @@ fun NavEntryBuilder.floatBallNavEntries(ctx: MainNavContext) {
                 initialEngine = initialEngine,
                 draft = currentDraft,
                 editorCategory = SearchEngineEditorCategory.IMAGE_SHARE,
-                onBack = {
-                    viewModel.clearDraft()
-                    ctx.navigateBackTo(AppNavKey.FloatBallImageSearchEngine)
-                },
+                onBack = { ctx.backStack.removeLastOrNull() },
                 onSave = { result ->
                     viewModel.upsertEngine(result)
-                    viewModel.clearDraft()
-                    ctx.navigateBackTo(AppNavKey.FloatBallImageSearchEngine)
+                    ctx.backStack.removeLastOrNull()
                 },
                 onUpdateDraft = viewModel::updateDraft,
                 onPickApp = { target, titleResId, pkg ->
