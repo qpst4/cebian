@@ -43,6 +43,13 @@ keystore.properties
 _lsposed_log/
 .apk-rev-base7/
 .tools/
+/tools/
+.tmp_gevo_apk8/
+
+# --- 本地分析 / 构建日志 ---
+androguard.db
+androguard.db-*
+build_java_*.txt
 
 # --- Lint 临时报告 ---
 .lint-report-extract/
