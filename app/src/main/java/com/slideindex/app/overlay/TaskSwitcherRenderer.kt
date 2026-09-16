@@ -41,8 +41,6 @@ internal class TaskSwitcherRenderer(
     private val highlightPath = Path()
     private val tmpRect = RectF()
 
-    private val frostedGlassDrawable = LocalFrostedGlassDrawable { host.overlayView() }
-
     fun drawPanelContent(
         canvas: Canvas,
         layout: TaskSwitcherPanelLayout,
@@ -70,23 +68,8 @@ internal class TaskSwitcherRenderer(
         val panel = layout.panelRect
         val panelCorner = host.dp(13f)
         drawElevationShadow(canvas, panel, panelCorner)
-        val useFrostedGlass = host.panelEnterProgress() >= 0.99f
-        if (useFrostedGlass) {
-            val blurDrawn = frostedGlassDrawable.draw(
-                canvas = canvas,
-                bounds = panel,
-                cornerRadiusPx = panelCorner,
-                blurRadiusPx = host.dp(57f).toInt(),
-                tintColor = theme.cardBackground
-            )
-            if (!blurDrawn) {
-                elevatedCardPaint.color = theme.cardBackground
-                canvas.drawRoundRect(panel, panelCorner, panelCorner, elevatedCardPaint)
-            }
-        } else {
-            elevatedCardPaint.color = theme.cardBackground
-            canvas.drawRoundRect(panel, panelCorner, panelCorner, elevatedCardPaint)
-        }
+        elevatedCardPaint.color = theme.cardBackground
+        canvas.drawRoundRect(panel, panelCorner, panelCorner, elevatedCardPaint)
 
         if (layout.rows.isEmpty()) {
             val hintPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
