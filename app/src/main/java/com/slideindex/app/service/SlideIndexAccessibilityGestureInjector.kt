@@ -355,6 +355,101 @@ internal object SlideIndexAccessibilityGestureInjector {
         }
     }
 
+    /**
+     * 屏搜无惯性平滑拖动：滑动到终点后利用 continueStroke 在原地驻留 [holdDurationMs]，
+     * 使抬手时的初速度降为 0，防止触发系统的 Fling 惯性过冲。
+     */
+    fun dispatchPointerDragNoFling(
+        service: AccessibilityService?,
+        startX: Float,
+        startY: Float,
+        endX: Float,
+        endY: Float,
+        dragDurationMs: Long = 420L,
+        holdDurationMs: Long = 140L,
+        onFinished: (Boolean) -> Unit = {},
+    ) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post {
+                dispatchPointerDragNoFling(
+                    service,
+                    startX,
+                    startY,
+                    endX,
+                    endY,
+                    dragDurationMs,
+                    holdDurationMs,
+                    onFinished,
+                )
+            }
+            return
+        }
+        if (service == null) {
+            Log.w(TAG, "dispatchPointerDragNoFling: service instance is null")
+            onFinished(false)
+            return
+        }
+        val metrics = service.resources.displayMetrics
+        val screenWidth = metrics.widthPixels.toFloat().coerceAtLeast(1f)
+        val screenHeight = metrics.heightPixels.toFloat().coerceAtLeast(1f)
+        val sx = startX.coerceIn(0f, screenWidth)
+        val sy = startY.coerceIn(0f, screenHeight)
+        val ex = endX.coerceIn(0f, screenWidth)
+        val ey = endY.coerceIn(0f, screenHeight)
+        val swipePath = Path().apply {
+            moveTo(sx, sy)
+            lineTo(ex, ey)
+        }
+        val holdPath = Path().apply {
+            moveTo(ex, ey)
+            lineTo(ex, ey)
+        }
+        val stroke1 = GestureDescription.StrokeDescription(swipePath, 0L, dragDurationMs, true)
+        val gesture1 = GestureDescription.Builder().addStroke(stroke1).build()
+        val accepted = service.dispatchGesture(
+            gesture1,
+            object : AccessibilityService.GestureResultCallback() {
+                override fun onCompleted(gestureDescription: GestureDescription?) {
+                    try {
+                        val stroke2 = stroke1.continueStroke(holdPath, 0L, holdDurationMs, false)
+                        val gesture2 = GestureDescription.Builder().addStroke(stroke2).build()
+                        val contAccepted = service.dispatchGesture(
+                            gesture2,
+                            object : AccessibilityService.GestureResultCallback() {
+                                override fun onCompleted(gestureDescription: GestureDescription?) {
+                                    Log.i(TAG, "dispatchPointerDragNoFling completed at ($ex, $ey)")
+                                    onFinished(true)
+                                }
+
+                                override fun onCancelled(gestureDescription: GestureDescription?) {
+                                    Log.w(TAG, "dispatchPointerDragNoFling hold cancelled")
+                                    onFinished(true)
+                                }
+                            },
+                            mainHandler,
+                        )
+                        if (!contAccepted) {
+                            onFinished(true)
+                        }
+                    } catch (e: Throwable) {
+                        Log.w(TAG, "dispatchPointerDragNoFling continueStroke failed", e)
+                        onFinished(true)
+                    }
+                }
+
+                override fun onCancelled(gestureDescription: GestureDescription?) {
+                    Log.w(TAG, "dispatchPointerDragNoFling swipe cancelled")
+                    onFinished(false)
+                }
+            },
+            mainHandler,
+        )
+        if (!accepted) {
+            Log.w(TAG, "dispatchPointerDragNoFling rejected at ($sx, $sy)")
+            onFinished(false)
+        }
+    }
+
     private fun buildClampedPath(path: Path, screenWidth: Float, screenHeight: Float): Path? {
         val pathMeasure = android.graphics.PathMeasure(path, false)
         val length = pathMeasure.length
@@ -434,6 +529,30 @@ internal object SlideIndexAccessibilityGestureInjector {
         }
         if (distance < 1f) return null
         return SwipeEndpoints(sx, sy, ex, ey)
+    }
+
+    /**
+     * 屏搜等场景：对坐标处可滚动容器执行 [ACTION_SCROLL_FORWARD]/[BACKWARD]，
+     * 单步滚动、无 fling 惯性（对齐 GestureEVO 观感）。
+     */
+    fun performScrollableNodeAction(
+        service: AccessibilityService?,
+        rawX: Float,
+        rawY: Float,
+        direction: PointerSwipeDirection,
+    ): Boolean {
+        if (service == null) return false
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            var result = false
+            val latch = CountDownLatch(1)
+            mainHandler.post {
+                result = scrollNodeAt(service, rawX, rawY, direction)
+                latch.countDown()
+            }
+            latch.await(GESTURE_TIMEOUT_MS + 200, TimeUnit.MILLISECONDS)
+            return result
+        }
+        return scrollNodeAt(service, rawX, rawY, direction)
     }
 
     private fun scrollNodeAt(

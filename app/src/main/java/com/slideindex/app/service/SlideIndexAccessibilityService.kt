@@ -147,7 +147,6 @@ class SlideIndexAccessibilityService : AccessibilityService() {
                 }.onFailure { error ->
                     Log.e(TAG, "performScreenSearch failed", error)
                 }
-                Unit
             }
             if (Looper.myLooper() == Looper.getMainLooper()) {
                 run()
@@ -198,6 +197,25 @@ class SlideIndexAccessibilityService : AccessibilityService() {
             path,
             durationMs,
             maxDurationMs,
+            onFinished
+        )
+
+        fun dispatchPointerDragNoFling(
+            startX: Float,
+            startY: Float,
+            endX: Float,
+            endY: Float,
+            dragDurationMs: Long = 420L,
+            holdDurationMs: Long = 140L,
+            onFinished: (Boolean) -> Unit = {}
+        ) = SlideIndexAccessibilityGestureInjector.dispatchPointerDragNoFling(
+            instance,
+            startX,
+            startY,
+            endX,
+            endY,
+            dragDurationMs,
+            holdDurationMs,
             onFinished
         )
 

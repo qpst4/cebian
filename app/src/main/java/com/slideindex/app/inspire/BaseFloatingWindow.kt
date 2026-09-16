@@ -77,6 +77,20 @@ abstract class BaseFloatingWindow(
         }
     }
 
+    protected fun updateViewLayoutSafely(
+        view: View,
+        layoutParams: WindowManager.LayoutParams,
+    ): Boolean {
+        if (!view.isAttachedToWindow) return false
+        return try {
+            windowManager.updateViewLayout(view, layoutParams)
+            true
+        } catch (error: Throwable) {
+            Log.d(logTag, "updateViewLayout failed: $error")
+            false
+        }
+    }
+
     protected fun detachViewSafely(
         view: View,
         onDetached: () -> Unit = {}
