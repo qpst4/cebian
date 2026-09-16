@@ -36,6 +36,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -44,7 +45,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -96,9 +97,8 @@ import com.slideindex.app.search.toPanelImageSearchEngines
 import com.slideindex.app.search.toPreloadImageSearchEngines
 import com.slideindex.app.service.WebViewFileChooserBridge
 import com.slideindex.app.settings.AppSettings
-import com.slideindex.app.overlay.pickresult.PickResultPanelMaxWidth
+import com.slideindex.app.overlay.pickresult.PickResultPanelCardShape
 import com.slideindex.app.overlay.pickresult.pickResultPanelCard
-import com.slideindex.app.overlay.pickresult.pickResultWindowHeightDp
 import com.slideindex.app.ui.theme.OverlayAwareModuleTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -107,7 +107,7 @@ import kotlinx.coroutines.withContext
 import java.lang.ref.WeakReference
 
 private val PANEL_HORIZONTAL_PADDING = 12.dp
-private val PANEL_MAX_HEIGHT_FRACTION = 0.78f
+private val IMAGE_SEARCH_SCRIM_ALPHA = 0.35f
 private const val WEBVIEW_LOG_TAG = "FloatBallImageSearchPanel"
 private const val PRELOAD_STAGGER_MS = 300L
 private val tagLoadGeneration: Int = "image_search_load_gen".hashCode()
@@ -445,7 +445,8 @@ private fun FloatBallImageSearchPanelContent(
     val retryTokenByEngine = remember { mutableStateMapOf<ImageSearchEngine, Int>() }
     var mountedEngines by remember { mutableStateOf(setOf<ImageSearchEngine>()) }
     var webViewSession by remember { mutableIntStateOf(0) }
-    val maxPanelHeight = pickResultWindowHeightDp(PANEL_MAX_HEIGHT_FRACTION)
+    val maxPanelWidth = imageSearchPanelMaxWidth()
+    val maxPanelHeight = imageSearchPanelMaxHeight()
     val dismissInteraction = remember { MutableInteractionSource() }
     val coroutineScope = rememberCoroutineScope()
 
@@ -587,6 +588,7 @@ private fun FloatBallImageSearchPanelContent(
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .background(Color.Black.copy(alpha = IMAGE_SEARCH_SCRIM_ALPHA))
                 .clickable(
                     interactionSource = dismissInteraction,
                     indication = null,
@@ -594,19 +596,32 @@ private fun FloatBallImageSearchPanelContent(
                 ),
             contentAlignment = Alignment.Center
         ) {
-            Column(
+            Box(
                 modifier = Modifier
                     .padding(horizontal = PANEL_HORIZONTAL_PADDING)
-                    .widthIn(max = PickResultPanelMaxWidth)
-                    .heightIn(max = maxPanelHeight)
+                    .fillMaxWidth()
+                    .widthIn(max = maxPanelWidth)
+                    .height(maxPanelHeight)
                     .pickResultPanelCard()
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null,
-                        onClick = {}
-                    )
-                    .padding(vertical = 8.dp)
             ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            color = MaterialTheme.colorScheme.surface,
+                            shape = PickResultPanelCardShape
+                        )
+                )
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = {}
+                        )
+                        .padding(vertical = 8.dp)
+                ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -773,7 +788,16 @@ private fun FloatBallImageSearchPanelContent(
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .zIndex(if (isSelected) 1f else 0f)
-                                    .alpha(if (isSelected && !engineWaitingUpload) 1f else 0f)
+                                    .alpha(
+                                        if (isSelected &&
+                                            !engineWaitingUpload &&
+                                            readyByEngine[engine] == true
+                                        ) {
+                                            1f
+                                        } else {
+                                            0f
+                                        }
+                                    )
                             )
                         }
                     }
@@ -904,6 +928,7 @@ private fun FloatBallImageSearchPanelContent(
                     ) {
                         Icon(Icons.AutoMirrored.Filled.OpenInNew, contentDescription = stringResource(R.string.float_ball_image_search_open_browser))
                     }
+                }
                 }
                 }
             }

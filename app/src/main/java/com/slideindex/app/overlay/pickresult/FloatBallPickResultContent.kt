@@ -2,7 +2,9 @@ package com.slideindex.app.overlay.pickresult
 
 import android.graphics.Bitmap
 import android.graphics.Rect
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -125,11 +127,18 @@ internal fun FloatBallPickResultContent(
         !hasImageContent
     val showImageSection = hasImageContent || reserveImageSectionPlaceholder
     val imageSearchVisible by FloatBallImageSearchPanel.panelVisible
-    val pickPanelAlpha = if (imageSearchVisible) {
+    val pickPanelAlphaTarget = if (imageSearchVisible) {
         1f - imageSearchPickPanelTransparency.coerceIn(0f, 1f)
     } else {
         1f
     }
+    val pickPanelAlpha by animateFloatAsState(
+        targetValue = pickPanelAlphaTarget,
+        animationSpec = tween(
+            durationMillis = appSettings.floatBallPickPanelEnterAnimationMs.coerceIn(64, 400)
+        ),
+        label = "pickPanelAlphaForImageSearch"
+    )
 
     val density = LocalDensity.current
     val displayMetrics = LocalContext.current.applicationContext.resources.displayMetrics
