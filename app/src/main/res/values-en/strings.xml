@@ -1970,6 +1970,15 @@
     <string name="gesture_timed_dnd_scheduled">Do Not Disturb on for %1$d min</string>
     <string name="gesture_timed_dnd_cancelled">Timed Do Not Disturb cancelled</string>
     <string name="gesture_timed_dnd_restored">Timed Do Not Disturb ended; previous state restored</string>
+    <string name="temp_dnd_policy_access_required">Grant Do Not Disturb access first</string>
+    <string name="temp_dnd_minutes_invalid">Enter a value greater than 0</string>
+    <string name="temp_dnd_notification_channel_name">Timed DND countdown</string>
+    <string name="temp_dnd_notification_channel_desc">Shows remaining timed Do Not Disturb duration</string>
+    <string name="temp_dnd_notification_title">Timed Do Not Disturb active</string>
+    <string name="temp_dnd_notification_text">Total duration: %1$d minutes</string>
+    <string name="temp_dnd_notification_redefine_action">Change duration</string>
+    <string name="temp_dnd_notification_redefine_hint">Minutes</string>
+    <string name="temp_dnd_notification_stop_action">Turn off now</string>
     <string name="gesture_action_screen_record">Screen record</string>
     <string name="gesture_action_toggle_wifi">Toggle Wi鈥慒i</string>
     <string name="gesture_action_toggle_mobile_data">Toggle mobile data</string>

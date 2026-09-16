@@ -1082,6 +1082,15 @@
     <string name="gesture_timed_dnd_scheduled">已开启 %1$d 分钟勿扰</string>
     <string name="gesture_timed_dnd_cancelled">已取消定时勿扰</string>
     <string name="gesture_timed_dnd_restored">定时勿扰已结束，已恢复先前状态</string>
+    <string name="temp_dnd_policy_access_required">请先授权「勿扰访问权限」</string>
+    <string name="temp_dnd_minutes_invalid">请输入大于 0 的分钟数</string>
+    <string name="temp_dnd_notification_channel_name">定时勿扰倒计时</string>
+    <string name="temp_dnd_notification_channel_desc">显示定时勿扰的剩余时间</string>
+    <string name="temp_dnd_notification_title">定时勿扰进行中</string>
+    <string name="temp_dnd_notification_text">本次总时长 %1$d 分钟</string>
+    <string name="temp_dnd_notification_redefine_action">重设时间</string>
+    <string name="temp_dnd_notification_redefine_hint">输入分钟数</string>
+    <string name="temp_dnd_notification_stop_action">立即关闭</string>
     <string name="gesture_action_screen_record">录屏</string>
     <string name="gesture_action_toggle_wifi">Wi-Fi 开关</string>
     <string name="gesture_action_toggle_mobile_data">移动数据开关</string>

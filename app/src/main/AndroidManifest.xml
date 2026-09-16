@@ -615,7 +615,7 @@
             android:exported="false" />
 
         <receiver
-            android:name=".timeddnd.TimedDndReceiver"
+            android:name=".timeddnd.TempDndNotificationReceiver"
             android:exported="false" />
 
         <service

@@ -1072,6 +1072,15 @@
     <string name="gesture_timed_dnd_scheduled">%1$d 分間 DND をオンにしました</string>
     <string name="gesture_timed_dnd_cancelled">時間指定 DND を取消しました</string>
     <string name="gesture_timed_dnd_restored">時間指定 DND が終了し、以前の状態に戻しました</string>
+    <string name="temp_dnd_policy_access_required">まず DND アクセスを許可してください</string>
+    <string name="temp_dnd_minutes_invalid">0 より大きい分数を入力してください</string>
+    <string name="temp_dnd_notification_channel_name">時間指定 DND カウントダウン</string>
+    <string name="temp_dnd_notification_channel_desc">残り時間を表示します</string>
+    <string name="temp_dnd_notification_title">時間指定 DND 実行中</string>
+    <string name="temp_dnd_notification_text">合計 %1$d 分</string>
+    <string name="temp_dnd_notification_redefine_action">時間を変更</string>
+    <string name="temp_dnd_notification_redefine_hint">分数</string>
+    <string name="temp_dnd_notification_stop_action">今すぐオフ</string>
     <string name="gesture_action_screen_record">画面録画</string>
     <string name="gesture_action_toggle_wifi">Wi-Fi の切り替え</string>
     <string name="gesture_action_toggle_mobile_data">モバイルデータの切り替え</string>
