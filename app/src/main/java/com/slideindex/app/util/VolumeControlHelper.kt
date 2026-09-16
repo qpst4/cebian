@@ -67,15 +67,49 @@ object VolumeControlHelper {
     fun toggleDnd(context: Context): Int? {
         if (!hasAccess(context)) return null
         val appContext = context.applicationContext
-        if (TaskManagerUtil.hasPermission()) {
-            toggleDndViaShell(appContext)?.let { return it }
+        val beforeEnabled = isDndEnabled(appContext)
+        val targetFilter = if (beforeEnabled) {
+            NotificationManager.INTERRUPTION_FILTER_ALL
+        } else {
+            NotificationManager.INTERRUPTION_FILTER_PRIORITY
         }
-        return toggleDndViaNotificationManager(appContext)
+        val after = setInterruptionFilter(appContext, targetFilter) ?: return null
+        val afterEnabled = isDndFilter(after)
+        if (beforeEnabled == afterEnabled) {
+            Log.w(TAG, "toggle dnd had no effect after=$after")
+            return null
+        }
+        Log.i(TAG, "toggle dnd ok after=$after")
+        return after
     }
 
-    private fun toggleDndViaShell(context: Context): Int? {
+    /**
+     * Applies the requested interruption filter via shell when available, otherwise via API.
+     *
+     * @return the filter read back after the attempt when it matches the request or DND state,
+     *         or null when access is missing or the call had no effect.
+     */
+    fun setInterruptionFilter(context: Context, filter: Int): Int? {
+        if (!hasAccess(context)) return null
+        val appContext = context.applicationContext
+        if (TaskManagerUtil.hasPermission()) {
+            setInterruptionFilterViaShell(appContext, filter)?.let { return it }
+        }
+        return setInterruptionFilterViaNotificationManager(appContext, filter)
+    }
+
+    fun ensureDndEnabled(context: Context): Boolean {
+        if (isDndEnabled(context)) return true
+        return setInterruptionFilter(
+            context,
+            NotificationManager.INTERRUPTION_FILTER_PRIORITY,
+        ) != null
+    }
+
+    private fun setInterruptionFilterViaShell(context: Context, filter: Int): Int? {
         val beforeEnabled = isDndEnabled(context)
-        val mode = if (beforeEnabled) "off" else "priority"
+        val targetEnabled = isDndFilter(filter)
+        val mode = shellModeForInterruptionFilter(filter)
         val result = TaskManagerUtil.runShellCommandLine(
             command = "cmd notification set_dnd $mode",
             useRoot = PrivilegeGateway.isRootMode(),
@@ -83,28 +117,33 @@ object VolumeControlHelper {
         if (!result.success) {
             Log.w(
                 TAG,
-                "toggle dnd shell failed: mode=$mode exit=${result.exitCode} output=${result.output}",
+                "set dnd shell failed: mode=$mode filter=$filter exit=${result.exitCode} output=${result.output}",
             )
             return null
         }
         return readInterruptionFilterIfChanged(context, beforeEnabled, "shell:$mode")
+            ?: readInterruptionFilter(context).takeIf { isDndFilter(it) == targetEnabled }
     }
 
-    private fun toggleDndViaNotificationManager(context: Context): Int? {
+    private fun setInterruptionFilterViaNotificationManager(context: Context, filter: Int): Int? {
         val manager = notificationManager(context) ?: return null
         return runCatching {
             val beforeEnabled = isDndEnabled(context)
-            val requested = if (beforeEnabled) {
-                NotificationManager.INTERRUPTION_FILTER_ALL
-            } else {
-                NotificationManager.INTERRUPTION_FILTER_PRIORITY
-            }
-            manager.setInterruptionFilter(requested)
-            readInterruptionFilterIfChanged(context, beforeEnabled, "api:$requested")
+            manager.setInterruptionFilter(filter)
+            readInterruptionFilterIfChanged(context, beforeEnabled, "api:$filter")
+                ?: readInterruptionFilter(context).takeIf { it == filter }
         }.getOrElse { error ->
-            Log.w(TAG, "toggle dnd api failed", error)
+            Log.w(TAG, "set dnd api failed filter=$filter", error)
             null
         }
+    }
+
+    private fun shellModeForInterruptionFilter(filter: Int): String = when (filter) {
+        NotificationManager.INTERRUPTION_FILTER_ALL -> "off"
+        NotificationManager.INTERRUPTION_FILTER_ALARMS -> "alarms"
+        NotificationManager.INTERRUPTION_FILTER_NONE -> "silent"
+        NotificationManager.INTERRUPTION_FILTER_PRIORITY -> "priority"
+        else -> if (isDndFilter(filter)) "priority" else "off"
     }
 
     private fun readInterruptionFilterIfChanged(

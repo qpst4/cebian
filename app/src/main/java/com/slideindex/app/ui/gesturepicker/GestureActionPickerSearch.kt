@@ -156,7 +156,9 @@ fun gestureActionDescriptionText(context: Context, action: GestureAction): Strin
         GestureActionType.VOLUME_PANEL -> context.getString(R.string.gesture_action_volume_panel_desc)
         GestureActionType.SCREEN_TRANSLATE -> context.getString(R.string.gesture_action_screen_translate_desc)
         GestureActionType.REMIND -> context.getString(R.string.gesture_action_remind_desc)
+        GestureActionType.TIMED_DND -> context.getString(R.string.gesture_action_timed_dnd_desc)
         GestureActionType.UNIVERSAL_COPY -> context.getString(R.string.gesture_action_universal_copy_desc)
+        GestureActionType.SCREEN_SEARCH -> context.getString(R.string.gesture_action_screen_search_desc)
         GestureActionType.FREEZER_PANEL -> context.getString(R.string.gesture_action_freezer_panel_desc)
         GestureActionType.REFREEZE -> context.getString(R.string.gesture_action_refreeze_desc)
         GestureActionType.CLIPBOARD_PICK -> context.getString(R.string.gesture_action_clipboard_pick_desc)
@@ -261,6 +263,7 @@ fun gestureActionLabelText(context: Context, action: GestureAction): String = wh
         GestureActionType.REMIND_15M,
         -> context.getString(R.string.gesture_action_remind)
         GestureActionType.UNIVERSAL_COPY -> context.getString(R.string.gesture_action_universal_copy)
+        GestureActionType.SCREEN_SEARCH -> context.getString(R.string.gesture_action_screen_search)
         GestureActionType.FREEZER_PANEL -> context.getString(R.string.gesture_action_freezer_panel)
         GestureActionType.REFREEZE -> context.getString(R.string.gesture_action_refreeze)
         GestureActionType.POWER_MENU -> context.getString(R.string.gesture_action_power_menu)
@@ -283,6 +286,7 @@ fun gestureActionLabelText(context: Context, action: GestureAction): String = wh
         GestureActionType.POINTER_REALTIME_GESTURE -> context.getString(R.string.gesture_action_pointer_realtime_gesture)
         GestureActionType.OPEN_FLOATING_POINTER_RADIAL_MENU -> context.getString(R.string.gesture_action_open_floating_pointer_radial_menu)
         GestureActionType.TOGGLE_DND -> context.getString(R.string.gesture_action_toggle_dnd)
+        GestureActionType.TIMED_DND -> context.getString(R.string.gesture_action_timed_dnd)
         GestureActionType.SCREEN_RECORD -> context.getString(R.string.gesture_action_screen_record)
         GestureActionType.TOGGLE_WIFI -> context.getString(R.string.gesture_action_toggle_wifi)
         GestureActionType.TOGGLE_MOBILE_DATA -> context.getString(R.string.gesture_action_toggle_mobile_data)
@@ -405,6 +409,7 @@ fun gestureActionLabel(action: GestureAction, settings: AppSettings? = null): St
         GestureActionType.REMIND_15M,
         -> stringResource(R.string.gesture_action_remind)
         GestureActionType.UNIVERSAL_COPY -> stringResource(R.string.gesture_action_universal_copy)
+        GestureActionType.SCREEN_SEARCH -> stringResource(R.string.gesture_action_screen_search)
         GestureActionType.FREEZER_PANEL -> stringResource(R.string.gesture_action_freezer_panel)
         GestureActionType.REFREEZE -> stringResource(R.string.gesture_action_refreeze)
         GestureActionType.POWER_MENU -> stringResource(R.string.gesture_action_power_menu)
@@ -427,6 +432,7 @@ fun gestureActionLabel(action: GestureAction, settings: AppSettings? = null): St
         GestureActionType.POINTER_REALTIME_GESTURE -> stringResource(R.string.gesture_action_pointer_realtime_gesture)
         GestureActionType.OPEN_FLOATING_POINTER_RADIAL_MENU -> stringResource(R.string.gesture_action_open_floating_pointer_radial_menu)
         GestureActionType.TOGGLE_DND -> stringResource(R.string.gesture_action_toggle_dnd)
+        GestureActionType.TIMED_DND -> stringResource(R.string.gesture_action_timed_dnd)
         GestureActionType.SCREEN_RECORD -> stringResource(R.string.gesture_action_screen_record)
         GestureActionType.TOGGLE_WIFI -> stringResource(R.string.gesture_action_toggle_wifi)
         GestureActionType.TOGGLE_MOBILE_DATA -> stringResource(R.string.gesture_action_toggle_mobile_data)
@@ -482,6 +488,7 @@ fun gestureActionDescription(action: GestureAction): String? = when (action.type
     GestureActionType.VOLUME_PANEL -> stringResource(R.string.gesture_action_volume_panel_desc)
     GestureActionType.SCREEN_TRANSLATE -> stringResource(R.string.gesture_action_screen_translate_desc)
     GestureActionType.UNIVERSAL_COPY -> stringResource(R.string.gesture_action_universal_copy_desc)
+    GestureActionType.SCREEN_SEARCH -> stringResource(R.string.gesture_action_screen_search_desc)
     GestureActionType.FREEZER_PANEL -> stringResource(R.string.gesture_action_freezer_panel_desc)
     GestureActionType.REFREEZE -> stringResource(R.string.gesture_action_refreeze_desc)
     GestureActionType.CLIPBOARD_PICK -> stringResource(R.string.gesture_action_clipboard_pick_desc)
@@ -504,6 +511,7 @@ fun gestureActionDescription(action: GestureAction): String? = when (action.type
     GestureActionType.CORNER_INNER_CANCEL -> stringResource(R.string.gesture_action_corner_inner_cancel_desc)
     GestureActionType.CORNER_INNER_PIN_WHEEL -> stringResource(R.string.gesture_action_corner_inner_pin_wheel_desc)
     GestureActionType.SNOOZE_OVERLAYS -> stringResource(R.string.gesture_action_snooze_overlays_desc)
+    GestureActionType.TIMED_DND -> stringResource(R.string.gesture_action_timed_dnd_desc)
     else -> null
 }
 
@@ -558,6 +566,15 @@ fun gestureActionPermissionHintText(context: Context, action: GestureAction): St
         GestureActionType.TOGGLE_DND -> {
             if (PermissionHelper.hasNotificationPolicyAccess(context)) return null
             context.getString(R.string.gesture_action_toggle_mute_permission)
+        }
+        GestureActionType.TIMED_DND -> {
+            when {
+                !PermissionHelper.canDrawOverlays(context) ->
+                    context.getString(R.string.gesture_action_remind_permission)
+                !PermissionHelper.hasNotificationPolicyAccess(context) ->
+                    context.getString(R.string.gesture_action_toggle_mute_permission)
+                else -> null
+            }
         }
         GestureActionType.TOGGLE_WIFI, GestureActionType.TOGGLE_MOBILE_DATA,
         GestureActionType.EXECUTE_SHELL_COMMAND,
@@ -657,6 +674,7 @@ fun requestPermissionForAdjustAction(context: Context, action: GestureAction) {
         GestureAction.AppCarouselSwitcher ->
             PermissionHelper.requestUsageAccess(context)
         GestureAction.AdjustVolume, GestureAction.ToggleMute, GestureAction.ToggleDnd,
+        GestureAction.TimedDnd,
         GestureAction.LockScreenAndSilenceRing, GestureAction.LockScreenAndMuteAll,
         ->
             PermissionHelper.requestNotificationPolicyAccess(context)
@@ -758,6 +776,14 @@ fun requestPermissionForAdjustAction(context: Context, action: GestureAction) {
         GestureAction.Remind -> {
             if (!PermissionHelper.canDrawOverlays(context)) {
                 context.startActivity(PermissionHelper.overlaySettingsIntent(context))
+            }
+        }
+        GestureAction.TimedDnd -> {
+            when {
+                !PermissionHelper.canDrawOverlays(context) ->
+                    context.startActivity(PermissionHelper.overlaySettingsIntent(context))
+                !PermissionHelper.hasNotificationPolicyAccess(context) ->
+                    PermissionHelper.requestNotificationPolicyAccess(context)
             }
         }
         else -> Unit

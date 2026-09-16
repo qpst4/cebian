@@ -38,6 +38,7 @@ import com.slideindex.app.freezer.FreezerOverlayWindow
 import com.slideindex.app.freezer.FreezerTab
 import com.slideindex.app.overlay.volumepanel.VolumePanelOverlayWindow
 import com.slideindex.app.remind.RemindDurationPickerOverlay
+import com.slideindex.app.timeddnd.TimedDndDurationPickerOverlay
 import com.slideindex.app.service.SlideIndexAccessibilityService
 import com.slideindex.app.translate.overlay.ScreenTranslationController
 import com.slideindex.app.settings.AppSettings
@@ -288,6 +289,10 @@ class ActionExecutor(
             }
             GestureAction.Flashlight -> FlashlightHelper.toggle(context)
             GestureAction.ToggleDnd -> VolumeControlHelper.toggleDnd(context) != null
+            GestureAction.TimedDnd -> {
+                TimedDndDurationPickerOverlay.show(context)
+                true
+            }
             GestureAction.ScreenRecord -> {
                 ScreenRecordHelper.toggle(context)
                 true
@@ -380,6 +385,10 @@ class ActionExecutor(
             }
             GestureAction.UniversalCopy -> {
                 SlideIndexAccessibilityService.performUniversalCopy()
+                true
+            }
+            GestureAction.ScreenSearch -> {
+                SlideIndexAccessibilityService.performScreenSearch()
                 true
             }
             GestureAction.FreezerPanel -> {

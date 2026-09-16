@@ -88,6 +88,10 @@ enum class GestureActionType(val id: Int) {
     FINGERTIP_RING(85),
     /** Paste latest clipboard history entry into the focused input field (FV gesture action 12). */
     CLIPBOARD_PASTE(86),
+    /** 弹出时长选择，定时开启勿扰并在到期后恢复先前状态。 */
+    TIMED_DND(87),
+    /** 在当前界面查找关键字并高亮，支持自动滚动。 */
+    SCREEN_SEARCH(88),
     ;
 
     companion object {
@@ -464,6 +468,16 @@ sealed class GestureAction {
         override val payload = ""
     }
 
+    data object TimedDnd : GestureAction() {
+        override val type = GestureActionType.TIMED_DND
+        override val payload = ""
+    }
+
+    data object ScreenSearch : GestureAction() {
+        override val type = GestureActionType.SCREEN_SEARCH
+        override val payload = ""
+    }
+
     data object ScreenRecord : GestureAction() {
         override val type = GestureActionType.SCREEN_RECORD
         override val payload = ""
@@ -753,6 +767,8 @@ sealed class GestureAction {
                 GestureActionType.POINTER_REALTIME_GESTURE -> PointerRealtimeGesture
                 GestureActionType.OPEN_FLOATING_POINTER_RADIAL_MENU -> OpenFloatingPointerRadialMenu
                 GestureActionType.TOGGLE_DND -> ToggleDnd
+                GestureActionType.TIMED_DND -> TimedDnd
+                GestureActionType.SCREEN_SEARCH -> ScreenSearch
                 GestureActionType.SCREEN_RECORD -> ScreenRecord
                 GestureActionType.TOGGLE_WIFI -> ToggleWifi
                 GestureActionType.TOGGLE_MOBILE_DATA -> ToggleMobileData

@@ -614,6 +614,10 @@
             android:name=".remind.RemindAlarmReceiver"
             android:exported="false" />
 
+        <receiver
+            android:name=".timeddnd.TimedDndReceiver"
+            android:exported="false" />
+
         <service
             android:name=".remind.RemindAlarmService"
             android:exported="false"

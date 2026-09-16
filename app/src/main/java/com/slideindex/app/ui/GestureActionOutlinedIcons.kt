@@ -77,6 +77,7 @@ internal fun gestureActionTypeOutlinedIcon(type: GestureActionType): ImageVector
     GestureActionType.SEARCH_PANEL -> ThinActionIcons.Search
     GestureActionType.VOLUME_PANEL -> ThinActionIcons.VolumeUp
     GestureActionType.SCREEN_TRANSLATE -> ThinActionIcons.TextFields
+    GestureActionType.SCREEN_SEARCH -> ThinActionIcons.Search
     GestureActionType.REMIND,
     GestureActionType.REMIND_1M, GestureActionType.REMIND_3M, GestureActionType.REMIND_5M,
     GestureActionType.REMIND_10M, GestureActionType.REMIND_15M -> ThinActionIcons.Alarm
@@ -88,6 +89,7 @@ internal fun gestureActionTypeOutlinedIcon(type: GestureActionType): ImageVector
     GestureActionType.SCROLL_TO_TOP -> ThinActionIcons.ScrollToTop
     GestureActionType.SCROLL_TO_BOTTOM -> ThinActionIcons.ScrollToBottom
     GestureActionType.TOGGLE_DND -> ThinActionIcons.DoNotDisturb
+    GestureActionType.TIMED_DND -> ThinActionIcons.DoNotDisturb
     GestureActionType.SCREEN_RECORD -> ThinActionIcons.ScreenRecord
     GestureActionType.TOGGLE_WIFI -> ThinActionIcons.Wifi
     GestureActionType.TOGGLE_MOBILE_DATA -> ThinActionIcons.Cellular
@@ -164,6 +166,7 @@ internal fun gestureActionTypeThinIcon(type: GestureActionType): ImageVector = w
     GestureActionType.SEARCH_PANEL -> ThinActionIcons.Search
     GestureActionType.VOLUME_PANEL -> ThinActionIcons.VolumeUp
     GestureActionType.SCREEN_TRANSLATE -> ThinActionIcons.TextFields
+    GestureActionType.SCREEN_SEARCH -> ThinActionIcons.Search
     GestureActionType.REMIND,
     GestureActionType.REMIND_1M, GestureActionType.REMIND_3M, GestureActionType.REMIND_5M,
     GestureActionType.REMIND_10M, GestureActionType.REMIND_15M -> ThinActionIcons.Alarm
@@ -175,6 +178,7 @@ internal fun gestureActionTypeThinIcon(type: GestureActionType): ImageVector = w
     GestureActionType.SCROLL_TO_TOP -> ThinActionIcons.ScrollToTop
     GestureActionType.SCROLL_TO_BOTTOM -> ThinActionIcons.ScrollToBottom
     GestureActionType.TOGGLE_DND -> ThinActionIcons.DoNotDisturb
+    GestureActionType.TIMED_DND -> ThinActionIcons.DoNotDisturb
     GestureActionType.SCREEN_RECORD -> ThinActionIcons.ScreenRecord
     GestureActionType.TOGGLE_WIFI -> ThinActionIcons.Wifi
     GestureActionType.TOGGLE_MOBILE_DATA -> ThinActionIcons.Cellular
