@@ -79,6 +79,7 @@ internal fun FloatingPointerDisplay(
         val gestureCaptureActive = session.gestureCaptureActive
         val gestureReplayActive by session.gestureReplayActive
         val gestureRecordingActive by session.gestureRecordingActive
+        val realtimeGestureActive by session.realtimeGestureActive
         val gestureTrailRetreatActive by session.gestureTrailRetreatActive
         val gestureRecorderTrailRevision = session.gestureRecorderTrailRevision.intValue
         val pointerRestoreGeneration = session.pointerRestoreGeneration.intValue
@@ -138,8 +139,8 @@ internal fun FloatingPointerDisplay(
         val gestureRecorderProgress = remember { Animatable(0f) }
         var animationTick by remember { mutableLongStateOf(0L) }
 
-        LaunchedEffect(gestureRecordingActive, gestureReplayActive) {
-            if (gestureRecordingActive) {
+        LaunchedEffect(gestureRecordingActive, realtimeGestureActive, gestureReplayActive) {
+            if (gestureRecordingActive || realtimeGestureActive) {
                 gestureRecorderProgress.animateTo(
                     targetValue = 1f,
                     animationSpec = tween(
@@ -255,6 +256,7 @@ internal fun FloatingPointerDisplay(
                     val retreatActive = session.gestureTrailRetreatActive.value
                     session.clearRippleIfExpired(now, settings.floatingPointerRippleDurationMs.toLong())
                     session.pruneExpiredTrailPoints(now)
+                    session.clearInjectedSwipePreviewIfExpired(now)
                     session.finishGestureTrailRetreatIfConsumed(settings)
                     if (!replayActive && !recordingActive && !retreatActive) {
                         session.completeGestureAftermathIfReady(settings)
@@ -262,6 +264,7 @@ internal fun FloatingPointerDisplay(
                     if (session.trailPoints.size >= 2 ||
                         session.hasActiveTrail(now) ||
                         session.hasActiveGestureRecorderTrail(now) ||
+                        session.hasActiveInjectedSwipePreview(now) ||
                         recordingActive ||
                         retreatActive ||
                         replayActive ||
@@ -283,6 +286,7 @@ internal fun FloatingPointerDisplay(
         }
 
         val trailPointCount = session.trailPoints.size
+        val injectedSwipePreview by session.injectedSwipePreview
         val hoverSelectChrome by session.hoverSelectChrome
         val hoverSelectAsPlus = hoverSelectChrome.paused || hoverSelectChrome.regionalActive
         Box(modifier = Modifier.fillMaxSize()) {
@@ -435,7 +439,7 @@ internal fun FloatingPointerDisplay(
                     hoverSelectAsPlus -> {
                         // FloatBallCursorPreviewView draws the pick plus; hide ring/design.
                     }
-                    gestureRecordingActive || recorderProgress > 0.001f -> {
+                    gestureRecordingActive || realtimeGestureActive || recorderProgress > 0.001f -> {
                         // QC recording pointer stays visible while the shared trail grows.
                         drawQcGestureRecorderPointer(
                             center = Offset(pointerX, pointerY),
@@ -498,6 +502,20 @@ internal fun FloatingPointerDisplay(
                     }
                 }
             }
+            }
+            injectedSwipePreview
+            animationTick
+            Canvas(Modifier.fillMaxSize()) {
+                val preview = injectedSwipePreview
+                if (preview != null) {
+                    val drawNow = System.currentTimeMillis()
+                    drawInjectedSwipePreview(
+                        preview = preview,
+                        nowMs = drawNow,
+                        colorArgb = settings.floatingPointerTrailColorArgb,
+                        strokeWidthPx = settings.floatingPointerDotDiameterPx
+                    )
+                }
             }
             gestureRecorderTrailRevision
             animationTick

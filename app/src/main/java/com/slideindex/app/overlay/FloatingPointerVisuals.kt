@@ -660,7 +660,7 @@ private fun DrawScope.drawGestureTrailRetreatSuffix(
     }
 }
 
-private fun DrawScope.drawQcTrailSegment(
+internal fun DrawScope.drawQcTrailSegment(
     from: Offset,
     to: Offset,
     ageFraction: Float,

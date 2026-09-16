@@ -7,6 +7,8 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.geometry.Offset
 import com.slideindex.app.gesture.GestureAction
+import com.slideindex.app.gesture.PointerSwipeConfig
+import com.slideindex.app.service.SlideIndexAccessibilityGestureInjector
 import com.slideindex.app.settings.AppSettings
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.math.hypot
@@ -95,6 +97,9 @@ internal class FloatingPointerSession(
     val gestureRecorderTrailRevision = mutableIntStateOf(0)
     /** Non-null value temporarily overrides [AppSettings.floatingPointerTrailDurationMs]. */
     var trailLifespanOverrideMs: Long? = null
+
+    /** Radial / edge injected swipe preview (screen space, not tied to pointer presence). */
+    val injectedSwipePreview = mutableStateOf<FloatingPointerInjectedSwipePreview?>(null)
     val rippleActive = mutableStateOf(false)
     val rippleCenterX = mutableFloatStateOf(0f)
     val rippleCenterY = mutableFloatStateOf(0f)
@@ -113,6 +118,9 @@ internal class FloatingPointerSession(
 
     /** Compose-visible flag for QC-style recorder pointer shrink animation. */
     val gestureRecordingActive = mutableStateOf(false)
+
+    /** Real-time gesture capture: same pointer shrink as recording, without recorder state. */
+    val realtimeGestureActive = mutableStateOf(false)
 
     /** After finger-up: trail retreats on a wall-clock timeline until consumed. */
     val gestureTrailRetreatActive = mutableStateOf(false)
@@ -307,6 +315,7 @@ internal class FloatingPointerSession(
 
     fun releaseRealtimeGesture() {
         realtimeGesture = null
+        realtimeGestureActive.value = false
     }
 
     fun openRadialMenu(centerX: Float, centerY: Float) {
@@ -442,6 +451,7 @@ internal class FloatingPointerSession(
         onFinished: () -> Unit
     ) {
         clearPendingGestureCapture()
+        realtimeGestureActive.value = true
         realtimeGesture = FloatingPointerRealtimeGesture(
             service = service,
             startX = pointerX,
@@ -608,6 +618,50 @@ internal class FloatingPointerSession(
     fun clearTrail() {
         trailPoints.clear()
         trailLifespanOverrideMs = null
+        injectedSwipePreview.value = null
+    }
+
+    /**
+     * Screen-space swipe preview for radial slots / edge [PointerSwipeConfig] injects.
+     * Endpoints match [SlideIndexAccessibilityGestureInjector.dispatchPointerSwipe].
+     */
+    fun beginInjectedSwipePreview(startX: Float, startY: Float, config: PointerSwipeConfig) {
+        val (dx, dy) = config.delta(density)
+        val swipeDurationMs = config.durationMs.toLong().coerceIn(20L, 800L)
+        val sanitized = SlideIndexAccessibilityGestureInjector.sanitizeSwipeEndpoints(
+            startX = startX,
+            startY = startY,
+            endX = startX + dx,
+            endY = startY + dy,
+            screenWidth = screenWidth,
+            screenHeight = screenHeight,
+            minDistancePx = 24f * density
+        ) ?: return
+        val fadeDurationMs = settingsSource()
+            .floatingPointerTrailDurationMs
+            .coerceAtLeast(50)
+            .toLong()
+        injectedSwipePreview.value = FloatingPointerInjectedSwipePreview(
+            startX = sanitized.startX,
+            startY = sanitized.startY,
+            endX = sanitized.endX,
+            endY = sanitized.endY,
+            startedAtMs = System.currentTimeMillis(),
+            swipeDurationMs = swipeDurationMs,
+            fadeDurationMs = fadeDurationMs
+        )
+    }
+
+    fun clearInjectedSwipePreviewIfExpired(nowMs: Long = System.currentTimeMillis()) {
+        val preview = injectedSwipePreview.value ?: return
+        if (preview.isExpired(nowMs)) {
+            injectedSwipePreview.value = null
+        }
+    }
+
+    fun hasActiveInjectedSwipePreview(nowMs: Long = System.currentTimeMillis()): Boolean {
+        val preview = injectedSwipePreview.value ?: return false
+        return !preview.isExpired(nowMs)
     }
 
     fun clearGestureRecorderTrail() {

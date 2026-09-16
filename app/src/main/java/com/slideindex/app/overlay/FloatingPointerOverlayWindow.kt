@@ -541,6 +541,7 @@ object FloatingPointerOverlayWindow {
 
     private fun startPointerSwipe(startX: Float, startY: Float, config: PointerSwipeConfig) {
         isPointerSwipeInFlight = true
+        session?.beginInjectedSwipePreview(startX, startY, config)
         windowLifecycle.setTouchOverlayPassthrough(true)
         markPointerTapOutsideSuppress()
         Log.i(TAG, "injectPointerSwipe start ($startX, $startY) config=$config")
