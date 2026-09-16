@@ -2,9 +2,11 @@ package com.slideindex.app.overlay
 
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RectF
+import android.graphics.Shader
 import androidx.core.graphics.withClip
 import androidx.core.graphics.withTranslation
 import com.slideindex.app.R
@@ -184,6 +186,9 @@ internal class TaskSwitcherRenderer(
                     }
                 }
             }
+            if (layout.listScrollPeekHeight > 0f && layout.scrollOffset < layout.maxScrollOffset - 0.5f) {
+                drawListBottomScrollFade(this, layout, theme.cardBackground)
+            }
         }
 
         if (state.closeAllHighlight) {
@@ -301,6 +306,28 @@ internal class TaskSwitcherRenderer(
             host.dp(1.2f),
             paint
         )
+    }
+
+    private fun drawListBottomScrollFade(
+        canvas: Canvas,
+        layout: TaskSwitcherPanelLayout,
+        cardBackground: Int,
+    ) {
+        val fadeHeight = layout.listScrollPeekHeight.coerceAtLeast(1f)
+        val bottom = layout.listRect.bottom
+        val top = bottom - fadeHeight
+        val fadePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            shader = LinearGradient(
+                0f,
+                top,
+                0f,
+                bottom,
+                cardBackground and 0x00FFFFFF,
+                cardBackground,
+                Shader.TileMode.CLAMP,
+            )
+        }
+        canvas.drawRect(layout.listRect.left, top, layout.listRect.right, bottom, fadePaint)
     }
 
     private fun drawListHighlight(

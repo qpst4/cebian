@@ -55,17 +55,39 @@ class TaskSwitcherLayoutEngineTest {
     fun compute_clampsScrollOffset() {
         val host = fakeHost(
             side = LEFT,
-            viewHeight = 400,
+            viewHeight = 1920,
             trigger = RectF(0f, 0f, 24f, 400f),
         )
+        val rowHeight = host.dp(42f)
         val rows = (1..20).map { TaskSwitcherRowEntry("com.example.$it", it) }
-        val (_, offset) = TaskSwitcherLayoutEngine.compute(
+        val (layout, offset) = TaskSwitcherLayoutEngine.compute(
             host = host,
             rows = rows,
             scrollOffset = 9999f,
             anchorLocalY = 200f,
         )
-        assertEquals(offset, offset.coerceAtMost(9999f))
+        val peek = TaskSwitcherLayoutEngine.scrollPeekHeight(host, rowHeight)
+        val expectedVisible = rowHeight * TaskSwitcherLayoutEngine.MAX_VISIBLE_ROWS + peek
+        assertEquals(expectedVisible, layout.listRect.height(), 0.01f)
+        assertEquals(peek, layout.listScrollPeekHeight, 0.01f)
+        assertEquals(20 * rowHeight - expectedVisible, layout.maxScrollOffset, 0.01f)
+        assertEquals(layout.maxScrollOffset, offset, 0.01f)
+    }
+
+    @Test
+    fun compute_atMostNineRows_noScrollPeek() {
+        val host = fakeHost(side = LEFT)
+        val rowHeight = host.dp(42f)
+        val rows = (1..9).map { TaskSwitcherRowEntry("com.example.$it", it) }
+        val (layout, _) = TaskSwitcherLayoutEngine.compute(
+            host = host,
+            rows = rows,
+            scrollOffset = 0f,
+            anchorLocalY = 600f,
+        )
+        assertEquals(0f, layout.listScrollPeekHeight, 0.01f)
+        assertEquals(9 * rowHeight, layout.listRect.height(), 0.01f)
+        assertEquals(0f, layout.maxScrollOffset, 0.01f)
     }
 
     private fun fakeHost(

@@ -716,7 +716,7 @@ internal fun MainTabNavStackSingle(
     ) {
         NavDisplay(
             backStack = backStack,
-            onBack = { backStack.removeLastOrNull() },
+            onBack = { backStack.pop() },
             effects = NavDisplayEffects(
                 cornerClipRadius = rememberNavSystemCornerRadius(),
             ),

@@ -17,6 +17,7 @@ import com.slideindex.app.clipboard.ClipboardAccess
 import com.slideindex.app.copy.UniversalCopyOverlay
 import com.slideindex.app.backtap.BackTapGestureHost
 import com.slideindex.app.translate.overlay.ScreenTranslationController
+import com.slideindex.app.screensearch.ScreenSearchFloating
 import com.slideindex.app.clipboard.ClipboardPermissionHelper
 import com.slideindex.app.clipboard.monitor.ClipboardMonitorStartup
 import com.slideindex.app.clipboardfloat.ClipboardFloatImeCoordinator
@@ -135,6 +136,24 @@ class SlideIndexAccessibilityService : AccessibilityService() {
         fun performScreenTranslate(): Boolean {
             val service = instance ?: return false
             ScreenTranslationController.toggle(service)
+            return true
+        }
+
+        fun performScreenSearch(): Boolean {
+            val service = instance ?: return false
+            val run: () -> Unit = {
+                runCatching {
+                    ScreenSearchFloating.get(service).togglePanel()
+                }.onFailure { error ->
+                    Log.e(TAG, "performScreenSearch failed", error)
+                }
+                Unit
+            }
+            if (Looper.myLooper() == Looper.getMainLooper()) {
+                run()
+            } else {
+                mainHandler.post(run)
+            }
             return true
         }
 
@@ -587,6 +606,7 @@ class SlideIndexAccessibilityService : AccessibilityService() {
         }
         edgeOverlayHost?.stop()
         edgeOverlayHost = null
+        ScreenSearchFloating.destroy()
         if (::backTapGestureHost.isInitialized) backTapGestureHost.stop()
         serviceScope.cancel()
         instance = null

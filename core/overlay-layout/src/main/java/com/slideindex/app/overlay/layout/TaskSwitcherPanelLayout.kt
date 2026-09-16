@@ -16,4 +16,6 @@ data class TaskSwitcherPanelLayout(
     val closeAllRect: RectF,
     val scrollOffset: Float,
     val maxScrollOffset: Float,
+    /** Extra list viewport height showing a sliver of the next row when scrollable. */
+    val listScrollPeekHeight: Float,
 )

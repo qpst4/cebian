@@ -2,7 +2,9 @@ package com.slideindex.app.ocr
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.Rect
 import android.util.Log
+import com.paddle.ocr.model.OCRBox
 import com.paddle.ocr.EngineConfig
 import com.paddle.ocr.PaddleOCR
 import com.paddle.ocr.PaddleOCRConfig
@@ -35,6 +37,29 @@ class OcrInferenceService @Inject constructor(
     private var loadedEngine: String? = null
     private var paddleOcr: PaddleOCR? = null
     private var openCvInitialized = false
+
+    /** PP-OCR line boxes for on-screen find (e.g. screen search). Returns null if model is not PP-OCR. */
+    suspend fun recognizePpOcrLines(modelId: String, bitmap: Bitmap): List<OcrRecognizedLine>? {
+        val entry = catalogProvider.findModel(modelId) ?: return null
+        if (entry.engine != OcrEngines.PPOCR) return null
+        if (!repository.isInstalled(modelId)) return null
+        return withContext(Dispatchers.Default) {
+            mutex.withLock {
+                if (!nativeEnginePackCoordinator.ensurePackReady(NativeEnginePackIds.OCR)) {
+                    return@withLock null
+                }
+                ensureEngine(modelId, OcrEngines.PPOCR)
+                val engine = paddleOcr ?: return@withLock null
+                val result = engine.recognize(bitmap)
+                result.results.map { item ->
+                    OcrRecognizedLine(
+                        bounds = ocrBoxToRect(item.box),
+                        text = item.text,
+                    )
+                }
+            }
+        }
+    }
 
     suspend fun recognizeBitmap(modelId: String, bitmap: Bitmap): OcrRecognizeResult {
         val entry = catalogProvider.findModel(modelId) ?: run {
@@ -202,4 +227,15 @@ class OcrInferenceService @Inject constructor(
         } else {
             OcrRecognizeResult.Failure(context.getString(R.string.ocr_error_no_text_recognized))
         }
+
+    private fun ocrBoxToRect(box: OCRBox): Rect {
+        val xs = box.points.map { it.x }
+        val ys = box.points.map { it.y }
+        return Rect(
+            xs.min().toInt(),
+            ys.min().toInt(),
+            xs.max().toInt(),
+            ys.max().toInt(),
+        )
+    }
 }

@@ -6,6 +6,13 @@ import com.slideindex.app.util.coerceSafe
 import kotlin.math.min
 
 object TaskSwitcherLayoutEngine {
+    const val MAX_VISIBLE_ROWS = 9
+    private const val SCROLL_PEEK_DP = 15f
+    private const val SCROLL_PEEK_ROW_FRACTION = 0.35f
+
+    fun scrollPeekHeight(host: TaskSwitcherLayoutHost, rowHeight: Float): Float =
+        min(host.dp(SCROLL_PEEK_DP), rowHeight * SCROLL_PEEK_ROW_FRACTION)
+
     fun compute(
         host: TaskSwitcherLayoutHost,
         rows: List<TaskSwitcherRowEntry>,
@@ -22,8 +29,21 @@ object TaskSwitcherLayoutEngine {
         } else {
             rows.size * rowHeight
         }
-        val maxListHeight = (host.viewHeight() - verticalMargin - footerHeight).coerceAtLeast(rowHeight * 2f)
-        val visibleListHeight = if (isEmpty) contentHeight else min(contentHeight, maxListHeight)
+        val maxListHeightByRows = rowHeight * MAX_VISIBLE_ROWS
+        val maxListHeightByScreen =
+            (host.viewHeight() - verticalMargin - footerHeight).coerceAtLeast(rowHeight * 2f)
+        val rowCapHeight = min(maxListHeightByRows, maxListHeightByScreen)
+        val listScrollPeekHeight = if (!isEmpty && contentHeight > maxListHeightByRows) {
+            scrollPeekHeight(host, rowHeight)
+                .coerceAtMost((maxListHeightByScreen - rowCapHeight).coerceAtLeast(0f))
+        } else {
+            0f
+        }
+        val visibleListHeight = if (isEmpty) {
+            contentHeight
+        } else {
+            min(contentHeight, rowCapHeight + listScrollPeekHeight)
+        }
         val maxScrollOffset = (contentHeight - visibleListHeight).coerceAtLeast(0f)
         val coercedOffset = scrollOffset.coerceIn(0f, maxScrollOffset)
         val panelHeight = visibleListHeight + footerHeight
@@ -63,6 +83,7 @@ object TaskSwitcherLayoutEngine {
             closeAllRect = closeAllRect,
             scrollOffset = coercedOffset,
             maxScrollOffset = maxScrollOffset,
+            listScrollPeekHeight = listScrollPeekHeight,
         )
         return layout to coercedOffset
     }
