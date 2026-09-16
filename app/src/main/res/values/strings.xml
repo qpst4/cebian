@@ -1460,6 +1460,9 @@
     <string name="pick_result_image_share_to_app">分享到 App</string>
     <string name="pick_result_image_share_pick_engine">选择分享目标</string>
     <string name="pick_result_image_share_system">系统分享</string>
+    <string name="pick_result_image_share_long_press_hint">滑动选择目标，松手分享；横向滑远取消</string>
+    <string name="pick_result_image_share_editor_drag_hint">滑动选择，松手分享</string>
+    <string name="pick_result_image_share_last_used">上次</string>
     <string name="float_ball_action_stash">存入暂存</string>
     <string name="stash_empty">暂无暂存内容</string>
     <string name="stash_saved">已存入暂存夹</string>

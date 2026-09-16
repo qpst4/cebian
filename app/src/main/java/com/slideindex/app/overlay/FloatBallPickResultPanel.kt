@@ -31,6 +31,7 @@ import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.ocr.OcrDependencyAccess
 import com.slideindex.app.overlay.compositor.OverlayCompositor
 import com.slideindex.app.overlay.compositor.OverlaySceneController
+import com.slideindex.app.imageeditor.ImageEditorPickReturnContext
 import com.slideindex.app.overlay.pickresult.FloatBallPickResultContent
 import com.slideindex.app.overlay.pickresult.PickResultTextMode
 import com.slideindex.app.overlay.pickresult.preloadPickResultSearchEngineIcons
@@ -291,10 +292,13 @@ object FloatBallPickResultPanel {
         anchorX: Float = 0f,
         anchorY: Float = 0f,
         result: FloatBallPickResult,
-        initialTextMode: PickResultTextMode? = null
+        initialTextMode: PickResultTextMode? = null,
+        ocrTextsByImageIndex: Map<Int, String>? = null,
     ) {
         if (Looper.myLooper() != Looper.getMainLooper()) {
-            mainHandler.post { showResult(context, anchorX, anchorY, result, initialTextMode) }
+            mainHandler.post {
+                showResult(context, anchorX, anchorY, result, initialTextMode, ocrTextsByImageIndex)
+            }
             return
         }
         val hostContext = OverlayDependencyAccess.overlayHostContext() ?: context.applicationContext
@@ -328,9 +332,10 @@ object FloatBallPickResultPanel {
         currentImageIndexState?.value = safeImageIndex
         contentOriginState?.value = result.contentOrigin
         ownsPanelImagesState?.value = result.ownsImages
-        ocrTextsByImageIndexState?.value = result.ocrText
-            ?.takeIf { it.isNotBlank() }
-            ?.let { mapOf(safeImageIndex to it) }
+        ocrTextsByImageIndexState?.value = ocrTextsByImageIndex
+            ?: result.ocrText
+                ?.takeIf { it.isNotBlank() }
+                ?.let { mapOf(safeImageIndex to it) }
             ?: emptyMap()
         textState?.value = result.text
         activeTextState?.value = result.text.orEmpty()
@@ -353,6 +358,35 @@ object FloatBallPickResultPanel {
             dismiss()
         }
         PickPerf.mark("panel_showResult_done", "source=${result.activeSource}")
+    }
+
+    fun capturePickReturnContextForEditor(): ImageEditorPickReturnContext? {
+        if (!pickPanelVisible) return null
+        val images = panelImagesState?.value.orEmpty().ifEmpty { listOfNotNull(screenshotState?.value) }
+        if (images.isEmpty()) return null
+        val index = (currentImageIndexState?.value ?: 0).coerceIn(0, images.lastIndex)
+        val copies = images.mapNotNull { bitmap ->
+            if (bitmap.isRecycled) null else bitmap.copy(Bitmap.Config.ARGB_8888, false)
+        }
+        if (copies.isEmpty()) return null
+        val safeIndex = index.coerceIn(0, copies.lastIndex)
+        return ImageEditorPickReturnContext(
+            a11yText = a11yTextState?.value,
+            ocrText = ocrTextState?.value,
+            activeSource = textSourceState?.value ?: PickResultTextSource.A11Y,
+            ocrAvailable = ocrAvailableState?.value == true,
+            ocrPending = ocrLoadingState?.value == true,
+            ocrPreferSwitchOnComplete = ocrSwitchOnComplete,
+            a11ySourceEnabled = a11ySourceEnabledState?.value != false,
+            isShareImageOcr = isShareImageOcrState?.value == true,
+            barcodeResults = barcodeResultsState?.value.orEmpty(),
+            contentOrigin = contentOriginState?.value ?: PickResultContentOrigin.SCREEN_PICK,
+            contentKind = null,
+            imageCopies = copies,
+            editedImageIndex = safeIndex,
+            ocrTextsByImageIndex = ocrTextsByImageIndexState?.value.orEmpty(),
+            textMode = textModeState?.value,
+        )
     }
 
     fun updatePickScreenshot(
@@ -1008,12 +1042,14 @@ object FloatBallPickResultPanel {
                                 screenWidthPx = overlayContext.resources.displayMetrics.widthPixels,
                                 screenHeightPx = overlayContext.resources.displayMetrics.heightPixels,
                             )
+                            val pickReturnContext = capturePickReturnContextForEditor()
                             val opened = FloatBallTextPick.viewScreenshot(
                                 ctx,
                                 bmp,
                                 settings.defaultImageViewerPackage,
                                 screenRect,
                                 meta,
+                                pickReturnContext,
                             )
                             if (opened) {
                                 dismiss()

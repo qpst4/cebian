@@ -8,6 +8,7 @@ data class ImageEditorLaunchPayload(
     val bitmap: Bitmap,
     val screenRect: Rect?,
     val layoutMeta: ScreenshotLayoutMeta?,
+    val pickReturnContext: ImageEditorPickReturnContext? = null,
 )
 
 object ImageEditorLaunchCache {
@@ -18,12 +19,15 @@ object ImageEditorLaunchCache {
         bitmap: Bitmap,
         screenRect: Rect? = null,
         layoutMeta: ScreenshotLayoutMeta? = null,
+        pickReturnContext: ImageEditorPickReturnContext? = null,
     ) {
         pending?.bitmap?.takeIf { !it.isRecycled && it !== bitmap }?.recycle()
+        pending?.pickReturnContext?.recycleImageCopies()
         pending = ImageEditorLaunchPayload(
             bitmap = bitmap,
             screenRect = screenRect?.let { Rect(it) },
             layoutMeta = layoutMeta?.copy(),
+            pickReturnContext = pickReturnContext,
         )
     }
 
@@ -35,6 +39,7 @@ object ImageEditorLaunchCache {
 
     fun clear() {
         pending?.bitmap?.takeIf { !it.isRecycled }?.recycle()
+        pending?.pickReturnContext?.recycleImageCopies()
         pending = null
     }
 }

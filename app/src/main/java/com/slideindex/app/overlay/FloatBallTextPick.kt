@@ -20,6 +20,7 @@ import com.slideindex.app.clipboard.ClipboardAccess
 import com.slideindex.app.clipboard.ClipboardPayload
 import com.slideindex.app.clipboard.ClipboardReader
 import com.slideindex.app.R
+import com.slideindex.app.imageeditor.ImageEditorPickReturnContext
 import com.slideindex.app.search.SearchEngineLauncher
 import com.slideindex.app.settings.AppSettings
 import java.io.File
@@ -222,12 +223,13 @@ object FloatBallTextPick {
         targetPackage: String? = null,
         screenRect: Rect? = null,
         layoutMeta: ScreenshotLayoutMeta? = null,
+        pickReturnContext: ImageEditorPickReturnContext? = null,
     ): Boolean {
         if (targetPackage == com.slideindex.app.imageeditor.ImageEditorOpenTargets.BUILTIN_PACKAGE) {
-            return openBuiltinImageEditor(context, bitmap, screenRect, layoutMeta)
+            return openBuiltinImageEditor(context, bitmap, screenRect, layoutMeta, pickReturnContext)
         }
         if (targetPackage.isNullOrBlank()) {
-            showImageViewerPicker(context, bitmap, screenRect, layoutMeta)
+            showImageViewerPicker(context, bitmap, screenRect, layoutMeta, pickReturnContext)
             return true
         }
         return viewScreenshotWithPackage(context, bitmap, targetPackage)
@@ -238,6 +240,7 @@ object FloatBallTextPick {
         bitmap: Bitmap,
         screenRect: Rect? = null,
         layoutMeta: ScreenshotLayoutMeta? = null,
+        pickReturnContext: ImageEditorPickReturnContext? = null,
     ) {
         val options = com.slideindex.app.ui.viewmodel.FloatBallPickSettingsViewModel
             .buildImageViewerOptions(context)
@@ -252,8 +255,8 @@ object FloatBallTextPick {
                 val selected = options.getOrNull(which) ?: return@setItems
                 when (val pkg = selected.packageName) {
                     com.slideindex.app.imageeditor.ImageEditorOpenTargets.BUILTIN_PACKAGE ->
-                        openBuiltinImageEditor(context, bitmap, screenRect, layoutMeta)
-                    null -> showImageViewerPicker(context, bitmap)
+                        openBuiltinImageEditor(context, bitmap, screenRect, layoutMeta, pickReturnContext)
+                    null -> showImageViewerPicker(context, bitmap, screenRect, layoutMeta, pickReturnContext)
                     else -> viewScreenshotWithPackage(context, bitmap, pkg)
                 }
             }
@@ -287,10 +290,16 @@ object FloatBallTextPick {
         bitmap: Bitmap,
         screenRect: Rect? = null,
         layoutMeta: ScreenshotLayoutMeta? = null,
+        pickReturnContext: ImageEditorPickReturnContext? = null,
     ): Boolean {
         return runCatching {
             val copy = bitmap.copy(Bitmap.Config.ARGB_8888, false) ?: return false
-            com.slideindex.app.imageeditor.ImageEditorLaunchCache.put(copy, screenRect, layoutMeta)
+            com.slideindex.app.imageeditor.ImageEditorLaunchCache.put(
+                copy,
+                screenRect,
+                layoutMeta,
+                pickReturnContext,
+            )
             com.slideindex.app.imageeditor.SlideIndexImageEditorActivity.launch(context)
             true
         }.getOrElse {

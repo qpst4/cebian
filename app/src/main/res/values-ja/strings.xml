@@ -1445,6 +1445,9 @@
     <string name="pick_result_image_share_to_app">アプリに共有</string>
     <string name="pick_result_image_share_pick_engine">共有先を選択</string>
     <string name="pick_result_image_share_system">システム共有</string>
+    <string name="pick_result_image_share_long_press_hint">スライドで選択、離して共有。横に大きく動かすとキャンセル</string>
+    <string name="pick_result_image_share_editor_drag_hint">スライドで選択、離して共有</string>
+    <string name="pick_result_image_share_last_used">前回</string>
     <string name="float_ball_action_stash">ストッシュに保存</string>
     <string name="stash_empty">ストッシュに項目はまだありません</string>
     <string name="stash_saved">ストッシュに保存しました</string>

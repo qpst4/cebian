@@ -39,12 +39,14 @@ import com.slideindex.app.imageeditor.state.EditorUiState
 import com.slideindex.app.imageeditor.ui.ImageEditorView
 import com.slideindex.app.inspire.ManagedBitmap
 import com.slideindex.app.di.OverlayDependencyAccess
+import com.slideindex.app.overlay.FloatBallPickResult
+import com.slideindex.app.overlay.FloatBallPickResultPanel
 import com.slideindex.app.overlay.FloatBallTextPick
 import com.slideindex.app.overlay.ScreenshotLayoutMeta
+import com.slideindex.app.settings.SearchEngineConfig
 import com.slideindex.app.overlay.buildScreenshotLayoutMeta
 import com.slideindex.app.overlay.resolvePinImageDisplaySizePx
 import com.slideindex.app.search.SearchEngineLauncher
-import com.slideindex.app.settings.SearchEngineStore
 import com.slideindex.app.settings.SettingsRepository
 import com.slideindex.app.stash.StashCoordinator
 import dagger.hilt.android.AndroidEntryPoint
@@ -74,6 +76,8 @@ class SlideIndexImageEditorActivity : AppCompatActivity() {
 
     private var pinScreenRect: Rect? = null
     private var pinLayoutMeta: ScreenshotLayoutMeta? = null
+    private var pickReturnContext: ImageEditorPickReturnContext? = null
+    private var shareEngineDragHelper: ImageEditorShareEngineDragHelper? = null
 
     private lateinit var modeButtons: List<Pair<MaterialButton, EditorMode>>
     private val adaptiveStrokeWidths = linkedMapOf<EditorMode, Float>()
@@ -109,6 +113,7 @@ class SlideIndexImageEditorActivity : AppCompatActivity() {
 
         setupToolbar()
         setupControls()
+        setupShareEngineDrag()
         applyWindowInsets()
         observeSession()
 
@@ -123,6 +128,10 @@ class SlideIndexImageEditorActivity : AppCompatActivity() {
         exportJob?.cancel()
         saveOptionsPopup?.dismiss()
         saveOptionsPopup = null
+        shareEngineDragHelper?.detach()
+        shareEngineDragHelper = null
+        pickReturnContext?.recycleImageCopies()
+        pickReturnContext = null
         quickTools.onDestroy()
         binding.root.animate().cancel()
         binding.bottomPanel.animate().cancel()
@@ -135,6 +144,23 @@ class SlideIndexImageEditorActivity : AppCompatActivity() {
 
     private fun setupToolbar() {
         binding.btnClose.setOnClickListener { finish() }
+        binding.btnClose.setOnLongClickListener {
+            if (pickReturnContext != null) {
+                returnEditedImageToPickPanel()
+            }
+            pickReturnContext != null
+        }
+    }
+
+    private fun setupShareEngineDrag() {
+        val helper = ImageEditorShareEngineDragHelper(
+            anchor = binding.btnShare,
+            settingsRepository = settingsRepository,
+            onSystemShare = { shareEditedBitmapSystem() },
+            onShareEngine = { engine -> shareEditedBitmapToEngine(engine) },
+        )
+        helper.attach()
+        shareEngineDragHelper = helper
     }
 
     private fun applyWindowInsets() {
@@ -233,11 +259,6 @@ class SlideIndexImageEditorActivity : AppCompatActivity() {
             true
         }
         binding.btnCopy.setOnClickListener { copyEditedBitmap() }
-        binding.btnShare.setOnClickListener { shareEditedBitmap(longPress = false) }
-        binding.btnShare.setOnLongClickListener {
-            shareEditedBitmap(longPress = true)
-            true
-        }
         binding.btnSave.setOnClickListener { showSaveOptions(it) }
         binding.compactAddTextButton.setOnClickListener {
             val center = binding.editorView.visibleImageCenterPoint() ?: return@setOnClickListener
@@ -320,6 +341,7 @@ class SlideIndexImageEditorActivity : AppCompatActivity() {
             }
             pinScreenRect = payload.screenRect
             pinLayoutMeta = payload.layoutMeta
+            pickReturnContext = payload.pickReturnContext
             val handle = ManagedBitmap.from(payload.bitmap)
             sourceBitmapHandle = handle.acquire()
             binding.editorView.setImageBitmap(handle)
@@ -430,24 +452,71 @@ class SlideIndexImageEditorActivity : AppCompatActivity() {
         }
     }
 
-    private fun shareEditedBitmap(longPress: Boolean) {
+    private fun shareEditedBitmapSystem() {
         exportJob?.cancel()
         val bitmap = exportEditedBitmap() ?: run {
             toast(R.string.inspire_image_edit_export_failed)
             return
         }
         exportJob = lifecycleScope.launch {
-            if (longPress) {
-                val settings = withContext(Dispatchers.IO) { settingsRepository.readSnapshot() }
-                val engine = SearchEngineStore.imageSharePanelEngines(settings.searchEngines).firstOrNull()
-                if (engine != null) {
-                    SearchEngineLauncher.launchImageShare(this@SlideIndexImageEditorActivity, engine, bitmap)
-                } else {
-                    FloatBallTextPick.shareScreenshot(this@SlideIndexImageEditorActivity, bitmap)
-                }
-            } else {
-                FloatBallTextPick.shareScreenshot(this@SlideIndexImageEditorActivity, bitmap)
+            FloatBallTextPick.shareScreenshot(this@SlideIndexImageEditorActivity, bitmap)
+            finish()
+        }
+    }
+
+    private fun shareEditedBitmapToEngine(engine: SearchEngineConfig) {
+        exportJob?.cancel()
+        val bitmap = exportEditedBitmap() ?: run {
+            toast(R.string.inspire_image_edit_export_failed)
+            return
+        }
+        exportJob = lifecycleScope.launch {
+            SearchEngineLauncher.launchImageShare(this@SlideIndexImageEditorActivity, engine, bitmap)
+            finish()
+        }
+    }
+
+    private fun returnEditedImageToPickPanel() {
+        val returnContext = pickReturnContext ?: return
+        exportJob?.cancel()
+        val editedBitmap = exportEditedBitmap() ?: run {
+            toast(R.string.inspire_image_edit_export_failed)
+            return
+        }
+        exportJob = lifecycleScope.launch {
+            val index = returnContext.editedImageIndex.coerceIn(0, returnContext.imageCopies.lastIndex)
+            val images = returnContext.imageCopies.toMutableList()
+            val previous = images[index]
+            if (previous !== editedBitmap && !previous.isRecycled) {
+                previous.recycle()
             }
+            images[index] = editedBitmap
+            val result = FloatBallPickResult(
+                a11yText = returnContext.a11yText,
+                ocrText = returnContext.ocrText,
+                screenshot = images.getOrNull(index),
+                screenRect = pinScreenRect?.let { Rect(it) },
+                layoutMeta = pinLayoutMeta,
+                activeSource = returnContext.activeSource,
+                ocrAvailable = returnContext.ocrAvailable,
+                ocrPending = false,
+                ocrPreferSwitchOnComplete = returnContext.ocrPreferSwitchOnComplete,
+                a11ySourceEnabled = returnContext.a11ySourceEnabled,
+                isShareImageOcr = returnContext.isShareImageOcr,
+                barcodeResults = returnContext.barcodeResults,
+                contentOrigin = returnContext.contentOrigin,
+                contentKind = returnContext.contentKind,
+                images = images,
+                initialImageIndex = index,
+                ownsImages = true,
+            )
+            pickReturnContext = null
+            FloatBallPickResultPanel.showResult(
+                overlayContext(),
+                result = result,
+                initialTextMode = returnContext.textMode,
+                ocrTextsByImageIndex = returnContext.ocrTextsByImageIndex,
+            )
             finish()
         }
     }

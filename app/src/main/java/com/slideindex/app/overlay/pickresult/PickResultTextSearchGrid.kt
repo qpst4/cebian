@@ -318,6 +318,17 @@ fun SearchEngineIcon(
     }
 }
 
+internal fun loadPickResultSearchEngineBitmap(
+    context: Context,
+    engine: SearchEngineConfig,
+): android.graphics.Bitmap? {
+    val cacheKey = searchEngineIconCacheKey(engine)
+    cachedSearchEngineBitmap(cacheKey)?.let { return it }
+    return resolveSearchEngineBitmap(context.filesDir, engine, context.packageManager)?.also { bitmap ->
+        searchEngineBitmapCache.put(cacheKey, bitmap)
+    }
+}
+
 private fun resolveSearchEngineBitmap(
     filesDir: File,
     engine: SearchEngineConfig,

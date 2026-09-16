@@ -62,7 +62,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
-import androidx.core.content.edit
 import com.slideindex.app.R
 import com.slideindex.app.di.OverlayDependencyAccess
 import com.slideindex.app.overlay.ScreenshotLayoutMeta
@@ -80,8 +79,6 @@ private val ImageSearchBarHeight = 60.dp
 private val ImageSectionItemSpacing = 6.dp
 private val ImageSearchBarBottomPadding = 0.dp
 
-private const val LastUsedImageEnginePrefs = "pick_result_prefs"
-private const val LastUsedImageEngineKey = "last_used_image_engine"
 
 /** 图片区水平内容宽度（面板全宽减去左右 padding）。 */
 @Composable
@@ -230,17 +227,17 @@ private fun rememberLastUsedImageShareEngine(
     engines: List<SearchEngineConfig>,
 ): Pair<SearchEngineConfig, (SearchEngineConfig) -> Unit> {
     val context = LocalContext.current.applicationContext
-    val prefs = remember(context) {
-        context.getSharedPreferences(LastUsedImageEnginePrefs, android.content.Context.MODE_PRIVATE)
-    }
     var lastUsedEngineId by remember {
-        mutableStateOf(prefs.getString(LastUsedImageEngineKey, null))
+        mutableStateOf(
+            context.getSharedPreferences(PickResultImageSharePrefs.PREFS_NAME, android.content.Context.MODE_PRIVATE)
+                .getString(PickResultImageSharePrefs.KEY_LAST_USED_ENGINE_ID, null),
+        )
     }
     val displayEngine = remember(engines, lastUsedEngineId) {
         engines.find { it.id == lastUsedEngineId } ?: engines.first()
     }
     val rememberEngine: (SearchEngineConfig) -> Unit = { engine ->
-        prefs.edit { putString(LastUsedImageEngineKey, engine.id) }
+        PickResultImageSharePrefs.rememberLastUsedEngine(context, engine)
         lastUsedEngineId = engine.id
     }
     return displayEngine to rememberEngine

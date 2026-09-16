@@ -983,6 +983,9 @@
     <string name="pick_result_image_share_to_app">Share to app</string>
     <string name="pick_result_image_share_pick_engine">Choose share target</string>
     <string name="pick_result_image_share_system">System share</string>
+    <string name="pick_result_image_share_long_press_hint">Slide to choose, release to share; slide away sideways to cancel</string>
+    <string name="pick_result_image_share_editor_drag_hint">Slide to choose, release to share</string>
+    <string name="pick_result_image_share_last_used">Recent</string>
     <string name="float_ball_action_stash">Save to stash</string>
     <string name="stash_empty">No stashed items yet</string>
     <string name="stash_saved">Saved to stash</string>
