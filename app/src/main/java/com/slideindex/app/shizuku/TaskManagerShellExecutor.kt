@@ -104,6 +104,28 @@ internal object TaskManagerShellExecutor {
         return true
     }
 
+    /** Run [command] with adb/shell identity when root/Magisk is available. */
+    fun runInShellIdentity(
+        command: String,
+        timeoutMs: Long = SHELL_COMMAND_TIMEOUT_MS,
+    ): ShellExecResult {
+        val sh = resolveShPath()
+        val wrapper = findShellDowngradeWrapper()
+        if (wrapper != null) {
+            return shellCommandWithOutput(timeoutMs, sh, "-c", wrapper(command))
+        }
+        val su = resolveSuInvocation()
+        val q = shellQuote(command)
+        return runFirstSuccessfulShellScript(
+            listOf(
+                "$su shell -c $q",
+                "$su 2000 $sh -c $q",
+            ),
+            timeoutMs,
+            context = null,
+        )
+    }
+
     fun runAsShellUser(command: String, context: Context? = null): ShellExecResult {
         if (Process.myUid() != 0) {
             return shellCommandWithOutput(*buildPlainShellArgs(command))
