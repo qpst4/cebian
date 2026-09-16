@@ -206,6 +206,10 @@ fun SettingsBackupScreen(
                 SettingsBackupDiffSection(context, preview.importDiff)
             }
 
+            if (preview.hasCloudLlmConfig) {
+                Text(stringResource(R.string.settings_backup_preview_cloud_config))
+            }
+
             if (preview.hasOtpRecords || preview.hasNotificationHistory ||
                 preview.hasNotificationFilterRules || preview.hasNotificationFilterPreferences ||
                 preview.hasOtpAutoFillStats || preview.hasShellOutputHistory ||

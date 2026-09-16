@@ -17,6 +17,7 @@ import javax.inject.Singleton
 class SettingsBackupManager @Inject constructor(
     @ApplicationContext private val context: Context,
     private val editor: SettingsPreferencesEditor,
+    private val cloudConfigPort: SettingsBackupCloudConfigPort,
 ) {
     suspend fun exportToZip(
         appVersionName: String,
@@ -24,6 +25,7 @@ class SettingsBackupManager @Inject constructor(
         outputStream: OutputStream,
     ): Result<Unit> = runCatching {
         withContext(Dispatchers.IO) {
+            materializeSearchEngineIconsForExport()
             val preferences = editor.readRawPreferences()
             val json = SettingsBackupCodec.encode(preferences, appVersionName, sensitive)
 
@@ -31,6 +33,13 @@ class SettingsBackupManager @Inject constructor(
                 zos.putNextEntry(ZipEntry("settings.json"))
                 zos.write(json.toByteArray(Charsets.UTF_8))
                 zos.closeEntry()
+
+                val cloudConfigJson = cloudConfigPort.exportRawJson()
+                if (cloudConfigJson.isNotBlank()) {
+                    zos.putNextEntry(ZipEntry(SettingsBackupPaths.VLM_OCR_CONFIG_JSON))
+                    zos.write(cloudConfigJson.toByteArray(Charsets.UTF_8))
+                    zos.closeEntry()
+                }
 
                 val dirsToBackup = SettingsBackupPaths.dirsForExport(
                     includeSensitiveDirectories = sensitive?.includeDirectories == true,
@@ -61,6 +70,7 @@ class SettingsBackupManager @Inject constructor(
     ): Result<SettingsBackupImportResult> = runCatching {
         withContext(Dispatchers.IO) {
             var document: SettingsBackupDocument? = null
+            var cloudConfigJson: String? = null
             val importedDirs = mutableSetOf<String>()
             val clearedDirs = mutableSetOf<String>()
 
@@ -74,30 +84,36 @@ class SettingsBackupManager @Inject constructor(
                     }
 
                     val name = currentEntry.name
-                    if (name == "settings.json") {
-                        val json = zis.readBytes().toString(Charsets.UTF_8)
-                        val decoded = SettingsBackupCodec.decode(json)
-                        SettingsBackupCodec.validate(decoded)
-                        document = decoded
-                    } else if (SettingsBackupPaths.isBackupPath(name)) {
-                        if (name.contains("..")) {
-                            zis.closeEntry()
-                            continue
+                    when (name) {
+                        "settings.json" -> {
+                            val json = zis.readBytes().toString(Charsets.UTF_8)
+                            val decoded = SettingsBackupCodec.decode(json)
+                            SettingsBackupCodec.validate(decoded)
+                            document = decoded
                         }
+                        SettingsBackupPaths.VLM_OCR_CONFIG_JSON -> {
+                            cloudConfigJson = zis.readBytes().toString(Charsets.UTF_8)
+                        }
+                        else -> if (SettingsBackupPaths.isBackupPath(name)) {
+                            if (name.contains("..")) {
+                                zis.closeEntry()
+                                continue
+                            }
 
-                        val normalizedName = SettingsBackupPaths.normalizeEntryPath(name)
-                        val topLevelDir = SettingsBackupPaths.topLevelDir(normalizedName)
-                        if (replaceExisting && topLevelDir != null && topLevelDir !in clearedDirs) {
-                            File(context.filesDir, topLevelDir).deleteRecursively()
-                            clearedDirs += topLevelDir
-                        }
+                            val normalizedName = SettingsBackupPaths.normalizeEntryPath(name)
+                            val topLevelDir = SettingsBackupPaths.topLevelDir(normalizedName)
+                            if (replaceExisting && topLevelDir != null && topLevelDir !in clearedDirs) {
+                                File(context.filesDir, topLevelDir).deleteRecursively()
+                                clearedDirs += topLevelDir
+                            }
 
-                        val targetFile = File(context.filesDir, normalizedName)
-                        targetFile.parentFile?.mkdirs()
-                        targetFile.outputStream().use { out ->
-                            zis.copyTo(out)
+                            val targetFile = File(context.filesDir, normalizedName)
+                            targetFile.parentFile?.mkdirs()
+                            targetFile.outputStream().use { out ->
+                                zis.copyTo(out)
+                            }
+                            topLevelDir?.let { importedDirs += it }
                         }
-                        topLevelDir?.let { importedDirs += it }
                     }
                     zis.closeEntry()
                 }
@@ -114,11 +130,16 @@ class SettingsBackupManager @Inject constructor(
                 SettingsBackupCodec.apply(finalDocument, prefs)
             }
 
+            cloudConfigJson?.let { raw ->
+                cloudConfigPort.importRawJson(raw, replaceExisting = true)
+            }
+
             SettingsBackupImportResult(
                 preferencesImported = finalDocument.preferences.size,
                 sensitive = finalDocument.toOptionalSections(),
                 importedClipboardDirectory = "clipboard" in importedDirs,
                 importedShareImageOcrHistoryDirectory = "share_image_ocr_history" in importedDirs,
+                importedCloudLlmConfig = !cloudConfigJson.isNullOrBlank(),
             )
         }
     }
@@ -126,6 +147,7 @@ class SettingsBackupManager @Inject constructor(
     suspend fun previewZipImport(inputStream: InputStream): Result<SettingsBackupPreview> = runCatching {
         withContext(Dispatchers.IO) {
             var document: SettingsBackupDocument? = null
+            var hasCloudLlmConfig = false
             val importedDirs = mutableSetOf<String>()
 
             ZipInputStream(inputStream).use { zis ->
@@ -138,13 +160,15 @@ class SettingsBackupManager @Inject constructor(
                     }
 
                     val name = currentEntry.name
-                    if (name == "settings.json") {
-                        val json = zis.readBytes().toString(Charsets.UTF_8)
-                        val decoded = SettingsBackupCodec.decode(json)
-                        SettingsBackupCodec.validate(decoded)
-                        document = decoded
-                    } else if (SettingsBackupPaths.isBackupPath(name)) {
-                        SettingsBackupPaths.topLevelDir(name)?.let { importedDirs += it }
+                    when (name) {
+                        "settings.json" -> {
+                            val json = zis.readBytes().toString(Charsets.UTF_8)
+                            val decoded = SettingsBackupCodec.decode(json)
+                            SettingsBackupCodec.validate(decoded)
+                            document = decoded
+                        }
+                        SettingsBackupPaths.VLM_OCR_CONFIG_JSON -> hasCloudLlmConfig = true
+                        else -> SettingsBackupPaths.topLevelDir(name)?.let { importedDirs += it }
                     }
                     zis.closeEntry()
                 }
@@ -154,7 +178,6 @@ class SettingsBackupManager @Inject constructor(
             val currentPrefs = editor.readRawPreferences()
             val importDiff = computeSettingsBackupImportDiff(currentPrefs, finalDocument)
             val domains = finalDocument.preferences.map { mapPreferenceKeyToDomain(it.key) }.toSet()
-            val optional = finalDocument.toOptionalSections()
             SettingsBackupPreview(
                 formatVersion = finalDocument.formatVersion,
                 exportedAtEpochMs = finalDocument.exportedAtEpochMs,
@@ -170,8 +193,22 @@ class SettingsBackupManager @Inject constructor(
                 hasSearchPanelHistory = !finalDocument.searchPanelHistoryJson.isNullOrBlank(),
                 hasClipboardDirectory = "clipboard" in importedDirs,
                 hasShareImageOcrHistoryDirectory = "share_image_ocr_history" in importedDirs,
+                hasCloudLlmConfig = hasCloudLlmConfig,
                 importDiff = importDiff,
             )
+        }
+    }
+
+    private suspend fun materializeSearchEngineIconsForExport() {
+        val prefs = editor.readRawPreferences()
+        val initialized = prefs[SettingsPreferenceKeys.SEARCH_ENGINES_INITIALIZED] ?: false
+        if (!initialized) return
+        val raw = prefs[SettingsPreferenceKeys.SEARCH_ENGINES_JSON]
+        val before = SearchEngineStore.decode(context, raw)
+        val after = SearchEngineIconMaterializer.materialize(context, before)
+        if (!SearchEngineIconMaterializer.needsPersist(before, after)) return
+        editor.edit {
+            it[SettingsPreferenceKeys.SEARCH_ENGINES_JSON] = SearchEngineStore.encode(after)
         }
     }
 

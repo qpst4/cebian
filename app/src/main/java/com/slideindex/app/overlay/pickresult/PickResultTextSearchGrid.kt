@@ -336,12 +336,13 @@ private fun resolveSearchEngineBitmap(
 ): android.graphics.Bitmap? {
     if (engine.iconType == SearchIconType.TEXT) return null
     if (engine.iconType == SearchIconType.URI) {
-        val iconPath = engine.iconPath?.takeIf { it.isNotBlank() } ?: return null
-        val file = File(filesDir, iconPath)
-        if (file.exists()) {
-            return runCatching { BitmapFactory.decodeFile(file.absolutePath) }.getOrNull()
+        val iconPath = engine.iconPath?.takeIf { it.isNotBlank() }
+        if (iconPath != null) {
+            val file = File(filesDir, iconPath)
+            if (file.isFile) {
+                runCatching { BitmapFactory.decodeFile(file.absolutePath) }.getOrNull()?.let { return it }
+            }
         }
-        return null
     }
     val pkg = engine.targetPackage?.takeIf { it.isNotBlank() }
         ?: engine.externJumpPackage?.takeIf { it.isNotBlank() }

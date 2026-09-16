@@ -1,6 +1,8 @@
 package com.slideindex.app.settings
 
 internal object SettingsBackupPaths {
+    const val VLM_OCR_CONFIG_JSON = "vlm_ocr_config.json"
+
     val ALWAYS_BACKUP_DIRS = listOf(
         "search_icons",
         "shell_icons",

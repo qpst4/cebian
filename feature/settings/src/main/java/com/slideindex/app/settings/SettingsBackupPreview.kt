@@ -15,6 +15,7 @@ data class SettingsBackupPreview(
     val hasSearchPanelHistory: Boolean = false,
     val hasClipboardDirectory: Boolean = false,
     val hasShareImageOcrHistoryDirectory: Boolean = false,
+    val hasCloudLlmConfig: Boolean = false,
     val importDiff: SettingsBackupImportDiff = SettingsBackupImportDiff(emptyList(), emptyList()),
 )
 

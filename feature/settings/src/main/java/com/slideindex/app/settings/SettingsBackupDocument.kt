@@ -46,6 +46,7 @@ data class SettingsBackupImportResult(
     val sensitive: SensitiveBackupSections,
     val importedClipboardDirectory: Boolean = false,
     val importedShareImageOcrHistoryDirectory: Boolean = false,
+    val importedCloudLlmConfig: Boolean = false,
 )
 
 @Serializable

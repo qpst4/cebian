@@ -30,6 +30,7 @@ import com.slideindex.app.notification.NotificationRuleUiStrings
 import com.slideindex.app.service.LaunchTrampolineActivity
 import com.slideindex.app.service.MediaNotificationListener
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.settings.SettingsBackupCloudConfigPort
 import com.slideindex.app.shake.AppShakeActionPort
 import com.slideindex.app.shake.AppShakeFeedbackPort
 import com.slideindex.app.shake.AppShakeRuntimePort
@@ -219,4 +220,10 @@ abstract class AppPortsModule {
     @Binds
     @Singleton
     abstract fun bindShakeFeedbackPort(impl: AppShakeFeedbackPort): ShakeFeedbackPort
+
+    @Binds
+    @Singleton
+    abstract fun bindSettingsBackupCloudConfigPort(
+        impl: VlmOcrSettingsBackupCloudConfigPort,
+    ): SettingsBackupCloudConfigPort
 }

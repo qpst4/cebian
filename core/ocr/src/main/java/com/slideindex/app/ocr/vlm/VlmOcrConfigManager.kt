@@ -377,5 +377,13 @@ class VlmOcrConfigManager @Inject constructor(
     fun resetPromptToDefault() {
         commonPrompt = defaultPrompt()
     }
+
+    fun exportRawJson(): String = VlmOcrConfigBackupCodec.encode(prefs)
+
+    fun importRawJson(raw: String, replaceExisting: Boolean = true) {
+        if (raw.isBlank()) return
+        val document = VlmOcrConfigBackupCodec.decode(raw)
+        VlmOcrConfigBackupCodec.apply(prefs, document, replaceExisting)
+    }
 }
 

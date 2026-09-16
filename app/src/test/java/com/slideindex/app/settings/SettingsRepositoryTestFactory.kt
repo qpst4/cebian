@@ -16,7 +16,7 @@ internal fun testSettingsRepository(context: Context): SettingsRepository = sync
     SettingsRepository(
         context = context,
         editor = editor,
-        backupManager = SettingsBackupManager(context, editor),
+        backupManager = SettingsBackupManager(context, editor, NoOpSettingsBackupCloudConfigPort),
         edge = EdgeSettingsMutator(editor, context),
         overlay = OverlaySettingsMutator(editor),
         shake = ShakeSettingsMutator(editor),
