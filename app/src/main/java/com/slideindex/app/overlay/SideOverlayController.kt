@@ -105,10 +105,15 @@ class SideOverlayController(
         if (windowManager.edgeOverlayDetached) return
         syncRuntimeVisuals()
         if (previewMode) {
-            windowManager.ensurePresentationAttached()
-            windowManager.presentationView?.setPreviewMode(true, previewContent, previewFocus)
-            renderer.applyPreviewPresentationWindow()
-            windowManager.presentationView?.invalidate()
+            val presentation = windowManager.presentationView
+            if (presentation != null && presentation.isPreviewMode()) {
+                windowManager.ensurePresentationAttached()
+                presentation.setPreviewMode(true, previewContent, previewFocus)
+                renderer.applyPreviewPresentationWindow()
+                presentation.invalidate()
+            } else {
+                windowManager.detachPresentationUnlessRequired()
+            }
         } else {
             windowManager.detachPresentationUnlessRequired()
         }

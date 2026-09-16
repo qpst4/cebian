@@ -97,12 +97,8 @@ class OverlayManager(
             controller.hideEdge()
             return
         }
-        if (triggersShown) {
-            if (!controller.isEdgeInitialized()) {
-                controller.showEdge(metrics)
-            } else {
-                controller.updateSettings(settings, metrics)
-            }
+        if (triggersShown && !controller.isEdgeInitialized()) {
+            controller.showEdge(metrics)
         }
     }
 
@@ -239,8 +235,8 @@ class OverlayManager(
             clearAllOverlayBrightness()
             TaskManagerUtil.ensureServiceBound()
             triggersShown = true
+            ensureSideEdgesForHandles(currentSettings)
         }
-        ensureSideEdgesForHandles(currentSettings)
     }
 
     fun onEnvironmentChanged() {
