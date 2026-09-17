@@ -1,10 +1,5 @@
 package com.slideindex.app.ui.searchengine
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Arrangement
@@ -37,16 +32,19 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
@@ -60,10 +58,10 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.zIndex
 import com.slideindex.app.R
 import com.slideindex.app.overlay.pickresult.SearchEngineIcon
 import com.slideindex.app.settings.SearchEngineConfig
-import com.slideindex.app.ui.miuix.MiuixSettingsTipCard
 import top.yukonga.miuix.kmp.basic.Card as MiuixCard
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.basic.Text as MiuixText
@@ -74,14 +72,12 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 import kotlin.math.roundToInt
 
 /**
- * 现代风格的“聚合搜索”管理工作台（全面采用 MIUIX 规范与参考图标准）：
- * 1. 顶部提示小卡片（MiuixSettingsTipCard）
- * 2. 平铺多页卡片，Header 支持长按整行直接上下拖拽调序整页
- * 3. 拖拽图标完全消灭偏移，精准居中于手指正下方
- * 4. 实时动态换位（Live Drag-to-Reorder），拖拽时图标实时挤开让位
- * 5. 独立“已隐藏”卡片池，支持跨卡片自由移入移出
- * 6. MIUIX 规范的网格布局卡片（SliderPreference / SwitchPreference）
- * 7. MIUIX 规范的预设引擎库和导入备份卡片
+ * 聚合搜索管理工作台（全面采用标准 MIUIX 规范与顺滑拖拽交互）：
+ * 1. 独立单页 MiuixCard，长按页标头产生完整卡片跟随手指上下移动的实时浮动动画，跨阈值顺滑对调；
+ * 2. 扁平网格布局（EngineGridLayout），消除跨行节点重建中断手势的根本缺陷，拖拽永不中断；
+ * 3. 手指中心绝对对齐，零偏移跟随；
+ * 4. 严格遵循 MIUIX 边距、字体规范（title4、body2 11sp、规范 SmallTitle 与 Preference）；
+ * 5. 恢复底部的预设搜索引擎库与导入备份功能卡片。
  */
 @Composable
 fun AggregatedSearchEngineManager(
@@ -129,13 +125,13 @@ fun AggregatedSearchEngineManager(
     var draggedEngine by remember { mutableStateOf<SearchEngineConfig?>(null) }
     var dragFingerLocalPos by remember { mutableStateOf(Offset.Zero) }
 
-    // 整页拖拽状态
+    // 整页拖拽状态与位移动画
     var draggingPageIndex by remember { mutableIntStateOf(-1) }
-    var dragPageFingerLocalY by remember { mutableFloatStateOf(0f) }
+    var pageDragOffsetY by remember { mutableFloatStateOf(0f) }
+    var measuredCardHeightPx by remember { mutableFloatStateOf(0f) }
 
     // 各项 Bounds
     val itemSlotBounds = remember { mutableStateMapOf<String, Rect>() }
-    val pageHeaderBounds = remember { mutableStateMapOf<Int, Rect>() }
     var hiddenCardBounds by remember { mutableStateOf(Rect.Zero) }
 
     // 快捷管理弹窗
@@ -146,21 +142,14 @@ fun AggregatedSearchEngineManager(
 
     Box(
         modifier = modifier
-            .fillMaxSize()
+            .fillMaxWidth()
             .onGloballyPositioned { rootCoordinates = it }
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp),
+            modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            // 0. 顶部描述提示小卡片（MIUIX 风格）
-            MiuixSettingsTipCard(
-                text = "长按图标可自由跨页拖拽调序或移入已隐藏；长按“第 X 页”标头可直接上下拖动调整整页顺序。",
-            )
-
-            // 1. 多页平铺卡片（已启用的搜索引擎）
+            // 1. 多页平铺卡片（每一页为独立 MiuixCard）
             if (pages.isEmpty()) {
                 MiuixCard(modifier = Modifier.fillMaxWidth()) {
                     Box(
@@ -178,183 +167,134 @@ fun AggregatedSearchEngineManager(
                     }
                 }
             } else {
-                MiuixCard(modifier = Modifier.fillMaxWidth()) {
-                    Column(
+                pages.forEachIndexed { pageIndex, pageEngines ->
+                    val isThisPageDragging = draggingPageIndex == pageIndex
+                    val offsetY = if (isThisPageDragging) pageDragOffsetY else 0f
+                    val pageScale = if (isThisPageDragging) 1.02f else 1f
+                    val pageElevation = if (isThisPageDragging) 10.dp else 0.dp
+
+                    MiuixCard(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 14.dp, vertical = 12.dp),
-                        verticalArrangement = Arrangement.spacedBy(18.dp),
-                    ) {
-                        pages.forEachIndexed { pageIndex, pageEngines ->
-                            val isThisPageDragging = draggingPageIndex == pageIndex
-
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .alpha(if (isThisPageDragging) 0.35f else 1f),
-                                verticalArrangement = Arrangement.spacedBy(10.dp),
-                            ) {
-                                // 标头行：长按整行可直接上下拖动调序整页！
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .onGloballyPositioned { coords ->
-                                            rootCoordinates?.let { root ->
-                                                pageHeaderBounds[pageIndex] = root.localBoundingBoxOf(coords)
-                                            }
-                                        }
-                                        .pointerInput(pageIndex, pages.size) {
-                                            detectDragGesturesAfterLongPress(
-                                                onDragStart = { touchOffset ->
-                                                    draggingPageIndex = pageIndex
-                                                    val pageBounds = pageHeaderBounds[pageIndex] ?: Rect.Zero
-                                                    dragPageFingerLocalY = pageBounds.top + touchOffset.y
-                                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                },
-                                                onDrag = { change, dragAmount ->
-                                                    change.consume()
-                                                    dragPageFingerLocalY += dragAmount.y
-
-                                                    val curIdx = draggingPageIndex
-                                                    if (curIdx in 0 until pages.size) {
-                                                        // 向上拖动检测
-                                                        if (curIdx > 0) {
-                                                            val prevBounds = pageHeaderBounds[curIdx - 1]
-                                                            if (prevBounds != null && dragPageFingerLocalY < prevBounds.bottom) {
-                                                                swapPagesInWorkingList(workingEngines, curIdx, curIdx - 1, pageSize)
-                                                                draggingPageIndex = curIdx - 1
-                                                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                                            }
-                                                        }
-                                                        // 向下拖动检测
-                                                        if (curIdx < pages.size - 1) {
-                                                            val nextBounds = pageHeaderBounds[curIdx + 1]
-                                                            if (nextBounds != null && dragPageFingerLocalY > nextBounds.top) {
-                                                                swapPagesInWorkingList(workingEngines, curIdx, curIdx + 1, pageSize)
-                                                                draggingPageIndex = curIdx + 1
-                                                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                                            }
-                                                        }
-                                                    }
-                                                },
-                                                onDragEnd = {
-                                                    draggingPageIndex = -1
-                                                    onUpdateEngines(workingEngines.mapIndexed { idx, itm -> itm.copy(sortOrder = idx) })
-                                                },
-                                                onDragCancel = {
-                                                    draggingPageIndex = -1
-                                                    onUpdateEngines(workingEngines.mapIndexed { idx, itm -> itm.copy(sortOrder = idx) })
-                                                },
-                                            )
-                                        }
-                                        .padding(vertical = 4.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    ) {
-                                        MiuixText(
-                                            text = "第 ${pageIndex + 1} 页",
-                                            style = MiuixTheme.textStyles.title2,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MiuixTheme.colorScheme.onSurface,
-                                        )
-                                        MiuixText(
-                                            text = "${pageEngines.size}/$pageSize",
-                                            style = MiuixTheme.textStyles.body2,
-                                            color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-                                        )
+                            .zIndex(if (isThisPageDragging) 10f else 1f)
+                            .offset { IntOffset(0, offsetY.roundToInt()) }
+                            .scale(pageScale)
+                            .shadow(pageElevation, shape = RoundedCornerShape(18.dp))
+                            .onGloballyPositioned { coords ->
+                                rootCoordinates?.let { root ->
+                                    val bounds = root.localBoundingBoxOf(coords)
+                                    if (bounds.height > 50f) {
+                                        measuredCardHeightPx = bounds.height
                                     }
-
-                                    // ↕️ 按钮指示
-                                    Icon(
-                                        imageVector = Icons.Default.SwapVert,
-                                        contentDescription = "长按拖拽调序整页",
-                                        tint = MiuixTheme.colorScheme.primary,
-                                        modifier = Modifier.size(22.dp),
-                                    )
                                 }
+                            }
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 14.dp, vertical = 12.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                        ) {
+                            // 标头行：长按整行可直接上下拖动调序整页，带全卡片浮动跟随实时动画
+                            PageHeaderRow(
+                                pageIndex = pageIndex,
+                                engineCount = pageEngines.size,
+                                pageSize = pageSize,
+                                onDragStart = {
+                                    draggingPageIndex = pageIndex
+                                    pageDragOffsetY = 0f
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                },
+                                onDrag = { deltaY ->
+                                    pageDragOffsetY += deltaY
+                                    val curIdx = draggingPageIndex
+                                    val cardH = if (measuredCardHeightPx > 0) measuredCardHeightPx else with(density) { 180.dp.toPx() }
+                                    val threshold = cardH * 0.45f
 
-                                // 该页网格列表（带手指无偏移精确定位 + 实时挤位重排）
-                                val pageRowChunks = pageEngines.chunked(columns)
-                                Column(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                                ) {
-                                    pageRowChunks.forEach { rowItems ->
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.SpaceEvenly,
-                                        ) {
-                                            rowItems.forEach { engine ->
-                                                val engineId = engine.id
-                                                Box(
-                                                    modifier = Modifier
-                                                        .weight(1f)
-                                                        .onGloballyPositioned { coords ->
-                                                            rootCoordinates?.let { root ->
-                                                                itemSlotBounds[engineId] = root.localBoundingBoxOf(coords)
-                                                            }
-                                                        },
-                                                    contentAlignment = Alignment.Center,
-                                                ) {
-                                                    MiuixEngineGridItem(
-                                                        engine = engine,
-                                                        showLabel = showLabels,
-                                                        iconSize = iconSizeDp,
-                                                        isDragging = draggedEngine?.id == engine.id,
-                                                        onDragStart = { touchOffset ->
-                                                            draggedEngine = engine
-                                                            val itemBounds = itemSlotBounds[engineId] ?: Rect.Zero
-                                                            // 将手指触点精准映射到根容器坐标，零偏移！
-                                                            dragFingerLocalPos = itemBounds.topLeft + touchOffset
-                                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                        },
-                                                        onDrag = { dragAmount ->
-                                                            dragFingerLocalPos += dragAmount
-
-                                                            // 实时换位判定（Live Reorder）
-                                                            val currentDragged = draggedEngine ?: return@MiuixEngineGridItem
-                                                            val fingerPos = dragFingerLocalPos
-
-                                                            // 检查是否划入另一个引擎 slot
-                                                            val hitEntry = itemSlotBounds.entries.firstOrNull { entry ->
-                                                                entry.key != currentDragged.id && entry.value.contains(fingerPos)
-                                                            }
-
-                                                            if (hitEntry != null) {
-                                                                val targetId = hitEntry.key
-                                                                val fromIndex = workingEngines.indexOfFirst { it.id == currentDragged.id }
-                                                                val toIndex = workingEngines.indexOfFirst { it.id == targetId }
-                                                                if (fromIndex >= 0 && toIndex >= 0 && fromIndex != toIndex) {
-                                                                    val item = workingEngines.removeAt(fromIndex).copy(showInPickPanel = true)
-                                                                    workingEngines.add(toIndex, item)
-                                                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                                                }
-                                                            } else if (hiddenCardBounds.contains(fingerPos)) {
-                                                                val fromIndex = workingEngines.indexOfFirst { it.id == currentDragged.id }
-                                                                if (fromIndex >= 0 && workingEngines[fromIndex].showInPickPanel) {
-                                                                    val item = workingEngines.removeAt(fromIndex).copy(showInPickPanel = false)
-                                                                    workingEngines.add(item)
-                                                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                                                }
-                                                            }
-                                                        },
-                                                        onDragEnd = {
-                                                            draggedEngine = null
-                                                            onUpdateEngines(workingEngines.mapIndexed { idx, itm -> itm.copy(sortOrder = idx) })
-                                                        },
-                                                        onClick = { actionTargetEngine = engine },
-                                                    )
-                                                }
-                                            }
-                                            repeat(columns - rowItems.size) {
-                                                Spacer(modifier = Modifier.weight(1f))
-                                            }
+                                    if (curIdx in pages.indices) {
+                                        if (pageDragOffsetY > threshold && curIdx < pages.size - 1) {
+                                            swapPagesInWorkingList(workingEngines, curIdx, curIdx + 1, pageSize)
+                                            pageDragOffsetY -= cardH
+                                            draggingPageIndex = curIdx + 1
+                                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                        } else if (pageDragOffsetY < -threshold && curIdx > 0) {
+                                            swapPagesInWorkingList(workingEngines, curIdx, curIdx - 1, pageSize)
+                                            pageDragOffsetY += cardH
+                                            draggingPageIndex = curIdx - 1
+                                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                         }
+                                    }
+                                },
+                                onDragEnd = {
+                                    draggingPageIndex = -1
+                                    pageDragOffsetY = 0f
+                                    onUpdateEngines(workingEngines.mapIndexed { idx, itm -> itm.copy(sortOrder = idx) })
+                                },
+                            )
+
+                            // 该页网格列表：扁平单容器渲染，彻底杜绝跨 Row 重建中断手势
+                            EngineGridLayout(
+                                columns = columns,
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalSpacing = 6.dp,
+                                verticalSpacing = 10.dp,
+                            ) {
+                                pageEngines.forEach { engine ->
+                                    val engineId = engine.id
+                                    Box(
+                                        modifier = Modifier
+                                            .onGloballyPositioned { coords ->
+                                                rootCoordinates?.let { root ->
+                                                    itemSlotBounds[engineId] = root.localBoundingBoxOf(coords)
+                                                }
+                                            },
+                                        contentAlignment = Alignment.Center,
+                                    ) {
+                                        MiuixEngineGridItem(
+                                            engine = engine,
+                                            showLabel = showLabels,
+                                            iconSize = iconSizeDp,
+                                            isDragging = draggedEngine?.id == engine.id,
+                                            onDragStart = { touchOffset ->
+                                                draggedEngine = engine
+                                                val itemBounds = itemSlotBounds[engineId] ?: Rect.Zero
+                                                dragFingerLocalPos = itemBounds.topLeft + touchOffset
+                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            },
+                                            onDrag = { dragAmount ->
+                                                dragFingerLocalPos += dragAmount
+
+                                                val currentDragged = draggedEngine ?: return@MiuixEngineGridItem
+                                                val fingerPos = dragFingerLocalPos
+
+                                                val hitEntry = itemSlotBounds.entries.firstOrNull { entry ->
+                                                    entry.key != currentDragged.id && entry.value.contains(fingerPos)
+                                                }
+
+                                                if (hitEntry != null) {
+                                                    val targetId = hitEntry.key
+                                                    val fromIndex = workingEngines.indexOfFirst { it.id == currentDragged.id }
+                                                    val toIndex = workingEngines.indexOfFirst { it.id == targetId }
+                                                    if (fromIndex >= 0 && toIndex >= 0 && fromIndex != toIndex) {
+                                                        val item = workingEngines.removeAt(fromIndex).copy(showInPickPanel = true)
+                                                        workingEngines.add(toIndex, item)
+                                                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                                    }
+                                                } else if (hiddenCardBounds.contains(fingerPos)) {
+                                                    val fromIndex = workingEngines.indexOfFirst { it.id == currentDragged.id }
+                                                    if (fromIndex >= 0 && workingEngines[fromIndex].showInPickPanel) {
+                                                        val item = workingEngines.removeAt(fromIndex).copy(showInPickPanel = false)
+                                                        workingEngines.add(item)
+                                                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                                    }
+                                                }
+                                            },
+                                            onDragEnd = {
+                                                draggedEngine = null
+                                                onUpdateEngines(workingEngines.mapIndexed { idx, itm -> itm.copy(sortOrder = idx) })
+                                            },
+                                            onClick = { actionTargetEngine = engine },
+                                        )
                                     }
                                 }
                             }
@@ -386,8 +326,8 @@ fun AggregatedSearchEngineManager(
                     ) {
                         MiuixText(
                             text = "已隐藏",
-                            style = MiuixTheme.textStyles.title2,
-                            fontWeight = FontWeight.Bold,
+                            style = MiuixTheme.textStyles.title4,
+                            fontWeight = FontWeight.SemiBold,
                             color = MiuixTheme.colorScheme.onSurface,
                         )
                         MiuixText(
@@ -405,73 +345,62 @@ fun AggregatedSearchEngineManager(
                             modifier = Modifier.padding(vertical = 10.dp),
                         )
                     } else {
-                        val hiddenRows = hiddenEngines.chunked(columns)
-                        Column(
+                        EngineGridLayout(
+                            columns = columns,
                             modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(10.dp),
+                            horizontalSpacing = 6.dp,
+                            verticalSpacing = 10.dp,
                         ) {
-                            hiddenRows.forEach { rowItems ->
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceEvenly,
+                            hiddenEngines.forEach { engine ->
+                                val engineId = engine.id
+                                Box(
+                                    modifier = Modifier
+                                        .onGloballyPositioned { coords ->
+                                            rootCoordinates?.let { root ->
+                                                itemSlotBounds[engineId] = root.localBoundingBoxOf(coords)
+                                            }
+                                        },
+                                    contentAlignment = Alignment.Center,
                                 ) {
-                                    rowItems.forEach { engine ->
-                                        val engineId = engine.id
-                                        Box(
-                                            modifier = Modifier
-                                                .weight(1f)
-                                                .onGloballyPositioned { coords ->
-                                                rootCoordinates?.let { root ->
-                                                    itemSlotBounds[engineId] = root.localBoundingBoxOf(coords)
+                                    MiuixEngineGridItem(
+                                        engine = engine,
+                                        showLabel = showLabels,
+                                        iconSize = iconSizeDp,
+                                        isDragging = draggedEngine?.id == engine.id,
+                                        onDragStart = { touchOffset ->
+                                            draggedEngine = engine
+                                            val itemBounds = itemSlotBounds[engineId] ?: Rect.Zero
+                                            dragFingerLocalPos = itemBounds.topLeft + touchOffset
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        },
+                                        onDrag = { dragAmount ->
+                                            dragFingerLocalPos += dragAmount
+
+                                            val currentDragged = draggedEngine ?: return@MiuixEngineGridItem
+                                            val fingerPos = dragFingerLocalPos
+
+                                            val hitEntry = itemSlotBounds.entries.firstOrNull { entry ->
+                                                entry.key != currentDragged.id && entry.value.contains(fingerPos)
+                                            }
+
+                                            if (hitEntry != null) {
+                                                val targetId = hitEntry.key
+                                                val fromIndex = workingEngines.indexOfFirst { it.id == currentDragged.id }
+                                                val toIndex = workingEngines.indexOfFirst { it.id == targetId }
+                                                if (fromIndex >= 0 && toIndex >= 0 && fromIndex != toIndex) {
+                                                    val isTargetVisible = workingEngines[toIndex].showInPickPanel
+                                                    val item = workingEngines.removeAt(fromIndex).copy(showInPickPanel = isTargetVisible)
+                                                    workingEngines.add(toIndex, item)
+                                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                                 }
-                                            },
-                                            contentAlignment = Alignment.Center,
-                                        ) {
-                                            MiuixEngineGridItem(
-                                                engine = engine,
-                                                showLabel = showLabels,
-                                                iconSize = iconSizeDp,
-                                                isDragging = draggedEngine?.id == engine.id,
-                                                onDragStart = { touchOffset ->
-                                                    draggedEngine = engine
-                                                    val itemBounds = itemSlotBounds[engineId] ?: Rect.Zero
-                                                    dragFingerLocalPos = itemBounds.topLeft + touchOffset
-                                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                },
-                                                onDrag = { dragAmount ->
-                                                    dragFingerLocalPos += dragAmount
-
-                                                    val currentDragged = draggedEngine ?: return@MiuixEngineGridItem
-                                                    val fingerPos = dragFingerLocalPos
-
-                                                    // 从隐藏池拖往显示区域 slot
-                                                    val hitEntry = itemSlotBounds.entries.firstOrNull { entry ->
-                                                        entry.key != currentDragged.id && entry.value.contains(fingerPos)
-                                                    }
-
-                                                    if (hitEntry != null) {
-                                                        val targetId = hitEntry.key
-                                                        val fromIndex = workingEngines.indexOfFirst { it.id == currentDragged.id }
-                                                        val toIndex = workingEngines.indexOfFirst { it.id == targetId }
-                                                        if (fromIndex >= 0 && toIndex >= 0 && fromIndex != toIndex) {
-                                                            val isTargetVisible = workingEngines[toIndex].showInPickPanel
-                                                            val item = workingEngines.removeAt(fromIndex).copy(showInPickPanel = isTargetVisible)
-                                                            workingEngines.add(toIndex, item)
-                                                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                                        }
-                                                    }
-                                                },
-                                                onDragEnd = {
-                                                    draggedEngine = null
-                                                    onUpdateEngines(workingEngines.mapIndexed { idx, itm -> itm.copy(sortOrder = idx) })
-                                                },
-                                                onClick = { actionTargetEngine = engine },
-                                            )
-                                        }
-                                    }
-                                    repeat(columns - rowItems.size) {
-                                        Spacer(modifier = Modifier.weight(1f))
-                                    }
+                                            }
+                                        },
+                                        onDragEnd = {
+                                            draggedEngine = null
+                                            onUpdateEngines(workingEngines.mapIndexed { idx, itm -> itm.copy(sortOrder = idx) })
+                                        },
+                                        onClick = { actionTargetEngine = engine },
+                                    )
                                 }
                             }
                         }
@@ -527,11 +456,11 @@ fun AggregatedSearchEngineManager(
                 )
             }
 
-            // 底部安全留白
+            // 底部留白
             Spacer(modifier = Modifier.height(72.dp))
         }
 
-        // 5. 严格锁定手指正下方的跟随浮层（中心绝对居中于触点）
+        // 5. 手指正下方跟随浮层（中心绝对对准触点）
         draggedEngine?.let { engine ->
             Box(
                 modifier = Modifier
@@ -541,10 +470,10 @@ fun AggregatedSearchEngineManager(
                             y = (dragFingerLocalPos.y - iconSizePx / 2f).roundToInt(),
                         )
                     }
-                    .size(iconSizeDp + 16.dp)
-                    .shadow(16.dp, RoundedCornerShape(12.dp))
-                    .background(MiuixTheme.colorScheme.surface, RoundedCornerShape(12.dp))
-                    .padding(8.dp),
+                    .size(iconSizeDp)
+                    .zIndex(999f)
+                    .scale(1.15f)
+                    .shadow(12.dp, CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
                 SearchEngineIcon(
@@ -580,7 +509,117 @@ fun AggregatedSearchEngineManager(
     }
 }
 
-/** 单个引擎单元项 */
+/** 页标头行：长按整行触发整页上下拖动调序 */
+@Composable
+private fun PageHeaderRow(
+    pageIndex: Int,
+    engineCount: Int,
+    pageSize: Int,
+    onDragStart: (Offset) -> Unit,
+    onDrag: (Float) -> Unit,
+    onDragEnd: () -> Unit,
+) {
+    val currentOnDragStart by rememberUpdatedState(onDragStart)
+    val currentOnDrag by rememberUpdatedState(onDrag)
+    val currentOnDragEnd by rememberUpdatedState(onDragEnd)
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp))
+            .pointerInput(Unit) {
+                detectDragGesturesAfterLongPress(
+                    onDragStart = { currentOnDragStart(it) },
+                    onDrag = { change, dragAmount ->
+                        change.consume()
+                        currentOnDrag(dragAmount.y)
+                    },
+                    onDragEnd = { currentOnDragEnd() },
+                    onDragCancel = { currentOnDragEnd() },
+                )
+            }
+            .padding(vertical = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            MiuixText(
+                text = "第 ${pageIndex + 1} 页",
+                style = MiuixTheme.textStyles.title4,
+                fontWeight = FontWeight.SemiBold,
+                color = MiuixTheme.colorScheme.onSurface,
+            )
+            MiuixText(
+                text = "$engineCount/$pageSize",
+                style = MiuixTheme.textStyles.body2,
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+            )
+        }
+
+        Icon(
+            imageVector = Icons.Default.SwapVert,
+            contentDescription = "长按拖拽调序整页",
+            tint = MiuixTheme.colorScheme.primary,
+            modifier = Modifier.size(20.dp),
+        )
+    }
+}
+
+/** 扁平网格布局（单容器容纳全部单元，杜绝跨 Row 销毁手势） */
+@Composable
+private fun EngineGridLayout(
+    columns: Int,
+    modifier: Modifier = Modifier,
+    horizontalSpacing: Dp = 6.dp,
+    verticalSpacing: Dp = 10.dp,
+    content: @Composable () -> Unit,
+) {
+    Layout(
+        content = content,
+        modifier = modifier,
+    ) { measurables, constraints ->
+        if (measurables.isEmpty()) {
+            return@Layout layout(constraints.minWidth, constraints.minHeight) {}
+        }
+        val safeColumns = columns.coerceAtLeast(1)
+        val horizontalSpacingPx = horizontalSpacing.roundToPx()
+        val verticalSpacingPx = verticalSpacing.roundToPx()
+        val totalSpacing = horizontalSpacingPx * (safeColumns - 1)
+        val cellWidth = ((constraints.maxWidth - totalSpacing) / safeColumns).coerceAtLeast(0)
+        val childConstraints = constraints.copy(minWidth = cellWidth, maxWidth = cellWidth)
+        val placeables = measurables.map { it.measure(childConstraints) }
+
+        val rowCount = (placeables.size + safeColumns - 1) / safeColumns
+        val rowHeights = IntArray(rowCount) { 0 }
+        placeables.forEachIndexed { index, placeable ->
+            val r = index / safeColumns
+            rowHeights[r] = maxOf(rowHeights[r], placeable.height)
+        }
+
+        var totalHeight = 0
+        val rowY = IntArray(rowCount) { 0 }
+        for (r in 0 until rowCount) {
+            rowY[r] = totalHeight
+            totalHeight += rowHeights[r]
+            if (r < rowCount - 1) totalHeight += verticalSpacingPx
+        }
+
+        layout(constraints.maxWidth, totalHeight.coerceIn(constraints.minHeight, constraints.maxHeight)) {
+            placeables.forEachIndexed { index, placeable ->
+                val r = index / safeColumns
+                val c = index % safeColumns
+                val x = c * (cellWidth + horizontalSpacingPx)
+                val y = rowY[r]
+                placeable.placeRelative(x, y)
+            }
+        }
+    }
+}
+
+/** 单个引擎单元项（挂载在稳定单元节点，pointerInput 永不断裂） */
 @Composable
 private fun MiuixEngineGridItem(
     engine: SearchEngineConfig,
@@ -592,22 +631,28 @@ private fun MiuixEngineGridItem(
     onDragEnd: () -> Unit,
     onClick: () -> Unit,
 ) {
+    val currentOnDragStart by rememberUpdatedState(onDragStart)
+    val currentOnDrag by rememberUpdatedState(onDrag)
+    val currentOnDragEnd by rememberUpdatedState(onDragEnd)
+    val currentOnClick by rememberUpdatedState(onClick)
+
     val alpha = if (isDragging) 0.15f else 1f
 
     Column(
         modifier = Modifier
-            .pointerInput(engine.id) {
+            .fillMaxWidth()
+            .pointerInput(Unit) {
                 detectDragGesturesAfterLongPress(
-                    onDragStart = onDragStart,
+                    onDragStart = { currentOnDragStart(it) },
                     onDrag = { change, dragAmount ->
                         change.consume()
-                        onDrag(dragAmount)
+                        currentOnDrag(dragAmount)
                     },
-                    onDragEnd = onDragEnd,
-                    onDragCancel = onDragEnd,
+                    onDragEnd = { currentOnDragEnd() },
+                    onDragCancel = { currentOnDragEnd() },
                 )
             }
-            .clickable(onClick = onClick)
+            .clickable { currentOnClick() }
             .padding(vertical = 4.dp, horizontal = 2.dp)
             .alpha(alpha),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -622,7 +667,8 @@ private fun MiuixEngineGridItem(
             MiuixText(
                 text = engine.name,
                 style = MiuixTheme.textStyles.body2,
-                fontSize = 10.sp,
+                fontSize = 11.sp,
+                lineHeight = 13.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 textAlign = TextAlign.Center,
@@ -641,8 +687,8 @@ private fun swapPagesInWorkingList(
 ) {
     val visible = list.filter { it.showInPickPanel }
     val hidden = list.filter { !it.showInPickPanel }
+    val pages = visible.chunked(pageSize).map { it.toMutableList() }.toMutableList()
 
-    val pages = visible.chunked(pageSize).toMutableList()
     if (pageA in pages.indices && pageB in pages.indices && pageA != pageB) {
         val temp = pages[pageA]
         pages[pageA] = pages[pageB]
@@ -659,6 +705,7 @@ private fun calculateIconSize(columns: Int): Dp = when {
     columns >= 8 -> 32.dp
     columns >= 7 -> 34.dp
     columns >= 6 -> 36.dp
+    columns >= 5 -> 38.dp
     else -> 40.dp
 }
 
@@ -683,7 +730,9 @@ private fun MiuixEngineActionDialog(
                     .padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
+                // 引擎信息展示
                 Row(
+                    modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
@@ -691,7 +740,7 @@ private fun MiuixEngineActionDialog(
                     Column {
                         MiuixText(
                             text = engine.name,
-                            style = MiuixTheme.textStyles.title2,
+                            style = MiuixTheme.textStyles.title4,
                             fontWeight = FontWeight.Bold,
                         )
                         MiuixText(
@@ -702,6 +751,7 @@ private fun MiuixEngineActionDialog(
                     }
                 }
 
+                // 操作按钮列表
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -709,8 +759,8 @@ private fun MiuixEngineActionDialog(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .clickable { onToggleVisibility() }
+                            .clip(RoundedCornerShape(10.dp))
+                            .clickable(onClick = onToggleVisibility)
                             .padding(vertical = 12.dp, horizontal = 8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -729,8 +779,8 @@ private fun MiuixEngineActionDialog(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .clickable { onEdit() }
+                            .clip(RoundedCornerShape(10.dp))
+                            .clickable(onClick = onEdit)
                             .padding(vertical = 12.dp, horizontal = 8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -749,8 +799,8 @@ private fun MiuixEngineActionDialog(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .clickable { onDelete() }
+                            .clip(RoundedCornerShape(10.dp))
+                            .clickable(onClick = onDelete)
                             .padding(vertical = 12.dp, horizontal = 8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(12.dp),

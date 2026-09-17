@@ -95,6 +95,7 @@ fun SearchEngineSettingsScreen(
 
     SettingsScreenScaffold(
         title = "聚合搜索",
+        pageHint = "长按图标可跨页拖拽调序或移入已隐藏；长按“第 X 页”标头可上下拖动调整整页顺序。",
         onBack = onBack,
         floatingActionButton = {
             FloatingActionButton(
@@ -136,7 +137,6 @@ fun SearchEngineSettingsScreen(
                         ),
                     )
                 },
-                modifier = Modifier.padding(top = 8.dp),
             )
         }
     }
