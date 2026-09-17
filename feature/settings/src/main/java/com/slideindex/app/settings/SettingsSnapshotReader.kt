@@ -414,10 +414,16 @@ internal object SettingsSnapshotReader {
                 prefs[SettingsPreferenceKeys.FLOAT_BALL_PICK_TEXT_FIRST_PANEL] ?: false,
             floatBallPickPanelStyle =
                 PickResultPanelStyle.fromStorageKey(prefs[SettingsPreferenceKeys.FLOAT_BALL_PICK_PANEL_STYLE]),
+            floatBallPickSearchGridDefaultState =
+                PickResultSearchGridDefaultState.fromStorageKey(prefs[SettingsPreferenceKeys.FLOAT_BALL_PICK_SEARCH_GRID_DEFAULT_STATE]),
+            floatBallPickSearchGridLastExpanded =
+                prefs[SettingsPreferenceKeys.FLOAT_BALL_PICK_SEARCH_GRID_LAST_EXPANDED] ?: false,
             floatBallPickAutoSelectAll =
                 prefs[SettingsPreferenceKeys.FLOAT_BALL_PICK_AUTO_SELECT_ALL] ?: false,
             floatBallPickCopyDismissPanel =
                 prefs[SettingsPreferenceKeys.FLOAT_BALL_PICK_COPY_DISMISS_PANEL] ?: false,
+            floatBallPickHapticEnabled =
+                prefs[SettingsPreferenceKeys.FLOAT_BALL_PICK_HAPTIC_ENABLED] ?: true,
             floatBallDragPasteEnabled =
                 prefs[SettingsPreferenceKeys.FLOAT_BALL_DRAG_PASTE_ENABLED] ?: true,
             floatBallPickPanelEnterAnimationMs =

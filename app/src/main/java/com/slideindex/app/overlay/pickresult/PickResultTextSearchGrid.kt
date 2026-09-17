@@ -17,7 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.BoxWithConstraints
 import com.slideindex.app.overlay.overlayIsLandscape
-import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -152,7 +152,7 @@ fun PickResultTextSearchGrid(
                 .fillMaxWidth()
                 .padding(start = 12.dp, end = 12.dp, top = 0.dp, bottom = 0.dp),
         ) {
-            HorizontalPager(
+            VerticalPager(
                 state = pagerState,
                 modifier = Modifier
                     .fillMaxWidth()

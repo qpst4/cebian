@@ -547,11 +547,20 @@ class SettingsRepository @Inject constructor(
     suspend fun setFloatBallPickPanelStyle(style: PickResultPanelStyle) =
         overlay.setFloatBallPickPanelStyle(style)
 
+    suspend fun setFloatBallPickSearchGridDefaultState(state: PickResultSearchGridDefaultState) =
+        overlay.setFloatBallPickSearchGridDefaultState(state)
+
+    suspend fun setFloatBallPickSearchGridLastExpanded(expanded: Boolean) =
+        overlay.setFloatBallPickSearchGridLastExpanded(expanded)
+
     suspend fun setFloatBallPickAutoSelectAll(enabled: Boolean) =
         overlay.setFloatBallPickAutoSelectAll(enabled)
 
     suspend fun setFloatBallPickCopyDismissPanel(enabled: Boolean) =
         overlay.setFloatBallPickCopyDismissPanel(enabled)
+
+    suspend fun setFloatBallPickHapticEnabled(enabled: Boolean) =
+        overlay.setFloatBallPickHapticEnabled(enabled)
 
     suspend fun setFloatBallDragPasteEnabled(enabled: Boolean) =
         overlay.setFloatBallDragPasteEnabled(enabled)

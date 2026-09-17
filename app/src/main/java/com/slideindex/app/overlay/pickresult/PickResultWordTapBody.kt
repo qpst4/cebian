@@ -48,7 +48,9 @@ import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.LocalViewConfiguration
+import android.view.HapticFeedbackConstants
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -236,7 +238,9 @@ fun PickResultWordTapBody(
     modifier: Modifier = Modifier,
     textSizeSp: Float = 15f,
     fillAvailableHeight: Boolean = false,
+    hapticEnabled: Boolean = true,
 ) {
+    val view = LocalView.current
     val bodyTextSize = textSizeSp.sp
     val delimiterTextSize = (textSizeSp * 13f / 15f).sp
     val bodyLineHeight = (textSizeSp * 20f / 15f).sp
@@ -265,6 +269,7 @@ fun PickResultWordTapBody(
     val currentOnWordLongPress by rememberUpdatedState(onWordLongPress)
 
     fun recordChipBounds(index: Int, coordinates: LayoutCoordinates) {
+        if (wordTokens.getOrNull(index) == "\n") return
         val box = containerCoordinates ?: return
         if (!box.isAttached || !coordinates.isAttached) return
         val topLeft = box.localPositionOf(coordinates, Offset.Zero)
@@ -468,7 +473,15 @@ fun PickResultWordTapBody(
                                 )
                                 val currentIndex =
                                     indexAtInContainer(change.position, allowLineProjection = true) ?: lastRangeIndex
-                                lastRangeIndex = currentIndex
+                                if (currentIndex != lastRangeIndex) {
+                                    if (hapticEnabled) {
+                                        view.performHapticFeedback(
+                                            HapticFeedbackConstants.CLOCK_TICK,
+                                            HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING
+                                        )
+                                    }
+                                    lastRangeIndex = currentIndex
+                                }
                                 val range = rangeIndices(startIndex, currentIndex)
                                 onSelectionChange(
                                     if (selecting) baseline + range else baseline - range,
@@ -483,6 +496,12 @@ fun PickResultWordTapBody(
                     val didScroll = scrollState.value != scrollAtDown
                     val isTap = accumulated.getDistance() < touchSlop
                     if (!wordDragArmed && !longPressTriggered && !scrollGestureStarted && !didScroll && isTap) {
+                        if (hapticEnabled) {
+                            view.performHapticFeedback(
+                                HapticFeedbackConstants.CLOCK_TICK,
+                                HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING
+                            )
+                        }
                         onSelectionChange(
                             if (startIndex in baseline) baseline - startIndex else baseline + startIndex,
                         )
@@ -620,7 +639,6 @@ private fun WordTapTokenChip(
         if (token == "\n") {
             Box(
                 modifier = Modifier
-                    .onGloballyPositioned(onPositioned)
                     .fillMaxWidth()
                     .height(1.dp)
             )

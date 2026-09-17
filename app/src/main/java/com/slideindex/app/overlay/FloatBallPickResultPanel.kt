@@ -1103,13 +1103,14 @@ object FloatBallPickResultPanel {
                     onTextChange = { textHolder.value = it },
                     onCopy = { value, keepPanelOpen ->
                         FloatBallTextPick.copyText(context, value)
+                        if (settingsHolder.value.floatBallPickHapticEnabled) {
+                            composeView?.let { v ->
+                                com.slideindex.app.util.HapticHelper.confirmLaunch(v, settingsHolder.value)
+                            }
+                        }
                         val autoDismiss = settingsHolder.value.floatBallPickCopyDismissPanel
                         if (autoDismiss && !keepPanelOpen) {
-                            val hostContext = appContext ?: context.applicationContext
-                            Toast.makeText(hostContext, R.string.float_ball_text_copied, Toast.LENGTH_SHORT).show()
                             dismiss()
-                        } else {
-                            showInPanelMessage(context.getString(R.string.float_ball_text_copied))
                         }
                     },
                     onShareText = {

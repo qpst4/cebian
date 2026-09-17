@@ -1347,6 +1347,11 @@
     <string name="float_ball_pick_panel_style_desc">选择取词与截图结果的呈现交互风格</string>
     <string name="float_ball_pick_panel_style_integrated">同屏双卡片（推荐）</string>
     <string name="float_ball_pick_panel_style_tab_paged">左右分页 Tab（图文分页）</string>
+    <string name="float_ball_pick_search_grid_state_title">搜索引擎默认状态</string>
+    <string name="float_ball_pick_search_grid_state_desc">控制呼出取词面板时底部搜索引擎区域的初始展现形式</string>
+    <string name="float_ball_pick_search_grid_state_remember">记住上次使用状态（推荐）</string>
+    <string name="float_ball_pick_search_grid_state_expanded">每次呼出始终展开</string>
+    <string name="float_ball_pick_search_grid_state_collapsed">每次呼出始终收起</string>
     <string name="float_ball_pick_panel_tab_text">文本</string>
     <string name="float_ball_pick_panel_tab_image">截图</string>
     <string name="pick_result_action_save_image">保存图片</string>
@@ -1364,6 +1369,8 @@
     <string name="float_ball_pick_auto_select_all_desc">取词或截图后弹出的面板，文字直接自动全选</string>
     <string name="float_ball_pick_copy_dismiss_panel">复制后自动收起面板</string>
     <string name="float_ball_pick_copy_dismiss_panel_desc">开启后，点击「复制选中」将自动关闭取词面板；长按复制则保留面板</string>
+    <string name="float_ball_pick_haptic_enabled">取词面板触感反馈</string>
+    <string name="float_ball_pick_haptic_enabled_desc">复制选中成功或在分词模式中连续划选字砖时提供清脆微瞬震动</string>
     <string name="float_ball_drag_paste_enabled">拖动悬浮球粘贴</string>
     <string name="float_ball_drag_paste_enabled_desc">悬停在输入框上松手，将剪贴板历史最新一条粘贴到该输入框（不打开取词面板）</string>
     <string name="clipboard_paste_behavior_section">粘贴行为</string>
@@ -1550,7 +1557,7 @@
     <string name="float_ball_image_search_tab_loading">搜索中</string>
     <string name="float_ball_image_search_tab_ready">搜索完成</string>
     <string name="float_ball_image_search_tab_failed">搜索失败</string>
-    <string name="float_ball_pick_source_a11y">无障碍</string>
+    <string name="float_ball_pick_source_a11y">文本</string>
     <string name="float_ball_pick_source_ocr">OCR</string>
     <string name="float_ball_pick_source_barcode">扫码</string>
     <string name="float_ball_action_edit">编辑</string>

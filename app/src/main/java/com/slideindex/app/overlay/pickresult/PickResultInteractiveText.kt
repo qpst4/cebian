@@ -26,7 +26,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.ui.input.pointer.positionChanged
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.calculateCentroidSize
+import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Deselect
@@ -639,6 +643,7 @@ internal fun PickResultInteractiveTextSection(
                             expandToFill = expandToFill,
                             useInternalScroll = true,
                             autoSelectAll = effectiveAutoSelectAll,
+                            hapticEnabled = appSettings.floatBallPickHapticEnabled,
                             onTextFieldValueChange = { updated ->
                                 textFieldValue = updated
                                 onTextChange(updated.text)
@@ -719,6 +724,7 @@ internal fun PickResultInteractiveTextSection(
                     bodyMaxHeight = bodyMaxHeight,
                     useInternalScroll = true,
                     autoSelectAll = effectiveAutoSelectAll,
+                    hapticEnabled = appSettings.floatBallPickHapticEnabled,
                     onTextFieldValueChange = { updated ->
                         textFieldValue = updated
                         onTextChange(updated.text)
@@ -1044,6 +1050,7 @@ internal fun PickResultTextBody(
     onZoomText: ((Boolean) -> Unit)? = null,
     onExitEditMode: (() -> Unit)? = null,
     selectionToolbarActions: OverlaySelectionToolbarActions? = null,
+    hapticEnabled: Boolean = true,
 ) {
     val bodyTextSize = textSizeSp.sp
     val editLineHeight = (textSizeSp * 22f / 15f).sp
@@ -1077,18 +1084,48 @@ internal fun PickResultTextBody(
                 return@pointerInput
             }
             var cumulativeZoom = 1f
-            detectTransformGestures { _, _, zoom, _ ->
-                cumulativeZoom *= zoom
-                when {
-                    cumulativeZoom > 1.2f -> {
-                        currentOnZoomText?.invoke(true)
-                        cumulativeZoom = 1f
+            awaitEachGesture {
+                var pastTouchSlop = false
+                val touchSlop = viewConfiguration.touchSlop
+
+                awaitFirstDown(requireUnconsumed = false)
+                do {
+                    val event = awaitPointerEvent()
+                    val canceled = event.changes.any { it.isConsumed }
+                    val pressedPointers = event.changes.filter { it.pressed }
+                    // 仅当至少 2 根手指按下时才判定双指缩放，单指滑动彻底放行给外层 HorizontalPager 或滚动容器
+                    if (!canceled && pressedPointers.size >= 2) {
+                        val zoomChange = event.calculateZoom()
+                        if (!pastTouchSlop) {
+                            cumulativeZoom *= zoomChange
+                            val centroidSize = event.calculateCentroidSize(useCurrent = false)
+                            val zoomMotion = kotlin.math.abs(1f - cumulativeZoom) * centroidSize
+                            if (zoomMotion > touchSlop) {
+                                pastTouchSlop = true
+                            }
+                        }
+                        if (pastTouchSlop) {
+                            if (zoomChange != 1f) {
+                                cumulativeZoom *= zoomChange
+                                when {
+                                    cumulativeZoom > 1.2f -> {
+                                        currentOnZoomText?.invoke(true)
+                                        cumulativeZoom = 1f
+                                    }
+                                    cumulativeZoom < 0.8f -> {
+                                        currentOnZoomText?.invoke(false)
+                                        cumulativeZoom = 1f
+                                    }
+                                }
+                            }
+                            event.changes.forEach {
+                                if (it.positionChanged()) {
+                                    it.consume()
+                                }
+                            }
+                        }
                     }
-                    cumulativeZoom < 0.8f -> {
-                        currentOnZoomText?.invoke(false)
-                        cumulativeZoom = 1f
-                    }
-                }
+                } while (!canceled && event.changes.any { it.pressed })
             }
         }
 
@@ -1228,6 +1265,7 @@ internal fun PickResultTextBody(
                     maxHeight = effectiveMaxHeight,
                     fillAvailableHeight = expandToFill,
                     textSizeSp = textSizeSp,
+                    hapticEnabled = hapticEnabled,
                     modifier = paddedModifier,
                 )
             }

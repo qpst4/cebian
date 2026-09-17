@@ -881,12 +881,24 @@ class OverlaySettingsMutator @Inject constructor(
         it[SettingsPreferenceKeys.FLOAT_BALL_PICK_PANEL_STYLE] = style.storageKey
     }
 
+    suspend fun setFloatBallPickSearchGridDefaultState(state: PickResultSearchGridDefaultState) = editor.edit {
+        it[SettingsPreferenceKeys.FLOAT_BALL_PICK_SEARCH_GRID_DEFAULT_STATE] = state.storageKey
+    }
+
+    suspend fun setFloatBallPickSearchGridLastExpanded(expanded: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.FLOAT_BALL_PICK_SEARCH_GRID_LAST_EXPANDED] = expanded
+    }
+
     suspend fun setFloatBallPickAutoSelectAll(enabled: Boolean) = editor.edit {
         it[SettingsPreferenceKeys.FLOAT_BALL_PICK_AUTO_SELECT_ALL] = enabled
     }
 
     suspend fun setFloatBallPickCopyDismissPanel(enabled: Boolean) = editor.edit {
         it[SettingsPreferenceKeys.FLOAT_BALL_PICK_COPY_DISMISS_PANEL] = enabled
+    }
+
+    suspend fun setFloatBallPickHapticEnabled(enabled: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.FLOAT_BALL_PICK_HAPTIC_ENABLED] = enabled
     }
 
     suspend fun setFloatBallDragPasteEnabled(enabled: Boolean) = editor.edit {

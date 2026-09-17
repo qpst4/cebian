@@ -38,6 +38,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
+import com.slideindex.app.di.OverlayDependencyAccess
+import kotlinx.coroutines.launch
 import com.slideindex.app.barcode.BarcodeScanResult
 import com.slideindex.app.overlay.FloatBallImageSearchPanel
 import com.slideindex.app.overlay.FloatBallPickResultPanel
@@ -108,6 +110,12 @@ internal fun FloatBallPickResultContent(
     screenRect: Rect?,
     layoutMeta: ScreenshotLayoutMeta?
 ) {
+    val context = LocalContext.current
+    val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
+    val settingsRepository = remember(context) {
+        OverlayDependencyAccess.overlayDependencies(context)?.settingsRepository
+    }
+
     LaunchedEffect(panelNotification) {
         if (panelNotification != null) {
             kotlinx.coroutines.delay(2000L)
@@ -300,16 +308,21 @@ internal fun FloatBallPickResultContent(
     }
     val totalCollapsiblePx = totalImageCollapsiblePx
 
+    val initialSearchGridExpanded = when (appSettings.floatBallPickSearchGridDefaultState) {
+        com.slideindex.app.settings.PickResultSearchGridDefaultState.ALWAYS_EXPANDED -> true
+        com.slideindex.app.settings.PickResultSearchGridDefaultState.ALWAYS_COLLAPSED -> false
+        com.slideindex.app.settings.PickResultSearchGridDefaultState.REMEMBER_LAST -> appSettings.floatBallPickSearchGridLastExpanded
+    }
     val isImageVisible = remember(panelShowToken, textFirstPanelEnabled) {
         mutableStateOf(!textFirstPanelEnabled)
     }
     val isSearchGridVisible = remember(panelShowToken) {
-        mutableStateOf(false)
+        mutableStateOf(initialSearchGridExpanded)
     }
     val scopedCollapseController = remember(panelShowToken, textFirstPanelEnabled) {
         AuxiliaryCollapseController(
             initialCollapseProgress = if (textFirstPanelEnabled) 1f else 0f,
-            initialSearchCollapseProgress = 1f
+            initialSearchCollapseProgress = if (initialSearchGridExpanded) 0f else 1f
         )
     }
     SideEffect {
@@ -338,9 +351,6 @@ internal fun FloatBallPickResultContent(
     fun endImageAuxiliaryDrag() {
         scopedCollapseController.endDrag { expanded ->
             isImageVisible.value = expanded
-            if (!textFirstPanelEnabled) {
-                isSearchGridVisible.value = expanded
-            }
         }
     }
 
@@ -510,6 +520,9 @@ internal fun FloatBallPickResultContent(
                     val next = !isSearchGridVisible.value
                     isSearchGridVisible.value = next
                     scopedCollapseController.setSearchExpanded(next)
+                    coroutineScope.launch {
+                        settingsRepository?.setFloatBallPickSearchGridLastExpanded(next)
+                    }
                 }
             )
             }

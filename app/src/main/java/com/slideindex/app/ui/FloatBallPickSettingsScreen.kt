@@ -42,9 +42,11 @@ fun FloatBallPickSettingsScreen(
     onPickTextSizeChange: (Float) -> Unit,
     onPickBottomTransitionChange: (Float) -> Unit,
     onPickPanelStyleChange: (com.slideindex.app.settings.PickResultPanelStyle) -> Unit = {},
+    onPickSearchGridDefaultStateChange: (com.slideindex.app.settings.PickResultSearchGridDefaultState) -> Unit = {},
     onPickTextFirstPanelChange: (Boolean) -> Unit,
     onPickAutoSelectAllChange: (Boolean) -> Unit = {},
     onPickCopyDismissPanelChange: (Boolean) -> Unit,
+    onPickHapticEnabledChange: (Boolean) -> Unit = {},
     onDragPasteEnabledChange: (Boolean) -> Unit,
     onPickPanelEnterAnimationMsChange: (Int) -> Unit,
     onPickPanelExitAnimationMsChange: (Int) -> Unit,
@@ -97,6 +99,23 @@ fun FloatBallPickSettingsScreen(
     }
     val panelStyleItems = remember(panelStyleOptions) {
         panelStyleOptions.map { DropdownItem(text = it.second) }
+    }
+
+    val searchGridStateRememberLabel = stringResource(R.string.float_ball_pick_search_grid_state_remember)
+    val searchGridStateExpandedLabel = stringResource(R.string.float_ball_pick_search_grid_state_expanded)
+    val searchGridStateCollapsedLabel = stringResource(R.string.float_ball_pick_search_grid_state_collapsed)
+    val searchGridStateOptions = remember(searchGridStateRememberLabel, searchGridStateExpandedLabel, searchGridStateCollapsedLabel) {
+        listOf(
+            com.slideindex.app.settings.PickResultSearchGridDefaultState.REMEMBER_LAST to searchGridStateRememberLabel,
+            com.slideindex.app.settings.PickResultSearchGridDefaultState.ALWAYS_EXPANDED to searchGridStateExpandedLabel,
+            com.slideindex.app.settings.PickResultSearchGridDefaultState.ALWAYS_COLLAPSED to searchGridStateCollapsedLabel,
+        )
+    }
+    val selectedSearchGridStateIndex = remember(settings.floatBallPickSearchGridDefaultState, searchGridStateOptions) {
+        searchGridStateOptions.indexOfFirst { it.first == settings.floatBallPickSearchGridDefaultState }.coerceAtLeast(0)
+    }
+    val searchGridStateItems = remember(searchGridStateOptions) {
+        searchGridStateOptions.map { DropdownItem(text = it.second) }
     }
 
     SettingsScreenScaffold(
@@ -198,6 +217,22 @@ fun FloatBallPickSettingsScreen(
                     }
                 )
                 add(
+                    settingsCardScopeItem("search-grid-default-state") {
+                        SettingSpinnerRow(
+                            title = stringResource(R.string.float_ball_pick_search_grid_state_title),
+                            subtitle = searchGridStateOptions.getOrNull(selectedSearchGridStateIndex)?.second.orEmpty(),
+                            dialogButtonText = stringResource(R.string.cancel),
+                            items = searchGridStateItems,
+                            selectedIndex = selectedSearchGridStateIndex,
+                            enabled = true,
+                            onSelectedIndexChange = { index ->
+                                val selected = searchGridStateOptions.getOrNull(index)?.first ?: return@SettingSpinnerRow
+                                onPickSearchGridDefaultStateChange(selected)
+                            }
+                        )
+                    }
+                )
+                add(
                     settingsCardScopeItem("text-first-panel") {
                         SettingSwitchRow(
                             title = stringResource(R.string.float_ball_pick_text_first_panel),
@@ -227,6 +262,17 @@ fun FloatBallPickSettingsScreen(
                             checked = settings.floatBallPickCopyDismissPanel,
                             enabled = true,
                             onCheckedChange = onPickCopyDismissPanelChange
+                        )
+                    }
+                )
+                add(
+                    settingsCardScopeItem("pick-haptic-enabled") {
+                        SettingSwitchRow(
+                            title = stringResource(R.string.float_ball_pick_haptic_enabled),
+                            subtitle = stringResource(R.string.float_ball_pick_haptic_enabled_desc),
+                            checked = settings.floatBallPickHapticEnabled,
+                            enabled = true,
+                            onCheckedChange = onPickHapticEnabledChange
                         )
                     }
                 )

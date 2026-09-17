@@ -1337,6 +1337,13 @@
     <string name="float_ball_pick_panel_style_desc">テキスト選択とスクリーンショット結果の表示スタイルを選択します</string>
     <string name="float_ball_pick_panel_style_integrated">同画面デュアルカード（推奨）</string>
     <string name="float_ball_pick_panel_style_tab_paged">タブページ分割（画像 / テキスト）</string>
+    <string name="float_ball_pick_search_grid_state_title">検索エンジンのデフォルト状態</string>
+    <string name="float_ball_pick_search_grid_state_desc">パネル表示時の検索エンジンエリアの初期表示状態を制御します</string>
+    <string name="float_ball_pick_search_grid_state_remember">前回の状態を記憶（推奨）</string>
+    <string name="float_ball_pick_search_grid_state_expanded">常に展開して表示</string>
+    <string name="float_ball_pick_search_grid_state_collapsed">常に折りたたんで表示</string>
+    <string name="float_ball_pick_haptic_enabled">パネル触覚フィードバック</string>
+    <string name="float_ball_pick_haptic_enabled_desc">コピー成功時や単語選択モードでのスライド選択時に軽快なマイクロ触覚フィードバックを提供します</string>
     <string name="float_ball_pick_panel_tab_text">テキスト</string>
     <string name="float_ball_pick_panel_tab_image">スクショ</string>
     <string name="pick_result_action_save_image">画像を保存</string>
@@ -1535,7 +1542,7 @@
     <string name="float_ball_image_search_tab_loading">検索中</string>
     <string name="float_ball_image_search_tab_ready">検索完了</string>
     <string name="float_ball_image_search_tab_failed">検索失敗</string>
-    <string name="float_ball_pick_source_a11y">アクセシビリティ</string>
+    <string name="float_ball_pick_source_a11y">テキスト</string>
     <string name="float_ball_pick_source_ocr">OCR</string>
     <string name="float_ball_pick_source_barcode">スキャン</string>
     <string name="float_ball_action_edit">編集</string>

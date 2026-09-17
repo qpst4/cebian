@@ -1,6 +1,7 @@
 package com.slideindex.app.overlay.pickresult
 
 import android.graphics.Bitmap
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
@@ -92,7 +93,7 @@ import kotlin.math.roundToInt
 
 internal val PANEL_MIN_IMAGE_HEIGHT = 48.dp
 internal val PANEL_VERTICAL_PADDING = 12.dp
-internal val PANEL_ACTION_BAR_BOTTOM_GAP = 12.dp
+internal val PANEL_ACTION_BAR_BOTTOM_GAP = 20.dp
 internal val TEXT_IMAGE_DIVIDER_HEIGHT = 10.dp
 internal const val LANDSCAPE_DUAL_COLUMN_TEXT_WEIGHT = 0.58f
 internal const val LANDSCAPE_DUAL_COLUMN_AUX_WEIGHT = 0.42f
@@ -948,18 +949,7 @@ internal fun PickResultCollapsePanelColumn(
             maxSearchSectionHeight.toPx().coerceAtLeast(1f)
         }
     }
-    val totalCollapsiblePx = remember(
-        totalImageCollapsiblePx,
-        totalSearchCollapsiblePx,
-        textFirstPanelEnabled,
-        hasSearchGrid
-    ) {
-        if (textFirstPanelEnabled && hasSearchGrid) {
-            totalImageCollapsiblePx
-        } else {
-            totalImageCollapsiblePx + totalSearchCollapsiblePx
-        }
-    }
+    val totalCollapsiblePx = totalImageCollapsiblePx
     val toolbarLinkedRangePx = remember(
         hasImageContent,
         minImageSectionHeight,
@@ -975,19 +965,6 @@ internal fun PickResultCollapsePanelColumn(
             }.coerceAtLeast(1f)
         }
     }
-    val searchLinkedRangePx = remember(
-        hasSearchGrid,
-        maxSearchSectionHeight,
-        density
-    ) {
-        with(density) {
-            if (hasSearchGrid) {
-                maxSearchSectionHeight.toPx()
-            } else {
-                1f
-            }.coerceAtLeast(1f)
-        }
-    }
     val onToolbarDragDelta = remember(
         controller,
         totalCollapsiblePx,
@@ -998,23 +975,13 @@ internal fun PickResultCollapsePanelColumn(
         { dragAmount: Float -> wrappedApplyDrag(-dragAmount * scale) }
     }
     val onActionBarDragDelta = remember(
-        textFirstPanelEnabled,
-        hasSearchGrid,
         controller,
-        totalImageCollapsiblePx,
-        totalSearchCollapsiblePx,
         totalCollapsiblePx,
-        searchLinkedRangePx,
-        wrappedApplyDrag,
-        wrappedApplySearchDrag
+        toolbarLinkedRangePx,
+        wrappedApplyDrag
     ) {
-        if (textFirstPanelEnabled && hasSearchGrid) {
-            val scale = totalSearchCollapsiblePx / searchLinkedRangePx
-            { dragAmount: Float -> wrappedApplySearchDrag(dragAmount * scale) }
-        } else {
-            val scale = totalCollapsiblePx / searchLinkedRangePx
-            { dragAmount: Float -> wrappedApplyDrag(dragAmount * scale) }
-        }
+        val scale = totalCollapsiblePx / toolbarLinkedRangePx
+        { dragAmount: Float -> wrappedApplyDrag(dragAmount * scale) }
     }
     val onDragEndState = rememberUpdatedState(onDragEnd)
     val onSearchDragEndState = rememberUpdatedState(onSearchDragEnd)
@@ -1126,7 +1093,7 @@ internal fun PickResultCollapsePanelColumn(
                 onDragEnd = onSearchDragEnd,
                 applyDrag = wrappedApplySearchDrag,
                 collapseDragActive = searchCollapseDragActive,
-                auxiliaryDragEnabled = auxiliaryDragEnabled
+                auxiliaryDragEnabled = false
             )
         }
     }
@@ -1204,6 +1171,12 @@ internal fun PickResultCollapsePanelColumn(
                     state = pagerState,
                     modifier = Modifier
                         .fillMaxWidth()
+                        .animateContentSize(
+                            animationSpec = spring(
+                                dampingRatio = 0.85f,
+                                stiffness = 380f
+                            )
+                        )
                         .then(
                             if (useWeightedTextLayout) Modifier.weight(1f) else Modifier
                         ),
