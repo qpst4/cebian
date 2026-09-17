@@ -326,106 +326,6 @@ private fun ImageShareEngineChip(
         onShareEngineClick(engine)
     }
 
-    val chipHeight = 40.dp
-    val chipCorner = 20.dp
-
-    Box {
-        Row(
-            modifier = Modifier
-                .height(chipHeight)
-                .then(
-                    if (compact) {
-                        Modifier
-                    } else {
-                        Modifier.shadow(
-                            elevation = 4.dp,
-                            shape = RoundedCornerShape(chipCorner),
-                            spotColor = MaterialTheme.colorScheme.primary,
-                        )
-                    }
-                )
-                .clip(RoundedCornerShape(chipCorner))
-                .background(MaterialTheme.colorScheme.primary)
-                .clickable { shareWith(displayEngine) }
-                .padding(
-                    start = 14.dp,
-                    end = if (showEnginePicker) 6.dp else 14.dp
-                ),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            SearchEngineIcon(
-                engine = displayEngine,
-                modifier = Modifier.size(20.dp)
-            )
-            Text(
-                text = "${displayEngine.name}识图",
-                style = MaterialTheme.typography.labelMedium.copy(
-                    fontSize = 14.sp,
-                    fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold
-                ),
-                color = Color.White,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            if (showEnginePicker) {
-                Box(
-                    modifier = Modifier
-                        .size(if (compact) 20.dp else 24.dp)
-                        .clip(RoundedCornerShape(if (compact) 10.dp else 12.dp))
-                        .clickable { menuExpanded = true },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.KeyboardArrowDown,
-                        contentDescription = null,
-                        modifier = Modifier.size(if (compact) 14.dp else 16.dp),
-                        tint = Color.White.copy(alpha = 0.85f)
-                    )
-                }
-            }
-        }
-
-        if (showEnginePicker) {
-            DropdownMenu(
-                expanded = menuExpanded,
-                onDismissRequest = { menuExpanded = false },
-            ) {
-                engines.forEach { engine ->
-                    DropdownMenuItem(
-                        text = {
-                            Text(
-                                text = engine.name,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        },
-                        leadingIcon = {
-                            SearchEngineIcon(
-                                engine = engine,
-                                modifier = Modifier.size(24.dp),
-                            )
-                        },
-                        onClick = {
-                            menuExpanded = false
-                            shareWith(engine)
-                        },
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun ImageShareEngineChipMain(
-    engines: List<SearchEngineConfig>,
-    displayEngine: SearchEngineConfig,
-    labelColor: Color,
-    shareLabel: String,
-    onShare: () -> Unit,
-    onQuickSwitchShare: (SearchEngineConfig) -> Unit,
-) {
     var anchorCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
     var isDragging by remember { mutableStateOf(false) }
     var hoveredIndex by remember { mutableIntStateOf(-1) }
@@ -434,8 +334,8 @@ private fun ImageShareEngineChipMain(
 
     val quickSwitchItemWidth = 40.dp
     val quickSwitchItemSpacing = 6.dp
-    val quickSwitchRowPaddingStart = 12.dp
-    val quickSwitchRowPaddingEnd = 6.dp
+    val quickSwitchRowPaddingStart = 10.dp
+    val quickSwitchRowPaddingEnd = 10.dp
     val quickSwitchRowVerticalPadding = 6.dp
     val quickSwitchPopupGapAboveChip = 8.dp
     val quickSwitchYCancelThreshold = 60.dp
@@ -490,9 +390,28 @@ private fun ImageShareEngineChipMain(
         rowAnchorLeftInWindow = clampRowAnchorLeft(desiredLeft)
     }
 
-    Box(modifier = Modifier.onGloballyPositioned { anchorCoordinates = it }) {
+    val chipHeight = 40.dp
+    val chipCorner = 20.dp
+
+    Box(
+        modifier = Modifier.onGloballyPositioned { anchorCoordinates = it }
+    ) {
         Row(
             modifier = Modifier
+                .height(chipHeight)
+                .then(
+                    if (compact) {
+                        Modifier
+                    } else {
+                        Modifier.shadow(
+                            elevation = 4.dp,
+                            shape = RoundedCornerShape(chipCorner),
+                            spotColor = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                )
+                .clip(RoundedCornerShape(chipCorner))
+                .background(MaterialTheme.colorScheme.primary)
                 .then(
                     if (quickSwitchEnabled) {
                         Modifier.pointerInput(engines, displayEngine, anchorCoordinates) {
@@ -526,7 +445,7 @@ private fun ImageShareEngineChipMain(
                                 },
                                 onDragEnd = {
                                     if (isDragging && hoveredIndex in engines.indices) {
-                                        onQuickSwitchShare(engines[hoveredIndex])
+                                        shareWith(engines[hoveredIndex])
                                     }
                                     isDragging = false
                                     hoveredIndex = -1
@@ -539,28 +458,79 @@ private fun ImageShareEngineChipMain(
                         }
                     } else {
                         Modifier
-                    },
+                    }
                 )
-                .semantics {
-                    contentDescription = "$shareLabel：${displayEngine.name}"
+                .clickable {
+                    if (!isDragging) {
+                        shareWith(displayEngine)
+                    }
                 }
-                .clickable(onClick = onShare)
-                .padding(start = 8.dp, end = if (quickSwitchEnabled) 4.dp else 10.dp),
+                .padding(
+                    start = 14.dp,
+                    end = if (showEnginePicker) 6.dp else 14.dp
+                ),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             SearchEngineIcon(
                 engine = displayEngine,
-                modifier = Modifier.size(22.dp),
+                modifier = Modifier.size(20.dp)
             )
             Text(
                 text = displayEngine.name,
-                style = MaterialTheme.typography.labelMedium,
-                color = labelColor,
+                style = MaterialTheme.typography.labelMedium.copy(
+                    fontSize = 14.sp,
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold
+                ),
+                color = Color.White,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.widthIn(max = 88.dp),
             )
+            if (showEnginePicker) {
+                Box(
+                    modifier = Modifier
+                        .size(if (compact) 20.dp else 24.dp)
+                        .clip(RoundedCornerShape(if (compact) 10.dp else 12.dp))
+                        .clickable { menuExpanded = true },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.KeyboardArrowDown,
+                        contentDescription = "选择搜索引擎",
+                        modifier = Modifier.size(if (compact) 14.dp else 16.dp),
+                        tint = Color.White.copy(alpha = 0.85f)
+                    )
+                }
+            }
+        }
+
+        if (showEnginePicker) {
+            DropdownMenu(
+                expanded = menuExpanded,
+                onDismissRequest = { menuExpanded = false },
+            ) {
+                engines.forEach { engine ->
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text = engine.name,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        },
+                        leadingIcon = {
+                            SearchEngineIcon(
+                                engine = engine,
+                                modifier = Modifier.size(24.dp),
+                            )
+                        },
+                        onClick = {
+                            menuExpanded = false
+                            shareWith(engine)
+                        },
+                    )
+                }
+            }
         }
 
         if (isDragging && quickSwitchEnabled) {
@@ -590,18 +560,24 @@ private fun ImageShareEngineQuickSwitchRow(
 ) {
     Row(
         modifier = Modifier
+            .shadow(12.dp, RoundedCornerShape(24.dp))
             .background(
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
                 shape = RoundedCornerShape(24.dp),
             )
-            .padding(start = 12.dp, end = 6.dp, top = 6.dp, bottom = 6.dp),
+            .border(
+                width = 0.8.dp,
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
+                shape = RoundedCornerShape(24.dp),
+            )
+            .padding(horizontal = 10.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         engines.forEachIndexed { index, engine ->
             val isHovered = index == hoveredIndex
             val scale by animateFloatAsState(
-                targetValue = if (isHovered) 1.2f else 1f,
+                targetValue = if (isHovered) 1.22f else 1f,
                 label = "engineQuickSwitchScale",
             )
             Box(
