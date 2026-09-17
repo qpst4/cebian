@@ -95,6 +95,7 @@ fun NavEntryBuilder.floatBallNavEntries(ctx: MainNavContext) {
             onUpsertEngine = viewModel::upsertEngine,
             onDeleteEngine = viewModel::deleteEngine,
             onMoveEngine = viewModel::moveEngine,
+            onUpdateEngines = viewModel::updateTextEngines,
             onGridColumnsChange = viewModel::setGridColumns,
             onGridRowsChange = viewModel::setGridRows,
             onShowLabelsChange = viewModel::setShowLabels,

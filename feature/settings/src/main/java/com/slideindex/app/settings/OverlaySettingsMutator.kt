@@ -1159,7 +1159,7 @@ class OverlaySettingsMutator @Inject constructor(
     }
 
     suspend fun setSearchEngineGridColumns(value: Int) = editor.edit {
-        it[SettingsPreferenceKeys.SEARCH_ENGINE_GRID_COLUMNS] = value.coerceIn(3, 7)
+        it[SettingsPreferenceKeys.SEARCH_ENGINE_GRID_COLUMNS] = value.coerceIn(3, 8)
     }
 
     suspend fun setSearchEngineGridRows(value: Int) = editor.edit {

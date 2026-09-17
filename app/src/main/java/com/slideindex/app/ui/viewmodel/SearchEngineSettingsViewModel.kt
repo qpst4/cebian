@@ -434,6 +434,27 @@ class SearchEngineSettingsViewModel @Inject constructor(
         settingsRepository.setSearchPanelDimPercent(value)
     }
 
+    fun updateTextEngines(updatedTextEngines: List<SearchEngineConfig>) {
+        viewModelScope.launch {
+            val nonTextEngines = settings.value.searchEngines.filter { it.engineType == SearchEngineType.SHARE_IMAGE_TO_APP }
+            val merged = updatedTextEngines + nonTextEngines
+            persistEngines(merged.mapIndexed { index, engine -> engine.copy(sortOrder = index) })
+        }
+    }
+
+    fun toggleEnginePickPanelVisibility(engineId: String) {
+        viewModelScope.launch {
+            val engines = settings.value.searchEngines.map { engine ->
+                if (engine.id == engineId) {
+                    engine.copy(showInPickPanel = !engine.showInPickPanel)
+                } else {
+                    engine
+                }
+            }
+            persistEngines(engines)
+        }
+    }
+
     fun reorderPickPanelEngines(ordered: List<SearchEngineConfig>) {
         viewModelScope.launch {
             val sorted = settings.value.searchEngines.sortedBy { it.sortOrder }

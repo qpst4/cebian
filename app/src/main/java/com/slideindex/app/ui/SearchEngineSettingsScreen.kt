@@ -7,6 +7,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,14 +16,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.DragHandle
 import com.slideindex.app.ui.miuix.MiuixConfirmDialog
-import top.yukonga.miuix.kmp.icon.MiuixIcons
-import top.yukonga.miuix.kmp.icon.extended.Add
-import top.yukonga.miuix.kmp.icon.extended.Delete
-import top.yukonga.miuix.kmp.icon.extended.UploadCloud
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -58,6 +56,17 @@ import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 import com.slideindex.app.ui.settings.components.settingsLazyHint
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Sort
+import androidx.compose.material.icons.filled.SwapVert
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.TextButton
+import com.slideindex.app.ui.searchengine.AggregatedSearchEngineManager
+import com.slideindex.app.settings.SearchEngineCatalog
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchEngineSettingsScreen(
@@ -76,11 +85,15 @@ fun SearchEngineSettingsScreen(
     onShowLabelsChange: (Boolean) -> Unit,
     onOpenPreviewSort: () -> Unit,
     onOpenEditor: (String?) -> Unit,
+    onUpdateEngines: (List<SearchEngineConfig>) -> Unit = {},
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     val engines = remember(settings.searchEngines) {
         SearchEngineStore.textSettingsEngines(settings.searchEngines)
     }
     var deletingEngine by remember { mutableStateOf<SearchEngineConfig?>(null) }
+    var sortMenuExpanded by remember { mutableStateOf(false) }
+    var moreMenuExpanded by remember { mutableStateOf(false) }
 
     val importLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument(),
@@ -90,98 +103,73 @@ fun SearchEngineSettingsScreen(
         }
     }
 
-    val displaySectionTitle = stringResource(R.string.search_engine_settings_display_section)
-    val importSectionTitle = stringResource(R.string.search_engine_settings_import_section)
-    val importButtonLabel = stringResource(R.string.search_engine_settings_import)
-    val listSectionTitle = stringResource(R.string.search_engine_settings_list_section, engines.size)
-    val addButtonLabel = stringResource(R.string.search_engine_add_title)
-    val enginesEmptyHint = stringResource(R.string.search_engine_settings_empty)
-
-    SettingsLazyScreenScaffold(
-        title = stringResource(R.string.search_engine_settings_title),
-        subtitle = stringResource(R.string.search_engine_settings_subtitle),
+    SettingsScreenScaffold(
+        title = "聚合搜索",
         onBack = onBack,
-    ) {
-        groupedCardItems(
-            keyPrefix = "search-general",
-            items = listOf(
-                settingsCardScopeItem("preview-mode") {
-                    SettingNavigationRow(
-                        icon = { label -> Icon(Icons.Default.DragHandle, contentDescription = label) },
-                        title = stringResource(R.string.search_engine_settings_preview_mode),
-                        subtitle = stringResource(R.string.search_engine_settings_preview_mode_summary),
-                        enabled = engines.isNotEmpty(),
-                        onClick = onOpenPreviewSort,
+        actions = {
+            // 排序菜单按钮
+            Box {
+                TextButton(onClick = { sortMenuExpanded = true }) {
+                    Text(
+                        text = "排序",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary,
                     )
-                },
-            ),
-        )
-
-        settingsLazySmallTitle(key = "display_section_title", title = displaySectionTitle)
-        groupedCardItems(
-            keyPrefix = "search-display",
-            items = buildList {
-                add(
-                    settingsCardScopeItem("grid-columns") {
-                        SettingsSliderRow(
-                            title = stringResource(R.string.search_engine_grid_columns),
-                            value = settings.searchEngineGridColumns.toFloat(),
-                            valueRange = 3f..7f,
-                            steps = 3,
-                            enabled = true,
-                            label = pluralStringResource(
-                                R.plurals.search_engine_grid_columns_value,
-                                settings.searchEngineGridColumns,
-                                settings.searchEngineGridColumns,
-                            ),
-                            onValueChange = { onGridColumnsChange(it.roundToInt()) },
-                        )
-                    },
-                )
-                add(
-                    settingsCardScopeItem("grid-rows") {
-                        SettingsSliderRow(
-                            title = stringResource(R.string.search_engine_grid_rows),
-                            value = settings.searchEngineGridRows.toFloat(),
-                            valueRange = 1f..4f,
-                            steps = 2,
-                            enabled = true,
-                            label = pluralStringResource(
-                                R.plurals.search_engine_grid_rows_value,
-                                settings.searchEngineGridRows,
-                                settings.searchEngineGridRows,
-                            ),
-                            onValueChange = { onGridRowsChange(it.roundToInt()) },
-                        )
-                    },
-                )
-                add(
-                    settingsCardScopeItem("show-labels") {
-                        SettingSwitchRow(
-                            title = stringResource(R.string.search_engine_show_labels),
-                            subtitle = stringResource(R.string.search_engine_show_labels_desc),
-                            checked = settings.searchEngineShowLabels,
-                            enabled = true,
-                            onCheckedChange = onShowLabelsChange,
-                        )
-                    },
-                )
-            },
-        )
-
-        settingsLazySmallTitle(
-            key = "import_section_title",
-            title = importSectionTitle,
-        )
-        groupedCardItems(
-            keyPrefix = "import_action",
-            items = listOf(
-                settingsCardScopeItem("import_backup") {
-                    SettingNavigationRow(
-                        icon = { label -> Icon(MiuixIcons.UploadCloud, contentDescription = label) },
-                        title = importButtonLabel,
-                        subtitle = stringResource(R.string.search_engine_settings_import_subtitle),
+                }
+                DropdownMenu(
+                    expanded = sortMenuExpanded,
+                    onDismissRequest = { sortMenuExpanded = false },
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("按名称正序 (A-Z)") },
                         onClick = {
+                            sortMenuExpanded = false
+                            val sorted = engines.sortedBy { it.name.lowercase() }
+                            onUpdateEngines(sorted)
+                        },
+                    )
+                    DropdownMenuItem(
+                        text = { Text("全部恢复显示在面板") },
+                        onClick = {
+                            sortMenuExpanded = false
+                            val allShown = engines.map { it.copy(showInPickPanel = true) }
+                            onUpdateEngines(allShown)
+                        },
+                    )
+                    DropdownMenuItem(
+                        text = { Text("重置为默认引擎") },
+                        onClick = {
+                            sortMenuExpanded = false
+                            val defaults = SearchEngineCatalog.defaultEngines(context)
+                            onUpdateEngines(defaults)
+                        },
+                    )
+                }
+            }
+
+            // 更多操作菜单
+            Box {
+                IconButton(onClick = { moreMenuExpanded = true }) {
+                    Icon(
+                        imageVector = Icons.Default.MoreVert,
+                        contentDescription = "更多选项",
+                    )
+                }
+                DropdownMenu(
+                    expanded = moreMenuExpanded,
+                    onDismissRequest = { moreMenuExpanded = false },
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("预设搜索引擎库") },
+                        onClick = {
+                            moreMenuExpanded = false
+                            onOpenPresetPicker()
+                        },
+                    )
+                    DropdownMenuItem(
+                        text = { Text("从文件导入备份") },
+                        onClick = {
+                            moreMenuExpanded = false
                             importLauncher.launch(
                                 arrayOf(
                                     "application/zip",
@@ -192,65 +180,40 @@ fun SearchEngineSettingsScreen(
                             )
                         },
                     )
-                },
-            ),
-        )
-
-        settingsLazySmallTitle(key = "list_section_title", title = listSectionTitle)
-        groupedCardItems(
-            keyPrefix = "add_action",
-            items = listOf(
-                settingsCardScopeItem("preset_catalog") {
-                    SettingNavigationRow(
-                        icon = { label ->
-                            Icon(
-                                ThinActionIcons.Search,
-                                contentDescription = label,
-                                modifier = Modifier.size(24.dp),
-                            )
-                        },
-                        title = stringResource(R.string.search_engine_settings_preset_catalog),
-                        subtitle = stringResource(R.string.search_engine_settings_preset_catalog_subtitle),
-                        onClick = onOpenPresetPicker,
-                    )
-                },
-                settingsCardScopeItem("add_engine") {
-                    SettingNavigationRow(
-                        icon = {
-                            label -> Icon(
-                                MiuixIcons.Add,
-                                contentDescription = label,
-                                modifier = Modifier.size(24.dp),
-                            )
-                        },
-                        title = addButtonLabel,
-                        subtitle = stringResource(R.string.search_engine_add_subtitle),
-                        onClick = { onOpenEditor(null) },
-                    )
-                },
-            ),
-        )
-
-        if (engines.isEmpty()) {
-            settingsLazyHint(key = "engines_empty", text = enginesEmptyHint)
-        } else {
-            groupedCardItems(
-                keyPrefix = "search-engines",
-                items = engines.mapIndexed { index, engine ->
-                    CardItem(engine.id) {
-                        SearchEngineListRow(
-                            engine = engine,
-                            canMoveUp = index > 0,
-                            canMoveDown = index < engines.lastIndex,
-                            onClick = {
-                                onOpenEditor(engine.id)
-                            },
-                            onMoveUp = { onMoveEngine(engine.id, -1) },
-                            onMoveDown = { onMoveEngine(engine.id, 1) },
-                            onDelete = { deletingEngine = engine },
-                        )
-                    }
-                },
+                }
+            }
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { onOpenEditor(null) },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                shape = CircleShape,
+                modifier = Modifier.size(56.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "添加搜索引擎",
+                    modifier = Modifier.size(28.dp),
+                )
+            }
+        },
+    ) {
+        item(key = "aggregated-search-manager") {
+            AggregatedSearchEngineManager(
+                engines = engines,
+                gridColumns = settings.searchEngineGridColumns,
+                gridRows = settings.searchEngineGridRows,
+                showLabels = settings.searchEngineShowLabels,
+                onUpdateEngines = onUpdateEngines,
+                onGridColumnsChange = onGridColumnsChange,
+                onGridRowsChange = onGridRowsChange,
+                onShowLabelsChange = onShowLabelsChange,
+                onAddEngine = { onOpenEditor(null) },
+                onEditEngine = onOpenEditor,
+                onDeleteEngine = { id -> deletingEngine = engines.find { it.id == id } },
+                onPresetCatalog = onOpenPresetPicker,
+                modifier = Modifier.padding(top = 8.dp),
             )
         }
     }
@@ -280,70 +243,6 @@ fun SearchEngineSettingsScreen(
             }
         },
     )
-}
-
-@Composable
-private fun SearchEngineListRow(
-    engine: SearchEngineConfig,
-    canMoveUp: Boolean,
-    canMoveDown: Boolean,
-    onClick: () -> Unit,
-    onMoveUp: () -> Unit,
-    onMoveDown: () -> Unit,
-    onDelete: () -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(start = 16.dp, end = 4.dp, top = 8.dp, bottom = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        SearchEngineIcon(engine = engine, modifier = Modifier.size(36.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = engine.name,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            Text(
-                text = searchEngineTypeLabel(engine.engineType),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        IconButton(onClick = onMoveUp, enabled = canMoveUp) {
-            Icon(
-                Icons.Default.ArrowUpward,
-                contentDescription = stringResource(R.string.search_engine_move_up),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        IconButton(onClick = onMoveDown, enabled = canMoveDown) {
-            Icon(
-                Icons.Default.ArrowDownward,
-                contentDescription = stringResource(R.string.search_engine_move_down),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        IconButton(onClick = onDelete) {
-            Icon(
-                MiuixIcons.Delete,
-                contentDescription = stringResource(R.string.search_engine_delete_confirm),
-                tint = MaterialTheme.colorScheme.error,
-            )
-        }
-    }
-}
-
-@Composable
-private fun searchEngineTypeLabel(type: SearchEngineType): String = when (type) {
-    SearchEngineType.DIRECT_LINK -> stringResource(R.string.search_engine_type_direct_link)
-    SearchEngineType.JUMP_TO_ACTIVITY -> stringResource(R.string.search_engine_type_jump_activity)
-    SearchEngineType.EXTERN_JUMP_LINK -> stringResource(R.string.search_engine_type_extern_jump)
-    SearchEngineType.SHARE_TO_APP -> stringResource(R.string.search_engine_type_share)
-    SearchEngineType.SHARE_IMAGE_TO_APP -> stringResource(R.string.search_engine_type_share_image)
 }
 
 @Composable
