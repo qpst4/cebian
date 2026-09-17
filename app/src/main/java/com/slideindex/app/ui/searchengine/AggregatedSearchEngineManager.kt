@@ -1,6 +1,7 @@
 package com.slideindex.app.ui.searchengine
 
-import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.VectorConverter
 import androidx.compose.animation.core.animateIntOffsetAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.clickable
@@ -28,6 +29,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -74,11 +76,12 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 import kotlin.math.roundToInt
 
 /**
- * 聚合搜索管理工作台（桌面级交互体验）：
- * 1. 【行列调整松手生效】：滑动滑块仅改变数值展示，手势离开（松手）后才提交生效，杜绝滑动过程中的剧烈重绘；
- * 2. 【桌面级图标平滑挤位动画】：拖拽图标时，周围受影响图标使用 Spring 弹簧动画平滑滑移让出槽位，松手平滑归位；
- * 3. 【整页平滑拖拽且根除抖动】：基于累积物理位移绝对投影目标页码，引入迟滞保护死区，彻底杜绝两页来回振荡；
- * 4. 【严苛 MIUIX 规范】：外边距靠齐标准，标题使用 title4，图标文字为 11sp，操作卡片原生风格。
+ * 聚合搜索管理工作台（系统桌面级交互与严格 MIUIX 规范）：
+ * 1. 【真实网格弹簧挤位动画】：拖动图标时，受影响的周围图标以物理差值反向 snap 并通过 spring 弹簧平滑滑向新槽位，绝不重叠卡住；
+ * 2. 【行列变化平滑重排】：调整行列数松手时，所有图标平滑滑入新行列槽位；
+ * 3. 【彻底消除整页拖拽抖动】：拖拽中保持列表稳定，以累加位移驱动相邻卡片避让，松手统一落盘；
+ * 4. 【滑块松手生效】：拖动滑块仅更新本地数字标签，松手后才提交，操作流畅轻快；
+ * 5. 【严格 MIUIX 边距】：外圈严格保留 12dp 边距（padding(horizontal = 12.dp)），绝不贴边。
  */
 @Composable
 fun AggregatedSearchEngineManager(
@@ -104,7 +107,7 @@ fun AggregatedSearchEngineManager(
     val rows = gridRows.coerceIn(1, 4)
     val pageSize = columns * rows
 
-    // 本地响应式引擎数据
+    // 本地响应式数据源
     val workingEngines = remember { mutableStateListOf<SearchEngineConfig>() }
     LaunchedEffect(engines) {
         workingEngines.clear()
@@ -122,19 +125,17 @@ fun AggregatedSearchEngineManager(
     // 根容器全局定位
     var rootCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
 
-    // --- 图标拖拽状态（桌面级 Slot 挤位动画）---
+    // --- 图标拖拽状态 ---
     var draggedEngine by remember { mutableStateOf<SearchEngineConfig?>(null) }
     var dragFingerLocalPos by remember { mutableStateOf(Offset.Zero) }
-    // 拖拽过程中，手指悬停的目标引擎 ID（用于受影响图标平滑让位）
-    var hoverTargetEngineId by remember { mutableStateOf<String?>(null) }
 
-    // --- 整页拖拽状态（绝对投影与滞后死区，彻底告别死锁抖动）---
+    // --- 整页拖拽状态（拖拽中保持列表数据稳定，彻底根除死循环抖动）---
     var dragStartPageIndex by remember { mutableIntStateOf(-1) }
     var pageTotalDragY by remember { mutableFloatStateOf(0f) }
     var pageHoverTargetIndex by remember { mutableIntStateOf(-1) }
     var singleCardHeightPx by remember { mutableFloatStateOf(0f) }
 
-    // 各项 Bounds 登记表
+    // 槽位物理 Bounds 记录表
     val itemSlotBounds = remember { mutableStateMapOf<String, Rect>() }
     var hiddenCardBounds by remember { mutableStateOf(Rect.Zero) }
 
@@ -156,7 +157,7 @@ fun AggregatedSearchEngineManager(
                 .padding(top = 10.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            // 1. 多页平铺卡片（每一页为独立 MiuixCard）
+            // 1. 多页平铺卡片（每一页为独立 MiuixCard，外圈 12dp 标准边距）
             if (pages.isEmpty()) {
                 MiuixCard(modifier = Modifier.fillMaxWidth()) {
                     Box(
@@ -177,18 +178,17 @@ fun AggregatedSearchEngineManager(
                 pages.forEachIndexed { pageIndex, pageEngines ->
                     val isBeingDragged = dragStartPageIndex == pageIndex
 
-                    // 计算非拖拽页的避让位移动画（Spring 弹簧）
+                    // 计算非拖拽页的弹簧避让位移动画
                     val cardHeight = if (singleCardHeightPx > 50f) singleCardHeightPx + with(density) { 12.dp.toPx() } else with(density) { 200.dp.toPx() }
                     val targetPageOffset = when {
                         isBeingDragged -> pageTotalDragY
                         dragStartPageIndex >= 0 -> {
-                            // 当某页正在被拖动，并且目标槽位影响到当前页时，当前页优雅避让
                             val from = dragStartPageIndex
                             val to = pageHoverTargetIndex
                             if (from < to && pageIndex in (from + 1)..to) {
-                                -cardHeight // 向上平移腾出位置
+                                -cardHeight
                             } else if (from > to && pageIndex in to until from) {
-                                cardHeight // 向下平移腾出位置
+                                cardHeight
                             } else {
                                 0f
                             }
@@ -203,9 +203,9 @@ fun AggregatedSearchEngineManager(
                             IntOffset(0, targetPageOffset.roundToInt())
                         },
                         animationSpec = if (isBeingDragged) {
-                            spring(dampingRatio = 1f, stiffness = 10000f) // 拖拽中手跟手无延迟
+                            spring(dampingRatio = 1f, stiffness = 10000f)
                         } else {
-                            spring(dampingRatio = 0.82f, stiffness = 380f) // 避让平滑弹簧
+                            spring(dampingRatio = 0.82f, stiffness = 380f)
                         },
                         label = "page_reorder_offset_$pageIndex",
                     )
@@ -232,7 +232,7 @@ fun AggregatedSearchEngineManager(
                                 .padding(horizontal = 14.dp, vertical = 12.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp),
                         ) {
-                            // 标头行：长按标头拖拽整页，采用物理绝对投影，零抖动
+                            // 标头行：长按标头拖拽整页，带迟滞死区与避让动效，零抖动
                             PageHeaderRow(
                                 pageIndex = pageIndex,
                                 engineCount = pageEngines.size,
@@ -246,7 +246,6 @@ fun AggregatedSearchEngineManager(
                                 onDrag = { deltaY ->
                                     pageTotalDragY += deltaY
                                     val h = if (singleCardHeightPx > 50f) singleCardHeightPx else with(density) { 180.dp.toPx() }
-                                    // 带有滞后保护的绝对投影计算
                                     val rawFloatIndex = dragStartPageIndex + (pageTotalDragY / h)
                                     val newTarget = rawFloatIndex.roundToInt().coerceIn(0, pages.size - 1)
                                     if (newTarget != pageHoverTargetIndex) {
@@ -267,69 +266,51 @@ fun AggregatedSearchEngineManager(
                                 },
                             )
 
-                            // 该页网格列表（桌面级槽位挤位动画）
-                            DesktopReorderableEngineGrid(
+                            // 该页网格列表（桌面级弹簧挤位让位动画）
+                            DesktopReorderableGrid(
                                 engines = pageEngines,
                                 columns = columns,
                                 showLabels = showLabels,
                                 iconSize = iconSizeDp,
                                 draggedEngineId = draggedEngine?.id,
-                                hoverTargetEngineId = hoverTargetEngineId,
                                 rootCoordinates = rootCoordinates,
                                 itemSlotBounds = itemSlotBounds,
                                 onDragStart = { engine, touchOffset ->
                                     draggedEngine = engine
-                                    hoverTargetEngineId = engine.id
                                     val bounds = itemSlotBounds[engine.id] ?: Rect.Zero
                                     dragFingerLocalPos = bounds.topLeft + touchOffset
                                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 },
                                 onDrag = { dragAmount ->
                                     dragFingerLocalPos += dragAmount
-                                    val currentDragged = draggedEngine ?: return@DesktopReorderableEngineGrid
+                                    val currentDragged = draggedEngine ?: return@DesktopReorderableGrid
                                     val fingerPos = dragFingerLocalPos
 
-                                    // 检查命中了哪一个槽位
+                                    // 实时碰撞判定，命中目标即触发列表微调，其余图标自动弹簧滑移
                                     val hitEntry = itemSlotBounds.entries.firstOrNull { entry ->
                                         entry.key != currentDragged.id && entry.value.contains(fingerPos)
                                     }
                                     if (hitEntry != null) {
-                                        val newTargetId = hitEntry.key
-                                        if (newTargetId != hoverTargetEngineId) {
-                                            hoverTargetEngineId = newTargetId
+                                        val targetId = hitEntry.key
+                                        val fromIdx = workingEngines.indexOfFirst { it.id == currentDragged.id }
+                                        val toIdx = workingEngines.indexOfFirst { it.id == targetId }
+                                        if (fromIdx >= 0 && toIdx >= 0 && fromIdx != toIdx) {
+                                            val itm = workingEngines.removeAt(fromIdx).copy(showInPickPanel = true)
+                                            workingEngines.add(toIdx, itm)
                                             haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                         }
                                     } else if (hiddenCardBounds.contains(fingerPos)) {
-                                        // 移入已隐藏区域标记
-                                        if (hoverTargetEngineId != "__HIDDEN__") {
-                                            hoverTargetEngineId = "__HIDDEN__"
+                                        val fromIdx = workingEngines.indexOfFirst { it.id == currentDragged.id }
+                                        if (fromIdx >= 0 && workingEngines[fromIdx].showInPickPanel) {
+                                            val itm = workingEngines.removeAt(fromIdx).copy(showInPickPanel = false)
+                                            workingEngines.add(itm)
                                             haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                         }
                                     }
                                 },
                                 onDragEnd = {
-                                    val currentDragged = draggedEngine
-                                    val targetId = hoverTargetEngineId
-                                    if (currentDragged != null && targetId != null && currentDragged.id != targetId) {
-                                        if (targetId == "__HIDDEN__") {
-                                            val fromIdx = workingEngines.indexOfFirst { it.id == currentDragged.id }
-                                            if (fromIdx >= 0) {
-                                                val itm = workingEngines.removeAt(fromIdx).copy(showInPickPanel = false)
-                                                workingEngines.add(itm)
-                                                onUpdateEngines(workingEngines.mapIndexed { idx, it -> it.copy(sortOrder = idx) })
-                                            }
-                                        } else {
-                                            val fromIdx = workingEngines.indexOfFirst { it.id == currentDragged.id }
-                                            val toIdx = workingEngines.indexOfFirst { it.id == targetId }
-                                            if (fromIdx >= 0 && toIdx >= 0) {
-                                                val itm = workingEngines.removeAt(fromIdx).copy(showInPickPanel = true)
-                                                workingEngines.add(toIdx, itm)
-                                                onUpdateEngines(workingEngines.mapIndexed { idx, it -> it.copy(sortOrder = idx) })
-                                            }
-                                        }
-                                    }
                                     draggedEngine = null
-                                    hoverTargetEngineId = null
+                                    onUpdateEngines(workingEngines.mapIndexed { idx, it -> it.copy(sortOrder = idx) })
                                 },
                                 onEngineClick = { actionTargetEngine = it },
                             )
@@ -380,53 +361,43 @@ fun AggregatedSearchEngineManager(
                             modifier = Modifier.padding(vertical = 10.dp),
                         )
                     } else {
-                        DesktopReorderableEngineGrid(
+                        DesktopReorderableGrid(
                             engines = hiddenEngines,
                             columns = columns,
                             showLabels = showLabels,
                             iconSize = iconSizeDp,
                             draggedEngineId = draggedEngine?.id,
-                            hoverTargetEngineId = hoverTargetEngineId,
                             rootCoordinates = rootCoordinates,
                             itemSlotBounds = itemSlotBounds,
                             onDragStart = { engine, touchOffset ->
                                 draggedEngine = engine
-                                hoverTargetEngineId = engine.id
                                 val bounds = itemSlotBounds[engine.id] ?: Rect.Zero
                                 dragFingerLocalPos = bounds.topLeft + touchOffset
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             },
                             onDrag = { dragAmount ->
                                 dragFingerLocalPos += dragAmount
-                                val currentDragged = draggedEngine ?: return@DesktopReorderableEngineGrid
+                                val currentDragged = draggedEngine ?: return@DesktopReorderableGrid
                                 val fingerPos = dragFingerLocalPos
 
                                 val hitEntry = itemSlotBounds.entries.firstOrNull { entry ->
                                     entry.key != currentDragged.id && entry.value.contains(fingerPos)
                                 }
                                 if (hitEntry != null) {
-                                    val newTargetId = hitEntry.key
-                                    if (newTargetId != hoverTargetEngineId) {
-                                        hoverTargetEngineId = newTargetId
+                                    val targetId = hitEntry.key
+                                    val fromIdx = workingEngines.indexOfFirst { it.id == currentDragged.id }
+                                    val toIdx = workingEngines.indexOfFirst { it.id == targetId }
+                                    if (fromIdx >= 0 && toIdx >= 0 && fromIdx != toIdx) {
+                                        val isTargetVisible = workingEngines[toIdx].showInPickPanel
+                                        val itm = workingEngines.removeAt(fromIdx).copy(showInPickPanel = isTargetVisible)
+                                        workingEngines.add(toIdx, itm)
                                         haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                     }
                                 }
                             },
                             onDragEnd = {
-                                val currentDragged = draggedEngine
-                                val targetId = hoverTargetEngineId
-                                if (currentDragged != null && targetId != null && currentDragged.id != targetId) {
-                                    val fromIdx = workingEngines.indexOfFirst { it.id == currentDragged.id }
-                                    val toIdx = workingEngines.indexOfFirst { it.id == targetId }
-                                    if (fromIdx >= 0 && toIdx >= 0) {
-                                        val isTargetVisible = workingEngines[toIdx].showInPickPanel
-                                        val itm = workingEngines.removeAt(fromIdx).copy(showInPickPanel = isTargetVisible)
-                                        workingEngines.add(toIdx, itm)
-                                        onUpdateEngines(workingEngines.mapIndexed { idx, it -> it.copy(sortOrder = idx) })
-                                    }
-                                }
                                 draggedEngine = null
-                                hoverTargetEngineId = null
+                                onUpdateEngines(workingEngines.mapIndexed { idx, it -> it.copy(sortOrder = idx) })
                             },
                             onEngineClick = { actionTargetEngine = it },
                         )
@@ -434,10 +405,9 @@ fun AggregatedSearchEngineManager(
                 }
             }
 
-            // 3. 网格布局设置（松手再提交变化，滑动中绝不频繁触发重排）
+            // 3. 网格布局设置（松手才提交变化，滑动中绝不卡顿重排）
             SmallTitle(text = "网格布局")
 
-            // 维护本地 Draft 状态，滑块滑动中仅更新数字显示，松手后才更新全局布局
             var draftRows by remember(gridRows) { mutableFloatStateOf(rows.toFloat()) }
             var draftColumns by remember(gridColumns) { mutableFloatStateOf(columns.toFloat()) }
 
@@ -498,7 +468,7 @@ fun AggregatedSearchEngineManager(
                 )
             }
 
-            // 底部留白
+            // 底部安全留白
             Spacer(modifier = Modifier.height(72.dp))
         }
 
@@ -552,16 +522,15 @@ fun AggregatedSearchEngineManager(
 }
 
 /**
- * 桌面级重排网格（实现类似 iOS Springboard / Android Launcher 的果冻弹簧挤位动画）
+ * 桌面级自适应重排网格（实现类似桌面/Springboard 的平滑果冻弹簧重排动画）
  */
 @Composable
-private fun DesktopReorderableEngineGrid(
+private fun DesktopReorderableGrid(
     engines: List<SearchEngineConfig>,
     columns: Int,
     showLabels: Boolean,
     iconSize: Dp,
     draggedEngineId: String?,
-    hoverTargetEngineId: String?,
     rootCoordinates: LayoutCoordinates?,
     itemSlotBounds: MutableMap<String, Rect>,
     onDragStart: (SearchEngineConfig, Offset) -> Unit,
@@ -577,13 +546,8 @@ private fun DesktopReorderableEngineGrid(
     val horizontalSpacingPx = with(density) { horizontalSpacingDp.toPx() }
     val verticalSpacingPx = with(density) { verticalSpacingDp.toPx() }
 
-    // 记录各槽位测量的基准宽高
     var cellWidthPx by remember { mutableFloatStateOf(0f) }
     var cellHeightPx by remember { mutableFloatStateOf(0f) }
-
-    // 计算各图标在此刻的“目标逻辑槽位索引”
-    val fromIdx = engines.indexOfFirst { it.id == draggedEngineId }
-    val toIdx = engines.indexOfFirst { it.id == hoverTargetEngineId }
 
     EngineCustomLayout(
         columns = safeCols,
@@ -595,63 +559,104 @@ private fun DesktopReorderableEngineGrid(
         },
         modifier = modifier.fillMaxWidth(),
     ) {
-        engines.forEachIndexed { originalIndex, engine ->
+        engines.forEachIndexed { index, engine ->
             val engineId = engine.id
             val isBeingDragged = engineId == draggedEngineId
 
-            // 计算该图标的目标槽位与相对物理偏移量
-            val targetSlot = when {
-                fromIdx >= 0 && toIdx >= 0 && fromIdx != toIdx -> {
-                    if (originalIndex == fromIdx) {
-                        toIdx
-                    } else if (fromIdx < toIdx && originalIndex in (fromIdx + 1)..toIdx) {
-                        originalIndex - 1 // 往前挪一位
-                    } else if (fromIdx > toIdx && originalIndex in toIdx until fromIdx) {
-                        originalIndex + 1 // 往后挪一位
-                    } else {
-                        originalIndex
-                    }
-                }
-                else -> originalIndex
-            }
-
-            // 计算从 originalIndex 到 targetSlot 的像素位移差值
-            val origCol = originalIndex % safeCols
-            val origRow = originalIndex / safeCols
-            val targetCol = targetSlot % safeCols
-            val targetRow = targetSlot / safeCols
-
-            val deltaX = (targetCol - origCol) * (cellWidthPx + horizontalSpacingPx)
-            val deltaY = (targetRow - origRow) * (cellHeightPx + verticalSpacingPx)
-
-            val animatedOffset by animateIntOffsetAsState(
-                targetValue = if (isBeingDragged) IntOffset.Zero else IntOffset(deltaX.roundToInt(), deltaY.roundToInt()),
-                animationSpec = spring(dampingRatio = 0.82f, stiffness = 400f),
-                label = "slot_spring_$engineId",
-            )
-
-            Box(
-                modifier = Modifier
-                    .offset { animatedOffset }
-                    .onGloballyPositioned { coords ->
-                        rootCoordinates?.let { root ->
-                            itemSlotBounds[engineId] = root.localBoundingBoxOf(coords)
-                        }
-                    },
-                contentAlignment = Alignment.Center,
-            ) {
-                MiuixEngineGridItem(
+            key(engineId) {
+                SmoothGridItemWrapper(
                     engine = engine,
+                    slotCol = index % safeCols,
+                    slotRow = index / safeCols,
+                    cellWidthPx = cellWidthPx,
+                    cellHeightPx = cellHeightPx,
+                    horizontalSpacingPx = horizontalSpacingPx,
+                    verticalSpacingPx = verticalSpacingPx,
+                    isDragging = isBeingDragged,
                     showLabel = showLabels,
                     iconSize = iconSize,
-                    isDragging = isBeingDragged,
-                    onDragStart = { offset -> onDragStart(engine, offset) },
+                    rootCoordinates = rootCoordinates,
+                    onBoundsMeasured = { rect -> itemSlotBounds[engineId] = rect },
+                    onDragStart = { touchOffset -> onDragStart(engine, touchOffset) },
                     onDrag = onDrag,
                     onDragEnd = onDragEnd,
                     onClick = { onEngineClick(engine) },
                 )
             }
         }
+    }
+}
+
+/**
+ * 带有物理位置弹簧差值动画的独立槽位包装器
+ * 核心：当数据重排或行列变化导致其 slotX/Y 变动时，自动从上一个物理位置平滑弹射滑向新位置！
+ */
+@Composable
+private fun SmoothGridItemWrapper(
+    engine: SearchEngineConfig,
+    slotCol: Int,
+    slotRow: Int,
+    cellWidthPx: Float,
+    cellHeightPx: Float,
+    horizontalSpacingPx: Float,
+    verticalSpacingPx: Float,
+    isDragging: Boolean,
+    showLabel: Boolean,
+    iconSize: Dp,
+    rootCoordinates: LayoutCoordinates?,
+    onBoundsMeasured: (Rect) -> Unit,
+    onDragStart: (Offset) -> Unit,
+    onDrag: (Offset) -> Unit,
+    onDragEnd: () -> Unit,
+    onClick: () -> Unit,
+) {
+    val currentSlotX = slotCol * (cellWidthPx + horizontalSpacingPx)
+    val currentSlotY = slotRow * (cellHeightPx + verticalSpacingPx)
+
+    var prevSlotX by remember(engine.id) { mutableStateOf<Float?>(null) }
+    var prevSlotY by remember(engine.id) { mutableStateOf<Float?>(null) }
+    val animOffset = remember(engine.id) { Animatable(Offset.Zero, Offset.VectorConverter) }
+
+    LaunchedEffect(engine.id, currentSlotX, currentSlotY, cellWidthPx, cellHeightPx) {
+        val px = prevSlotX
+        val py = prevSlotY
+        if (px != null && py != null && cellWidthPx > 0 && cellHeightPx > 0 && (px != currentSlotX || py != currentSlotY)) {
+            val deltaX = px - currentSlotX
+            val deltaY = py - currentSlotY
+            // snap 到旧坐标差值，然后 spring 弹簧滑移到目标槽位 0
+            animOffset.snapTo(Offset(deltaX, deltaY))
+            animOffset.animateTo(
+                targetValue = Offset.Zero,
+                animationSpec = spring(
+                    dampingRatio = 0.82f,
+                    stiffness = 420f,
+                ),
+            )
+        }
+        prevSlotX = currentSlotX
+        prevSlotY = currentSlotY
+    }
+
+    Box(
+        modifier = Modifier
+            .offset { IntOffset(animOffset.value.x.roundToInt(), animOffset.value.y.roundToInt()) }
+            .onGloballyPositioned { coords ->
+                rootCoordinates?.let { root ->
+                    onBoundsMeasured(root.localBoundingBoxOf(coords))
+                }
+            },
+        contentAlignment = Alignment.Center,
+    ) {
+        MiuixEngineGridItem(
+            engine = engine,
+            showLabel = showLabel,
+            iconSize = iconSize,
+            isDragging = isDragging,
+            onDragStart = onDragStart,
+            onDrag = onDrag,
+            onDragEnd = onDragEnd,
+            onClick = onClick,
+        )
     }
 }
 
@@ -672,7 +677,7 @@ private fun MiuixEngineGridItem(
     val currentOnDragEnd by rememberUpdatedState(onDragEnd)
     val currentOnClick by rememberUpdatedState(onClick)
 
-    val alpha = if (isDragging) 0.15f else 1f
+    val alpha = if (isDragging) 0f else 1f
 
     Column(
         modifier = Modifier
