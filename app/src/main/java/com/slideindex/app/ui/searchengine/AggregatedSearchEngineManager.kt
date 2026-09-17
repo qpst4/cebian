@@ -128,6 +128,7 @@ fun AggregatedSearchEngineManager(
     // --- 图标拖拽状态 ---
     var draggedEngine by remember { mutableStateOf<SearchEngineConfig?>(null) }
     var dragFingerLocalPos by remember { mutableStateOf(Offset.Zero) }
+    var lastReorderTimestamp by remember { mutableStateOf(0L) }
 
     // --- 整页拖拽状态（拖拽中保持列表数据稳定，彻底根除死循环抖动）---
     var dragStartPageIndex by remember { mutableIntStateOf(-1) }
@@ -286,25 +287,32 @@ fun AggregatedSearchEngineManager(
                                     val currentDragged = draggedEngine ?: return@DesktopReorderableGrid
                                     val fingerPos = dragFingerLocalPos
 
-                                    // 实时碰撞判定，命中目标即触发列表微调，其余图标自动弹簧滑移
+                                    val now = System.currentTimeMillis()
+                                    // 实时碰撞判定（带有 160ms 物理动画冷却保护，杜绝死锁与叠字）
                                     val hitEntry = itemSlotBounds.entries.firstOrNull { entry ->
                                         entry.key != currentDragged.id && entry.value.contains(fingerPos)
                                     }
                                     if (hitEntry != null) {
                                         val targetId = hitEntry.key
-                                        val fromIdx = workingEngines.indexOfFirst { it.id == currentDragged.id }
-                                        val toIdx = workingEngines.indexOfFirst { it.id == targetId }
-                                        if (fromIdx >= 0 && toIdx >= 0 && fromIdx != toIdx) {
-                                            val itm = workingEngines.removeAt(fromIdx).copy(showInPickPanel = true)
-                                            workingEngines.add(toIdx, itm)
-                                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                        if (now - lastReorderTimestamp > 160L) {
+                                            val fromIdx = workingEngines.indexOfFirst { it.id == currentDragged.id }
+                                            val toIdx = workingEngines.indexOfFirst { it.id == targetId }
+                                            if (fromIdx >= 0 && toIdx >= 0 && fromIdx != toIdx) {
+                                                val itm = workingEngines.removeAt(fromIdx).copy(showInPickPanel = true)
+                                                workingEngines.add(toIdx, itm)
+                                                lastReorderTimestamp = now
+                                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                            }
                                         }
                                     } else if (hiddenCardBounds.contains(fingerPos)) {
-                                        val fromIdx = workingEngines.indexOfFirst { it.id == currentDragged.id }
-                                        if (fromIdx >= 0 && workingEngines[fromIdx].showInPickPanel) {
-                                            val itm = workingEngines.removeAt(fromIdx).copy(showInPickPanel = false)
-                                            workingEngines.add(itm)
-                                            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                        if (now - lastReorderTimestamp > 200L) {
+                                            val fromIdx = workingEngines.indexOfFirst { it.id == currentDragged.id }
+                                            if (fromIdx >= 0 && workingEngines[fromIdx].showInPickPanel) {
+                                                val itm = workingEngines.removeAt(fromIdx).copy(showInPickPanel = false)
+                                                workingEngines.add(itm)
+                                                lastReorderTimestamp = now
+                                                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                            }
                                         }
                                     }
                                 },
@@ -383,7 +391,8 @@ fun AggregatedSearchEngineManager(
                                 val hitEntry = itemSlotBounds.entries.firstOrNull { entry ->
                                     entry.key != currentDragged.id && entry.value.contains(fingerPos)
                                 }
-                                if (hitEntry != null) {
+                                val now = System.currentTimeMillis()
+                                if (hitEntry != null && now - lastReorderTimestamp > 160L) {
                                     val targetId = hitEntry.key
                                     val fromIdx = workingEngines.indexOfFirst { it.id == currentDragged.id }
                                     val toIdx = workingEngines.indexOfFirst { it.id == targetId }
@@ -391,6 +400,7 @@ fun AggregatedSearchEngineManager(
                                         val isTargetVisible = workingEngines[toIdx].showInPickPanel
                                         val itm = workingEngines.removeAt(fromIdx).copy(showInPickPanel = isTargetVisible)
                                         workingEngines.add(toIdx, itm)
+                                        lastReorderTimestamp = now
                                         haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                     }
                                 }
@@ -623,8 +633,13 @@ private fun SmoothGridItemWrapper(
         if (px != null && py != null && cellWidthPx > 0 && cellHeightPx > 0 && (px != currentSlotX || py != currentSlotY)) {
             val deltaX = px - currentSlotX
             val deltaY = py - currentSlotY
-            // snap 到旧坐标差值，然后 spring 弹簧滑移到目标槽位 0
-            animOffset.snapTo(Offset(deltaX, deltaY))
+            // 折行保护：单次动画在 X 轴与 Y 轴上的位移绝不允许超过 1.25 个单元格尺寸，杜绝甩飞出卡片边缘
+            val maxDx = cellWidthPx * 1.25f
+            val maxDy = cellHeightPx * 1.25f
+            val clampedX = deltaX.coerceIn(-maxDx, maxDx)
+            val clampedY = deltaY.coerceIn(-maxDy, maxDy)
+
+            animOffset.snapTo(Offset(clampedX, clampedY))
             animOffset.animateTo(
                 targetValue = Offset.Zero,
                 animationSpec = spring(
@@ -639,12 +654,12 @@ private fun SmoothGridItemWrapper(
 
     Box(
         modifier = Modifier
-            .offset { IntOffset(animOffset.value.x.roundToInt(), animOffset.value.y.roundToInt()) }
             .onGloballyPositioned { coords ->
                 rootCoordinates?.let { root ->
                     onBoundsMeasured(root.localBoundingBoxOf(coords))
                 }
-            },
+            }
+            .offset { IntOffset(animOffset.value.x.roundToInt(), animOffset.value.y.roundToInt()) },
         contentAlignment = Alignment.Center,
     ) {
         MiuixEngineGridItem(
