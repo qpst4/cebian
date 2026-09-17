@@ -3,6 +3,7 @@ package com.slideindex.app.gesture
 import android.graphics.RectF
 import com.slideindex.app.overlay.PanelSide
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -88,6 +89,24 @@ class SwipePathRecognizerTest {
         )
 
         assertEquals(GestureTriggerType.SHORT_SINGLE_TAP, result?.trigger)
+    }
+
+    @Test
+    fun classifyOnUp_fastSwipeInAndReturn_withLenientTap_doesNotTriggerSingleTap() {
+        val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
+        recognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        recognizer.applyAngles(GestureAngles())
+
+        recognizer.beginGesture(0f, 100f)
+        recognizer.onTouchMove(80f, 100f) // Swiped 80dp into screen
+        recognizer.onTouchMove(10f, 100f) // Returned near edge (10dp from start)
+        val result = recognizer.classifyOnUp(
+            10f,
+            100f,
+            SwipePathRecognizer.ClassifyOptions.LENIENT_SINGLE_TAP,
+        )
+
+        assertNotEquals(GestureTriggerType.SHORT_SINGLE_TAP, result?.trigger)
     }
 
     @Test
