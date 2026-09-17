@@ -57,15 +57,8 @@ import com.slideindex.app.ui.settings.components.settingsLazyHint
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Sort
-import androidx.compose.material.icons.filled.SwapVert
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.TextButton
 import com.slideindex.app.ui.searchengine.AggregatedSearchEngineManager
-import com.slideindex.app.settings.SearchEngineCatalog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -87,13 +80,10 @@ fun SearchEngineSettingsScreen(
     onOpenEditor: (String?) -> Unit,
     onUpdateEngines: (List<SearchEngineConfig>) -> Unit = {},
 ) {
-    val context = androidx.compose.ui.platform.LocalContext.current
     val engines = remember(settings.searchEngines) {
         SearchEngineStore.textSettingsEngines(settings.searchEngines)
     }
     var deletingEngine by remember { mutableStateOf<SearchEngineConfig?>(null) }
-    var sortMenuExpanded by remember { mutableStateOf(false) }
-    var moreMenuExpanded by remember { mutableStateOf(false) }
 
     val importLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument(),
@@ -106,83 +96,6 @@ fun SearchEngineSettingsScreen(
     SettingsScreenScaffold(
         title = "聚合搜索",
         onBack = onBack,
-        actions = {
-            // 排序菜单按钮
-            Box {
-                TextButton(onClick = { sortMenuExpanded = true }) {
-                    Text(
-                        text = "排序",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                }
-                DropdownMenu(
-                    expanded = sortMenuExpanded,
-                    onDismissRequest = { sortMenuExpanded = false },
-                ) {
-                    DropdownMenuItem(
-                        text = { Text("按名称正序 (A-Z)") },
-                        onClick = {
-                            sortMenuExpanded = false
-                            val sorted = engines.sortedBy { it.name.lowercase() }
-                            onUpdateEngines(sorted)
-                        },
-                    )
-                    DropdownMenuItem(
-                        text = { Text("全部恢复显示在面板") },
-                        onClick = {
-                            sortMenuExpanded = false
-                            val allShown = engines.map { it.copy(showInPickPanel = true) }
-                            onUpdateEngines(allShown)
-                        },
-                    )
-                    DropdownMenuItem(
-                        text = { Text("重置为默认引擎") },
-                        onClick = {
-                            sortMenuExpanded = false
-                            val defaults = SearchEngineCatalog.defaultEngines(context)
-                            onUpdateEngines(defaults)
-                        },
-                    )
-                }
-            }
-
-            // 更多操作菜单
-            Box {
-                IconButton(onClick = { moreMenuExpanded = true }) {
-                    Icon(
-                        imageVector = Icons.Default.MoreVert,
-                        contentDescription = "更多选项",
-                    )
-                }
-                DropdownMenu(
-                    expanded = moreMenuExpanded,
-                    onDismissRequest = { moreMenuExpanded = false },
-                ) {
-                    DropdownMenuItem(
-                        text = { Text("预设搜索引擎库") },
-                        onClick = {
-                            moreMenuExpanded = false
-                            onOpenPresetPicker()
-                        },
-                    )
-                    DropdownMenuItem(
-                        text = { Text("从文件导入备份") },
-                        onClick = {
-                            moreMenuExpanded = false
-                            importLauncher.launch(
-                                arrayOf(
-                                    "application/zip",
-                                    "application/json",
-                                    "application/octet-stream",
-                                    "*/*",
-                                ),
-                            )
-                        },
-                    )
-                }
-            }
-        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { onOpenEditor(null) },
@@ -213,6 +126,16 @@ fun SearchEngineSettingsScreen(
                 onEditEngine = onOpenEditor,
                 onDeleteEngine = { id -> deletingEngine = engines.find { it.id == id } },
                 onPresetCatalog = onOpenPresetPicker,
+                onImportBackup = {
+                    importLauncher.launch(
+                        arrayOf(
+                            "application/zip",
+                            "application/json",
+                            "application/octet-stream",
+                            "*/*",
+                        ),
+                    )
+                },
                 modifier = Modifier.padding(top = 8.dp),
             )
         }
