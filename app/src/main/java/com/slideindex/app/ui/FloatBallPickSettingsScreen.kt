@@ -41,6 +41,7 @@ fun FloatBallPickSettingsScreen(
     onPickCrossArmChange: (Float) -> Unit,
     onPickTextSizeChange: (Float) -> Unit,
     onPickBottomTransitionChange: (Float) -> Unit,
+    onPickPanelStyleChange: (com.slideindex.app.settings.PickResultPanelStyle) -> Unit = {},
     onPickTextFirstPanelChange: (Boolean) -> Unit,
     onPickAutoSelectAllChange: (Boolean) -> Unit = {},
     onPickCopyDismissPanelChange: (Boolean) -> Unit,
@@ -82,6 +83,21 @@ fun FloatBallPickSettingsScreen(
     val pickOperationSectionTitle = stringResource(R.string.float_ball_pick_section_operation)
     val advancedPickSectionTitle = stringResource(R.string.float_ball_pick_section_advanced)
     val advancedPickExpanded = remember { androidx.compose.runtime.mutableStateOf(false) }
+
+    val integratedLabel = stringResource(R.string.float_ball_pick_panel_style_integrated)
+    val tabPagedLabel = stringResource(R.string.float_ball_pick_panel_style_tab_paged)
+    val panelStyleOptions = remember(integratedLabel, tabPagedLabel) {
+        listOf(
+            com.slideindex.app.settings.PickResultPanelStyle.INTEGRATED_BOTTOM_BAR to integratedLabel,
+            com.slideindex.app.settings.PickResultPanelStyle.TAB_PAGED to tabPagedLabel
+        )
+    }
+    val selectedPanelStyleIndex = remember(settings.floatBallPickPanelStyle, panelStyleOptions) {
+        panelStyleOptions.indexOfFirst { it.first == settings.floatBallPickPanelStyle }.coerceAtLeast(0)
+    }
+    val panelStyleItems = remember(panelStyleOptions) {
+        panelStyleOptions.map { DropdownItem(text = it.second) }
+    }
 
     SettingsScreenScaffold(
         title = stringResource(R.string.float_ball_pick_settings_title),
@@ -161,9 +177,26 @@ fun FloatBallPickSettingsScreen(
             key = "panel-section",
             title = panelSectionTitle
         )
+
         groupedCardItems(
             keyPrefix = "fb-pick-panel",
             items = buildList {
+                add(
+                    settingsCardScopeItem("panel-style") {
+                        SettingSpinnerRow(
+                            title = stringResource(R.string.float_ball_pick_panel_style),
+                            subtitle = panelStyleOptions.getOrNull(selectedPanelStyleIndex)?.second.orEmpty(),
+                            dialogButtonText = stringResource(R.string.cancel),
+                            items = panelStyleItems,
+                            selectedIndex = selectedPanelStyleIndex,
+                            enabled = true,
+                            onSelectedIndexChange = { index ->
+                                val selected = panelStyleOptions.getOrNull(index)?.first ?: return@SettingSpinnerRow
+                                onPickPanelStyleChange(selected)
+                            }
+                        )
+                    }
+                )
                 add(
                     settingsCardScopeItem("text-first-panel") {
                         SettingSwitchRow(

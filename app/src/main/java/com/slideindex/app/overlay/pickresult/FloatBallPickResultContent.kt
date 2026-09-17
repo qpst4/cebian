@@ -246,11 +246,20 @@ internal fun FloatBallPickResultContent(
         )
     } ?: PickResultImageDisplaySize(0.dp, 0.dp)
 
-    val collapsedImageSectionHeight = pickResultImageSectionReservedHeight(0.dp, false)
-    val minImageSectionHeight = if (showImageSection) collapsedImageSectionHeight else 0.dp
+    val isIntegratedBottomBar = appSettings.floatBallPickPanelStyle == com.slideindex.app.settings.PickResultPanelStyle.INTEGRATED_BOTTOM_BAR
+    val collapsedImageSectionHeight = 0.dp
+    val minImageSectionHeight = 0.dp
     val maxImageSectionHeight = when {
-        hasImageContent -> pickResultImageSectionReservedHeight(panelImageDisplaySize.height, true)
-        reserveImageSectionPlaceholder -> collapsedImageSectionHeight
+        hasImageContent -> pickResultImageSectionReservedHeight(
+            imageMaxHeight = panelImageDisplaySize.height,
+            isImageVisible = true,
+            includeSearchBar = true
+        )
+        reserveImageSectionPlaceholder -> pickResultImageSectionReservedHeight(
+            imageMaxHeight = 0.dp,
+            isImageVisible = false,
+            includeSearchBar = true
+        )
         else -> 0.dp
     }
     val searchGridSectionPrefixHeight = if (showTextSection || showImageSection) {
@@ -289,39 +298,22 @@ internal fun FloatBallPickResultContent(
             maxSearchSectionHeight.toPx().coerceAtLeast(1f)
         }
     }
-    val totalCollapsiblePx = remember(
-        totalImageCollapsiblePx,
-        totalSearchCollapsiblePx,
-        textFirstPanelEnabled,
-        hasSearchGrid
-    ) {
-        if (textFirstPanelEnabled && hasSearchGrid) {
-            totalImageCollapsiblePx
-        } else {
-            totalImageCollapsiblePx + totalSearchCollapsiblePx
-        }
-    }
+    val totalCollapsiblePx = totalImageCollapsiblePx
 
     val isImageVisible = remember(panelShowToken, textFirstPanelEnabled) {
         mutableStateOf(!textFirstPanelEnabled)
     }
     val isSearchGridVisible = remember(panelShowToken) {
-        mutableStateOf(true)
+        mutableStateOf(false)
     }
     val scopedCollapseController = remember(panelShowToken, textFirstPanelEnabled) {
         AuxiliaryCollapseController(
             initialCollapseProgress = if (textFirstPanelEnabled) 1f else 0f,
-            initialSearchCollapseProgress = 0f
+            initialSearchCollapseProgress = 1f
         )
     }
     SideEffect {
-        scopedCollapseController.updateTotalCollapsiblePx(
-            if (textFirstPanelEnabled && hasSearchGrid) {
-                totalImageCollapsiblePx
-            } else {
-                totalCollapsiblePx
-            }
-        )
+        scopedCollapseController.updateTotalCollapsiblePx(totalImageCollapsiblePx)
         scopedCollapseController.updateTotalSearchCollapsiblePx(totalSearchCollapsiblePx)
     }
 
@@ -330,8 +322,8 @@ internal fun FloatBallPickResultContent(
         scopedCollapseController.setExpanded(isImageVisible.value)
     }
 
-    LaunchedEffect(isSearchGridVisible.value, textFirstPanelEnabled, hasSearchGrid) {
-        if (!textFirstPanelEnabled || !hasSearchGrid || scopedCollapseController.isDragging) return@LaunchedEffect
+    LaunchedEffect(isSearchGridVisible.value, hasSearchGrid) {
+        if (!hasSearchGrid || scopedCollapseController.isDragging) return@LaunchedEffect
         scopedCollapseController.setSearchExpanded(isSearchGridVisible.value)
     }
 
@@ -513,7 +505,12 @@ internal fun FloatBallPickResultContent(
                 onStashText = onStashText,
                 textFirstPanelEnabled = textFirstPanelEnabled,
                 freezeCollapseAnimation = freezeCollapseAnimation,
-                landscapeDualColumn = landscapeDualColumn
+                landscapeDualColumn = landscapeDualColumn,
+                onToggleSearchGrid = {
+                    val next = !isSearchGridVisible.value
+                    isSearchGridVisible.value = next
+                    scopedCollapseController.setSearchExpanded(next)
+                }
             )
             }
             }

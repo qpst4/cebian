@@ -4,6 +4,7 @@ import com.slideindex.app.ui.theme.LocalAppDarkTheme
 
 import android.os.Build
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
@@ -20,6 +21,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -117,6 +119,7 @@ internal fun PickResultInteractiveTextSection(
     auxiliaryDragEnabled: Boolean = false,
     bodyMaxHeight: Dp? = null,
     showSearch: Boolean = false,
+    searchSelected: Boolean = false,
     translateEnabled: Boolean = true,
     onActiveTextChange: (String) -> Unit = {},
     onSearch: (String) -> Unit = {},
@@ -134,6 +137,10 @@ internal fun PickResultInteractiveTextSection(
     actionBarBottomPadding: Dp = PickResultTextActionBarBottomPaddingWhenAlone,
     actionBarDragActive: Boolean = false,
     autoSelectAll: Boolean? = null,
+    hasImageContent: Boolean = false,
+    onImageSearch: (() -> Unit)? = null,
+    onSaveScreenshot: (() -> Unit)? = null,
+    onShareScreenshot: (() -> Unit)? = null,
 ) {
     // ?? remember(text)???? onTextChange ????text?key ??????????0??
     var textFieldValue by remember { mutableStateOf(TextFieldValue(text)) }
@@ -374,6 +381,7 @@ internal fun PickResultInteractiveTextSection(
                     translateEnabled = translateEnabled,
                     translateSelected = showingTranslation,
                     showSearch = showSearch,
+                    searchSelected = searchSelected,
                     showOpenLink = openLinkAction != null,
                     openLinkChooserExpanded = openLinkChooserExpanded,
                     openLinkChoices = openLinkChoices,
@@ -402,6 +410,11 @@ internal fun PickResultInteractiveTextSection(
                     onTranslate = { runOnActiveText(onTranslate) },
                     onPinToScreen = onPinToScreen,
                     onStash = onStash,
+                    onTrimSpaces = { onRemoveSpaces(text, false) },
+                    hasImageContent = hasImageContent,
+                    onImageSearch = onImageSearch,
+                    onSaveScreenshot = onSaveScreenshot,
+                    onShareScreenshot = onShareScreenshot,
                     bottomPadding = actionBarBottomPadding,
                     lightweightDrag = actionBarDragActive,
                 )
@@ -592,6 +605,11 @@ internal fun PickResultInteractiveTextSection(
                 }
             }
         }
+        PickResultSmartChipsRow(
+            text = text,
+            onCopyText = { copied -> onCopy(copied, true) },
+            modifier = Modifier.fillMaxWidth()
+        )
         if (pinActionBarOutside) {
             val maxBodyHeight = bodyMaxHeight ?: pickResultMaxTextHeight(textSizeSp)
             val bodyScrollEnabled = textMode != PickResultTextMode.WORD_TAP
@@ -662,7 +680,7 @@ internal fun PickResultInteractiveTextSection(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .heightIn(max = maxBodyHeight)
+                        .heightIn(min = 40.dp, max = maxBodyHeight)
                         .verticalScroll(bodyScrollState),
                 ) {
                     bodyContent(false, maxBodyHeight)
@@ -672,7 +690,7 @@ internal fun PickResultInteractiveTextSection(
                 BoxWithConstraints(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .heightIn(max = maxBodyHeight),
+                        .heightIn(min = 40.dp, max = maxBodyHeight),
                 ) {
                     bodyContent(false, maxHeight)
                 }
@@ -741,47 +759,44 @@ internal fun PickResultTextToolbar(
     onRemoveAllSpaces: () -> Unit,
     onSelectAll: () -> Unit,
 ) {
-    val selectAllDescription = if (allSelected) {
+    val selectAllText = if (allSelected) {
         stringResource(R.string.float_ball_action_deselect_all)
     } else {
         stringResource(R.string.float_ball_action_select_all)
     }
-    val selectAllIcon = if (allSelected) Icons.Outlined.Deselect else Icons.Outlined.SelectAll
-    val horizontalPadding = if (sectionTitle != null) 8.dp else 4.dp
+    val isDark = LocalAppDarkTheme.current
+    val microBg = if (isDark) androidx.compose.ui.graphics.Color(0x28FFFFFF) else androidx.compose.ui.graphics.Color(0x14000000)
+    val microBorder = if (isDark) androidx.compose.ui.graphics.Color(0x1EFFFFFF) else androidx.compose.ui.graphics.Color(0x10000000)
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = horizontalPadding, vertical = 4.dp),
+            .padding(horizontal = 4.dp, vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        if (sectionTitle != null) {
-            Text(
-                text = sectionTitle,
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
+        // Left side: Section title or Multi-source micro tags
         val showA11yChip = a11yAvailable
         val showOcrChip = ocrAvailable || ocrLoading
         val showBarcodeChip = barcodeResults.isNotEmpty()
-        val hasSourceChips = showA11yChip || showOcrChip || showBarcodeChip
-        if (showSourceChips && hasSourceChips) {
+        val availableSourceCount = (if (showA11yChip) 1 else 0) + (if (showOcrChip) 1 else 0) + (if (showBarcodeChip) 1 else 0)
+        val hasMultipleSources = showSourceChips && availableSourceCount > 1
+
+        if (sectionTitle != null) {
+            Text(
+                text = sectionTitle,
+                style = MaterialTheme.typography.labelMedium.copy(fontSize = 13.5.sp),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        } else if (hasMultipleSources) {
             Row(
                 modifier = Modifier
-                    .height(44.dp)
-                    .shadow(
-                        elevation = 6.dp,
-                        shape = RoundedCornerShape(22.dp),
-                        spotColor = if (LocalAppDarkTheme.current) androidx.compose.ui.graphics.Color.White else androidx.compose.ui.graphics.Color.Black
-                    )
-                    .background(
-                        color = if (LocalAppDarkTheme.current) androidx.compose.ui.graphics.Color(0xFF2A2A2C) else androidx.compose.ui.graphics.Color(0xFFF2F3F5),
-                        shape = RoundedCornerShape(22.dp)
-                    )
-                    .padding(4.dp),
+                    .height(36.dp)
+                    .background(color = microBg, shape = RoundedCornerShape(18.dp))
+                    .border(0.5.dp, microBorder, RoundedCornerShape(18.dp))
+                    .padding(horizontal = 4.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                horizontalArrangement = Arrangement.spacedBy(3.dp)
             ) {
                 if (showA11yChip) {
                     PickResultSourceChip(
@@ -813,40 +828,46 @@ internal fun PickResultTextToolbar(
                     )
                 }
             }
+        } else {
+            Spacer(modifier = Modifier.width(4.dp))
         }
-        Spacer(modifier = Modifier.weight(1f))
+
+        // Right side: Micro controls (Edit, SelectAll, Word-tap, TrimSpaces in pure icons)
         if (showEditingToolbar) {
             Row(
                 modifier = Modifier
-                    .height(44.dp)
-                    .background(
-                        color = if (LocalAppDarkTheme.current) androidx.compose.ui.graphics.Color(0xFF3C4043) else androidx.compose.ui.graphics.Color(0xFFE4E5E8),
-                        shape = RoundedCornerShape(22.dp)
-                    )
-                    .padding(horizontal = 8.dp),
+                    .height(36.dp)
+                    .background(color = microBg, shape = RoundedCornerShape(18.dp))
+                    .border(0.5.dp, microBorder, RoundedCornerShape(18.dp))
+                    .padding(horizontal = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
+                // 1. Edit mode toggle icon (✏️)
                 PickResultTitleIcon(
                     icon = Icons.Outlined.Edit,
                     selected = textMode == PickResultTextMode.EDIT,
                     contentDescription = stringResource(R.string.float_ball_action_edit),
                     onClick = onEditToggle,
                 )
+
+                // 2. Select All / Deselect All icon (做法一：全选线框，全选中切取消且变亮蓝)
+                PickResultTitleIcon(
+                    icon = if (allSelected) Icons.Outlined.Deselect else Icons.Outlined.SelectAll,
+                    selected = allSelected,
+                    contentDescription = selectAllText,
+                    onClick = onSelectAll,
+                )
+
+                // 3. Word tap / Select mode icon (▦)
                 PickResultTitleIcon(
                     icon = Icons.Outlined.ViewModule,
                     selected = textMode == PickResultTextMode.WORD_TAP,
                     contentDescription = stringResource(R.string.float_ball_action_word_select),
                     onClick = onWordSelectToggle,
                 )
-                Spacer(modifier = Modifier.size(2.dp))
-                Box(
-                    modifier = Modifier
-                        .size(width = 1.dp, height = 14.dp)
-                        .align(Alignment.CenterVertically)
-                        .background(if (LocalAppDarkTheme.current) androidx.compose.ui.graphics.Color(0xFF5F6368) else androidx.compose.ui.graphics.Color(0xFFCED6E0))
-                )
-                Spacer(modifier = Modifier.size(2.dp))
+
+                // 4. Trim / Remove all spaces icon (><)
                 PickResultTitleIcon(
                     icon = Icons.Outlined.UnfoldLess,
                     selected = false,
@@ -854,12 +875,6 @@ internal fun PickResultTextToolbar(
                     modifier = Modifier.rotate(90f),
                     onClick = onTrimSpaces,
                     onLongClick = onRemoveAllSpaces,
-                )
-                PickResultTitleIcon(
-                    icon = selectAllIcon,
-                    selected = allSelected,
-                    contentDescription = selectAllDescription,
-                    onClick = onSelectAll,
                 )
             }
         }
@@ -883,52 +898,32 @@ private fun PickResultSourceChip(
     val contentColor = when {
         !enabled -> colors.onSurfaceVariant.copy(alpha = 0.38f)
         selected -> colors.onPrimary
-        else -> colors.onSurface
+        else -> colors.onSurfaceVariant
     }
-    val chipStyle = if (compact) {
-        MaterialTheme.typography.labelMedium.copy(
-            fontSize = 15.sp,
-            lineHeight = 16.sp,
-            fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
-        )
-    } else {
-        MaterialTheme.typography.labelLarge
-    }
-    val shape = RoundedCornerShape(18.dp)
+    val chipStyle = MaterialTheme.typography.labelSmall.copy(
+        fontSize = 13.sp,
+        fontWeight = androidx.compose.ui.text.font.FontWeight.Medium,
+    )
+    val shape = RoundedCornerShape(14.dp)
     val chipModifier = Modifier
-        .then(
-            if (selected) Modifier.shadow(4.dp, shape, spotColor = background)
-            else Modifier
-        )
         .clip(shape)
         .background(background)
         .clickable(enabled = enabled, onClick = onClick)
-    if (compact) {
-        Box(
-            modifier = chipModifier
-                .height(32.dp)
-                .padding(horizontal = 16.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                text = label,
-                style = chipStyle,
-                color = contentColor,
-            )
-        }
-    } else {
+        .padding(horizontal = 11.dp, vertical = 5.dp)
+
+    Box(
+        modifier = chipModifier,
+        contentAlignment = Alignment.Center,
+    ) {
         Text(
             text = label,
-            modifier = chipModifier
-                .fillMaxHeight()
-                .wrapContentHeight(Alignment.CenterVertically)
-                .padding(horizontal = 12.dp),
             style = chipStyle,
             color = contentColor,
         )
     }
 }
 
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 private fun PickResultTitleIcon(
     icon: ImageVector,
@@ -951,22 +946,19 @@ private fun PickResultTitleIcon(
             modifier = modifier.size(18.dp),
         )
     }
-    if (onLongClick != null) {
-        Box(
-            modifier = Modifier
-                .size(32.dp)
-                .combinedClickable(
-                    onClick = onClick,
-                    onLongClick = onLongClick,
-                ),
-            contentAlignment = Alignment.Center,
-        ) {
-            iconContent()
-        }
+    val clickModifier = if (onLongClick != null) {
+        Modifier.combinedClickable(onClick = onClick, onLongClick = onLongClick)
     } else {
-        IconButton(onClick = onClick, modifier = Modifier.size(32.dp)) {
-            iconContent()
-        }
+        Modifier.clickable(onClick = onClick)
+    }
+    Box(
+        modifier = Modifier
+            .size(30.dp)
+            .clip(RoundedCornerShape(15.dp))
+            .then(clickModifier),
+        contentAlignment = Alignment.Center,
+    ) {
+        iconContent()
     }
 }
 
@@ -1074,15 +1066,11 @@ internal fun PickResultTextBody(
                 else -> Modifier
             },
         )
-        .background(
-            color = if (LocalAppDarkTheme.current) androidx.compose.ui.graphics.Color(0xFF171717) else androidx.compose.ui.graphics.Color(0xFFF8F9FA),
-            shape = RoundedCornerShape(16.dp)
-        )
         .padding(
-            start = 14.dp,
-            end = 14.dp,
-            top = 14.dp,
-            bottom = 14.dp,
+            start = 16.dp,
+            end = 16.dp,
+            top = 10.dp,
+            bottom = 10.dp,
         )
         .pointerInput(textMode) {
             if (textMode == PickResultTextMode.EDIT || textMode == PickResultTextMode.SELECT) {

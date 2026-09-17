@@ -249,6 +249,8 @@ data class FloatBallSettings(
     val floatBallPickBottomTransitionFraction: Float = 0.22f,
     /** Pick panel: show text + search by default; image section stays collapsed until the image row is tapped. */
     val floatBallPickTextFirstPanel: Boolean = false,
+    /** Pick panel presentation style: INTEGRATED_SCROLL vs TAB_PAGED. */
+    val floatBallPickPanelStyle: PickResultPanelStyle = PickResultPanelStyle.TAB_PAGED,
     /** Pick panel: auto-select all text when the panel opens after word pick or screenshot. */
     val floatBallPickAutoSelectAll: Boolean = false,
     /** Pick panel: dismiss after tapping copy; long-press copy keeps the panel open. */

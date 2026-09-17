@@ -877,6 +877,10 @@ class OverlaySettingsMutator @Inject constructor(
         it[SettingsPreferenceKeys.FLOAT_BALL_PICK_TEXT_FIRST_PANEL] = enabled
     }
 
+    suspend fun setFloatBallPickPanelStyle(style: PickResultPanelStyle) = editor.edit {
+        it[SettingsPreferenceKeys.FLOAT_BALL_PICK_PANEL_STYLE] = style.storageKey
+    }
+
     suspend fun setFloatBallPickAutoSelectAll(enabled: Boolean) = editor.edit {
         it[SettingsPreferenceKeys.FLOAT_BALL_PICK_AUTO_SELECT_ALL] = enabled
     }

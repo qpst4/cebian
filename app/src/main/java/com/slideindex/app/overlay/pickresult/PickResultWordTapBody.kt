@@ -614,80 +614,123 @@ private fun WordTapTokenChip(
 ) {
     val isWhitespace = PickResultWordTokenizer.isWhitespaceToken(token)
     val isDark = LocalAppDarkTheme.current
-    val background = if (selected) {
-        if (isDark) androidx.compose.ui.graphics.Color(0xFF322F4C) else androidx.compose.ui.graphics.Color(0xFFF0EDFF)
-    } else {
-        if (isDark) androidx.compose.ui.graphics.Color(0xFF2C2C2E) else androidx.compose.ui.graphics.Color.White
-    }
-    val borderColor = if (selected) {
-        if (isDark) androidx.compose.ui.graphics.Color(0xFF9BA8E6) else androidx.compose.ui.graphics.Color(0xFF8C7AE6)
-    } else {
-        if (isDark) androidx.compose.ui.graphics.Color(0xFF4A4A4C) else androidx.compose.ui.graphics.Color(0xFFF1F2F6)
-    }
+    val primaryColor = MaterialTheme.colorScheme.primary
 
     if (isWhitespace) {
+        if (token == "\n") {
+            Box(
+                modifier = Modifier
+                    .onGloballyPositioned(onPositioned)
+                    .fillMaxWidth()
+                    .height(1.dp)
+            )
+            return
+        }
+
+        // 普通空格以轻透小字砖呈现
         val whitespaceWidth = when (token) {
             "\u3000" -> WORD_WHITESPACE_FULL_WIDTH
             "\t" -> WORD_WHITESPACE_TAB_WIDTH
-            else -> WORD_WHITESPACE_VISUAL_WIDTH
+            else -> 14.dp
         }
         val density = LocalDensity.current
-        val whitespaceContentHeight = with(density) { bodyLineHeight.toDp() }
+        val whitespaceContentHeight = with(density) { (bodyLineHeight.toDp() + 8.dp) }
+        val chipCorner = 6.dp
+        val chipShape = RoundedCornerShape(chipCorner)
+        val spaceBg = when {
+            selected -> if (isDark) androidx.compose.ui.graphics.Color(0xFF433968) else androidx.compose.ui.graphics.Color(0xFFEDE9FE)
+            else -> if (isDark) androidx.compose.ui.graphics.Color(0x0EFFFFFF) else androidx.compose.ui.graphics.Color(0x08000000)
+        }
+        val spaceBorder = when {
+            selected -> if (isDark) androidx.compose.ui.graphics.Color(0xFFA29BFE) else androidx.compose.ui.graphics.Color(0xFF8C7AE6)
+            else -> if (isDark) androidx.compose.ui.graphics.Color(0x14FFFFFF) else androidx.compose.ui.graphics.Color(0x0C000000)
+        }
+
         Box(
             modifier = Modifier
                 .onGloballyPositioned(onPositioned)
                 .then(
-                    if (token == "\n") {
-                        Modifier
-                            .fillMaxWidth()
-                            .height(1.dp)
-                    } else {
-                        Modifier.width(whitespaceWidth)
-                    },
+                    if (trailingGap) Modifier.padding(end = 3.dp) else Modifier
                 )
-                .clip(RoundedCornerShape(8.dp))
-                .background(background)
-                .border(1.dp, borderColor, RoundedCornerShape(8.dp))
-                .padding(vertical = WORD_TAP_CHIP_VERTICAL_PADDING)
-                .then(
-                    if (token != "\n") {
-                        Modifier.height(whitespaceContentHeight)
-                    } else {
-                        Modifier
-                    },
-                ),
-        )
+                .width(whitespaceWidth)
+                .height(whitespaceContentHeight)
+                .clip(chipShape)
+                .background(spaceBg)
+                .border(0.5.dp, spaceBorder, chipShape),
+            contentAlignment = Alignment.Center
+        ) {
+            // 空白字砖内部保持极淡的居中占位指示
+            Box(
+                modifier = Modifier
+                    .width(4.dp)
+                    .height(2.dp)
+                    .background(
+                        if (isDark) androidx.compose.ui.graphics.Color(0x28FFFFFF)
+                        else androidx.compose.ui.graphics.Color(0x18000000),
+                        RoundedCornerShape(1.dp)
+                    )
+            )
+        }
         return
     }
 
     val display = token.trim().ifEmpty { token }
     val isSingleChar = display.length == 1
     val isDelimiter = PickResultWordTokenizer.isDelimiterToken(display)
-    val textColor = if (selected) {
-        if (isDark) androidx.compose.ui.graphics.Color(0xFF9BA8E6) else androidx.compose.ui.graphics.Color(0xFF8C7AE6)
-    } else {
-        if (isDark) androidx.compose.ui.graphics.Color(0xFFD1D1D6) else androidx.compose.ui.graphics.Color(0xFF2F3542)
+    
+    val textColor = when {
+        selected -> if (isDark) androidx.compose.ui.graphics.Color(0xFFDDD6FE) else androidx.compose.ui.graphics.Color(0xFF5B21B6)
+        else -> if (isDark) androidx.compose.ui.graphics.Color(0xFFE8E8ED) else androidx.compose.ui.graphics.Color(0xFF1E2430)
     }
+    val background = when {
+        selected -> if (isDark) androidx.compose.ui.graphics.Color(0xFF433968) else androidx.compose.ui.graphics.Color(0xFFEDE9FE)
+        else -> if (isDark) androidx.compose.ui.graphics.Color(0x0EFFFFFF) else androidx.compose.ui.graphics.Color(0x08000000)
+    }
+    val borderColor = when {
+        selected -> if (isDark) androidx.compose.ui.graphics.Color(0xFFA29BFE) else androidx.compose.ui.graphics.Color(0xFF8C7AE6)
+        else -> if (isDark) androidx.compose.ui.graphics.Color(0x14FFFFFF) else androidx.compose.ui.graphics.Color(0x0C000000)
+    }
+
+    val chipCorner = 6.dp
+    val chipShape = RoundedCornerShape(chipCorner)
+
     Text(
         text = display,
         modifier = Modifier
             .onGloballyPositioned(onPositioned)
             .then(
                 if (trailingGap) {
-                    Modifier.padding(end = 4.dp)
+                    Modifier.padding(end = 3.dp)
                 } else {
                     Modifier
                 },
             )
-            .shadow(elevation = if (selected) 0.dp else 1.dp, shape = RoundedCornerShape(8.dp), clip = false)
-            .clip(RoundedCornerShape(8.dp))
-            .background(background)
-            .border(1.dp, borderColor, RoundedCornerShape(8.dp))
+            .then(
+                if (selected) {
+                    Modifier
+                        .shadow(
+                            elevation = 3.dp,
+                            shape = chipShape,
+                            spotColor = primaryColor.copy(alpha = 0.5f),
+                            ambientColor = primaryColor.copy(alpha = 0.2f),
+                            clip = false,
+                        )
+                        .clip(chipShape)
+                        .background(background)
+                        .border(1.dp, borderColor, chipShape)
+                } else {
+                    Modifier
+                        .clip(chipShape)
+                        .background(background)
+                        .border(0.5.dp, borderColor, chipShape)
+                }
+            )
             .padding(
-                horizontal = if (isSingleChar) 8.dp else 12.dp,
-                vertical = if (isSingleChar) 6.dp else WORD_TAP_CHIP_VERTICAL_PADDING,
+                horizontal = if (selected) (if (isSingleChar) 7.dp else 9.dp) else (if (isSingleChar) 6.dp else 8.dp),
+                vertical = if (selected) (if (isSingleChar) 5.dp else 6.dp) else 6.dp,
             ),
         fontSize = if (isDelimiter) delimiterTextSize else bodyTextSize,
+        fontWeight = if (selected) androidx.compose.ui.text.font.FontWeight.SemiBold else androidx.compose.ui.text.font.FontWeight.Normal,
         lineHeight = bodyLineHeight,
         color = textColor,
     )

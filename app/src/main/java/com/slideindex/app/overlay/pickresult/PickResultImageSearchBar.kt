@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.Rect
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Arrangement
@@ -24,6 +25,7 @@ import androidx.compose.material.icons.outlined.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -61,6 +63,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import com.slideindex.app.R
 import com.slideindex.app.di.OverlayDependencyAccess
@@ -75,10 +78,9 @@ import com.slideindex.app.ui.theme.LocalAppDarkTheme
 import com.slideindex.app.util.HapticHelper
 import kotlin.math.roundToInt
 
-private val ImageSearchBarHeight = 60.dp
-private val ImageSectionItemSpacing = 6.dp
+private val ImageSearchBarHeight = 36.dp
+private val ImageSectionItemSpacing = 4.dp
 private val ImageSearchBarBottomPadding = 0.dp
-
 
 /** 图片区水平内容宽度（面板全宽减去左右 padding）。 */
 @Composable
@@ -168,11 +170,16 @@ internal fun pickResultImageDisplaySize(
     }
 }
 
-internal fun pickResultImageSectionReservedHeight(imageMaxHeight: Dp, isImageVisible: Boolean): Dp {
-    val header = 44.dp
+internal fun pickResultImageSectionReservedHeight(
+    imageMaxHeight: Dp,
+    isImageVisible: Boolean,
+    includeSearchBar: Boolean = true
+): Dp {
+    val header = 12.dp
     if (!isImageVisible) return header
-    val gaps = 8.dp
-    return header + gaps + imageMaxHeight + ImageSectionItemSpacing + ImageSearchBarHeight
+    val gaps = 6.dp
+    val searchBar = if (includeSearchBar) ImageSectionItemSpacing + ImageSearchBarHeight else 0.dp
+    return header + gaps + imageMaxHeight + searchBar
 }
 
 @Composable
@@ -185,40 +192,100 @@ fun PickResultImageSearchBar(
     modifier: Modifier = Modifier,
     onPinToScreen: (() -> Unit)? = null,
     onStash: (() -> Unit)? = null,
+    overlayMode: Boolean = false,
+    compactEmbedded: Boolean = false,
 ) {
     val shareEngines = SearchEngineStore.imageSharePanelEngines(engines)
     val isDark = LocalAppDarkTheme.current
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(bottom = ImageSearchBarBottomPadding)
-            .shadow(
-                elevation = 8.dp,
-                shape = RoundedCornerShape(16.dp),
-                spotColor = if (isDark) Color.White else Color.Black,
-            )
-            .clip(RoundedCornerShape(16.dp))
-            .background(if (isDark) Color(0xFF2A2A2C) else Color(0xFFF2F3F5))
-            .padding(horizontal = 12.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-        if (shareEngines.isNotEmpty()) {
-            ImageShareEngineChip(
-                engines = shareEngines,
-                onShareEngineClick = onShareEngineClick,
-            )
-        } else {
-            Spacer(modifier = Modifier.width(1.dp))
-        }
 
-        PickResultImageSearchActions(
-            onShare = onShare,
-            onImageSearch = onImageSearch,
-            onSave = onSave,
-            onPinToScreen = onPinToScreen,
-            onStash = onStash,
-        )
+    if (compactEmbedded) {
+        Row(
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(horizontal = 10.dp, vertical = 2.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            if (shareEngines.isNotEmpty()) {
+                ImageShareEngineChip(
+                    engines = shareEngines,
+                    onShareEngineClick = onShareEngineClick,
+                    compact = true,
+                )
+            } else {
+                Spacer(Modifier.width(1.dp))
+            }
+
+            PickResultImageSearchActions(
+                onShare = onShare,
+                onImageSearch = onImageSearch,
+                onSave = onSave,
+                onPinToScreen = onPinToScreen,
+                onStash = onStash,
+                overlayMode = false,
+                compact = true,
+            )
+        }
+        return
+    }
+
+    val pillBg = if (overlayMode) {
+        Color.Black.copy(alpha = 0.62f)
+    } else if (isDark) {
+        Color(0x3BFFFFFF)
+    } else {
+        Color(0x1E000000)
+    }
+    val pillBorder = if (overlayMode) {
+        Color.White.copy(alpha = 0.22f)
+    } else if (isDark) {
+        Color(0x28FFFFFF)
+    } else {
+        Color(0x18000000)
+    }
+
+    Box(
+        modifier = modifier
+            .then(
+                if (overlayMode) {
+                    Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                } else {
+                    Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp)
+                }
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Row(
+            modifier = Modifier
+                .shadow(
+                    elevation = if (overlayMode) 6.dp else 8.dp,
+                    shape = RoundedCornerShape(24.dp),
+                    spotColor = if (overlayMode || isDark) Color(0x66000000) else Color(0x33000000),
+                    ambientColor = Color(0x22000000),
+                )
+                .clip(RoundedCornerShape(24.dp))
+                .background(pillBg)
+                .border(0.6.dp, pillBorder, RoundedCornerShape(24.dp))
+                .padding(horizontal = 6.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            if (shareEngines.isNotEmpty()) {
+                ImageShareEngineChip(
+                    engines = shareEngines,
+                    onShareEngineClick = onShareEngineClick,
+                )
+            }
+
+            PickResultImageSearchActions(
+                onShare = onShare,
+                onImageSearch = onImageSearch,
+                onSave = onSave,
+                onPinToScreen = onPinToScreen,
+                onStash = onStash,
+                overlayMode = overlayMode,
+            )
+        }
     }
 }
 
@@ -247,55 +314,73 @@ private fun rememberLastUsedImageShareEngine(
 private fun ImageShareEngineChip(
     engines: List<SearchEngineConfig>,
     onShareEngineClick: (SearchEngineConfig) -> Unit,
+    compact: Boolean = false,
 ) {
-    val isDark = LocalAppDarkTheme.current
-    val chipBackground = if (isDark) Color(0xFF3A3A3C) else Color(0xFFDFE4EA)
-    val dividerColor = if (isDark) Color(0xFF4A4A4C) else Color(0xFFCED6E0)
-    val labelColor = if (isDark) Color(0xFFE8EAED) else Color(0xFF2F3542)
-
     val (displayEngine, rememberEngine) = rememberLastUsedImageShareEngine(engines)
     var menuExpanded by remember { mutableStateOf(false) }
     val showEnginePicker = engines.size > 1
     val shareLabel = stringResource(R.string.pick_result_image_share_to_app)
-    val pickEngineLabel = stringResource(R.string.pick_result_image_share_pick_engine)
 
     fun shareWith(engine: SearchEngineConfig) {
         rememberEngine(engine)
         onShareEngineClick(engine)
     }
 
+    val chipHeight = 40.dp
+    val chipCorner = 20.dp
+
     Box {
         Row(
             modifier = Modifier
-                .height(36.dp)
-                .clip(RoundedCornerShape(10.dp))
-                .background(chipBackground),
+                .height(chipHeight)
+                .then(
+                    if (compact) {
+                        Modifier
+                    } else {
+                        Modifier.shadow(
+                            elevation = 4.dp,
+                            shape = RoundedCornerShape(chipCorner),
+                            spotColor = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                )
+                .clip(RoundedCornerShape(chipCorner))
+                .background(MaterialTheme.colorScheme.primary)
+                .clickable { shareWith(displayEngine) }
+                .padding(
+                    start = 14.dp,
+                    end = if (showEnginePicker) 6.dp else 14.dp
+                ),
             verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            ImageShareEngineChipMain(
-                engines = engines,
-                displayEngine = displayEngine,
-                labelColor = labelColor,
-                shareLabel = shareLabel,
-                onShare = { shareWith(displayEngine) },
-                onQuickSwitchShare = { shareWith(it) },
+            SearchEngineIcon(
+                engine = displayEngine,
+                modifier = Modifier.size(20.dp)
+            )
+            Text(
+                text = "${displayEngine.name}识图",
+                style = MaterialTheme.typography.labelMedium.copy(
+                    fontSize = 14.sp,
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold
+                ),
+                color = Color.White,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
             if (showEnginePicker) {
                 Box(
                     modifier = Modifier
-                        .width(1.dp)
-                        .height(20.dp)
-                        .background(dividerColor),
-                )
-                IconButton(
-                    onClick = { menuExpanded = true },
-                    modifier = Modifier.size(32.dp),
+                        .size(if (compact) 20.dp else 24.dp)
+                        .clip(RoundedCornerShape(if (compact) 10.dp else 12.dp))
+                        .clickable { menuExpanded = true },
+                    contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.KeyboardArrowDown,
-                        contentDescription = pickEngineLabel,
-                        modifier = Modifier.size(20.dp),
-                        tint = if (isDark) Color(0xFFA0AAB5) else Color(0xFF747D8C),
+                        contentDescription = null,
+                        modifier = Modifier.size(if (compact) 14.dp else 16.dp),
+                        tint = Color.White.copy(alpha = 0.85f)
                     )
                 }
             }
@@ -549,48 +634,98 @@ private fun PickResultImageSearchActions(
     onSave: () -> Unit,
     onPinToScreen: (() -> Unit)? = null,
     onStash: (() -> Unit)? = null,
+    overlayMode: Boolean = false,
+    compact: Boolean = false,
 ) {
-    val isDark = LocalAppDarkTheme.current
-    val systemShareLabel = stringResource(R.string.pick_result_image_share_system)
+    var moreMenuExpanded by remember { mutableStateOf(false) }
+
     Row(
-        modifier = Modifier
-            .height(44.dp)
-            .background(
-                color = if (isDark) Color(0xFF3A3A3C) else Color(0xFFE4E5E8),
-                shape = RoundedCornerShape(22.dp),
-            )
-            .padding(horizontal = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(2.dp),
+        modifier = Modifier.height(if (compact) 32.dp else 38.dp),
+        horizontalArrangement = Arrangement.spacedBy(if (compact) 2.dp else 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        onPinToScreen?.let {
-            PickResultActionIcon(Icons.Outlined.PushPin, enabled = true, onClick = it)
-        }
-        onStash?.let {
-            PickResultActionIcon(Icons.Outlined.Archive, enabled = true, onClick = it)
-        }
-
-        Spacer(modifier = Modifier.size(4.dp))
-        Box(
-            modifier = Modifier
-                .size(width = 1.dp, height = 16.dp)
-                .background(if (isDark) Color(0xFF4A4A4C) else Color(0xFFCED6E0)),
-        )
-        Spacer(modifier = Modifier.size(4.dp))
-
-        PickResultActionIcon(
-            icon = Icons.Outlined.Share,
-            enabled = true,
-            onClick = onShare,
-            contentDescription = systemShareLabel,
-        )
+        // 1. Direct Action: Image Search (以图搜图)
         PickResultActionIcon(
             icon = Icons.Outlined.ImageSearch,
             enabled = true,
             onClick = onImageSearch,
-            tint = MaterialTheme.colorScheme.primary,
+            contentDescription = stringResource(R.string.pick_result_action_image_search),
+            overlayMode = overlayMode,
+            compact = compact,
         )
-        PickResultActionIcon(Icons.Outlined.Save, enabled = true, onClick = onSave)
+
+        // 2. Direct Action: Save (保存图片)
+        PickResultActionIcon(
+            icon = Icons.Outlined.Save,
+            enabled = true,
+            onClick = onSave,
+            contentDescription = stringResource(R.string.pick_result_action_save_image),
+            overlayMode = overlayMode,
+            compact = compact,
+        )
+
+        // 3. Direct Action: Share (分享图片，直接外显)
+        PickResultActionIcon(
+            icon = Icons.Outlined.Share,
+            enabled = true,
+            onClick = onShare,
+            contentDescription = stringResource(R.string.pick_result_action_share_image),
+            overlayMode = overlayMode,
+            compact = compact,
+        )
+
+        // 4. More Action: Dropdown Menu (钉选 / 暂存)
+        val hasMoreActions = onPinToScreen != null || onStash != null
+        if (hasMoreActions) {
+            Box {
+                PickResultActionIcon(
+                    icon = Icons.Filled.MoreVert,
+                    enabled = true,
+                    onClick = { moreMenuExpanded = true },
+                    contentDescription = stringResource(R.string.pick_result_action_more),
+                    overlayMode = overlayMode,
+                    compact = compact,
+                )
+
+                DropdownMenu(
+                    expanded = moreMenuExpanded,
+                    onDismissRequest = { moreMenuExpanded = false }
+                ) {
+                    onPinToScreen?.let { pinAction ->
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.pick_result_pin)) },
+                            leadingIcon = {
+                                Icon(
+                                    Icons.Outlined.PushPin,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            },
+                            onClick = {
+                                moreMenuExpanded = false
+                                pinAction()
+                            }
+                        )
+                    }
+                    onStash?.let { stashAction ->
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.pick_result_stash)) },
+                            leadingIcon = {
+                                Icon(
+                                    Icons.Outlined.Archive,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            },
+                            onClick = {
+                                moreMenuExpanded = false
+                                stashAction()
+                            }
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -600,19 +735,27 @@ private fun PickResultActionIcon(
     enabled: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    tint: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     contentDescription: String? = null,
+    overlayMode: Boolean = false,
+    compact: Boolean = false,
 ) {
+    val isDark = LocalAppDarkTheme.current
+    val iconTint = if (overlayMode) Color(0xFFF2F2F7) else if (isDark) Color(0xFFE0E0E6) else Color(0xFF333333)
+    val buttonSize = 42.dp
+    val iconSize = 22.dp
+
     IconButton(
         onClick = onClick,
         enabled = enabled,
-        modifier = modifier.size(32.dp),
+        modifier = modifier
+            .size(buttonSize)
+            .clip(RoundedCornerShape(buttonSize / 2))
     ) {
         Icon(
             imageVector = icon,
             contentDescription = contentDescription,
-            modifier = Modifier.size(20.dp),
-            tint = if (enabled) tint else tint.copy(alpha = 0.38f),
+            modifier = Modifier.size(iconSize),
+            tint = if (enabled) iconTint else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f),
         )
     }
 }

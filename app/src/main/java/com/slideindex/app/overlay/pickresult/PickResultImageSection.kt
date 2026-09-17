@@ -41,6 +41,7 @@ internal fun PickResultImageSection(
     currentImageIndex: Int,
     imageDisplaySize: PickResultImageDisplaySize,
     searchEngines: List<com.slideindex.app.settings.SearchEngineConfig>,
+    showImageSearchBar: Boolean = true,
     modifier: Modifier = Modifier,
     onSave: () -> Unit,
     onShare: () -> Unit,
@@ -54,20 +55,15 @@ internal fun PickResultImageSection(
     onSectionExpandedChange: (Boolean) -> Unit
 ) {
     val images = panelImages.ifEmpty { listOfNotNull(screenshot) }
-    Column(modifier = modifier) {
-        PickResultSectionHeader(
-            title = stringResource(R.string.float_ball_pick_result_image_section),
-            expanded = sectionExpanded,
-            onToggle = { onSectionExpandedChange(!sectionExpanded) },
-            collapsible = true
-        )
+    Box(modifier = modifier) {
         if (images.isNotEmpty()) {
             PickResultImageSectionGallery(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.fillMaxSize(),
                 images = images,
                 currentImageIndex = currentImageIndex,
                 imageDisplaySize = imageDisplaySize,
                 searchEngines = searchEngines,
+                showImageSearchBar = showImageSearchBar,
                 onSave = onSave,
                 onShare = onShare,
                 onImageSearch = onImageSearch,
@@ -89,6 +85,7 @@ internal fun PickResultImageSectionGallery(
     currentImageIndex: Int,
     imageDisplaySize: PickResultImageDisplaySize,
     searchEngines: List<com.slideindex.app.settings.SearchEngineConfig>,
+    showImageSearchBar: Boolean = true,
     onSave: () -> Unit,
     onShare: () -> Unit,
     onImageSearch: () -> Unit,
@@ -115,12 +112,25 @@ internal fun PickResultImageSectionGallery(
             onImageIndexChange(pagerState.settledPage)
         }
     }
-    Column(
+    val isDark = com.slideindex.app.ui.theme.LocalAppDarkTheme.current
+    val cardBg = if (isDark) Color(0x10FFFFFF) else Color(0xB2FFFFFF)
+    val cardBorder = if (isDark) Color(0x24FFFFFF) else Color(0x12000000)
+
+    androidx.compose.material3.Surface(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+            .padding(horizontal = 16.dp),
+        shape = RoundedCornerShape(16.dp),
+        color = cardBg,
+        border = androidx.compose.foundation.BorderStroke(0.5.dp, cardBorder)
     ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = 6.dp, bottom = 4.dp),
+            verticalArrangement = Arrangement.SpaceBetween,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -179,7 +189,7 @@ internal fun PickResultImageSectionGallery(
             }
             if (images.size > 1) {
                 LazyRow(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 4.dp),
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     items(images.size, key = { it }) { index ->
@@ -189,7 +199,7 @@ internal fun PickResultImageSectionGallery(
                             bitmap = thumb.asImageBitmap(),
                             contentDescription = null,
                             modifier = Modifier
-                                .size(44.dp)
+                                .size(40.dp)
                                 .clip(RoundedCornerShape(6.dp))
                                 .border(
                                     width = if (selected) 2.dp else 1.dp,
@@ -206,14 +216,18 @@ internal fun PickResultImageSectionGallery(
                     }
                 }
             }
-            PickResultImageSearchBar(
-                engines = searchEngines,
-                onShareEngineClick = onShareEngineClick,
-                onShare = onShare,
-                onImageSearch = onImageSearch,
-                onSave = onSave,
-                onPinToScreen = onPinToScreen,
-                onStash = onStash,
-            )
+            if (showImageSearchBar) {
+                PickResultImageSearchBar(
+                    engines = searchEngines,
+                    onShareEngineClick = onShareEngineClick,
+                    onShare = onShare,
+                    onImageSearch = onImageSearch,
+                    onSave = onSave,
+                    onPinToScreen = onPinToScreen,
+                    onStash = onStash,
+                    compactEmbedded = true,
+                )
+            }
+        }
     }
 }

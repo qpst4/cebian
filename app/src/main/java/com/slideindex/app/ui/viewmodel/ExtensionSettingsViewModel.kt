@@ -577,6 +577,10 @@ class ExtensionSettingsViewModel @Inject constructor(
         settingsRepository.setFloatBallPickTextFirstPanel(enabled)
     }
 
+    fun setFloatBallPickPanelStyle(style: com.slideindex.app.settings.PickResultPanelStyle) = launchSettingsWrite {
+        settingsRepository.setFloatBallPickPanelStyle(style)
+    }
+
     fun setFloatBallPickAutoSelectAll(enabled: Boolean) = launchSettingsWrite {
         settingsRepository.setFloatBallPickAutoSelectAll(enabled)
     }
