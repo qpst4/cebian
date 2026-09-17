@@ -97,8 +97,12 @@ class OverlayManager(
             controller.hideEdge()
             return
         }
-        if (triggersShown && !controller.isEdgeInitialized()) {
-            controller.showEdge(metrics)
+        if (triggersShown) {
+            if (!controller.isEdgeInitialized()) {
+                controller.showEdge(metrics)
+            } else {
+                controller.updateSettings(settings, metrics)
+            }
         }
     }
 
