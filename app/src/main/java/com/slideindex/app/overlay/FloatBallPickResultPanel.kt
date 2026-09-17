@@ -1104,8 +1104,28 @@ object FloatBallPickResultPanel {
                     onCopy = { value, keepPanelOpen ->
                         FloatBallTextPick.copyText(context, value)
                         if (settingsHolder.value.floatBallPickHapticEnabled) {
-                            composeView?.let { v ->
-                                com.slideindex.app.util.HapticHelper.confirmLaunch(v, settingsHolder.value)
+                            val vibrator = context.getSystemService(android.os.Vibrator::class.java)
+                                ?: (context.getSystemService(android.content.Context.VIBRATOR_MANAGER_SERVICE) as? android.os.VibratorManager)?.defaultVibrator
+                            var vibrated = false
+                            if (vibrator?.hasVibrator() == true) {
+                                try {
+                                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                                        vibrator.vibrate(android.os.VibrationEffect.createPredefined(android.os.VibrationEffect.EFFECT_CLICK))
+                                        vibrated = true
+                                    }
+                                } catch (_: Throwable) {}
+                                if (!vibrated) {
+                                    try {
+                                        vibrator.vibrate(android.os.VibrationEffect.createOneShot(20L, android.os.VibrationEffect.DEFAULT_AMPLITUDE))
+                                        vibrated = true
+                                    } catch (_: Throwable) {}
+                                }
+                            }
+                            if (!vibrated) {
+                                composeView?.performHapticFeedback(
+                                    android.view.HapticFeedbackConstants.CONTEXT_CLICK,
+                                    android.view.HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING
+                                )
                             }
                         }
                         val autoDismiss = settingsHolder.value.floatBallPickCopyDismissPanel

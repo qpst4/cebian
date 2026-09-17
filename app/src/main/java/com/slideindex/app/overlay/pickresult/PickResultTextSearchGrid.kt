@@ -17,6 +17,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.BoxWithConstraints
 import com.slideindex.app.overlay.overlayIsLandscape
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -25,9 +28,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -146,6 +152,8 @@ fun PickResultTextSearchGrid(
         val iconSize = searchIconSizeForColumns(columnCount)
         val pagerState = rememberPagerState(pageCount = { pages.size })
         val gridHeight = searchGridContentHeight(rowCount, showLabels, columnCount)
+        val coroutineScope = rememberCoroutineScope()
+        var horizontalDragAccumulator by remember { mutableFloatStateOf(0f) }
 
         Column(
             modifier = Modifier
@@ -156,7 +164,35 @@ fun PickResultTextSearchGrid(
                 state = pagerState,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(gridHeight),
+                    .height(gridHeight)
+                    .draggable(
+                        orientation = Orientation.Horizontal,
+                        state = rememberDraggableState { delta ->
+                            horizontalDragAccumulator += delta
+                            if (pages.size > 1) {
+                                pagerState.dispatchRawDelta(-delta)
+                            }
+                        },
+                        onDragStopped = { velocity ->
+                            val pageCount = pages.size
+                            if (pageCount > 1) {
+                                val currentPage = pagerState.currentPage
+                                val targetPage = when {
+                                    velocity < -600f && currentPage < pageCount - 1 -> currentPage + 1
+                                    velocity > 600f && currentPage > 0 -> currentPage - 1
+                                    horizontalDragAccumulator < -80f && currentPage < pageCount - 1 -> currentPage + 1
+                                    horizontalDragAccumulator > 80f && currentPage > 0 -> currentPage - 1
+                                    pagerState.currentPageOffsetFraction > 0.2f && currentPage < pageCount - 1 -> currentPage + 1
+                                    pagerState.currentPageOffsetFraction < -0.2f && currentPage > 0 -> currentPage - 1
+                                    else -> currentPage
+                                }
+                                coroutineScope.launch {
+                                    pagerState.animateScrollToPage(targetPage)
+                                }
+                            }
+                            horizontalDragAccumulator = 0f
+                        }
+                    ),
             ) { pageIndex ->
                 PickResultSearchEngineGridPage(
                     engines = pages[pageIndex],
