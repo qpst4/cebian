@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="activity_shortcut_coupons">قسائم</string>
+    <string name="activity_shortcut_favorites">المفضلة</string>
+    <string name="activity_shortcut_search">بحث</string>
+    <string name="activity_shortcut_scan">مسح ضوئي</string>
+</resources>

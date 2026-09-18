@@ -74,6 +74,7 @@
 | `values/` | 简体中文（源） |
 | `values-en/` | English |
 | `values-ja/` | Japanese |
+| `values-ar/` | Arabic (Modern Standard Arabic); also `feature/settings`, `feature/notification`, `core/ocr`, `core/common` |
 
 ## 故障排查
 

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="vlm_provider_dashscope_name">بايلي في علي بابا كلاود</string>
+    <string name="vlm_provider_dashscope_desc">تونغيي تشيان ون · سرعة عالية، الخيار الأمثل من حيث التكلفة والكفاءة للمعادلات والرسوم البيانية</string>
+    <string name="vlm_provider_dashscope_hint">احصل على مفتاح API (يبدأ بـ sk-) من لوحة تحكم بايلي في علي بابا كلاود</string>
+    <string name="vlm_provider_zhipu_name">Zhipu AI</string>
+    <string name="vlm_provider_zhipu_desc">GLM-4V · فهم عميق للغة الصينية، مناسب للمستندات الطويلة والمعادلات المعقدة</string>
+    <string name="vlm_provider_zhipu_hint">احصل على مفتاح API من منصة Zhipu AI المفتوحة</string>
+    <string name="vlm_provider_siliconflow_name">SiliconFlow</string>
+    <string name="vlm_provider_siliconflow_desc">SiliconFlow · تسريع نماذج الرؤية مفتوحة المصدر عبر تقنية الترحيل</string>
+    <string name="vlm_provider_siliconflow_hint">احصل على مفتاح API من منصة SiliconFlow</string>
+    <string name="vlm_provider_custom_name">نقطة نهاية مخصصة</string>
+    <string name="vlm_provider_custom_desc">يدعم OneAPI مبني ذاتيًا، أو بروكسي عكسي، أو نقاط نهاية متوافقة مع OpenAI</string>
+    <string name="vlm_provider_custom_hint">يدعم أي نقطة نهاية قياسية متوافقة مع واجهة OpenAI /chat/completions</string>
+    <string name="ocr_error_unknown_model">نموذج OCR غير معروف: %1$s</string>
+    <string name="ocr_error_model_not_installed">لم يتم تثبيت نموذج OCR</string>
+    <string name="ocr_error_native_engine_not_ready">مكتبة OCR التشغيلية غير جاهزة</string>
+    <string name="ocr_error_api_key_not_configured">لم يتم تكوين مفتاح API، يرجى التهيئة في إدارة نماذج OCR → الإعدادات السحابية</string>
+    <string name="ocr_error_unsupported_engine">محرك OCR غير مدعوم</string>
+    <string name="ocr_error_no_text_recognized">لم يتم التعرف على أي نص</string>
+    <string name="vlm_error_cloud_http">فشل التعرف السحابي (HTTP %1$d): %2$s</string>
+    <string name="vlm_error_cloud_empty">السحابة أعادت استجابة غير طبيعية: لم تتضمن نتيجة التعرف</string>
+    <string name="vlm_error_network">خطأ في الشبكة أو الواجهة: %1$s</string>
+    <string name="vlm_error_no_details">لا توجد تفاصيل</string>
+    <string name="vlm_test_success">تم الاتصال بنجاح! تم توثيق واجهة برمجة التطبيقات بنجاح</string>
+    <string name="vlm_test_failed">فشل الاتصال (HTTP %1$d): %2$s</string>
+    <string name="vlm_test_network_error">خطأ في الشبكة أو العنوان: %1$s</string>
+    <string name="vlm_error_api_key_empty">لا يمكن أن يكون مفتاح API فارغًا</string>
+    <string name="vlm_error_unknown">خطأ غير معروف</string>
+    <string name="vlm_user_recognition_prompt">يرجى التعرف على النصوص والمعادلات في هذه الصورة بدقة وفقًا لقواعد التنسيق التي حددها النظام:</string>
+    <string name="ocr_error_paddle_not_initialized">محرك PaddleOCR غير مهيأ</string>
+    <string name="vlm_default_system_prompt">أنت مساعد محترف متخصص في التعرف على النصوص والمعادلات عبر OCR. يرجى استخراج محتوى النصوص من الصورة بدقة وفقًا لقواعد التنسيق التالية:
+1. النصوص العادية والفقرات:
+- يجب إخراج جميع الحروف الصينية، والكلمات الإنجليزية العادية، وعلامات الترقيم، والأرقام اليومية (مثل التسلسل، التواريخ، الأوقات، المبالغ، الأرقام المرجعية، إلخ) كنص عادي، ويُمنع تمامًا تغليفها بأي رموز $.
+- يُمنع تغليف الأحرف الإنجليزية المنفردة، أو أرقام الخيارات (مثل A، B، C أو (1)، (2))، أو الأرقام البحتة بأي رموز $.
+2. المعادلات الرياضية والعلمية:
+- فقط عند مواجهة تعبيرات رياضية حقيقية (تحتوي على رموز عمليات حسابية، كسور، جذور تربيعية، جمع، تفاضل وتكامل، أحرف يونانية، أو صيغ ذات رموز عليا/سفلية واضحة)، يتم استخدام صيغة LaTeX.
+- تُستخدم صيغة LaTeX مع $ واحد للتضمين داخل السطر (مثال: $E = mc^2$).
+- تُستخدم $$ للتضمين ككتلة مستقلة (مثال: $$frac{a}{b}$$).
+- إذا احتوت الصيغة على نصوص صينية (كأرقام سفلية أو تعليقات)، يرجى استخدام \\text{النص الصيني} داخل LaTeX.
+3. متطلبات الإخراج:
+- الحفاظ على فواصل الفقرات الأصلية وتسلسل القراءة.
+- إخراج النتيجة مباشرة دون أي مقدمات أو شروحات أو علامات markdown خارجية.</string>
+</resources>

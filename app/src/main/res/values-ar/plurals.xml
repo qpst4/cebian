@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <plurals name="search_engine_grid_columns_value">
+        <item quantity="one">%d عمود</item>
+        <item quantity="other">%d أعمدة</item>
+    </plurals>
+    <plurals name="search_engine_grid_rows_value">
+        <item quantity="one">%d صف</item>
+        <item quantity="other">%d صفوف</item>
+    </plurals>
+    <plurals name="search_engine_settings_summary">
+        <item quantity="one">%d محرك</item>
+        <item quantity="other">%d محركات</item>
+    </plurals>
+    <plurals name="image_search_engine_settings_summary">
+        <item quantity="one">%1$d هدف مشاركة · %2$d محرك مجمّع</item>
+        <item quantity="other">%1$d أهداف مشاركة · %2$d محركات مجمّعة</item>
+    </plurals>
+    <plurals name="search_engine_import_preview_count">
+        <item quantity="one">%1$d جديد، تم تخطي %2$d مكرر</item>
+        <item quantity="other">%1$d جديدة، تم تخطي %2$d مكررة</item>
+    </plurals>
+    <plurals name="search_engine_import_success">
+        <item quantity="one">تم استيراد %1$d محرك (%2$s)</item>
+        <item quantity="other">تم استيراد %1$d محركات (%2$s)</item>
+    </plurals>
+    <plurals name="float_ball_style_slideshow_hint">
+        <item quantity="one">تم اختيار %d صورة، التبديل كل 3 ثوانٍ</item>
+        <item quantity="other">تم اختيار %d صور، التبديل كل 3 ثوانٍ</item>
+    </plurals>
+    <plurals name="share_image_ocr_history_entry_desc_count">
+        <item quantity="one">%d سجل — انقر للفتح</item>
+        <item quantity="other">%d سجلات — انقر للفتح</item>
+    </plurals>
+    <plurals name="floating_pointer_edge_side_summary">
+        <item quantity="one">%1$d منطقة · %2$s</item>
+        <item quantity="other">%1$d مناطق · %2$s</item>
+    </plurals>
+    <plurals name="apps_per_row_value_label">
+        <item quantity="one">%d عمود</item>
+        <item quantity="other">%d أعمدة</item>
+    </plurals>
+    <plurals name="settings_backup_import_success">
+        <item quantity="one">تم استيراد %d إعداد</item>
+        <item quantity="other">تم استيراد %d إعدادات</item>
+    </plurals>
+    <plurals name="settings_backup_preview_count">
+        <item quantity="one">سيستبدل %d إعدادًا.</item>
+        <item quantity="other">سيستبدل %d إعدادات.</item>
+    </plurals>
+    <plurals name="otp_autofill_stats_summary">
+        <item quantity="one">%1$d محاولة، نسبة نجاح %2$d%%</item>
+        <item quantity="other">%1$d محاولات، نسبة نجاح %2$d%%</item>
+    </plurals>
+    <plurals name="shell_panel_history_entry_desc_count">
+        <item quantity="one">عرض %d تشغيل حديث</item>
+        <item quantity="other">عرض %d تشغيلات حديثة</item>
+    </plurals>
+    <plurals name="clipboard_history_count">
+        <item quantity="one">%d سجل</item>
+        <item quantity="other">%d سجلات</item>
+    </plurals>
+    <plurals name="stash_entry_count">
+        <item quantity="one">%d عنصر</item>
+        <item quantity="other">%d عناصر</item>
+    </plurals>
+    <plurals name="stash_clipboard_entry_summary_stash">
+        <item quantity="one">%d عنصر مؤقت</item>
+        <item quantity="other">%d عناصر مؤقتة</item>
+    </plurals>
+    <plurals name="image_search_engine_aggregated_section">
+        <item quantity="one">محركات بحث مجمّعة (%d مرئي)</item>
+        <item quantity="other">محركات بحث مجمّعة (%d مرئية)</item>
+    </plurals>
+    <plurals name="missing_permissions_entry_desc_count">
+        <item quantity="one">%1$d ميزة تفتقد أذونات Android</item>
+        <item quantity="other">%1$d ميزات تفتقد أذونات Android</item>
+    </plurals>
+    <plurals name="search_panel_settings_index_count">
+        <item quantity="one">تم تحميل %d عنصر</item>
+        <item quantity="other">تم تحميل %d عناصر</item>
+    </plurals>
+    <plurals name="honeycomb_launcher_entry_summary">
+        <item quantity="one">%d مُعدّ</item>
+        <item quantity="other">%d مُعدّة</item>
+    </plurals>
+    <plurals name="quick_launcher_entry_summary_panels">
+        <item quantity="one">%d لوحة تشغيل</item>
+        <item quantity="other">%d لوحات تشغيل</item>
+    </plurals>
+    <plurals name="quick_launcher_panel_pick_summary">
+        <item quantity="one">%1$d × %2$d · %3$d عنصر</item>
+        <item quantity="other">%1$d × %2$d · %3$d عناصر</item>
+    </plurals>
+    <plurals name="search_panel_file_folder_count">
+        <item quantity="one">تمت إضافة %d</item>
+        <item quantity="other">تمت إضافة %d</item>
+    </plurals>
+    <plurals name="clipboard_history_float_record_count">
+        <item quantity="one">%d سجل</item>
+        <item quantity="other">%d سجلات</item>
+    </plurals>
+    <plurals name="clipboard_float_meta_chars">
+        <item quantity="one">%d حرف</item>
+        <item quantity="other">%d أحرف</item>
+    </plurals>
+    <plurals name="clipboard_float_meta_lines">
+        <item quantity="one">%d سطر</item>
+        <item quantity="other">%d أسطر</item>
+    </plurals>
+    <plurals name="clipboard_float_app_blacklist_desc">
+        <item quantity="one">%1$d تطبيق محظور · %2$d لصق ناجح · %3$d فشل</item>
+        <item quantity="other">%1$d تطبيقات محظورة · %2$d لصق ناجح · %3$d فشل</item>
+    </plurals>
+    <plurals name="notification_history_group_summary">
+        <item quantity="one">%d إشعار</item>
+        <item quantity="other">%d إشعارات</item>
+    </plurals>
+    <plurals name="fingertip_ring_slot_count_value">
+        <item quantity="one">%d فتحة</item>
+        <item quantity="other">%d فتحات</item>
+    </plurals>
+    <plurals name="universal_copy_selected">
+        <item quantity="one">تم تحديد %d</item>
+        <item quantity="other">تم تحديد %d</item>
+    </plurals>
+    <plurals name="universal_copy_copied">
+        <item quantity="one">تم نسخ %d عنصر</item>
+        <item quantity="other">تم نسخ %d عناصر</item>
+    </plurals>
+    <plurals name="freezer_refreeze_done">
+        <item quantity="one">تم تجميد %d تطبيق</item>
+        <item quantity="other">تم تجميد %d تطبيقات</item>
+    </plurals>
+    <plurals name="freezer_unfreeze_all_done">
+        <item quantity="one">تم إلغاء تجميد %d تطبيق</item>
+        <item quantity="other">تم إلغاء تجميد %d تطبيقات</item>
+    </plurals>
+    <plurals name="freezer_import_frozen_done">
+        <item quantity="one">تم استيراد %d تطبيق</item>
+        <item quantity="other">تم استيراد %d تطبيقات</item>
+    </plurals>
+    <plurals name="holographic_launcher_entry_summary_hidden">
+        <item quantity="one">%d تطبيق مخفي</item>
+        <item quantity="other">%d تطبيقات مخفية</item>
+    </plurals>
+    <plurals name="quick_launcher_folder_items_count">
+        <item quantity="one">%d اختصار</item>
+        <item quantity="other">%d اختصارات</item>
+    </plurals>
+    <plurals name="shortcut_custom_count_summary">
+        <item quantity="one">%d اختصار مباشر مخصص</item>
+        <item quantity="other">%d اختصارات مباشرة مخصصة</item>
+    </plurals>
+    <plurals name="shortcut_item_count">
+        <item quantity="one">%d عنصر</item>
+        <item quantity="other">%d عناصر</item>
+    </plurals>
+    <plurals name="widget_group_count">
+        <item quantity="one">%d عنصر واجهة</item>
+        <item quantity="other">%d عناصر واجهة</item>
+    </plurals>
+</resources>
