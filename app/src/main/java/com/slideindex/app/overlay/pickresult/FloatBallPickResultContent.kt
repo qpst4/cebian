@@ -331,8 +331,8 @@ internal fun FloatBallPickResultContent(
         scopedCollapseController.updateTotalSearchCollapsiblePx(totalSearchCollapsiblePx)
     }
 
-    LaunchedEffect(isImageVisible.value, textFirstPanelEnabled, hasImageContent) {
-        if (!textFirstPanelEnabled || !hasImageContent || scopedCollapseController.isDragging) return@LaunchedEffect
+    LaunchedEffect(isImageVisible.value, hasImageContent) {
+        if (!hasImageContent || scopedCollapseController.isDragging) return@LaunchedEffect
         scopedCollapseController.setExpanded(isImageVisible.value)
     }
 
@@ -464,21 +464,12 @@ internal fun FloatBallPickResultContent(
                 onImageIndexChange = onImageIndexChange,
                 onImageSectionExpandedChange = { expanded ->
                     isImageVisible.value = expanded
-                    if (textFirstPanelEnabled) {
-                        isSearchGridVisible.value = true
-                        scopedCollapseController.setExpanded(expanded)
-                    } else {
-                        isSearchGridVisible.value = expanded
-                    }
+                    scopedCollapseController.setExpanded(expanded)
                 },
                 onDragEnd = ::endImageAuxiliaryDrag,
                 onSearchDragEnd = ::endSearchAuxiliaryDrag,
                 applyDrag = ::applyAuxiliaryDrag,
-                applySearchDrag = if (textFirstPanelEnabled) {
-                    ::applySearchAuxiliaryDrag
-                } else {
-                    ::applyAuxiliaryDrag
-                },
+                applySearchDrag = ::applySearchAuxiliaryDrag,
                 panelSearchEngines = panelSearchEngines,
                 activeText = activeText,
                 searchEngineGridColumns = effectiveSearchGridColumns,

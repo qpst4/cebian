@@ -46,6 +46,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -145,6 +146,7 @@ internal fun PickResultInteractiveTextSection(
     onImageSearch: (() -> Unit)? = null,
     onSaveScreenshot: (() -> Unit)? = null,
     onShareScreenshot: (() -> Unit)? = null,
+    onTextScrollableChange: ((Boolean) -> Unit)? = null,
 ) {
     // ?? remember(text)???? onTextChange ????text?key ??????????0??
     var textFieldValue by remember { mutableStateOf(TextFieldValue(text)) }
@@ -333,6 +335,24 @@ internal fun PickResultInteractiveTextSection(
     val showTopToolbar = showSourceChips || showEditingToolbar || sectionTitle != null
 
     val bodyScrollState = rememberScrollState()
+    var wordTapScrollable by remember { mutableStateOf(false) }
+    val isCurrentTextScrollable by remember(
+        textMode,
+        bodyScrollState.maxValue,
+        wordTapScrollable
+    ) {
+        derivedStateOf<Boolean> {
+            if (textMode == PickResultTextMode.WORD_TAP) {
+                wordTapScrollable
+            } else {
+                bodyScrollState.maxValue > 0
+            }
+        }
+    }
+    val currentOnTextScrollableChange by rememberUpdatedState(onTextScrollableChange)
+    LaunchedEffect(isCurrentTextScrollable) {
+        currentOnTextScrollableChange?.invoke(isCurrentTextScrollable)
+    }
     val showOcrLoading = ocrLoading &&
         textSource == PickResultTextSource.OCR &&
         text.isBlank() &&
@@ -652,6 +672,7 @@ internal fun PickResultInteractiveTextSection(
                             onZoomText = onZoomText,
                             onExitEditMode = ::exitEditMode,
                             selectionToolbarActions = selectionToolbarActions,
+                            onWordTapScrollableChange = { wordTapScrollable = it },
                         )
                     }
                 }
@@ -733,6 +754,7 @@ internal fun PickResultInteractiveTextSection(
                     onZoomText = onZoomText,
                     onExitEditMode = ::exitEditMode,
                     selectionToolbarActions = selectionToolbarActions,
+                    onWordTapScrollableChange = { wordTapScrollable = it },
                 )
                 }
             }
@@ -1046,6 +1068,7 @@ internal fun PickResultTextBody(
     onExitEditMode: (() -> Unit)? = null,
     selectionToolbarActions: OverlaySelectionToolbarActions? = null,
     hapticEnabled: Boolean = true,
+    onWordTapScrollableChange: ((Boolean) -> Unit)? = null,
 ) {
     val bodyTextSize = textSizeSp.sp
     val editLineHeight = (textSizeSp * 22f / 15f).sp
@@ -1262,6 +1285,7 @@ internal fun PickResultTextBody(
                     textSizeSp = textSizeSp,
                     hapticEnabled = hapticEnabled,
                     modifier = paddedModifier,
+                    onScrollableChange = onWordTapScrollableChange,
                 )
             }
         }

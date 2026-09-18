@@ -28,6 +28,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -82,10 +83,10 @@ private val WORD_WHITESPACE_HIT_EXPAND = 8.dp
 private const val WORD_TAP_ROW_CHUNK_SIZE = 40
 
 /** 划选时接近上下边缘触发自动滚动的区域。 */
-private val WORD_DRAG_EDGE_ZONE = 28.dp
+private val WORD_DRAG_EDGE_ZONE = 36.dp
 
 /** 划选边缘自动滚动每步距离。 */
-private val WORD_DRAG_EDGE_SCROLL_STEP = 14.dp
+private val WORD_DRAG_EDGE_SCROLL_STEP = 12.dp
 
 private data class WordTapChunk(
     val startIndex: Int,
@@ -212,6 +213,7 @@ fun PickResultWordTapBody(
     textSizeSp: Float = 15f,
     fillAvailableHeight: Boolean = false,
     hapticEnabled: Boolean = true,
+    onScrollableChange: ((Boolean) -> Unit)? = null,
 ) {
     val view = LocalView.current
     val bodyTextSize = textSizeSp.sp
@@ -237,6 +239,10 @@ fun PickResultWordTapBody(
     val scrollState = rememberScrollState()
     val scrollMetrics by remember {
         derivedStateOf { computeWordTapScrollMetrics(scrollState, viewportHeightPx) }
+    }
+    val currentOnScrollableChange by rememberUpdatedState(onScrollableChange)
+    LaunchedEffect(scrollMetrics.scrollable) {
+        currentOnScrollableChange?.invoke(scrollMetrics.scrollable)
     }
     val currentSelectedIndices by rememberUpdatedState(selectedWordIndices)
     val currentOnWordLongPress by rememberUpdatedState(onWordLongPress)
@@ -371,7 +377,10 @@ fun PickResultWordTapBody(
                 Modifier.heightIn(max = maxHeight)
             },
         )
-            .onGloballyPositioned { containerCoordinates = it }
+            .onGloballyPositioned {
+                containerCoordinates = it
+                viewportHeightPx = it.size.height.toFloat()
+            }
             .pointerInput(wordTokens, touchSlop) {
                 awaitEachGesture {
                     val down = awaitFirstDown(
@@ -417,18 +426,18 @@ fun PickResultWordTapBody(
                             accumulated += delta
 
                             if (!wordDragArmed && !longPressTriggered) {
-                                val horizontalIntent =
-                                    abs(accumulated.x) > abs(accumulated.y) &&
-                                        abs(accumulated.x) > touchSlop
-                                val verticalIntent =
-                                    abs(accumulated.y) > abs(accumulated.x) &&
+                                val isClearlyVerticalScroll =
+                                    abs(accumulated.y) > abs(accumulated.x) * 1.5f &&
                                         abs(accumulated.y) > touchSlop
+                                val isHorizontalOrDiagonalSelect =
+                                    abs(accumulated.x) > touchSlop * 0.7f &&
+                                        abs(accumulated.x) >= abs(accumulated.y) * 0.5f
                                 when {
-                                    horizontalIntent -> {
+                                    isHorizontalOrDiagonalSelect -> {
                                         wordDragArmed = true
                                         longPressJob.cancel()
                                     }
-                                    verticalIntent -> {
+                                    isClearlyVerticalScroll -> {
                                         scrollGestureStarted = true
                                         longPressJob.cancel()
                                         return@awaitEachGesture
@@ -458,9 +467,8 @@ fun PickResultWordTapBody(
                                 if (autoScrollJob == null) {
                                     autoScrollJob = gestureScope.launch {
                                         while (isActive) {
-                                            val pointerInGesture = pointerInGestureSpace(lastPointerPosition)
-                                            val currentY = pointerInGesture?.y
-                                            if (currentY != null && viewportHeightPx > 0f && edgeZonePx > 0f) {
+                                            val currentY = lastPointerPosition.y
+                                            if (viewportHeightPx > 0f && edgeZonePx > 0f) {
                                                 val bottomThreshold = viewportHeightPx - edgeZonePx
                                                 if (currentY >= bottomThreshold && scrollState.canScrollForward) {
                                                     val beyond = (currentY - bottomThreshold).coerceAtLeast(0f)
@@ -542,7 +550,6 @@ fun PickResultWordTapBody(
                 )
                 .onGloballyPositioned {
                     gestureCoordinates = it
-                    viewportHeightPx = it.size.height.toFloat()
                 },
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {

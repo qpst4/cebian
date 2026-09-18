@@ -543,6 +543,7 @@ internal fun PickResultPanelTextSlot(
     onImageSearch: (() -> Unit)? = null,
     onSaveScreenshot: (() -> Unit)? = null,
     onShareScreenshot: (() -> Unit)? = null,
+    onTextScrollableChange: ((Boolean) -> Unit)? = null,
 ) {
     val isDark = com.slideindex.app.ui.theme.LocalAppDarkTheme.current
     val cardBg = if (isDark) Color(0x10FFFFFF) else Color(0xB2FFFFFF)
@@ -620,6 +621,7 @@ internal fun PickResultPanelTextSlot(
                 onImageSearch = onImageSearch,
                 onSaveScreenshot = onSaveScreenshot,
                 onShareScreenshot = onShareScreenshot,
+                onTextScrollableChange = onTextScrollableChange,
             )
         }
     }
@@ -1003,6 +1005,9 @@ internal fun PickResultCollapsePanelColumn(
     val imageSectionExpanded = imageExpansionFraction > 0.5f
     val auxiliaryDragEnabled = hasAuxiliaryCollapse && !isEditMode
 
+    var isTextScrollable by remember { mutableStateOf(false) }
+    val isTextScrollableState = rememberUpdatedState(isTextScrollable)
+
     val onImageSectionExpandedChangeState = rememberUpdatedState(onImageSectionExpandedChange)
     val textNestedScrollConnection = remember(
         auxiliaryDragEnabled,
@@ -1014,7 +1019,9 @@ internal fun PickResultCollapsePanelColumn(
         object : NestedScrollConnection {
             override fun onPreScroll(available: androidx.compose.ui.geometry.Offset, source: NestedScrollSource): androidx.compose.ui.geometry.Offset {
                 // 手指在文字区向上滑动查看下文时（available.y < 0），优先收起图片区以扩大文字区视口
+                // 注意：仅当文本区有真实溢出内容（存在滚动条）时才允许折叠；短文本无滚动条时不折叠
                 if (auxiliaryDragEnabled && hasImageContent && !landscapeDualColumn &&
+                    isTextScrollableState.value &&
                     available.y < 0f && controller.collapseProgress < 1f
                 ) {
                     val remainingPx = (1f - controller.collapseProgress) * totalImageCollapsiblePx
@@ -1113,6 +1120,7 @@ internal fun PickResultCollapsePanelColumn(
             onImageSearch = null,
             onSaveScreenshot = null,
             onShareScreenshot = null,
+            onTextScrollableChange = { isTextScrollable = it },
         )
     }
 
