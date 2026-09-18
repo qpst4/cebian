@@ -101,6 +101,14 @@ object SecureSettingsHelper {
             Settings.Secure.putInt(resolver, Settings.Secure.ACCESSIBILITY_ENABLED, 0)
         }
 
+        // 异步短暂延迟（60ms），确保系统 ContentObserver 与 AMS 能捕获到解绑事件，避免被系统合并丢弃
+        if (android.os.Looper.myLooper() != android.os.Looper.getMainLooper()) {
+            try {
+                Thread.sleep(60L)
+            } catch (_: InterruptedException) {
+            }
+        }
+
         val restored = others.toMutableSet()
         restored.add(serviceId)
         Settings.Secure.putString(

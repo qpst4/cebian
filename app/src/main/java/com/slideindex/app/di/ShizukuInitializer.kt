@@ -29,6 +29,13 @@ class ShizukuInitializer @Inject constructor(
     private val binderListener = Shizuku.OnBinderReceivedListener {
         if (TaskManagerUtil.hasShizukuPermission()) {
             TaskManagerUtil.warmUp()
+            scope.launch(Dispatchers.IO) {
+                com.slideindex.app.service.OverlayServiceLifecycle.syncFromSettings(
+                    context,
+                    settingsRepository,
+                    accessibilityRecoverRetries = true
+                )
+            }
         }
     }
 
