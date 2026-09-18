@@ -58,6 +58,7 @@ fun NavEntryBuilder.searchPanelNavEntries(ctx: MainNavContext) {
             onSetSearchPanelDimPercent = viewModel::setSearchPanelDimPercent,
             onSetDefaultEngineId = viewModel::setDefaultEngineId,
             onSetSearchPanelInputBehavior = viewModel::setSearchPanelInputBehavior,
+            onSetSearchPanelEnterAction = viewModel::setSearchPanelEnterAction,
         )
     }
 

@@ -356,6 +356,7 @@ data class SearchPanelSettings(
     val searchEngineShowLabels: Boolean = true,
     val searchPanelDefaultEngineId: String? = null,
     val searchPanelInputBehavior: SearchPanelInputBehavior = SearchPanelInputBehavior.KEEP,
+    val searchPanelEnterAction: SearchPanelEnterAction = SearchPanelEnterAction.SEARCH_ENGINE,
     val searchPanelContactSearchEnabled: Boolean = true,
     val searchPanelFileSearchEnabled: Boolean = true,
     val searchPanelAppSearchEnabled: Boolean = true,

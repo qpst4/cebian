@@ -2651,6 +2651,13 @@ Questions: open a GitHub Issue on the project repository.</string>
     <string name="search_panel_input_behavior_select_all">Select all text</string>
     <string name="search_panel_input_behavior_clear">Clear text</string>
     <string name="search_panel_input_behavior_keep">Keep text</string>
+    <string name="search_panel_enter_action_title">Enter key action</string>
+    <string name="search_panel_enter_action_search_engine">Search engine (default)</string>
+    <string name="search_panel_enter_action_first_candidate">Launch first candidate</string>
+    <string name="search_panel_app_quick_action_free_window">Freeform</string>
+    <string name="search_panel_app_quick_action_share">Share</string>
+    <string name="search_panel_app_quick_action_freeze">Freeze</string>
+    <string name="search_panel_app_quick_action_details">Details</string>
     <string name="search_panel_contact_search_desc">Search contacts by name pinyin or phone number and dial</string>
     <string name="search_panel_contact_permission_title">Contacts permission</string>
     <string name="search_panel_contact_permission_granted">Contacts permission granted</string>

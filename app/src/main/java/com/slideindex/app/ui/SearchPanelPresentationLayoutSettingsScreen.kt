@@ -15,6 +15,7 @@ import com.slideindex.app.settings.SearchEngineStore
 import com.slideindex.app.settings.SearchPanelAppDisplayStyle
 import com.slideindex.app.settings.SearchPanelBackgroundStyle
 import com.slideindex.app.settings.SearchPanelBarPosition
+import com.slideindex.app.settings.SearchPanelEnterAction
 import com.slideindex.app.settings.SearchPanelInputBehavior
 import com.slideindex.app.settings.SearchPanelListOrder
 import com.slideindex.app.settings.SearchPanelPresentationMode
@@ -39,6 +40,7 @@ fun SearchPanelPresentationLayoutSettingsScreen(
     onSetSearchPanelDimPercent: (Int) -> Unit,
     onSetDefaultEngineId: (String?) -> Unit,
     onSetSearchPanelInputBehavior: (SearchPanelInputBehavior) -> Unit,
+    onSetSearchPanelEnterAction: (SearchPanelEnterAction) -> Unit,
 ) {
     val context = LocalContext.current
     val presentationModes = SearchPanelPresentationMode.entries
@@ -46,6 +48,7 @@ fun SearchPanelPresentationLayoutSettingsScreen(
     val listOrders = SearchPanelListOrder.entries
     val appDisplayStyles = SearchPanelAppDisplayStyle.entries
     val inputBehaviorEntries = SearchPanelInputBehavior.entries
+    val enterActionEntries = SearchPanelEnterAction.entries
     val backgroundStyles = listOf(
         SearchPanelBackgroundStyle.BLUR,
         SearchPanelBackgroundStyle.WALLPAPER_BLUR,
@@ -220,6 +223,17 @@ fun SearchPanelPresentationLayoutSettingsScreen(
                             selectedIndex = inputBehaviorEntries.indexOf(settings.searchPanelInputBehavior)
                                 .coerceAtLeast(0),
                             onSelectedIndexChange = { onSetSearchPanelInputBehavior(inputBehaviorEntries[it]) },
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("enter-action") {
+                        SettingDropdownRow(
+                            title = stringResource(R.string.search_panel_enter_action_title),
+                            items = enterActionEntries.map { searchPanelEnterActionLabel(it) },
+                            selectedIndex = enterActionEntries.indexOf(settings.searchPanelEnterAction)
+                                .coerceAtLeast(0),
+                            onSelectedIndexChange = { onSetSearchPanelEnterAction(enterActionEntries[it]) },
                         )
                     },
                 )

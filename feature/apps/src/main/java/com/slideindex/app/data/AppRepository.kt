@@ -35,6 +35,12 @@ class AppRepository @Inject constructor(
     private val _apps = MutableStateFlow<List<AppInfo>>(emptyList())
     val apps: StateFlow<List<AppInfo>> = _apps.asStateFlow()
 
+    private val _appsForSearch = MutableStateFlow<List<AppInfo>>(emptyList())
+    val appsForSearch: StateFlow<List<AppInfo>> = _appsForSearch.asStateFlow()
+
+    private val _appsForSearchRevision = MutableStateFlow(0L)
+    val appsForSearchRevision: StateFlow<Long> = _appsForSearchRevision.asStateFlow()
+
     private val _appsRevision = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     val appsRevision: SharedFlow<Unit> = _appsRevision.asSharedFlow()
 
@@ -50,6 +56,12 @@ class AppRepository @Inject constructor(
     suspend fun loadApps(force: Boolean = false): List<AppInfo> {
         if (!force && _apps.value.isNotEmpty()) return _apps.value
         return refreshApps()
+    }
+
+    /** Launcher 列表 + 已禁用（冻结）且不在 Launcher 中的应用，供搜索面板使用。 */
+    suspend fun loadAppsForSearch(force: Boolean = false): List<AppInfo> {
+        val launchable = if (force || _apps.value.isEmpty()) refreshApps() else _apps.value
+        return publishAppsForSearch(launchable)
     }
 
     suspend fun refreshApps(): List<AppInfo> = refreshMutex.withLock {
@@ -80,6 +92,8 @@ class AppRepository @Inject constructor(
     }
 
     fun getCachedApps(): List<AppInfo> = _apps.value
+
+    fun getCachedAppsForSearch(): List<AppInfo> = _appsForSearch.value
 
     fun hasCachedApps(): Boolean = _apps.value.isNotEmpty()
 
@@ -161,6 +175,7 @@ class AppRepository @Inject constructor(
         cachedFreezerApps = emptyList()
         appsByPackage = emptyMap()
         launchIconCache.clear()
+        _appsForSearch.value = emptyList()
     }
 
     fun launchIconBitmap(packageName: String, sizePx: Int): android.graphics.Bitmap =
@@ -184,6 +199,58 @@ class AppRepository @Inject constructor(
         launchIconCache.retainPackages(apps.map { it.packageName })
         _apps.value = apps
         _appsRevision.tryEmit(Unit)
+        scheduleAppsForSearchUpdate(apps)
+    }
+
+    private fun scheduleAppsForSearchUpdate(launchable: List<AppInfo>) {
+        applicationScope.launch {
+            runCatching { publishAppsForSearch(launchable) }
+        }
+    }
+
+    private suspend fun publishAppsForSearch(launchable: List<AppInfo>): List<AppInfo> {
+        val merged = withContext(Dispatchers.IO) { mergeAppsForSearch(launchable) }
+        _appsForSearch.value = merged
+        _appsForSearchRevision.value = _appsForSearchRevision.value + 1
+        return merged
+    }
+
+    private fun mergeAppsForSearch(launchable: List<AppInfo>): List<AppInfo> {
+        val launchablePackages = launchable.map { it.packageName }.toSet()
+        val byPackage = launchable.associateBy { it.packageName }.toMutableMap()
+        queryDisabledAppsNotInLaunchable(launchablePackages).forEach { app ->
+            byPackage[app.packageName] = app
+        }
+        return byPackage.values.sortedWith(
+            compareBy<AppInfo> { it.letter }.thenBy { it.pinyinKey },
+        )
+    }
+
+    private fun queryDisabledAppsNotInLaunchable(launchablePackages: Set<String>): List<AppInfo> {
+        val pm = context.packageManager
+        val selfPackage = context.packageName
+        val appInfos = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            pm.getInstalledApplications(
+                PackageManager.ApplicationInfoFlags.of(PackageManager.MATCH_DISABLED_COMPONENTS.toLong()),
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            pm.getInstalledApplications(PackageManager.MATCH_DISABLED_COMPONENTS)
+        }
+        return appInfos
+            .asSequence()
+            .filter { it.packageName != selfPackage }
+            .filter { !it.enabled }
+            .filter { it.packageName !in launchablePackages }
+            .mapNotNull { appInfo ->
+                val label = runCatching { pm.getApplicationLabel(appInfo).toString() }
+                    .getOrDefault(appInfo.packageName)
+                launchIconCache.loadDrawable(appInfo)
+                val isSystem = (appInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0 ||
+                    (appInfo.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0
+                buildAppInfo(appInfo.packageName, label, isSystem)
+            }
+            .toList()
     }
 
     fun groupedItems(apps: List<AppInfo>): List<AppListItem> {

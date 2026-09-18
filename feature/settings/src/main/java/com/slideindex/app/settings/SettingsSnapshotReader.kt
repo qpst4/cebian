@@ -560,6 +560,9 @@ internal object SettingsSnapshotReader {
             searchPanelInputBehavior = prefs[SettingsPreferenceKeys.SEARCH_PANEL_INPUT_BEHAVIOR]
                 ?.let { name -> runCatching { SearchPanelInputBehavior.valueOf(name) }.getOrNull() }
                 ?: SearchPanelInputBehavior.KEEP,
+            searchPanelEnterAction = prefs[SettingsPreferenceKeys.SEARCH_PANEL_ENTER_ACTION]
+                ?.let { name -> runCatching { SearchPanelEnterAction.valueOf(name) }.getOrNull() }
+                ?: SearchPanelEnterAction.SEARCH_ENGINE,
             searchPanelContactSearchEnabled = prefs[SettingsPreferenceKeys.SEARCH_PANEL_CONTACT_SEARCH_ENABLED] ?: true,
             searchPanelFileSearchEnabled = prefs[SettingsPreferenceKeys.SEARCH_PANEL_FILE_SEARCH_ENABLED] ?: true,
             searchPanelAppSearchEnabled = prefs[SettingsPreferenceKeys.SEARCH_PANEL_APP_SEARCH_ENABLED] ?: true,

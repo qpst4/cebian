@@ -32,6 +32,7 @@ import com.slideindex.app.settings.SearchEngineStore
 import com.slideindex.app.settings.SearchPanelAppDisplayStyle
 import com.slideindex.app.settings.SearchPanelBarPosition
 import com.slideindex.app.settings.SearchPanelHistoryCapacity
+import com.slideindex.app.settings.SearchPanelEnterAction
 import com.slideindex.app.settings.SearchPanelInputBehavior
 import com.slideindex.app.settings.SearchPanelListOrder
 import com.slideindex.app.settings.SearchPanelPresentationMode
@@ -396,6 +397,14 @@ internal fun searchPanelInputBehaviorLabel(behavior: SearchPanelInputBehavior): 
     SearchPanelInputBehavior.SELECT_ALL -> stringResource(R.string.search_panel_input_behavior_select_all)
     SearchPanelInputBehavior.CLEAR -> stringResource(R.string.search_panel_input_behavior_clear)
     SearchPanelInputBehavior.KEEP -> stringResource(R.string.search_panel_input_behavior_keep)
+}
+
+@Composable
+internal fun searchPanelEnterActionLabel(action: SearchPanelEnterAction): String = when (action) {
+    SearchPanelEnterAction.SEARCH_ENGINE ->
+        stringResource(R.string.search_panel_enter_action_search_engine)
+    SearchPanelEnterAction.FIRST_CANDIDATE ->
+        stringResource(R.string.search_panel_enter_action_first_candidate)
 }
 
 @Composable

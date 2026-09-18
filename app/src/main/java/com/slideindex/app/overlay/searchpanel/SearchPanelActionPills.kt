@@ -24,15 +24,22 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.core.graphics.drawable.toBitmap
 import com.slideindex.app.R
 
@@ -100,14 +107,20 @@ private fun SearchPanelPhoneCallPill(
 ) {
     val context = LocalContext.current
     val interactionSource = remember { MutableInteractionSource() }
-    val dialAppIcon = remember {
-        runCatching {
-            val dialIntent = Intent(Intent.ACTION_DIAL)
-            context.packageManager.resolveActivity(dialIntent, 0)
-                ?.loadIcon(context.packageManager)
-                ?.toBitmap()
-                ?.asImageBitmap()
-        }.getOrNull()
+    var dialAppIcon by remember { mutableStateOf<ImageBitmap?>(null) }
+    LaunchedEffect(Unit) {
+        withContext(Dispatchers.IO) {
+            val icon = runCatching {
+                val dialIntent = Intent(Intent.ACTION_DIAL)
+                context.packageManager.resolveActivity(dialIntent, 0)
+                    ?.loadIcon(context.packageManager)
+                    ?.toBitmap()
+                    ?.asImageBitmap()
+            }.getOrNull()
+            if (icon != null) {
+                dialAppIcon = icon
+            }
+        }
     }
 
     Surface(
@@ -128,9 +141,10 @@ private fun SearchPanelPhoneCallPill(
             horizontalArrangement = Arrangement.spacedBy(6.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            if (dialAppIcon != null) {
+            val currentDialIcon = dialAppIcon
+            if (currentDialIcon != null) {
                 Icon(
-                    painter = BitmapPainter(dialAppIcon),
+                    painter = BitmapPainter(currentDialIcon),
                     contentDescription = null,
                     modifier = Modifier.size(14.dp),
                     tint = androidx.compose.ui.graphics.Color.Unspecified,

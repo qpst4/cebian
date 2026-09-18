@@ -332,6 +332,7 @@ data class AppSettings(
     val searchEngineShowLabels get() = searchPanel.searchEngineShowLabels
     val searchPanelDefaultEngineId get() = searchPanel.searchPanelDefaultEngineId
     val searchPanelInputBehavior get() = searchPanel.searchPanelInputBehavior
+    val searchPanelEnterAction get() = searchPanel.searchPanelEnterAction
     val searchPanelContactSearchEnabled get() = searchPanel.searchPanelContactSearchEnabled
     val searchPanelFileSearchEnabled get() = searchPanel.searchPanelFileSearchEnabled
     val searchPanelAppSearchEnabled get() = searchPanel.searchPanelAppSearchEnabled

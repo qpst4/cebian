@@ -1,7 +1,10 @@
 package com.slideindex.app.overlay.searchpanel
 
 import android.accessibilityservice.AccessibilityService
+import android.content.ClipData
 import android.content.Context
+import android.content.Intent
+import android.provider.Settings
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.net.Uri
@@ -35,6 +38,8 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -85,9 +90,11 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.toClipEntry
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardType
@@ -99,6 +106,7 @@ import androidx.compose.ui.window.PopupProperties
 import com.slideindex.app.R
 import com.slideindex.app.data.AppInfo
 import com.slideindex.app.di.OverlayDependencyAccess
+import com.slideindex.app.freezer.FreezerOperations
 import com.slideindex.app.overlay.BlurredWallpaperCache
 import com.slideindex.app.overlay.FloatBallImageSearchPanel
 import com.slideindex.app.overlay.FloatBallTextPick
@@ -142,6 +150,7 @@ import com.slideindex.app.settings.SearchEngineType
 import com.slideindex.app.settings.SearchIconType
 import com.slideindex.app.settings.SearchPanelBackgroundStyle
 import com.slideindex.app.settings.SearchPanelBarPosition
+import com.slideindex.app.settings.SearchPanelEnterAction
 import com.slideindex.app.settings.SearchPanelInputBehavior
 import com.slideindex.app.settings.SearchPanelListOrder
 import com.slideindex.app.settings.SearchPanelPresentationMode
@@ -149,9 +158,14 @@ import com.slideindex.app.settings.launchPolicyLongPressEligible
 import com.slideindex.app.settings.shouldLaunchFullscreen
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
+import androidx.core.net.toUri
 
 enum class SearchMode { TEXT, IMAGE }
 
@@ -220,10 +234,14 @@ fun SearchPanelScreen(
     var debouncedQuery by remember { mutableStateOf("") }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     var imageBitmap by remember { mutableStateOf<Bitmap?>(null) }
-    var installedApps by remember { mutableStateOf<List<AppInfo>>(emptyList()) }
+    val appsForSearch by (appRepository?.appsForSearch ?: kotlinx.coroutines.flow.flowOf(emptyList()))
+        .collectAsState(initial = appRepository?.getCachedAppsForSearch().orEmpty())
+    val appsForSearchRevision by (appRepository?.appsForSearchRevision ?: kotlinx.coroutines.flow.flowOf(0L))
+        .collectAsState(initial = 0L)
     var settingsCandidates by remember { mutableStateOf<List<SystemSettingsSearchEntry>>(emptyList()) }
     var contactCandidates by remember { mutableStateOf<List<ContactSearchEntry>>(emptyList()) }
     var fileCandidates by remember { mutableStateOf<List<DeviceFileEntry>>(emptyList()) }
+    var appCandidates by remember { mutableStateOf<List<AppInfo>>(emptyList()) }
     var webSuggestions by remember { mutableStateOf<List<String>>(emptyList()) }
     var contactsExpanded by remember { mutableStateOf(false) }
     var filesExpanded by remember { mutableStateOf(false) }
@@ -247,6 +265,7 @@ fun SearchPanelScreen(
     var showSectionMenu by remember { mutableStateOf(false) }
 
     val coroutineScope = rememberCoroutineScope()
+    val clipboard = LocalClipboard.current
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -333,10 +352,17 @@ fun SearchPanelScreen(
 
     LaunchedEffect(appRepository) {
         val repository = appRepository ?: return@LaunchedEffect
-        installedApps = repository.loadApps()
+        repository.loadAppsForSearch()
         withContext(Dispatchers.IO) {
             SystemSettingsSearchIndex.ensureLoaded(context)
         }
+    }
+
+    LaunchedEffect(appRepository, visibilityState.targetState) {
+        val repository = appRepository ?: return@LaunchedEffect
+        if (!visibilityState.targetState) return@LaunchedEffect
+        repository.loadAppsForSearch(force = true)
+        SearchPanelCandidateCache.clear()
     }
 
     LaunchedEffect(backgroundStyle, blurRadiusDp, visibilityState.targetState) {
@@ -429,8 +455,12 @@ fun SearchPanelScreen(
     LaunchedEffect(
         debouncedQuery,
         lockedSection,
+        appsForSearch,
+        appsForSearchRevision,
+        appRepository,
         settings.searchPanelContactSearchEnabled,
         settings.searchPanelFileSearchEnabled,
+        settings.searchPanelAppSearchEnabled,
         settings.searchPanelSettingsSearchEnabled,
         settings.searchPanelFileTypesEnabled,
         settings.searchPanelFileShowFolders,
@@ -443,60 +473,105 @@ fun SearchPanelScreen(
             settingsCandidates = emptyList()
             contactCandidates = emptyList()
             fileCandidates = emptyList()
+            appCandidates = emptyList()
             return@LaunchedEffect
         }
-        hasContactPermission = ContactSearchIndex.hasPermission(context)
-        hasFilePermission = FileSearchIndex.hasPermission(context)
-        settingsCandidates = if (shouldFetchCandidateSection(SearchPanelResultSection.SETTINGS)) {
-            withContext(Dispatchers.IO) {
-                SystemSettingsSearchIndex.search(context, debouncedQuery, SETTINGS_CANDIDATE_LIMIT)
-            }
-        } else {
-            emptyList()
+        val query = debouncedQuery
+        val cacheKey = buildString {
+            append(query)
+            append('|')
+            append(lockedSection.name)
+            append('|')
+            append(settings.searchPanelAppSearchEnabled)
+            append('|')
+            append(settings.searchPanelContactSearchEnabled)
+            append('|')
+            append(settings.searchPanelFileSearchEnabled)
+            append('|')
+            append(settings.searchPanelSettingsSearchEnabled)
+            append('|')
+            append(settings.searchPanelFileTypesEnabled.joinToString(","))
+            append('|')
+            append(settings.searchPanelFileShowFolders)
+            append('|')
+            append(settings.searchPanelFileShowSystemFiles)
+            append('|')
+            append(appsForSearchRevision)
         }
-        if (shouldFetchCandidateSection(SearchPanelResultSection.CONTACTS)) {
-            contactCandidates = withContext(Dispatchers.IO) {
-                ContactSearchIndex.search(context, debouncedQuery, 5)
-            }
-        } else {
-            contactCandidates = emptyList()
+        val cached = SearchPanelCandidateCache.get(cacheKey)
+        if (cached != null) {
+            settingsCandidates = cached.settings
+            contactCandidates = cached.contacts
+            fileCandidates = cached.files
+            appCandidates = cached.apps
+            return@LaunchedEffect
         }
-        if (shouldFetchCandidateSection(SearchPanelResultSection.FILES)) {
-            fileCandidates = if (hasFilePermission) {
-                FileSearchIndex.search(
-                    context = context,
-                    query = debouncedQuery,
-                    limit = FILE_CANDIDATE_LIMIT,
-                    filterOptions = FileSearchFilterOptions(
-                        enabledFileTypes = FileType.fromNames(settings.searchPanelFileTypesEnabled),
-                        showFolders = settings.searchPanelFileShowFolders,
-                        showSystemFiles = settings.searchPanelFileShowSystemFiles,
-                        folderWhitelistPatterns = settings.searchPanelFileFolderWhitelist,
-                        folderBlacklistPatterns = settings.searchPanelFileFolderBlacklist,
-                    ),
-                )
-            } else {
-                emptyList()
+        hasContactPermission = withContext(Dispatchers.IO) { ContactSearchIndex.hasPermission(context) }
+        hasFilePermission = withContext(Dispatchers.IO) { FileSearchIndex.hasPermission(context) }
+        val fetchApps = shouldFetchCandidateSection(SearchPanelResultSection.APPS)
+        val fetchSettings = shouldFetchCandidateSection(SearchPanelResultSection.SETTINGS)
+        val fetchContacts = shouldFetchCandidateSection(SearchPanelResultSection.CONTACTS) && hasContactPermission
+        val fetchFiles = shouldFetchCandidateSection(SearchPanelResultSection.FILES) && hasFilePermission
+        coroutineScope {
+            val settingsDeferred = async(Dispatchers.IO) {
+                if (fetchSettings) {
+                    SystemSettingsSearchIndex.search(context, query, SETTINGS_CANDIDATE_LIMIT)
+                } else {
+                    emptyList()
+                }
             }
-        } else {
-            fileCandidates = emptyList()
-        }
-    }
-
-    val appCandidates = remember(
-        debouncedQuery,
-        installedApps,
-        appRepository,
-        lockedSection,
-        settings.searchPanelAppSearchEnabled,
-    ) {
-        val repository = appRepository ?: return@remember emptyList()
-        if (debouncedQuery.isBlank() ||
-            !shouldFetchCandidateSection(SearchPanelResultSection.APPS)
-        ) {
-            emptyList()
-        } else {
-            repository.searchApps(installedApps, debouncedQuery, APP_CANDIDATE_LIMIT)
+            val contactsDeferred = async(Dispatchers.IO) {
+                if (fetchContacts) {
+                    ContactSearchIndex.search(context, query, 5)
+                } else {
+                    emptyList()
+                }
+            }
+            val filesDeferred = async(Dispatchers.IO) {
+                if (fetchFiles) {
+                    FileSearchIndex.search(
+                        context = context,
+                        query = query,
+                        limit = FILE_CANDIDATE_LIMIT,
+                        filterOptions = FileSearchFilterOptions(
+                            enabledFileTypes = FileType.fromNames(settings.searchPanelFileTypesEnabled),
+                            showFolders = settings.searchPanelFileShowFolders,
+                            showSystemFiles = settings.searchPanelFileShowSystemFiles,
+                            folderWhitelistPatterns = settings.searchPanelFileFolderWhitelist,
+                            folderBlacklistPatterns = settings.searchPanelFileFolderBlacklist,
+                        ),
+                    )
+                } else {
+                    emptyList()
+                }
+            }
+            val appsDeferred = async(Dispatchers.Default) {
+                val repository = appRepository
+                if (!fetchApps || repository == null) {
+                    emptyList()
+                } else {
+                    repository.searchApps(appsForSearch, query, APP_CANDIDATE_LIMIT)
+                }
+            }
+            if (!currentCoroutineContext().isActive || debouncedQuery != query) return@coroutineScope
+            val settingsResults = settingsDeferred.await()
+            val contactsResults = contactsDeferred.await()
+            val filesResults = filesDeferred.await()
+            val appsResults = appsDeferred.await()
+            if (!currentCoroutineContext().isActive || debouncedQuery != query) return@coroutineScope
+            settingsCandidates = settingsResults
+            contactCandidates = contactsResults
+            fileCandidates = filesResults
+            appCandidates = appsResults
+            SearchPanelCandidateCache.put(
+                cacheKey,
+                SearchPanelCandidateCacheEntry(
+                    settings = settingsResults,
+                    contacts = contactsResults,
+                    files = filesResults,
+                    apps = appsResults,
+                ),
+            )
         }
     }
 
@@ -677,8 +752,59 @@ fun SearchPanelScreen(
     fun launchAppCandidate(app: AppInfo, longPressTriggered: Boolean) {
         val repository = appRepository ?: return
         val fullscreen = settings.shouldLaunchFullscreen(longPressTriggered)
-        if (repository.launchApp(app, settings, fullscreen)) {
-            dismissPanel()
+        coroutineScope.launch {
+            val wasFrozen = FreezerOperations.isFrozen(context, app.packageName)
+            if (FreezerOperations.launchAndUnfreeze(context, repository, settings, app, fullscreen)) {
+                if (wasFrozen) {
+                    repository.loadAppsForSearch(force = true)
+                    SearchPanelCandidateCache.clear()
+                }
+                dismissPanel()
+            }
+        }
+    }
+
+    fun handleAppQuickAction(app: AppInfo, action: SearchPanelAppQuickAction) {
+        when (action) {
+            SearchPanelAppQuickAction.FREE_WINDOW -> {
+                val repository = appRepository ?: return
+                coroutineScope.launch {
+                    val wasFrozen = FreezerOperations.isFrozen(context, app.packageName)
+                    if (FreezerOperations.launchAndUnfreeze(context, repository, settings, app, fullscreen = false)) {
+                        if (wasFrozen) {
+                            repository.loadAppsForSearch(force = true)
+                            SearchPanelCandidateCache.clear()
+                        }
+                        dismissPanel()
+                    }
+                }
+            }
+            SearchPanelAppQuickAction.SHARE -> {
+                runCatching { SearchPanelAppShare.shareApk(context, app.packageName) }
+                dismissPanel()
+            }
+            SearchPanelAppQuickAction.FREEZE -> {
+                coroutineScope.launch {
+                    val frozen = FreezerOperations.isFrozen(context, app.packageName)
+                    val ok = FreezerOperations.setFrozen(context, app.packageName, frozen = !frozen)
+                    if (ok) {
+                        appRepository?.loadAppsForSearch(force = true)
+                        SearchPanelCandidateCache.clear()
+                    }
+                }
+                dismissPanel()
+            }
+            SearchPanelAppQuickAction.DETAILS -> {
+                runCatching {
+                    context.startActivity(
+                        Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                            data = "package:${app.packageName}".toUri()
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        },
+                    )
+                }
+                dismissPanel()
+            }
         }
     }
 
@@ -721,6 +847,47 @@ fun SearchPanelScreen(
         }
         if (FileSearchLauncher.open(context, file)) {
             dismissPanel()
+        }
+    }
+
+    fun performSearchEnterKey() {
+        if (textQuery.isBlank()) return
+        if (
+            settings.searchPanelEnterAction == SearchPanelEnterAction.FIRST_CANDIDATE &&
+            !showSearchHistory
+        ) {
+            val calc = calculatorResult
+            if (showCalculator && calc != null) {
+                coroutineScope.launch {
+                    clipboard.setClipEntry(ClipData.newPlainText("calculator", calc).toClipEntry())
+                }
+                dismissPanel()
+                return
+            }
+            if (appCandidates.isNotEmpty() && allowsResultSection(SearchPanelResultSection.APPS)) {
+                launchAppCandidate(appCandidates.first(), longPressTriggered = false)
+                return
+            }
+            if (linkUrls.isNotEmpty()) {
+                openUrl(linkUrls.first(), longPressTriggered = false)
+                return
+            }
+            if (fileCandidates.isNotEmpty() && allowsResultSection(SearchPanelResultSection.FILES)) {
+                launchFileCandidate(fileCandidates.first(), longPressTriggered = false)
+                return
+            }
+            if (contactCandidates.isNotEmpty() && allowsResultSection(SearchPanelResultSection.CONTACTS)) {
+                launchContactCandidate(contactCandidates.first(), longPressTriggered = false)
+                return
+            }
+            if (settingsCandidates.isNotEmpty() && allowsResultSection(SearchPanelResultSection.SETTINGS)) {
+                launchSettingsCandidate(settingsCandidates.first(), longPressTriggered = false)
+                return
+            }
+        }
+        val engineToUse = resolveTextSearchEngine()
+        if (engineToUse != null) {
+            launchSearchEngine(engineToUse, longPressTriggered = false)
         }
     }
 
@@ -1074,15 +1241,7 @@ fun SearchPanelScreen(
                                                         imeAction = ImeAction.Search,
                                                     ),
                                                     keyboardActions = KeyboardActions(onSearch = {
-                                                        if (textQuery.isNotBlank()) {
-                                                            val engineToUse = resolveTextSearchEngine()
-                                                            if (engineToUse != null) {
-                                                                launchSearchEngine(
-                                                                    engineToUse,
-                                                                    longPressTriggered = false,
-                                                                )
-                                                            }
-                                                        }
+                                                        performSearchEnterKey()
                                                     }),
                                                 )
                                                 OverlaySelectionToolbarPopup(
@@ -1152,210 +1311,206 @@ fun SearchPanelScreen(
                                     exit = shrinkVertically(shrinkTowards = expandEdge) + fadeOut(),
                                     modifier = Modifier.fillMaxWidth(),
                                 ) {
-                                    val candidateScrollState = rememberScrollState()
-                                    // Canonical top-down order; BOTTOM_UP reverses the whole list.
-                                    val candidateSections: List<@Composable () -> Unit> = buildList {
-                                        if (linkUrls.isNotEmpty() && lockedSection == SearchPanelResultSection.ALL) {
-                                            add {
-                                                Spacer(modifier = Modifier.height(8.dp))
-                                                SearchPanelLinkResultCards(
-                                                    urls = linkUrls,
-                                                    onOpenUrl = ::openUrl,
-                                                    longPressEnabled = longPressEnabled,
-                                                )
-                                            }
-                                        }
-                                        if (showCalculator && lockedSection == SearchPanelResultSection.ALL) {
-                                            add {
-                                                Spacer(modifier = Modifier.height(8.dp))
-                                                SearchPanelCalculatorCard(
-                                                    expression = textQuery.trim(),
-                                                    result = calculatorResult,
-                                                    modifier = Modifier.padding(horizontal = 16.dp),
-                                                )
-                                            }
-                                        }
-                                        if (showHistoryPanel && lockedSection == SearchPanelResultSection.ALL) {
-                                            add {
-                                                Spacer(modifier = Modifier.height(8.dp))
-                                                SearchPanelSearchHistoryCard(
-                                                    queries = filteredSearchHistoryQueries,
-                                                    onQueryClick = { query ->
-                                                        textFieldValue = TextFieldValue(
-                                                            text = query,
-                                                            selection = TextRange(query.length),
-                                                        )
-                                                        debouncedQuery = query
-                                                        showSearchHistory = false
-                                                    },
-                                                )
-                                            }
-                                        }
-                                        if (appCandidates.isNotEmpty() &&
-                                            allowsResultSection(SearchPanelResultSection.APPS)
-                                        ) {
-                                            add {
-                                                Spacer(modifier = Modifier.height(8.dp))
-                                                SearchPanelAppResultCards(
-                                                    apps = appCandidates,
-                                                    style = settings.searchPanelAppDisplayStyle,
-                                                    onLaunchApp = ::launchAppCandidate,
-                                                    expanded = appsExpanded,
-                                                    onExpandedChange = { expanded ->
-                                                        if (expanded) hideSearchKeyboard()
-                                                        appsExpanded = expanded
-                                                    },
-                                                    longPressEnabled = longPressEnabled,
-                                                )
-                                            }
-                                        }
-                                        if (showFilePermissionPrompt &&
-                                            allowsResultSection(SearchPanelResultSection.FILES)
-                                        ) {
-                                            add {
-                                                Spacer(modifier = Modifier.height(8.dp))
-                                                SearchPanelPermissionResultCard(
-                                                    label = stringResource(
-                                                        R.string.search_panel_file_permission_prompt,
-                                                    ),
-                                                    leadingIcon = Icons.Default.Folder,
-                                                    onRequestPermission = {
-                                                        SearchPanelOverlayWindow.hide()
-                                                        FilePermissionTrampolineActivity.launch(context) { granted ->
-                                                            hasFilePermission = granted
-                                                            permissionRefreshKey++
-                                                            SearchPanelOverlayWindow.restore()
-                                                        }
-                                                    },
-                                                )
-                                            }
-                                        }
-                                        if (fileCandidates.isNotEmpty() &&
-                                            allowsResultSection(SearchPanelResultSection.FILES)
-                                        ) {
-                                            add {
-                                                Spacer(modifier = Modifier.height(8.dp))
-                                                SearchPanelFileResultCards(
-                                                    files = fileCandidates,
-                                                    expanded = filesExpanded,
-                                                    onExpandedChange = { expanded ->
-                                                        if (expanded) hideSearchKeyboard()
-                                                        filesExpanded = expanded
-                                                    },
-                                                    onOpenFile = ::launchFileCandidate,
-                                                    longPressEnabled = longPressEnabled,
-                                                )
-                                            }
-                                        }
-                                        if (showContactPermissionPrompt &&
-                                            allowsResultSection(SearchPanelResultSection.CONTACTS)
-                                        ) {
-                                            add {
-                                                Spacer(modifier = Modifier.height(8.dp))
-                                                SearchPanelPermissionResultCard(
-                                                    label = stringResource(
-                                                        R.string.search_panel_contact_permission_prompt,
-                                                    ),
-                                                    leadingIcon = Icons.Default.Person,
-                                                    onRequestPermission = {
-                                                        SearchPanelOverlayWindow.hide()
-                                                        ContactPermissionTrampolineActivity.launch(context) { granted ->
-                                                            hasContactPermission = granted
-                                                            permissionRefreshKey++
-                                                            SearchPanelOverlayWindow.restore()
-                                                        }
-                                                    },
-                                                )
-                                            }
-                                        }
-                                        if (contactCandidates.isNotEmpty() &&
-                                            allowsResultSection(SearchPanelResultSection.CONTACTS)
-                                        ) {
-                                            add {
-                                                Spacer(modifier = Modifier.height(8.dp))
-                                                SearchPanelContactResultCards(
-                                                    contacts = contactCandidates,
-                                                    expanded = contactsExpanded,
-                                                    onExpandedChange = { expanded ->
-                                                        if (expanded) hideSearchKeyboard()
-                                                        contactsExpanded = expanded
-                                                    },
-                                                    onLaunchContact = ::launchContactCandidate,
-                                                    onCallContact = ::callContact,
-                                                    onSmsContact = ::smsContact,
-                                                    longPressEnabled = longPressEnabled,
-                                                )
-                                            }
-                                        }
-                                        if (settingsCandidates.isNotEmpty() &&
-                                            allowsResultSection(SearchPanelResultSection.SETTINGS)
-                                        ) {
-                                            add {
-                                                Spacer(modifier = Modifier.height(8.dp))
-                                                SearchPanelSettingsResultCards(
-                                                    entries = settingsCandidates,
-                                                    expanded = settingsExpanded,
-                                                    onExpandedChange = { expanded ->
-                                                        if (expanded) hideSearchKeyboard()
-                                                        settingsExpanded = expanded
-                                                    },
-                                                    onLaunchEntry = ::launchSettingsCandidate,
-                                                    longPressEnabled = longPressEnabled,
-                                                )
-                                            }
-                                        }
-                                        if (webSuggestions.isNotEmpty() &&
-                                            lockedSection == SearchPanelResultSection.ALL
-                                        ) {
-                                            add {
-                                                Spacer(modifier = Modifier.height(8.dp))
-                                                SearchPanelWebSuggestionsCard(
-                                                    suggestions = webSuggestions,
-                                                    onSuggestionClick = { suggestion ->
-                                                        val engineToUse = resolveTextSearchEngine()
-                                                        if (engineToUse != null) {
-                                                            launchSearchEngine(
-                                                                engine = engineToUse,
-                                                                longPressTriggered = false,
-                                                                queryOverride = suggestion,
-                                                            )
-                                                        } else {
-                                                            textFieldValue = textFieldValue.copy(
-                                                                text = suggestion,
-                                                                selection = TextRange(suggestion.length),
-                                                            )
-                                                            debouncedQuery = suggestion
-                                                        }
-                                                    },
-                                                )
-                                            }
-                                        }
+                                    val candidateListState = rememberLazyListState()
+                                    val candidateSectionKeys = remember(
+                                        linkUrls.isNotEmpty(),
+                                        showCalculator,
+                                        showHistoryPanel,
+                                        appCandidates.isNotEmpty(),
+                                        showFilePermissionPrompt,
+                                        fileCandidates.isNotEmpty(),
+                                        showContactPermissionPrompt,
+                                        contactCandidates.isNotEmpty(),
+                                        settingsCandidates.isNotEmpty(),
+                                        webSuggestions.isNotEmpty(),
+                                        lockedSection,
+                                        bottomUpListOrder,
+                                    ) {
+                                        val list = mutableListOf<String>()
+                                        if (linkUrls.isNotEmpty() && lockedSection == SearchPanelResultSection.ALL) list.add("links")
+                                        if (showCalculator && lockedSection == SearchPanelResultSection.ALL) list.add("calculator")
+                                        if (showHistoryPanel && lockedSection == SearchPanelResultSection.ALL) list.add("history")
+                                        if (appCandidates.isNotEmpty() && allowsResultSection(SearchPanelResultSection.APPS)) list.add("apps")
+                                        if (showFilePermissionPrompt && allowsResultSection(SearchPanelResultSection.FILES)) list.add("file_permission")
+                                        if (fileCandidates.isNotEmpty() && allowsResultSection(SearchPanelResultSection.FILES)) list.add("files")
+                                        if (showContactPermissionPrompt && allowsResultSection(SearchPanelResultSection.CONTACTS)) list.add("contact_permission")
+                                        if (contactCandidates.isNotEmpty() && allowsResultSection(SearchPanelResultSection.CONTACTS)) list.add("contacts")
+                                        if (settingsCandidates.isNotEmpty() && allowsResultSection(SearchPanelResultSection.SETTINGS)) list.add("settings")
+                                        if (webSuggestions.isNotEmpty() && lockedSection == SearchPanelResultSection.ALL) list.add("web_suggestions")
+                                        if (bottomUpListOrder) list.asReversed() else list
                                     }
-                                    val orderedSections = if (bottomUpListOrder) {
-                                        candidateSections.asReversed()
-                                    } else {
-                                        candidateSections
-                                    }
-                                    Column(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .verticalScroll(
-                                                candidateScrollState,
-                                                reverseScrolling = bottomUpListOrder,
-                                            ),
+                                    LazyColumn(
+                                        state = candidateListState,
+                                        modifier = Modifier.fillMaxWidth(),
                                     ) {
                                         if (hasCandidateSection) {
-                                            Spacer(modifier = Modifier.height(10.dp))
+                                            item(key = "candidate_top_spacer") {
+                                                Spacer(modifier = Modifier.height(10.dp))
+                                            }
                                         }
-                                        orderedSections.forEach { section -> section() }
+                                        items(
+                                            count = candidateSectionKeys.size,
+                                            key = { candidateSectionKeys[it] },
+                                        ) { index ->
+                                            when (candidateSectionKeys[index]) {
+                                                "links" -> {
+                                                    Spacer(modifier = Modifier.height(8.dp))
+                                                    SearchPanelLinkResultCards(
+                                                        urls = linkUrls,
+                                                        onOpenUrl = ::openUrl,
+                                                        longPressEnabled = longPressEnabled,
+                                                    )
+                                                }
+                                                "calculator" -> {
+                                                    val calcResult = calculatorResult
+                                                    if (calcResult != null) {
+                                                        Spacer(modifier = Modifier.height(8.dp))
+                                                        SearchPanelCalculatorCard(
+                                                            expression = textQuery.trim(),
+                                                            result = calcResult,
+                                                            modifier = Modifier.padding(horizontal = 16.dp),
+                                                        )
+                                                    }
+                                                }
+                                                "history" -> {
+                                                    Spacer(modifier = Modifier.height(8.dp))
+                                                    SearchPanelSearchHistoryCard(
+                                                        queries = filteredSearchHistoryQueries,
+                                                        onQueryClick = { query ->
+                                                            textFieldValue = TextFieldValue(
+                                                                text = query,
+                                                                selection = TextRange(query.length),
+                                                            )
+                                                            debouncedQuery = query
+                                                            showSearchHistory = false
+                                                        },
+                                                    )
+                                                }
+                                                "apps" -> {
+                                                    Spacer(modifier = Modifier.height(8.dp))
+                                                    SearchPanelAppResultCards(
+                                                        apps = appCandidates,
+                                                        style = settings.searchPanelAppDisplayStyle,
+                                                        settings = settings,
+                                                        onLaunchApp = ::launchAppCandidate,
+                                                        onAppQuickAction = ::handleAppQuickAction,
+                                                        expanded = appsExpanded,
+                                                        onExpandedChange = { expanded ->
+                                                            if (expanded) hideSearchKeyboard()
+                                                            appsExpanded = expanded
+                                                        },
+                                                        longPressEnabled = longPressEnabled,
+                                                    )
+                                                }
+                                                "file_permission" -> {
+                                                    Spacer(modifier = Modifier.height(8.dp))
+                                                    SearchPanelPermissionResultCard(
+                                                        label = stringResource(
+                                                            R.string.search_panel_file_permission_prompt,
+                                                        ),
+                                                        leadingIcon = Icons.Default.Folder,
+                                                        onRequestPermission = {
+                                                            SearchPanelOverlayWindow.hide()
+                                                            FilePermissionTrampolineActivity.launch(context) { granted ->
+                                                                hasFilePermission = granted
+                                                                permissionRefreshKey++
+                                                                SearchPanelOverlayWindow.restore()
+                                                            }
+                                                        },
+                                                    )
+                                                }
+                                                "files" -> {
+                                                    Spacer(modifier = Modifier.height(8.dp))
+                                                    SearchPanelFileResultCards(
+                                                        files = fileCandidates,
+                                                        expanded = filesExpanded,
+                                                        onExpandedChange = { expanded ->
+                                                            if (expanded) hideSearchKeyboard()
+                                                            filesExpanded = expanded
+                                                        },
+                                                        onOpenFile = ::launchFileCandidate,
+                                                        longPressEnabled = longPressEnabled,
+                                                    )
+                                                }
+                                                "contact_permission" -> {
+                                                    Spacer(modifier = Modifier.height(8.dp))
+                                                    SearchPanelPermissionResultCard(
+                                                        label = stringResource(
+                                                            R.string.search_panel_contact_permission_prompt,
+                                                        ),
+                                                        leadingIcon = Icons.Default.Person,
+                                                        onRequestPermission = {
+                                                            SearchPanelOverlayWindow.hide()
+                                                            ContactPermissionTrampolineActivity.launch(context) { granted ->
+                                                                hasContactPermission = granted
+                                                                permissionRefreshKey++
+                                                                SearchPanelOverlayWindow.restore()
+                                                            }
+                                                        },
+                                                    )
+                                                }
+                                                "contacts" -> {
+                                                    Spacer(modifier = Modifier.height(8.dp))
+                                                    SearchPanelContactResultCards(
+                                                        contacts = contactCandidates,
+                                                        expanded = contactsExpanded,
+                                                        onExpandedChange = { expanded ->
+                                                            if (expanded) hideSearchKeyboard()
+                                                            contactsExpanded = expanded
+                                                        },
+                                                        onLaunchContact = ::launchContactCandidate,
+                                                        onCallContact = ::callContact,
+                                                        onSmsContact = ::smsContact,
+                                                        longPressEnabled = longPressEnabled,
+                                                    )
+                                                }
+                                                "settings" -> {
+                                                    Spacer(modifier = Modifier.height(8.dp))
+                                                    SearchPanelSettingsResultCards(
+                                                        entries = settingsCandidates,
+                                                        expanded = settingsExpanded,
+                                                        onExpandedChange = { expanded ->
+                                                            if (expanded) hideSearchKeyboard()
+                                                            settingsExpanded = expanded
+                                                        },
+                                                        onLaunchEntry = ::launchSettingsCandidate,
+                                                        longPressEnabled = longPressEnabled,
+                                                    )
+                                                }
+                                                "web_suggestions" -> {
+                                                    Spacer(modifier = Modifier.height(8.dp))
+                                                    SearchPanelWebSuggestionsCard(
+                                                        suggestions = webSuggestions,
+                                                        onSuggestionClick = { suggestion ->
+                                                            val engineToUse = resolveTextSearchEngine()
+                                                            if (engineToUse != null) {
+                                                                launchSearchEngine(
+                                                                    engine = engineToUse,
+                                                                    longPressTriggered = false,
+                                                                    queryOverride = suggestion,
+                                                                )
+                                                            } else {
+                                                                textFieldValue = textFieldValue.copy(
+                                                                    text = suggestion,
+                                                                    selection = TextRange(suggestion.length),
+                                                                )
+                                                                debouncedQuery = suggestion
+                                                            }
+                                                        },
+                                                    )
+                                                }
+                                            }
+                                        }
                                         if (hasCandidateSection) {
-                                            Spacer(modifier = Modifier.height(10.dp))
-                                            HorizontalDivider(
-                                                modifier = Modifier.padding(horizontal = 16.dp),
-                                                color = MaterialTheme.colorScheme.outlineVariant.copy(
-                                                    alpha = 0.45f,
-                                                ),
-                                            )
+                                            item(key = "candidate_bottom_divider") {
+                                                Spacer(modifier = Modifier.height(10.dp))
+                                                HorizontalDivider(
+                                                    modifier = Modifier.padding(horizontal = 16.dp),
+                                                    color = MaterialTheme.colorScheme.outlineVariant.copy(
+                                                        alpha = 0.45f,
+                                                    ),
+                                                )
+                                            }
                                         }
                                     }
                                 }

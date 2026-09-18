@@ -1186,6 +1186,10 @@ class OverlaySettingsMutator @Inject constructor(
         it[SettingsPreferenceKeys.SEARCH_PANEL_INPUT_BEHAVIOR] = behavior.name
     }
 
+    suspend fun setSearchPanelEnterAction(action: SearchPanelEnterAction) = editor.edit {
+        it[SettingsPreferenceKeys.SEARCH_PANEL_ENTER_ACTION] = action.name
+    }
+
     suspend fun setSearchPanelContactSearchEnabled(enabled: Boolean) = editor.edit {
         it[SettingsPreferenceKeys.SEARCH_PANEL_CONTACT_SEARCH_ENABLED] = enabled
     }

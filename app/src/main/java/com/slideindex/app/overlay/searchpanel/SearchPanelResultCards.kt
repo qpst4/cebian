@@ -5,7 +5,10 @@ import android.net.Uri
 import androidx.core.net.toUri
 import android.util.Size
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -60,6 +63,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorMatrix
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -79,6 +85,7 @@ import androidx.core.graphics.drawable.toBitmap
 import android.content.ClipData
 import com.slideindex.app.R
 import com.slideindex.app.data.AppInfo
+import com.slideindex.app.freezer.FreezerOperations
 import com.slideindex.app.overlay.pickresult.PickResultUrl
 import com.slideindex.app.search.contacts.ContactSearchEntry
 import com.slideindex.app.search.files.DeviceFileEntry
@@ -86,7 +93,9 @@ import com.slideindex.app.search.files.FileThumbnailCache
 import com.slideindex.app.search.files.FileType
 import com.slideindex.app.search.files.FileTypeUtils
 import com.slideindex.app.search.settings.SystemSettingsSearchEntry
+import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.SearchPanelAppDisplayStyle
+import com.slideindex.app.util.PickerAppIconBitmap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -286,7 +295,9 @@ private fun SearchPanelQueryListCard(
 fun SearchPanelAppResultCards(
     apps: List<AppInfo>,
     style: SearchPanelAppDisplayStyle,
+    settings: AppSettings,
     onLaunchApp: (AppInfo, longPressTriggered: Boolean) -> Unit,
+    onAppQuickAction: (AppInfo, SearchPanelAppQuickAction) -> Unit,
     modifier: Modifier = Modifier,
     expanded: Boolean = false,
     onExpandedChange: (Boolean) -> Unit = {},
@@ -296,13 +307,17 @@ fun SearchPanelAppResultCards(
     when (style) {
         SearchPanelAppDisplayStyle.ICONS -> SearchPanelAppIconStrip(
             apps = apps,
+            settings = settings,
             onLaunchApp = onLaunchApp,
+            onAppQuickAction = onAppQuickAction,
             modifier = modifier,
             longPressEnabled = longPressEnabled,
         )
         SearchPanelAppDisplayStyle.LIST -> SearchPanelAppListCards(
             apps = apps,
+            settings = settings,
             onLaunchApp = onLaunchApp,
+            onAppQuickAction = onAppQuickAction,
             modifier = modifier,
             expanded = expanded,
             onExpandedChange = onExpandedChange,
@@ -315,7 +330,9 @@ fun SearchPanelAppResultCards(
 @Composable
 private fun SearchPanelAppIconStrip(
     apps: List<AppInfo>,
+    settings: AppSettings,
     onLaunchApp: (AppInfo, longPressTriggered: Boolean) -> Unit,
+    onAppQuickAction: (AppInfo, SearchPanelAppQuickAction) -> Unit,
     modifier: Modifier = Modifier,
     longPressEnabled: Boolean = false,
 ) {
@@ -339,38 +356,42 @@ private fun SearchPanelAppIconStrip(
             verticalAlignment = Alignment.Top,
         ) {
             apps.forEach { app ->
-                Column(
-                    modifier = Modifier
-                        .width(AppIconCandidateItemWidth)
-                        .then(
-                            if (longPressEnabled) {
-                                Modifier.combinedClickable(
-                                    onClick = { onLaunchApp(app, false) },
-                                    onLongClick = { onLaunchApp(app, true) },
-                                )
-                            } else {
-                                Modifier.combinedClickable(onClick = { onLaunchApp(app, false) })
-                            },
-                        ),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                val context = LocalContext.current
+                val frozen = FreezerOperations.isFrozen(context, app.packageName)
+                SearchPanelAppQuickActionTarget(
+                    packageName = app.packageName,
+                    enabled = true,
+                    settings = settings,
+                    onAction = { onAppQuickAction(app, it) },
+                    modifier = Modifier.width(AppIconCandidateItemWidth),
                 ) {
-                    SearchPanelAppIcon(
-                        packageName = app.packageName,
-                        contentDescription = app.label,
-                        size = AppIconCandidateSize,
-                        corner = AppIconCandidateCorner,
-                    )
-                    Text(
-                        text = app.label,
-                        style = MaterialTheme.typography.labelSmall,
-                        fontSize = 11.sp,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                        modifier = Modifier.fillMaxWidth(),
-                    )
+                    Column(
+                        modifier = Modifier.combinedClickable(onClick = { onLaunchApp(app, false) }),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        SearchPanelAppIcon(
+                            packageName = app.packageName,
+                            contentDescription = app.label,
+                            size = AppIconCandidateSize,
+                            corner = AppIconCandidateCorner,
+                            frozen = frozen,
+                        )
+                        Text(
+                            text = app.label,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontSize = 11.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            textAlign = TextAlign.Center,
+                            color = if (frozen) {
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
                 }
             }
         }
@@ -380,7 +401,9 @@ private fun SearchPanelAppIconStrip(
 @Composable
 private fun SearchPanelAppListCards(
     apps: List<AppInfo>,
+    settings: AppSettings,
     onLaunchApp: (AppInfo, longPressTriggered: Boolean) -> Unit,
+    onAppQuickAction: (AppInfo, SearchPanelAppQuickAction) -> Unit,
     modifier: Modifier = Modifier,
     expanded: Boolean = false,
     onExpandedChange: (Boolean) -> Unit = {},
@@ -402,16 +425,31 @@ private fun SearchPanelAppListCards(
         collapseLabel = stringResource(R.string.search_panel_collapse),
     ) {
         displayApps.forEachIndexed { index, app ->
+            val context = LocalContext.current
+            val frozen = FreezerOperations.isFrozen(context, app.packageName)
             SearchPanelResultCard(
                 title = app.label,
                 subtitle = null,
+                titleColor = if (frozen) {
+                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                } else {
+                    null
+                },
                 leading = {
-                    SearchPanelAppIcon(
+                    SearchPanelAppQuickActionTarget(
                         packageName = app.packageName,
-                        contentDescription = app.label,
-                        size = LeadingSlotSize,
-                        corner = RoundedCornerShape(8.dp),
-                    )
+                        enabled = true,
+                        settings = settings,
+                        onAction = { onAppQuickAction(app, it) },
+                    ) {
+                        SearchPanelAppIcon(
+                            packageName = app.packageName,
+                            contentDescription = app.label,
+                            size = LeadingSlotSize,
+                            corner = RoundedCornerShape(8.dp),
+                            frozen = frozen,
+                        )
+                    }
                 },
                 longPressEnabled = longPressEnabled,
                 onClick = { onLaunchApp(app, false) },
@@ -433,26 +471,31 @@ private fun SearchPanelAppIcon(
     contentDescription: String,
     size: Dp,
     corner: RoundedCornerShape,
+    frozen: Boolean = false,
 ) {
     val context = LocalContext.current
-    val density = LocalDensity.current
-    val iconPx = with(density) { size.roundToPx().coerceAtLeast(1) }
-    val iconBitmap = remember(packageName, iconPx) {
-        val drawable = try {
-            context.packageManager.getApplicationIcon(packageName)
-        } catch (_: Exception) {
-            null
+    var iconBitmap by remember(packageName) {
+        mutableStateOf(PickerAppIconBitmap.peek(packageName))
+    }
+    LaunchedEffect(packageName) {
+        if (iconBitmap == null) {
+            iconBitmap = PickerAppIconBitmap.load(context, packageName)
         }
-        drawable?.toBitmap(iconPx, iconPx)?.asImageBitmap()
+    }
+    val grayscale = if (frozen) {
+        ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0f) })
+    } else {
+        null
     }
     if (iconBitmap != null) {
         Image(
-            bitmap = iconBitmap,
+            bitmap = iconBitmap!!,
             contentDescription = contentDescription,
             modifier = Modifier
                 .size(size)
                 .clip(corner),
             contentScale = ContentScale.Crop,
+            colorFilter = grayscale,
         )
     } else {
         Icon(
@@ -464,7 +507,8 @@ private fun SearchPanelAppIcon(
                     MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
                     corner,
                 )
-                .padding(8.dp),
+                .padding(8.dp)
+                .then(if (frozen) Modifier.alpha(0.38f) else Modifier),
             tint = MaterialTheme.colorScheme.primary,
         )
     }
@@ -651,6 +695,12 @@ private fun SearchPanelGroupedResultCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .animateContentSize(
+                    animationSpec = spring(
+                        stiffness = Spring.StiffnessMediumLow,
+                        dampingRatio = Spring.DampingRatioNoBouncy,
+                    ),
+                )
                 .then(
                     if (scrollWhenExpanded) {
                         Modifier
@@ -983,6 +1033,7 @@ private fun SearchPanelResultCard(
     onLongClick: () -> Unit,
     modifier: Modifier = Modifier,
     titleEmphasized: Boolean = false,
+    titleColor: Color? = null,
 ) {
     val clickModifier = if (longPressEnabled) {
         Modifier.combinedClickable(onClick = onClick, onLongClick = onLongClick)
@@ -1007,7 +1058,7 @@ private fun SearchPanelResultCard(
                     MaterialTheme.typography.bodyLarge
                 },
                 fontWeight = if (titleEmphasized) FontWeight.SemiBold else FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurface,
+                color = titleColor ?: MaterialTheme.colorScheme.onSurface,
                 maxLines = if (titleEmphasized) 2 else 1,
                 overflow = TextOverflow.Ellipsis,
             )

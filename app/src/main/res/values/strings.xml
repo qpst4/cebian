@@ -2669,6 +2669,13 @@
     <string name="search_panel_input_behavior_select_all">全选输入框文本</string>
     <string name="search_panel_input_behavior_clear">清空输入框文本</string>
     <string name="search_panel_input_behavior_keep">保留输入框文本</string>
+    <string name="search_panel_enter_action_title">回车键动作</string>
+    <string name="search_panel_enter_action_search_engine">搜索引擎（默认）</string>
+    <string name="search_panel_enter_action_first_candidate">优先执行首项候选</string>
+    <string name="search_panel_app_quick_action_free_window">小窗</string>
+    <string name="search_panel_app_quick_action_share">分享</string>
+    <string name="search_panel_app_quick_action_freeze">冻结</string>
+    <string name="search_panel_app_quick_action_details">详情</string>
     <string name="search_panel_contact_search_desc">按姓名简拼、全拼或电话号码检索联系人并一键拨号</string>
     <string name="search_panel_contact_permission_title">通讯录读取权限</string>
     <string name="search_panel_contact_permission_granted">已授予通讯录权限</string>

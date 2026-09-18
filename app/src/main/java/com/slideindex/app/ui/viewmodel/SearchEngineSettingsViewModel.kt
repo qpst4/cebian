@@ -13,6 +13,7 @@ import com.slideindex.app.settings.AggregatedImageSearchEngineConfig
 import com.slideindex.app.settings.AggregatedImageSearchEnginePreferencesStore
 import com.slideindex.app.settings.SearchPanelHistoryCapacity
 import com.slideindex.app.settings.SearchPanelSectionAliasSettings
+import com.slideindex.app.settings.SearchPanelEnterAction
 import com.slideindex.app.settings.SearchPanelInputBehavior
 import com.slideindex.app.settings.SearchEngineConfig
 import com.slideindex.app.settings.SearchEngineType
@@ -331,6 +332,10 @@ class SearchEngineSettingsViewModel @Inject constructor(
 
     fun setSearchPanelInputBehavior(behavior: SearchPanelInputBehavior) = launchSettingsWrite {
         settingsRepository.setSearchPanelInputBehavior(behavior)
+    }
+
+    fun setSearchPanelEnterAction(action: SearchPanelEnterAction) = launchSettingsWrite {
+        settingsRepository.setSearchPanelEnterAction(action)
     }
 
     fun setSearchPanelContactSearchEnabled(enabled: Boolean) = launchSettingsWrite {
