@@ -97,8 +97,6 @@ fun AggregatedSearchEngineManager(
     onAddEngine: () -> Unit,
     onEditEngine: (String) -> Unit,
     onDeleteEngine: (String) -> Unit,
-    onPresetCatalog: () -> Unit,
-    onImportBackup: () -> Unit,
     modifier: Modifier = Modifier,
     onDraggingStateChange: (Boolean) -> Unit = {},
 ) {
@@ -599,25 +597,6 @@ fun AggregatedSearchEngineManager(
                         onShowLabelsChange(it)
                         haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                     },
-                )
-            }
-
-            // 4. 快捷管理（预设库 & 导入备份）
-            SmallTitle(
-                text = "快捷管理",
-                insideMargin = PaddingValues(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 0.dp),
-            )
-
-            MiuixCard(modifier = Modifier.fillMaxWidth()) {
-                ArrowPreference(
-                    title = "从预设库添加",
-                    summary = "浏览并一键添加常用搜索引擎（百度、微信、头条等）",
-                    onClick = onPresetCatalog,
-                )
-                ArrowPreference(
-                    title = "导入备份",
-                    summary = "从已导出的 zip 压缩包或 JSON 配置文件恢复",
-                    onClick = onImportBackup,
                 )
             }
 

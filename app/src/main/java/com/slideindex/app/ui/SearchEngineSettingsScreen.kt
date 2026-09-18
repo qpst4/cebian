@@ -58,6 +58,7 @@ import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 import com.slideindex.app.ui.settings.components.settingsLazyHint
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
+import com.slideindex.app.ui.settings.components.settingsLazyTipCard
 
 import top.yukonga.miuix.kmp.basic.Card as MiuixCard
 import top.yukonga.miuix.kmp.overlay.OverlayBottomSheet
@@ -100,10 +101,10 @@ fun SearchEngineSettingsScreen(
 
     var isDraggingAny by remember { mutableStateOf(false) }
     var showAddSheet by remember { mutableStateOf(false) }
+    val hintTip = stringResource(R.string.search_engine_settings_hint_tip)
 
     SettingsScreenScaffold(
         title = stringResource(R.string.search_engine_settings_title),
-        pageHint = "长按图标可跨页拖拽调序或移入已隐藏；长按“第 X 页”标头可上下拖动调整整页顺序。",
         onBack = onBack,
         scrollContent = !isDraggingAny,
         floatingActionButton = {
@@ -114,6 +115,10 @@ fun SearchEngineSettingsScreen(
             )
         },
     ) {
+        settingsLazyTipCard(
+            key = "search-engine-settings-tip",
+            text = hintTip,
+        )
         item(key = "aggregated-search-manager") {
             AggregatedSearchEngineManager(
                 engines = engines,
@@ -128,17 +133,6 @@ fun SearchEngineSettingsScreen(
                 onAddEngine = { onOpenEditor(null) },
                 onEditEngine = onOpenEditor,
                 onDeleteEngine = { id -> deletingEngine = engines.find { it.id == id } },
-                onPresetCatalog = onOpenPresetPicker,
-                onImportBackup = {
-                    importLauncher.launch(
-                        arrayOf(
-                            "application/zip",
-                            "application/json",
-                            "application/octet-stream",
-                            "*/*",
-                        ),
-                    )
-                },
             )
         }
     }

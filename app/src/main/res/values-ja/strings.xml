@@ -1657,6 +1657,7 @@
     <string name="cloud_translate_settings_hint">翻訳プロバイダは OCR の「有効プロバイダ」と独立です。API Key とエンドポイントはプロバイダごとに保存され、OCR 設定と共有されます。Key 設定後は OpenAI 互換 GET /v1/models からテキストモデルを取得します。OCR 視覚モデルは別設定です。</string>
     <string name="search_engine_settings_title">テキスト検索エンジン</string>
     <string name="search_engine_settings_subtitle">選択パネルでのテキスト検索</string>
+    <string name="search_engine_settings_hint_tip">アイコンをタップして編集・管理、長押しでページ間の並び替え、矢印をタップまたはヘッダーを長押しでページの順序を調整できます。</string>
     <string name="search_engine_settings_preview_mode">プレビュー並べ替えモード</string>
     <string name="search_engine_settings_preview_mode_summary">選択パネルのレイアウトをプレビューし、検索エンジンをドラッグで並べ替え</string>
     <string name="search_engine_preview_sort_title">プレビュー並べ替えモード</string>
@@ -2612,10 +2613,13 @@
     <string name="search_panel_entry_desc">レイアウト、デフォルトエンジン、候補検索、エイリアス</string>
     <string name="search_panel_settings_title">検索パネル</string>
     <string name="search_panel_settings_subtitle">検索パネルのレイアウト、外観、候補を設定</string>
-    <string name="search_panel_settings_section_layout">表示とレイアウト</string>
+    <string name="search_panel_settings_section_layout">レイアウトと動作</string>
+    <string name="search_panel_presentation_layout_entry_desc">表示モード、検索バーの位置、背景効果、起動時の動作</string>
     <string name="search_panel_settings_section_behavior">パネルの動作</string>
     <string name="search_panel_settings_section_appearance">外観</string>
     <string name="search_panel_settings_section_candidates">候補検索</string>
+    <string name="search_panel_settings_section_local_search">ローカルコンテンツ検索</string>
+    <string name="search_panel_settings_section_smart_candidates">スマート＆即時候補</string>
     <string name="search_panel_settings_section_engines">検索エンジン</string>
     <string name="search_panel_presentation_title">表示形式</string>
     <string name="search_panel_presentation_bottom_sheet">ボトムシート</string>

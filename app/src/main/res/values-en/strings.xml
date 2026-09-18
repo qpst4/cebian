@@ -622,7 +622,8 @@
     <string name="cloud_translate_model_picker_list_count">%1$d models</string>
     <string name="cloud_translate_settings_hint">Translation provider is independent from the active OCR cloud provider. API keys and endpoints are stored per vendor and shared with OCR settings. When a key is set, text models are fetched via OpenAI-compatible GET /v1/models. OCR vision models are configured separately.</string>
     <string name="search_engine_settings_title">Text search engines</string>
-    <string name="search_engine_settings_subtitle">Text search on the pick panel</string>
+    <string name="search_engine_settings_subtitle">Text search in pick result panel</string>
+    <string name="search_engine_settings_hint_tip">Tap an icon to edit or manage; long press to drag and reorder across pages; tap arrows or long press the page header to adjust page order.</string>
     <string name="search_engine_settings_preview_mode">Preview sort mode</string>
     <string name="search_engine_settings_preview_mode_summary">Preview the pick panel layout and drag to reorder search engines</string>
     <string name="search_engine_preview_sort_title">Preview sort mode</string>
@@ -2620,10 +2621,13 @@ Questions: open a GitHub Issue on the project repository.</string>
     <string name="search_panel_entry_desc">Layout, default engine, candidate search and aliases</string>
     <string name="search_panel_settings_title">Search panel</string>
     <string name="search_panel_settings_subtitle">Configure search panel layout, appearance and candidates</string>
-    <string name="search_panel_settings_section_layout">Presentation &amp; layout</string>
+    <string name="search_panel_settings_section_layout">Layout &amp; behavior</string>
+    <string name="search_panel_presentation_layout_entry_desc">Presentation mode, bar position, background effects, and launch behavior</string>
     <string name="search_panel_settings_section_behavior">Panel behavior</string>
     <string name="search_panel_settings_section_appearance">Appearance</string>
     <string name="search_panel_settings_section_candidates">Candidate search</string>
+    <string name="search_panel_settings_section_local_search">Local content search</string>
+    <string name="search_panel_settings_section_smart_candidates">Smart &amp; instant candidates</string>
     <string name="search_panel_settings_section_engines">Search engines</string>
     <string name="search_panel_presentation_title">Presentation</string>
     <string name="search_panel_presentation_bottom_sheet">Bottom sheet</string>
