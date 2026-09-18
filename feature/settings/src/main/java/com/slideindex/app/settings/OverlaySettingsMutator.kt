@@ -1153,6 +1153,10 @@ class OverlaySettingsMutator @Inject constructor(
         }
     }
 
+    suspend fun setImageEditorDelayDeleteEnabled(enabled: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.IMAGE_EDITOR_DELAY_DELETE_ENABLED] = enabled
+    }
+
     suspend fun setSearchEngines(engines: List<SearchEngineConfig>) = editor.edit {
         it[SettingsPreferenceKeys.SEARCH_ENGINES_JSON] = SearchEngineStore.encode(engines)
         it[SettingsPreferenceKeys.SEARCH_ENGINES_INITIALIZED] = true

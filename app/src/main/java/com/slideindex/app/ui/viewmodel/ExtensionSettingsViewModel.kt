@@ -480,6 +480,10 @@ class ExtensionSettingsViewModel @Inject constructor(
         settingsRepository.setDefaultImageViewerPackage(packageName)
     }
 
+    fun setImageEditorDelayDeleteEnabled(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setImageEditorDelayDeleteEnabled(enabled)
+    }
+
     fun setFloatBallOcrFallbackEnabled(enabled: Boolean) = launchSettingsWrite {
         settingsRepository.setFloatBallOcrFallbackEnabled(enabled)
     }

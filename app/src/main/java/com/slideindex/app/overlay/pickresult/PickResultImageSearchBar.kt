@@ -3,9 +3,11 @@ package com.slideindex.app.overlay.pickresult
 import android.graphics.Bitmap
 import android.graphics.Rect
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -190,6 +192,7 @@ fun PickResultImageSearchBar(
     onImageSearch: () -> Unit,
     onSave: () -> Unit,
     modifier: Modifier = Modifier,
+    onSaveLongClick: (() -> Unit)? = null,
     onPinToScreen: (() -> Unit)? = null,
     onStash: (() -> Unit)? = null,
     overlayMode: Boolean = false,
@@ -220,6 +223,7 @@ fun PickResultImageSearchBar(
                 onShare = onShare,
                 onImageSearch = onImageSearch,
                 onSave = onSave,
+                onSaveLongClick = onSaveLongClick,
                 onPinToScreen = onPinToScreen,
                 onStash = onStash,
                 overlayMode = false,
@@ -281,6 +285,7 @@ fun PickResultImageSearchBar(
                 onShare = onShare,
                 onImageSearch = onImageSearch,
                 onSave = onSave,
+                onSaveLongClick = onSaveLongClick,
                 onPinToScreen = onPinToScreen,
                 onStash = onStash,
                 overlayMode = overlayMode,
@@ -608,6 +613,7 @@ private fun PickResultImageSearchActions(
     onShare: () -> Unit,
     onImageSearch: () -> Unit,
     onSave: () -> Unit,
+    onSaveLongClick: (() -> Unit)? = null,
     onPinToScreen: (() -> Unit)? = null,
     onStash: (() -> Unit)? = null,
     overlayMode: Boolean = false,
@@ -635,6 +641,7 @@ private fun PickResultImageSearchActions(
             icon = Icons.Outlined.Save,
             enabled = true,
             onClick = onSave,
+            onLongClick = onSaveLongClick,
             contentDescription = stringResource(R.string.pick_result_action_save_image),
             overlayMode = overlayMode,
             compact = compact,
@@ -705,11 +712,13 @@ private fun PickResultImageSearchActions(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun PickResultActionIcon(
     icon: ImageVector,
     enabled: Boolean,
     onClick: () -> Unit,
+    onLongClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     contentDescription: String? = null,
     overlayMode: Boolean = false,
@@ -720,12 +729,16 @@ private fun PickResultActionIcon(
     val buttonSize = 42.dp
     val iconSize = 22.dp
 
-    IconButton(
-        onClick = onClick,
-        enabled = enabled,
+    Box(
         modifier = modifier
             .size(buttonSize)
             .clip(RoundedCornerShape(buttonSize / 2))
+            .combinedClickable(
+                enabled = enabled,
+                onClick = onClick,
+                onLongClick = onLongClick,
+            ),
+        contentAlignment = Alignment.Center,
     ) {
         Icon(
             imageVector = icon,

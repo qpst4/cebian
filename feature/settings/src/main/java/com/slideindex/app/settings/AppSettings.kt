@@ -80,6 +80,7 @@ data class AppSettings(
     val floatBall: FloatBallSettings = FloatBallSettings(),
     val clipboard: ClipboardSettings = ClipboardSettings(),
     val defaultImageViewerPackage: String? = null,
+    val imageEditorDelayDeleteEnabled: Boolean = false,
     val searchPanel: SearchPanelSettings = SearchPanelSettings(),
 ) {
     /** 当前底栏样式的生效模糊半径（派生，不落盘）。 */

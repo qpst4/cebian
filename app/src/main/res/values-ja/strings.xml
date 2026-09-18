@@ -1335,8 +1335,8 @@
     <string name="float_ball_pick_bottom_transition">下部遷移ゾーン</string>
     <string name="float_ball_pick_panel_style">選択パネルスタイル</string>
     <string name="float_ball_pick_panel_style_desc">テキスト選択とスクリーンショット結果の表示スタイルを選択します</string>
-    <string name="float_ball_pick_panel_style_integrated">同画面デュアルカード（推奨）</string>
-    <string name="float_ball_pick_panel_style_tab_paged">タブページ分割（画像 / テキスト）</string>
+    <string name="float_ball_pick_panel_style_integrated">同画面デュアルカード</string>
+    <string name="float_ball_pick_panel_style_tab_paged">タブページ分割</string>
     <string name="float_ball_pick_search_grid_state_title">検索エンジンのデフォルト状態</string>
     <string name="float_ball_pick_search_grid_state_desc">パネル表示時の検索エンジンエリアの初期表示状態を制御します</string>
     <string name="float_ball_pick_search_grid_state_remember">前回の状態を記憶（推奨）</string>
@@ -3167,6 +3167,13 @@ APatch で Shell の永久 Root 権限を取り消してください。</string>
     <string name="pick_result_open_link">リンクを開く</string>
     <string name="image_viewer_default_title">デフォルトの画像ビューア</string>
     <string name="image_viewer_ask_every_time">毎回確認</string>
+    <string name="image_viewer_builtin_editor">内蔵画像エディタを使用</string>
+    <string name="image_editor_delay_delete_title">5分後に画像を削除</string>
+    <string name="image_editor_delay_delete_desc">有効時、保存ボタン短押しで遅延削除、長押しで永続保存</string>
+    <string name="inspire_image_edit_menu_save_persist">アルバムに保存</string>
+    <string name="inspire_image_edit_menu_save_auto_delete">一時保存（5分後に自動削除）</string>
+    <string name="inspire_image_edit_save_auto_delete">保存しました（5分後に自動削除）</string>
+    <string name="inspire_image_edit_save_persist">アルバムに保存しました</string>
     <string name="quick_launcher_default_folder_name">フォルダ</string>
     <string name="quick_launcher_add_title">クイックランチャー · ショートカットを追加</string>
     <string name="quick_launcher_my_shortcuts">マイショートカット</string>

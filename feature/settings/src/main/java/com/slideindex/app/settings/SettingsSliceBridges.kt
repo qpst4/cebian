@@ -254,6 +254,7 @@ fun OverlaySettings.toMinimalAppSettings(): AppSettings = AppSettings(
         stashPanelBackgroundBlurRadiusDp = stashPanelBackgroundBlurRadiusDp,
     ),
     defaultImageViewerPackage = defaultImageViewerPackage,
+    imageEditorDelayDeleteEnabled = imageEditorDelayDeleteEnabled,
     searchPanel = SearchPanelSettings(
         searchEngines = searchEngines,
         searchEngineGridColumns = searchEngineGridColumns,

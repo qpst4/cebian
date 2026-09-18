@@ -56,6 +56,7 @@ fun FloatBallPickSettingsScreen(
     onOcrFallbackChange: (Boolean) -> Unit,
     onShareImageOcrHistoryEnabledChange: (Boolean) -> Unit,
     onDefaultImageViewerPackageChange: (String?) -> Unit,
+    onImageEditorDelayDeleteChange: (Boolean) -> Unit = {},
     onOpenOcrModels: () -> Unit,
     onOpenShareImageOcrHistory: () -> Unit
 ) {
@@ -90,8 +91,8 @@ fun FloatBallPickSettingsScreen(
     val tabPagedLabel = stringResource(R.string.float_ball_pick_panel_style_tab_paged)
     val panelStyleOptions = remember(integratedLabel, tabPagedLabel) {
         listOf(
-            com.slideindex.app.settings.PickResultPanelStyle.INTEGRATED_BOTTOM_BAR to integratedLabel,
-            com.slideindex.app.settings.PickResultPanelStyle.TAB_PAGED to tabPagedLabel
+            com.slideindex.app.settings.PickResultPanelStyle.TAB_PAGED to tabPagedLabel,
+            com.slideindex.app.settings.PickResultPanelStyle.INTEGRATED_BOTTOM_BAR to integratedLabel
         )
     }
     val selectedPanelStyleIndex = remember(settings.floatBallPickPanelStyle, panelStyleOptions) {
@@ -186,6 +187,17 @@ fun FloatBallPickSettingsScreen(
                                 val option = readyOptions?.getOrNull(index) ?: return@SettingSpinnerRow
                                 onDefaultImageViewerPackageChange(option.packageName)
                             }
+                        )
+                    }
+                )
+                add(
+                    settingsCardScopeItem("image-editor-delay-delete") {
+                        SettingSwitchRow(
+                            title = stringResource(R.string.image_editor_delay_delete_title),
+                            subtitle = stringResource(R.string.image_editor_delay_delete_desc),
+                            checked = settings.imageEditorDelayDeleteEnabled,
+                            enabled = true,
+                            onCheckedChange = onImageEditorDelayDeleteChange,
                         )
                     }
                 )

@@ -831,8 +831,8 @@
     <string name="float_ball_pick_bottom_transition">Bottom transition zone</string>
     <string name="float_ball_pick_panel_style">Pick panel style</string>
     <string name="float_ball_pick_panel_style_desc">Choose the presentation layout for pick &amp; screenshot results</string>
-    <string name="float_ball_pick_panel_style_integrated">Twin Cards (Recommended)</string>
-    <string name="float_ball_pick_panel_style_tab_paged">Tab paged (Image / Text tabs)</string>
+    <string name="float_ball_pick_panel_style_integrated">Twin Cards</string>
+    <string name="float_ball_pick_panel_style_tab_paged">Tab Paged</string>
     <string name="float_ball_pick_search_grid_state_title">Search Engines Default State</string>
     <string name="float_ball_pick_search_grid_state_desc">Controls the initial state of the bottom search engines area when the panel opens</string>
     <string name="float_ball_pick_search_grid_state_remember">Remember last state (Recommended)</string>
@@ -3180,6 +3180,13 @@ or revoke permanent Root for Shell in APatch.</string>
     <string name="pick_result_open_link">Open link</string>
     <string name="image_viewer_default_title">Default image viewer</string>
     <string name="image_viewer_ask_every_time">Ask every time</string>
+    <string name="image_viewer_builtin_editor">Use built-in image editor</string>
+    <string name="image_editor_delay_delete_title">Delete image after 5 minutes</string>
+    <string name="image_editor_delay_delete_desc">When enabled, tap save to delete after delay, long press to save permanently</string>
+    <string name="inspire_image_edit_menu_save_persist">Save to album</string>
+    <string name="inspire_image_edit_menu_save_auto_delete">Temporary save (delete in 5 minutes)</string>
+    <string name="inspire_image_edit_save_auto_delete">Saved (will be deleted in 5 minutes)</string>
+    <string name="inspire_image_edit_save_persist">Saved to album</string>
     <string name="quick_launcher_default_folder_name">Folder</string>
     <string name="quick_launcher_add_title">Quick launcher · Add shortcut</string>
     <string name="quick_launcher_my_shortcuts">My shortcuts</string>
