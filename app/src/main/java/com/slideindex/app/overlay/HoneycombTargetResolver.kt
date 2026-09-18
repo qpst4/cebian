@@ -11,6 +11,7 @@ import com.slideindex.app.data.AppInfo
 import com.slideindex.app.data.AppRepository
 import com.slideindex.app.launcher.QuickLauncherItem
 import com.slideindex.app.launcher.QuickLauncherItemType
+import com.slideindex.app.launcher.QuickLauncherLabels
 import com.slideindex.app.shell.ShellCommand
 import com.slideindex.app.util.QuickLauncherIconResolver
 
@@ -30,14 +31,18 @@ internal object HoneycombTargetResolver {
             ) {
                 return@mapNotNull null
             }
-            val label = item.label.ifBlank {
-                when (item.type) {
-                    QuickLauncherItemType.APP ->
-                        appsByPackage[item.payload]?.label ?: item.payload
-                    QuickLauncherItemType.SHORTCUT -> item.payload
-                    QuickLauncherItemType.ACTION -> item.label.ifBlank { item.payload }
-                    else -> item.payload
-                }
+            val label = when (item.type) {
+                QuickLauncherItemType.ACTION ->
+                    QuickLauncherLabels.resolveLabel(context, item, appsByPackage)
+                else ->
+                    item.label.ifBlank {
+                        when (item.type) {
+                            QuickLauncherItemType.APP ->
+                                appsByPackage[item.payload]?.label ?: item.payload
+                            QuickLauncherItemType.SHORTCUT -> item.payload
+                            else -> item.payload
+                        }
+                    }
             }
             val icon = when {
                 appRepository != null && item.type == QuickLauncherItemType.APP ->

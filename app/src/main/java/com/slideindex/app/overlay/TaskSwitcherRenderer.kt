@@ -14,6 +14,7 @@ import com.slideindex.app.data.AppInfo
 import com.slideindex.app.privilege.PrivilegeUiStrings
 import com.slideindex.app.overlay.layout.TaskSwitcherLayoutEngine
 import com.slideindex.app.overlay.layout.TaskSwitcherPanelLayout
+import com.slideindex.app.util.AppLocaleApplier
 import com.slideindex.app.util.RecentAppEntry
 
 internal data class TaskSwitcherRenderState(
@@ -35,6 +36,8 @@ internal data class TaskSwitcherRenderState(
 internal class TaskSwitcherRenderer(
     private val host: TaskSwitcherOverlayController.Host
 ) {
+    private fun localizedContext() = AppLocaleApplier.wrapOverlayContext(host.context)
+
     private val elevatedCardPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val elevatedShadowPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val iconBitmapPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
@@ -79,11 +82,11 @@ internal class TaskSwitcherRenderer(
             }
             val hint = when {
                 !state.privilegedAccess ->
-                    host.context.getString(PrivilegeUiStrings.taskSwitcherAccessRequiredRes())
+                    localizedContext().getString(PrivilegeUiStrings.taskSwitcherAccessRequiredRes())
                 state.loading ->
-                    host.context.getString(R.string.task_switcher_loading)
+                    localizedContext().getString(R.string.task_switcher_loading)
                 else ->
-                    host.context.getString(R.string.task_switcher_empty)
+                    localizedContext().getString(R.string.task_switcher_empty)
             }
             canvas.drawText(
                 hint,
@@ -177,7 +180,7 @@ internal class TaskSwitcherRenderer(
         if (state.closeAllHighlight) {
             drawFooterHighlight(canvas, layout.closeAllRect, rowHighlightPaint, panelCorner)
         }
-        val closeAllText = host.context.getString(R.string.task_switcher_close_all)
+        val closeAllText = localizedContext().getString(R.string.task_switcher_close_all)
         canvas.drawText(
             closeAllText,
             layout.closeAllRect.centerX(),

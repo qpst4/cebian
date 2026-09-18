@@ -3,6 +3,8 @@ package com.slideindex.app.launcher
 import android.content.Context
 import com.slideindex.app.R
 import com.slideindex.app.data.AppInfo
+import com.slideindex.app.ui.gesturepicker.gestureActionLabelText
+import com.slideindex.app.util.AppLocaleApplier
 
 object QuickLauncherLabels {
     fun defaultTypeLabel(context: Context, type: QuickLauncherItemType): String =
@@ -22,17 +24,25 @@ object QuickLauncherLabels {
         context: Context,
         item: QuickLauncherItem,
         appsByPackage: Map<String, AppInfo>
-    ): String =
-        when (item.type) {
+    ): String {
+        val localized = AppLocaleApplier.wrapOverlayContext(context)
+        return when (item.type) {
             QuickLauncherItemType.APP ->
                 appsByPackage[item.payload]?.label ?: item.label.ifBlank { item.payload }
             QuickLauncherItemType.SHORTCUT ->
-                item.label.ifBlank { defaultTypeLabel(context, item.type) }
-            QuickLauncherItemType.ACTION ->
-                item.label.ifBlank { defaultTypeLabel(context, item.type) }
+                item.label.ifBlank { defaultTypeLabel(localized, item.type) }
+            QuickLauncherItemType.ACTION -> {
+                val action = QuickLauncherItemCodec.parseActionPayload(item.payload)
+                if (action != null) {
+                    gestureActionLabelText(localized, action)
+                } else {
+                    item.label.ifBlank { defaultTypeLabel(localized, item.type) }
+                }
+            }
             QuickLauncherItemType.WIDGET ->
-                item.label.ifBlank { defaultTypeLabel(context, item.type) }
+                item.label.ifBlank { defaultTypeLabel(localized, item.type) }
             QuickLauncherItemType.FOLDER ->
-                item.label.ifBlank { defaultTypeLabel(context, item.type) }
+                item.label.ifBlank { defaultTypeLabel(localized, item.type) }
         }
+    }
 }

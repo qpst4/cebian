@@ -84,6 +84,11 @@ object FloatBallStashPanel {
         sideHost.setPanelBackInterceptor(null)
     }
 
+    /** 应用内语言切换后销毁预热壳，下次打开收纳面板时用新 Locale 重建。 */
+    fun releaseWarmUpForLocale() {
+        destroy()
+    }
+
     fun updateWindowInputActiveForClipboard(active: Boolean) {
         sideHost.setClipboardInputActive(active)
     }

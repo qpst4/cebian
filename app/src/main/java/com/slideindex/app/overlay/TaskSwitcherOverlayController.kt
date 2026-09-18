@@ -20,6 +20,7 @@ import com.slideindex.app.overlay.layout.TaskSwitcherLayoutEngine
 import com.slideindex.app.overlay.layout.TaskSwitcherLayoutHost
 import com.slideindex.app.overlay.layout.TaskSwitcherPanelLayout
 import com.slideindex.app.overlay.layout.TaskSwitcherRowEntry
+import com.slideindex.app.util.AppLocaleApplier
 import com.slideindex.app.util.RecentAppEntry
 import com.slideindex.app.util.RecentTasksLoader
 import com.slideindex.app.util.TaskManagerUtil
@@ -353,26 +354,27 @@ internal class TaskSwitcherOverlayController(
 
     internal fun collectAccessibilityNodes(context: android.content.Context): List<OverlayVirtualNode> {
         val layout = taskSwitcherLayout ?: return emptyList()
+        val localized = AppLocaleApplier.wrapOverlayContext(context)
         val nodes = mutableListOf<OverlayVirtualNode>()
         layout.rows.forEachIndexed { index, row ->
             val entry = recentApps.getOrNull(index) ?: return@forEachIndexed
             val label = entry.app.label
             nodes += OverlayVirtualNode(
-                description = context.getString(R.string.cd_overlay_task_switch_row, label),
+                description = localized.getString(R.string.cd_overlay_task_switch_row, label),
                 boundsInParent = RectF(row.rowRect)
             )
             nodes += OverlayVirtualNode(
-                description = context.getString(R.string.cd_overlay_task_switch_close, label),
+                description = localized.getString(R.string.cd_overlay_task_switch_close, label),
                 boundsInParent = RectF(row.closeRect)
             )
             nodes += OverlayVirtualNode(
-                description = context.getString(R.string.cd_overlay_task_switch_free_window, label),
+                description = localized.getString(R.string.cd_overlay_task_switch_free_window, label),
                 boundsInParent = RectF(row.freeWindowRect)
             )
         }
         if (!layout.closeAllRect.isEmpty) {
             nodes += OverlayVirtualNode(
-                description = context.getString(R.string.task_switcher_close_all),
+                description = localized.getString(R.string.task_switcher_close_all),
                 boundsInParent = RectF(layout.closeAllRect)
             )
         }

@@ -163,6 +163,10 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
                 persistGeometryOnClose(blocking = false)
                 return START_STICKY
             }
+            ACTION_RECREATE_FOR_LOCALE -> {
+                recreateWindowForLocale()
+                return if (viewAdded) START_STICKY else START_NOT_STICKY
+            }
             ACTION_SHOW_EXPANDED -> {
                 if (viewAdded && displayMode == ClipboardFloatDisplayMode.Chip) {
                     captureCurrentWindowPosition()
@@ -781,6 +785,19 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
         stopSelf()
     }
 
+    private fun recreateWindowForLocale() {
+        if (!viewAdded) return
+        val host = MessageOverlayHost.resolveHostContext(this) ?: return
+        backHandler?.detach()
+        backHandler = null
+        composeView?.let { runCatching { windowManager.removeView(it) } }
+        OverlayCompose.teardownOverlayCompose(composeView, composeOwner)
+        composeOwner = null
+        composeView = null
+        viewAdded = false
+        createAndAttachWindow(host)
+    }
+
     private fun togglePin() {
         panelPinned = !panelPinned
         if (panelPinned) {
@@ -1038,6 +1055,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
         const val ACTION_SHOW_IME = "com.slideindex.app.clipboard_float.SHOW_IME"
         const val ACTION_SHOW_EXPANDED = "com.slideindex.app.clipboard_float.SHOW_EXPANDED"
         const val ACTION_HIDE = "com.slideindex.app.clipboard_float.HIDE"
+        const val ACTION_RECREATE_FOR_LOCALE = "com.slideindex.app.clipboard_float.RECREATE_FOR_LOCALE"
         const val ACTION_UPDATE_IME = "com.slideindex.app.clipboard_float.UPDATE_IME"
         const val EXTRA_IME_TOP = "ime_top"
         const val EXTRA_SHOW_CHIP = "show_chip"

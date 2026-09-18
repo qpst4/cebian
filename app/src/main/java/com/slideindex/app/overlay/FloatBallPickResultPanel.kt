@@ -185,6 +185,15 @@ object FloatBallPickResultPanel {
         applyPanelShellPassive()
     }
 
+    /** 应用内语言切换后销毁预热壳，下次取词时用新 Locale 重建（与 [SearchPanelOverlayWindow.releaseWarmUp] 对齐）。 */
+    fun releaseWarmUpForLocale() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { releaseWarmUpForLocale() }
+            return
+        }
+        destroy()
+    }
+
     fun suppressForScreenshotCapture() {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             mainHandler.post { suppressForScreenshotCapture() }

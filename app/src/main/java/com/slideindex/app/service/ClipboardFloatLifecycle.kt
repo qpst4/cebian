@@ -39,4 +39,14 @@ object ClipboardFloatLifecycle {
             }
         )
     }
+
+    /** 若剪贴板浮窗正在显示，用新 Locale 重建 Compose 壳（不关闭浮窗）。 */
+    fun recreateForLocaleChange(context: Context) {
+        val appContext = context.applicationContext
+        appContext.startService(
+            Intent(appContext, ClipboardFloatService::class.java).apply {
+                action = ClipboardFloatService.ACTION_RECREATE_FOR_LOCALE
+            }
+        )
+    }
 }

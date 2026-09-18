@@ -45,6 +45,23 @@ object HistoryFloatLifecycle {
         context.applicationContext.stopService(Intent(context.applicationContext, HistoryFloatService::class.java))
     }
 
+    /** 应用内语言变更后重建浮窗，使 Compose 使用新 Configuration。 */
+    fun recreateForLocaleChange(
+        context: Context,
+        handleWidthDp: Int = HistoryFloatHandleWidth.DEFAULT_DP,
+        lockPosition: Boolean = true,
+        landscapeEnabled: Boolean = false,
+    ) {
+        val appContext = context.applicationContext
+        stop(appContext)
+        start(
+            context = appContext,
+            handleWidthDp = handleWidthDp,
+            lockPosition = lockPosition,
+            landscapeEnabled = landscapeEnabled,
+        )
+    }
+
     fun applyRuntimeConfig(
         context: Context,
         handleWidthDp: Int,
