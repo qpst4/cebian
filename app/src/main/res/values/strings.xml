@@ -1477,6 +1477,8 @@
     <string name="ocr_engine_migration_version_fallback">最新版本</string>
     <string name="ocr_download_wifi_only">仅 Wi-Fi 下载</string>
     <string name="ocr_download_wifi_only_desc">移动网络下不自动开始下载</string>
+    <string name="ocr_model_ppocrv5_arabic">PP-OCRv5 阿拉伯文</string>
+    <string name="ocr_model_ppocrv5_arabic_desc">离线识别阿拉伯文及相关文字（阿/波斯/乌尔都等），约 12 MB</string>
     <string name="ocr_model_ppocrv6_tiny">PP-OCRv6 Tiny</string>
     <string name="ocr_model_ppocrv6_tiny_desc">体积最小，适合低配设备</string>
     <string name="ocr_model_ppocrv6_small">PP-OCRv6 Small</string>

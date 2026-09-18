@@ -489,6 +489,7 @@ internal fun ocrModelSelectionSubtitle(modelId: String): String {
     return when (modelId) {
         "mlkit-chinese" -> stringResource(R.string.ocr_model_mlkit_chinese)
         "tesseract-chi-sim-eng" -> stringResource(R.string.ocr_model_tesseract_chi_sim_eng)
+        "ppocrv5-arabic" -> stringResource(R.string.ocr_model_ppocrv5_arabic)
         "ppocrv6-tiny" -> stringResource(R.string.ocr_model_ppocrv6_tiny)
         "ppocrv6-small" -> stringResource(R.string.ocr_model_ppocrv6_small)
         "ppocrv6-medium" -> stringResource(R.string.ocr_model_ppocrv6_medium)

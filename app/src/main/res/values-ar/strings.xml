@@ -1481,6 +1481,8 @@
     <string name="ocr_engine_migration_version_fallback">أحدث إصدار</string>
     <string name="ocr_download_wifi_only">التنزيل عبر Wi-Fi فقط</string>
     <string name="ocr_download_wifi_only_desc">لن يبدأ التنزيل تلقائيًا عند استخدام شبكة الجوال</string>
+    <string name="ocr_model_ppocrv5_arabic">PP-OCRv5 العربية</string>
+    <string name="ocr_model_ppocrv5_arabic_desc">تعرف محلي على العربية والخطوط ذات الصلة (عربي/فارسي/أردو…)، ~12 م.ب.</string>
     <string name="ocr_model_ppocrv6_tiny">PP-OCRv6 المصغر</string>
     <string name="ocr_model_ppocrv6_tiny_desc">أصغر حجمًا، مناسب للأجهزة محدودة الموارد</string>
     <string name="ocr_model_ppocrv6_small">PP-OCRv6 الصغير</string>

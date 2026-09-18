@@ -1461,6 +1461,8 @@
     <string name="ocr_engine_migration_version_fallback">最新バージョン</string>
     <string name="ocr_download_wifi_only">Wi-Fi のみでダウンロード</string>
     <string name="ocr_download_wifi_only_desc">モバイルデータではダウンロードを開始しません</string>
+    <string name="ocr_model_ppocrv5_arabic">PP-OCRv5 アラビア語</string>
+    <string name="ocr_model_ppocrv5_arabic_desc">アラビア文字系のオフライン OCR（アラビア語・ペルシア語・ウルドゥー語など）、約 12 MB</string>
     <string name="ocr_model_ppocrv6_tiny">PP-OCRv6 Tiny</string>
     <string name="ocr_model_ppocrv6_tiny_desc">最小サイズ、低スペック端末向け</string>
     <string name="ocr_model_ppocrv6_small">PP-OCRv6 Small</string>
