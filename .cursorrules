@@ -8,6 +8,7 @@
   - **必须**使用项目根目录的 `.\gradlew.bat`，**禁止**直接调用 `gradle` 命令。
   - 执行任何 `gradlew` 命令时，Shell 工具须请求 `required_permissions: ["all"]`，以绕过 Cursor 沙箱对 `GRADLE_USER_HOME` 的重定向（否则会重复下载 distribution）。
 - **设置 Git 锚点**：仅在用户明确指令升级版本号后，才修改版本号并执行 commit，备注格式保持为：“版本号：修改内容”。
+- **发版 / 换包**：同版本 `gh release upload --clobber` 必须同步用 **同一份 Lite APK** 更新 `update.json` 的 `apkSize` 并 push（见 `RELEASE.md`「同版本替换 Release APK」）；禁止只换 Release 附件不改清单。
 
 ## 1. 编码前先思考 (Think Before Coding)
 - **不预设前提，不掩饰困惑，暴露权衡过程**。

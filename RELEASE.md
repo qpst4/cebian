@@ -77,6 +77,56 @@ gh run watch
 
 ---
 
+## 同版本替换 Release APK（慎用）
+
+**场景：** Release 已发布，但需更换 **同一版本号** 下的 Full / Lite 附件（例如 CI 绿后想用新 artifact 覆盖、资源修复后重打等）。
+
+**应用内更新如何校验：** 客户端从 `update.json` 读取 **`apkSize`（Lite 精确字节数）**，下载完成后必须与本地文件长度一致，否则报「下载失败」（进度条可能已到 100%）。**`apkUrl` 指向的 GitHub Release 附件与 `update.json` 里的 `apkSize` 必须来自同一份 Lite APK。**
+
+### 推荐做法
+
+| 做法 | 说明 |
+|------|------|
+| **发补丁版（首选）** | 递增 `versionCode` + `versionName`（如 1.11.1），推送新 Tag，走完整 `release.yml` | 清单与附件由 CI 一次对齐，无手工遗漏 |
+| **同版本覆盖** | 仅当确不能抬版本时使用，且必须完成下方「必做步骤」 | 易漏改 `update.json`，曾导致 1.11.0 内更失败 |
+
+### 禁止
+
+- **仅**执行 `gh release upload vX.Y.Z --clobber …` 换附件，**不**同步更新并推送 `update.json`。
+
+### 同版本覆盖时的必做步骤
+
+1. 准备好 **即将上传** 的 `cebian-{版本}-lite.apk`（与 Full 同源构建为佳）。
+2. 用该 Lite 文件更新清单（自动计算字节数、可从 CHANGELOG 生成 notes）：
+
+```bash
+python scripts/update-release-manifest.py -v {版本号} \
+  --apk-file path/to/cebian-{版本}-lite.apk \
+  --purge-jsdelivr --verify-remote
+```
+
+3. 提交并推送 `update.json` 到 `main`（发版 bot 提交格式示例：`chore(release): update update.json for v{版本号} [skip ci]`）。
+4. **再**上传 Release 附件（与步骤 2 使用的是 **同一份** Lite）：
+
+```bash
+gh release upload v{版本号} --clobber \
+  path/to/cebian-{版本}-full.apk \
+  path/to/cebian-{版本}-lite.apk
+```
+
+5. 可选：用 `--verify-only` 对照远端是否已与当前 Lite 大小一致（需先 push `update.json`）：
+
+```bash
+python scripts/update-release-manifest.py -v {版本号} \
+  --apk-file path/to/cebian-{版本}-lite.apk --verify-only
+```
+
+**顺序建议：** 先更新并 push `update.json`，再 `upload --clobber`，避免用户短暂拉到新包旧 `apkSize`。若已先上传附件，务必立即补步骤 2–3。
+
+从 CI artifact 取包示例：`gh run download <run-id> -D build/release-apk`
+
+---
+
 ## 云端自动化流水线（CI 自动完成）
 
 推送 Tag（`v*`）后，[`.github/workflows/release.yml`](.github/workflows/release.yml) 会自动接管并执行以下全套闭环：
