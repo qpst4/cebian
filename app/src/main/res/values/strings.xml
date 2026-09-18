@@ -3346,6 +3346,7 @@ adb 模式应返回 uid=2000。
     <string name="inspire_image_edit_save_persist">已保存到相册</string>
     <string name="inspire_image_edit_save_title">保存编辑结果</string>
     <string name="inspire_image_edit_shape_arrow">箭头</string>
+    <string name="inspire_image_edit_shape_double_arrow">双向箭头</string>
     <string name="inspire_image_edit_shape_diamond">菱形</string>
     <string name="inspire_image_edit_shape_drag_hint">点击或左右拖动可选择形状</string>
     <string name="inspire_image_edit_shape_line">直线</string>

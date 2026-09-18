@@ -3174,6 +3174,7 @@ APatch で Shell の永久 Root 権限を取り消してください。</string>
     <string name="inspire_image_edit_menu_save_auto_delete">一時保存（5分後に自動削除）</string>
     <string name="inspire_image_edit_save_auto_delete">保存しました（5分後に自動削除）</string>
     <string name="inspire_image_edit_save_persist">アルバムに保存しました</string>
+    <string name="inspire_image_edit_shape_double_arrow">両方向矢印</string>
     <string name="quick_launcher_default_folder_name">フォルダ</string>
     <string name="quick_launcher_add_title">クイックランチャー · ショートカットを追加</string>
     <string name="quick_launcher_my_shortcuts">マイショートカット</string>

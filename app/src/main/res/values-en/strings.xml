@@ -3187,6 +3187,7 @@ or revoke permanent Root for Shell in APatch.</string>
     <string name="inspire_image_edit_menu_save_auto_delete">Temporary save (delete in 5 minutes)</string>
     <string name="inspire_image_edit_save_auto_delete">Saved (will be deleted in 5 minutes)</string>
     <string name="inspire_image_edit_save_persist">Saved to album</string>
+    <string name="inspire_image_edit_shape_double_arrow">Double arrow</string>
     <string name="quick_launcher_default_folder_name">Folder</string>
     <string name="quick_launcher_add_title">Quick launcher · Add shortcut</string>
     <string name="quick_launcher_my_shortcuts">My shortcuts</string>

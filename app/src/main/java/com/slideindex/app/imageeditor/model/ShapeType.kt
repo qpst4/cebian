@@ -6,6 +6,7 @@ enum class ShapeType {
     OVAL,
     LINE,
     ARROW,
+    DOUBLE_ARROW,
     DIAMOND,
     TRIANGLE,
 }

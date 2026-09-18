@@ -19,7 +19,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.Backup
 import androidx.compose.material.icons.filled.DragHandle
+import androidx.compose.material.icons.filled.Widgets
+import com.slideindex.app.ui.SettingIconContainer
 import com.slideindex.app.ui.miuix.MiuixConfirmDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
@@ -56,8 +59,10 @@ import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 import com.slideindex.app.ui.settings.components.settingsLazyHint
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.FloatingActionButton
+import top.yukonga.miuix.kmp.basic.Card as MiuixCard
+import top.yukonga.miuix.kmp.overlay.OverlayBottomSheet
+import top.yukonga.miuix.kmp.preference.ArrowPreference
+import com.slideindex.app.ui.miuix.MiuixSettingsFab
 import com.slideindex.app.ui.searchengine.AggregatedSearchEngineManager
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -94,6 +99,7 @@ fun SearchEngineSettingsScreen(
     }
 
     var isDraggingAny by remember { mutableStateOf(false) }
+    var showAddSheet by remember { mutableStateOf(false) }
 
     SettingsScreenScaffold(
         title = stringResource(R.string.search_engine_settings_title),
@@ -101,19 +107,11 @@ fun SearchEngineSettingsScreen(
         onBack = onBack,
         scrollContent = !isDraggingAny,
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = { onOpenEditor(null) },
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-                shape = CircleShape,
-                modifier = Modifier.size(56.dp),
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "添加搜索引擎",
-                    modifier = Modifier.size(28.dp),
-                )
-            }
+            MiuixSettingsFab(
+                onClick = { showAddSheet = true },
+                icon = Icons.Default.Add,
+                contentDescription = "添加搜索引擎与导入",
+            )
         },
     ) {
         item(key = "aggregated-search-manager") {
@@ -140,6 +138,80 @@ fun SearchEngineSettingsScreen(
                             "*/*",
                         ),
                     )
+                },
+            )
+        }
+    }
+
+    OverlayBottomSheet(
+        show = showAddSheet,
+        title = stringResource(R.string.search_engine_add_title),
+        onDismissRequest = { showAddSheet = false },
+    ) {
+        MiuixCard(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+        ) {
+            ArrowPreference(
+                title = stringResource(R.string.search_engine_settings_preset_catalog),
+                summary = stringResource(R.string.search_engine_settings_preset_catalog_subtitle),
+                startAction = {
+                    SettingIconContainer {
+                        Icon(
+                            imageVector = Icons.Default.Widgets,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(22.dp),
+                        )
+                    }
+                },
+                onClick = {
+                    showAddSheet = false
+                    onOpenPresetPicker()
+                },
+            )
+            ArrowPreference(
+                title = stringResource(R.string.search_engine_settings_import),
+                summary = stringResource(R.string.search_engine_settings_import_subtitle),
+                startAction = {
+                    SettingIconContainer {
+                        Icon(
+                            imageVector = Icons.Default.Backup,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(22.dp),
+                        )
+                    }
+                },
+                onClick = {
+                    showAddSheet = false
+                    importLauncher.launch(
+                        arrayOf(
+                            "application/zip",
+                            "application/json",
+                            "application/octet-stream",
+                            "*/*",
+                        ),
+                    )
+                },
+            )
+            ArrowPreference(
+                title = stringResource(R.string.search_engine_add_title),
+                summary = stringResource(R.string.search_engine_add_subtitle),
+                startAction = {
+                    SettingIconContainer {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(22.dp),
+                        )
+                    }
+                },
+                onClick = {
+                    showAddSheet = false
+                    onOpenEditor(null)
                 },
             )
         }

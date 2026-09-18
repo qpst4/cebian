@@ -23,7 +23,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.SwapVert
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Icon
@@ -438,8 +439,25 @@ fun AggregatedSearchEngineManager(
                             // 标头行：长按标头拖拽整页，带 15% 迟滞死区与避让动效
                             PageHeaderRow(
                                 pageIndex = pageIndex,
+                                totalPages = pages.size,
                                 engineCount = pageEngines.size,
                                 pageSize = pageSize,
+                                onMoveUp = if (pageIndex > 0) {
+                                    {
+                                        movePageInWorkingList(workingEngines, pageIndex, pageIndex - 1, pageSize)
+                                        val updated = workingEngines.mapIndexed { idx, itm -> itm.copy(sortOrder = idx) }
+                                        onUpdateEngines(updated)
+                                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                    }
+                                } else null,
+                                onMoveDown = if (pageIndex < pages.size - 1) {
+                                    {
+                                        movePageInWorkingList(workingEngines, pageIndex, pageIndex + 1, pageSize)
+                                        val updated = workingEngines.mapIndexed { idx, itm -> itm.copy(sortOrder = idx) }
+                                        onUpdateEngines(updated)
+                                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                    }
+                                } else null,
                                 onPositioned = { coords ->
                                     rootCoordinates?.let { root ->
                                         if (coords.isAttached) {
@@ -663,8 +681,11 @@ fun AggregatedSearchEngineManager(
 @Composable
 private fun PageHeaderRow(
     pageIndex: Int,
+    totalPages: Int,
     engineCount: Int,
     pageSize: Int,
+    onMoveUp: (() -> Unit)?,
+    onMoveDown: (() -> Unit)?,
     onPositioned: (LayoutCoordinates) -> Unit,
 ) {
     Row(
@@ -693,12 +714,45 @@ private fun PageHeaderRow(
             )
         }
 
-        Icon(
-            imageVector = Icons.Default.SwapVert,
-            contentDescription = "长按拖拽调序整页",
-            tint = MiuixTheme.colorScheme.primary,
-            modifier = Modifier.size(20.dp),
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            if (totalPages > 1) {
+                if (onMoveUp != null) {
+                    Box(
+                        modifier = Modifier
+                            .size(30.dp)
+                            .clip(CircleShape)
+                            .clickable(onClick = onMoveUp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.KeyboardArrowUp,
+                            contentDescription = "向上移动一页",
+                            tint = MiuixTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp),
+                        )
+                    }
+                }
+                if (onMoveDown != null) {
+                    Box(
+                        modifier = Modifier
+                            .size(30.dp)
+                            .clip(CircleShape)
+                            .clickable(onClick = onMoveDown),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.KeyboardArrowDown,
+                            contentDescription = "向下移动一页",
+                            tint = MiuixTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp),
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 
