@@ -57,6 +57,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.max
@@ -197,35 +198,7 @@ private suspend fun scrollWordTapToFraction(scrollState: ScrollState, fraction: 
     scrollState.scrollTo(target)
 }
 
-private fun scrollWordTapForDragEdge(
-    scrollState: ScrollState,
-    gestureScope: CoroutineScope,
-    pointerYInGesture: Float,
-    viewportHeightPx: Float,
-    edgeZonePx: Float,
-    scrollStepPx: Float,
-) {
-    if (viewportHeightPx <= 0f || edgeZonePx <= 0f) return
 
-    when {
-        pointerYInGesture >= viewportHeightPx - edgeZonePx -> {
-            if (!scrollState.canScrollForward) return
-            val beyond = (pointerYInGesture - (viewportHeightPx - edgeZonePx)).coerceAtLeast(0f)
-            val step = scrollStepPx * (1f + beyond / edgeZonePx)
-            gestureScope.launch {
-                scrollState.scroll { scrollBy(step) }
-            }
-        }
-        pointerYInGesture <= edgeZonePx -> {
-            if (!scrollState.canScrollBackward) return
-            val beyond = (edgeZonePx - pointerYInGesture).coerceAtLeast(0f)
-            val step = scrollStepPx * (1f + beyond / edgeZonePx)
-            gestureScope.launch {
-                scrollState.scroll { scrollBy(-step) }
-            }
-        }
-    }
-}
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -426,6 +399,9 @@ fun PickResultWordTapBody(
                         }
                     }
 
+                    var lastPointerPosition = down.position
+                    var autoScrollJob: kotlinx.coroutines.Job? = null
+
                     try {
                         while (true) {
                             val event = awaitPointerEvent(PointerEventPass.Initial)
@@ -461,16 +437,7 @@ fun PickResultWordTapBody(
                             }
 
                             if (wordDragArmed) {
-                                val pointerInGesture =
-                                    pointerInGestureSpace(change.position) ?: continue
-                                scrollWordTapForDragEdge(
-                                    scrollState = scrollState,
-                                    gestureScope = gestureScope,
-                                    pointerYInGesture = pointerInGesture.y,
-                                    viewportHeightPx = viewportHeightPx,
-                                    edgeZonePx = edgeZonePx,
-                                    scrollStepPx = edgeScrollStepPx,
-                                )
+                                lastPointerPosition = change.position
                                 val currentIndex =
                                     indexAtInContainer(change.position, allowLineProjection = true) ?: lastRangeIndex
                                 if (currentIndex != lastRangeIndex) {
@@ -487,10 +454,57 @@ fun PickResultWordTapBody(
                                     if (selecting) baseline + range else baseline - range,
                                 )
                                 change.consume()
+
+                                if (autoScrollJob == null) {
+                                    autoScrollJob = gestureScope.launch {
+                                        while (isActive) {
+                                            val pointerInGesture = pointerInGestureSpace(lastPointerPosition)
+                                            val currentY = pointerInGesture?.y
+                                            if (currentY != null && viewportHeightPx > 0f && edgeZonePx > 0f) {
+                                                val bottomThreshold = viewportHeightPx - edgeZonePx
+                                                if (currentY >= bottomThreshold && scrollState.canScrollForward) {
+                                                    val beyond = (currentY - bottomThreshold).coerceAtLeast(0f)
+                                                    val step = edgeScrollStepPx * (1f + beyond / edgeZonePx)
+                                                    scrollState.scrollBy(step)
+                                                    val updatedIndex = indexAtInContainer(lastPointerPosition, allowLineProjection = true) ?: lastRangeIndex
+                                                    if (updatedIndex != lastRangeIndex) {
+                                                        if (hapticEnabled) {
+                                                            view.performHapticFeedback(
+                                                                HapticFeedbackConstants.CLOCK_TICK,
+                                                                HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING
+                                                            )
+                                                        }
+                                                        lastRangeIndex = updatedIndex
+                                                        val updatedRange = rangeIndices(startIndex, updatedIndex)
+                                                        onSelectionChange(if (selecting) baseline + updatedRange else baseline - updatedRange)
+                                                    }
+                                                } else if (currentY <= edgeZonePx && scrollState.canScrollBackward) {
+                                                    val beyond = (edgeZonePx - currentY).coerceAtLeast(0f)
+                                                    val step = edgeScrollStepPx * (1f + beyond / edgeZonePx)
+                                                    scrollState.scrollBy(-step)
+                                                    val updatedIndex = indexAtInContainer(lastPointerPosition, allowLineProjection = true) ?: lastRangeIndex
+                                                    if (updatedIndex != lastRangeIndex) {
+                                                        if (hapticEnabled) {
+                                                            view.performHapticFeedback(
+                                                                HapticFeedbackConstants.CLOCK_TICK,
+                                                                HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING
+                                                            )
+                                                        }
+                                                        lastRangeIndex = updatedIndex
+                                                        val updatedRange = rangeIndices(startIndex, updatedIndex)
+                                                        onSelectionChange(if (selecting) baseline + updatedRange else baseline - updatedRange)
+                                                    }
+                                                }
+                                            }
+                                            delay(16L)
+                                        }
+                                    }
+                                }
                             }
                         }
                     } finally {
                         longPressJob.cancel()
+                        autoScrollJob?.cancel()
                     }
 
                     val didScroll = scrollState.value != scrollAtDown
@@ -521,9 +535,9 @@ fun PickResultWordTapBody(
                 )
                 .verticalScroll(scrollState)
                 .padding(
-                    start = 2.dp,
+                    start = 0.dp,
                     top = 2.dp,
-                    end = 2.dp,
+                    end = 0.dp,
                     bottom = PickResultWordTapBottomContentPadding + 2.dp,
                 )
                 .onGloballyPositioned {

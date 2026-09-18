@@ -61,6 +61,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.boundsInRoot
@@ -999,6 +1003,69 @@ internal fun PickResultCollapsePanelColumn(
     val imageSectionExpanded = imageExpansionFraction > 0.5f
     val auxiliaryDragEnabled = hasAuxiliaryCollapse && !isEditMode
 
+    val onImageSectionExpandedChangeState = rememberUpdatedState(onImageSectionExpandedChange)
+    val textNestedScrollConnection = remember(
+        auxiliaryDragEnabled,
+        hasImageContent,
+        landscapeDualColumn,
+        totalImageCollapsiblePx,
+        controller
+    ) {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: androidx.compose.ui.geometry.Offset, source: NestedScrollSource): androidx.compose.ui.geometry.Offset {
+                // 手指在文字区向上滑动查看下文时（available.y < 0），优先收起图片区以扩大文字区视口
+                if (auxiliaryDragEnabled && hasImageContent && !landscapeDualColumn &&
+                    available.y < 0f && controller.collapseProgress < 1f
+                ) {
+                    val remainingPx = (1f - controller.collapseProgress) * totalImageCollapsiblePx
+                    val consumePx = minOf(-available.y, remainingPx)
+                    if (consumePx > 0f) {
+                        controller.applyDrag(consumePx)
+                        return androidx.compose.ui.geometry.Offset(0f, -consumePx)
+                    }
+                }
+                return androidx.compose.ui.geometry.Offset.Zero
+            }
+
+            override fun onPostScroll(
+                consumed: androidx.compose.ui.geometry.Offset,
+                available: androidx.compose.ui.geometry.Offset,
+                source: NestedScrollSource
+            ): androidx.compose.ui.geometry.Offset {
+                // 手指在文字区向下滑动且文字已处于顶部时（available.y > 0），拉下展开图片区
+                if (auxiliaryDragEnabled && hasImageContent && !landscapeDualColumn &&
+                    available.y > 0f && controller.collapseProgress > 0f
+                ) {
+                    val remainingPx = controller.collapseProgress * totalImageCollapsiblePx
+                    val consumePx = minOf(available.y, remainingPx)
+                    if (consumePx > 0f) {
+                        controller.applyDrag(-consumePx)
+                        return androidx.compose.ui.geometry.Offset(0f, consumePx)
+                    }
+                }
+                return androidx.compose.ui.geometry.Offset.Zero
+            }
+
+            override suspend fun onPreFling(available: Velocity): Velocity {
+                if (auxiliaryDragEnabled && hasImageContent && !landscapeDualColumn && controller.isDragging) {
+                    controller.endDrag { expanded ->
+                        onImageSectionExpandedChangeState.value(expanded)
+                    }
+                }
+                return Velocity.Zero
+            }
+
+            override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
+                if (auxiliaryDragEnabled && hasImageContent && !landscapeDualColumn && controller.isDragging) {
+                    controller.endDrag { expanded ->
+                        onImageSectionExpandedChangeState.value(expanded)
+                    }
+                }
+                return Velocity.Zero
+            }
+        }
+    }
+
     val renderTextSlot: @Composable () -> Unit = {
         PickResultPanelTextSlot(
             useExpandedLayout = useWeightedTextLayout,
@@ -1190,13 +1257,13 @@ internal fun PickResultCollapsePanelColumn(
                     if (page == 0) {
                         Column(modifier = Modifier.fillMaxWidth()) {
                             Box(
-                                modifier = if (useWeightedTextLayout) {
+                                modifier = (if (useWeightedTextLayout) {
                                     Modifier
                                         .weight(1f)
                                         .fillMaxWidth()
                                 } else {
                                     Modifier.fillMaxWidth()
-                                }
+                                }).nestedScroll(textNestedScrollConnection)
                             ) {
                                 renderTextSlot()
                             }
@@ -1225,13 +1292,13 @@ internal fun PickResultCollapsePanelColumn(
                         applyDrag = wrappedApplyDrag
                     )
                     Box(
-                        modifier = if (useWeightedTextLayout) {
+                        modifier = (if (useWeightedTextLayout) {
                             Modifier
                                 .weight(1f)
                                 .fillMaxWidth()
                         } else {
                             Modifier.fillMaxWidth()
-                        }
+                        }).nestedScroll(textNestedScrollConnection)
                     ) {
                         renderTextSlot()
                     }

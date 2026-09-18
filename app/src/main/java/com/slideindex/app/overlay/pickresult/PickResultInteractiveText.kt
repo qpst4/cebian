@@ -1069,10 +1069,10 @@ internal fun PickResultTextBody(
             },
         )
         .padding(
-            start = 16.dp,
-            end = 16.dp,
-            top = 10.dp,
-            bottom = 10.dp,
+            start = 4.dp,
+            end = 4.dp,
+            top = 4.dp,
+            bottom = 4.dp,
         )
         .pointerInput(textMode) {
             if (textMode == PickResultTextMode.EDIT || textMode == PickResultTextMode.SELECT) {
