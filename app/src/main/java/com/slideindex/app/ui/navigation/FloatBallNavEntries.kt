@@ -637,6 +637,8 @@ fun NavEntryBuilder.floatBallNavEntries(ctx: MainNavContext) {
             onPickTextFirstPanelChange = viewModel::setFloatBallPickTextFirstPanel,
             onPickAutoSelectAllChange = viewModel::setFloatBallPickAutoSelectAll,
             onPickCopyDismissPanelChange = viewModel::setFloatBallPickCopyDismissPanel,
+            onPickCopyButtonPositionChange = viewModel::setFloatBallPickCopyButtonPosition,
+            onPickImageToolbarPositionChange = viewModel::setFloatBallPickImageToolbarPosition,
             onPickHapticEnabledChange = viewModel::setFloatBallPickHapticEnabled,
             onDragPasteEnabledChange = viewModel::setFloatBallDragPasteEnabled,
             onPickPanelEnterAnimationMsChange = viewModel::setFloatBallPickPanelEnterAnimationMs,

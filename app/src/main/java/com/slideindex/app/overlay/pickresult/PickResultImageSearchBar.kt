@@ -35,6 +35,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -55,8 +56,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -74,6 +77,7 @@ import com.slideindex.app.overlay.overlayContainerHeightDp
 import com.slideindex.app.overlay.overlayIsLandscape
 import com.slideindex.app.overlay.resolvePinImageDisplaySizePx
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.settings.PickResultImageToolbarPosition
 import com.slideindex.app.settings.SearchEngineConfig
 import com.slideindex.app.settings.SearchEngineStore
 import com.slideindex.app.ui.theme.LocalAppDarkTheme
@@ -197,18 +201,16 @@ fun PickResultImageSearchBar(
     onStash: (() -> Unit)? = null,
     overlayMode: Boolean = false,
     compactEmbedded: Boolean = false,
+    imageToolbarPosition: PickResultImageToolbarPosition = PickResultImageToolbarPosition.LEFT,
 ) {
     val shareEngines = SearchEngineStore.imageSharePanelEngines(engines)
     val isDark = LocalAppDarkTheme.current
 
     if (compactEmbedded) {
-        Row(
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(horizontal = 10.dp, vertical = 2.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
+        val toolbarOnRight = imageToolbarPosition == PickResultImageToolbarPosition.RIGHT
+
+        @Composable
+        fun ShareEngineSlot() {
             if (shareEngines.isNotEmpty()) {
                 ImageShareEngineChip(
                     engines = shareEngines,
@@ -218,17 +220,40 @@ fun PickResultImageSearchBar(
             } else {
                 Spacer(Modifier.width(1.dp))
             }
+        }
 
-            PickResultImageSearchActions(
-                onShare = onShare,
-                onImageSearch = onImageSearch,
-                onSave = onSave,
-                onSaveLongClick = onSaveLongClick,
-                onPinToScreen = onPinToScreen,
-                onStash = onStash,
-                overlayMode = false,
-                compact = true,
-            )
+        @Composable
+        fun ImageActionIcons() {
+            CompositionLocalProvider(
+                LocalLayoutDirection provides if (toolbarOnRight) LayoutDirection.Rtl else LayoutDirection.Ltr,
+            ) {
+                PickResultImageSearchActions(
+                    onShare = onShare,
+                    onImageSearch = onImageSearch,
+                    onSave = onSave,
+                    onSaveLongClick = onSaveLongClick,
+                    onPinToScreen = onPinToScreen,
+                    onStash = onStash,
+                    overlayMode = false,
+                    compact = true,
+                )
+            }
+        }
+
+        Row(
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(horizontal = 10.dp, vertical = 2.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            if (toolbarOnRight) {
+                ImageActionIcons()
+                ShareEngineSlot()
+            } else {
+                ShareEngineSlot()
+                ImageActionIcons()
+            }
         }
         return
     }
@@ -501,7 +526,7 @@ private fun ImageShareEngineChip(
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.KeyboardArrowDown,
-                        contentDescription = "选择搜索引擎",
+                        contentDescription = stringResource(R.string.pick_result_image_search_pick_engine),
                         modifier = Modifier.size(if (compact) 14.dp else 16.dp),
                         tint = Color.White.copy(alpha = 0.85f)
                     )
@@ -510,7 +535,9 @@ private fun ImageShareEngineChip(
         }
 
         if (showEnginePicker) {
-            DropdownMenu(
+            val isDark = LocalAppDarkTheme.current
+            val textColor = if (isDark) Color(0xFFECECED) else Color(0xFF1F1F1F)
+            PickResultDropdownMenuInLtr(
                 expanded = menuExpanded,
                 onDismissRequest = { menuExpanded = false },
             ) {
@@ -521,14 +548,22 @@ private fun ImageShareEngineChip(
                                 text = engine.name,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    fontSize = 14.sp,
+                                    color = textColor,
+                                ),
                             )
                         },
                         leadingIcon = {
                             SearchEngineIcon(
                                 engine = engine,
-                                modifier = Modifier.size(24.dp),
+                                modifier = Modifier.size(22.dp),
                             )
                         },
+                        contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                            horizontal = 12.dp,
+                            vertical = 8.dp,
+                        ),
                         onClick = {
                             menuExpanded = false
                             shareWith(engine)
@@ -670,40 +705,28 @@ private fun PickResultImageSearchActions(
                     compact = compact,
                 )
 
-                DropdownMenu(
+                PickResultDropdownMenuInLtr(
                     expanded = moreMenuExpanded,
                     onDismissRequest = { moreMenuExpanded = false }
                 ) {
                     onPinToScreen?.let { pinAction ->
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.pick_result_pin)) },
-                            leadingIcon = {
-                                Icon(
-                                    Icons.Outlined.PushPin,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            },
+                        PickResultActionMenuItem(
+                            label = stringResource(R.string.pick_result_pin),
+                            icon = Icons.Outlined.PushPin,
                             onClick = {
                                 moreMenuExpanded = false
                                 pinAction()
-                            }
+                            },
                         )
                     }
                     onStash?.let { stashAction ->
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.pick_result_stash)) },
-                            leadingIcon = {
-                                Icon(
-                                    Icons.Outlined.Archive,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            },
+                        PickResultActionMenuItem(
+                            label = stringResource(R.string.pick_result_stash),
+                            icon = Icons.Outlined.Archive,
                             onClick = {
                                 moreMenuExpanded = false
                                 stashAction()
-                            }
+                            },
                         )
                     }
                 }

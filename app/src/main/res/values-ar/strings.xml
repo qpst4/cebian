@@ -1525,6 +1525,7 @@
     <string name="float_ball_pick_result_image_section">الصور</string>
     <string name="pick_result_image_share_to_app">مشاركة إلى تطبيق</string>
     <string name="pick_result_image_share_pick_engine">اختيار هدف المشاركة</string>
+    <string name="pick_result_image_search_pick_engine">اختيار محرك البحث</string>
     <string name="pick_result_image_share_system">مشاركة النظام</string>
     <string name="pick_result_image_share_long_press_hint">اسحب للاختيار وارفع للمشاركة؛ اسحب جانبيًا للإلغاء</string>
     <string name="pick_result_image_share_editor_drag_hint">اسحب للاختيار، وأفلت للمشاركة</string>

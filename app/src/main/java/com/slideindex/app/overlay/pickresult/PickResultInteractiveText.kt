@@ -429,6 +429,7 @@ internal fun PickResultInteractiveTextSection(
                     onDismissOpenLinkChooser = { openLinkChooserExpanded = false },
                     onShare = { runOnActiveText(onShare) },
                     copyDismissEnabled = appSettings.floatBallPickCopyDismissPanel,
+                    copyButtonPosition = appSettings.floatBallPickCopyButtonPosition,
                     onCopy = { runOnActiveText { onCopy(it, false) } },
                     onCopyKeepOpen = { runOnActiveText { onCopy(it, true) } },
                     onTranslate = { runOnActiveText(onTranslate) },

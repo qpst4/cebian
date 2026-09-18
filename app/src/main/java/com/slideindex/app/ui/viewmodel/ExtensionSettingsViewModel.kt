@@ -601,6 +601,16 @@ class ExtensionSettingsViewModel @Inject constructor(
         settingsRepository.setFloatBallPickCopyDismissPanel(enabled)
     }
 
+    fun setFloatBallPickCopyButtonPosition(position: com.slideindex.app.settings.PickResultCopyButtonPosition) =
+        launchSettingsWrite {
+            settingsRepository.setFloatBallPickCopyButtonPosition(position)
+        }
+
+    fun setFloatBallPickImageToolbarPosition(position: com.slideindex.app.settings.PickResultImageToolbarPosition) =
+        launchSettingsWrite {
+            settingsRepository.setFloatBallPickImageToolbarPosition(position)
+        }
+
     fun setFloatBallPickHapticEnabled(enabled: Boolean) = launchSettingsWrite {
         settingsRepository.setFloatBallPickHapticEnabled(enabled)
     }

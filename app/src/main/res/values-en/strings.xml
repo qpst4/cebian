@@ -858,6 +858,12 @@
     <string name="float_ball_pick_auto_select_all_desc">Automatically select all text when the pick panel opens</string>
     <string name="float_ball_pick_copy_dismiss_panel">Dismiss panel after copy</string>
     <string name="float_ball_pick_copy_dismiss_panel_desc">When enabled, tapping Copy selection closes the pick panel; long-press copy keeps the panel open</string>
+    <string name="float_ball_pick_copy_button_position">Copy button position</string>
+    <string name="float_ball_pick_copy_button_position_left">Left</string>
+    <string name="float_ball_pick_copy_button_position_right">Right</string>
+    <string name="float_ball_pick_image_toolbar_position">Image toolbar position</string>
+    <string name="float_ball_pick_image_toolbar_position_left">Left</string>
+    <string name="float_ball_pick_image_toolbar_position_right">Right</string>
     <string name="float_ball_drag_paste_enabled">Drag float ball to paste</string>
     <string name="float_ball_drag_paste_enabled_desc">Pause over an input field and release to paste the latest clipboard history entry (no pick panel)</string>
     <string name="clipboard_paste_behavior_section">Paste behavior</string>
@@ -1007,6 +1013,7 @@
     <string name="float_ball_pick_result_image_section">Image</string>
     <string name="pick_result_image_share_to_app">Share to app</string>
     <string name="pick_result_image_share_pick_engine">Choose share target</string>
+    <string name="pick_result_image_search_pick_engine">Choose search engine</string>
     <string name="pick_result_image_share_system">System share</string>
     <string name="pick_result_image_share_long_press_hint">Slide to choose, release to share; slide away sideways to cancel</string>
     <string name="pick_result_image_share_editor_drag_hint">Slide to choose, release to share</string>

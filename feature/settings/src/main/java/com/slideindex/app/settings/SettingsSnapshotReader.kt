@@ -422,6 +422,14 @@ internal object SettingsSnapshotReader {
                 prefs[SettingsPreferenceKeys.FLOAT_BALL_PICK_AUTO_SELECT_ALL] ?: false,
             floatBallPickCopyDismissPanel =
                 prefs[SettingsPreferenceKeys.FLOAT_BALL_PICK_COPY_DISMISS_PANEL] ?: false,
+            floatBallPickCopyButtonPosition =
+                PickResultCopyButtonPosition.fromStorageKey(
+                    prefs[SettingsPreferenceKeys.FLOAT_BALL_PICK_COPY_BUTTON_POSITION],
+                ),
+            floatBallPickImageToolbarPosition =
+                PickResultImageToolbarPosition.fromStorageKey(
+                    prefs[SettingsPreferenceKeys.FLOAT_BALL_PICK_IMAGE_TOOLBAR_POSITION],
+                ),
             floatBallPickHapticEnabled =
                 prefs[SettingsPreferenceKeys.FLOAT_BALL_PICK_HAPTIC_ENABLED] ?: true,
             floatBallDragPasteEnabled =

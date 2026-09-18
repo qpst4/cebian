@@ -1370,6 +1370,12 @@
     <string name="float_ball_pick_auto_select_all_desc">取词或截图后弹出的面板，文字直接自动全选</string>
     <string name="float_ball_pick_copy_dismiss_panel">复制后自动收起面板</string>
     <string name="float_ball_pick_copy_dismiss_panel_desc">开启后，点击「复制选中」将自动关闭取词面板；长按复制则保留面板</string>
+    <string name="float_ball_pick_copy_button_position">复制按钮位置</string>
+    <string name="float_ball_pick_copy_button_position_left">左侧</string>
+    <string name="float_ball_pick_copy_button_position_right">右侧</string>
+    <string name="float_ball_pick_image_toolbar_position">图片区工具行位置</string>
+    <string name="float_ball_pick_image_toolbar_position_left">左侧</string>
+    <string name="float_ball_pick_image_toolbar_position_right">右侧</string>
     <string name="float_ball_pick_haptic_enabled">取词面板触感反馈</string>
     <string name="float_ball_pick_haptic_enabled_desc">复制选中成功或在分词模式中连续划选字砖时提供清脆微瞬震动</string>
     <string name="float_ball_drag_paste_enabled">拖动悬浮球粘贴</string>
@@ -1521,6 +1527,7 @@
     <string name="float_ball_pick_result_image_section">图片</string>
     <string name="pick_result_image_share_to_app">分享到 App</string>
     <string name="pick_result_image_share_pick_engine">选择分享目标</string>
+    <string name="pick_result_image_search_pick_engine">选择搜索引擎</string>
     <string name="pick_result_image_share_system">系统分享</string>
     <string name="pick_result_image_share_long_press_hint">滑动选择目标，松手分享；横向滑远取消</string>
     <string name="pick_result_image_share_editor_drag_hint">滑动选择，松手分享</string>

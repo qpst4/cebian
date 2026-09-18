@@ -259,6 +259,9 @@ data class FloatBallSettings(
     val floatBallPickAutoSelectAll: Boolean = false,
     /** Pick panel: dismiss after tapping copy; long-press copy keeps the panel open. */
     val floatBallPickCopyDismissPanel: Boolean = false,
+    /** Pick panel: primary copy chip on the left or right of the bottom action bar. */
+    val floatBallPickCopyButtonPosition: PickResultCopyButtonPosition = PickResultCopyButtonPosition.LEFT,
+    val floatBallPickImageToolbarPosition: PickResultImageToolbarPosition = PickResultImageToolbarPosition.LEFT,
     /** Pick panel: enable subtle haptic feedback for copy and word tap drag selection. */
     val floatBallPickHapticEnabled: Boolean = true,
     /** FV enable_main_icon_paste: drag float ball over an input field and release to paste latest history. */

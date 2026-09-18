@@ -559,6 +559,12 @@ class SettingsRepository @Inject constructor(
     suspend fun setFloatBallPickCopyDismissPanel(enabled: Boolean) =
         overlay.setFloatBallPickCopyDismissPanel(enabled)
 
+    suspend fun setFloatBallPickCopyButtonPosition(position: PickResultCopyButtonPosition) =
+        overlay.setFloatBallPickCopyButtonPosition(position)
+
+    suspend fun setFloatBallPickImageToolbarPosition(position: PickResultImageToolbarPosition) =
+        overlay.setFloatBallPickImageToolbarPosition(position)
+
     suspend fun setFloatBallPickHapticEnabled(enabled: Boolean) =
         overlay.setFloatBallPickHapticEnabled(enabled)
 

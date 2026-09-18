@@ -32,6 +32,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
+import com.slideindex.app.settings.PickResultImageToolbarPosition
 import com.slideindex.app.settings.SearchEngineConfig
 
 @Composable
@@ -42,6 +43,7 @@ internal fun PickResultImageSection(
     imageDisplaySize: PickResultImageDisplaySize,
     searchEngines: List<com.slideindex.app.settings.SearchEngineConfig>,
     showImageSearchBar: Boolean = true,
+    imageToolbarPosition: PickResultImageToolbarPosition = PickResultImageToolbarPosition.LEFT,
     modifier: Modifier = Modifier,
     onSave: () -> Unit,
     onSaveLongClick: (() -> Unit)? = null,
@@ -65,6 +67,7 @@ internal fun PickResultImageSection(
                 imageDisplaySize = imageDisplaySize,
                 searchEngines = searchEngines,
                 showImageSearchBar = showImageSearchBar,
+                imageToolbarPosition = imageToolbarPosition,
                 onSave = onSave,
                 onSaveLongClick = onSaveLongClick,
                 onShare = onShare,
@@ -88,6 +91,7 @@ internal fun PickResultImageSectionGallery(
     imageDisplaySize: PickResultImageDisplaySize,
     searchEngines: List<com.slideindex.app.settings.SearchEngineConfig>,
     showImageSearchBar: Boolean = true,
+    imageToolbarPosition: PickResultImageToolbarPosition = PickResultImageToolbarPosition.LEFT,
     onSave: () -> Unit,
     onSaveLongClick: (() -> Unit)? = null,
     onShare: () -> Unit,
@@ -230,6 +234,7 @@ internal fun PickResultImageSectionGallery(
                     onPinToScreen = onPinToScreen,
                     onStash = onStash,
                     compactEmbedded = true,
+                    imageToolbarPosition = imageToolbarPosition,
                 )
             }
         }

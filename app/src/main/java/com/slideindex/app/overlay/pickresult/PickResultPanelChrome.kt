@@ -7,6 +7,8 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -53,6 +55,7 @@ import androidx.compose.material3.Text
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -65,8 +68,11 @@ import kotlin.math.abs
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -320,6 +326,8 @@ internal fun PickResultTextActionBar(
     bottomPadding: Dp = PickResultTextActionBarBottomPaddingWhenAlone,
     lightweightDrag: Boolean = false,
     compactEmbedded: Boolean = true,
+    copyButtonPosition: com.slideindex.app.settings.PickResultCopyButtonPosition =
+        com.slideindex.app.settings.PickResultCopyButtonPosition.LEFT,
 ) {
     var justCopied by remember { mutableStateOf(false) }
     var moreMenuExpanded by remember { mutableStateOf(false) }
@@ -342,19 +350,11 @@ internal fun PickResultTextActionBar(
     val isDark = LocalAppDarkTheme.current
 
     if (compactEmbedded) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(
-                    top = 4.dp,
-                    bottom = bottomPadding,
-                    start = 2.dp,
-                    end = 2.dp
-                ),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            // 1. 左侧：核心操作芯片（复制选中 / 以图搜图）
+        val copyOnRight =
+            copyButtonPosition == com.slideindex.app.settings.PickResultCopyButtonPosition.RIGHT
+
+        @Composable
+        fun CompactPrimaryChip() {
             if (!enabled && hasImageContent && onImageSearch != null) {
                 Row(
                     modifier = Modifier
@@ -440,8 +440,13 @@ internal fun PickResultTextActionBar(
                     )
                 }
             }
+        }
 
-            // 2. 右侧：大操作图标组（搜索、翻译、分享、更多，与图片卡片底栏严格对齐）
+        @Composable
+        fun CompactIconToolbar() {
+            CompositionLocalProvider(
+                LocalLayoutDirection provides if (copyOnRight) LayoutDirection.Rtl else LayoutDirection.Ltr,
+            ) {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(2.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -465,14 +470,10 @@ internal fun PickResultTextActionBar(
                         }
 
                         if (openLinkChoices.isNotEmpty()) {
-                            DropdownMenu(
+                            PickResultDropdownMenuInLtr(
                                 expanded = openLinkChooserExpanded,
                                 onDismissRequest = onDismissOpenLinkChooser,
-                                shape = RoundedCornerShape(16.dp),
-                                containerColor = if (isDark) androidx.compose.ui.graphics.Color(0xFF28282A) else androidx.compose.ui.graphics.Color(0xFFFFFFFF),
-                                shadowElevation = 6.dp,
-                                tonalElevation = 0.dp,
-                                modifier = Modifier.widthIn(min = 140.dp, max = 240.dp),
+                                modifier = Modifier.widthIn(max = 240.dp),
                             ) {
                                 openLinkChoices.forEachIndexed { index, url ->
                                     if (index > 0) {
@@ -482,9 +483,8 @@ internal fun PickResultTextActionBar(
                                                 .fillMaxWidth()
                                                 .height(0.5.dp)
                                                 .background(
-                                                    if (isDark) androidx.compose.ui.graphics.Color(0x24FFFFFF)
-                                                    else androidx.compose.ui.graphics.Color(0x14000000)
-                                                )
+                                            pickResultDropdownMenuDividerColor(isDark)
+                                        )
                                         )
                                     }
                                     DropdownMenuItem(
@@ -592,32 +592,54 @@ internal fun PickResultTextActionBar(
                         )
                     }
 
-                    DropdownMenu(
+                    PickResultDropdownMenuInLtr(
                         expanded = moreMenuExpanded,
                         onDismissRequest = { moreMenuExpanded = false }
                     ) {
                         onPinToScreen?.let { pinAction ->
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.pick_result_pin)) },
-                                leadingIcon = { Icon(Icons.Outlined.PushPin, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                            PickResultActionMenuItem(
+                                label = stringResource(R.string.pick_result_pin),
+                                icon = Icons.Outlined.PushPin,
                                 onClick = {
                                     moreMenuExpanded = false
                                     pinAction()
-                                }
+                                },
                             )
                         }
                         onStash?.let { stashAction ->
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.pick_result_stash)) },
-                                leadingIcon = { Icon(Icons.Outlined.Archive, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                            PickResultActionMenuItem(
+                                label = stringResource(R.string.pick_result_stash),
+                                icon = Icons.Outlined.Archive,
                                 onClick = {
                                     moreMenuExpanded = false
                                     stashAction()
-                                }
+                                },
                             )
                         }
                     }
                 }
+            }
+            }
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    top = 4.dp,
+                    bottom = bottomPadding,
+                    start = 2.dp,
+                    end = 2.dp
+                ),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            if (copyOnRight) {
+                CompactIconToolbar()
+                CompactPrimaryChip()
+            } else {
+                CompactPrimaryChip()
+                CompactIconToolbar()
             }
         }
         return
@@ -840,88 +862,142 @@ internal fun PickResultTextActionBar(
                     )
                 }
 
-                DropdownMenu(
+                PickResultDropdownMenuInLtr(
                     expanded = moreMenuExpanded,
                     onDismissRequest = { moreMenuExpanded = false }
                 ) {
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.pick_result_share)) },
-                        leadingIcon = { Icon(Icons.Outlined.Share, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                    PickResultActionMenuItem(
+                        label = stringResource(R.string.pick_result_share),
+                        icon = Icons.Outlined.Share,
                         onClick = {
                             moreMenuExpanded = false
                             onShare()
-                        }
+                        },
                     )
                     if (hasImageContent && onSaveScreenshot != null) {
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.pick_result_action_save_image)) },
-                            leadingIcon = { Icon(Icons.Outlined.Save, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                        PickResultActionMenuItem(
+                            label = stringResource(R.string.pick_result_action_save_image),
+                            icon = Icons.Outlined.Save,
                             onClick = {
                                 moreMenuExpanded = false
                                 onSaveScreenshot()
-                            }
+                            },
                         )
                     }
                     if (hasImageContent && onShareScreenshot != null) {
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.pick_result_action_share_image)) },
-                            leadingIcon = { Icon(Icons.Outlined.Image, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                        PickResultActionMenuItem(
+                            label = stringResource(R.string.pick_result_action_share_image),
+                            icon = Icons.Outlined.Image,
                             onClick = {
                                 moreMenuExpanded = false
                                 onShareScreenshot()
-                            }
+                            },
                         )
                     }
                     onPinToScreen?.let { pinAction ->
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.pick_result_pin)) },
-                            leadingIcon = { Icon(Icons.Outlined.PushPin, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                        PickResultActionMenuItem(
+                            label = stringResource(R.string.pick_result_pin),
+                            icon = Icons.Outlined.PushPin,
                             onClick = {
                                 moreMenuExpanded = false
                                 pinAction()
-                            }
+                            },
                         )
                     }
                     onStash?.let { stashAction ->
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.pick_result_stash)) },
-                            leadingIcon = { Icon(Icons.Outlined.Archive, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                        PickResultActionMenuItem(
+                            label = stringResource(R.string.pick_result_stash),
+                            icon = Icons.Outlined.Archive,
                             onClick = {
                                 moreMenuExpanded = false
                                 stashAction()
-                            }
+                            },
                         )
                     }
                     if (onTrimSpaces != null) {
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.float_ball_action_trim_spaces)) },
-                            leadingIcon = {
-                                Icon(
-                                    Icons.Outlined.UnfoldLess,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(18.dp).rotate(90f)
-                                )
-                            },
+                        PickResultActionMenuItem(
+                            label = stringResource(R.string.float_ball_action_trim_spaces),
+                            icon = Icons.Outlined.UnfoldLess,
+                            iconModifier = Modifier.rotate(90f),
                             onClick = {
                                 moreMenuExpanded = false
                                 onTrimSpaces()
-                            }
+                            },
                         )
                     }
                     if (showOpenLink) {
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.pick_result_open_link)) },
-                            leadingIcon = { Icon(Icons.AutoMirrored.Outlined.OpenInNew, contentDescription = null, modifier = Modifier.size(18.dp)) },
+                        PickResultActionMenuItem(
+                            label = stringResource(R.string.pick_result_open_link),
+                            icon = Icons.AutoMirrored.Outlined.OpenInNew,
                             onClick = {
                                 moreMenuExpanded = false
                                 onOpenLink()
-                            }
+                            },
                         )
                     }
                 }
             }
         }
     }
+}
+
+/** 取词面板统一下拉容器（与打开链接菜单一致）。 */
+internal fun pickResultDropdownMenuDividerColor(isDark: Boolean): Color =
+    if (isDark) Color(0x24FFFFFF) else Color(0x14000000)
+
+@Composable
+internal fun PickResultDropdownMenuInLtr(
+    expanded: Boolean,
+    onDismissRequest: () -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    val isDark = LocalAppDarkTheme.current
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = onDismissRequest,
+            modifier = modifier.widthIn(min = 140.dp, max = 280.dp),
+            shape = RoundedCornerShape(16.dp),
+            containerColor = if (isDark) Color(0xFF28282A) else Color(0xFFFFFFFF),
+            shadowElevation = 6.dp,
+            tonalElevation = 0.dp,
+            content = content,
+        )
+    }
+}
+
+@Composable
+internal fun PickResultActionMenuItem(
+    label: String,
+    icon: ImageVector,
+    onClick: () -> Unit,
+    iconModifier: Modifier = Modifier,
+) {
+    val isDark = LocalAppDarkTheme.current
+    val textColor = if (isDark) Color(0xFFECECED) else Color(0xFF1F1F1F)
+    val iconTint = if (isDark) Color(0xFFE0E0E6) else Color(0xFF333333)
+    DropdownMenuItem(
+        text = {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    fontSize = 14.sp,
+                    color = textColor,
+                ),
+            )
+        },
+        leadingIcon = {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp).then(iconModifier),
+                tint = iconTint,
+            )
+        },
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+        onClick = onClick,
+    )
 }
 
 @Composable

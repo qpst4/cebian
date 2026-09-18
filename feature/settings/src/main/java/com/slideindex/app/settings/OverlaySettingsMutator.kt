@@ -897,6 +897,14 @@ class OverlaySettingsMutator @Inject constructor(
         it[SettingsPreferenceKeys.FLOAT_BALL_PICK_COPY_DISMISS_PANEL] = enabled
     }
 
+    suspend fun setFloatBallPickCopyButtonPosition(position: PickResultCopyButtonPosition) = editor.edit {
+        it[SettingsPreferenceKeys.FLOAT_BALL_PICK_COPY_BUTTON_POSITION] = position.storageKey
+    }
+
+    suspend fun setFloatBallPickImageToolbarPosition(position: PickResultImageToolbarPosition) = editor.edit {
+        it[SettingsPreferenceKeys.FLOAT_BALL_PICK_IMAGE_TOOLBAR_POSITION] = position.storageKey
+    }
+
     suspend fun setFloatBallPickHapticEnabled(enabled: Boolean) = editor.edit {
         it[SettingsPreferenceKeys.FLOAT_BALL_PICK_HAPTIC_ENABLED] = enabled
     }
