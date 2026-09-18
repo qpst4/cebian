@@ -204,7 +204,8 @@ internal fun computePickResultCollapseHeights(
     actionBarBottomPadding: Dp = 0.dp,
     imageExpansionFraction: Float,
     searchExpansionFraction: Float,
-    landscapeDualColumn: Boolean = false
+    landscapeDualColumn: Boolean = false,
+    showTabBar: Boolean = false,
 ): PickResultCollapseHeights {
     val layoutFactor = normalLayoutFactor.coerceIn(0f, 1f)
     val imageExpansion = imageExpansionFraction.coerceIn(0f, 1f)
@@ -229,20 +230,31 @@ internal fun computePickResultCollapseHeights(
         PickResultTextActionBarReservedHeight +
             PickResultTextActionBarTopPadding +
             actionBarBottomPadding
+    val tabHeaderReserved = if (showTabBar) PickResultTabHeaderReservedHeight else 0.dp
 
     val rawTextBodyHeight = if (landscapeDualColumn) {
         (panelInnerHeight - textToolbarReserved - actionBarReserved)
             .coerceAtLeast(minTextBodyHeight)
+    } else if (showTabBar) {
+        (
+            panelInnerHeight -
+                tabHeaderReserved -
+                searchDividerHeight -
+                searchGridHeight -
+                textToolbarReserved -
+                actionBarReserved
+        ).coerceAtLeast(minTextBodyHeight)
     } else {
         (
             panelInnerHeight -
+                tabHeaderReserved -
                 imageSectionHeight -
                 textImageDividerHeight -
                 searchDividerHeight -
                 searchGridHeight -
                 textToolbarReserved -
                 actionBarReserved
-            ).coerceAtLeast(minTextBodyHeight)
+        ).coerceAtLeast(minTextBodyHeight)
     }
 
     // 文字区最大高度按屏幕剩余空间自适应展开，当图片区收起时动态借调释放的空间
@@ -260,7 +272,7 @@ internal fun computePickResultCollapseHeights(
     )
 }
 
-/** ????????????????????wrapContent ??????????/???????*/
+/** 计算完全展开态高度（供面板外层 wrapContent 动画与滑动入场使用）。*/
 internal fun computePickResultExpandedPanelOuterHeight(
     panelContentHeight: Dp,
     hasSearchGrid: Boolean,
@@ -273,7 +285,8 @@ internal fun computePickResultExpandedPanelOuterHeight(
     idealTextBodyHeight: Dp,
     minTextBodyHeight: Dp,
     actionBarBottomPadding: Dp = 0.dp,
-    landscapeDualColumn: Boolean = false
+    landscapeDualColumn: Boolean = false,
+    showTabBar: Boolean = false,
 ): Dp {
     val expandedBottomPadding = if (hasSearchGrid) 0.dp else PANEL_ACTION_BAR_BOTTOM_GAP
     val panelInnerHeight = panelContentHeight - PANEL_VERTICAL_PADDING - expandedBottomPadding
@@ -291,7 +304,8 @@ internal fun computePickResultExpandedPanelOuterHeight(
         actionBarBottomPadding = actionBarBottomPadding,
         imageExpansionFraction = 1f,
         searchExpansionFraction = 1f,
-        landscapeDualColumn = landscapeDualColumn
+        landscapeDualColumn = landscapeDualColumn,
+        showTabBar = showTabBar,
     )
     val textToolbarReserved =
         PickResultTextSectionToolbarReservedHeight + PickResultTextToolbarBodySpacing
@@ -299,6 +313,7 @@ internal fun computePickResultExpandedPanelOuterHeight(
         PickResultTextActionBarReservedHeight +
             PickResultTextActionBarTopPadding +
             actionBarBottomPadding
+    val tabHeaderReserved = if (showTabBar) PickResultTabHeaderReservedHeight else 0.dp
 
     if (landscapeDualColumn) {
         val textColumnHeight = textToolbarReserved + heights.textBodyHeight + actionBarReserved
@@ -309,7 +324,20 @@ internal fun computePickResultExpandedPanelOuterHeight(
             maxOf(textColumnHeight, rightColumnHeight)
     }
 
+    if (showTabBar) {
+        val textPageHeight = textToolbarReserved +
+            heights.textBodyHeight +
+            actionBarReserved +
+            heights.searchDividerHeight +
+            heights.searchGridHeight
+        val imagePageHeight = maxOf(heights.imageSectionHeight, 200.dp)
+        return PANEL_VERTICAL_PADDING + expandedBottomPadding +
+            tabHeaderReserved +
+            maxOf(textPageHeight, imagePageHeight)
+    }
+
     return PANEL_VERTICAL_PADDING + expandedBottomPadding +
+        tabHeaderReserved +
         heights.imageSectionHeight +
         heights.textImageDividerHeight +
         heights.searchDividerHeight +
@@ -884,7 +912,8 @@ internal fun PickResultCollapsePanelColumn(
         expandedSearchGridContentHeight,
         idealTextBodyHeight,
         minTextBodyHeight,
-        landscapeDualColumn
+        landscapeDualColumn,
+        showTabBar
     ) {
         if (!hasAuxiliaryCollapse) {
             null
@@ -900,7 +929,8 @@ internal fun PickResultCollapsePanelColumn(
                 expandedSearchGridContentHeight = expandedSearchGridContentHeight,
                 idealTextBodyHeight = idealTextBodyHeight,
                 minTextBodyHeight = minTextBodyHeight,
-                landscapeDualColumn = landscapeDualColumn
+                landscapeDualColumn = landscapeDualColumn,
+                showTabBar = showTabBar
             )
         }
     }
@@ -929,7 +959,8 @@ internal fun PickResultCollapsePanelColumn(
         actionBarBottomPadding = actionBarBottomInset,
         imageExpansionFraction = imageExpansionFraction,
         searchExpansionFraction = searchExpansionFraction,
-        landscapeDualColumn = landscapeDualColumn
+        landscapeDualColumn = landscapeDualColumn,
+        showTabBar = showTabBar
     )
 
     val applyDragState = rememberUpdatedState(applyDrag)
@@ -1013,14 +1044,16 @@ internal fun PickResultCollapsePanelColumn(
         auxiliaryDragEnabled,
         hasImageContent,
         landscapeDualColumn,
+        showTabBar,
         totalImageCollapsiblePx,
         controller
     ) {
         object : NestedScrollConnection {
             override fun onPreScroll(available: androidx.compose.ui.geometry.Offset, source: NestedScrollSource): androidx.compose.ui.geometry.Offset {
                 // 手指在文字区向上滑动查看下文时（available.y < 0），优先收起图片区以扩大文字区视口
-                // 注意：仅当文本区有真实溢出内容（存在滚动条）时才允许折叠；短文本无滚动条时不折叠
-                if (auxiliaryDragEnabled && hasImageContent && !landscapeDualColumn &&
+                // 注意：分 Tab 模式下图片区已独立在另一页，文字区天然拥有最大自适应视口，不触发折叠拦截；
+                // 仅当单列垂直模式且文本区有真实溢出内容（存在滚动条）时才允许折叠
+                if (auxiliaryDragEnabled && hasImageContent && !landscapeDualColumn && !showTabBar &&
                     isTextScrollableState.value &&
                     available.y < 0f && controller.collapseProgress < 1f
                 ) {
@@ -1039,8 +1072,8 @@ internal fun PickResultCollapsePanelColumn(
                 available: androidx.compose.ui.geometry.Offset,
                 source: NestedScrollSource
             ): androidx.compose.ui.geometry.Offset {
-                // 手指在文字区向下滑动且文字已处于顶部时（available.y > 0），拉下展开图片区
-                if (auxiliaryDragEnabled && hasImageContent && !landscapeDualColumn &&
+                // 手指在文字区向下滑动且文字已处于顶部时（available.y > 0），拉下展开图片区（分 Tab 模式除外）
+                if (auxiliaryDragEnabled && hasImageContent && !landscapeDualColumn && !showTabBar &&
                     available.y > 0f && controller.collapseProgress > 0f
                 ) {
                     val remainingPx = controller.collapseProgress * totalImageCollapsiblePx
@@ -1054,7 +1087,7 @@ internal fun PickResultCollapsePanelColumn(
             }
 
             override suspend fun onPreFling(available: Velocity): Velocity {
-                if (auxiliaryDragEnabled && hasImageContent && !landscapeDualColumn && controller.isDragging) {
+                if (auxiliaryDragEnabled && hasImageContent && !landscapeDualColumn && !showTabBar && controller.isDragging) {
                     controller.endDrag { expanded ->
                         onImageSectionExpandedChangeState.value(expanded)
                     }
@@ -1063,7 +1096,7 @@ internal fun PickResultCollapsePanelColumn(
             }
 
             override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
-                if (auxiliaryDragEnabled && hasImageContent && !landscapeDualColumn && controller.isDragging) {
+                if (auxiliaryDragEnabled && hasImageContent && !landscapeDualColumn && !showTabBar && controller.isDragging) {
                     controller.endDrag { expanded ->
                         onImageSectionExpandedChangeState.value(expanded)
                     }

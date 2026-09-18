@@ -153,10 +153,12 @@ PickResultWordTapBottomContentPadding
 return contentHeight + PickResultTextBodyVerticalPadding
 }
 /** 翻译面板等独立区块标题行（含上下 padding）。*/
-
 internal val PickResultTextSectionHeaderReservedHeight = 46.dp
-/** 取词面板：文本标?+ 来源切换 + 编辑工具栏合并行。*/
 
+/** 分 Tab 样式顶部药丸切换栏高度（含上下 padding 与边距）。*/
+internal val PickResultTabHeaderReservedHeight = 46.dp
+
+/** 取词面板：文本标题 + 来源切换 + 编辑工具栏合并行。*/
 internal val PickResultTextSectionToolbarReservedHeight = 40.dp
 /** 仅编辑工具栏行（翻译面板等无合并标题时使用）。*/
 

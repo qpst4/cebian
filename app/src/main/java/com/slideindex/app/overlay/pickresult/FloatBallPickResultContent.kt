@@ -365,6 +365,9 @@ internal fun FloatBallPickResultContent(
     val hasAuxiliaryCollapse = showImageSection || hasSearchGrid
     val panelContentHeight = maxPanelHeight - overlayImeBottom
 
+    val isTabPaged = appSettings.floatBallPickPanelStyle == com.slideindex.app.settings.PickResultPanelStyle.TAB_PAGED && !landscapeDualColumn
+    val showTabBar = isTabPaged && hasImageContent && showTextSection
+
     val panelSlideDistance = remember(
         panelContentHeight,
         hasSearchGrid,
@@ -378,7 +381,8 @@ internal fun FloatBallPickResultContent(
         minTextBodyHeight,
         showTextSection,
         maxPanelHeight,
-        landscapeDualColumn
+        landscapeDualColumn,
+        showTabBar
     ) {
         if (showTextSection || showImageSection) {
             computePickResultExpandedPanelOuterHeight(
@@ -392,7 +396,8 @@ internal fun FloatBallPickResultContent(
                 expandedSearchGridContentHeight = expandedSearchGridContentHeight,
                 idealTextBodyHeight = idealTextBodyHeight,
                 minTextBodyHeight = minTextBodyHeight,
-                landscapeDualColumn = landscapeDualColumn
+                landscapeDualColumn = landscapeDualColumn,
+                showTabBar = showTabBar
             )
         } else {
             maxPanelHeight * 0.35f
