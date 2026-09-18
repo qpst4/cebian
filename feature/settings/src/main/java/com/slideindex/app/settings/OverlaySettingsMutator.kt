@@ -877,12 +877,28 @@ class OverlaySettingsMutator @Inject constructor(
         it[SettingsPreferenceKeys.FLOAT_BALL_PICK_TEXT_FIRST_PANEL] = enabled
     }
 
+    suspend fun setFloatBallPickPanelStyle(style: PickResultPanelStyle) = editor.edit {
+        it[SettingsPreferenceKeys.FLOAT_BALL_PICK_PANEL_STYLE] = style.storageKey
+    }
+
+    suspend fun setFloatBallPickSearchGridDefaultState(state: PickResultSearchGridDefaultState) = editor.edit {
+        it[SettingsPreferenceKeys.FLOAT_BALL_PICK_SEARCH_GRID_DEFAULT_STATE] = state.storageKey
+    }
+
+    suspend fun setFloatBallPickSearchGridLastExpanded(expanded: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.FLOAT_BALL_PICK_SEARCH_GRID_LAST_EXPANDED] = expanded
+    }
+
     suspend fun setFloatBallPickAutoSelectAll(enabled: Boolean) = editor.edit {
         it[SettingsPreferenceKeys.FLOAT_BALL_PICK_AUTO_SELECT_ALL] = enabled
     }
 
     suspend fun setFloatBallPickCopyDismissPanel(enabled: Boolean) = editor.edit {
         it[SettingsPreferenceKeys.FLOAT_BALL_PICK_COPY_DISMISS_PANEL] = enabled
+    }
+
+    suspend fun setFloatBallPickHapticEnabled(enabled: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.FLOAT_BALL_PICK_HAPTIC_ENABLED] = enabled
     }
 
     suspend fun setFloatBallDragPasteEnabled(enabled: Boolean) = editor.edit {
@@ -1137,13 +1153,17 @@ class OverlaySettingsMutator @Inject constructor(
         }
     }
 
+    suspend fun setImageEditorDelayDeleteEnabled(enabled: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.IMAGE_EDITOR_DELAY_DELETE_ENABLED] = enabled
+    }
+
     suspend fun setSearchEngines(engines: List<SearchEngineConfig>) = editor.edit {
         it[SettingsPreferenceKeys.SEARCH_ENGINES_JSON] = SearchEngineStore.encode(engines)
         it[SettingsPreferenceKeys.SEARCH_ENGINES_INITIALIZED] = true
     }
 
     suspend fun setSearchEngineGridColumns(value: Int) = editor.edit {
-        it[SettingsPreferenceKeys.SEARCH_ENGINE_GRID_COLUMNS] = value.coerceIn(3, 7)
+        it[SettingsPreferenceKeys.SEARCH_ENGINE_GRID_COLUMNS] = value.coerceIn(3, 8)
     }
 
     suspend fun setSearchEngineGridRows(value: Int) = editor.edit {
@@ -1164,6 +1184,10 @@ class OverlaySettingsMutator @Inject constructor(
 
     suspend fun setSearchPanelInputBehavior(behavior: SearchPanelInputBehavior) = editor.edit {
         it[SettingsPreferenceKeys.SEARCH_PANEL_INPUT_BEHAVIOR] = behavior.name
+    }
+
+    suspend fun setSearchPanelEnterAction(action: SearchPanelEnterAction) = editor.edit {
+        it[SettingsPreferenceKeys.SEARCH_PANEL_ENTER_ACTION] = action.name
     }
 
     suspend fun setSearchPanelContactSearchEnabled(enabled: Boolean) = editor.edit {

@@ -420,8 +420,12 @@ internal object SettingsPreferenceKeys {
     val FLOAT_BALL_PICK_BOTTOM_TRANSITION_FRACTION =
         floatPreferencesKey("float_ball_pick_bottom_transition_fraction")
     val FLOAT_BALL_PICK_TEXT_FIRST_PANEL = booleanPreferencesKey("float_ball_pick_text_first_panel")
+    val FLOAT_BALL_PICK_PANEL_STYLE = stringPreferencesKey("float_ball_pick_panel_style")
+    val FLOAT_BALL_PICK_SEARCH_GRID_DEFAULT_STATE = stringPreferencesKey("float_ball_pick_search_grid_default_state")
+    val FLOAT_BALL_PICK_SEARCH_GRID_LAST_EXPANDED = booleanPreferencesKey("float_ball_pick_search_grid_last_expanded")
     val FLOAT_BALL_PICK_AUTO_SELECT_ALL = booleanPreferencesKey("float_ball_pick_auto_select_all")
     val FLOAT_BALL_PICK_COPY_DISMISS_PANEL = booleanPreferencesKey("float_ball_pick_copy_dismiss_panel")
+    val FLOAT_BALL_PICK_HAPTIC_ENABLED = booleanPreferencesKey("float_ball_pick_haptic_enabled")
     val FLOAT_BALL_DRAG_PASTE_ENABLED = booleanPreferencesKey("float_ball_drag_paste_enabled")
     val FLOAT_BALL_PICK_PANEL_ENTER_ANIMATION_MS =
         intPreferencesKey("float_ball_pick_panel_enter_animation_ms")
@@ -502,6 +506,7 @@ internal object SettingsPreferenceKeys {
     val STASH_PANEL_BACKGROUND_BLUR_ENABLED = booleanPreferencesKey("stash_panel_background_blur_enabled")
     val STASH_PANEL_BACKGROUND_BLUR_RADIUS_DP = intPreferencesKey("stash_panel_background_blur_radius_dp")
     val DEFAULT_IMAGE_VIEWER_PACKAGE = stringPreferencesKey("default_image_viewer_package")
+    val IMAGE_EDITOR_DELAY_DELETE_ENABLED = booleanPreferencesKey("image_editor_delay_delete_enabled")
     val OCR_ENGINE_ID = stringPreferencesKey("ocr_engine_id")
     val SEARCH_ENGINES_JSON = stringPreferencesKey("search_engines_json")
     val SEARCH_ENGINES_INITIALIZED = booleanPreferencesKey("search_engines_initialized")
@@ -510,6 +515,7 @@ internal object SettingsPreferenceKeys {
     val SEARCH_ENGINE_SHOW_LABELS = booleanPreferencesKey("search_engine_show_labels")
     val SEARCH_PANEL_DEFAULT_ENGINE_ID = stringPreferencesKey("search_panel_default_engine_id")
     val SEARCH_PANEL_INPUT_BEHAVIOR = stringPreferencesKey("search_panel_input_behavior")
+    val SEARCH_PANEL_ENTER_ACTION = stringPreferencesKey("search_panel_enter_action")
     val SEARCH_PANEL_CONTACT_SEARCH_ENABLED = booleanPreferencesKey("search_panel_contact_search_enabled")
     val SEARCH_PANEL_FILE_SEARCH_ENABLED = booleanPreferencesKey("search_panel_file_search_enabled")
     val SEARCH_PANEL_APP_SEARCH_ENABLED = booleanPreferencesKey("search_panel_app_search_enabled")

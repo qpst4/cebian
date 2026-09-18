@@ -13,6 +13,7 @@ import com.slideindex.app.settings.AggregatedImageSearchEngineConfig
 import com.slideindex.app.settings.AggregatedImageSearchEnginePreferencesStore
 import com.slideindex.app.settings.SearchPanelHistoryCapacity
 import com.slideindex.app.settings.SearchPanelSectionAliasSettings
+import com.slideindex.app.settings.SearchPanelEnterAction
 import com.slideindex.app.settings.SearchPanelInputBehavior
 import com.slideindex.app.settings.SearchEngineConfig
 import com.slideindex.app.settings.SearchEngineType
@@ -333,6 +334,10 @@ class SearchEngineSettingsViewModel @Inject constructor(
         settingsRepository.setSearchPanelInputBehavior(behavior)
     }
 
+    fun setSearchPanelEnterAction(action: SearchPanelEnterAction) = launchSettingsWrite {
+        settingsRepository.setSearchPanelEnterAction(action)
+    }
+
     fun setSearchPanelContactSearchEnabled(enabled: Boolean) = launchSettingsWrite {
         settingsRepository.setSearchPanelContactSearchEnabled(enabled)
     }
@@ -432,6 +437,27 @@ class SearchEngineSettingsViewModel @Inject constructor(
 
     fun setSearchPanelDimPercent(value: Int) = launchSettingsWrite {
         settingsRepository.setSearchPanelDimPercent(value)
+    }
+
+    fun updateTextEngines(updatedTextEngines: List<SearchEngineConfig>) {
+        viewModelScope.launch {
+            val nonTextEngines = settings.value.searchEngines.filter { it.engineType == SearchEngineType.SHARE_IMAGE_TO_APP }
+            val merged = updatedTextEngines + nonTextEngines
+            persistEngines(merged.mapIndexed { index, engine -> engine.copy(sortOrder = index) })
+        }
+    }
+
+    fun toggleEnginePickPanelVisibility(engineId: String) {
+        viewModelScope.launch {
+            val engines = settings.value.searchEngines.map { engine ->
+                if (engine.id == engineId) {
+                    engine.copy(showInPickPanel = !engine.showInPickPanel)
+                } else {
+                    engine
+                }
+            }
+            persistEngines(engines)
+        }
     }
 
     fun reorderPickPanelEngines(ordered: List<SearchEngineConfig>) {

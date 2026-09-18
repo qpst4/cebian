@@ -7,7 +7,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Apps
-import androidx.compose.material.icons.outlined.History
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Contacts
 import top.yukonga.miuix.kmp.icon.extended.File
@@ -26,16 +25,14 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import com.slideindex.app.R
 import com.slideindex.app.overlay.searchpanel.FilePermissionTrampolineActivity
-import com.slideindex.app.overlay.SystemWallpaperBlurHelper
-import com.slideindex.app.overlay.WallpaperPermissionTrampolineActivity
 import com.slideindex.app.search.contacts.ContactSearchIndex
 import com.slideindex.app.search.files.FileSearchIndex
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.SearchEngineStore
-import com.slideindex.app.settings.SearchPanelBackgroundStyle
 import com.slideindex.app.settings.SearchPanelAppDisplayStyle
 import com.slideindex.app.settings.SearchPanelBarPosition
 import com.slideindex.app.settings.SearchPanelHistoryCapacity
+import com.slideindex.app.settings.SearchPanelEnterAction
 import com.slideindex.app.settings.SearchPanelInputBehavior
 import com.slideindex.app.settings.SearchPanelListOrder
 import com.slideindex.app.settings.SearchPanelPresentationMode
@@ -50,6 +47,7 @@ import com.slideindex.app.ui.settings.components.SettingSwitchNavigationRow
 import com.slideindex.app.ui.settings.components.SettingSwitchRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 import com.slideindex.app.ui.settings.components.SettingsHintText
+import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import com.slideindex.app.ui.settings.components.SettingsSliderRow
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
@@ -60,8 +58,6 @@ fun SearchPanelSettingsScreen(
     settings: AppSettings,
     searchHistoryEntryCount: Int,
     onBack: () -> Unit,
-    onSetDefaultEngineId: (String?) -> Unit,
-    onSetSearchPanelInputBehavior: (SearchPanelInputBehavior) -> Unit,
     onSetSearchPanelContactSearchEnabled: (Boolean) -> Unit,
     onSetSearchPanelFileSearchEnabled: (Boolean) -> Unit,
     onSetSearchPanelAppSearchEnabled: (Boolean) -> Unit,
@@ -71,52 +67,26 @@ fun SearchPanelSettingsScreen(
     onOpenContactSearchSettings: () -> Unit,
     onOpenFileSearchSettings: () -> Unit,
     onOpenSystemSettingsSearchSettings: () -> Unit,
-    onSetSearchPanelPresentationMode: (SearchPanelPresentationMode) -> Unit,
-    onSetSearchPanelBarPosition: (SearchPanelBarPosition) -> Unit,
-    onSetSearchPanelListOrder: (SearchPanelListOrder) -> Unit,
-    onSetSearchPanelAppDisplayStyle: (SearchPanelAppDisplayStyle) -> Unit,
     onSetSearchPanelCalculatorEnabled: (Boolean) -> Unit,
     onSetSearchPanelWebSuggestionsEnabled: (Boolean) -> Unit,
     onSetSearchPanelWebSuggestionsCount: (Int) -> Unit,
     onSetSearchPanelHistoryMaxEntries: (Int) -> Unit,
     onClearSearchHistory: () -> Unit,
-    onSetSearchPanelBackgroundStyle: (Int) -> Unit,
-    onSetSearchPanelBlurRadiusDp: (Int) -> Unit,
-    onSetSearchPanelDimPercent: (Int) -> Unit,
     onOpenPresentationLayoutSettings: () -> Unit,
     onOpenTextSearchEngines: () -> Unit,
     onOpenImageSearchEngines: () -> Unit,
 ) {
     val context = LocalContext.current
     var showClearHistoryDialog by remember { mutableStateOf(false) }
-    var wallpaperPermissionGranted by remember {
-        mutableStateOf(SystemWallpaperBlurHelper.hasWallpaperAccessPermission(context))
-    }
-    fun ensureWallpaperPermission() {
-        SystemWallpaperBlurHelper.requestWallpaperPermission(context)
-    }
+
     val engines = remember(settings.searchEngines) {
         SearchEngineStore.textSettingsEngines(settings.searchEngines)
     }
     val sectionAliases = settings.searchPanelSectionAliases.normalized()
-    val presentationModes = SearchPanelPresentationMode.entries
-    val inputBehaviorEntries = SearchPanelInputBehavior.entries
-    val barPositions = SearchPanelBarPosition.entries
-    val listOrders = SearchPanelListOrder.entries
-    val appDisplayStyles = SearchPanelAppDisplayStyle.entries
     val historyCapacityPresets = SearchPanelHistoryCapacity.presets
     val historyCapacityIndex = historyCapacityPresets
         .indexOf(settings.searchPanelHistoryMaxEntries)
         .let { if (it >= 0) it else historyCapacityPresets.indexOf(SearchPanelHistoryCapacity.DEFAULT).coerceAtLeast(0) }
-    val noneEngineLabel = stringResource(R.string.search_panel_default_engine_none)
-    val defaultEngineItems = listOf(noneEngineLabel) + engines.map { it.name }
-    val defaultEngineIndex = if (settings.searchPanelDefaultEngineId == null) {
-        0
-    } else {
-        engines.indexOfFirst { it.id == settings.searchPanelDefaultEngineId }.let { idx ->
-            if (idx >= 0) idx + 1 else 0
-        }
-    }
 
     val contactPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
@@ -131,23 +101,16 @@ fun SearchPanelSettingsScreen(
         }
     }
 
-    val layoutSectionTitle = stringResource(R.string.search_panel_settings_section_layout)
-    val behaviorSectionTitle = stringResource(R.string.search_panel_settings_section_behavior)
-    val appearanceSectionTitle = stringResource(R.string.search_panel_settings_section_appearance)
-    val candidatesSectionTitle = stringResource(R.string.search_panel_settings_section_candidates)
+    val presentationLayoutTitle = stringResource(R.string.search_panel_settings_section_layout)
+    val presentationLayoutSubtitle = stringResource(R.string.search_panel_presentation_layout_entry_desc)
     val enginesSectionTitle = stringResource(R.string.search_panel_settings_section_engines)
-    val backgroundStyles = listOf(
-        SearchPanelBackgroundStyle.BLUR,
-        SearchPanelBackgroundStyle.WALLPAPER_BLUR,
-        SearchPanelBackgroundStyle.BLACK,
-    )
+    val localCandidatesSectionTitle = stringResource(R.string.search_panel_settings_section_local_search)
+    val smartCandidatesSectionTitle = stringResource(R.string.search_panel_settings_section_smart_candidates)
     val appsTitle = stringResource(R.string.search_panel_section_apps)
     val contactsTitle = stringResource(R.string.search_panel_section_contacts)
     val filesTitle = stringResource(R.string.search_panel_section_files)
     val settingsSearchTitle = stringResource(R.string.search_panel_settings_search_title)
     val historyHint = stringResource(R.string.search_panel_history_hint)
-    val presentationLayoutTitle = stringResource(R.string.search_panel_settings_section_layout)
-    val presentationLayoutSubtitle = stringResource(R.string.search_panel_settings_subtitle)
 
     SettingsScreenScaffold(
         title = stringResource(R.string.search_panel_settings_title),
@@ -169,57 +132,7 @@ fun SearchPanelSettingsScreen(
                 )
             },
         )
-        if (false) {
-        settingsLazySmallTitle(key = "layout_section", title = layoutSectionTitle)
-        groupedCardItems(
-            keyPrefix = "search_panel_layout",
-            items = buildList {
-                add(
-                    settingsCardScopeItem("presentation") {
-                        SettingDropdownRow(
-                            title = stringResource(R.string.search_panel_presentation_title),
-                            items = presentationModes.map { searchPanelPresentationLabel(it) },
-                            selectedIndex = presentationModes.indexOf(settings.searchPanelPresentationMode)
-                                .coerceAtLeast(0),
-                            onSelectedIndexChange = { onSetSearchPanelPresentationMode(presentationModes[it]) },
-                        )
-                    },
-                )
-                add(
-                    settingsCardScopeItem("bar-position") {
-                        SettingDropdownRow(
-                            title = stringResource(R.string.search_panel_bar_position_title),
-                            items = barPositions.map { searchPanelBarPositionLabel(it) },
-                            selectedIndex = barPositions.indexOf(settings.searchPanelBarPosition).coerceAtLeast(0),
-                            onSelectedIndexChange = { onSetSearchPanelBarPosition(barPositions[it]) },
-                        )
-                    },
-                )
-                add(
-                    settingsCardScopeItem("list-order") {
-                        SettingDropdownRow(
-                            title = stringResource(R.string.search_panel_list_order_title),
-                            items = listOrders.map { searchPanelListOrderLabel(it) },
-                            selectedIndex = listOrders.indexOf(settings.searchPanelListOrder).coerceAtLeast(0),
-                            onSelectedIndexChange = { onSetSearchPanelListOrder(listOrders[it]) },
-                        )
-                    },
-                )
-                add(
-                    settingsCardScopeItem("app-display-style") {
-                        SettingDropdownRow(
-                            title = stringResource(R.string.search_panel_app_display_style_title),
-                            items = appDisplayStyles.map { searchPanelAppDisplayStyleLabel(it) },
-                            selectedIndex = appDisplayStyles.indexOf(settings.searchPanelAppDisplayStyle)
-                                .coerceAtLeast(0),
-                            onSelectedIndexChange = { onSetSearchPanelAppDisplayStyle(appDisplayStyles[it]) },
-                        )
-                    },
-                )
-            },
-        )
 
-        }
         settingsLazySmallTitle(key = "engines_section", title = enginesSectionTitle)
         groupedCardItems(
             keyPrefix = "search_panel_engines",
@@ -247,178 +160,7 @@ fun SearchPanelSettingsScreen(
             },
         )
 
-        settingsLazySmallTitle(key = "behavior_section", title = behaviorSectionTitle)
-        groupedCardItems(
-            keyPrefix = "search_panel_behavior",
-            items = buildList {
-                add(
-                    settingsCardScopeItem("default-engine") {
-                        SettingDropdownRow(
-                            title = stringResource(R.string.search_panel_default_engine_title),
-                            items = defaultEngineItems,
-                            selectedIndex = defaultEngineIndex,
-                            enabled = engines.isNotEmpty(),
-                            onSelectedIndexChange = { index ->
-                                onSetDefaultEngineId(if (index == 0) null else engines[index - 1].id)
-                            },
-                        )
-                    },
-                )
-                add(
-                    settingsCardScopeItem("input-behavior") {
-                        SettingDropdownRow(
-                            title = stringResource(R.string.search_panel_input_behavior_title),
-                            items = inputBehaviorEntries.map { searchPanelInputBehaviorLabel(it) },
-                            selectedIndex = inputBehaviorEntries.indexOf(settings.searchPanelInputBehavior)
-                                .coerceAtLeast(0),
-                            onSelectedIndexChange = { onSetSearchPanelInputBehavior(inputBehaviorEntries[it]) },
-                        )
-                    },
-                )
-                add(
-                    settingsCardScopeItem("calculator") {
-                        SettingSwitchRow(
-                            title = stringResource(R.string.search_panel_calculator_title),
-                            subtitle = stringResource(R.string.search_panel_calculator_desc),
-                            checked = settings.searchPanelCalculatorEnabled,
-                            enabled = true,
-                            onCheckedChange = onSetSearchPanelCalculatorEnabled,
-                        )
-                    },
-                )
-                add(
-                    settingsCardScopeItem("web-suggestions") {
-                        SettingSwitchRow(
-                            title = stringResource(R.string.search_panel_web_suggestions_title),
-                            subtitle = stringResource(R.string.search_panel_web_suggestions_desc),
-                            checked = settings.searchPanelWebSuggestionsEnabled,
-                            enabled = true,
-                            onCheckedChange = onSetSearchPanelWebSuggestionsEnabled,
-                        )
-                    },
-                )
-                if (settings.searchPanelWebSuggestionsEnabled) {
-                    add(
-                        settingsCardScopeItem("web-suggestions-count") {
-                            SettingsSliderRow(
-                                title = stringResource(R.string.search_panel_web_suggestions_count_title),
-                                value = settings.searchPanelWebSuggestionsCount.toFloat(),
-                                valueRange = AppSettings.SEARCH_PANEL_WEB_SUGGESTIONS_COUNT_MIN.toFloat()..
-                                    AppSettings.SEARCH_PANEL_WEB_SUGGESTIONS_COUNT_MAX.toFloat(),
-                                steps = 3,
-                                enabled = true,
-                                label = settings.searchPanelWebSuggestionsCount.toString(),
-                                onValueChange = { onSetSearchPanelWebSuggestionsCount(it.roundToInt()) },
-                            )
-                        },
-                    )
-                }
-                add(
-                    settingsCardScopeItem("history-capacity") {
-                        SettingDropdownRow(
-                            icon = { label -> Icon(Icons.Outlined.History, contentDescription = label) },
-                            title = stringResource(R.string.search_panel_history_capacity_title),
-                            items = historyCapacityPresets.map {
-                                stringResource(R.string.search_panel_history_capacity_value, it)
-                            },
-                            selectedIndex = historyCapacityIndex,
-                            onSelectedIndexChange = { onSetSearchPanelHistoryMaxEntries(historyCapacityPresets[it]) },
-                        )
-                    },
-                )
-                add(
-                    settingsCardScopeItem("history-hint") {
-                        SettingsHintText(historyHint)
-                    },
-                )
-                add(
-                    settingsCardScopeItem("history-clear") {
-                        SettingLinkRow(
-                            title = stringResource(R.string.search_panel_history_clear),
-                            subtitle = pluralStringResource(
-                                R.plurals.search_panel_history_count,
-                                searchHistoryEntryCount,
-                                searchHistoryEntryCount,
-                            ),
-                            enabled = searchHistoryEntryCount > 0,
-                            onClick = { showClearHistoryDialog = true },
-                        )
-                    },
-                )
-            },
-        )
-
-        if (false) {
-        settingsLazySmallTitle(key = "appearance_section", title = appearanceSectionTitle)
-        groupedCardItems(
-            keyPrefix = "search_panel_appearance",
-            items = buildList {
-                add(
-                    settingsCardScopeItem("background-style") {
-                        SettingDropdownRow(
-                            title = stringResource(R.string.honeycomb_display_section_background),
-                            items = listOf(
-                                stringResource(R.string.honeycomb_background_blur),
-                                stringResource(R.string.honeycomb_background_wallpaper_blur),
-                                stringResource(R.string.honeycomb_background_black),
-                            ),
-                            selectedIndex = backgroundStyles.indexOf(settings.searchPanelBackgroundStyle)
-                                .coerceAtLeast(0),
-                            onSelectedIndexChange = {
-                                val style = backgroundStyles[it]
-                                onSetSearchPanelBackgroundStyle(style)
-                                if (style == SearchPanelBackgroundStyle.WALLPAPER_BLUR &&
-                                    !SystemWallpaperBlurHelper.hasWallpaperAccessPermission(context)
-                                ) {
-                                    ensureWallpaperPermission()
-                                }
-                            },
-                        )
-                    },
-                )
-                if (settings.searchPanelBackgroundStyle == SearchPanelBackgroundStyle.BLUR
-                    || settings.searchPanelBackgroundStyle == SearchPanelBackgroundStyle.WALLPAPER_BLUR
-                ) {
-                    add(
-                        settingsCardScopeItem("blur-strength") {
-                            SettingsSliderRow(
-                                title = stringResource(R.string.honeycomb_blur_strength),
-                                value = settings.searchPanelBlurRadiusDp.toFloat(),
-                                valueRange = AppSettings.SEARCH_PANEL_BLUR_RADIUS_MIN_DP.toFloat()..
-                                    AppSettings.SEARCH_PANEL_BLUR_RADIUS_MAX_DP.toFloat(),
-                                steps = 16,
-                                enabled = true,
-                                label = stringResource(
-                                    R.string.corner_gesture_zone_dp_value,
-                                    settings.searchPanelBlurRadiusDp,
-                                ),
-                                onValueChange = { onSetSearchPanelBlurRadiusDp(it.roundToInt()) },
-                            )
-                        },
-                    )
-                }
-                add(
-                    settingsCardScopeItem("dim-percent") {
-                        SettingsSliderRow(
-                            title = stringResource(R.string.honeycomb_dim_percent),
-                            value = settings.searchPanelDimPercent.toFloat(),
-                            valueRange = AppSettings.SEARCH_PANEL_DIM_MIN_PERCENT.toFloat()..
-                                AppSettings.SEARCH_PANEL_DIM_MAX_PERCENT.toFloat(),
-                            steps = 12,
-                            enabled = true,
-                            label = stringResource(
-                                R.string.floating_pointer_percent_value,
-                                settings.searchPanelDimPercent,
-                            ),
-                            onValueChange = { onSetSearchPanelDimPercent(it.roundToInt()) },
-                        )
-                    },
-                )
-            },
-        )
-
-        }
-        settingsLazySmallTitle(key = "candidates_section", title = candidatesSectionTitle)
+        settingsLazySmallTitle(key = "local_candidates_section", title = localCandidatesSectionTitle)
         groupedCardItems(
             keyPrefix = "search_panel_candidates",
             items = buildList {
@@ -541,6 +283,81 @@ fun SearchPanelSettingsScreen(
             },
         )
 
+        settingsLazySmallTitle(key = "smart_candidates_section", title = smartCandidatesSectionTitle)
+        groupedCardItems(
+            keyPrefix = "search_panel_smart_candidates",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("calculator") {
+                        SettingSwitchRow(
+                            title = stringResource(R.string.search_panel_calculator_title),
+                            subtitle = stringResource(R.string.search_panel_calculator_desc),
+                            checked = settings.searchPanelCalculatorEnabled,
+                            enabled = true,
+                            onCheckedChange = onSetSearchPanelCalculatorEnabled,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("web-suggestions") {
+                        SettingSwitchRow(
+                            title = stringResource(R.string.search_panel_web_suggestions_title),
+                            subtitle = stringResource(R.string.search_panel_web_suggestions_desc),
+                            checked = settings.searchPanelWebSuggestionsEnabled,
+                            enabled = true,
+                            onCheckedChange = onSetSearchPanelWebSuggestionsEnabled,
+                        )
+                    },
+                )
+                if (settings.searchPanelWebSuggestionsEnabled) {
+                    add(
+                        settingsCardScopeItem("web-suggestions-count") {
+                            SettingsSliderRow(
+                                title = stringResource(R.string.search_panel_web_suggestions_count_title),
+                                value = settings.searchPanelWebSuggestionsCount.toFloat(),
+                                valueRange = AppSettings.SEARCH_PANEL_WEB_SUGGESTIONS_COUNT_MIN.toFloat()..
+                                    AppSettings.SEARCH_PANEL_WEB_SUGGESTIONS_COUNT_MAX.toFloat(),
+                                steps = 3,
+                                enabled = true,
+                                label = settings.searchPanelWebSuggestionsCount.toString(),
+                                onValueChange = { onSetSearchPanelWebSuggestionsCount(it.roundToInt()) },
+                            )
+                        },
+                    )
+                }
+                add(
+                    settingsCardScopeItem("history-hint") {
+                        SettingsHintText(historyHint)
+                    },
+                )
+                add(
+                    settingsCardScopeItem("history-capacity") {
+                        SettingDropdownRow(
+                            title = stringResource(R.string.search_panel_history_capacity_title),
+                            items = historyCapacityPresets.map {
+                                stringResource(R.string.search_panel_history_capacity_value, it)
+                            },
+                            selectedIndex = historyCapacityIndex,
+                            onSelectedIndexChange = { onSetSearchPanelHistoryMaxEntries(historyCapacityPresets[it]) },
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("history-clear") {
+                        SettingLinkRow(
+                            title = stringResource(R.string.search_panel_history_clear),
+                            subtitle = pluralStringResource(
+                                R.plurals.search_panel_history_count,
+                                searchHistoryEntryCount,
+                                searchHistoryEntryCount,
+                            ),
+                            enabled = searchHistoryEntryCount > 0,
+                            onClick = { showClearHistoryDialog = true },
+                        )
+                    },
+                )
+            },
+        )
     }
 
     MiuixConfirmDialog(
@@ -580,6 +397,14 @@ internal fun searchPanelInputBehaviorLabel(behavior: SearchPanelInputBehavior): 
     SearchPanelInputBehavior.SELECT_ALL -> stringResource(R.string.search_panel_input_behavior_select_all)
     SearchPanelInputBehavior.CLEAR -> stringResource(R.string.search_panel_input_behavior_clear)
     SearchPanelInputBehavior.KEEP -> stringResource(R.string.search_panel_input_behavior_keep)
+}
+
+@Composable
+internal fun searchPanelEnterActionLabel(action: SearchPanelEnterAction): String = when (action) {
+    SearchPanelEnterAction.SEARCH_ENGINE ->
+        stringResource(R.string.search_panel_enter_action_search_engine)
+    SearchPanelEnterAction.FIRST_CANDIDATE ->
+        stringResource(R.string.search_panel_enter_action_first_candidate)
 }
 
 @Composable

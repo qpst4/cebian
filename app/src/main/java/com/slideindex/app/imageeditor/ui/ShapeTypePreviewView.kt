@@ -55,6 +55,7 @@ class ShapeTypePreviewView @JvmOverloads constructor(
             ShapeType.OVAL -> canvas.drawOval(bounds, shapePaint)
             ShapeType.LINE -> canvas.drawLine(bounds.left, bounds.bottom, bounds.right, bounds.top, shapePaint)
             ShapeType.ARROW -> drawArrow(canvas, bounds)
+            ShapeType.DOUBLE_ARROW -> drawDoubleArrow(canvas, bounds)
             ShapeType.DIAMOND -> drawDiamond(canvas, bounds)
             ShapeType.TRIANGLE -> drawTriangle(canvas, bounds)
         }
@@ -82,6 +83,37 @@ class ShapeTypePreviewView @JvmOverloads constructor(
         arrowPath.lineTo(endX - hx + wingX, endY - hy + wingY)
         arrowPath.moveTo(endX, endY)
         arrowPath.lineTo(endX - hx - wingX, endY - hy - wingY)
+        canvas.drawPath(arrowPath, shapePaint)
+    }
+
+    private fun drawDoubleArrow(canvas: Canvas, bounds: RectF) {
+        arrowPath.reset()
+        val startX = bounds.left + bounds.width() * 0.06f
+        val startY = bounds.bottom - bounds.height() * 0.18f
+        val endX = bounds.right - bounds.width() * 0.04f
+        val endY = bounds.top + bounds.height() * 0.18f
+        val dx = endX - startX
+        val dy = endY - startY
+        val length = max(sqrt(dx * dx + dy * dy), 1f)
+        val ux = dx / length
+        val uy = dy / length
+        val head = max(min(bounds.width(), bounds.height()) * 0.30f, shapePaint.strokeWidth * 2.6f)
+        arrowPath.moveTo(startX, startY)
+        arrowPath.lineTo(endX, endY)
+        val hx = ux * head
+        val hy = uy * head
+        val wingX = -uy * head * 0.45f
+        val wingY = ux * head * 0.45f
+        // End arrow head
+        arrowPath.moveTo(endX, endY)
+        arrowPath.lineTo(endX - hx + wingX, endY - hy + wingY)
+        arrowPath.moveTo(endX, endY)
+        arrowPath.lineTo(endX - hx - wingX, endY - hy - wingY)
+        // Start arrow head
+        arrowPath.moveTo(startX, startY)
+        arrowPath.lineTo(startX + hx + wingX, startY + hy + wingY)
+        arrowPath.moveTo(startX, startY)
+        arrowPath.lineTo(startX + hx - wingX, startY + hy - wingY)
         canvas.drawPath(arrowPath, shapePaint)
     }
 

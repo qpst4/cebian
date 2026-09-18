@@ -173,6 +173,6 @@ class OverlayService : LifecycleService() {
 
         private const val CHANNEL_ID = "slide_index_service"
         private const val NOTIFICATION_ID = 1001
-        private const val ACCESSIBILITY_WATCHDOG_INTERVAL_MS = 60_000L
+        private const val ACCESSIBILITY_WATCHDOG_INTERVAL_MS = 25_000L
     }
 }

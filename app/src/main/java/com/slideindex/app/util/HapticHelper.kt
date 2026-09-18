@@ -42,6 +42,17 @@ object HapticHelper {
         pulse(view, settings, PulseKind.CONFIRM)
     }
 
+    fun pickPanelSaveLongClick(view: View, settings: AppSettings) {
+        val strength = settings.resolvedHapticStrength()
+        val constant = feedbackConstant(PulseKind.CONFIRM, strength)
+        val success = if (view.isAttachedToWindow) {
+            view.performHapticFeedback(constant, FLAGS)
+        } else false
+        if (!success) {
+            vibrateFallback(view.context, constant)
+        }
+    }
+
     private enum class PulseKind {
         GESTURE,
         LONG_THRESHOLD,
@@ -53,9 +64,10 @@ object HapticHelper {
     private fun pulse(view: View, settings: AppSettings, kind: PulseKind) {
         if (!settings.hapticEnabled) return
         val constant = feedbackConstant(kind, settings.resolvedHapticStrength())
-        if (view.isAttachedToWindow) {
+        val success = if (view.isAttachedToWindow) {
             view.performHapticFeedback(constant, FLAGS)
-        } else {
+        } else false
+        if (!success) {
             vibrateFallback(view.context, constant)
         }
     }
@@ -75,7 +87,7 @@ object HapticHelper {
 
     private fun vibrator(context: Context): Vibrator? {
         val manager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as? VibratorManager
-        return manager?.defaultVibrator
+        return manager?.defaultVibrator ?: (context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator)
     }
 
     private fun feedbackConstant(kind: PulseKind, strength: HapticStrength): Int =

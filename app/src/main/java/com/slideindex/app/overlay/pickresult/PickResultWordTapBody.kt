@@ -28,6 +28,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -48,13 +49,16 @@ import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.LocalViewConfiguration
+import android.view.HapticFeedbackConstants
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.max
@@ -79,10 +83,10 @@ private val WORD_WHITESPACE_HIT_EXPAND = 8.dp
 private const val WORD_TAP_ROW_CHUNK_SIZE = 40
 
 /** 划选时接近上下边缘触发自动滚动的区域。 */
-private val WORD_DRAG_EDGE_ZONE = 28.dp
+private val WORD_DRAG_EDGE_ZONE = 36.dp
 
 /** 划选边缘自动滚动每步距离。 */
-private val WORD_DRAG_EDGE_SCROLL_STEP = 14.dp
+private val WORD_DRAG_EDGE_SCROLL_STEP = 12.dp
 
 private data class WordTapChunk(
     val startIndex: Int,
@@ -195,35 +199,7 @@ private suspend fun scrollWordTapToFraction(scrollState: ScrollState, fraction: 
     scrollState.scrollTo(target)
 }
 
-private fun scrollWordTapForDragEdge(
-    scrollState: ScrollState,
-    gestureScope: CoroutineScope,
-    pointerYInGesture: Float,
-    viewportHeightPx: Float,
-    edgeZonePx: Float,
-    scrollStepPx: Float,
-) {
-    if (viewportHeightPx <= 0f || edgeZonePx <= 0f) return
 
-    when {
-        pointerYInGesture >= viewportHeightPx - edgeZonePx -> {
-            if (!scrollState.canScrollForward) return
-            val beyond = (pointerYInGesture - (viewportHeightPx - edgeZonePx)).coerceAtLeast(0f)
-            val step = scrollStepPx * (1f + beyond / edgeZonePx)
-            gestureScope.launch {
-                scrollState.scroll { scrollBy(step) }
-            }
-        }
-        pointerYInGesture <= edgeZonePx -> {
-            if (!scrollState.canScrollBackward) return
-            val beyond = (edgeZonePx - pointerYInGesture).coerceAtLeast(0f)
-            val step = scrollStepPx * (1f + beyond / edgeZonePx)
-            gestureScope.launch {
-                scrollState.scroll { scrollBy(-step) }
-            }
-        }
-    }
-}
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -236,7 +212,10 @@ fun PickResultWordTapBody(
     modifier: Modifier = Modifier,
     textSizeSp: Float = 15f,
     fillAvailableHeight: Boolean = false,
+    hapticEnabled: Boolean = true,
+    onScrollableChange: ((Boolean) -> Unit)? = null,
 ) {
+    val view = LocalView.current
     val bodyTextSize = textSizeSp.sp
     val delimiterTextSize = (textSizeSp * 13f / 15f).sp
     val bodyLineHeight = (textSizeSp * 20f / 15f).sp
@@ -261,10 +240,15 @@ fun PickResultWordTapBody(
     val scrollMetrics by remember {
         derivedStateOf { computeWordTapScrollMetrics(scrollState, viewportHeightPx) }
     }
+    val currentOnScrollableChange by rememberUpdatedState(onScrollableChange)
+    LaunchedEffect(scrollMetrics.scrollable) {
+        currentOnScrollableChange?.invoke(scrollMetrics.scrollable)
+    }
     val currentSelectedIndices by rememberUpdatedState(selectedWordIndices)
     val currentOnWordLongPress by rememberUpdatedState(onWordLongPress)
 
     fun recordChipBounds(index: Int, coordinates: LayoutCoordinates) {
+        if (wordTokens.getOrNull(index) == "\n") return
         val box = containerCoordinates ?: return
         if (!box.isAttached || !coordinates.isAttached) return
         val topLeft = box.localPositionOf(coordinates, Offset.Zero)
@@ -393,7 +377,10 @@ fun PickResultWordTapBody(
                 Modifier.heightIn(max = maxHeight)
             },
         )
-            .onGloballyPositioned { containerCoordinates = it }
+            .onGloballyPositioned {
+                containerCoordinates = it
+                viewportHeightPx = it.size.height.toFloat()
+            }
             .pointerInput(wordTokens, touchSlop) {
                 awaitEachGesture {
                     val down = awaitFirstDown(
@@ -421,6 +408,9 @@ fun PickResultWordTapBody(
                         }
                     }
 
+                    var lastPointerPosition = down.position
+                    var autoScrollJob: kotlinx.coroutines.Job? = null
+
                     try {
                         while (true) {
                             val event = awaitPointerEvent(PointerEventPass.Initial)
@@ -436,18 +426,18 @@ fun PickResultWordTapBody(
                             accumulated += delta
 
                             if (!wordDragArmed && !longPressTriggered) {
-                                val horizontalIntent =
-                                    abs(accumulated.x) > abs(accumulated.y) &&
-                                        abs(accumulated.x) > touchSlop
-                                val verticalIntent =
-                                    abs(accumulated.y) > abs(accumulated.x) &&
+                                val isClearlyVerticalScroll =
+                                    abs(accumulated.y) > abs(accumulated.x) * 1.5f &&
                                         abs(accumulated.y) > touchSlop
+                                val isHorizontalOrDiagonalSelect =
+                                    abs(accumulated.x) > touchSlop * 0.7f &&
+                                        abs(accumulated.x) >= abs(accumulated.y) * 0.5f
                                 when {
-                                    horizontalIntent -> {
+                                    isHorizontalOrDiagonalSelect -> {
                                         wordDragArmed = true
                                         longPressJob.cancel()
                                     }
-                                    verticalIntent -> {
+                                    isClearlyVerticalScroll -> {
                                         scrollGestureStarted = true
                                         longPressJob.cancel()
                                         return@awaitEachGesture
@@ -456,33 +446,84 @@ fun PickResultWordTapBody(
                             }
 
                             if (wordDragArmed) {
-                                val pointerInGesture =
-                                    pointerInGestureSpace(change.position) ?: continue
-                                scrollWordTapForDragEdge(
-                                    scrollState = scrollState,
-                                    gestureScope = gestureScope,
-                                    pointerYInGesture = pointerInGesture.y,
-                                    viewportHeightPx = viewportHeightPx,
-                                    edgeZonePx = edgeZonePx,
-                                    scrollStepPx = edgeScrollStepPx,
-                                )
+                                lastPointerPosition = change.position
                                 val currentIndex =
                                     indexAtInContainer(change.position, allowLineProjection = true) ?: lastRangeIndex
-                                lastRangeIndex = currentIndex
+                                if (currentIndex != lastRangeIndex) {
+                                    if (hapticEnabled) {
+                                        view.performHapticFeedback(
+                                            HapticFeedbackConstants.CLOCK_TICK,
+                                            HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING
+                                        )
+                                    }
+                                    lastRangeIndex = currentIndex
+                                }
                                 val range = rangeIndices(startIndex, currentIndex)
                                 onSelectionChange(
                                     if (selecting) baseline + range else baseline - range,
                                 )
                                 change.consume()
+
+                                if (autoScrollJob == null) {
+                                    autoScrollJob = gestureScope.launch {
+                                        while (isActive) {
+                                            val currentY = lastPointerPosition.y
+                                            if (viewportHeightPx > 0f && edgeZonePx > 0f) {
+                                                val bottomThreshold = viewportHeightPx - edgeZonePx
+                                                if (currentY >= bottomThreshold && scrollState.canScrollForward) {
+                                                    val beyond = (currentY - bottomThreshold).coerceAtLeast(0f)
+                                                    val step = edgeScrollStepPx * (1f + beyond / edgeZonePx)
+                                                    scrollState.scrollBy(step)
+                                                    val updatedIndex = indexAtInContainer(lastPointerPosition, allowLineProjection = true) ?: lastRangeIndex
+                                                    if (updatedIndex != lastRangeIndex) {
+                                                        if (hapticEnabled) {
+                                                            view.performHapticFeedback(
+                                                                HapticFeedbackConstants.CLOCK_TICK,
+                                                                HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING
+                                                            )
+                                                        }
+                                                        lastRangeIndex = updatedIndex
+                                                        val updatedRange = rangeIndices(startIndex, updatedIndex)
+                                                        onSelectionChange(if (selecting) baseline + updatedRange else baseline - updatedRange)
+                                                    }
+                                                } else if (currentY <= edgeZonePx && scrollState.canScrollBackward) {
+                                                    val beyond = (edgeZonePx - currentY).coerceAtLeast(0f)
+                                                    val step = edgeScrollStepPx * (1f + beyond / edgeZonePx)
+                                                    scrollState.scrollBy(-step)
+                                                    val updatedIndex = indexAtInContainer(lastPointerPosition, allowLineProjection = true) ?: lastRangeIndex
+                                                    if (updatedIndex != lastRangeIndex) {
+                                                        if (hapticEnabled) {
+                                                            view.performHapticFeedback(
+                                                                HapticFeedbackConstants.CLOCK_TICK,
+                                                                HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING
+                                                            )
+                                                        }
+                                                        lastRangeIndex = updatedIndex
+                                                        val updatedRange = rangeIndices(startIndex, updatedIndex)
+                                                        onSelectionChange(if (selecting) baseline + updatedRange else baseline - updatedRange)
+                                                    }
+                                                }
+                                            }
+                                            delay(16L)
+                                        }
+                                    }
+                                }
                             }
                         }
                     } finally {
                         longPressJob.cancel()
+                        autoScrollJob?.cancel()
                     }
 
                     val didScroll = scrollState.value != scrollAtDown
                     val isTap = accumulated.getDistance() < touchSlop
                     if (!wordDragArmed && !longPressTriggered && !scrollGestureStarted && !didScroll && isTap) {
+                        if (hapticEnabled) {
+                            view.performHapticFeedback(
+                                HapticFeedbackConstants.CLOCK_TICK,
+                                HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING
+                            )
+                        }
                         onSelectionChange(
                             if (startIndex in baseline) baseline - startIndex else baseline + startIndex,
                         )
@@ -502,14 +543,13 @@ fun PickResultWordTapBody(
                 )
                 .verticalScroll(scrollState)
                 .padding(
-                    start = 2.dp,
+                    start = 0.dp,
                     top = 2.dp,
-                    end = 2.dp,
+                    end = 0.dp,
                     bottom = PickResultWordTapBottomContentPadding + 2.dp,
                 )
                 .onGloballyPositioned {
                     gestureCoordinates = it
-                    viewportHeightPx = it.size.height.toFloat()
                 },
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
@@ -614,80 +654,122 @@ private fun WordTapTokenChip(
 ) {
     val isWhitespace = PickResultWordTokenizer.isWhitespaceToken(token)
     val isDark = LocalAppDarkTheme.current
-    val background = if (selected) {
-        if (isDark) androidx.compose.ui.graphics.Color(0xFF322F4C) else androidx.compose.ui.graphics.Color(0xFFF0EDFF)
-    } else {
-        if (isDark) androidx.compose.ui.graphics.Color(0xFF2C2C2E) else androidx.compose.ui.graphics.Color.White
-    }
-    val borderColor = if (selected) {
-        if (isDark) androidx.compose.ui.graphics.Color(0xFF9BA8E6) else androidx.compose.ui.graphics.Color(0xFF8C7AE6)
-    } else {
-        if (isDark) androidx.compose.ui.graphics.Color(0xFF4A4A4C) else androidx.compose.ui.graphics.Color(0xFFF1F2F6)
-    }
+    val primaryColor = MaterialTheme.colorScheme.primary
 
     if (isWhitespace) {
+        if (token == "\n") {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+            )
+            return
+        }
+
+        // 普通空格以轻透小字砖呈现
         val whitespaceWidth = when (token) {
             "\u3000" -> WORD_WHITESPACE_FULL_WIDTH
             "\t" -> WORD_WHITESPACE_TAB_WIDTH
-            else -> WORD_WHITESPACE_VISUAL_WIDTH
+            else -> 14.dp
         }
         val density = LocalDensity.current
-        val whitespaceContentHeight = with(density) { bodyLineHeight.toDp() }
+        val whitespaceContentHeight = with(density) { (bodyLineHeight.toDp() + 8.dp) }
+        val chipCorner = 6.dp
+        val chipShape = RoundedCornerShape(chipCorner)
+        val spaceBg = when {
+            selected -> if (isDark) androidx.compose.ui.graphics.Color(0xFF433968) else androidx.compose.ui.graphics.Color(0xFFEDE9FE)
+            else -> if (isDark) androidx.compose.ui.graphics.Color(0x0EFFFFFF) else androidx.compose.ui.graphics.Color(0x08000000)
+        }
+        val spaceBorder = when {
+            selected -> if (isDark) androidx.compose.ui.graphics.Color(0xFFA29BFE) else androidx.compose.ui.graphics.Color(0xFF8C7AE6)
+            else -> if (isDark) androidx.compose.ui.graphics.Color(0x14FFFFFF) else androidx.compose.ui.graphics.Color(0x0C000000)
+        }
+
         Box(
             modifier = Modifier
                 .onGloballyPositioned(onPositioned)
                 .then(
-                    if (token == "\n") {
-                        Modifier
-                            .fillMaxWidth()
-                            .height(1.dp)
-                    } else {
-                        Modifier.width(whitespaceWidth)
-                    },
+                    if (trailingGap) Modifier.padding(end = 3.dp) else Modifier
                 )
-                .clip(RoundedCornerShape(8.dp))
-                .background(background)
-                .border(1.dp, borderColor, RoundedCornerShape(8.dp))
-                .padding(vertical = WORD_TAP_CHIP_VERTICAL_PADDING)
-                .then(
-                    if (token != "\n") {
-                        Modifier.height(whitespaceContentHeight)
-                    } else {
-                        Modifier
-                    },
-                ),
-        )
+                .width(whitespaceWidth)
+                .height(whitespaceContentHeight)
+                .clip(chipShape)
+                .background(spaceBg)
+                .border(0.5.dp, spaceBorder, chipShape),
+            contentAlignment = Alignment.Center
+        ) {
+            // 空白字砖内部保持极淡的居中占位指示
+            Box(
+                modifier = Modifier
+                    .width(4.dp)
+                    .height(2.dp)
+                    .background(
+                        if (isDark) androidx.compose.ui.graphics.Color(0x28FFFFFF)
+                        else androidx.compose.ui.graphics.Color(0x18000000),
+                        RoundedCornerShape(1.dp)
+                    )
+            )
+        }
         return
     }
 
     val display = token.trim().ifEmpty { token }
     val isSingleChar = display.length == 1
     val isDelimiter = PickResultWordTokenizer.isDelimiterToken(display)
-    val textColor = if (selected) {
-        if (isDark) androidx.compose.ui.graphics.Color(0xFF9BA8E6) else androidx.compose.ui.graphics.Color(0xFF8C7AE6)
-    } else {
-        if (isDark) androidx.compose.ui.graphics.Color(0xFFD1D1D6) else androidx.compose.ui.graphics.Color(0xFF2F3542)
+    
+    val textColor = when {
+        selected -> if (isDark) androidx.compose.ui.graphics.Color(0xFFDDD6FE) else androidx.compose.ui.graphics.Color(0xFF5B21B6)
+        else -> if (isDark) androidx.compose.ui.graphics.Color(0xFFE8E8ED) else androidx.compose.ui.graphics.Color(0xFF1E2430)
     }
+    val background = when {
+        selected -> if (isDark) androidx.compose.ui.graphics.Color(0xFF433968) else androidx.compose.ui.graphics.Color(0xFFEDE9FE)
+        else -> if (isDark) androidx.compose.ui.graphics.Color(0x0EFFFFFF) else androidx.compose.ui.graphics.Color(0x08000000)
+    }
+    val borderColor = when {
+        selected -> if (isDark) androidx.compose.ui.graphics.Color(0xFFA29BFE) else androidx.compose.ui.graphics.Color(0xFF8C7AE6)
+        else -> if (isDark) androidx.compose.ui.graphics.Color(0x14FFFFFF) else androidx.compose.ui.graphics.Color(0x0C000000)
+    }
+
+    val chipCorner = 6.dp
+    val chipShape = RoundedCornerShape(chipCorner)
+
     Text(
         text = display,
         modifier = Modifier
             .onGloballyPositioned(onPositioned)
             .then(
                 if (trailingGap) {
-                    Modifier.padding(end = 4.dp)
+                    Modifier.padding(end = 3.dp)
                 } else {
                     Modifier
                 },
             )
-            .shadow(elevation = if (selected) 0.dp else 1.dp, shape = RoundedCornerShape(8.dp), clip = false)
-            .clip(RoundedCornerShape(8.dp))
-            .background(background)
-            .border(1.dp, borderColor, RoundedCornerShape(8.dp))
+            .then(
+                if (selected) {
+                    Modifier
+                        .shadow(
+                            elevation = 3.dp,
+                            shape = chipShape,
+                            spotColor = primaryColor.copy(alpha = 0.5f),
+                            ambientColor = primaryColor.copy(alpha = 0.2f),
+                            clip = false,
+                        )
+                        .clip(chipShape)
+                        .background(background)
+                        .border(1.dp, borderColor, chipShape)
+                } else {
+                    Modifier
+                        .clip(chipShape)
+                        .background(background)
+                        .border(0.5.dp, borderColor, chipShape)
+                }
+            )
             .padding(
-                horizontal = if (isSingleChar) 8.dp else 12.dp,
-                vertical = if (isSingleChar) 6.dp else WORD_TAP_CHIP_VERTICAL_PADDING,
+                horizontal = if (selected) (if (isSingleChar) 7.dp else 9.dp) else (if (isSingleChar) 6.dp else 8.dp),
+                vertical = if (selected) (if (isSingleChar) 5.dp else 6.dp) else 6.dp,
             ),
         fontSize = if (isDelimiter) delimiterTextSize else bodyTextSize,
+        fontWeight = if (selected) androidx.compose.ui.text.font.FontWeight.SemiBold else androidx.compose.ui.text.font.FontWeight.Normal,
         lineHeight = bodyLineHeight,
         color = textColor,
     )

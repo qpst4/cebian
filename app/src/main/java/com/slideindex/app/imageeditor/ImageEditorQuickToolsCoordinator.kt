@@ -721,6 +721,7 @@ class ImageEditorQuickToolsCoordinator(
         ShapeType.OVAL,
         ShapeType.LINE,
         ShapeType.ARROW,
+        ShapeType.DOUBLE_ARROW,
         ShapeType.DIAMOND,
         ShapeType.TRIANGLE,
     )
@@ -939,6 +940,7 @@ class ImageEditorQuickToolsCoordinator(
             ShapeType.OVAL -> R.string.inspire_image_edit_shape_oval
             ShapeType.LINE -> R.string.inspire_image_edit_shape_line
             ShapeType.ARROW -> R.string.inspire_image_edit_shape_arrow
+            ShapeType.DOUBLE_ARROW -> R.string.inspire_image_edit_shape_double_arrow
             ShapeType.DIAMOND -> R.string.inspire_image_edit_shape_diamond
             ShapeType.TRIANGLE -> R.string.inspire_image_edit_shape_triangle
         }

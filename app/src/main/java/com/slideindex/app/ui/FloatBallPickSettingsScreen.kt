@@ -41,9 +41,12 @@ fun FloatBallPickSettingsScreen(
     onPickCrossArmChange: (Float) -> Unit,
     onPickTextSizeChange: (Float) -> Unit,
     onPickBottomTransitionChange: (Float) -> Unit,
+    onPickPanelStyleChange: (com.slideindex.app.settings.PickResultPanelStyle) -> Unit = {},
+    onPickSearchGridDefaultStateChange: (com.slideindex.app.settings.PickResultSearchGridDefaultState) -> Unit = {},
     onPickTextFirstPanelChange: (Boolean) -> Unit,
     onPickAutoSelectAllChange: (Boolean) -> Unit = {},
     onPickCopyDismissPanelChange: (Boolean) -> Unit,
+    onPickHapticEnabledChange: (Boolean) -> Unit = {},
     onDragPasteEnabledChange: (Boolean) -> Unit,
     onPickPanelEnterAnimationMsChange: (Int) -> Unit,
     onPickPanelExitAnimationMsChange: (Int) -> Unit,
@@ -53,6 +56,7 @@ fun FloatBallPickSettingsScreen(
     onOcrFallbackChange: (Boolean) -> Unit,
     onShareImageOcrHistoryEnabledChange: (Boolean) -> Unit,
     onDefaultImageViewerPackageChange: (String?) -> Unit,
+    onImageEditorDelayDeleteChange: (Boolean) -> Unit = {},
     onOpenOcrModels: () -> Unit,
     onOpenShareImageOcrHistory: () -> Unit
 ) {
@@ -82,6 +86,38 @@ fun FloatBallPickSettingsScreen(
     val pickOperationSectionTitle = stringResource(R.string.float_ball_pick_section_operation)
     val advancedPickSectionTitle = stringResource(R.string.float_ball_pick_section_advanced)
     val advancedPickExpanded = remember { androidx.compose.runtime.mutableStateOf(false) }
+
+    val integratedLabel = stringResource(R.string.float_ball_pick_panel_style_integrated)
+    val tabPagedLabel = stringResource(R.string.float_ball_pick_panel_style_tab_paged)
+    val panelStyleOptions = remember(integratedLabel, tabPagedLabel) {
+        listOf(
+            com.slideindex.app.settings.PickResultPanelStyle.TAB_PAGED to tabPagedLabel,
+            com.slideindex.app.settings.PickResultPanelStyle.INTEGRATED_BOTTOM_BAR to integratedLabel
+        )
+    }
+    val selectedPanelStyleIndex = remember(settings.floatBallPickPanelStyle, panelStyleOptions) {
+        panelStyleOptions.indexOfFirst { it.first == settings.floatBallPickPanelStyle }.coerceAtLeast(0)
+    }
+    val panelStyleItems = remember(panelStyleOptions) {
+        panelStyleOptions.map { DropdownItem(text = it.second) }
+    }
+
+    val searchGridStateRememberLabel = stringResource(R.string.float_ball_pick_search_grid_state_remember)
+    val searchGridStateExpandedLabel = stringResource(R.string.float_ball_pick_search_grid_state_expanded)
+    val searchGridStateCollapsedLabel = stringResource(R.string.float_ball_pick_search_grid_state_collapsed)
+    val searchGridStateOptions = remember(searchGridStateRememberLabel, searchGridStateExpandedLabel, searchGridStateCollapsedLabel) {
+        listOf(
+            com.slideindex.app.settings.PickResultSearchGridDefaultState.REMEMBER_LAST to searchGridStateRememberLabel,
+            com.slideindex.app.settings.PickResultSearchGridDefaultState.ALWAYS_EXPANDED to searchGridStateExpandedLabel,
+            com.slideindex.app.settings.PickResultSearchGridDefaultState.ALWAYS_COLLAPSED to searchGridStateCollapsedLabel,
+        )
+    }
+    val selectedSearchGridStateIndex = remember(settings.floatBallPickSearchGridDefaultState, searchGridStateOptions) {
+        searchGridStateOptions.indexOfFirst { it.first == settings.floatBallPickSearchGridDefaultState }.coerceAtLeast(0)
+    }
+    val searchGridStateItems = remember(searchGridStateOptions) {
+        searchGridStateOptions.map { DropdownItem(text = it.second) }
+    }
 
     SettingsScreenScaffold(
         title = stringResource(R.string.float_ball_pick_settings_title),
@@ -154,6 +190,17 @@ fun FloatBallPickSettingsScreen(
                         )
                     }
                 )
+                add(
+                    settingsCardScopeItem("image-editor-delay-delete") {
+                        SettingSwitchRow(
+                            title = stringResource(R.string.image_editor_delay_delete_title),
+                            subtitle = stringResource(R.string.image_editor_delay_delete_desc),
+                            checked = settings.imageEditorDelayDeleteEnabled,
+                            enabled = true,
+                            onCheckedChange = onImageEditorDelayDeleteChange,
+                        )
+                    }
+                )
             }
         )
 
@@ -161,9 +208,42 @@ fun FloatBallPickSettingsScreen(
             key = "panel-section",
             title = panelSectionTitle
         )
+
         groupedCardItems(
             keyPrefix = "fb-pick-panel",
             items = buildList {
+                add(
+                    settingsCardScopeItem("panel-style") {
+                        SettingSpinnerRow(
+                            title = stringResource(R.string.float_ball_pick_panel_style),
+                            subtitle = panelStyleOptions.getOrNull(selectedPanelStyleIndex)?.second.orEmpty(),
+                            dialogButtonText = stringResource(R.string.cancel),
+                            items = panelStyleItems,
+                            selectedIndex = selectedPanelStyleIndex,
+                            enabled = true,
+                            onSelectedIndexChange = { index ->
+                                val selected = panelStyleOptions.getOrNull(index)?.first ?: return@SettingSpinnerRow
+                                onPickPanelStyleChange(selected)
+                            }
+                        )
+                    }
+                )
+                add(
+                    settingsCardScopeItem("search-grid-default-state") {
+                        SettingSpinnerRow(
+                            title = stringResource(R.string.float_ball_pick_search_grid_state_title),
+                            subtitle = searchGridStateOptions.getOrNull(selectedSearchGridStateIndex)?.second.orEmpty(),
+                            dialogButtonText = stringResource(R.string.cancel),
+                            items = searchGridStateItems,
+                            selectedIndex = selectedSearchGridStateIndex,
+                            enabled = true,
+                            onSelectedIndexChange = { index ->
+                                val selected = searchGridStateOptions.getOrNull(index)?.first ?: return@SettingSpinnerRow
+                                onPickSearchGridDefaultStateChange(selected)
+                            }
+                        )
+                    }
+                )
                 add(
                     settingsCardScopeItem("text-first-panel") {
                         SettingSwitchRow(
@@ -194,6 +274,17 @@ fun FloatBallPickSettingsScreen(
                             checked = settings.floatBallPickCopyDismissPanel,
                             enabled = true,
                             onCheckedChange = onPickCopyDismissPanelChange
+                        )
+                    }
+                )
+                add(
+                    settingsCardScopeItem("pick-haptic-enabled") {
+                        SettingSwitchRow(
+                            title = stringResource(R.string.float_ball_pick_haptic_enabled),
+                            subtitle = stringResource(R.string.float_ball_pick_haptic_enabled_desc),
+                            checked = settings.floatBallPickHapticEnabled,
+                            enabled = true,
+                            onCheckedChange = onPickHapticEnabledChange
                         )
                     }
                 )

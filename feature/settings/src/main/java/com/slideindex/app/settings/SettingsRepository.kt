@@ -544,11 +544,23 @@ class SettingsRepository @Inject constructor(
     suspend fun setFloatBallPickTextFirstPanel(enabled: Boolean) =
         overlay.setFloatBallPickTextFirstPanel(enabled)
 
+    suspend fun setFloatBallPickPanelStyle(style: PickResultPanelStyle) =
+        overlay.setFloatBallPickPanelStyle(style)
+
+    suspend fun setFloatBallPickSearchGridDefaultState(state: PickResultSearchGridDefaultState) =
+        overlay.setFloatBallPickSearchGridDefaultState(state)
+
+    suspend fun setFloatBallPickSearchGridLastExpanded(expanded: Boolean) =
+        overlay.setFloatBallPickSearchGridLastExpanded(expanded)
+
     suspend fun setFloatBallPickAutoSelectAll(enabled: Boolean) =
         overlay.setFloatBallPickAutoSelectAll(enabled)
 
     suspend fun setFloatBallPickCopyDismissPanel(enabled: Boolean) =
         overlay.setFloatBallPickCopyDismissPanel(enabled)
+
+    suspend fun setFloatBallPickHapticEnabled(enabled: Boolean) =
+        overlay.setFloatBallPickHapticEnabled(enabled)
 
     suspend fun setFloatBallDragPasteEnabled(enabled: Boolean) =
         overlay.setFloatBallDragPasteEnabled(enabled)
@@ -686,6 +698,7 @@ class SettingsRepository @Inject constructor(
         overlay.setStashPanelBackgroundBlurRadiusDp(value)
 
     suspend fun setDefaultImageViewerPackage(packageName: String?) = overlay.setDefaultImageViewerPackage(packageName)
+    suspend fun setImageEditorDelayDeleteEnabled(enabled: Boolean) = overlay.setImageEditorDelayDeleteEnabled(enabled)
 
     suspend fun setSearchEngines(engines: List<SearchEngineConfig>) =
         overlay.setSearchEngines(engines)
@@ -704,6 +717,9 @@ class SettingsRepository @Inject constructor(
 
     suspend fun setSearchPanelInputBehavior(behavior: SearchPanelInputBehavior) =
         overlay.setSearchPanelInputBehavior(behavior)
+
+    suspend fun setSearchPanelEnterAction(action: SearchPanelEnterAction) =
+        overlay.setSearchPanelEnterAction(action)
 
     suspend fun setSearchPanelContactSearchEnabled(enabled: Boolean) =
         overlay.setSearchPanelContactSearchEnabled(enabled)

@@ -80,6 +80,7 @@ data class AppSettings(
     val floatBall: FloatBallSettings = FloatBallSettings(),
     val clipboard: ClipboardSettings = ClipboardSettings(),
     val defaultImageViewerPackage: String? = null,
+    val imageEditorDelayDeleteEnabled: Boolean = false,
     val searchPanel: SearchPanelSettings = SearchPanelSettings(),
 ) {
     /** 当前底栏样式的生效模糊半径（派生，不落盘）。 */
@@ -268,8 +269,12 @@ data class AppSettings(
     val floatBallPickTextSizeSp get() = floatBall.floatBallPickTextSizeSp
     val floatBallPickBottomTransitionFraction get() = floatBall.floatBallPickBottomTransitionFraction
     val floatBallPickTextFirstPanel get() = floatBall.floatBallPickTextFirstPanel
+    val floatBallPickPanelStyle get() = floatBall.floatBallPickPanelStyle
+    val floatBallPickSearchGridDefaultState get() = floatBall.floatBallPickSearchGridDefaultState
+    val floatBallPickSearchGridLastExpanded get() = floatBall.floatBallPickSearchGridLastExpanded
     val floatBallPickAutoSelectAll get() = floatBall.floatBallPickAutoSelectAll
     val floatBallPickCopyDismissPanel get() = floatBall.floatBallPickCopyDismissPanel
+    val floatBallPickHapticEnabled get() = floatBall.floatBallPickHapticEnabled
     val floatBallDragPasteEnabled get() = floatBall.floatBallDragPasteEnabled
     val floatBallPickPanelEnterAnimationMs get() = floatBall.floatBallPickPanelEnterAnimationMs
     val floatBallPickPanelExitAnimationMs get() = floatBall.floatBallPickPanelExitAnimationMs
@@ -327,6 +332,7 @@ data class AppSettings(
     val searchEngineShowLabels get() = searchPanel.searchEngineShowLabels
     val searchPanelDefaultEngineId get() = searchPanel.searchPanelDefaultEngineId
     val searchPanelInputBehavior get() = searchPanel.searchPanelInputBehavior
+    val searchPanelEnterAction get() = searchPanel.searchPanelEnterAction
     val searchPanelContactSearchEnabled get() = searchPanel.searchPanelContactSearchEnabled
     val searchPanelFileSearchEnabled get() = searchPanel.searchPanelFileSearchEnabled
     val searchPanelAppSearchEnabled get() = searchPanel.searchPanelAppSearchEnabled

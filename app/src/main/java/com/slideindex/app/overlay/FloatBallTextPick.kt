@@ -148,7 +148,11 @@ object FloatBallTextPick {
     fun saveScreenshot(context: Context, bitmap: Bitmap): Boolean =
         saveScreenshotReturningUri(context, bitmap) != null
 
-    fun saveScreenshotReturningUri(context: Context, bitmap: Bitmap): Uri? {
+    fun saveScreenshotReturningUri(
+        context: Context,
+        bitmap: Bitmap,
+        ingestToHistory: Boolean = true,
+    ): Uri? {
         val fileName = screenshotFileName()
         val values = android.content.ContentValues().apply {
             put(MediaStore.Images.Media.DISPLAY_NAME, fileName)
@@ -166,7 +170,9 @@ object FloatBallTextPick {
             values.clear()
             values.put(MediaStore.Images.Media.IS_PENDING, 0)
             resolver.update(uri, values, null, null)
-            ClipboardAccess.repository?.ingestScreenshot(uri, fileName)
+            if (ingestToHistory) {
+                ClipboardAccess.repository?.ingestScreenshot(uri, fileName)
+            }
             uri
         }.onFailure {
             resolver.delete(uri, null, null)

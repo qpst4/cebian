@@ -1,6 +1,7 @@
 package com.slideindex.app.overlay.pickresult
 
 import android.graphics.Bitmap
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
@@ -47,8 +48,10 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -58,6 +61,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.boundsInRoot
@@ -90,8 +97,8 @@ import kotlin.math.roundToInt
 
 internal val PANEL_MIN_IMAGE_HEIGHT = 48.dp
 internal val PANEL_VERTICAL_PADDING = 12.dp
-internal val PANEL_ACTION_BAR_BOTTOM_GAP = 12.dp
-internal val TEXT_IMAGE_DIVIDER_HEIGHT = 25.dp
+internal val PANEL_ACTION_BAR_BOTTOM_GAP = 20.dp
+internal val TEXT_IMAGE_DIVIDER_HEIGHT = 10.dp
 internal const val LANDSCAPE_DUAL_COLUMN_TEXT_WEIGHT = 0.58f
 internal const val LANDSCAPE_DUAL_COLUMN_AUX_WEIGHT = 0.42f
 internal const val AUXILIARY_COLLAPSE_ANIMATION_MS = 280
@@ -197,7 +204,8 @@ internal fun computePickResultCollapseHeights(
     actionBarBottomPadding: Dp = 0.dp,
     imageExpansionFraction: Float,
     searchExpansionFraction: Float,
-    landscapeDualColumn: Boolean = false
+    landscapeDualColumn: Boolean = false,
+    showTabBar: Boolean = false,
 ): PickResultCollapseHeights {
     val layoutFactor = normalLayoutFactor.coerceIn(0f, 1f)
     val imageExpansion = imageExpansionFraction.coerceIn(0f, 1f)
@@ -222,26 +230,37 @@ internal fun computePickResultCollapseHeights(
         PickResultTextActionBarReservedHeight +
             PickResultTextActionBarTopPadding +
             actionBarBottomPadding
+    val tabHeaderReserved = if (showTabBar) PickResultTabHeaderReservedHeight else 0.dp
 
     val rawTextBodyHeight = if (landscapeDualColumn) {
         (panelInnerHeight - textToolbarReserved - actionBarReserved)
             .coerceAtLeast(minTextBodyHeight)
+    } else if (showTabBar) {
+        (
+            panelInnerHeight -
+                tabHeaderReserved -
+                searchDividerHeight -
+                searchGridHeight -
+                textToolbarReserved -
+                actionBarReserved
+        ).coerceAtLeast(minTextBodyHeight)
     } else {
         (
             panelInnerHeight -
+                tabHeaderReserved -
                 imageSectionHeight -
                 textImageDividerHeight -
                 searchDividerHeight -
                 searchGridHeight -
                 textToolbarReserved -
                 actionBarReserved
-            ).coerceAtLeast(minTextBodyHeight)
+        ).coerceAtLeast(minTextBodyHeight)
     }
 
-    val compactTextBodyHeight =
-        minOf(idealTextBodyHeight, rawTextBodyHeight).coerceAtLeast(minTextBodyHeight)
-    val fillTextSpace = rawTextBodyHeight > compactTextBodyHeight + 0.5.dp
-    val textBodyHeight = if (fillTextSpace) rawTextBodyHeight else compactTextBodyHeight
+    // 文字区最大高度按屏幕剩余空间自适应展开，当图片区收起时动态借调释放的空间
+    val compactTextBodyHeight = rawTextBodyHeight.coerceAtLeast(0.dp)
+    val fillTextSpace = false
+    val textBodyHeight = compactTextBodyHeight
 
     return PickResultCollapseHeights(
         imageSectionHeight = imageSectionHeight.coerceAtLeast(0.dp),
@@ -253,7 +272,7 @@ internal fun computePickResultCollapseHeights(
     )
 }
 
-/** ????????????????????wrapContent ??????????/???????*/
+/** 计算完全展开态高度（供面板外层 wrapContent 动画与滑动入场使用）。*/
 internal fun computePickResultExpandedPanelOuterHeight(
     panelContentHeight: Dp,
     hasSearchGrid: Boolean,
@@ -266,7 +285,8 @@ internal fun computePickResultExpandedPanelOuterHeight(
     idealTextBodyHeight: Dp,
     minTextBodyHeight: Dp,
     actionBarBottomPadding: Dp = 0.dp,
-    landscapeDualColumn: Boolean = false
+    landscapeDualColumn: Boolean = false,
+    showTabBar: Boolean = false,
 ): Dp {
     val expandedBottomPadding = if (hasSearchGrid) 0.dp else PANEL_ACTION_BAR_BOTTOM_GAP
     val panelInnerHeight = panelContentHeight - PANEL_VERTICAL_PADDING - expandedBottomPadding
@@ -284,7 +304,8 @@ internal fun computePickResultExpandedPanelOuterHeight(
         actionBarBottomPadding = actionBarBottomPadding,
         imageExpansionFraction = 1f,
         searchExpansionFraction = 1f,
-        landscapeDualColumn = landscapeDualColumn
+        landscapeDualColumn = landscapeDualColumn,
+        showTabBar = showTabBar,
     )
     val textToolbarReserved =
         PickResultTextSectionToolbarReservedHeight + PickResultTextToolbarBodySpacing
@@ -292,6 +313,7 @@ internal fun computePickResultExpandedPanelOuterHeight(
         PickResultTextActionBarReservedHeight +
             PickResultTextActionBarTopPadding +
             actionBarBottomPadding
+    val tabHeaderReserved = if (showTabBar) PickResultTabHeaderReservedHeight else 0.dp
 
     if (landscapeDualColumn) {
         val textColumnHeight = textToolbarReserved + heights.textBodyHeight + actionBarReserved
@@ -302,7 +324,20 @@ internal fun computePickResultExpandedPanelOuterHeight(
             maxOf(textColumnHeight, rightColumnHeight)
     }
 
+    if (showTabBar) {
+        val textPageHeight = textToolbarReserved +
+            heights.textBodyHeight +
+            actionBarReserved +
+            heights.searchDividerHeight +
+            heights.searchGridHeight
+        val imagePageHeight = maxOf(heights.imageSectionHeight, 200.dp)
+        return PANEL_VERTICAL_PADDING + expandedBottomPadding +
+            tabHeaderReserved +
+            maxOf(textPageHeight, imagePageHeight)
+    }
+
     return PANEL_VERTICAL_PADDING + expandedBottomPadding +
+        tabHeaderReserved +
         heights.imageSectionHeight +
         heights.textImageDividerHeight +
         heights.searchDividerHeight +
@@ -323,6 +358,7 @@ internal fun PickResultAuxiliaryImageBlock(
     panelImageDisplaySize: PickResultImageDisplaySize,
     searchEngines: List<com.slideindex.app.settings.SearchEngineConfig>,
     onSaveScreenshot: () -> Unit,
+    onSaveScreenshotLongClick: (() -> Unit)? = null,
     onShareScreenshot: () -> Unit,
     onImageSearch: () -> Unit,
     onImageShareEngineClick: (com.slideindex.app.settings.SearchEngineConfig) -> Unit,
@@ -331,6 +367,7 @@ internal fun PickResultAuxiliaryImageBlock(
     onImageClick: () -> Unit,
     onImageIndexChange: (Int) -> Unit,
     onSectionExpandedChange: (Boolean) -> Unit,
+    showImageSearchBar: Boolean = true,
     collapseDragActive: Boolean = false,
     auxiliaryDragEnabled: Boolean = false,
     onDragEnd: () -> Unit = {},
@@ -344,6 +381,7 @@ internal fun PickResultAuxiliaryImageBlock(
         currentImageIndex = currentImageIndex,
         imageDisplaySize = panelImageDisplaySize,
         searchEngines = searchEngines,
+        showImageSearchBar = showImageSearchBar,
         modifier = Modifier
             .fillMaxWidth()
             .height(sectionHeight)
@@ -365,6 +403,7 @@ internal fun PickResultAuxiliaryImageBlock(
                 }
             ),
         onSave = onSaveScreenshot,
+        onSaveLongClick = onSaveScreenshotLongClick,
         onShare = onShareScreenshot,
         onImageSearch = onImageSearch,
         onShareEngineClick = onImageShareEngineClick,
@@ -405,22 +444,8 @@ internal fun PickResultTextImageDividerBlock(
                 } else {
                     Modifier
                 }
-            ),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .graphicsLayer { alpha = alphaFactor }
-        ) {
-            Spacer(modifier = Modifier.height(12.dp))
-            HorizontalDivider(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
             )
-            Spacer(modifier = Modifier.height(12.dp))
-        }
-    }
+    )
 }
 
 @Composable
@@ -462,7 +487,7 @@ internal fun PickResultAuxiliarySearchBlock(
                     modifier = Modifier.padding(horizontal = 16.dp),
                     color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
                 )
-                Spacer(modifier = Modifier.height(12.dp + PickResultTextSearchGridTopSpacing))
+                Spacer(modifier = Modifier.height(12.dp))
             }
         }
     }
@@ -539,54 +564,94 @@ internal fun PickResultPanelTextSlot(
     actionBarBottomPadding: Dp,
     actionBarDragActive: Boolean = false,
     autoSelectAll: Boolean = false,
+    showSearch: Boolean = false,
+    searchSelected: Boolean = false,
+    onToggleSearchGrid: () -> Unit = {},
+    hasImageContent: Boolean = false,
+    onImageSearch: (() -> Unit)? = null,
+    onSaveScreenshot: (() -> Unit)? = null,
+    onShareScreenshot: (() -> Unit)? = null,
+    onTextScrollableChange: ((Boolean) -> Unit)? = null,
 ) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 12.dp)
+    val isDark = com.slideindex.app.ui.theme.LocalAppDarkTheme.current
+    val cardBg = if (isDark) Color(0x10FFFFFF) else Color(0xB2FFFFFF)
+    val cardBorder = if (isDark) Color(0x24FFFFFF) else Color(0x12000000)
+
+    androidx.compose.material3.Surface(
+        modifier = if (useExpandedLayout) {
+            Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp)
+        } else {
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+        },
+        shape = RoundedCornerShape(16.dp),
+        color = cardBg,
+        border = androidx.compose.foundation.BorderStroke(0.5.dp, cardBorder)
     ) {
-        PickResultInteractiveTextSection(
-            text = text,
-            textMode = textMode,
-            onTextModeChange = onTextModeChange,
-            onTextChange = onTextChange,
+        Box(
             modifier = if (useExpandedLayout) {
-                Modifier.fillMaxSize()
+                Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 8.dp, vertical = 6.dp)
             } else {
-                Modifier.fillMaxWidth()
-            },
-            textSizeSp = textSizeSp,
-            textSource = textSource,
-            ocrAvailable = ocrAvailable,
-            a11yAvailable = a11yAvailable,
-            ocrLoading = ocrLoading,
-            barcodeResults = barcodeResults,
-            showingTranslation = showingTranslation,
-            translateLoading = translateLoading,
-            showBackgroundOcrAction = showBackgroundOcrAction,
-            onBackgroundOcr = onBackgroundOcr,
-            onTextSourceChange = onTextSourceChange,
-            pinActionBarOutside = true,
-            expandTextBlock = useExpandedLayout,
-            auxiliaryDragEnabled = auxiliaryDragEnabled,
-            bodyMaxHeight = if (useExpandedLayout) null else compactBodyMaxHeight,
-            showSearch = false,
-            onActiveTextChange = onActiveTextChange,
-            onShare = onShareText,
-            onCopy = onCopy,
-            onTranslate = onTranslate,
-            onRemoveSpaces = onRemoveSpaces,
-            onZoomText = onZoomText,
-            onToolbarDragDelta = onToolbarDragDelta,
-            onActionBarDragDelta = onActionBarDragDelta,
-            onDragEnd = onDragEnd,
-            onSearchDragEnd = onSearchDragEnd,
-            onPinToScreen = { onPinTextToScreen(activeText) },
-            onStash = { onStashText(activeText) },
-            actionBarBottomPadding = actionBarBottomPadding,
-            actionBarDragActive = actionBarDragActive,
-            autoSelectAll = autoSelectAll,
-        )
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 6.dp)
+            }
+        ) {
+            PickResultInteractiveTextSection(
+                text = text,
+                textMode = textMode,
+                onTextModeChange = onTextModeChange,
+                onTextChange = onTextChange,
+                modifier = if (useExpandedLayout) {
+                    Modifier.fillMaxSize()
+                } else {
+                    Modifier.fillMaxWidth()
+                },
+                textSizeSp = textSizeSp,
+                textSource = textSource,
+                ocrAvailable = ocrAvailable,
+                a11yAvailable = a11yAvailable,
+                ocrLoading = ocrLoading,
+                barcodeResults = barcodeResults,
+                showingTranslation = showingTranslation,
+                translateLoading = translateLoading,
+                showBackgroundOcrAction = showBackgroundOcrAction,
+                onBackgroundOcr = onBackgroundOcr,
+                onTextSourceChange = onTextSourceChange,
+                pinActionBarOutside = true,
+                expandTextBlock = useExpandedLayout,
+                auxiliaryDragEnabled = auxiliaryDragEnabled,
+                bodyMaxHeight = if (useExpandedLayout) null else compactBodyMaxHeight,
+                showSearch = showSearch,
+                searchSelected = searchSelected,
+                onSearch = { onToggleSearchGrid() },
+                onActiveTextChange = onActiveTextChange,
+                onShare = onShareText,
+                onCopy = onCopy,
+                onTranslate = onTranslate,
+                onRemoveSpaces = onRemoveSpaces,
+                onZoomText = onZoomText,
+                onToolbarDragDelta = onToolbarDragDelta,
+                onActionBarDragDelta = onActionBarDragDelta,
+                onDragEnd = onDragEnd,
+                onSearchDragEnd = onSearchDragEnd,
+                onPinToScreen = { onPinTextToScreen(activeText) },
+                onStash = { onStashText(activeText) },
+                actionBarBottomPadding = actionBarBottomPadding,
+                actionBarDragActive = actionBarDragActive,
+                autoSelectAll = autoSelectAll,
+                hasImageContent = hasImageContent,
+                onImageSearch = onImageSearch,
+                onSaveScreenshot = onSaveScreenshot,
+                onShareScreenshot = onShareScreenshot,
+                onTextScrollableChange = onTextScrollableChange,
+            )
+        }
     }
 }
 
@@ -681,6 +746,7 @@ internal fun PickResultCollapsePanelColumn(
     panelImageDisplaySize: PickResultImageDisplaySize,
     searchEngines: List<com.slideindex.app.settings.SearchEngineConfig>,
     onSaveScreenshot: () -> Unit,
+    onSaveScreenshotLongClick: (() -> Unit)? = null,
     onShareScreenshot: () -> Unit,
     onImageSearch: () -> Unit,
     onImageShareEngineClick: (com.slideindex.app.settings.SearchEngineConfig) -> Unit,
@@ -725,8 +791,21 @@ internal fun PickResultCollapsePanelColumn(
     onStashText: (String) -> Unit,
     textFirstPanelEnabled: Boolean = false,
     freezeCollapseAnimation: Boolean = false,
-    landscapeDualColumn: Boolean = false
+    landscapeDualColumn: Boolean = false,
+    onToggleSearchGrid: () -> Unit = {}
 ) {
+    val panelStyle = appSettings.floatBallPickPanelStyle
+    val isTabPaged = panelStyle == com.slideindex.app.settings.PickResultPanelStyle.TAB_PAGED && !landscapeDualColumn
+    val isIntegratedBottomBar = panelStyle == com.slideindex.app.settings.PickResultPanelStyle.INTEGRATED_BOTTOM_BAR
+    val showTabBar = isTabPaged && hasImageContent && showTextSection
+
+    val hasMeaningfulText = !text.isNullOrBlank()
+    val coroutineScope = rememberCoroutineScope()
+    val pagerState = rememberPagerState(
+        initialPage = if (hasMeaningfulText) 0 else 1,
+        pageCount = { 2 }
+    )
+
     val editModeProgress by animateFloatAsState(
         targetValue = if (isEditMode) 1f else 0f,
         animationSpec = tween(
@@ -768,7 +847,7 @@ internal fun PickResultCollapsePanelColumn(
         },
         label = "searchCollapse"
     )
-    val decoupleSearchFromImage = textFirstPanelEnabled && hasSearchGrid
+    val decoupleSearchFromImage = hasSearchGrid
     val searchExpansionFraction = if (decoupleSearchFromImage) {
         if (snapCollapseAnimation) {
             1f - controller.searchCollapseProgress
@@ -776,7 +855,7 @@ internal fun PickResultCollapsePanelColumn(
             1f - animatedSearchCollapseProgress
         }
     } else {
-        expansionFraction
+        0f
     }
     val imageExpansionFraction = expansionFraction
 
@@ -833,7 +912,8 @@ internal fun PickResultCollapsePanelColumn(
         expandedSearchGridContentHeight,
         idealTextBodyHeight,
         minTextBodyHeight,
-        landscapeDualColumn
+        landscapeDualColumn,
+        showTabBar
     ) {
         if (!hasAuxiliaryCollapse) {
             null
@@ -849,21 +929,21 @@ internal fun PickResultCollapsePanelColumn(
                 expandedSearchGridContentHeight = expandedSearchGridContentHeight,
                 idealTextBodyHeight = idealTextBodyHeight,
                 minTextBodyHeight = minTextBodyHeight,
-                landscapeDualColumn = landscapeDualColumn
+                landscapeDualColumn = landscapeDualColumn,
+                showTabBar = showTabBar
             )
         }
     }
 
-    val useWeightedTextLayout = isEditMode || hasAuxiliaryCollapse
+    val useWeightedTextLayout = isEditMode
 
     val fixedPanelHeight = when {
         isEditMode -> panelContentHeight + overlayImeBottom
-        stablePanelHeight != null -> stablePanelHeight
         else -> null
     }
 
     val effectivePanelHeight = fixedPanelHeight ?: panelContentHeight
-    val panelInnerHeight = effectivePanelHeight - PANEL_VERTICAL_PADDING
+    val panelInnerHeight = effectivePanelHeight - PANEL_VERTICAL_PADDING * 2
 
     val collapseHeights = computePickResultCollapseHeights(
         panelInnerHeight = panelInnerHeight,
@@ -879,7 +959,8 @@ internal fun PickResultCollapsePanelColumn(
         actionBarBottomPadding = actionBarBottomInset,
         imageExpansionFraction = imageExpansionFraction,
         searchExpansionFraction = searchExpansionFraction,
-        landscapeDualColumn = landscapeDualColumn
+        landscapeDualColumn = landscapeDualColumn,
+        showTabBar = showTabBar
     )
 
     val applyDragState = rememberUpdatedState(applyDrag)
@@ -909,18 +990,7 @@ internal fun PickResultCollapsePanelColumn(
             maxSearchSectionHeight.toPx().coerceAtLeast(1f)
         }
     }
-    val totalCollapsiblePx = remember(
-        totalImageCollapsiblePx,
-        totalSearchCollapsiblePx,
-        textFirstPanelEnabled,
-        hasSearchGrid
-    ) {
-        if (textFirstPanelEnabled && hasSearchGrid) {
-            totalImageCollapsiblePx
-        } else {
-            totalImageCollapsiblePx + totalSearchCollapsiblePx
-        }
-    }
+    val totalCollapsiblePx = totalImageCollapsiblePx
     val toolbarLinkedRangePx = remember(
         hasImageContent,
         minImageSectionHeight,
@@ -936,19 +1006,6 @@ internal fun PickResultCollapsePanelColumn(
             }.coerceAtLeast(1f)
         }
     }
-    val searchLinkedRangePx = remember(
-        hasSearchGrid,
-        maxSearchSectionHeight,
-        density
-    ) {
-        with(density) {
-            if (hasSearchGrid) {
-                maxSearchSectionHeight.toPx()
-            } else {
-                1f
-            }.coerceAtLeast(1f)
-        }
-    }
     val onToolbarDragDelta = remember(
         controller,
         totalCollapsiblePx,
@@ -959,23 +1016,13 @@ internal fun PickResultCollapsePanelColumn(
         { dragAmount: Float -> wrappedApplyDrag(-dragAmount * scale) }
     }
     val onActionBarDragDelta = remember(
-        textFirstPanelEnabled,
-        hasSearchGrid,
         controller,
-        totalImageCollapsiblePx,
-        totalSearchCollapsiblePx,
         totalCollapsiblePx,
-        searchLinkedRangePx,
-        wrappedApplyDrag,
-        wrappedApplySearchDrag
+        toolbarLinkedRangePx,
+        wrappedApplyDrag
     ) {
-        if (textFirstPanelEnabled && hasSearchGrid) {
-            val scale = totalSearchCollapsiblePx / searchLinkedRangePx
-            { dragAmount: Float -> wrappedApplySearchDrag(dragAmount * scale) }
-        } else {
-            val scale = totalCollapsiblePx / searchLinkedRangePx
-            { dragAmount: Float -> wrappedApplyDrag(dragAmount * scale) }
-        }
+        val scale = totalCollapsiblePx / toolbarLinkedRangePx
+        { dragAmount: Float -> wrappedApplyDrag(dragAmount * scale) }
     }
     val onDragEndState = rememberUpdatedState(onDragEnd)
     val onSearchDragEndState = rememberUpdatedState(onSearchDragEnd)
@@ -988,6 +1035,76 @@ internal fun PickResultCollapsePanelColumn(
 
     val imageSectionExpanded = imageExpansionFraction > 0.5f
     val auxiliaryDragEnabled = hasAuxiliaryCollapse && !isEditMode
+
+    var isTextScrollable by remember { mutableStateOf(false) }
+    val isTextScrollableState = rememberUpdatedState(isTextScrollable)
+
+    val onImageSectionExpandedChangeState = rememberUpdatedState(onImageSectionExpandedChange)
+    val textNestedScrollConnection = remember(
+        auxiliaryDragEnabled,
+        hasImageContent,
+        landscapeDualColumn,
+        showTabBar,
+        totalImageCollapsiblePx,
+        controller
+    ) {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: androidx.compose.ui.geometry.Offset, source: NestedScrollSource): androidx.compose.ui.geometry.Offset {
+                // 手指在文字区向上滑动查看下文时（available.y < 0），优先收起图片区以扩大文字区视口
+                // 注意：分 Tab 模式下图片区已独立在另一页，文字区天然拥有最大自适应视口，不触发折叠拦截；
+                // 仅当单列垂直模式且文本区有真实溢出内容（存在滚动条）时才允许折叠
+                if (auxiliaryDragEnabled && hasImageContent && !landscapeDualColumn && !showTabBar &&
+                    isTextScrollableState.value &&
+                    available.y < 0f && controller.collapseProgress < 1f
+                ) {
+                    val remainingPx = (1f - controller.collapseProgress) * totalImageCollapsiblePx
+                    val consumePx = minOf(-available.y, remainingPx)
+                    if (consumePx > 0f) {
+                        controller.applyDrag(consumePx)
+                        return androidx.compose.ui.geometry.Offset(0f, -consumePx)
+                    }
+                }
+                return androidx.compose.ui.geometry.Offset.Zero
+            }
+
+            override fun onPostScroll(
+                consumed: androidx.compose.ui.geometry.Offset,
+                available: androidx.compose.ui.geometry.Offset,
+                source: NestedScrollSource
+            ): androidx.compose.ui.geometry.Offset {
+                // 手指在文字区向下滑动且文字已处于顶部时（available.y > 0），拉下展开图片区（分 Tab 模式除外）
+                if (auxiliaryDragEnabled && hasImageContent && !landscapeDualColumn && !showTabBar &&
+                    available.y > 0f && controller.collapseProgress > 0f
+                ) {
+                    val remainingPx = controller.collapseProgress * totalImageCollapsiblePx
+                    val consumePx = minOf(available.y, remainingPx)
+                    if (consumePx > 0f) {
+                        controller.applyDrag(-consumePx)
+                        return androidx.compose.ui.geometry.Offset(0f, consumePx)
+                    }
+                }
+                return androidx.compose.ui.geometry.Offset.Zero
+            }
+
+            override suspend fun onPreFling(available: Velocity): Velocity {
+                if (auxiliaryDragEnabled && hasImageContent && !landscapeDualColumn && !showTabBar && controller.isDragging) {
+                    controller.endDrag { expanded ->
+                        onImageSectionExpandedChangeState.value(expanded)
+                    }
+                }
+                return Velocity.Zero
+            }
+
+            override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
+                if (auxiliaryDragEnabled && hasImageContent && !landscapeDualColumn && !showTabBar && controller.isDragging) {
+                    controller.endDrag { expanded ->
+                        onImageSectionExpandedChangeState.value(expanded)
+                    }
+                }
+                return Velocity.Zero
+            }
+        }
+    }
 
     val renderTextSlot: @Composable () -> Unit = {
         PickResultPanelTextSlot(
@@ -1029,12 +1146,25 @@ internal fun PickResultCollapsePanelColumn(
             actionBarBottomPadding = actionBarBottomInset,
             actionBarDragActive = searchCollapseDragActive,
             autoSelectAll = appSettings.floatBallPickAutoSelectAll,
+            showSearch = hasSearchGrid,
+            searchSelected = searchExpansionFraction > 0.5f,
+            onToggleSearchGrid = onToggleSearchGrid,
+            hasImageContent = false,
+            onImageSearch = null,
+            onSaveScreenshot = null,
+            onShareScreenshot = null,
+            onTextScrollableChange = { isTextScrollable = it },
         )
     }
 
     val renderImageBlock: @Composable () -> Unit = {
+        val displayHeight = if (showTabBar) {
+            maxImageSectionHeight.coerceAtLeast(200.dp)
+        } else {
+            collapseHeights.imageSectionHeight
+        }
         PickResultAuxiliaryImageBlock(
-            sectionHeight = collapseHeights.imageSectionHeight,
+            sectionHeight = displayHeight,
             alphaFactor = normalLayoutFactor,
             sectionExpanded = imageSectionExpanded,
             screenshot = screenshot,
@@ -1043,6 +1173,7 @@ internal fun PickResultCollapsePanelColumn(
             panelImageDisplaySize = panelImageDisplaySize,
             searchEngines = searchEngines,
             onSaveScreenshot = onSaveScreenshot,
+            onSaveScreenshotLongClick = onSaveScreenshotLongClick,
             onShareScreenshot = onShareScreenshot,
             onImageSearch = onImageSearch,
             onImageShareEngineClick = onImageShareEngineClick,
@@ -1051,6 +1182,7 @@ internal fun PickResultCollapsePanelColumn(
             onImageClick = onImageClick,
             onImageIndexChange = onImageIndexChange,
             onSectionExpandedChange = onImageSectionExpandedChange,
+            showImageSearchBar = true,
             collapseDragActive = imageCollapseDragActive,
             auxiliaryDragEnabled = auxiliaryDragEnabled,
             onDragEnd = onDragEnd,
@@ -1072,9 +1204,9 @@ internal fun PickResultCollapsePanelColumn(
                 appSettings = appSettings,
                 onSearchEngineClick = onSearchEngineClick,
                 onDragEnd = onSearchDragEnd,
-                applyDrag = if (textFirstPanelEnabled) wrappedApplySearchDrag else wrappedApplyDrag,
+                applyDrag = wrappedApplySearchDrag,
                 collapseDragActive = searchCollapseDragActive,
-                auxiliaryDragEnabled = auxiliaryDragEnabled
+                auxiliaryDragEnabled = false
             )
         }
     }
@@ -1089,7 +1221,10 @@ internal fun PickResultCollapsePanelColumn(
                 } else {
                     Modifier
                         .wrapContentHeight()
-                        .heightIn(max = panelContentHeight)
+                        .heightIn(
+                            min = if (landscapeDualColumn) 0.dp else minOf(190.dp, panelContentHeight),
+                            max = panelContentHeight
+                        )
                 }
             )
             .graphicsLayer { alpha = pickPanelAlpha }
@@ -1104,7 +1239,7 @@ internal fun PickResultCollapsePanelColumn(
                     Modifier
                 }
             )
-            .padding(top = PANEL_VERTICAL_PADDING),
+            .padding(top = PANEL_VERTICAL_PADDING, bottom = PANEL_VERTICAL_PADDING),
         verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
         if (landscapeDualColumn) {
@@ -1136,28 +1271,81 @@ internal fun PickResultCollapsePanelColumn(
                 }
             }
         } else {
-            renderImageBlock()
-            if (showTextSection) {
-                PickResultTextImageDividerBlock(
-                    dividerHeight = collapseHeights.textImageDividerHeight,
-                    alphaFactor = normalLayoutFactor,
-                    hasAuxiliaryCollapse = auxiliaryDragEnabled,
-                    onDragEnd = onDragEnd,
-                    applyDrag = wrappedApplyDrag
-                )
-                Box(
-                    modifier = if (useWeightedTextLayout) {
-                        Modifier
-                            .weight(1f)
-                            .fillMaxWidth()
-                    } else {
-                        Modifier.fillMaxWidth()
+            if (showTabBar) {
+                PickResultSegmentedTabHeader(
+                    selectedTab = pagerState.currentPage,
+                    onTabSelected = { page ->
+                        coroutineScope.launch {
+                            pagerState.animateScrollToPage(page)
+                        }
                     }
-                ) {
-                    renderTextSlot()
+                )
+                HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .animateContentSize(
+                            animationSpec = spring(
+                                dampingRatio = 0.85f,
+                                stiffness = 380f
+                            )
+                        )
+                        .then(
+                            if (useWeightedTextLayout) Modifier.weight(1f) else Modifier
+                        ),
+                    verticalAlignment = Alignment.Top
+                ) { page ->
+                    if (page == 0) {
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            Box(
+                                modifier = (if (useWeightedTextLayout) {
+                                    Modifier
+                                        .weight(1f)
+                                        .fillMaxWidth()
+                                } else {
+                                    Modifier.fillMaxWidth()
+                                }).nestedScroll(textNestedScrollConnection)
+                            ) {
+                                renderTextSlot()
+                            }
+                            renderSearchBlock()
+                        }
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .then(
+                                    if (useWeightedTextLayout) Modifier.weight(1f, fill = false) else Modifier
+                                )
+                        ) {
+                            renderImageBlock()
+                        }
+                    }
                 }
+            } else {
+                renderImageBlock()
+                if (showTextSection) {
+                    PickResultTextImageDividerBlock(
+                        dividerHeight = collapseHeights.textImageDividerHeight,
+                        alphaFactor = normalLayoutFactor,
+                        hasAuxiliaryCollapse = auxiliaryDragEnabled,
+                        onDragEnd = onDragEnd,
+                        applyDrag = wrappedApplyDrag
+                    )
+                    Box(
+                        modifier = (if (useWeightedTextLayout) {
+                            Modifier
+                                .weight(1f)
+                                .fillMaxWidth()
+                        } else {
+                            Modifier.fillMaxWidth()
+                        }).nestedScroll(textNestedScrollConnection)
+                    ) {
+                        renderTextSlot()
+                    }
+                }
+                renderSearchBlock()
             }
-            renderSearchBlock()
         }
     }
 }

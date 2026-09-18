@@ -4,15 +4,19 @@ package com.slideindex.app.ui
 
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.slideindex.app.R
 import com.slideindex.app.overlay.SystemWallpaperBlurHelper
 import com.slideindex.app.overlay.WallpaperPermissionTrampolineActivity
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.settings.SearchEngineStore
 import com.slideindex.app.settings.SearchPanelAppDisplayStyle
 import com.slideindex.app.settings.SearchPanelBackgroundStyle
 import com.slideindex.app.settings.SearchPanelBarPosition
+import com.slideindex.app.settings.SearchPanelEnterAction
+import com.slideindex.app.settings.SearchPanelInputBehavior
 import com.slideindex.app.settings.SearchPanelListOrder
 import com.slideindex.app.settings.SearchPanelPresentationMode
 import com.slideindex.app.ui.miuix.groupedCardItems
@@ -34,18 +38,37 @@ fun SearchPanelPresentationLayoutSettingsScreen(
     onSetSearchPanelBackgroundStyle: (Int) -> Unit,
     onSetSearchPanelBlurRadiusDp: (Int) -> Unit,
     onSetSearchPanelDimPercent: (Int) -> Unit,
+    onSetDefaultEngineId: (String?) -> Unit,
+    onSetSearchPanelInputBehavior: (SearchPanelInputBehavior) -> Unit,
+    onSetSearchPanelEnterAction: (SearchPanelEnterAction) -> Unit,
 ) {
     val context = LocalContext.current
     val presentationModes = SearchPanelPresentationMode.entries
     val barPositions = SearchPanelBarPosition.entries
     val listOrders = SearchPanelListOrder.entries
     val appDisplayStyles = SearchPanelAppDisplayStyle.entries
+    val inputBehaviorEntries = SearchPanelInputBehavior.entries
+    val enterActionEntries = SearchPanelEnterAction.entries
     val backgroundStyles = listOf(
         SearchPanelBackgroundStyle.BLUR,
         SearchPanelBackgroundStyle.WALLPAPER_BLUR,
         SearchPanelBackgroundStyle.BLACK,
     )
     val backgroundSectionTitle = stringResource(R.string.honeycomb_display_section_background)
+    val behaviorSectionTitle = stringResource(R.string.search_panel_settings_section_behavior)
+
+    val engines = remember(settings.searchEngines) {
+        SearchEngineStore.textSettingsEngines(settings.searchEngines)
+    }
+    val noneEngineLabel = stringResource(R.string.search_panel_default_engine_none)
+    val defaultEngineItems = listOf(noneEngineLabel) + engines.map { it.name }
+    val defaultEngineIndex = if (settings.searchPanelDefaultEngineId == null) {
+        0
+    } else {
+        engines.indexOfFirst { it.id == settings.searchPanelDefaultEngineId }.let { idx ->
+            if (idx >= 0) idx + 1 else 0
+        }
+    }
 
     fun ensureWallpaperPermission() {
         SystemWallpaperBlurHelper.requestWallpaperPermission(context)
@@ -53,7 +76,7 @@ fun SearchPanelPresentationLayoutSettingsScreen(
 
     SettingsScreenScaffold(
         title = stringResource(R.string.search_panel_settings_section_layout),
-        pageHint = stringResource(R.string.search_panel_settings_subtitle),
+        pageHint = stringResource(R.string.search_panel_presentation_layout_entry_desc),
         onBack = onBack,
     ) {
         groupedCardItems(
@@ -166,6 +189,51 @@ fun SearchPanelPresentationLayoutSettingsScreen(
                                 settings.searchPanelDimPercent,
                             ),
                             onValueChange = { onSetSearchPanelDimPercent(it.roundToInt()) },
+                        )
+                    },
+                )
+            },
+        )
+
+        settingsLazySmallTitle(
+            key = "behavior_section",
+            title = behaviorSectionTitle,
+        )
+        groupedCardItems(
+            keyPrefix = "search_panel_behavior",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("default-engine") {
+                        SettingDropdownRow(
+                            title = stringResource(R.string.search_panel_default_engine_title),
+                            items = defaultEngineItems,
+                            selectedIndex = defaultEngineIndex,
+                            enabled = engines.isNotEmpty(),
+                            onSelectedIndexChange = { index ->
+                                onSetDefaultEngineId(if (index == 0) null else engines[index - 1].id)
+                            },
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("input-behavior") {
+                        SettingDropdownRow(
+                            title = stringResource(R.string.search_panel_input_behavior_title),
+                            items = inputBehaviorEntries.map { searchPanelInputBehaviorLabel(it) },
+                            selectedIndex = inputBehaviorEntries.indexOf(settings.searchPanelInputBehavior)
+                                .coerceAtLeast(0),
+                            onSelectedIndexChange = { onSetSearchPanelInputBehavior(inputBehaviorEntries[it]) },
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("enter-action") {
+                        SettingDropdownRow(
+                            title = stringResource(R.string.search_panel_enter_action_title),
+                            items = enterActionEntries.map { searchPanelEnterActionLabel(it) },
+                            selectedIndex = enterActionEntries.indexOf(settings.searchPanelEnterAction)
+                                .coerceAtLeast(0),
+                            onSelectedIndexChange = { onSetSearchPanelEnterAction(enterActionEntries[it]) },
                         )
                     },
                 )

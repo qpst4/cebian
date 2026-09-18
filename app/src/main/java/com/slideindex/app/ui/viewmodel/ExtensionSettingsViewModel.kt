@@ -480,6 +480,10 @@ class ExtensionSettingsViewModel @Inject constructor(
         settingsRepository.setDefaultImageViewerPackage(packageName)
     }
 
+    fun setImageEditorDelayDeleteEnabled(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setImageEditorDelayDeleteEnabled(enabled)
+    }
+
     fun setFloatBallOcrFallbackEnabled(enabled: Boolean) = launchSettingsWrite {
         settingsRepository.setFloatBallOcrFallbackEnabled(enabled)
     }
@@ -577,12 +581,28 @@ class ExtensionSettingsViewModel @Inject constructor(
         settingsRepository.setFloatBallPickTextFirstPanel(enabled)
     }
 
+    fun setFloatBallPickPanelStyle(style: com.slideindex.app.settings.PickResultPanelStyle) = launchSettingsWrite {
+        settingsRepository.setFloatBallPickPanelStyle(style)
+    }
+
+    fun setFloatBallPickSearchGridDefaultState(state: com.slideindex.app.settings.PickResultSearchGridDefaultState) = launchSettingsWrite {
+        settingsRepository.setFloatBallPickSearchGridDefaultState(state)
+    }
+
+    fun setFloatBallPickSearchGridLastExpanded(expanded: Boolean) = launchSettingsWrite {
+        settingsRepository.setFloatBallPickSearchGridLastExpanded(expanded)
+    }
+
     fun setFloatBallPickAutoSelectAll(enabled: Boolean) = launchSettingsWrite {
         settingsRepository.setFloatBallPickAutoSelectAll(enabled)
     }
 
     fun setFloatBallPickCopyDismissPanel(enabled: Boolean) = launchSettingsWrite {
         settingsRepository.setFloatBallPickCopyDismissPanel(enabled)
+    }
+
+    fun setFloatBallPickHapticEnabled(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setFloatBallPickHapticEnabled(enabled)
     }
 
     fun setFloatBallDragPasteEnabled(enabled: Boolean) = launchSettingsWrite {

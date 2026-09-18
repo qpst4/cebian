@@ -242,6 +242,7 @@ object EditorRenderUtils {
             ShapeType.OVAL -> canvas.drawOval(rect, paint)
             ShapeType.LINE -> canvas.drawLine(action.start.x, action.start.y, action.end.x, action.end.y, paint)
             ShapeType.ARROW -> drawArrow(canvas, action.start, action.end, paint)
+            ShapeType.DOUBLE_ARROW -> drawDoubleArrow(canvas, action.start, action.end, paint)
             ShapeType.DIAMOND -> drawDiamond(canvas, rect, paint)
             ShapeType.TRIANGLE -> drawTriangle(canvas, rect, paint)
         }
@@ -280,9 +281,28 @@ object EditorRenderUtils {
         val hy = uy * head
         val wingX = -uy * head * 0.45f
         val wingY = ux * head * 0.45f
-        val wingAlong = hx * 0.45f
-        canvas.drawLine(end.x, end.y, end.x - hx + wingX, end.y - hy + wingAlong, paint)
-        canvas.drawLine(end.x, end.y, end.x - hx - wingX, end.y - hy - wingAlong, paint)
+        canvas.drawLine(end.x, end.y, end.x - hx + wingX, end.y - hy + wingY, paint)
+        canvas.drawLine(end.x, end.y, end.x - hx - wingX, end.y - hy - wingY, paint)
+    }
+
+    private fun drawDoubleArrow(canvas: Canvas, start: EditorPoint, end: EditorPoint, paint: Paint) {
+        canvas.drawLine(start.x, start.y, end.x, end.y, paint)
+        val dx = end.x - start.x
+        val dy = end.y - start.y
+        val length = max(sqrt(dx * dx + dy * dy), 1f)
+        val ux = dx / length
+        val uy = dy / length
+        val head = max(28f, paint.strokeWidth * 2.2f)
+        val hx = ux * head
+        val hy = uy * head
+        val wingX = -uy * head * 0.45f
+        val wingY = ux * head * 0.45f
+        // End arrow head
+        canvas.drawLine(end.x, end.y, end.x - hx + wingX, end.y - hy + wingY, paint)
+        canvas.drawLine(end.x, end.y, end.x - hx - wingX, end.y - hy - wingY, paint)
+        // Start arrow head
+        canvas.drawLine(start.x, start.y, start.x + hx + wingX, start.y + hy + wingY, paint)
+        canvas.drawLine(start.x, start.y, start.x + hx - wingX, start.y + hy - wingY, paint)
     }
 
     private fun drawText(canvas: Canvas, action: EditAction.Text, overrideAlpha: Int?) {

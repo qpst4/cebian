@@ -9,6 +9,7 @@ import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.Rect
 import android.os.Bundle
+import android.view.HapticFeedbackConstants
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -460,7 +461,6 @@ class SlideIndexImageEditorActivity : AppCompatActivity() {
         }
         exportJob = lifecycleScope.launch {
             FloatBallTextPick.shareScreenshot(this@SlideIndexImageEditorActivity, bitmap)
-            finish()
         }
     }
 
@@ -472,7 +472,6 @@ class SlideIndexImageEditorActivity : AppCompatActivity() {
         }
         exportJob = lifecycleScope.launch {
             SearchEngineLauncher.launchImageShare(this@SlideIndexImageEditorActivity, engine, bitmap)
-            finish()
         }
     }
 
@@ -605,27 +604,32 @@ class SlideIndexImageEditorActivity : AppCompatActivity() {
             return
         }
         exportJob = lifecycleScope.launch(Dispatchers.IO) {
-            val uri = FloatBallTextPick.saveScreenshotReturningUri(this@SlideIndexImageEditorActivity, bitmap)
+            val uri = FloatBallTextPick.saveScreenshotReturningUri(
+                this@SlideIndexImageEditorActivity,
+                bitmap,
+                ingestToHistory = (deleteAfterMinutes == 0),
+            )
             withContext(Dispatchers.Main) {
                 if (uri == null) {
                     toast(R.string.inspire_image_edit_export_failed)
                     return@withContext
                 }
-                Toast.makeText(
-                    this@SlideIndexImageEditorActivity,
-                    R.string.inspire_image_edit_save_persist,
-                    Toast.LENGTH_SHORT,
-                ).show()
                 if (deleteAfterMinutes > 0) {
                     ImageEditorSavedImageDeleteScheduler.scheduleDeleteAfterMinutes(
-                        this@SlideIndexImageEditorActivity,
+                        applicationContext,
                         uri,
                         deleteAfterMinutes.toLong(),
                     )
                     Toast.makeText(
-                        this@SlideIndexImageEditorActivity,
+                        applicationContext,
                         R.string.inspire_image_edit_save_auto_delete,
                         Toast.LENGTH_LONG,
+                    ).show()
+                } else {
+                    Toast.makeText(
+                        applicationContext,
+                        R.string.inspire_image_edit_save_persist,
+                        Toast.LENGTH_SHORT,
                     ).show()
                 }
                 finish()

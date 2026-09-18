@@ -4,6 +4,7 @@ import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.Path
 import android.graphics.Rect
@@ -612,6 +613,38 @@ class SlideIndexAccessibilityService : AccessibilityService() {
         panelSide: com.slideindex.app.overlay.PanelSide? = null
     ): Boolean =
         edgeOverlayHost?.dispatchExternalGestureAction(action, anchorRawY, panelSide) == true
+
+    override fun onUnbind(intent: Intent?): Boolean {
+        Log.w(TAG, "onUnbind: accessibility service unbound by system")
+        edgeOverlayHost?.stop()
+        edgeOverlayHost = null
+        if (::watchdog.isInitialized) {
+            watchdog.unregisterScreenLockReceiver()
+            watchdog.releaseWakeLock()
+        }
+        if (::otpCoordinator.isInitialized) otpCoordinator.unregisterReceiver()
+        ScreenSearchFloating.destroy()
+        if (::backTapGestureHost.isInitialized) backTapGestureHost.stop()
+        instance = null
+        return true
+    }
+
+    override fun onRebind(intent: Intent?) {
+        super.onRebind(intent)
+        Log.i(TAG, "onRebind: accessibility service rebound by system")
+        instance = this
+        if (edgeOverlayHost == null) {
+            edgeOverlayHost = EdgeOverlayHost(this, serviceScope, deps).also { it.start() }
+        }
+        if (::watchdog.isInitialized) {
+            watchdog.registerScreenLockReceiver()
+            watchdog.syncLockScreenState()
+        }
+        if (::otpCoordinator.isInitialized) otpCoordinator.registerReceiver()
+        if (::backTapGestureHost.isInitialized) backTapGestureHost.start(serviceScope)
+        syncMonitoring()
+        GestureToggleTileWarmup.requestListening(this, "a11yRebound")
+    }
 
     override fun onDestroy() {
         mainHandler.removeCallbacks(configChangeSuppressionRunnable)

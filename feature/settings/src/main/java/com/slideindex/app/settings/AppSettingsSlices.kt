@@ -249,10 +249,18 @@ data class FloatBallSettings(
     val floatBallPickBottomTransitionFraction: Float = 0.22f,
     /** Pick panel: show text + search by default; image section stays collapsed until the image row is tapped. */
     val floatBallPickTextFirstPanel: Boolean = false,
+    /** Pick panel presentation style: INTEGRATED_SCROLL vs TAB_PAGED. */
+    val floatBallPickPanelStyle: PickResultPanelStyle = PickResultPanelStyle.TAB_PAGED,
+    /** Pick panel: default search grid display state (REMEMBER_LAST, ALWAYS_EXPANDED, ALWAYS_COLLAPSED). */
+    val floatBallPickSearchGridDefaultState: PickResultSearchGridDefaultState = PickResultSearchGridDefaultState.REMEMBER_LAST,
+    /** Pick panel: last search grid expanded state for REMEMBER_LAST mode. */
+    val floatBallPickSearchGridLastExpanded: Boolean = false,
     /** Pick panel: auto-select all text when the panel opens after word pick or screenshot. */
     val floatBallPickAutoSelectAll: Boolean = false,
     /** Pick panel: dismiss after tapping copy; long-press copy keeps the panel open. */
     val floatBallPickCopyDismissPanel: Boolean = false,
+    /** Pick panel: enable subtle haptic feedback for copy and word tap drag selection. */
+    val floatBallPickHapticEnabled: Boolean = true,
     /** FV enable_main_icon_paste: drag float ball over an input field and release to paste latest history. */
     val floatBallDragPasteEnabled: Boolean = true,
     /** Bottom pick panel slide-in duration in ms (0 = no animation). */
@@ -348,6 +356,7 @@ data class SearchPanelSettings(
     val searchEngineShowLabels: Boolean = true,
     val searchPanelDefaultEngineId: String? = null,
     val searchPanelInputBehavior: SearchPanelInputBehavior = SearchPanelInputBehavior.KEEP,
+    val searchPanelEnterAction: SearchPanelEnterAction = SearchPanelEnterAction.SEARCH_ENGINE,
     val searchPanelContactSearchEnabled: Boolean = true,
     val searchPanelFileSearchEnabled: Boolean = true,
     val searchPanelAppSearchEnabled: Boolean = true,

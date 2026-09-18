@@ -7,6 +7,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,14 +16,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.Backup
 import androidx.compose.material.icons.filled.DragHandle
+import androidx.compose.material.icons.filled.Widgets
+import com.slideindex.app.ui.SettingIconContainer
 import com.slideindex.app.ui.miuix.MiuixConfirmDialog
-import top.yukonga.miuix.kmp.icon.MiuixIcons
-import top.yukonga.miuix.kmp.icon.extended.Add
-import top.yukonga.miuix.kmp.icon.extended.Delete
-import top.yukonga.miuix.kmp.icon.extended.UploadCloud
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -57,6 +58,13 @@ import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 import com.slideindex.app.ui.settings.components.settingsLazyHint
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
+import com.slideindex.app.ui.settings.components.settingsLazyTipCard
+
+import top.yukonga.miuix.kmp.basic.Card as MiuixCard
+import top.yukonga.miuix.kmp.overlay.OverlayBottomSheet
+import top.yukonga.miuix.kmp.preference.ArrowPreference
+import com.slideindex.app.ui.miuix.MiuixSettingsFab
+import com.slideindex.app.ui.searchengine.AggregatedSearchEngineManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -76,6 +84,7 @@ fun SearchEngineSettingsScreen(
     onShowLabelsChange: (Boolean) -> Unit,
     onOpenPreviewSort: () -> Unit,
     onOpenEditor: (String?) -> Unit,
+    onUpdateEngines: (List<SearchEngineConfig>) -> Unit = {},
 ) {
     val engines = remember(settings.searchEngines) {
         SearchEngineStore.textSettingsEngines(settings.searchEngines)
@@ -90,166 +99,113 @@ fun SearchEngineSettingsScreen(
         }
     }
 
-    val displaySectionTitle = stringResource(R.string.search_engine_settings_display_section)
-    val importSectionTitle = stringResource(R.string.search_engine_settings_import_section)
-    val importButtonLabel = stringResource(R.string.search_engine_settings_import)
-    val listSectionTitle = stringResource(R.string.search_engine_settings_list_section, engines.size)
-    val addButtonLabel = stringResource(R.string.search_engine_add_title)
-    val enginesEmptyHint = stringResource(R.string.search_engine_settings_empty)
+    var isDraggingAny by remember { mutableStateOf(false) }
+    var showAddSheet by remember { mutableStateOf(false) }
+    val hintTip = stringResource(R.string.search_engine_settings_hint_tip)
 
-    SettingsLazyScreenScaffold(
+    SettingsScreenScaffold(
         title = stringResource(R.string.search_engine_settings_title),
-        subtitle = stringResource(R.string.search_engine_settings_subtitle),
         onBack = onBack,
+        scrollContent = !isDraggingAny,
+        floatingActionButton = {
+            MiuixSettingsFab(
+                onClick = { showAddSheet = true },
+                icon = Icons.Default.Add,
+                contentDescription = "添加搜索引擎与导入",
+            )
+        },
     ) {
-        groupedCardItems(
-            keyPrefix = "search-general",
-            items = listOf(
-                settingsCardScopeItem("preview-mode") {
-                    SettingNavigationRow(
-                        icon = { label -> Icon(Icons.Default.DragHandle, contentDescription = label) },
-                        title = stringResource(R.string.search_engine_settings_preview_mode),
-                        subtitle = stringResource(R.string.search_engine_settings_preview_mode_summary),
-                        enabled = engines.isNotEmpty(),
-                        onClick = onOpenPreviewSort,
-                    )
-                },
-            ),
+        settingsLazyTipCard(
+            key = "search-engine-settings-tip",
+            text = hintTip,
         )
+        item(key = "aggregated-search-manager") {
+            AggregatedSearchEngineManager(
+                engines = engines,
+                gridColumns = settings.searchEngineGridColumns,
+                gridRows = settings.searchEngineGridRows,
+                showLabels = settings.searchEngineShowLabels,
+                onDraggingStateChange = { isDraggingAny = it },
+                onUpdateEngines = onUpdateEngines,
+                onGridColumnsChange = onGridColumnsChange,
+                onGridRowsChange = onGridRowsChange,
+                onShowLabelsChange = onShowLabelsChange,
+                onAddEngine = { onOpenEditor(null) },
+                onEditEngine = onOpenEditor,
+                onDeleteEngine = { id -> deletingEngine = engines.find { it.id == id } },
+            )
+        }
+    }
 
-        settingsLazySmallTitle(key = "display_section_title", title = displaySectionTitle)
-        groupedCardItems(
-            keyPrefix = "search-display",
-            items = buildList {
-                add(
-                    settingsCardScopeItem("grid-columns") {
-                        SettingsSliderRow(
-                            title = stringResource(R.string.search_engine_grid_columns),
-                            value = settings.searchEngineGridColumns.toFloat(),
-                            valueRange = 3f..7f,
-                            steps = 3,
-                            enabled = true,
-                            label = pluralStringResource(
-                                R.plurals.search_engine_grid_columns_value,
-                                settings.searchEngineGridColumns,
-                                settings.searchEngineGridColumns,
-                            ),
-                            onValueChange = { onGridColumnsChange(it.roundToInt()) },
-                        )
-                    },
-                )
-                add(
-                    settingsCardScopeItem("grid-rows") {
-                        SettingsSliderRow(
-                            title = stringResource(R.string.search_engine_grid_rows),
-                            value = settings.searchEngineGridRows.toFloat(),
-                            valueRange = 1f..4f,
-                            steps = 2,
-                            enabled = true,
-                            label = pluralStringResource(
-                                R.plurals.search_engine_grid_rows_value,
-                                settings.searchEngineGridRows,
-                                settings.searchEngineGridRows,
-                            ),
-                            onValueChange = { onGridRowsChange(it.roundToInt()) },
-                        )
-                    },
-                )
-                add(
-                    settingsCardScopeItem("show-labels") {
-                        SettingSwitchRow(
-                            title = stringResource(R.string.search_engine_show_labels),
-                            subtitle = stringResource(R.string.search_engine_show_labels_desc),
-                            checked = settings.searchEngineShowLabels,
-                            enabled = true,
-                            onCheckedChange = onShowLabelsChange,
-                        )
-                    },
-                )
-            },
-        )
-
-        settingsLazySmallTitle(
-            key = "import_section_title",
-            title = importSectionTitle,
-        )
-        groupedCardItems(
-            keyPrefix = "import_action",
-            items = listOf(
-                settingsCardScopeItem("import_backup") {
-                    SettingNavigationRow(
-                        icon = { label -> Icon(MiuixIcons.UploadCloud, contentDescription = label) },
-                        title = importButtonLabel,
-                        subtitle = stringResource(R.string.search_engine_settings_import_subtitle),
-                        onClick = {
-                            importLauncher.launch(
-                                arrayOf(
-                                    "application/zip",
-                                    "application/json",
-                                    "application/octet-stream",
-                                    "*/*",
-                                ),
-                            )
-                        },
-                    )
-                },
-            ),
-        )
-
-        settingsLazySmallTitle(key = "list_section_title", title = listSectionTitle)
-        groupedCardItems(
-            keyPrefix = "add_action",
-            items = listOf(
-                settingsCardScopeItem("preset_catalog") {
-                    SettingNavigationRow(
-                        icon = { label ->
-                            Icon(
-                                ThinActionIcons.Search,
-                                contentDescription = label,
-                                modifier = Modifier.size(24.dp),
-                            )
-                        },
-                        title = stringResource(R.string.search_engine_settings_preset_catalog),
-                        subtitle = stringResource(R.string.search_engine_settings_preset_catalog_subtitle),
-                        onClick = onOpenPresetPicker,
-                    )
-                },
-                settingsCardScopeItem("add_engine") {
-                    SettingNavigationRow(
-                        icon = {
-                            label -> Icon(
-                                MiuixIcons.Add,
-                                contentDescription = label,
-                                modifier = Modifier.size(24.dp),
-                            )
-                        },
-                        title = addButtonLabel,
-                        subtitle = stringResource(R.string.search_engine_add_subtitle),
-                        onClick = { onOpenEditor(null) },
-                    )
-                },
-            ),
-        )
-
-        if (engines.isEmpty()) {
-            settingsLazyHint(key = "engines_empty", text = enginesEmptyHint)
-        } else {
-            groupedCardItems(
-                keyPrefix = "search-engines",
-                items = engines.mapIndexed { index, engine ->
-                    CardItem(engine.id) {
-                        SearchEngineListRow(
-                            engine = engine,
-                            canMoveUp = index > 0,
-                            canMoveDown = index < engines.lastIndex,
-                            onClick = {
-                                onOpenEditor(engine.id)
-                            },
-                            onMoveUp = { onMoveEngine(engine.id, -1) },
-                            onMoveDown = { onMoveEngine(engine.id, 1) },
-                            onDelete = { deletingEngine = engine },
+    OverlayBottomSheet(
+        show = showAddSheet,
+        title = stringResource(R.string.search_engine_add_title),
+        onDismissRequest = { showAddSheet = false },
+    ) {
+        MiuixCard(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+        ) {
+            ArrowPreference(
+                title = stringResource(R.string.search_engine_settings_preset_catalog),
+                summary = stringResource(R.string.search_engine_settings_preset_catalog_subtitle),
+                startAction = {
+                    SettingIconContainer {
+                        Icon(
+                            imageVector = Icons.Default.Widgets,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(22.dp),
                         )
                     }
+                },
+                onClick = {
+                    showAddSheet = false
+                    onOpenPresetPicker()
+                },
+            )
+            ArrowPreference(
+                title = stringResource(R.string.search_engine_settings_import),
+                summary = stringResource(R.string.search_engine_settings_import_subtitle),
+                startAction = {
+                    SettingIconContainer {
+                        Icon(
+                            imageVector = Icons.Default.Backup,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(22.dp),
+                        )
+                    }
+                },
+                onClick = {
+                    showAddSheet = false
+                    importLauncher.launch(
+                        arrayOf(
+                            "application/zip",
+                            "application/json",
+                            "application/octet-stream",
+                            "*/*",
+                        ),
+                    )
+                },
+            )
+            ArrowPreference(
+                title = stringResource(R.string.search_engine_add_title),
+                summary = stringResource(R.string.search_engine_add_subtitle),
+                startAction = {
+                    SettingIconContainer {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(22.dp),
+                        )
+                    }
+                },
+                onClick = {
+                    showAddSheet = false
+                    onOpenEditor(null)
                 },
             )
         }
@@ -280,70 +236,6 @@ fun SearchEngineSettingsScreen(
             }
         },
     )
-}
-
-@Composable
-private fun SearchEngineListRow(
-    engine: SearchEngineConfig,
-    canMoveUp: Boolean,
-    canMoveDown: Boolean,
-    onClick: () -> Unit,
-    onMoveUp: () -> Unit,
-    onMoveDown: () -> Unit,
-    onDelete: () -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(start = 16.dp, end = 4.dp, top = 8.dp, bottom = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        SearchEngineIcon(engine = engine, modifier = Modifier.size(36.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = engine.name,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            Text(
-                text = searchEngineTypeLabel(engine.engineType),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        IconButton(onClick = onMoveUp, enabled = canMoveUp) {
-            Icon(
-                Icons.Default.ArrowUpward,
-                contentDescription = stringResource(R.string.search_engine_move_up),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        IconButton(onClick = onMoveDown, enabled = canMoveDown) {
-            Icon(
-                Icons.Default.ArrowDownward,
-                contentDescription = stringResource(R.string.search_engine_move_down),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        IconButton(onClick = onDelete) {
-            Icon(
-                MiuixIcons.Delete,
-                contentDescription = stringResource(R.string.search_engine_delete_confirm),
-                tint = MaterialTheme.colorScheme.error,
-            )
-        }
-    }
-}
-
-@Composable
-private fun searchEngineTypeLabel(type: SearchEngineType): String = when (type) {
-    SearchEngineType.DIRECT_LINK -> stringResource(R.string.search_engine_type_direct_link)
-    SearchEngineType.JUMP_TO_ACTIVITY -> stringResource(R.string.search_engine_type_jump_activity)
-    SearchEngineType.EXTERN_JUMP_LINK -> stringResource(R.string.search_engine_type_extern_jump)
-    SearchEngineType.SHARE_TO_APP -> stringResource(R.string.search_engine_type_share)
-    SearchEngineType.SHARE_IMAGE_TO_APP -> stringResource(R.string.search_engine_type_share_image)
 }
 
 @Composable

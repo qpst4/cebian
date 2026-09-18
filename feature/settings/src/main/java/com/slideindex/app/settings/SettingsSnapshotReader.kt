@@ -412,10 +412,18 @@ internal object SettingsSnapshotReader {
                     ?: 0.22f,
             floatBallPickTextFirstPanel =
                 prefs[SettingsPreferenceKeys.FLOAT_BALL_PICK_TEXT_FIRST_PANEL] ?: false,
+            floatBallPickPanelStyle =
+                PickResultPanelStyle.fromStorageKey(prefs[SettingsPreferenceKeys.FLOAT_BALL_PICK_PANEL_STYLE]),
+            floatBallPickSearchGridDefaultState =
+                PickResultSearchGridDefaultState.fromStorageKey(prefs[SettingsPreferenceKeys.FLOAT_BALL_PICK_SEARCH_GRID_DEFAULT_STATE]),
+            floatBallPickSearchGridLastExpanded =
+                prefs[SettingsPreferenceKeys.FLOAT_BALL_PICK_SEARCH_GRID_LAST_EXPANDED] ?: false,
             floatBallPickAutoSelectAll =
                 prefs[SettingsPreferenceKeys.FLOAT_BALL_PICK_AUTO_SELECT_ALL] ?: false,
             floatBallPickCopyDismissPanel =
                 prefs[SettingsPreferenceKeys.FLOAT_BALL_PICK_COPY_DISMISS_PANEL] ?: false,
+            floatBallPickHapticEnabled =
+                prefs[SettingsPreferenceKeys.FLOAT_BALL_PICK_HAPTIC_ENABLED] ?: true,
             floatBallDragPasteEnabled =
                 prefs[SettingsPreferenceKeys.FLOAT_BALL_DRAG_PASTE_ENABLED] ?: true,
             floatBallPickPanelEnterAnimationMs =
@@ -542,15 +550,19 @@ internal object SettingsSnapshotReader {
             ),
             ),
             defaultImageViewerPackage = prefs[SettingsPreferenceKeys.DEFAULT_IMAGE_VIEWER_PACKAGE],
+            imageEditorDelayDeleteEnabled = prefs[SettingsPreferenceKeys.IMAGE_EDITOR_DELAY_DELETE_ENABLED] ?: false,
             searchPanel = SearchPanelSettings(
             searchEngines = readSearchEngines(prefs, context),
-            searchEngineGridColumns = prefs[SettingsPreferenceKeys.SEARCH_ENGINE_GRID_COLUMNS]?.coerceIn(3, 7) ?: 5,
+            searchEngineGridColumns = prefs[SettingsPreferenceKeys.SEARCH_ENGINE_GRID_COLUMNS]?.coerceIn(3, 8) ?: 5,
             searchEngineGridRows = prefs[SettingsPreferenceKeys.SEARCH_ENGINE_GRID_ROWS]?.coerceIn(1, 4) ?: 2,
             searchEngineShowLabels = prefs[SettingsPreferenceKeys.SEARCH_ENGINE_SHOW_LABELS] ?: true,
             searchPanelDefaultEngineId = prefs[SettingsPreferenceKeys.SEARCH_PANEL_DEFAULT_ENGINE_ID],
             searchPanelInputBehavior = prefs[SettingsPreferenceKeys.SEARCH_PANEL_INPUT_BEHAVIOR]
                 ?.let { name -> runCatching { SearchPanelInputBehavior.valueOf(name) }.getOrNull() }
                 ?: SearchPanelInputBehavior.KEEP,
+            searchPanelEnterAction = prefs[SettingsPreferenceKeys.SEARCH_PANEL_ENTER_ACTION]
+                ?.let { name -> runCatching { SearchPanelEnterAction.valueOf(name) }.getOrNull() }
+                ?: SearchPanelEnterAction.SEARCH_ENGINE,
             searchPanelContactSearchEnabled = prefs[SettingsPreferenceKeys.SEARCH_PANEL_CONTACT_SEARCH_ENABLED] ?: true,
             searchPanelFileSearchEnabled = prefs[SettingsPreferenceKeys.SEARCH_PANEL_FILE_SEARCH_ENABLED] ?: true,
             searchPanelAppSearchEnabled = prefs[SettingsPreferenceKeys.SEARCH_PANEL_APP_SEARCH_ENABLED] ?: true,

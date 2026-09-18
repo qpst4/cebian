@@ -21,6 +21,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalView
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
@@ -32,6 +33,7 @@ import com.slideindex.app.ocr.OcrDependencyAccess
 import com.slideindex.app.overlay.compositor.OverlayCompositor
 import com.slideindex.app.overlay.compositor.OverlaySceneController
 import com.slideindex.app.imageeditor.ImageEditorPickReturnContext
+import com.slideindex.app.imageeditor.ImageEditorSavedImageDeleteScheduler
 import com.slideindex.app.overlay.pickresult.FloatBallPickResultContent
 import com.slideindex.app.overlay.pickresult.PickResultTextMode
 import com.slideindex.app.overlay.pickresult.preloadPickResultSearchEngineIcons
@@ -46,6 +48,7 @@ import com.slideindex.app.settings.PickPanelSlideAnimationDefaults
 import com.slideindex.app.settings.SearchEngineStore
 import com.slideindex.app.settings.SearchEngineType
 import com.slideindex.app.stash.StashCoordinator
+import com.slideindex.app.util.HapticHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -967,6 +970,7 @@ object FloatBallPickResultPanel {
                 val visibleState = panelVisibilityState ?: return@setContent
                 if (!visibleState.currentState && !visibleState.targetState) return@setContent
                 OverlayTextToolbarProvider {
+                val localView = LocalView.current
                 val panelShowToken = panelShowTokenHolder.intValue
                 val panelRevealed by panelRevealedHolder
                 val panelNotificationHolder = remember { mutableStateOf<String?>(null) }
@@ -1103,13 +1107,34 @@ object FloatBallPickResultPanel {
                     onTextChange = { textHolder.value = it },
                     onCopy = { value, keepPanelOpen ->
                         FloatBallTextPick.copyText(context, value)
+                        if (settingsHolder.value.floatBallPickHapticEnabled) {
+                            val vibrator = context.getSystemService(android.os.Vibrator::class.java)
+                                ?: (context.getSystemService(android.content.Context.VIBRATOR_MANAGER_SERVICE) as? android.os.VibratorManager)?.defaultVibrator
+                            var vibrated = false
+                            if (vibrator?.hasVibrator() == true) {
+                                try {
+                                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                                        vibrator.vibrate(android.os.VibrationEffect.createPredefined(android.os.VibrationEffect.EFFECT_CLICK))
+                                        vibrated = true
+                                    }
+                                } catch (_: Throwable) {}
+                                if (!vibrated) {
+                                    try {
+                                        vibrator.vibrate(android.os.VibrationEffect.createOneShot(20L, android.os.VibrationEffect.DEFAULT_AMPLITUDE))
+                                        vibrated = true
+                                    } catch (_: Throwable) {}
+                                }
+                            }
+                            if (!vibrated) {
+                                composeView?.performHapticFeedback(
+                                    android.view.HapticFeedbackConstants.CONTEXT_CLICK,
+                                    android.view.HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING
+                                )
+                            }
+                        }
                         val autoDismiss = settingsHolder.value.floatBallPickCopyDismissPanel
                         if (autoDismiss && !keepPanelOpen) {
-                            val hostContext = appContext ?: context.applicationContext
-                            Toast.makeText(hostContext, R.string.float_ball_text_copied, Toast.LENGTH_SHORT).show()
                             dismiss()
-                        } else {
-                            showInPanelMessage(context.getString(R.string.float_ball_text_copied))
                         }
                     },
                     onShareText = {
@@ -1126,12 +1151,63 @@ object FloatBallPickResultPanel {
                     },
                     onSaveScreenshot = {
                         val bitmap = screenshotHolder.value ?: return@FloatBallPickResultContent
-                        val saved = FloatBallTextPick.saveScreenshot(context, bitmap)
-                        showInPanelMessage(
-                            context.getString(
+                        val delayDelete = settingsHolder.value.imageEditorDelayDeleteEnabled
+                        if (delayDelete) {
+                            val uri = FloatBallTextPick.saveScreenshotReturningUri(
+                                overlayContext,
+                                bitmap,
+                                ingestToHistory = false,
+                            )
+                            if (uri != null) {
+                                ImageEditorSavedImageDeleteScheduler.scheduleDeleteAfterMinutes(
+                                    overlayContext,
+                                    uri,
+                                    5L,
+                                )
+                                val msg = overlayContext.getString(R.string.inspire_image_edit_save_auto_delete)
+                                Toast.makeText(overlayContext.applicationContext, msg, Toast.LENGTH_SHORT).show()
+                                showInPanelMessage(msg)
+                            } else {
+                                showInPanelMessage(overlayContext.getString(R.string.float_ball_action_failed))
+                            }
+                        } else {
+                            val saved = FloatBallTextPick.saveScreenshot(context, bitmap)
+                            showInPanelMessage(
+                                context.getString(
+                                    if (saved) R.string.float_ball_screenshot_saved else R.string.float_ball_action_failed
+                                )
+                            )
+                        }
+                    },
+                    onSaveScreenshotLongClick = {
+                        val bitmap = screenshotHolder.value ?: return@FloatBallPickResultContent
+                        val delayDelete = settingsHolder.value.imageEditorDelayDeleteEnabled
+                        if (!delayDelete) {
+                            val uri = FloatBallTextPick.saveScreenshotReturningUri(
+                                overlayContext,
+                                bitmap,
+                                ingestToHistory = false,
+                            )
+                            if (uri != null) {
+                                ImageEditorSavedImageDeleteScheduler.scheduleDeleteAfterMinutes(
+                                    overlayContext,
+                                    uri,
+                                    5L,
+                                )
+                                val msg = overlayContext.getString(R.string.inspire_image_edit_save_auto_delete)
+                                Toast.makeText(overlayContext.applicationContext, msg, Toast.LENGTH_SHORT).show()
+                                showInPanelMessage(msg)
+                            } else {
+                                showInPanelMessage(overlayContext.getString(R.string.float_ball_action_failed))
+                            }
+                        } else {
+                            val saved = FloatBallTextPick.saveScreenshot(context, bitmap)
+                            val msg = context.getString(
                                 if (saved) R.string.float_ball_screenshot_saved else R.string.float_ball_action_failed
                             )
-                        )
+                            Toast.makeText(overlayContext.applicationContext, msg, Toast.LENGTH_SHORT).show()
+                            showInPanelMessage(msg)
+                        }
                     },
                     onShareScreenshot = {
                         val bitmap = screenshotHolder.value ?: return@FloatBallPickResultContent

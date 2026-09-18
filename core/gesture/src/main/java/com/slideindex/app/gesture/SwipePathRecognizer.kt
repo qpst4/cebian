@@ -601,11 +601,7 @@ class SwipePathRecognizer(
             TAP_SLOP_DP * density
         }
         val movementPx = hypot(dx.toDouble(), dy.toDouble()).toFloat()
-        val movedBeyondTap = if (options.preferSingleTap) {
-            movementPx >= tapDisqualifyPx
-        } else {
-            peakSwipeDistance >= tapDisqualifyPx
-        }
+        val movedBeyondTap = peakSwipeDistance >= tapDisqualifyPx || movementPx >= tapDisqualifyPx
         val trigger = when {
             longPressTriggered && distance < tapSlop * 2 -> {
                 if (distance >= longDistanceDp * density) GestureTriggerType.LONG_LONG_PRESS
