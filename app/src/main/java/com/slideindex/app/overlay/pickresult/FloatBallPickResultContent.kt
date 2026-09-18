@@ -272,7 +272,7 @@ internal fun FloatBallPickResultContent(
         else -> 0.dp
     }
     val searchGridSectionPrefixHeight = if (showTextSection || showImageSection) {
-        12.dp + 1.dp + 12.dp + PickResultTextSearchGridTopSpacing
+        12.dp + 1.dp + 12.dp
     } else {
         0.dp
     }
@@ -281,7 +281,7 @@ internal fun FloatBallPickResultContent(
             searchEngineGridRows,
             searchEngineShowLabels,
             effectiveSearchGridColumns
-        ) + 4.dp
+        )
     } else {
         0.dp
     }

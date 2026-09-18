@@ -609,11 +609,6 @@ internal fun PickResultInteractiveTextSection(
                 }
             }
         }
-        PickResultSmartChipsRow(
-            text = text,
-            onCopyText = { copied -> onCopy(copied, true) },
-            modifier = Modifier.fillMaxWidth()
-        )
         if (pinActionBarOutside) {
             val maxBodyHeight = bodyMaxHeight ?: pickResultMaxTextHeight(textSizeSp)
             val bodyScrollEnabled = textMode != PickResultTextMode.WORD_TAP

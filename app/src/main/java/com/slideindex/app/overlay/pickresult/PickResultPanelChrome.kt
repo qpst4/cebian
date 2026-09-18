@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.shape.CircleShape
@@ -443,7 +444,76 @@ internal fun PickResultTextActionBar(
                 horizontalArrangement = Arrangement.spacedBy(2.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                // 2.1 搜索（正对图片底栏的以图搜图，无厚重蓝色底衬）
+                // 2.1 打开链接（位于搜索左侧，有链接时外显）
+                if (showOpenLink) {
+                    Box {
+                        IconButton(
+                            onClick = onOpenLink,
+                            enabled = enabled,
+                            modifier = Modifier
+                                .size(42.dp)
+                                .clip(RoundedCornerShape(21.dp))
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Outlined.OpenInNew,
+                                contentDescription = stringResource(R.string.pick_result_open_link),
+                                tint = if (enabled) (if (isDark) androidx.compose.ui.graphics.Color(0xFFE0E0E6) else androidx.compose.ui.graphics.Color(0xFF333333)) else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f),
+                                modifier = Modifier.size(22.dp)
+                            )
+                        }
+
+                        if (openLinkChoices.isNotEmpty()) {
+                            DropdownMenu(
+                                expanded = openLinkChooserExpanded,
+                                onDismissRequest = onDismissOpenLinkChooser,
+                                shape = RoundedCornerShape(16.dp),
+                                containerColor = if (isDark) androidx.compose.ui.graphics.Color(0xFF28282A) else androidx.compose.ui.graphics.Color(0xFFFFFFFF),
+                                shadowElevation = 6.dp,
+                                tonalElevation = 0.dp,
+                                modifier = Modifier.widthIn(min = 140.dp, max = 240.dp),
+                            ) {
+                                openLinkChoices.forEachIndexed { index, url ->
+                                    if (index > 0) {
+                                        Box(
+                                            modifier = Modifier
+                                                .padding(horizontal = 12.dp)
+                                                .fillMaxWidth()
+                                                .height(0.5.dp)
+                                                .background(
+                                                    if (isDark) androidx.compose.ui.graphics.Color(0x24FFFFFF)
+                                                    else androidx.compose.ui.graphics.Color(0x14000000)
+                                                )
+                                        )
+                                    }
+                                    DropdownMenuItem(
+                                        text = {
+                                            Text(
+                                                text = url,
+                                                maxLines = 3,
+                                                style = MaterialTheme.typography.bodySmall.copy(
+                                                    fontSize = 12.sp,
+                                                    lineHeight = 16.sp,
+                                                    color = if (isDark) androidx.compose.ui.graphics.Color(0xFFECECED)
+                                                        else androidx.compose.ui.graphics.Color(0xFF1F1F1F),
+                                                ),
+                                            )
+                                        },
+                                        contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                                            horizontal = 12.dp,
+                                            vertical = 6.dp,
+                                        ),
+                                        onClick = {
+                                            onDismissOpenLinkChooser()
+                                            onOpenLinkChoice(url)
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // 2.2 搜索（正对图片底栏的以图搜图，无厚重蓝色底衬）
                 if (showSearch) {
                     val searchTint = when {
                         !enabled -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
@@ -466,7 +536,7 @@ internal fun PickResultTextActionBar(
                     }
                 }
 
-                // 2.2 翻译（正对图片底栏的保存，无厚重蓝色底衬）
+                // 2.3 翻译（正对图片底栏的保存，无厚重蓝色底衬）
                 val translateTint = when {
                     !enabled || !translateEnabled -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
                     translateSelected -> MaterialTheme.colorScheme.primary

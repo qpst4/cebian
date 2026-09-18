@@ -241,7 +241,8 @@ internal fun computePickResultCollapseHeights(
             ).coerceAtLeast(minTextBodyHeight)
     }
 
-    val compactTextBodyHeight = minOf(idealTextBodyHeight, rawTextBodyHeight).coerceAtLeast(0.dp)
+    // 文字区最大高度按屏幕剩余空间自适应展开，当图片区收起时动态借调释放的空间
+    val compactTextBodyHeight = rawTextBodyHeight.coerceAtLeast(0.dp)
     val fillTextSpace = false
     val textBodyHeight = compactTextBodyHeight
 
@@ -454,7 +455,7 @@ internal fun PickResultAuxiliarySearchBlock(
                     modifier = Modifier.padding(horizontal = 16.dp),
                     color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
                 )
-                Spacer(modifier = Modifier.height(12.dp + PickResultTextSearchGridTopSpacing))
+                Spacer(modifier = Modifier.height(12.dp))
             }
         }
     }

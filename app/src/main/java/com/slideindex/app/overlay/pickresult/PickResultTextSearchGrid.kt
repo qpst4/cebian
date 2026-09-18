@@ -88,8 +88,8 @@ private fun cachedSearchEngineBitmap(cacheKey: String): android.graphics.Bitmap?
 
 private val SearchIconSizeDefault = 40.dp
 
-/** 文本区与搜索引擎网格之间、分隔线下方的额外间距。 */
-internal val PickResultTextSearchGridTopSpacing = 8.dp
+/** 文本区与搜索引擎网格之间、分隔线下方的额外间距（已归一化为对称 12dp）。 */
+internal val PickResultTextSearchGridTopSpacing = 0.dp
 
 internal fun searchGridContentHeight(rows: Int, showLabels: Boolean, columns: Int): Dp {
     val rowCount = rows.coerceIn(1, 4)
@@ -97,7 +97,7 @@ internal fun searchGridContentHeight(rows: Int, showLabels: Boolean, columns: In
     val labelHeight = if (showLabels) 18.dp else 0.dp
     val itemHeight = iconSize + labelHeight + 4.dp
     val rowGap = 10.dp * (rowCount - 1).coerceAtLeast(0)
-    return itemHeight * rowCount + rowGap + 6.dp
+    return itemHeight * rowCount + rowGap
 }
 
 internal fun pickResultSearchGridReservedHeight(rows: Int, showLabels: Boolean, columns: Int = 5): Dp {
