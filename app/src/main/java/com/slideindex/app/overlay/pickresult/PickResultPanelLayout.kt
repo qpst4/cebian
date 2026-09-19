@@ -1,7 +1,6 @@
 package com.slideindex.app.overlay.pickresult
 
 import android.graphics.Bitmap
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
@@ -69,6 +68,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
@@ -808,6 +808,16 @@ internal fun PickResultCollapsePanelColumn(
         initialPage = if (hasMeaningfulText) 0 else 1,
         pageCount = { 2 }
     )
+    val density = LocalDensity.current
+    var textTabPageHeightPx by remember { mutableIntStateOf(0) }
+    var imageTabPageHeightPx by remember { mutableIntStateOf(0) }
+    val tabPagerProgress = (pagerState.currentPage + pagerState.currentPageOffsetFraction).coerceIn(0f, 1f)
+    val measuredTabPagerHeightPx = when {
+        textTabPageHeightPx <= 0 && imageTabPageHeightPx <= 0 -> 0
+        textTabPageHeightPx <= 0 -> imageTabPageHeightPx
+        imageTabPageHeightPx <= 0 -> textTabPageHeightPx
+        else -> (textTabPageHeightPx + (imageTabPageHeightPx - textTabPageHeightPx) * tabPagerProgress).roundToInt()
+    }
 
     val editModeProgress by animateFloatAsState(
         targetValue = if (isEditMode) 1f else 0f,
@@ -974,7 +984,6 @@ internal fun PickResultCollapsePanelColumn(
     val wrappedApplySearchDrag: (Float) -> Unit = remember {
         { delta -> applySearchDragState.value(delta) }
     }
-    val density = LocalDensity.current
     val maxSearchSectionHeight = searchGridSectionPrefixHeight + expandedSearchGridContentHeight
     val totalImageCollapsiblePx = remember(
         maxImageSectionHeight,
@@ -1278,9 +1287,13 @@ internal fun PickResultCollapsePanelColumn(
             if (showTabBar) {
                 PickResultSegmentedTabHeader(
                     selectedTab = pagerState.currentPage,
+                    pagerProgress = tabPagerProgress,
                     onTabSelected = { page ->
                         coroutineScope.launch {
-                            pagerState.animateScrollToPage(page)
+                            pagerState.animateScrollToPage(
+                                page = page,
+                                animationSpec = spring(dampingRatio = 0.85f, stiffness = 380f)
+                            )
                         }
                     }
                 )
@@ -1288,19 +1301,38 @@ internal fun PickResultCollapsePanelColumn(
                     state = pagerState,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .animateContentSize(
-                            animationSpec = spring(
-                                dampingRatio = 0.85f,
-                                stiffness = 380f
-                            )
-                        )
                         .then(
-                            if (useWeightedTextLayout) Modifier.weight(1f) else Modifier
+                            if (useWeightedTextLayout) {
+                                Modifier.weight(1f)
+                            } else if (measuredTabPagerHeightPx > 0) {
+                                Modifier
+                                    .height(with(density) { measuredTabPagerHeightPx.toDp() })
+                                    .clipToBounds()
+                            } else {
+                                Modifier
+                            }
                         ),
+                    beyondViewportPageCount = 1,
                     verticalAlignment = Alignment.Top
                 ) { page ->
                     if (page == 0) {
-                        Column(modifier = Modifier.fillMaxWidth()) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .then(
+                                    if (useWeightedTextLayout) {
+                                        Modifier
+                                    } else {
+                                        Modifier
+                                            .wrapContentHeight(align = Alignment.Top, unbounded = true)
+                                            .onSizeChanged { size ->
+                                                if (size.height > 0 && textTabPageHeightPx != size.height) {
+                                                    textTabPageHeightPx = size.height
+                                                }
+                                            }
+                                    }
+                                )
+                        ) {
                             Box(
                                 modifier = (if (useWeightedTextLayout) {
                                     Modifier
@@ -1319,7 +1351,17 @@ internal fun PickResultCollapsePanelColumn(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .then(
-                                    if (useWeightedTextLayout) Modifier.weight(1f, fill = false) else Modifier
+                                    if (useWeightedTextLayout) {
+                                        Modifier.weight(1f, fill = false)
+                                    } else {
+                                        Modifier
+                                            .wrapContentHeight(align = Alignment.Top, unbounded = true)
+                                            .onSizeChanged { size ->
+                                                if (size.height > 0 && imageTabPageHeightPx != size.height) {
+                                                    imageTabPageHeightPx = size.height
+                                                }
+                                            }
+                                    }
                                 )
                         ) {
                             renderImageBlock()

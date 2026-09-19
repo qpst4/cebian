@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -42,6 +43,7 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.LaunchedEffect
@@ -65,11 +67,14 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
 import kotlin.math.abs
+import kotlin.math.roundToInt
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.LayoutDirection
@@ -1135,6 +1140,7 @@ internal fun PickResultSegmentedTabHeader(
     selectedTab: Int,
     onTabSelected: (Int) -> Unit,
     modifier: Modifier = Modifier,
+    pagerProgress: Float = selectedTab.toFloat(),
 ) {
     val isDark = LocalAppDarkTheme.current
     val containerBg = if (isDark) {
@@ -1142,6 +1148,17 @@ internal fun PickResultSegmentedTabHeader(
     } else {
         androidx.compose.ui.graphics.Color(0xFFEAEBED)
     }
+    val activeBg = if (isDark) {
+        androidx.compose.ui.graphics.Color(0xFF383A40)
+    } else {
+        androidx.compose.ui.graphics.Color(0xFFFFFFFF)
+    }
+    val density = LocalDensity.current
+    var tab0WidthPx by remember { mutableIntStateOf(0) }
+    var tab1WidthPx by remember { mutableIntStateOf(0) }
+    var tabHeightPx by remember { mutableIntStateOf(0) }
+    val progress = pagerProgress.coerceIn(0f, 1f)
+    val tabSpacingPx = with(density) { 4.dp.toPx() }
 
     Box(
         modifier = modifier
@@ -1149,7 +1166,7 @@ internal fun PickResultSegmentedTabHeader(
             .padding(horizontal = 20.dp, vertical = 6.dp),
         contentAlignment = Alignment.Center
     ) {
-        Row(
+        Box(
             modifier = Modifier
                 .background(containerBg, CircleShape)
                 .border(
@@ -1157,22 +1174,45 @@ internal fun PickResultSegmentedTabHeader(
                     color = if (isDark) androidx.compose.ui.graphics.Color(0x28FFFFFF) else androidx.compose.ui.graphics.Color(0x18000000),
                     shape = CircleShape
                 )
-                .padding(3.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                .padding(3.dp)
         ) {
-            PickResultSegmentedTabItem(
-                selected = selectedTab == 0,
-                icon = Icons.Outlined.TextFields,
-                label = stringResource(R.string.float_ball_pick_panel_tab_text),
-                onClick = { onTabSelected(0) }
-            )
-            PickResultSegmentedTabItem(
-                selected = selectedTab == 1,
-                icon = Icons.Outlined.Image,
-                label = stringResource(R.string.float_ball_pick_panel_tab_image),
-                onClick = { onTabSelected(1) }
-            )
+            if (tab0WidthPx > 0 && tabHeightPx > 0) {
+                val thumbWidthPx = tab0WidthPx + (tab1WidthPx - tab0WidthPx) * progress
+                val thumbOffsetPx = (tab0WidthPx + tabSpacingPx) * progress
+                Box(
+                    modifier = Modifier
+                        .offset { IntOffset(thumbOffsetPx.roundToInt(), 0) }
+                        .width(with(density) { thumbWidthPx.toDp() })
+                        .height(with(density) { tabHeightPx.toDp() })
+                        .shadow(elevation = 2.dp, shape = CircleShape, clip = false)
+                        .background(activeBg, CircleShape)
+                )
+            }
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                PickResultSegmentedTabItem(
+                    selected = selectedTab == 0,
+                    icon = Icons.Outlined.TextFields,
+                    label = stringResource(R.string.float_ball_pick_panel_tab_text),
+                    onClick = { onTabSelected(0) },
+                    modifier = Modifier.onSizeChanged {
+                        if (tab0WidthPx != it.width) tab0WidthPx = it.width
+                        if (tabHeightPx != it.height) tabHeightPx = it.height
+                    }
+                )
+                PickResultSegmentedTabItem(
+                    selected = selectedTab == 1,
+                    icon = Icons.Outlined.Image,
+                    label = stringResource(R.string.float_ball_pick_panel_tab_image),
+                    onClick = { onTabSelected(1) },
+                    modifier = Modifier.onSizeChanged {
+                        if (tab1WidthPx != it.width) tab1WidthPx = it.width
+                        if (tabHeightPx != it.height) tabHeightPx = it.height
+                    }
+                )
+            }
         }
     }
 }
@@ -1183,13 +1223,8 @@ private fun PickResultSegmentedTabItem(
     icon: ImageVector,
     label: String,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    val isDark = LocalAppDarkTheme.current
-    val activeBg = if (isDark) {
-        androidx.compose.ui.graphics.Color(0xFF383A40)
-    } else {
-        androidx.compose.ui.graphics.Color(0xFFFFFFFF)
-    }
     val targetContentColor = if (selected) {
         MaterialTheme.colorScheme.primary
     } else {
@@ -1201,16 +1236,7 @@ private fun PickResultSegmentedTabItem(
     )
 
     Row(
-        modifier = Modifier
-            .then(
-                if (selected) {
-                    Modifier
-                        .shadow(elevation = 2.dp, shape = CircleShape, clip = false)
-                        .background(activeBg, CircleShape)
-                } else {
-                    Modifier
-                }
-            )
+        modifier = modifier
             .clip(CircleShape)
             .clickable(onClick = onClick)
             .padding(horizontal = 14.dp, vertical = 6.dp),
