@@ -327,8 +327,6 @@ data class ClipboardSettings(
     val clipboardFloatPanelPinPosition: Boolean = false,
     val clipboardFloatEntryClickAction: ClipboardFloatEntryClickAction = ClipboardFloatEntryClickAction.PASTE,
     val clipboardFloatListStyleId: Int = ClipboardFloatListStyle.SINGLE_LINE.id,
-    val clipboardFloatPanelLayoutId: Int = ClipboardFloatPanelLayout.ResizableFloating.id,
-    val clipboardFloatGridColumns: Int = 3,
     val clipboardFloatPortraitGeometry: ClipboardFloatOrientationGeometry = ClipboardFloatOrientationGeometry(),
     val clipboardFloatLandscapeGeometry: ClipboardFloatOrientationGeometry = ClipboardFloatOrientationGeometry(),
     /** @deprecated Use [clipboardFloatPortraitGeometry]; kept for legacy readers. */

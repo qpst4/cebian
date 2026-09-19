@@ -548,10 +548,6 @@ internal object SettingsSnapshotReader {
                 prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_AUTO_DIM_UNFOCUSED] ?: false,
             clipboardFloatAutoCloseSeconds =
                 (prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_AUTO_CLOSE_SECONDS] ?: 0).coerceAtLeast(0),
-            clipboardFloatPanelLayoutId = prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PANEL_LAYOUT]
-                ?: ClipboardFloatPanelLayout.ResizableFloating.id,
-            clipboardFloatGridColumns = (prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_GRID_COLUMNS] ?: 3)
-                .coerceIn(3, 8),
             stashPanelBackgroundBlurEnabled =
                 prefs[SettingsPreferenceKeys.STASH_PANEL_BACKGROUND_BLUR_ENABLED] ?: false,
             stashPanelBackgroundBlurRadiusDp = (
