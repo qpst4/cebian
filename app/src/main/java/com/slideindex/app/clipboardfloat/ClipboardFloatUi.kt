@@ -1002,7 +1002,7 @@ private fun startClipboardFloatEntryDrag(
         onDragStart = onDragStart,
         onDragEnd = onDragEnd,
         onDragAccepted = { accepted ->
-            if (!accepted && ClipboardDragHostPaste.isWeChatForeground(context)) {
+            if (!accepted && ClipboardDragHostPaste.isPasteInsteadOfDragHostForeground(context)) {
                 onHostPasteFallback(entry)
             }
         },

@@ -9,17 +9,30 @@ import com.slideindex.app.service.SlideIndexAccessibilityService
 import com.slideindex.app.util.AccessibilityForegroundResolver
 
 /**
- * 微信等宿主对跨应用拖放图片支持差；参考 AI 剪贴板在起拖前走「写剪贴板 + 无障碍粘贴」链路。
+ * 部分 IM 对跨应用拖放图片支持差；起拖前走「写剪贴板 + grant + 无障碍粘贴」链路。
  */
 object ClipboardDragHostPaste {
     const val WECHAT_PACKAGE = "com.tencent.mm"
+    const val TELEGRAM_PACKAGE = "org.telegram.messenger"
+    const val TELEGRAM_PLUS_PACKAGE = "org.telegram.plus"
 
-    fun isWeChatForeground(context: Context): Boolean =
-        AccessibilityForegroundResolver.resolve(context) == WECHAT_PACKAGE
+    private val pasteInsteadOfDragHosts: Set<String> = setOf(
+        WECHAT_PACKAGE,
+        TELEGRAM_PACKAGE,
+        TELEGRAM_PLUS_PACKAGE,
+    )
 
-    /** 微信前台图片：不起拖，走剪贴板 + 无障碍粘贴。 */
+    fun resolvePasteInsteadOfDragHost(context: Context): String? {
+        val pkg = AccessibilityForegroundResolver.resolve(context) ?: return null
+        return pkg.takeIf { it in pasteInsteadOfDragHosts }
+    }
+
+    fun isPasteInsteadOfDragHostForeground(context: Context): Boolean =
+        resolvePasteInsteadOfDragHost(context) != null
+
+    /** 前台为已知宿主且含图片：不起拖，走剪贴板 + 无障碍粘贴。 */
     fun shouldPasteInsteadOfDrag(context: Context, entry: ClipboardEntry): Boolean =
-        entry.hasImageContent() && isWeChatForeground(context)
+        entry.hasImageContent() && resolvePasteInsteadOfDragHost(context) != null
 
     fun pasteEntryToForegroundHost(
         context: Context,
@@ -33,12 +46,13 @@ object ClipboardDragHostPaste {
             onFinished?.invoke(null)
             return
         }
-        if (entry.hasImageContent() && isWeChatForeground(context)) {
-            ClipboardPasteCoordinator.pasteEntryViaWeChatHostChain(
+        val hostPackage = resolvePasteInsteadOfDragHost(context)
+        if (entry.hasImageContent() && hostPackage != null) {
+            ClipboardPasteCoordinator.pasteEntryViaHostChain(
                 service = service,
                 context = context,
                 entry = entry,
-                hostPackage = WECHAT_PACKAGE,
+                hostPackage = hostPackage,
                 onFinished = { result ->
                     deliverPasteResult(context, result, onFinished)
                 },

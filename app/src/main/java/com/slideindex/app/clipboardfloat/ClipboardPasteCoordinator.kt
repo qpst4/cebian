@@ -21,14 +21,14 @@ object ClipboardPasteCoordinator {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
-    private const val WECHAT_CLIP_SETTLE_MS = 60L
-    private const val WECHAT_PASTE_RETRY_DELAY_MS = 150L
-    private const val WECHAT_PASTE_MAX_ATTEMPTS = 8
+    private const val HOST_CLIP_SETTLE_MS = 60L
+    private const val HOST_PASTE_RETRY_DELAY_MS = 150L
+    private const val HOST_PASTE_MAX_ATTEMPTS = 8
 
     /**
-     * 微信图片：grantUri + 写剪贴板 + 延迟后按包名无障碍粘贴（对齐参考 PASTE_CLIP / b9 重试）。
+     * grantUri + 写剪贴板 + 延迟后按 [hostPackage] 无障碍粘贴（对齐参考 PASTE_CLIP / b9 重试）。
      */
-    fun pasteEntryViaWeChatHostChain(
+    fun pasteEntryViaHostChain(
         service: AccessibilityService,
         context: Context,
         entry: ClipboardEntry,
@@ -43,9 +43,9 @@ object ClipboardPasteCoordinator {
                 onFinished(PasteResult.Failure(PasteFailureReason.PASTE_AND_INSERT_FAILED))
                 return@launch
             }
-            SystemClock.sleep(WECHAT_CLIP_SETTLE_MS)
+            SystemClock.sleep(HOST_CLIP_SETTLE_MS)
             val result = withContext(Dispatchers.Default) {
-                repeat(WECHAT_PASTE_MAX_ATTEMPTS) { attempt ->
+                repeat(HOST_PASTE_MAX_ATTEMPTS) { attempt ->
                     when (
                         ClipboardPasteHelper.attemptPasteInHostPackage(
                             service = service,
@@ -55,8 +55,8 @@ object ClipboardPasteCoordinator {
                         ClipboardPasteHelper.HostPasteAttempt.SUCCESS ->
                             return@withContext PasteResult.Success
                         ClipboardPasteHelper.HostPasteAttempt.RETRY -> {
-                            if (attempt < WECHAT_PASTE_MAX_ATTEMPTS - 1) {
-                                SystemClock.sleep(WECHAT_PASTE_RETRY_DELAY_MS)
+                            if (attempt < HOST_PASTE_MAX_ATTEMPTS - 1) {
+                                SystemClock.sleep(HOST_PASTE_RETRY_DELAY_MS)
                             }
                         }
                     }
