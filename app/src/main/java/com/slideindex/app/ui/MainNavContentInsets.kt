@@ -25,6 +25,15 @@ val LocalMainNavContentStartInset = compositionLocalOf { 0.dp }
 /** 限制 Nav 内容绘制在分配区域内，避免栈底页面在 Rail 切换/横屏布局变化时从左侧露出。 */
 fun Modifier.mainNavRailContentClip(): Modifier = clipToBounds()
 
+/** 经典 overlay 侧栏：页面全宽绘制，消费 start cutout，避免列表再垫一截。 */
+@Composable
+fun Modifier.mainNavClassicOverlayContentInsets(): Modifier {
+    val railConsumedInsets = WindowInsets.displayCutout
+        .union(WindowInsets.navigationBars)
+        .only(WindowInsetsSides.Start)
+    return consumeWindowInsets(railConsumedInsets)
+}
+
 /** 宽屏 Miuix Rail 右侧内容列：吸收 rail 已处理的 start inset，并补 end 侧 systemBars/cutout。 */
 @Composable
 fun Modifier.mainNavMiuixRailContentInsets(): Modifier {

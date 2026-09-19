@@ -10,6 +10,7 @@ import com.slideindex.app.settings.BottomNavStyle
 import com.slideindex.app.ui.miuix.rememberIsWideScreen
 
 val MainNavRailWidth = 80.dp
+val MainNavRailIconOnlyWidth = 56.dp
 
 @Composable
 fun mainAppWindowAdaptiveInfo(): WindowAdaptiveInfo = currentWindowAdaptiveInfoV2()
@@ -34,6 +35,7 @@ fun mainAppRootBottomContentPadding(
     prefersNavigationRail: Boolean,
     isRootDestination: Boolean,
     bottomNavStyle: BottomNavStyle = BottomNavStyle.CLASSIC,
+    showBottomNavLabels: Boolean = true,
 ): Dp = when {
     !isRootDestination -> 16.dp
     prefersNavigationRail -> MainBottomNavOuterPadding
@@ -41,5 +43,5 @@ fun mainAppRootBottomContentPadding(
         MainMiuixBottomNavBarHeight + MainMiuixBottomNavOuterPadding
     bottomNavStyle == BottomNavStyle.FLOATING_NAV ->
         MainFloatingNavBarContentClearance
-    else -> MainBottomNavHeight + MainBottomNavOuterPadding
+    else -> classicBottomNavBarHeight(showBottomNavLabels) + MainBottomNavOuterPadding
 }

@@ -60,6 +60,7 @@ import com.slideindex.app.ui.FloatingBottomNavBar
 import com.slideindex.app.ui.ClassicFloatingSideNavRailOverlay
 import com.slideindex.app.ui.LocalMainNavContentStartInset
 import com.slideindex.app.ui.classicFloatingSideNavRailSlotWidth
+import com.slideindex.app.ui.mainNavClassicOverlayContentInsets
 import com.slideindex.app.ui.mainNavMiuixRailContentInsets
 import com.slideindex.app.ui.mainNavRailContentClip
 import com.slideindex.app.ui.MainBottomNavDestination
@@ -196,6 +197,7 @@ fun MainNavHost(
         prefersNavigationRail = showSideNavRail,
         isRootDestination = isRootDestination,
         bottomNavStyle = effectiveBottomNavStyle,
+        showBottomNavLabels = showBottomNavLabels,
     )
 
     SideEffect {
@@ -431,26 +433,28 @@ fun MainNavHost(
                 if (showSideNavRail) {
                     when {
                         showClassicSideNavRail -> {
-                            val classicRailInset = classicFloatingSideNavRailSlotWidth()
+                            val classicRailInset = classicFloatingSideNavRailSlotWidth(
+                                showLabels = showBottomNavLabels,
+                            )
                             Box(modifier = Modifier.fillMaxSize()) {
                                 CompositionLocalProvider(
-                                    LocalMainNavContentStartInset provides 0.dp,
+                                    LocalMainNavContentStartInset provides classicRailInset,
                                 ) {
                                     Box(
                                         modifier = navContentModifier
                                             .fillMaxSize()
-                                            .padding(start = classicRailInset)
+                                            .mainNavClassicOverlayContentInsets()
                                             .mainNavRailContentClip(),
                                     ) {
                                         mainTabNavContent()
                                     }
                                 }
                                 ClassicFloatingSideNavRailOverlay(
-                                    cutoutFillColor = MiuixTheme.colorScheme.background,
                                     hazeState = hazeState,
                                     glassEnabled = bottomNavUsesHaze,
                                     selected = bottomNavSelectedTab,
                                     blurRadiusDp = bottomNavBlurRadiusDp,
+                                    showLabels = showBottomNavLabels,
                                     onDestinationSelected = onTabSelected,
                                     modifier = Modifier.align(Alignment.CenterStart),
                                 )

@@ -113,17 +113,15 @@ fun MiuixListScaffold(
     Scaffold(
         modifier = modifier.imePadding(),
         topBar = {
-            Box(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(start = contentStartInset),
-            ) {
+            Box(Modifier.fillMaxWidth()) {
                 MiuixBlurredTopBar(
                     backdrop = barBackdrop,
                     scrollBehavior = scrollBehavior,
                 ) {
                     AdaptiveTopAppBar(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = contentStartInset),
                         color = barBackdrop.miuixAppBarColor(),
                         title = title,
                         scrollBehavior = scrollBehavior,
@@ -195,18 +193,16 @@ fun MiuixSettingsScreenScaffold(
                 .nestedScroll(scrollBehavior.nestedScrollConnection)
                 .imePadding(),
             topBar = {
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(start = contentStartInset),
-                ) {
+                Box(Modifier.fillMaxWidth()) {
                     MiuixBlurredTopBar(
                         backdrop = barBackdrop,
                         enabled = !overlayMode,
                         scrollBehavior = scrollBehavior,
                     ) {
                         AdaptiveTopAppBar(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = contentStartInset),
                             color = if (overlayMode) {
                                 MiuixTheme.colorScheme.surface
                             } else {

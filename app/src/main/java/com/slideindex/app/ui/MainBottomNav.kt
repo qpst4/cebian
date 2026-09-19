@@ -65,8 +65,11 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathOperation
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -89,6 +92,7 @@ import com.slideindex.app.ui.a11y.cdBottomNavHome
 import com.slideindex.app.ui.a11y.cdBottomNavNotification
 import com.slideindex.app.ui.a11y.cdBottomNavShake
 import kotlin.math.min
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 enum class MainBottomNavDestination {
     Home,
@@ -98,8 +102,15 @@ enum class MainBottomNavDestination {
 }
 
 val MainBottomNavHeight = 72.dp
+val MainBottomNavIconOnlyHeight = 48.dp
 val MainBottomNavOuterPadding = 16.dp
 val MainBottomNavHorizontalPadding = 24.dp
+
+fun classicBottomNavBarHeight(showLabels: Boolean): Dp =
+    if (showLabels) MainBottomNavHeight else MainBottomNavIconOnlyHeight
+
+fun classicNavRailWidth(showLabels: Boolean): Dp =
+    if (showLabels) MainNavRailWidth else MainNavRailIconOnlyWidth
 
 @Composable
 private fun rememberClassicSideNavStartInset(): Dp {
@@ -112,64 +123,49 @@ private fun rememberClassicSideNavStartInset(): Dp {
 }
 
 @Composable
-fun classicFloatingSideNavRailSlotWidth(): Dp {
+fun classicFloatingSideNavRailSlotWidth(showLabels: Boolean = true): Dp {
     return rememberClassicSideNavStartInset() +
         MainBottomNavOuterPadding +
-        MainNavRailWidth
+        classicNavRailWidth(showLabels)
 }
 
 /**
- * 经典毛玻璃宽屏侧栏：全屏 overlay 悬浮胶囊；cutout 窄条填色，不铺全高灰底。
+ * 经典毛玻璃宽屏侧栏：全屏 overlay 悬浮胶囊，不铺通高填色以免顶进状态栏。
  */
 @Composable
 fun ClassicFloatingSideNavRailOverlay(
-    cutoutFillColor: Color,
     hazeState: HazeState,
     glassEnabled: Boolean,
     selected: MainBottomNavDestination,
     blurRadiusDp: Float,
     onDestinationSelected: (MainBottomNavDestination) -> Unit,
     modifier: Modifier = Modifier,
+    showLabels: Boolean = true,
 ) {
     val startInset = rememberClassicSideNavStartInset()
     Box(
         modifier = modifier
-            .fillMaxHeight()
-            .wrapContentWidth(),
+            .wrapContentWidth()
+            .wrapContentHeight()
+            .padding(start = startInset)
+            .windowInsetsPadding(WindowInsets.statusBars.only(WindowInsetsSides.Top))
+            .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Bottom))
+            .padding(start = MainBottomNavOuterPadding),
+        contentAlignment = Alignment.CenterStart,
     ) {
-        if (startInset > 0.dp) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.CenterStart)
-                    .fillMaxHeight()
-                    .width(startInset)
-                    .background(cutoutFillColor),
-            )
-        }
-        Box(
-            modifier = Modifier
-                .align(Alignment.CenterStart)
-                .padding(start = startInset)
-                .windowInsetsPadding(WindowInsets.statusBars.only(WindowInsetsSides.Top))
-                .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Bottom))
-                .padding(start = MainBottomNavOuterPadding),
-            contentAlignment = Alignment.CenterStart,
-        ) {
-            FloatingSideNavRail(
-                hazeState = hazeState,
-                glassEnabled = glassEnabled,
-                selected = selected,
-                blurRadiusDp = blurRadiusDp,
-                onDestinationSelected = onDestinationSelected,
-            )
-        }
+        FloatingSideNavRail(
+            hazeState = hazeState,
+            glassEnabled = glassEnabled,
+            selected = selected,
+            blurRadiusDp = blurRadiusDp,
+            showLabels = showLabels,
+            onDestinationSelected = onDestinationSelected,
+        )
     }
 }
 
-private val MainBottomNavCornerRadius = 28.dp
-private const val MainBottomNavGlassTintAlpha = 0.72f
+private const val MainBottomNavGlassTintAlpha = 0.08f
 private val MainBottomNavIndicatorInset = 4.dp
-private val MainBottomNavContentPadding = 6.dp
 private const val MainBottomNavPressOverlayAlpha = 0.08f
 private val MainBottomNavIconSize = 24.dp
 private val MainBottomNavIndicatorSpring = spring<Float>(
@@ -188,31 +184,136 @@ private val MainBottomNavItemColorTween = tween<Color>(
 
 @Composable
 private fun rememberBottomNavGlassStyle(blurRadius: Dp) = HazeDefaults.style(
-    backgroundColor = MaterialTheme.colorScheme.surface,
-    tint = HazeTint(MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = MainBottomNavGlassTintAlpha)),
+    backgroundColor = MiuixTheme.colorScheme.background,
+    tint = HazeTint(MiuixTheme.colorScheme.onBackground.copy(alpha = MainBottomNavGlassTintAlpha)),
     blurRadius = blurRadius,
     noiseFactor = 0f,
 )
 
-private fun DrawScope.drawBottomNavCapsule(
+private fun DrawScope.drawNavItemCapsule(
     itemIndex: Float,
     itemCount: Int,
     color: Color,
+    vertical: Boolean,
+    hugIcon: Boolean,
     inset: Dp = MainBottomNavIndicatorInset,
 ) {
     if (itemCount <= 0 || size.width <= 0f || size.height <= 0f) return
-    val itemWidthPx = size.width / itemCount
     val insetPx = inset.toPx()
-    val capsuleWidthPx = itemWidthPx - insetPx * 2f
-    val capsuleHeightPx = size.height
-    val left = itemWidthPx * itemIndex + insetPx
-    val radius = min(capsuleWidthPx, capsuleHeightPx) / 2f
-    drawRoundRect(
-        color = color,
-        topLeft = Offset(left, 0f),
-        size = Size(capsuleWidthPx, capsuleHeightPx),
-        cornerRadius = CornerRadius(radius, radius),
-    )
+    if (vertical) {
+        val itemHeightPx = size.height / itemCount
+        if (hugIcon) {
+            val side = (size.width - insetPx * 2f).coerceAtLeast(0f)
+            val left = insetPx
+            val top = itemHeightPx * itemIndex + (itemHeightPx - side) / 2f
+            val radius = side / 2f
+            drawRoundRect(
+                color = color,
+                topLeft = Offset(left, top),
+                size = Size(side, side),
+                cornerRadius = CornerRadius(radius, radius),
+            )
+        } else {
+            val capInsetPx = insetPx / 2f
+            val innerRadius = (size.width / 2f - capInsetPx).coerceAtLeast(0f)
+            val topCap = (1f - itemIndex).coerceIn(0f, 1f)
+            val bottomCap = (itemIndex - (itemCount - 1f)).coerceIn(0f, 1f)
+            val bandTop = itemHeightPx * itemIndex + insetPx * (1f - topCap)
+            val bandBottom = itemHeightPx * (itemIndex + 1f) - insetPx * (1f - bottomCap)
+            val bandHeight = (bandBottom - bandTop).coerceAtLeast(0f)
+            if (bandHeight <= 0f) return
+            val cutRadius = min(size.width - capInsetPx * 2f, bandHeight) / 2f
+            val innerStadium = Path().apply {
+                addRoundRect(
+                    RoundRect(
+                        left = capInsetPx,
+                        top = capInsetPx,
+                        right = size.width - capInsetPx,
+                        bottom = size.height - capInsetPx,
+                        radiusX = innerRadius,
+                        radiusY = innerRadius,
+                    ),
+                )
+            }
+            val band = Path().apply {
+                addRoundRect(
+                    RoundRect(
+                        left = 0f,
+                        top = bandTop,
+                        right = size.width,
+                        bottom = bandBottom,
+                        topLeftCornerRadius = CornerRadius(cutRadius * (1f - topCap)),
+                        topRightCornerRadius = CornerRadius(cutRadius * (1f - topCap)),
+                        bottomRightCornerRadius = CornerRadius(cutRadius * (1f - bottomCap)),
+                        bottomLeftCornerRadius = CornerRadius(cutRadius * (1f - bottomCap)),
+                    ),
+                )
+            }
+            drawPath(
+                path = Path().apply { op(innerStadium, band, PathOperation.Intersect) },
+                color = color,
+            )
+        }
+    } else {
+        val itemWidthPx = size.width / itemCount
+        if (hugIcon) {
+            val side = (size.height - insetPx * 2f).coerceAtLeast(0f)
+            val left = itemWidthPx * itemIndex + (itemWidthPx - side) / 2f
+            val top = insetPx
+            val radius = side / 2f
+            drawRoundRect(
+                color = color,
+                topLeft = Offset(left, top),
+                size = Size(side, side),
+                cornerRadius = CornerRadius(radius, radius),
+            )
+        } else {
+            val capsuleWidthPx = (itemWidthPx - insetPx * 2f).coerceAtLeast(0f)
+            val capsuleHeightPx = (size.height - insetPx * 2f).coerceAtLeast(0f)
+            val left = itemWidthPx * itemIndex + insetPx
+            val top = insetPx
+            val radius = capsuleHeightPx / 2f
+            drawRoundRect(
+                color = color,
+                topLeft = Offset(left, top),
+                size = Size(capsuleWidthPx, capsuleHeightPx),
+                cornerRadius = CornerRadius(radius, radius),
+            )
+        }
+    }
+}
+
+private fun DrawScope.drawNavSelection(
+    pressed: Int?,
+    selectedIndex: Int,
+    indicatorOffset: Float,
+    itemCount: Int,
+    indicatorColor: Color,
+    pressOverlayColor: Color,
+    vertical: Boolean,
+    hugIcon: Boolean,
+) {
+    fun drawAt(index: Float, color: Color) {
+        drawNavItemCapsule(
+            itemIndex = index,
+            itemCount = itemCount,
+            color = color,
+            vertical = vertical,
+            hugIcon = hugIcon,
+        )
+    }
+    when {
+        pressed == null -> drawAt(indicatorOffset, indicatorColor)
+        pressed == selectedIndex -> {
+            drawAt(pressed.toFloat(), indicatorColor)
+            drawAt(pressed.toFloat(), pressOverlayColor)
+        }
+        else -> {
+            drawAt(indicatorOffset, indicatorColor)
+            drawAt(pressed.toFloat(), indicatorColor)
+            drawAt(pressed.toFloat(), pressOverlayColor)
+        }
+    }
 }
 
 @Composable
@@ -229,7 +330,10 @@ fun FloatingBottomNavBar(
     val destinations = MainBottomNavDestination.entries
     val selectedIndex = destinations.indexOf(selected).coerceAtLeast(0)
     val itemCount = destinations.size
-    val barShape = RoundedCornerShape(MainBottomNavCornerRadius)
+    val barHeight = classicBottomNavBarHeight(showLabels)
+    val barShape = RoundedCornerShape(barHeight / 2)
+    val hugIcon = !showLabels
+    val barBackground = MiuixTheme.colorScheme.background
     val indicatorColor = MaterialTheme.colorScheme.secondaryContainer
     val pressOverlayColor = MaterialTheme.colorScheme.onSurface.copy(alpha = MainBottomNavPressOverlayAlpha)
     val borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
@@ -247,8 +351,14 @@ fun FloatingBottomNavBar(
 
     Box(
         modifier = modifier
-            .fillMaxWidth()
-            .height(MainBottomNavHeight)
+            .then(
+                if (showLabels) {
+                    Modifier.fillMaxWidth()
+                } else {
+                    Modifier.width(barHeight * destinations.size)
+                }
+            )
+            .height(barHeight)
             .shadow(4.dp, barShape, clip = false)
             .clip(barShape),
     ) {
@@ -256,7 +366,7 @@ fun FloatingBottomNavBar(
             Surface(
                 modifier = Modifier.matchParentSize(),
                 shape = barShape,
-                color = MaterialTheme.colorScheme.surfaceContainer,
+                color = barBackground,
             ) {}
             Box(
                 modifier = Modifier
@@ -267,7 +377,7 @@ fun FloatingBottomNavBar(
             Surface(
                 modifier = Modifier.matchParentSize(),
                 shape = barShape,
-                color = MaterialTheme.colorScheme.surfaceContainer,
+                color = barBackground,
             ) {}
         }
         Box(
@@ -277,55 +387,23 @@ fun FloatingBottomNavBar(
         )
         Box(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 8.dp, vertical = MainBottomNavContentPadding),
+                .matchParentSize()
+                .drawBehind {
+                    drawNavSelection(
+                        pressed = pressedIndex,
+                        selectedIndex = selectedIndex,
+                        indicatorOffset = indicatorOffset,
+                        itemCount = itemCount,
+                        indicatorColor = indicatorColor,
+                        pressOverlayColor = pressOverlayColor,
+                        vertical = false,
+                        hugIcon = hugIcon,
+                    )
+                },
+        )
+        Row(
+            modifier = Modifier.fillMaxSize(),
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.Center)
-                    .drawBehind {
-                        val pressed = pressedIndex
-                        when {
-                            pressed == null -> {
-                                drawBottomNavCapsule(
-                                    itemIndex = indicatorOffset,
-                                    itemCount = itemCount,
-                                    color = indicatorColor,
-                                )
-                            }
-                            pressed == selectedIndex -> {
-                                drawBottomNavCapsule(
-                                    itemIndex = pressed.toFloat(),
-                                    itemCount = itemCount,
-                                    color = indicatorColor,
-                                )
-                                drawBottomNavCapsule(
-                                    itemIndex = pressed.toFloat(),
-                                    itemCount = itemCount,
-                                    color = pressOverlayColor,
-                                )
-                            }
-                            else -> {
-                                drawBottomNavCapsule(
-                                    itemIndex = indicatorOffset,
-                                    itemCount = itemCount,
-                                    color = indicatorColor,
-                                )
-                                drawBottomNavCapsule(
-                                    itemIndex = pressed.toFloat(),
-                                    itemCount = itemCount,
-                                    color = indicatorColor,
-                                )
-                                drawBottomNavCapsule(
-                                    itemIndex = pressed.toFloat(),
-                                    itemCount = itemCount,
-                                    color = pressOverlayColor,
-                                )
-                            }
-                        }
-                    },
-            ) {
                 FloatingBottomNavItem(
                     selected = selected == MainBottomNavDestination.Home,
                     showLabel = showLabels,
@@ -421,29 +499,7 @@ fun FloatingBottomNavBar(
                     label = stringResource(R.string.main_nav_extension),
                 )
             }
-        }
     }
-}
-
-private fun DrawScope.drawSideNavCapsule(
-    itemIndex: Float,
-    itemCount: Int,
-    color: Color,
-    inset: Dp = MainBottomNavIndicatorInset,
-) {
-    if (itemCount <= 0 || size.width <= 0f || size.height <= 0f) return
-    val itemHeightPx = size.height / itemCount
-    val insetPx = inset.toPx()
-    val capsuleHeightPx = itemHeightPx - insetPx * 2f
-    val capsuleWidthPx = size.width
-    val top = itemHeightPx * itemIndex + insetPx
-    val radius = min(capsuleWidthPx, capsuleHeightPx) / 2f
-    drawRoundRect(
-        color = color,
-        topLeft = Offset(0f, top),
-        size = Size(capsuleWidthPx, capsuleHeightPx),
-        cornerRadius = CornerRadius(radius, radius),
-    )
 }
 
 @Composable
@@ -454,12 +510,16 @@ fun FloatingSideNavRail(
     blurRadiusDp: Float,
     onDestinationSelected: (MainBottomNavDestination) -> Unit,
     modifier: Modifier = Modifier,
+    showLabels: Boolean = true,
 ) {
     val haptic = LocalHapticFeedback.current
     val destinations = MainBottomNavDestination.entries
     val selectedIndex = destinations.indexOf(selected).coerceAtLeast(0)
     val itemCount = destinations.size
-    val barShape = RoundedCornerShape(MainBottomNavCornerRadius)
+    val railWidth = classicNavRailWidth(showLabels)
+    val barShape = RoundedCornerShape(railWidth / 2)
+    val hugIcon = !showLabels
+    val barBackground = MiuixTheme.colorScheme.background
     val indicatorColor = MaterialTheme.colorScheme.secondaryContainer
     val pressOverlayColor = MaterialTheme.colorScheme.onSurface.copy(alpha = MainBottomNavPressOverlayAlpha)
     val borderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
@@ -477,16 +537,16 @@ fun FloatingSideNavRail(
 
     Box(
         modifier = modifier
-            .width(MainNavRailWidth)
+            .width(railWidth)
             .wrapContentHeight()
-            .shadow(4.dp, barShape, clip = false)
+            .shadow(2.dp, barShape, clip = false)
             .clip(barShape),
     ) {
         if (glassEnabled) {
             Surface(
                 modifier = Modifier.matchParentSize(),
                 shape = barShape,
-                color = MaterialTheme.colorScheme.surfaceContainer,
+                color = barBackground,
             ) {}
             Box(
                 modifier = Modifier
@@ -497,7 +557,7 @@ fun FloatingSideNavRail(
             Surface(
                 modifier = Modifier.matchParentSize(),
                 shape = barShape,
-                color = MaterialTheme.colorScheme.surfaceContainer,
+                color = barBackground,
             ) {}
         }
         Box(
@@ -507,145 +567,117 @@ fun FloatingSideNavRail(
         )
         Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = MainBottomNavContentPadding, vertical = 8.dp),
+                .matchParentSize()
+                .drawBehind {
+                    drawNavSelection(
+                        pressed = pressedIndex,
+                        selectedIndex = selectedIndex,
+                        indicatorOffset = indicatorOffset,
+                        itemCount = itemCount,
+                        indicatorColor = indicatorColor,
+                        pressOverlayColor = pressOverlayColor,
+                        vertical = true,
+                        hugIcon = hugIcon,
+                    )
+                },
+        )
+        Column(
+            modifier = Modifier.fillMaxWidth(),
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .drawBehind {
-                        val pressed = pressedIndex
-                        when {
-                            pressed == null -> {
-                                drawSideNavCapsule(
-                                    itemIndex = indicatorOffset,
-                                    itemCount = itemCount,
-                                    color = indicatorColor,
-                                )
-                            }
-                            pressed == selectedIndex -> {
-                                drawSideNavCapsule(
-                                    itemIndex = pressed.toFloat(),
-                                    itemCount = itemCount,
-                                    color = indicatorColor,
-                                )
-                                drawSideNavCapsule(
-                                    itemIndex = pressed.toFloat(),
-                                    itemCount = itemCount,
-                                    color = pressOverlayColor,
-                                )
-                            }
-                            else -> {
-                                drawSideNavCapsule(
-                                    itemIndex = indicatorOffset,
-                                    itemCount = itemCount,
-                                    color = indicatorColor,
-                                )
-                                drawSideNavCapsule(
-                                    itemIndex = pressed.toFloat(),
-                                    itemCount = itemCount,
-                                    color = indicatorColor,
-                                )
-                                drawSideNavCapsule(
-                                    itemIndex = pressed.toFloat(),
-                                    itemCount = itemCount,
-                                    color = pressOverlayColor,
-                                )
-                            }
-                        }
-                    },
-            ) {
-                FloatingSideNavItem(
-                    selected = selected == MainBottomNavDestination.Home,
-                    onPressedChange = { isPressed ->
-                        pressedIndex = when {
-                            isPressed -> 0
-                            pressedIndex == 0 -> null
-                            else -> pressedIndex
-                        }
-                    },
-                    onClick = {
-                        haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
-                        onDestinationSelected(MainBottomNavDestination.Home)
-                    },
-                    icon = { isSelected ->
-                        Icon(
-                            imageVector = if (isSelected) Icons.Default.Home else Icons.Outlined.Home,
-                            contentDescription = cdBottomNavHome(),
-                            modifier = Modifier.size(MainBottomNavIconSize),
-                        )
-                    },
-                    label = stringResource(R.string.main_nav_home),
-                )
-                FloatingSideNavItem(
-                    selected = selected == MainBottomNavDestination.Shake,
-                    onPressedChange = { isPressed ->
-                        pressedIndex = when {
-                            isPressed -> 1
-                            pressedIndex == 1 -> null
-                            else -> pressedIndex
-                        }
-                    },
-                    onClick = {
-                        haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
-                        onDestinationSelected(MainBottomNavDestination.Shake)
-                    },
-                    icon = { isSelected ->
-                        Icon(
-                            painter = painterResource(
-                                if (isSelected) R.drawable.ic_nav_shake else R.drawable.ic_nav_shake_outlined,
-                            ),
-                            contentDescription = cdBottomNavShake(),
-                            modifier = Modifier.size(MainBottomNavIconSize),
-                        )
-                    },
-                    label = stringResource(R.string.main_nav_shake),
-                )
-                FloatingSideNavItem(
-                    selected = selected == MainBottomNavDestination.Notification,
-                    onPressedChange = { isPressed ->
-                        pressedIndex = when {
-                            isPressed -> 2
-                            pressedIndex == 2 -> null
-                            else -> pressedIndex
-                        }
-                    },
-                    onClick = {
-                        haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
-                        onDestinationSelected(MainBottomNavDestination.Notification)
-                    },
-                    icon = { isSelected ->
-                        Icon(
-                            imageVector = if (isSelected) Icons.Default.Notifications else Icons.Outlined.Notifications,
-                            contentDescription = cdBottomNavNotification(),
-                            modifier = Modifier.size(MainBottomNavIconSize),
-                        )
-                    },
-                    label = stringResource(R.string.main_nav_notification),
-                )
-                FloatingSideNavItem(
-                    selected = selected == MainBottomNavDestination.Extension,
-                    onPressedChange = { isPressed ->
-                        pressedIndex = when {
-                            isPressed -> 3
-                            pressedIndex == 3 -> null
-                            else -> pressedIndex
-                        }
-                    },
-                    onClick = {
-                        haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
-                        onDestinationSelected(MainBottomNavDestination.Extension)
-                    },
-                    icon = { isSelected ->
-                        Icon(
-                            imageVector = if (isSelected) Icons.Default.Widgets else Icons.Outlined.Widgets,
-                            contentDescription = cdBottomNavExtension(),
-                            modifier = Modifier.size(MainBottomNavIconSize),
-                        )
-                    },
-                    label = stringResource(R.string.main_nav_extension),
-                )
-            }
+            FloatingSideNavItem(
+                selected = selected == MainBottomNavDestination.Home,
+                showLabel = showLabels,
+                onPressedChange = { isPressed ->
+                    pressedIndex = when {
+                        isPressed -> 0
+                        pressedIndex == 0 -> null
+                        else -> pressedIndex
+                    }
+                },
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
+                    onDestinationSelected(MainBottomNavDestination.Home)
+                },
+                icon = { isSelected ->
+                    Icon(
+                        imageVector = if (isSelected) Icons.Default.Home else Icons.Outlined.Home,
+                        contentDescription = cdBottomNavHome(),
+                        modifier = Modifier.size(MainBottomNavIconSize),
+                    )
+                },
+                label = stringResource(R.string.main_nav_home),
+            )
+            FloatingSideNavItem(
+                selected = selected == MainBottomNavDestination.Shake,
+                showLabel = showLabels,
+                onPressedChange = { isPressed ->
+                    pressedIndex = when {
+                        isPressed -> 1
+                        pressedIndex == 1 -> null
+                        else -> pressedIndex
+                    }
+                },
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
+                    onDestinationSelected(MainBottomNavDestination.Shake)
+                },
+                icon = { isSelected ->
+                    Icon(
+                        painter = painterResource(
+                            if (isSelected) R.drawable.ic_nav_shake else R.drawable.ic_nav_shake_outlined,
+                        ),
+                        contentDescription = cdBottomNavShake(),
+                        modifier = Modifier.size(MainBottomNavIconSize),
+                    )
+                },
+                label = stringResource(R.string.main_nav_shake),
+            )
+            FloatingSideNavItem(
+                selected = selected == MainBottomNavDestination.Notification,
+                showLabel = showLabels,
+                onPressedChange = { isPressed ->
+                    pressedIndex = when {
+                        isPressed -> 2
+                        pressedIndex == 2 -> null
+                        else -> pressedIndex
+                    }
+                },
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
+                    onDestinationSelected(MainBottomNavDestination.Notification)
+                },
+                icon = { isSelected ->
+                    Icon(
+                        imageVector = if (isSelected) Icons.Default.Notifications else Icons.Outlined.Notifications,
+                        contentDescription = cdBottomNavNotification(),
+                        modifier = Modifier.size(MainBottomNavIconSize),
+                    )
+                },
+                label = stringResource(R.string.main_nav_notification),
+            )
+            FloatingSideNavItem(
+                selected = selected == MainBottomNavDestination.Extension,
+                showLabel = showLabels,
+                onPressedChange = { isPressed ->
+                    pressedIndex = when {
+                        isPressed -> 3
+                        pressedIndex == 3 -> null
+                        else -> pressedIndex
+                    }
+                },
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
+                    onDestinationSelected(MainBottomNavDestination.Extension)
+                },
+                icon = { isSelected ->
+                    Icon(
+                        imageVector = if (isSelected) Icons.Default.Widgets else Icons.Outlined.Widgets,
+                        contentDescription = cdBottomNavExtension(),
+                        modifier = Modifier.size(MainBottomNavIconSize),
+                    )
+                },
+                label = stringResource(R.string.main_nav_extension),
+            )
         }
     }
 }
@@ -653,6 +685,7 @@ fun FloatingSideNavRail(
 @Composable
 private fun FloatingSideNavItem(
     selected: Boolean,
+    showLabel: Boolean = true,
     onPressedChange: (Boolean) -> Unit,
     onClick: () -> Unit,
     icon: @Composable (selected: Boolean) -> Unit,
@@ -676,6 +709,9 @@ private fun FloatingSideNavItem(
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .then(
+                if (!showLabel) Modifier.height(MainNavRailIconOnlyWidth) else Modifier
+            )
             .semantics {
                 role = Role.Tab
                 this.selected = selected
@@ -685,12 +721,9 @@ private fun FloatingSideNavItem(
                 indication = null,
                 onClick = onClick,
             )
-            .padding(
-                horizontal = MainBottomNavIndicatorInset,
-                vertical = 6.dp,
-            ),
+            .padding(MainBottomNavIndicatorInset),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(2.dp),
+        verticalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterVertically),
     ) {
         Crossfade(
             targetState = selected,
@@ -701,12 +734,14 @@ private fun FloatingSideNavItem(
                 icon(isSelected)
             }
         }
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = contentColor,
-            maxLines = 1,
-        )
+        if (showLabel) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = contentColor,
+                maxLines = 1,
+            )
+        }
     }
 }
 
@@ -737,6 +772,7 @@ private fun RowScope.FloatingBottomNavItem(
     Column(
         modifier = Modifier
             .weight(1f)
+            .fillMaxHeight()
             .semantics {
                 role = Role.Tab
                 this.selected = selected
@@ -746,12 +782,9 @@ private fun RowScope.FloatingBottomNavItem(
                 indication = null,
                 onClick = onClick,
             )
-            .padding(
-                horizontal = MainBottomNavIndicatorInset,
-                vertical = 6.dp,
-            ),
+            .padding(MainBottomNavIndicatorInset),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(2.dp),
+        verticalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterVertically),
     ) {
         Crossfade(
             targetState = selected,
