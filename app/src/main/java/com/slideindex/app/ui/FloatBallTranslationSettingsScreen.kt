@@ -11,6 +11,7 @@ import com.slideindex.app.R
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.FloatBallTranslateEngine
 import com.slideindex.app.translate.TranslateLanguageCatalog
+import com.slideindex.app.translate.TranslateTargetLanguages
 import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.SettingDropdownRow
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
@@ -29,9 +30,19 @@ fun FloatBallTranslationSettingsScreen(
 ) {
     val engineEntries = FloatBallTranslateEngine.entries
     val langOptions = TranslateLanguageCatalog.options
-    val langIndex = langOptions.indexOfFirst {
-        it.code.equals(settings.floatBallTranslateTargetLang, ignoreCase = true)
-    }.coerceAtLeast(0)
+    val storedTarget = settings.floatBallTranslateTargetLang
+    val langIndex = if (TranslateTargetLanguages.isFollowApp(storedTarget)) {
+        0
+    } else {
+        val catalogIndex = langOptions.indexOfFirst {
+            it.code.equals(storedTarget, ignoreCase = true)
+        }
+        if (catalogIndex >= 0) 1 + catalogIndex else 0
+    }
+    val targetLangDropdownItems = buildList {
+        add(translateTargetFollowAppDropdownLabel(settings.appUiLanguageTag))
+        addAll(langOptions.map { translateTargetAutonym(it.code) })
+    }
 
     SettingsScreenScaffold(
         title = stringResource(R.string.float_ball_translation_settings_title),
@@ -57,9 +68,15 @@ fun FloatBallTranslationSettingsScreen(
                         SettingDropdownRow(
                             icon = { label -> Icon(Icons.Default.Translate, contentDescription = label) },
                             title = stringResource(R.string.float_ball_translate_target_lang),
-                            items = langOptions.map { it.displayName },
+                            items = targetLangDropdownItems,
                             selectedIndex = langIndex,
-                            onSelectedIndexChange = { onTargetLangChange(langOptions[it].code) }
+                            onSelectedIndexChange = { index ->
+                                if (index == 0) {
+                                    onTargetLangChange(TranslateTargetLanguages.FOLLOW_APP)
+                                } else {
+                                    onTargetLangChange(langOptions[index - 1].code)
+                                }
+                            }
                         )
                     }
                 )

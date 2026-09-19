@@ -107,7 +107,7 @@ fun TranslateModelSettingsScreen(
                 val rowDownloadState = downloadState?.takeIf { it.languageCode == option.code }
                 com.slideindex.app.ui.miuix.CardItem("lang-${option.code}") {
                     TranslateLanguageRow(
-                        displayName = option.displayName,
+                        displayName = translateTargetAutonym(option.code),
                         installed = option.code in installedLanguageCodes,
                         downloadState = rowDownloadState,
                         onDownload = { onDownloadLanguage(option.code) },
@@ -208,7 +208,7 @@ private fun TranslateLanguageRow(
 
 @Composable
 private fun translateDownloadProgressLabel(state: TranslateDownloadState): String {
-    val languageName = TranslateLanguageCatalog.displayName(state.languageCode)
+    val languageName = translateTargetAutonym(state.languageCode)
     val stepPrefix = when (state.step) {
         TranslateDownloadStep.ENGINE ->
             stringResource(R.string.translate_download_step_engine, state.stepIndex, state.stepCount)

@@ -24,6 +24,7 @@ dependencies {
     implementation(project(":core:gesture"))
     implementation(project(":core:notification"))
     implementation(project(":core:overlay-layout"))
+    implementation(project(":core:translate"))
     implementation(libs.core.ktx)
     implementation(libs.datastore.preferences)
     implementation(libs.hilt.android)

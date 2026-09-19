@@ -37,6 +37,8 @@ import com.slideindex.app.settings.FloatBallTranslateEngine
 import com.slideindex.app.translate.TranslateDependencyAccess
 import com.slideindex.app.translate.TranslateEngine
 import com.slideindex.app.translate.TranslateResult
+import com.slideindex.app.translate.TranslateTargetLanguages
+import com.slideindex.app.translate.TranslateTargetResolver
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -142,7 +144,15 @@ class ScreenTranslationOverlayManager {
         val settings = OverlayDependencyAccess.overlayDependencies(service)
             ?.settingsRepository
             ?.readSnapshot()
-        val targetLang = settings?.floatBallTranslateTargetLang?.ifBlank { "zh-CN" } ?: "zh-CN"
+        val targetLang = settings?.let {
+            TranslateTargetResolver.resolve(
+                it.floatBallTranslateTargetLang,
+                it.appUiLanguageTag,
+            )
+        } ?: TranslateTargetResolver.resolve(
+            storedCode = TranslateTargetLanguages.FOLLOW_APP,
+            appUiLanguageTag = null,
+        )
         val engine = when (settings?.floatBallTranslateEngine) {
             FloatBallTranslateEngine.ML_KIT -> TranslateEngine.ML_KIT
             FloatBallTranslateEngine.CLOUD_LLM -> TranslateEngine.CLOUD_LLM

@@ -37,6 +37,7 @@ import com.slideindex.app.shake.FaceDownGestureSettings
 import com.slideindex.app.shake.ShakeGestureCodec
 import com.slideindex.app.shake.ShakeSensitivityScale
 import com.slideindex.app.shake.ShakeGestureSettings
+import com.slideindex.app.translate.TranslateTargetLanguages
 import com.slideindex.app.backtap.BackTapMode
 import com.slideindex.app.backtap.BackTapSettings
 import com.slideindex.app.shell.ShellCommandCodec
@@ -460,7 +461,7 @@ internal object SettingsSnapshotReader {
                 prefs[SettingsPreferenceKeys.FLOAT_BALL_TRANSLATE_ENGINE],
             ),
             floatBallTranslateTargetLang = prefs[SettingsPreferenceKeys.FLOAT_BALL_TRANSLATE_TARGET_LANG]
-                ?: "zh-CN",
+                ?: TranslateTargetLanguages.FOLLOW_APP,
             floatBallImageSearchPickPanelTransparency =
                 prefs[SettingsPreferenceKeys.FLOAT_BALL_IMAGE_SEARCH_PICK_PANEL_TRANSPARENCY]?.coerceIn(0f, 1f)
                     ?: prefs[SettingsPreferenceKeys.FLOAT_BALL_TRANSLATE_PICK_PANEL_TRANSPARENCY]?.coerceIn(0f, 1f)
@@ -547,6 +548,10 @@ internal object SettingsSnapshotReader {
                 prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_AUTO_DIM_UNFOCUSED] ?: false,
             clipboardFloatAutoCloseSeconds =
                 (prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_AUTO_CLOSE_SECONDS] ?: 0).coerceAtLeast(0),
+            clipboardFloatPanelLayoutId = prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PANEL_LAYOUT]
+                ?: ClipboardFloatPanelLayout.ResizableFloating.id,
+            clipboardFloatGridColumns = (prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_GRID_COLUMNS] ?: 3)
+                .coerceIn(3, 8),
             stashPanelBackgroundBlurEnabled =
                 prefs[SettingsPreferenceKeys.STASH_PANEL_BACKGROUND_BLUR_ENABLED] ?: false,
             stashPanelBackgroundBlurRadiusDp = (

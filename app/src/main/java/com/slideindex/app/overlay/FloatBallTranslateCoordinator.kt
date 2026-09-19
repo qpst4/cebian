@@ -6,6 +6,7 @@ import com.slideindex.app.settings.FloatBallTranslateEngine
 import com.slideindex.app.translate.TranslateDependencyAccess
 import com.slideindex.app.translate.TranslateEngine
 import com.slideindex.app.translate.TranslateResult
+import com.slideindex.app.translate.TranslateTargetResolver
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -35,7 +36,10 @@ object FloatBallTranslateCoordinator {
             return
         }
 
-        val targetLang = settings.floatBallTranslateTargetLang.ifBlank { "zh-CN" }
+        val targetLang = TranslateTargetResolver.resolve(
+            settings.floatBallTranslateTargetLang,
+            settings.appUiLanguageTag,
+        )
         val engine = when (settings.floatBallTranslateEngine) {
             FloatBallTranslateEngine.GOOGLE -> TranslateEngine.GOOGLE
             FloatBallTranslateEngine.ML_KIT -> TranslateEngine.ML_KIT

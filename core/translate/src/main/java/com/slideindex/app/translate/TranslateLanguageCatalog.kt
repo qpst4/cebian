@@ -12,6 +12,7 @@ object TranslateLanguageCatalog {
         TranslateLanguageOption("zh-TW", "Chinese (Traditional)", "zh"),
         TranslateLanguageOption("en", "English", "en"),
         TranslateLanguageOption("ja", "Japanese", "ja"),
+        TranslateLanguageOption("ar", "Arabic", "ar"),
         TranslateLanguageOption("ko", "Korean", "ko"),
         TranslateLanguageOption("fr", "French", "fr"),
         TranslateLanguageOption("de", "German", "de"),

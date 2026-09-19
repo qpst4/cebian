@@ -210,6 +210,7 @@ class MlKitTranslateModelInstaller @Inject constructor(
             "zh" -> TranslateLanguage.CHINESE
             "en" -> TranslateLanguage.ENGLISH
             "ja" -> TranslateLanguage.JAPANESE
+            "ar" -> TranslateLanguage.ARABIC
             "ko" -> TranslateLanguage.KOREAN
             "fr" -> TranslateLanguage.FRENCH
             "de" -> TranslateLanguage.GERMAN

@@ -7,6 +7,7 @@ import com.slideindex.app.gesture.GestureAngles
 import com.slideindex.app.gesture.GestureRule
 import com.slideindex.app.gesture.GestureTriggerMode
 import com.slideindex.app.gesture.SideGestureDefaults
+import com.slideindex.app.translate.TranslateTargetLanguages
 
 /**
  * [AppSettings] 按域拆出的分片。
@@ -285,8 +286,8 @@ data class FloatBallSettings(
     /** When false, translate opens Google Translate in browser; when true, shows in-app overlay. */
     val floatBallInstantTranslate: Boolean = false,
     val floatBallTranslateEngine: FloatBallTranslateEngine = FloatBallTranslateEngine.GOOGLE,
-    /** BCP-47 style target language code for translation, e.g. zh-CN. */
-    val floatBallTranslateTargetLang: String = "zh-CN",
+    /** BCP-47 style target language code, or [TranslateTargetLanguages.FOLLOW_APP] to follow app UI language. */
+    val floatBallTranslateTargetLang: String = TranslateTargetLanguages.FOLLOW_APP,
     /** Pick-result card transparency while the in-app translate overlay is open (0=opaque, 1=transparent). */
     val floatBallImageSearchPickPanelTransparency: Float = 0.65f,
     /** Save shared long-image OCR results for later re-open from pick settings. */
@@ -326,6 +327,8 @@ data class ClipboardSettings(
     val clipboardFloatPanelPinPosition: Boolean = false,
     val clipboardFloatEntryClickAction: ClipboardFloatEntryClickAction = ClipboardFloatEntryClickAction.PASTE,
     val clipboardFloatListStyleId: Int = ClipboardFloatListStyle.SINGLE_LINE.id,
+    val clipboardFloatPanelLayoutId: Int = ClipboardFloatPanelLayout.ResizableFloating.id,
+    val clipboardFloatGridColumns: Int = 3,
     val clipboardFloatPortraitGeometry: ClipboardFloatOrientationGeometry = ClipboardFloatOrientationGeometry(),
     val clipboardFloatLandscapeGeometry: ClipboardFloatOrientationGeometry = ClipboardFloatOrientationGeometry(),
     /** @deprecated Use [clipboardFloatPortraitGeometry]; kept for legacy readers. */

@@ -1582,6 +1582,14 @@
     <string name="float_ball_translate_engine_cloud">云端大模型</string>
     <string name="float_ball_translate_cloud_config_desc">选择翻译服务商、文本模型与 API</string>
     <string name="float_ball_translate_target_lang">翻译为</string>
+    <string name="translate_target_follow_app">跟随应用语言</string>
+    <string name="translate_target_follow_app_summary">%1$s · %2$s</string>
+    <string name="translate_target_label_zh_tw" translatable="false">繁體中文</string>
+    <string name="translate_target_label_ko" translatable="false">한국어</string>
+    <string name="translate_target_label_fr" translatable="false">Français</string>
+    <string name="translate_target_label_de" translatable="false">Deutsch</string>
+    <string name="translate_target_label_es" translatable="false">Español</string>
+    <string name="translate_target_label_ru" translatable="false">Русский</string>
     <string name="float_ball_instant_translate">即时翻译</string>
     <string name="float_ball_instant_translate_desc">翻译结果以悬浮窗显示在取词面板上方，无需跳转浏览器</string>
     <string name="float_ball_instant_translate_on">即时翻译</string>
