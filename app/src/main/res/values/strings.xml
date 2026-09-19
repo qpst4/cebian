@@ -2882,10 +2882,8 @@
     <string name="clipboard_float_pin_title">记住大窗与 chip 位置</string>
     <string name="clipboard_float_pin_desc">开启后，下次出现的大窗与入口按钮会回到上次消失前的位置；关闭则每次固定在键盘右上方。</string>
     <string name="clipboard_float_click_action_title">单击条目</string>
-    <string name="clipboard_float_gesture_single_line_click">单行列表 · 单击条目</string>
-    <string name="clipboard_float_gesture_single_line_long_press">单行列表 · 长按条目</string>
-    <string name="clipboard_float_gesture_card_click">卡片列表 · 单击条目</string>
-    <string name="clipboard_float_gesture_card_long_press">卡片列表 · 长按条目</string>
+    <string name="clipboard_float_gesture_click">单击条目</string>
+    <string name="clipboard_float_gesture_long_press">长按条目</string>
     <string name="clipboard_float_long_press_action_word_tap">取词分词</string>
     <string name="clipboard_float_long_press_action_drag_drop">拖拽投放</string>
     <string name="clipboard_float_long_press_action_none">无</string>

@@ -27,6 +27,7 @@ import com.slideindex.app.service.SlideIndexAccessibilityService
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.ClipboardFloatEntryClickAction
 import com.slideindex.app.settings.ClipboardFloatEntryLongPressAction
+import com.slideindex.app.settings.ClipboardFloatListStyle
 import com.slideindex.app.settings.ClipboardHistoryCapacity
 import com.slideindex.app.settings.ClipboardMonitoringMode
 import com.slideindex.app.settings.effectiveClipboardMonitoringMode
@@ -594,7 +595,7 @@ fun ClipboardFloatSettingsScreen(
     onClipboardFloatSingleLineEntryLongPressActionChange: (ClipboardFloatEntryLongPressAction) -> Unit,
     onClipboardFloatCardEntryClickActionChange: (ClipboardFloatEntryClickAction) -> Unit,
     onClipboardFloatCardEntryLongPressActionChange: (ClipboardFloatEntryLongPressAction) -> Unit,
-    onClipboardFloatListStyleChange: (com.slideindex.app.settings.ClipboardFloatListStyle) -> Unit,
+    onClipboardFloatListStyleChange: (ClipboardFloatListStyle) -> Unit,
     onClipboardFloatPasteHapticEnabledChange: (Boolean) -> Unit,
     onClipboardFloatAlphaChange: (Float) -> Unit,
     onClipboardFloatAutoDimWhenUnfocusedChange: (Boolean) -> Unit,
@@ -668,46 +669,52 @@ fun ClipboardFloatSettingsScreen(
                                     stringResource(R.string.clipboard_float_style_single_line),
                                     stringResource(R.string.clipboard_float_style_card),
                                 ),
-                                selectedIndex = if (settings.clipboardFloatListStyle == com.slideindex.app.settings.ClipboardFloatListStyle.SINGLE_LINE) 0 else 1,
+                                selectedIndex = if (settings.clipboardFloatListStyle == ClipboardFloatListStyle.SINGLE_LINE) 0 else 1,
                                 onSelectedIndexChange = {
                                     onClipboardFloatListStyleChange(
-                                        if (it == 0) com.slideindex.app.settings.ClipboardFloatListStyle.SINGLE_LINE
-                                        else com.slideindex.app.settings.ClipboardFloatListStyle.CARD,
+                                        if (it == 0) ClipboardFloatListStyle.SINGLE_LINE
+                                        else ClipboardFloatListStyle.CARD,
                                     )
                                 },
                             )
-                            SettingDropdownRow(
-                                title = stringResource(R.string.clipboard_float_gesture_single_line_click),
-                                items = clickActionEntries.map { clipboardFloatClickActionLabel(it) },
-                                selectedIndex = singleLineClickIndex,
-                                onSelectedIndexChange = {
-                                    onClipboardFloatSingleLineEntryClickActionChange(clickActionEntries[it])
-                                },
-                            )
-                            SettingDropdownRow(
-                                title = stringResource(R.string.clipboard_float_gesture_single_line_long_press),
-                                items = longPressActionEntries.map { clipboardFloatLongPressActionLabel(it) },
-                                selectedIndex = singleLineLongPressIndex,
-                                onSelectedIndexChange = {
-                                    onClipboardFloatSingleLineEntryLongPressActionChange(longPressActionEntries[it])
-                                },
-                            )
-                            SettingDropdownRow(
-                                title = stringResource(R.string.clipboard_float_gesture_card_click),
-                                items = clickActionEntries.map { clipboardFloatClickActionLabel(it) },
-                                selectedIndex = cardClickIndex,
-                                onSelectedIndexChange = {
-                                    onClipboardFloatCardEntryClickActionChange(clickActionEntries[it])
-                                },
-                            )
-                            SettingDropdownRow(
-                                title = stringResource(R.string.clipboard_float_gesture_card_long_press),
-                                items = longPressActionEntries.map { clipboardFloatLongPressActionLabel(it) },
-                                selectedIndex = cardLongPressIndex,
-                                onSelectedIndexChange = {
-                                    onClipboardFloatCardEntryLongPressActionChange(longPressActionEntries[it])
-                                },
-                            )
+                            when (settings.clipboardFloatListStyle) {
+                                ClipboardFloatListStyle.SINGLE_LINE -> {
+                                    SettingDropdownRow(
+                                        title = stringResource(R.string.clipboard_float_gesture_click),
+                                        items = clickActionEntries.map { clipboardFloatClickActionLabel(it) },
+                                        selectedIndex = singleLineClickIndex,
+                                        onSelectedIndexChange = {
+                                            onClipboardFloatSingleLineEntryClickActionChange(clickActionEntries[it])
+                                        },
+                                    )
+                                    SettingDropdownRow(
+                                        title = stringResource(R.string.clipboard_float_gesture_long_press),
+                                        items = longPressActionEntries.map { clipboardFloatLongPressActionLabel(it) },
+                                        selectedIndex = singleLineLongPressIndex,
+                                        onSelectedIndexChange = {
+                                            onClipboardFloatSingleLineEntryLongPressActionChange(longPressActionEntries[it])
+                                        },
+                                    )
+                                }
+                                ClipboardFloatListStyle.CARD -> {
+                                    SettingDropdownRow(
+                                        title = stringResource(R.string.clipboard_float_gesture_click),
+                                        items = clickActionEntries.map { clipboardFloatClickActionLabel(it) },
+                                        selectedIndex = cardClickIndex,
+                                        onSelectedIndexChange = {
+                                            onClipboardFloatCardEntryClickActionChange(clickActionEntries[it])
+                                        },
+                                    )
+                                    SettingDropdownRow(
+                                        title = stringResource(R.string.clipboard_float_gesture_long_press),
+                                        items = longPressActionEntries.map { clipboardFloatLongPressActionLabel(it) },
+                                        selectedIndex = cardLongPressIndex,
+                                        onSelectedIndexChange = {
+                                            onClipboardFloatCardEntryLongPressActionChange(longPressActionEntries[it])
+                                        },
+                                    )
+                                }
+                            }
                             SettingSwitchRow(
                                 title = stringResource(R.string.clipboard_float_paste_haptic_title),
                                 subtitle = stringResource(R.string.clipboard_float_paste_haptic_desc),
