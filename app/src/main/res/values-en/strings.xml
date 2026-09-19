@@ -877,7 +877,7 @@
     <string name="float_ball_pick_smart_copy_code">Copy Code</string>
     <string name="float_ball_pick_smart_copied_toast">Copied to clipboard</string>
     <string name="float_ball_pick_text_first_panel">Text-first pick panel</string>
-    <string name="float_ball_pick_text_first_panel_desc">Show text and search engines by default; image section stays collapsed until you tap the Image row</string>
+    <string name="float_ball_pick_text_first_panel_desc">Integrated layout only: text and search first; swipe down on the toolbar above the text or pull down at the top of the text body to expand the image.</string>
     <string name="float_ball_pick_auto_select_all">Auto-select all text</string>
     <string name="float_ball_pick_auto_select_all_desc">Automatically select all text when the pick panel opens</string>
     <string name="float_ball_pick_copy_dismiss_panel">Dismiss panel after copy</string>

@@ -45,6 +45,7 @@ _lsposed_log/
 .tools/
 /tools/
 .tmp_gevo_apk8/
+.tmp_ai_clipboard/
 
 # --- 本地分析 / 构建日志 ---
 androguard.db

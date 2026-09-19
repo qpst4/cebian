@@ -680,7 +680,7 @@
     <string name="system_back_gesture_width_entry_desc">ضبط منطقة تشغيل إيماءة الرجوع اليسرى/اليمنى</string>
     <string name="system_back_gesture_width_title">عرض إيماءة الرجوع النظامية</string>
     <string name="system_back_gesture_width_desc">ضبط عرض منطقة تشغيل إيماءة الرجوع اليسرى/اليمنى في وضع إيماءات الشاشة الكاملة</string>
-    <string name="system_back_gesture_width_experimental_tip">ميزة تجريبية: قد تكون غير فعالة أو تعمل بشكل مختلف على بعض الأجهزة أو إصدارات النظام. عند ضبط أحد الجانبين على 0%، يتم تعطيل إيماءة الرجوع لهذا الجانب؛ و100% هو العرض الافتراضي للنظام. هذا ليس نفس وظيفة «اعتراض إيماءة الرجوع النظامية» في إعدادات مقابض اللمس.</string>
+    <string name="system_back_gesture_width_experimental_tip" formatted="false">ميزة تجريبية: قد تكون غير فعالة أو تعمل بشكل مختلف على بعض الأجهزة أو إصدارات النظام. عند ضبط أحد الجانبين على 0%، يتم تعطيل إيماءة الرجوع لهذا الجانب؛ و100% هو العرض الافتراضي للنظام. هذا ليس نفس وظيفة «اعتراض إيماءة الرجوع النظامية» في إعدادات مقابض اللمس.</string>
     <string name="system_back_gesture_width_not_gesture_nav">لا يتم استخدام تنقل إيماءات الشاشة الكاملة حاليًا، لذلك عادةً لن يكون لهذا الإعداد تأثير.</string>
     <string name="system_back_gesture_width_write_permission_desc">يتطلب إذن تعديل إعدادات النظام الآمنة، ويمكن التفويض عبر Shizuku أو استخدام أوامر ADB.</string>
     <string name="system_back_gesture_width_left">العرض الأيسر</string>
@@ -1387,7 +1387,7 @@
     <string name="float_ball_pick_smart_copy_code">نسخ الرمز</string>
     <string name="float_ball_pick_smart_copied_toast">تم النسخ إلى الحافظة</string>
     <string name="float_ball_pick_text_first_panel">إعطاء الأولوية للنص في لوحة التقاط النص</string>
-    <string name="float_ball_pick_text_first_panel_desc">عرض النص ومحركات البحث فقط افتراضياً؛ يتم طي منطقة الصور، انقر على صف «الصور» للتوسيع</string>
+    <string name="float_ball_pick_text_first_panel_desc">نمط الشاشة الواحدة فقط: النص والبحث أولاً؛ اسحب لأسفل على شريط الأدوات فوق النص أو اسحب لأسفل من أعلى النص لإظهار الصورة.</string>
     <string name="float_ball_pick_auto_select_all">تحديد النص تلقائياً</string>
     <string name="float_ball_pick_auto_select_all_desc">في اللوحة المنبثقة بعد التقاط النص أو لقطة الشاشة، يتم تحديد النص تلقائياً بالكامل</string>
     <string name="float_ball_pick_copy_dismiss_panel">إغلاق اللوحة تلقائياً بعد النسخ</string>
@@ -1741,8 +1741,8 @@
     <string name="search_engine_editor_tab_share">مشاركة</string>
     <string name="search_engine_type_extern_jump">رابط عميق للتطبيق (Scheme)</string>
     <string name="search_engine_url_link_hint">عنوان رابط URL / Scheme</string>
-    <string name="search_engine_url_link_support">يدعم https://، coolmarket://، intent://، إلخ؛ ويمكن استخدام %s أو %q كعنصر نائب للكلمة المفتاحية</string>
-    <string name="search_engine_url_link_flow_desc">قواعد وتدفق التنفيذ: 1. الانتقال مع المعامل: إذا احتوى الرابط على العنصر النائب %s (مثل example.com/search?q=%s)، سيتم استبدال الكلمة المفتاحية في الرابط والانتقال إليه مباشرة 2. تحديد التطبيق: إذا تم ملء اسم الحزمة الهدف، سيتم فتح الرابط عبر ذلك التطبيق؛ وإذا ترك فارغًا، سيتم استخدام التطبيق الافتراضي 3. ملء النص عبر إمكانية الوصول: إذا لم يتم استخدام %s وتم تفعيل الإدخال التلقائي، سيتم ملء الكلمة في مربع البحث تلقائيًا بعد الانتقال ثم الضغط على Enter</string>
+    <string name="search_engine_url_link_support" formatted="false">يدعم https://، coolmarket://، intent://، إلخ؛ ويمكن استخدام %s أو %q كعنصر نائب للكلمة المفتاحية</string>
+    <string name="search_engine_url_link_flow_desc" formatted="false">قواعد وتدفق التنفيذ: 1. الانتقال مع المعامل: إذا احتوى الرابط على العنصر النائب %s (مثل example.com/search?q=%s)، سيتم استبدال الكلمة المفتاحية في الرابط والانتقال إليه مباشرة 2. تحديد التطبيق: إذا تم ملء اسم الحزمة الهدف، سيتم فتح الرابط عبر ذلك التطبيق؛ وإذا ترك فارغًا، سيتم استخدام التطبيق الافتراضي 3. ملء النص عبر إمكانية الوصول: إذا لم يتم استخدام %s وتم تفعيل الإدخال التلقائي، سيتم ملء الكلمة في مربع البحث تلقائيًا بعد الانتقال ثم الضغط على Enter</string>
     <string name="search_engine_jump_activity_flow_desc">قواعد وتدفق التنفيذ: 1. سحب المكون: فتح واجهة التطبيق الهدف مباشرة عبر اسم الحزمة وActivity (سيتم محاولة سحب Activities غير المصدرة تلقائيًا عبر Shizuku) 2. ملء النص عبر إمكانية الوصول: بعد فتح الواجهة (إذا تم تفعيل الإدخال التلقائي)، سيتم البحث تلقائيًا عن مربع البحث وملء الكلمة ثم الضغط على Enter خلال 600~3000 مللي ثانية</string>
     <string name="search_engine_type_share">مشاركة</string>
     <string name="search_engine_type_share_image">مشاركة صورة</string>
@@ -1792,7 +1792,7 @@
     <string name="search_panel_section_files">الملفات</string>
     <string name="search_panel_section_settings">الإعدادات</string>
     <string name="search_panel_section_menu">تبديل نوع البحث</string>
-    <string name="search_engine_search_link_support">استخدم %s أو %q كعنصر نائب للكلمة المفتاحية</string>
+    <string name="search_engine_search_link_support" formatted="false">استخدم %s أو %q كعنصر نائب للكلمة المفتاحية</string>
     <string name="search_engine_target_package_hint">اسم الحزمة الهدف (اختياري)</string>
     <string name="search_engine_target_activity_hint">Activity الهدف</string>
     <string name="search_engine_extern_link_hint">رابط بروتوكول Scheme / Intent</string>

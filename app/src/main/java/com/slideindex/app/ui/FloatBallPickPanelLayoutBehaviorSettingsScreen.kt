@@ -190,17 +190,21 @@ fun FloatBallPickPanelLayoutBehaviorSettingsScreen(
         groupedCardItems(
             keyPrefix = "fb-pick-panel-content-search",
             items = buildList {
-                add(
-                    settingsCardScopeItem("text-first-panel") {
-                        SettingSwitchRow(
-                            title = stringResource(R.string.float_ball_pick_text_first_panel),
-                            subtitle = stringResource(R.string.float_ball_pick_text_first_panel_desc),
-                            checked = settings.floatBallPickTextFirstPanel,
-                            enabled = true,
-                            onCheckedChange = onPickTextFirstPanelChange,
-                        )
-                    },
-                )
+                if (settings.floatBallPickPanelStyle ==
+                    com.slideindex.app.settings.PickResultPanelStyle.INTEGRATED_BOTTOM_BAR
+                ) {
+                    add(
+                        settingsCardScopeItem("text-first-panel") {
+                            SettingSwitchRow(
+                                title = stringResource(R.string.float_ball_pick_text_first_panel),
+                                subtitle = stringResource(R.string.float_ball_pick_text_first_panel_desc),
+                                checked = settings.floatBallPickTextFirstPanel,
+                                enabled = true,
+                                onCheckedChange = onPickTextFirstPanelChange,
+                            )
+                        },
+                    )
+                }
                 add(
                     settingsCardScopeItem("search-grid-default-state") {
                         SettingSpinnerRow(

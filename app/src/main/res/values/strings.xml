@@ -1384,7 +1384,7 @@
     <string name="float_ball_pick_smart_copy_code">复制验证码</string>
     <string name="float_ball_pick_smart_copied_toast">已复制到剪贴板</string>
     <string name="float_ball_pick_text_first_panel">取词面板优先文本</string>
-    <string name="float_ball_pick_text_first_panel_desc">默认只显示文本与搜索引擎；图片区折叠，点「图片」行可展开</string>
+    <string name="float_ball_pick_text_first_panel_desc">仅同屏样式：默认先看文本与搜索；文本区上方工具栏向下滑或正文顶部下拉展开图片。</string>
     <string name="float_ball_pick_auto_select_all">自动全选文字</string>
     <string name="float_ball_pick_auto_select_all_desc">取词或截图后弹出的面板，文字直接自动全选</string>
     <string name="float_ball_pick_copy_dismiss_panel">复制后自动收起面板</string>
