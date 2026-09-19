@@ -36,6 +36,7 @@ import com.slideindex.app.clipboard.ClipboardAccess
 import com.slideindex.app.clipboard.hasImageContent
 import com.slideindex.app.clipboardfloat.ClipboardFloatDisplayMode
 import com.slideindex.app.clipboardfloat.ClipboardFloatListController
+import com.slideindex.app.clipboardfloat.ClipboardDragHostPaste
 import com.slideindex.app.clipboardfloat.ClipboardFloatRoot
 import com.slideindex.app.clipboardfloat.ClipboardPasteCoordinator
 import com.slideindex.app.clipboardfloat.ClipboardPasteHelper
@@ -56,6 +57,7 @@ import com.slideindex.app.overlay.PickResultTextSource
 import com.slideindex.app.overlay.StashPanelInitialTab
 import com.slideindex.app.overlay.pickresult.PickResultTextMode
 import com.slideindex.app.settings.ClipboardFloatEntryClickAction
+import com.slideindex.app.settings.ClipboardFloatEntryLongPressAction
 import com.slideindex.app.settings.ClipboardFloatListStyle
 import com.slideindex.app.settings.ClipboardFloatOrientationGeometry
 import com.slideindex.app.settings.ClipboardFloatWindowMetrics
@@ -90,7 +92,10 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
     private var rememberPosition by mutableStateOf(false)
     private var panelPinned by mutableStateOf(false)
     private var showChipPref by mutableStateOf(true)
-    private var clickAction by mutableStateOf(ClipboardFloatEntryClickAction.PASTE)
+    private var singleLineClickAction by mutableStateOf(ClipboardFloatEntryClickAction.PASTE)
+    private var singleLineLongPressAction by mutableStateOf(ClipboardFloatEntryLongPressAction.WORD_TAP)
+    private var cardClickAction by mutableStateOf(ClipboardFloatEntryClickAction.PASTE)
+    private var cardLongPressAction by mutableStateOf(ClipboardFloatEntryLongPressAction.DRAG_DROP)
     private var pasteHapticEnabled by mutableStateOf(false)
     private var panelAlpha by mutableFloatStateOf(1.0f)
     private var autoDimWhenUnfocused by mutableStateOf(false)
@@ -257,7 +262,10 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
         val snapshot = deps.settingsRepository.readSnapshot()
         rememberPosition = snapshot.clipboardFloatPanelPinPosition
         showChipPref = snapshot.clipboardFloatShowChip
-        clickAction = snapshot.clipboardFloatEntryClickAction
+        singleLineClickAction = snapshot.clipboardFloatSingleLineEntryClickAction
+        singleLineLongPressAction = snapshot.clipboardFloatSingleLineEntryLongPressAction
+        cardClickAction = snapshot.clipboardFloatCardEntryClickAction
+        cardLongPressAction = snapshot.clipboardFloatCardEntryLongPressAction
         listStyle = snapshot.clipboardFloatListStyle
         pasteHapticEnabled = snapshot.clipboardFloatPasteHapticEnabled
         panelAlpha = snapshot.clipboardFloatAlpha
@@ -466,6 +474,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
                     listController = listController,
                     windowWidthDp = panelWidthDp,
                     listStyle = listStyle,
+                    entryLongPressAction = entryLongPressActionForListStyle(),
                     onOpenExpanded = ::expandWindow,
                     onTogglePin = ::togglePin,
                     onAlphaChange = ::updateAlpha,
@@ -482,6 +491,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
                     onEntryLongClick = ::onEntryLongClick,
                     onEntryDragStart = ::onEntryDragStart,
                     onEntryDragEnd = ::onEntryDragEnd,
+                    onEntryHostPasteFallback = ::onEntryHostPasteFallback,
                     onUserInteraction = ::onUserInteraction
                 )
             }
@@ -891,6 +901,16 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
         )
     }
 
+    private fun entryClickActionForListStyle(): ClipboardFloatEntryClickAction = when (listStyle) {
+        ClipboardFloatListStyle.SINGLE_LINE -> singleLineClickAction
+        ClipboardFloatListStyle.CARD -> cardClickAction
+    }
+
+    private fun entryLongPressActionForListStyle(): ClipboardFloatEntryLongPressAction = when (listStyle) {
+        ClipboardFloatListStyle.SINGLE_LINE -> singleLineLongPressAction
+        ClipboardFloatListStyle.CARD -> cardLongPressAction
+    }
+
     private fun onEntryClick(entry: com.slideindex.app.clipboard.ClipboardEntry) {
         resetAutoCloseTimer()
         val service = SlideIndexAccessibilityService.accessibilityInstance()
@@ -898,6 +918,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
             Toast.makeText(this, R.string.search_engine_accessibility_required, Toast.LENGTH_SHORT).show()
             return
         }
+        val clickAction = entryClickActionForListStyle()
         when (clickAction) {
             ClipboardFloatEntryClickAction.COPY -> {
                 when (
@@ -1004,6 +1025,22 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
 
     private fun onEntryDragEnd() {
         setEntryDragHidden(hidden = false)
+    }
+
+    private fun onEntryHostPasteFallback(entry: com.slideindex.app.clipboard.ClipboardEntry) {
+        resetAutoCloseTimer()
+        val fvStyle = deps.settingsRepository.readSnapshot().clipboardPasteFvStyleEnabled
+        ClipboardDragHostPaste.pasteEntryToForegroundHost(
+            context = this,
+            entry = entry,
+            fvStyle = fvStyle,
+            onFinished = { result ->
+                handleClipboardFloatPasteResult(result)
+                if (!panelPinned) {
+                    collapseAfterEntryAction()
+                }
+            },
+        )
     }
 
     private fun setEntryDragHidden(hidden: Boolean) {

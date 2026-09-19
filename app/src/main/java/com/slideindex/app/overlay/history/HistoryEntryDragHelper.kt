@@ -2,6 +2,9 @@ package com.slideindex.app.overlay.history
 
 import android.content.ClipData
 import android.content.Context
+import android.content.Intent
+import android.util.Log
+import com.slideindex.app.util.AccessibilityForegroundResolver
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
@@ -83,19 +86,44 @@ internal object HistoryEntryDragHelper {
         preview: HistoryDragPreview,
         onDragStart: () -> Unit,
         onDragEnd: () -> Unit,
+        onDragAccepted: ((Boolean) -> Unit)? = null,
     ) {
         view.setOnDragListener { _, event ->
             when (event.action) {
                 DragEvent.ACTION_DRAG_STARTED -> onDragStart()
                 DragEvent.ACTION_DRAG_ENDED -> {
+                    onDragAccepted?.invoke(event.result)
                     onDragEnd()
                     view.setOnDragListener(null)
                 }
             }
             true
         }
+        val context = view.context
+        grantDragUriPermissionsToForegroundHost(context, clipData)
         val flags = buildDragFlags(clipData)
         view.startDragAndDrop(clipData, EntryDragShadowBuilder(view, preview), null, flags)
+    }
+
+    /**
+     * 部分宿主（如微信）除 [View.DRAG_FLAG_GLOBAL_URI_READ] 外仍要求对前台包显式 [Context.grantUriPermission]。
+     */
+    private fun grantDragUriPermissionsToForegroundHost(context: Context, clipData: ClipData) {
+        val targetPackage = AccessibilityForegroundResolver.resolve(context) ?: return
+        if (targetPackage == context.packageName) return
+        for (index in 0 until clipData.itemCount) {
+            val uri = clipData.getItemAt(index).uri ?: continue
+            if (uri.scheme != "content") continue
+            try {
+                context.grantUriPermission(
+                    targetPackage,
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION,
+                )
+            } catch (t: Throwable) {
+                Log.w(TAG, "grant drag uri failed target=$targetPackage uri=$uri", t)
+            }
+        }
     }
 
     private fun buildDragFlags(clipData: ClipData): Int {
@@ -108,6 +136,8 @@ internal object HistoryEntryDragHelper {
         }
         return flags
     }
+
+    private const val TAG = "HistoryEntryDrag"
 }
 
 private class EntryDragShadowBuilder(

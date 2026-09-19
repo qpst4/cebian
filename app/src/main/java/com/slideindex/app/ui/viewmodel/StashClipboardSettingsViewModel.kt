@@ -7,6 +7,7 @@ import com.slideindex.app.service.HistoryFloatLifecycle
 import com.slideindex.app.service.SlideIndexAccessibilityService
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.ClipboardFloatEntryClickAction
+import com.slideindex.app.settings.ClipboardFloatEntryLongPressAction
 import com.slideindex.app.settings.ClipboardMonitoringMode
 import com.slideindex.app.settings.HistoryFloatHandleWidth
 import com.slideindex.app.settings.SettingsRepository
@@ -184,11 +185,37 @@ class StashClipboardSettingsViewModel @Inject constructor(
         settingsRepository.setClipboardFloatPinPosition(pin)
     }
 
-    fun setClipboardFloatEntryClickAction(action: ClipboardFloatEntryClickAction) = launchOptimisticSettingsWrite(
-        optimisticUpdate = { it.copy(clipboard = it.clipboard.copy(clipboardFloatEntryClickAction = action)) },
+    fun setClipboardFloatSingleLineEntryClickAction(action: ClipboardFloatEntryClickAction) = launchOptimisticSettingsWrite(
+        optimisticUpdate = {
+            it.copy(clipboard = it.clipboard.copy(clipboardFloatSingleLineEntryClickAction = action))
+        },
     ) {
-        settingsRepository.setClipboardFloatEntryClickAction(action)
+        settingsRepository.setClipboardFloatSingleLineEntryClickAction(action)
     }
+
+    fun setClipboardFloatSingleLineEntryLongPressAction(action: ClipboardFloatEntryLongPressAction) =
+        launchOptimisticSettingsWrite(
+            optimisticUpdate = {
+                it.copy(clipboard = it.clipboard.copy(clipboardFloatSingleLineEntryLongPressAction = action))
+            },
+        ) {
+            settingsRepository.setClipboardFloatSingleLineEntryLongPressAction(action)
+        }
+
+    fun setClipboardFloatCardEntryClickAction(action: ClipboardFloatEntryClickAction) = launchOptimisticSettingsWrite(
+        optimisticUpdate = { it.copy(clipboard = it.clipboard.copy(clipboardFloatCardEntryClickAction = action)) },
+    ) {
+        settingsRepository.setClipboardFloatCardEntryClickAction(action)
+    }
+
+    fun setClipboardFloatCardEntryLongPressAction(action: ClipboardFloatEntryLongPressAction) =
+        launchOptimisticSettingsWrite(
+            optimisticUpdate = {
+                it.copy(clipboard = it.clipboard.copy(clipboardFloatCardEntryLongPressAction = action))
+            },
+        ) {
+            settingsRepository.setClipboardFloatCardEntryLongPressAction(action)
+        }
 
     fun setClipboardFloatListStyle(style: com.slideindex.app.settings.ClipboardFloatListStyle) = launchOptimisticSettingsWrite(
         optimisticUpdate = { it.copy(clipboard = it.clipboard.copy(clipboardFloatListStyleId = style.id)) },

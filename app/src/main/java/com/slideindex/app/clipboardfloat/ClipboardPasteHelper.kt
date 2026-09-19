@@ -235,16 +235,113 @@ object ClipboardPasteHelper {
             }
         }
 
-        if (node.performAction(AccessibilityNodeInfo.ACTION_PASTE) &&
-            verifyTextPaste(node, entryText, beforeText)
-        ) {
-            return PasteResult.Success
+        if (node.performAction(AccessibilityNodeInfo.ACTION_PASTE)) {
+            if (entry.hasImageContent()) {
+                return PasteResult.Success
+            }
+            if (verifyTextPaste(node, entryText, beforeText)) {
+                return PasteResult.Success
+            }
         }
 
         if (entryText != null && canTrySetText(node)) {
             return insertViaSetText(node, entryText)
         }
         return PasteResult.Failure(PasteFailureReason.PASTE_AND_INSERT_FAILED)
+    }
+
+    /** 参考 AI 剪贴板 [s.f.E] + [AccessibilityCaptureService.i]：按前台包在窗口树内执行粘贴。 */
+    enum class HostPasteAttempt {
+        SUCCESS,
+        RETRY,
+    }
+
+    fun attemptPasteInHostPackage(
+        service: AccessibilityService,
+        hostPackage: String,
+    ): HostPasteAttempt {
+        val windows = try {
+            service.windows.orEmpty().sortedByDescending { it.layer }
+        } catch (_: Throwable) {
+            emptyList()
+        }
+        for (window in windows) {
+            if (shouldSkipPasteWindow(window)) continue
+            val root = window.root ?: continue
+            try {
+                if (root.packageName?.toString() != hostPackage) continue
+                if (attemptPasteInHostRoot(root) == HostPasteAttempt.SUCCESS) {
+                    return HostPasteAttempt.SUCCESS
+                }
+            } finally {
+                recycleNode(root)
+            }
+        }
+        val active = service.rootInActiveWindow
+        if (active != null) {
+            try {
+                if (active.packageName?.toString() == hostPackage) {
+                    return attemptPasteInHostRoot(active)
+                }
+            } finally {
+                recycleNode(active)
+            }
+        }
+        return HostPasteAttempt.RETRY
+    }
+
+    private fun attemptPasteInHostRoot(root: AccessibilityNodeInfo): HostPasteAttempt {
+        val inputFocus = root.findFocus(AccessibilityNodeInfo.FOCUS_INPUT)
+        if (inputFocus != null) {
+            val pasted = performHostPasteOnNode(inputFocus, ensureFocus = false)
+            recycleNode(inputFocus)
+            if (pasted) return HostPasteAttempt.SUCCESS
+        }
+        val accessibilityFocus = root.findFocus(AccessibilityNodeInfo.FOCUS_ACCESSIBILITY)
+        if (accessibilityFocus != null) {
+            val canPasteHere = accessibilityFocus.isEditable || supportsPaste(accessibilityFocus)
+            val pasted = if (canPasteHere) {
+                performHostPasteOnNode(accessibilityFocus, ensureFocus = true)
+            } else {
+                false
+            }
+            recycleNode(accessibilityFocus)
+            if (pasted) return HostPasteAttempt.SUCCESS
+        }
+        val stack = ArrayDeque<AccessibilityNodeInfo>()
+        for (i in 0 until root.childCount) {
+            root.getChild(i)?.let { stack.addLast(it) }
+        }
+        var visited = 0
+        while (stack.isNotEmpty() && visited < 500) {
+            val node = stack.removeFirst()
+            visited++
+            val owned = node !== root
+            try {
+                val canPasteHere = node.isEditable || supportsPaste(node)
+                if (node.isEnabled && node.isVisibleToUser && canPasteHere &&
+                    performHostPasteOnNode(node, ensureFocus = true)
+                ) {
+                    return HostPasteAttempt.SUCCESS
+                }
+                for (i in 0 until node.childCount) {
+                    node.getChild(i)?.let { stack.addLast(it) }
+                }
+            } finally {
+                if (owned) recycleNode(node)
+            }
+        }
+        return HostPasteAttempt.RETRY
+    }
+
+    private fun performHostPasteOnNode(
+        node: AccessibilityNodeInfo,
+        ensureFocus: Boolean,
+    ): Boolean {
+        if (ensureFocus && !node.isFocused) {
+            node.performAction(AccessibilityNodeInfo.ACTION_FOCUS)
+        }
+        return node.performAction(AccessibilityNodeInfo.ACTION_PASTE)
     }
 
     private fun canTrySetText(node: AccessibilityNodeInfo): Boolean =

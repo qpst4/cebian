@@ -2858,6 +2858,13 @@ Questions: open a GitHub Issue on the project repository.</string>
     <string name="clipboard_float_pin_title">Remember panel and chip position</string>
     <string name="clipboard_float_pin_desc">When on, the panel and chip reopen where you left them. When off, they always appear at the default spot above the keyboard.</string>
     <string name="clipboard_float_click_action_title">Tap entry</string>
+    <string name="clipboard_float_gesture_single_line_click">Single-line list · Tap entry</string>
+    <string name="clipboard_float_gesture_single_line_long_press">Single-line list · Long-press entry</string>
+    <string name="clipboard_float_gesture_card_click">Card list · Tap entry</string>
+    <string name="clipboard_float_gesture_card_long_press">Card list · Long-press entry</string>
+    <string name="clipboard_float_long_press_action_word_tap">Word pick / segment</string>
+    <string name="clipboard_float_long_press_action_drag_drop">Drag and drop</string>
+    <string name="clipboard_float_long_press_action_none">None</string>
     <string name="clipboard_float_click_action_paste">Paste</string>
     <string name="clipboard_float_click_action_copy">Copy</string>
     <string name="clipboard_float_click_action_copy_and_paste">Copy and paste</string>

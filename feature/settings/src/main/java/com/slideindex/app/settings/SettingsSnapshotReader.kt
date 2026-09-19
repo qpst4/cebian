@@ -503,8 +503,21 @@ internal object SettingsSnapshotReader {
                 prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PANEL_PIN_POSITION]
                     ?: prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PIN_POSITION]
                     ?: false,
-            clipboardFloatEntryClickAction = ClipboardFloatEntryClickAction.fromStorage(
-                prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_ENTRY_CLICK_ACTION],
+            clipboardFloatSingleLineEntryClickAction = ClipboardFloatEntryGesturePrefs.readClickAction(
+                prefs,
+                ClipboardFloatListStyle.SINGLE_LINE,
+            ),
+            clipboardFloatSingleLineEntryLongPressAction = ClipboardFloatEntryGesturePrefs.readLongPressAction(
+                prefs,
+                ClipboardFloatListStyle.SINGLE_LINE,
+            ),
+            clipboardFloatCardEntryClickAction = ClipboardFloatEntryGesturePrefs.readClickAction(
+                prefs,
+                ClipboardFloatListStyle.CARD,
+            ),
+            clipboardFloatCardEntryLongPressAction = ClipboardFloatEntryGesturePrefs.readLongPressAction(
+                prefs,
+                ClipboardFloatListStyle.CARD,
             ),
             clipboardFloatListStyleId = prefs[SettingsPreferenceKeys.CLIPBOARD_FLOAT_LIST_STYLE]
                 ?: ClipboardFloatListStyle.SINGLE_LINE.id,

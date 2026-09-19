@@ -10,21 +10,56 @@ import androidx.core.net.toUri
 object ClipboardWriter {
 
     fun write(context: Context, entry: ClipboardEntry) {
-        writeInternal(context, entry, promote = true)
+        writeInternal(context, entry, promote = true, grantReadToPackage = null)
     }
 
     /** 粘贴前写入系统剪贴板，不提升历史条目顺序（避免「粘贴」被当成「复制」）。 */
     fun writeForPaste(context: Context, entry: ClipboardEntry) {
-        writeInternal(context, entry, promote = false)
+        writeInternal(context, entry, promote = false, grantReadToPackage = null)
     }
 
-    private fun writeInternal(context: Context, entry: ClipboardEntry, promote: Boolean) {
+    /**
+     * 微信等宿主粘贴图片前需对前台包 [grantUriPermission]（参考 AI 剪贴板 PASTE_CLIP 链路）。
+     */
+    fun writeForPasteToHost(
+        context: Context,
+        entry: ClipboardEntry,
+        hostPackage: String,
+    ): Boolean {
+        return writeInternal(context, entry, promote = false, grantReadToPackage = hostPackage)
+    }
+
+    fun grantClipReadToPackage(context: Context, clip: ClipData, hostPackage: String) {
+        for (index in 0 until clip.itemCount) {
+            val uri = clip.getItemAt(index).uri ?: continue
+            if (uri.scheme != "content") continue
+            try {
+                context.grantUriPermission(
+                    hostPackage,
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION,
+                )
+            } catch (_: Throwable) {
+            }
+        }
+    }
+
+    private fun writeInternal(
+        context: Context,
+        entry: ClipboardEntry,
+        promote: Boolean,
+        grantReadToPackage: String?,
+    ): Boolean {
         ClipboardAccess.repository?.noteOutgoingWrite(entry)
         if (promote) {
             ClipboardAccess.repository?.promoteById(entry.id)
         }
-        val clip = buildClipForEntry(context, entry) ?: return
+        val clip = buildClipForEntry(context, entry) ?: return false
+        if (!grantReadToPackage.isNullOrBlank()) {
+            grantClipReadToPackage(context, clip, grantReadToPackage)
+        }
         safeSetPrimaryClip(context, clip) { buildFallbackUriClip(context, entry) }
+        return true
     }
 
     fun buildClipForEntry(context: Context, entry: ClipboardEntry): ClipData? {

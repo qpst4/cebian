@@ -325,7 +325,12 @@ data class ClipboardSettings(
     val clipboardFloatChipY: Int = ClipboardFloatWindowMetrics.UNSET_POSITION,
     /** When true, the expanded panel uses saved x/y instead of IME-adaptive placement. */
     val clipboardFloatPanelPinPosition: Boolean = false,
-    val clipboardFloatEntryClickAction: ClipboardFloatEntryClickAction = ClipboardFloatEntryClickAction.PASTE,
+    val clipboardFloatSingleLineEntryClickAction: ClipboardFloatEntryClickAction = ClipboardFloatEntryClickAction.PASTE,
+    val clipboardFloatSingleLineEntryLongPressAction: ClipboardFloatEntryLongPressAction =
+        ClipboardFloatEntryLongPressAction.WORD_TAP,
+    val clipboardFloatCardEntryClickAction: ClipboardFloatEntryClickAction = ClipboardFloatEntryClickAction.PASTE,
+    val clipboardFloatCardEntryLongPressAction: ClipboardFloatEntryLongPressAction =
+        ClipboardFloatEntryLongPressAction.DRAG_DROP,
     val clipboardFloatListStyleId: Int = ClipboardFloatListStyle.SINGLE_LINE.id,
     val clipboardFloatPortraitGeometry: ClipboardFloatOrientationGeometry = ClipboardFloatOrientationGeometry(),
     val clipboardFloatLandscapeGeometry: ClipboardFloatOrientationGeometry = ClipboardFloatOrientationGeometry(),

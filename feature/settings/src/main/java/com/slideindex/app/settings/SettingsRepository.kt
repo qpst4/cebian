@@ -644,8 +644,17 @@ class SettingsRepository @Inject constructor(
     suspend fun setClipboardFloatPinPosition(pin: Boolean) =
         overlay.setClipboardFloatPinPosition(pin)
 
-    suspend fun setClipboardFloatEntryClickAction(action: ClipboardFloatEntryClickAction) =
-        overlay.setClipboardFloatEntryClickAction(action)
+    suspend fun setClipboardFloatSingleLineEntryClickAction(action: ClipboardFloatEntryClickAction) =
+        overlay.setClipboardFloatSingleLineEntryClickAction(action)
+
+    suspend fun setClipboardFloatSingleLineEntryLongPressAction(action: ClipboardFloatEntryLongPressAction) =
+        overlay.setClipboardFloatSingleLineEntryLongPressAction(action)
+
+    suspend fun setClipboardFloatCardEntryClickAction(action: ClipboardFloatEntryClickAction) =
+        overlay.setClipboardFloatCardEntryClickAction(action)
+
+    suspend fun setClipboardFloatCardEntryLongPressAction(action: ClipboardFloatEntryLongPressAction) =
+        overlay.setClipboardFloatCardEntryLongPressAction(action)
 
     suspend fun setClipboardFloatListStyle(style: ClipboardFloatListStyle) =
         overlay.setClipboardFloatListStyle(style)

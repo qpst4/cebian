@@ -1023,8 +1023,20 @@ class OverlaySettingsMutator @Inject constructor(
         it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PANEL_PIN_POSITION] = pin
     }
 
-    suspend fun setClipboardFloatEntryClickAction(action: ClipboardFloatEntryClickAction) = editor.edit {
-        it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_ENTRY_CLICK_ACTION] = action.storageValue
+    suspend fun setClipboardFloatSingleLineEntryClickAction(action: ClipboardFloatEntryClickAction) = editor.edit {
+        it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_ENTRY_CLICK_ACTION_SINGLE_LINE] = action.storageValue
+    }
+
+    suspend fun setClipboardFloatSingleLineEntryLongPressAction(action: ClipboardFloatEntryLongPressAction) = editor.edit {
+        it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_ENTRY_LONG_PRESS_ACTION_SINGLE_LINE] = action.storageValue
+    }
+
+    suspend fun setClipboardFloatCardEntryClickAction(action: ClipboardFloatEntryClickAction) = editor.edit {
+        it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_ENTRY_CLICK_ACTION_CARD] = action.storageValue
+    }
+
+    suspend fun setClipboardFloatCardEntryLongPressAction(action: ClipboardFloatEntryLongPressAction) = editor.edit {
+        it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_ENTRY_LONG_PRESS_ACTION_CARD] = action.storageValue
     }
 
     suspend fun setClipboardFloatListStyle(style: ClipboardFloatListStyle) = editor.edit {

@@ -26,6 +26,7 @@ import com.slideindex.app.clipboard.ClipboardPermissionHelper
 import com.slideindex.app.service.SlideIndexAccessibilityService
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.ClipboardFloatEntryClickAction
+import com.slideindex.app.settings.ClipboardFloatEntryLongPressAction
 import com.slideindex.app.settings.ClipboardHistoryCapacity
 import com.slideindex.app.settings.ClipboardMonitoringMode
 import com.slideindex.app.settings.effectiveClipboardMonitoringMode
@@ -589,7 +590,10 @@ fun ClipboardFloatSettingsScreen(
     onClipboardFloatEnabledChange: (Boolean) -> Unit,
     onClipboardFloatShowChipChange: (Boolean) -> Unit,
     onClipboardFloatPinPositionChange: (Boolean) -> Unit,
-    onClipboardFloatEntryClickActionChange: (ClipboardFloatEntryClickAction) -> Unit,
+    onClipboardFloatSingleLineEntryClickActionChange: (ClipboardFloatEntryClickAction) -> Unit,
+    onClipboardFloatSingleLineEntryLongPressActionChange: (ClipboardFloatEntryLongPressAction) -> Unit,
+    onClipboardFloatCardEntryClickActionChange: (ClipboardFloatEntryClickAction) -> Unit,
+    onClipboardFloatCardEntryLongPressActionChange: (ClipboardFloatEntryLongPressAction) -> Unit,
     onClipboardFloatListStyleChange: (com.slideindex.app.settings.ClipboardFloatListStyle) -> Unit,
     onClipboardFloatPasteHapticEnabledChange: (Boolean) -> Unit,
     onClipboardFloatAlphaChange: (Float) -> Unit,
@@ -600,7 +604,18 @@ fun ClipboardFloatSettingsScreen(
 ) {
     val clipboardFloatA11yHint = stringResource(R.string.clipboard_float_a11y_hint)
     val clickActionEntries = ClipboardFloatEntryClickAction.entries
-    val clickActionIndex = clickActionEntries.indexOf(settings.clipboardFloatEntryClickAction).let {
+    val longPressActionEntries = ClipboardFloatEntryLongPressAction.entries
+    val singleLineClickIndex = clickActionEntries.indexOf(settings.clipboardFloatSingleLineEntryClickAction).let {
+        if (it >= 0) it else 0
+    }
+    val singleLineLongPressIndex =
+        longPressActionEntries.indexOf(settings.clipboardFloatSingleLineEntryLongPressAction).let {
+            if (it >= 0) it else 0
+        }
+    val cardClickIndex = clickActionEntries.indexOf(settings.clipboardFloatCardEntryClickAction).let {
+        if (it >= 0) it else 0
+    }
+    val cardLongPressIndex = longPressActionEntries.indexOf(settings.clipboardFloatCardEntryLongPressAction).let {
         if (it >= 0) it else 0
     }
 
@@ -662,11 +677,35 @@ fun ClipboardFloatSettingsScreen(
                                 },
                             )
                             SettingDropdownRow(
-                                title = stringResource(R.string.clipboard_float_click_action_title),
+                                title = stringResource(R.string.clipboard_float_gesture_single_line_click),
                                 items = clickActionEntries.map { clipboardFloatClickActionLabel(it) },
-                                selectedIndex = clickActionIndex,
+                                selectedIndex = singleLineClickIndex,
                                 onSelectedIndexChange = {
-                                    onClipboardFloatEntryClickActionChange(clickActionEntries[it])
+                                    onClipboardFloatSingleLineEntryClickActionChange(clickActionEntries[it])
+                                },
+                            )
+                            SettingDropdownRow(
+                                title = stringResource(R.string.clipboard_float_gesture_single_line_long_press),
+                                items = longPressActionEntries.map { clipboardFloatLongPressActionLabel(it) },
+                                selectedIndex = singleLineLongPressIndex,
+                                onSelectedIndexChange = {
+                                    onClipboardFloatSingleLineEntryLongPressActionChange(longPressActionEntries[it])
+                                },
+                            )
+                            SettingDropdownRow(
+                                title = stringResource(R.string.clipboard_float_gesture_card_click),
+                                items = clickActionEntries.map { clipboardFloatClickActionLabel(it) },
+                                selectedIndex = cardClickIndex,
+                                onSelectedIndexChange = {
+                                    onClipboardFloatCardEntryClickActionChange(clickActionEntries[it])
+                                },
+                            )
+                            SettingDropdownRow(
+                                title = stringResource(R.string.clipboard_float_gesture_card_long_press),
+                                items = longPressActionEntries.map { clipboardFloatLongPressActionLabel(it) },
+                                selectedIndex = cardLongPressIndex,
+                                onSelectedIndexChange = {
+                                    onClipboardFloatCardEntryLongPressActionChange(longPressActionEntries[it])
                                 },
                             )
                             SettingSwitchRow(
@@ -797,6 +836,13 @@ private fun clipboardFloatClickActionLabel(action: ClipboardFloatEntryClickActio
     ClipboardFloatEntryClickAction.PASTE -> stringResource(R.string.clipboard_float_click_action_paste)
     ClipboardFloatEntryClickAction.COPY -> stringResource(R.string.clipboard_float_click_action_copy)
     ClipboardFloatEntryClickAction.COPY_AND_PASTE -> stringResource(R.string.clipboard_float_click_action_copy_and_paste)
+}
+
+@Composable
+private fun clipboardFloatLongPressActionLabel(action: ClipboardFloatEntryLongPressAction): String = when (action) {
+    ClipboardFloatEntryLongPressAction.WORD_TAP -> stringResource(R.string.clipboard_float_long_press_action_word_tap)
+    ClipboardFloatEntryLongPressAction.DRAG_DROP -> stringResource(R.string.clipboard_float_long_press_action_drag_drop)
+    ClipboardFloatEntryLongPressAction.NONE -> stringResource(R.string.clipboard_float_long_press_action_none)
 }
 
 @Composable
