@@ -2,23 +2,20 @@ package com.slideindex.app.ui
 
 import androidx.compose.material.icons.Icons
 import com.slideindex.app.ui.HomeLeadingIcons
-import androidx.compose.material.icons.outlined.ImageSearch
 import androidx.compose.material.icons.outlined.Palette
-import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.TextFields
-import androidx.compose.material.icons.outlined.Translate
+import androidx.compose.material.icons.outlined.TouchApp
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import com.slideindex.app.R
 import com.slideindex.app.settings.AppSettings
-import com.slideindex.app.settings.SearchEngineStore
-import com.slideindex.app.settings.AggregatedImageSearchEnginePreferencesStore
 import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.settings.components.SettingsCardScope
+import com.slideindex.app.ui.settings.components.SettingNavigationRow
+import com.slideindex.app.ui.settings.components.SettingSwitchRow
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
@@ -33,10 +30,7 @@ fun FloatBallSettingsScreen(
     onEnabledChange: (Boolean) -> Unit,
     onOpenAppearanceSettings: () -> Unit,
     onOpenGestureSettings: () -> Unit,
-    onOpenPickSettings: () -> Unit,
-    onOpenTranslationSettings: () -> Unit,
-    onOpenSearchEngineSettings: () -> Unit,
-    onOpenImageSearchEngineSettings: () -> Unit
+    onOpenPickOperationSettings: () -> Unit,
 ) {
     val sectionFeaturesTitle = stringResource(R.string.settings_section_features)
 
@@ -99,65 +93,13 @@ fun FloatBallSettingsScreen(
                     }
                 )
                 add(
-                    settingsCardScopeItem("pick") {
+                    settingsCardScopeItem("pick-operation") {
                         SettingNavigationRow(
-                            icon = { label -> Icon(Icons.Outlined.TextFields, contentDescription = label) },
-                            title = stringResource(R.string.float_ball_pick_settings_title),
-                            subtitle = stringResource(
-                                R.string.float_ball_pick_settings_summary,
-                                settings.floatBallPickOffsetDp,
-                                if (settings.floatBallOcrFallbackEnabled) {
-                                    stringResource(R.string.float_ball_ocr_fallback_on)
-                                } else {
-                                    stringResource(R.string.float_ball_ocr_fallback_off)
-                                }
-                            ),
-                            enabled = true,
-                            onClick = onOpenPickSettings
-                        )
-                    }
-                )
-                add(
-                    settingsCardScopeItem("translation") {
-                        SettingNavigationRow(
-                            icon = { label -> Icon(Icons.Outlined.Translate, contentDescription = label) },
-                            title = stringResource(R.string.float_ball_translation_settings_title),
-                            subtitle = floatBallTranslationSubtitle(settings),
-                            enabled = true,
-                            onClick = onOpenTranslationSettings
-                        )
-                    }
-                )
-                add(
-                    settingsCardScopeItem("search-engines") {
-                        SettingNavigationRow(
-                            icon = { label -> Icon(Icons.Outlined.Search, contentDescription = label) },
-                            title = stringResource(R.string.search_engine_settings_title),
-                            subtitle = pluralStringResource(
-                                R.plurals.search_engine_settings_summary,
-                                SearchEngineStore.textPickPanelEngines(settings.searchEngines).size,
-                                SearchEngineStore.textPickPanelEngines(settings.searchEngines).size
-                            ),
-                            enabled = true,
-                            onClick = onOpenSearchEngineSettings
-                        )
-                    }
-                )
-                add(
-                    settingsCardScopeItem("image-search-engines") {
-                        SettingNavigationRow(
-                            icon = { label -> Icon(Icons.Outlined.ImageSearch, contentDescription = label) },
-                            title = stringResource(R.string.image_search_engine_settings_title),
-                            subtitle = pluralStringResource(
-                                R.plurals.image_search_engine_settings_summary,
-                                SearchEngineStore.imageSharePanelEngines(settings.searchEngines).size,
-                                SearchEngineStore.imageSharePanelEngines(settings.searchEngines).size,
-                                AggregatedImageSearchEnginePreferencesStore.panelConfigs(
-                                    settings.aggregatedImageSearchEngines
-                                ).size
-                            ),
-                            enabled = true,
-                            onClick = onOpenImageSearchEngineSettings
+                            icon = { label -> Icon(Icons.Outlined.TouchApp, contentDescription = label) },
+                            title = stringResource(R.string.float_ball_pick_word_config_title),
+                            subtitle = stringResource(R.string.float_ball_pick_operation_nav_subtitle),
+                            enabled = accessibilityGranted,
+                            onClick = onOpenPickOperationSettings,
                         )
                     }
                 )
@@ -167,7 +109,7 @@ fun FloatBallSettingsScreen(
 }
 
 @Composable
-private fun floatBallTranslationSubtitle(settings: AppSettings): String {
+internal fun pickPanelTranslationNavSubtitle(settings: AppSettings): String {
     val engine = when (settings.floatBallTranslateEngine) {
         com.slideindex.app.settings.FloatBallTranslateEngine.GOOGLE ->
             stringResource(R.string.float_ball_translate_engine_google)
@@ -182,6 +124,35 @@ private fun floatBallTranslationSubtitle(settings: AppSettings): String {
         stringResource(R.string.float_ball_instant_translate_off)
     }
     return "$engine · $mode"
+}
+
+@Composable
+fun SettingsCardScope.PickSettingsEntryCard(
+    accessibilityGranted: Boolean,
+    ocrFallbackEnabled: Boolean,
+    outlinedLeadingIcons: Boolean = false,
+    onClick: () -> Unit,
+) {
+    val subtitle = when {
+        !accessibilityGranted -> stringResource(R.string.pick_settings_page_hint)
+        else -> stringResource(
+            R.string.float_ball_pick_settings_summary,
+            if (ocrFallbackEnabled) {
+                stringResource(R.string.float_ball_ocr_fallback_on)
+            } else {
+                stringResource(R.string.float_ball_ocr_fallback_off)
+            },
+        )
+    }
+    SettingNavigationRow(
+        icon = { label ->
+            Icon(Icons.Outlined.TextFields, contentDescription = label)
+        },
+        title = stringResource(R.string.float_ball_pick_settings_title),
+        subtitle = subtitle,
+        enabled = accessibilityGranted,
+        onClick = onClick,
+    )
 }
 
 @Composable

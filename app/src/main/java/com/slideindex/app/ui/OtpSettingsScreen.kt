@@ -240,7 +240,7 @@ fun OtpSettingsScreen(
     val testSectionTitle = stringResource(R.string.otp_test_section)
 
     SettingsScreenScaffold(
-        title = stringResource(R.string.otp_settings_title),
+        title = stringResource(R.string.otp_hub_entry_title),
         subtitle = stringResource(R.string.otp_settings_desc),
         onBack = onBack,
         modifier = modifier,

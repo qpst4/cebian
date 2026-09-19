@@ -77,8 +77,6 @@ fun NavEntryBuilder.stashClipboardNavEntries(ctx: MainNavContext) {
         StashPanelSettingsScreen(
             settings = settings,
             onBack = { ctx.navigateBackTo(AppNavKey.StashClipboard) },
-            onStashPanelBackgroundBlurEnabledChange = viewModel::setStashPanelBackgroundBlurEnabled,
-            onStashPanelBackgroundBlurRadiusDpChange = viewModel::setStashPanelBackgroundBlurRadiusDp,
             onClipboardHistoryFloatEnabledChange = viewModel::setClipboardHistoryFloatEnabled,
             onClipboardHistoryFloatEnabledLandscapeChange = viewModel::setClipboardHistoryFloatEnabledLandscape,
             onClipboardHistoryFloatLockPositionChange = viewModel::setClipboardHistoryFloatLockPosition,

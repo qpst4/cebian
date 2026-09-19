@@ -95,7 +95,7 @@ fun SearchPanelFileSearchSettingsScreen(
     val blacklistDesc = stringResource(R.string.search_panel_file_blacklist_desc)
 
     SettingsScreenScaffold(
-        title = stringResource(R.string.search_panel_file_search_manage_title),
+        title = stringResource(R.string.search_panel_section_files),
         subtitle = stringResource(R.string.search_panel_file_search_manage_desc),
         onBack = onBack,
     ) {

@@ -42,9 +42,7 @@ fun ExtensionHubScreen(
     onOpenExternalInvocations: () -> Unit,
     onOpenShellCommands: () -> Unit,
     onOpenWidgetPanel: () -> Unit,
-    onOpenFloatingPointer: () -> Unit,
     onOpenStashClipboard: () -> Unit,
-    onOpenSearchPanel: () -> Unit,
     onOpenFreezer: () -> Unit = {},
     onOpenSettingsBackup: () -> Unit,
     onOpenNativeEnginePacks: () -> Unit,
@@ -126,14 +124,6 @@ fun ExtensionHubScreen(
                         )
                     }
                 )
-                add(
-                    settingsCardScopeItem("search-panel") {
-                        SearchPanelEntryCard(
-                            outlinedLeadingIcons = true,
-                            onClick = onOpenSearchPanel
-                        )
-                    }
-                )
             }
         )
 
@@ -179,16 +169,6 @@ fun ExtensionHubScreen(
         groupedCardItems(
             keyPrefix = "extension_tools",
             items = buildList {
-                add(
-                    settingsCardScopeItem("floating-pointer") {
-                        FloatingPointerEntryCard(
-                            settings = settings,
-                            enabled = gestureActive,
-                            outlinedLeadingIcons = true,
-                            onClick = onOpenFloatingPointer
-                        )
-                    }
-                )
                 add(
                     settingsCardScopeItem("stash-clipboard") {
                         StashClipboardEntryCard(

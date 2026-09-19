@@ -152,7 +152,7 @@ fun SideGestureSettingsScreen(
                     settingsCardScopeItem("trigger-design") {
                         SettingNavigationRow(
                             icon = { label -> Icon(Icons.Outlined.Brush, contentDescription = label) },
-                            title = stringResource(R.string.trigger_design_entry),
+                            title = stringResource(R.string.trigger_design_title),
                             subtitle = triggerDesignSummary(selectedHandle.design),
                             onClick = onOpenDesignSettings,
                         )
@@ -162,7 +162,7 @@ fun SideGestureSettingsScreen(
                     settingsCardScopeItem("trigger-appearance") {
                         SettingNavigationRow(
                             icon = { label -> Icon(Icons.Outlined.Animation, contentDescription = label) },
-                            title = stringResource(R.string.trigger_appearance_entry),
+                            title = stringResource(R.string.trigger_appearance_title),
                             subtitle = triggerAppearanceSummary(settings, side, handleId),
                             onClick = onOpenAppearanceSettings,
                         )

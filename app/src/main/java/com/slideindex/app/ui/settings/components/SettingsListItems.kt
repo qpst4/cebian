@@ -5,20 +5,27 @@ package com.slideindex.app.ui.settings.components
  * State for switches / conditional rows must be read inside [settingsCardItem] content lambdas.
  */
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Text
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.slideindex.app.ui.miuix.CardItem
 import com.slideindex.app.ui.miuix.MiuixSettingsTipCard
 import com.slideindex.app.ui.miuix.groupedCardItems
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.theme.LocalContentColor
 import top.yukonga.miuix.kmp.theme.MiuixTheme
+import androidx.compose.ui.unit.Dp
+
+/** 段标题与段说明、段说明与白卡之间的统一间距。 */
+val SettingsSectionCaptionGap = 8.dp
 
 /** Built card rows for lazy lists or [RenderRows] in non-lazy surfaces. */
 class SettingsCardItems internal constructor(
@@ -144,6 +151,38 @@ fun LazyListScope.settingsLazyHint(
 ) {
     item(key = key) {
         com.slideindex.app.ui.miuix.MiuixHintText(text)
+    }
+}
+
+/**
+ * 段标题 + 一句说明（同一语义块）：title→hint 与 hint→下一段白卡均为 [gap]。
+ * 用于需要等距的段头；普通段仍用 [settingsLazySmallTitle] + [settingsLazyHint]。
+ */
+fun LazyListScope.settingsLazySectionIntro(
+    key: String,
+    title: String,
+    hint: String,
+    gap: Dp = SettingsSectionCaptionGap,
+) {
+    item(key = key) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = gap),
+        ) {
+            SmallTitle(
+                text = title,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Text(
+                text = hint,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 28.dp),
+                fontSize = MiuixTheme.textStyles.body2.fontSize,
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+            )
+        }
     }
 }
 

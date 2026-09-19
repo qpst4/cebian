@@ -69,7 +69,7 @@ fun HoneycombDisplaySettingsScreen(
     )
 
     SettingsScreenScaffold(
-        title = stringResource(R.string.honeycomb_display_settings_title),
+        title = stringResource(R.string.honeycomb_display_settings_entry),
         pageHint = stringResource(R.string.honeycomb_display_settings_entry_desc),
         onBack = onBack
     ) {

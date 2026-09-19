@@ -404,6 +404,8 @@ sealed interface AppNavKey : NavKey {
         val initialIsLongPress: Boolean = false,
     ) : AppNavKey
     @Serializable data object FloatBallPick : AppNavKey
+    @Serializable data object FloatBallPickOperation : AppNavKey
+    @Serializable data object FloatBallPickPanelLayoutBehavior : AppNavKey
     @Serializable data object ShareImageOcrHistory : AppNavKey
     @Serializable data object FloatBallTranslation : AppNavKey
     @Serializable data object CloudTranslateSettings : AppNavKey

@@ -21,6 +21,7 @@ import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 import com.slideindex.app.ui.settings.components.settingsLazyHint
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
+import com.slideindex.app.ui.settings.components.settingsLazyTipCard
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -40,12 +41,17 @@ fun FloatingPointerSettingsScreen(
     val joystickAreaSectionTitle = stringResource(R.string.floating_pointer_joystick_area_section)
     val previewDragHint = stringResource(R.string.floating_pointer_preview_drag_hint)
     val appearanceSectionTitle = stringResource(R.string.floating_pointer_settings_section_appearance)
+    val bindTriggerTip = stringResource(R.string.floating_pointer_bind_trigger_tip)
 
     SettingsScreenScaffold(
         title = stringResource(R.string.floating_pointer_settings_title),
         pageHint = stringResource(R.string.floating_pointer_entry_desc),
         onBack = onBack
     ) {
+        settingsLazyTipCard(
+            key = "floating-pointer-bind-trigger-tip",
+            text = bindTriggerTip,
+        )
         settingsLazySmallTitle(
             key = "section-joystick-area",
             title = joystickAreaSectionTitle

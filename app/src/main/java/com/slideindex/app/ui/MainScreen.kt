@@ -12,6 +12,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.settings.CornerGestureSettings
+import com.slideindex.app.settings.ExtensionHubSettings
 import com.slideindex.app.settings.HomeMainSettings
 import com.slideindex.app.settings.PrivilegeMode
 import com.slideindex.app.ui.animationstyle.GestureAnimationSettingsRows
@@ -47,6 +48,11 @@ fun MainScreen(
     onOpenPrivilegeModeSettings: () -> Unit,
     onOpenAppKeepAliveSettings: () -> Unit,
     onOpenFloatBallSettings: () -> Unit,
+    onOpenPickSettings: () -> Unit,
+    pickOcrFallbackEnabled: Boolean,
+    extensionHubSettings: ExtensionHubSettings,
+    onOpenSearchPanel: () -> Unit,
+    onOpenFloatingPointer: () -> Unit,
     onOpenFreeWindowSettings: () -> Unit,
     onOpenExcludedAppsSettings: () -> Unit,
     onOpenPreviousAppBlacklist: () -> Unit,
@@ -223,42 +229,6 @@ fun MainScreen(
             },
         )
 
-        settingsLazySmallTitle(key = "features_section", title = featuresSectionTitle)
-        groupedCardItems(
-            keyPrefix = "main_features",
-            items = buildList {
-                add(
-                    settingsCardItem("float-ball") {
-                        SettingsCardScopeContent {
-                            FloatBallEntryCard(
-                                floatBallEnabled = settings.floatBallEnabled,
-                                floatBallSizeDp = settings.floatBallSizeDp,
-                                floatBallOpacity = settings.floatBallOpacity,
-                                enabled = accessibilityGranted,
-                                outlinedLeadingIcons = true,
-                                onClick = onOpenFloatBallSettings,
-                            )
-                        }
-                    },
-                )
-                add(
-                    settingsCardItem("corner-wheel") {
-                        SettingsCardScopeContent {
-                            SettingNavigationRow(
-                            icon = { label ->
-                                Icon(HomeLeadingIcons.cornerWheel(true), contentDescription = label)
-                            },
-                            title = stringResource(R.string.corner_wheel_home_title),
-                            subtitle = cornerWheelHomeSubtitle(cornerGestureSettings),
-                            enabled = accessibilityGranted,
-                            onClick = onOpenCornerWheel,
-                            )
-                        }
-                    },
-                )
-            },
-        )
-
         settingsLazySmallTitle(key = "gestures_section", title = gesturesSectionTitle)
         groupedCardItems(
             keyPrefix = "main_gestures",
@@ -307,6 +277,76 @@ fun MainScreen(
                             SystemBackGestureWidthEntryCard(
                                 outlinedLeadingIcons = true,
                                 onClick = onOpenSystemBackGestureWidth,
+                            )
+                        }
+                    },
+                )
+            },
+        )
+
+        settingsLazySmallTitle(key = "features_section", title = featuresSectionTitle)
+        groupedCardItems(
+            keyPrefix = "main_features",
+            items = buildList {
+                add(
+                    settingsCardItem("float-ball") {
+                        SettingsCardScopeContent {
+                            FloatBallEntryCard(
+                                floatBallEnabled = settings.floatBallEnabled,
+                                floatBallSizeDp = settings.floatBallSizeDp,
+                                floatBallOpacity = settings.floatBallOpacity,
+                                enabled = accessibilityGranted,
+                                outlinedLeadingIcons = true,
+                                onClick = onOpenFloatBallSettings,
+                            )
+                        }
+                    },
+                )
+                add(
+                    settingsCardItem("pick-settings") {
+                        SettingsCardScopeContent {
+                            PickSettingsEntryCard(
+                                accessibilityGranted = accessibilityGranted,
+                                ocrFallbackEnabled = pickOcrFallbackEnabled,
+                                outlinedLeadingIcons = true,
+                                onClick = onOpenPickSettings,
+                            )
+                        }
+                    },
+                )
+                add(
+                    settingsCardItem("search-panel") {
+                        SettingsCardScopeContent {
+                            SearchPanelEntryCard(
+                                outlinedLeadingIcons = true,
+                                onClick = onOpenSearchPanel,
+                            )
+                        }
+                    },
+                )
+                add(
+                    settingsCardItem("floating-pointer") {
+                        SettingsCardScopeContent {
+                            FloatingPointerEntryCard(
+                                settings = extensionHubSettings,
+                                enabled = accessibilityGranted,
+                                outlinedLeadingIcons = true,
+                                onClick = onOpenFloatingPointer,
+                            )
+                        }
+                    },
+                )
+                add(
+                    settingsCardItem("corner-wheel") {
+                        SettingsCardScopeContent {
+                            SettingNavigationRow(
+                            icon = { label ->
+                                Icon(HomeLeadingIcons.cornerWheel(true), contentDescription = label)
+                            },
+                            title = stringResource(R.string.corner_wheel_home_title),
+                            subtitle = cornerWheelHomeSubtitle(cornerGestureSettings),
+                            enabled = accessibilityGranted,
+                            onClick = onOpenCornerWheel,
                             )
                         }
                     },

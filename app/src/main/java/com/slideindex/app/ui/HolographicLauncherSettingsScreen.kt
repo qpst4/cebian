@@ -65,7 +65,7 @@ fun HolographicLauncherSettingsScreen(
     val blurEnabled = localSettings.backgroundStyle != HolographicLauncherSettings.BACKGROUND_BLACK
 
     SettingsScreenScaffold(
-        title = stringResource(R.string.holographic_launcher_settings_title),
+        title = stringResource(R.string.holographic_launcher_entry_title),
         pageHint = stringResource(R.string.holographic_launcher_entry_desc),
         onBack = onBack
     ) {

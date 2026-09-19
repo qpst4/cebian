@@ -109,7 +109,7 @@ fun SearchPanelSystemSettingsSearchSettingsScreen(
     }
 
     SettingsScreenScaffold(
-        title = stringResource(R.string.search_panel_section_settings),
+        title = stringResource(R.string.search_panel_settings_search_title),
         subtitle = desc,
         onBack = onBack,
     ) {

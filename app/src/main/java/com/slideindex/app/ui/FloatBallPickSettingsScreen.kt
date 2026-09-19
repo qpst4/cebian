@@ -1,564 +1,592 @@
 package com.slideindex.app.ui
 
+
+
 import androidx.compose.foundation.Image
+
 import androidx.compose.foundation.layout.size
+
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.Image
+
+import androidx.compose.material.icons.outlined.ImageSearch
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Translate
+
+import androidx.compose.material.icons.outlined.ViewAgenda
+
 import androidx.compose.material3.ExperimentalMaterial3Api
+
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+
 import androidx.compose.material3.Icon
+
 import androidx.compose.runtime.Composable
+
 import androidx.compose.runtime.remember
+
 import androidx.compose.ui.Modifier
+
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+
 import androidx.compose.ui.unit.dp
+
 import com.slideindex.app.R
-import com.slideindex.app.overlay.FloatingPointerBounds
+
+import com.slideindex.app.settings.AggregatedImageSearchEnginePreferencesStore
 import com.slideindex.app.settings.AppSettings
-import com.slideindex.app.settings.PickPanelSlideAnimationDefaults
+import com.slideindex.app.settings.SearchEngineStore
+
 import com.slideindex.app.ui.miuix.groupedCardItems
+
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
+
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
-import com.slideindex.app.ui.settings.components.SettingExpandableSwitchRow
-import com.slideindex.app.ui.viewmodel.FloatBallPickSettingsViewModel
+
+import com.slideindex.app.ui.settings.components.settingsLazySectionIntro
+
+import com.slideindex.app.ui.settings.components.settingsLazyTipCard
+
+import com.slideindex.app.ui.settings.components.MiuixNavigationRow
+
+import com.slideindex.app.ui.settings.components.SettingNavigationRow
+
+import com.slideindex.app.ui.settings.components.SettingSpinnerRow
+
+import com.slideindex.app.ui.settings.components.SettingSwitchRow
+
+import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
+
 import com.slideindex.app.ui.viewmodel.ImageViewerDropdownOption
+
 import com.slideindex.app.ui.viewmodel.ImageViewerOptionsState
-import kotlin.math.roundToInt
+
 import top.yukonga.miuix.kmp.basic.DropdownItem
 
+
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+
 @Composable
+
 fun FloatBallPickSettingsScreen(
+
     settings: AppSettings,
-    accessibilityGranted: Boolean,
+
     historyCount: Int,
+
     imageViewerOptions: ImageViewerOptionsState,
-    onBack: () -> Unit,
-    onPointerSpeedChange: (Float) -> Unit,
-    onPointerSpeedVerticalChange: (Float) -> Unit,
-    onPickOffsetChange: (Float) -> Unit,
-    onPickCrossArmChange: (Float) -> Unit,
-    onPickTextSizeChange: (Float) -> Unit,
-    onPickBottomTransitionChange: (Float) -> Unit,
-    onPickPanelStyleChange: (com.slideindex.app.settings.PickResultPanelStyle) -> Unit = {},
-    onPickSearchGridDefaultStateChange: (com.slideindex.app.settings.PickResultSearchGridDefaultState) -> Unit = {},
-    onPickTextFirstPanelChange: (Boolean) -> Unit,
-    onPickAutoSelectAllChange: (Boolean) -> Unit = {},
-    onPickCopyDismissPanelChange: (Boolean) -> Unit,
-    onPickCopyButtonPositionChange: (com.slideindex.app.settings.PickResultCopyButtonPosition) -> Unit = {},
-    onPickImageToolbarPositionChange: (com.slideindex.app.settings.PickResultImageToolbarPosition) -> Unit = {},
-    onPickHapticEnabledChange: (Boolean) -> Unit = {},
-    onDragPasteEnabledChange: (Boolean) -> Unit,
-    onPickPanelEnterAnimationMsChange: (Int) -> Unit,
-    onPickPanelExitAnimationMsChange: (Int) -> Unit,
-    onPointerSlopChange: (Float) -> Unit,
-    onHoverPauseDelayMsChange: (Int) -> Unit = {},
-    onRegionalCancelSlopDpChange: (Float) -> Unit = {},
+
     onOcrFallbackChange: (Boolean) -> Unit,
+
     onShareImageOcrHistoryEnabledChange: (Boolean) -> Unit,
+
     onDefaultImageViewerPackageChange: (String?) -> Unit,
+
     onImageEditorDelayDeleteChange: (Boolean) -> Unit = {},
+
     onOpenOcrModels: () -> Unit,
-    onOpenShareImageOcrHistory: () -> Unit
+
+    onOpenShareImageOcrHistory: () -> Unit,
+
+    onOpenTranslationSettings: () -> Unit,
+
+    onOpenPanelLayoutBehaviorSettings: () -> Unit,
+
+    onOpenSearchEngineSettings: () -> Unit,
+
+    onOpenImageSearchEngineSettings: () -> Unit,
+
+    onBack: () -> Unit,
+
 ) {
+
     val askEveryTimeLabel = stringResource(R.string.image_viewer_ask_every_time)
+
     val readyOptions = (imageViewerOptions as? ImageViewerOptionsState.Ready)?.options
+
     val imageViewerItems = remember(readyOptions) {
+
         readyOptions?.map { option -> option.toDropdownItem() }
+
             ?: listOf(DropdownItem(text = askEveryTimeLabel))
+
     }
+
     val selectedImageViewerIndex = remember(settings.defaultImageViewerPackage, readyOptions) {
+
         settings.defaultImageViewerPackage?.let { pkg ->
+
             readyOptions?.indexOfFirst { it.packageName == pkg }
+
                 ?.takeIf { it >= 0 }
+
         } ?: 0
+
     }
+
     val imageViewerSubtitle = when (imageViewerOptions) {
+
         ImageViewerOptionsState.Loading -> stringResource(R.string.loading)
+
         is ImageViewerOptionsState.Ready ->
+
             imageViewerItems
+
                 .getOrNull(selectedImageViewerIndex.coerceIn(0, imageViewerItems.lastIndex))
+
                 ?.text
+
                 ?: askEveryTimeLabel
-    }
-    val recognitionImageSectionTitle =
-        stringResource(R.string.float_ball_pick_section_recognition_image)
-    val panelSectionTitle = stringResource(R.string.float_ball_pick_section_panel)
-    val pickOperationSectionTitle = stringResource(R.string.float_ball_pick_section_operation)
-    val advancedPickSectionTitle = stringResource(R.string.float_ball_pick_section_advanced)
-    val advancedPickExpanded = remember { androidx.compose.runtime.mutableStateOf(false) }
 
-    val integratedLabel = stringResource(R.string.float_ball_pick_panel_style_integrated)
-    val tabPagedLabel = stringResource(R.string.float_ball_pick_panel_style_tab_paged)
-    val panelStyleOptions = remember(integratedLabel, tabPagedLabel) {
-        listOf(
-            com.slideindex.app.settings.PickResultPanelStyle.TAB_PAGED to tabPagedLabel,
-            com.slideindex.app.settings.PickResultPanelStyle.INTEGRATED_BOTTOM_BAR to integratedLabel
-        )
-    }
-    val selectedPanelStyleIndex = remember(settings.floatBallPickPanelStyle, panelStyleOptions) {
-        panelStyleOptions.indexOfFirst { it.first == settings.floatBallPickPanelStyle }.coerceAtLeast(0)
-    }
-    val panelStyleItems = remember(panelStyleOptions) {
-        panelStyleOptions.map { DropdownItem(text = it.second) }
     }
 
-    val searchGridStateRememberLabel = stringResource(R.string.float_ball_pick_search_grid_state_remember)
-    val searchGridStateExpandedLabel = stringResource(R.string.float_ball_pick_search_grid_state_expanded)
-    val searchGridStateCollapsedLabel = stringResource(R.string.float_ball_pick_search_grid_state_collapsed)
-    val searchGridStateOptions = remember(searchGridStateRememberLabel, searchGridStateExpandedLabel, searchGridStateCollapsedLabel) {
-        listOf(
-            com.slideindex.app.settings.PickResultSearchGridDefaultState.REMEMBER_LAST to searchGridStateRememberLabel,
-            com.slideindex.app.settings.PickResultSearchGridDefaultState.ALWAYS_EXPANDED to searchGridStateExpandedLabel,
-            com.slideindex.app.settings.PickResultSearchGridDefaultState.ALWAYS_COLLAPSED to searchGridStateCollapsedLabel,
-        )
-    }
-    val selectedSearchGridStateIndex = remember(settings.floatBallPickSearchGridDefaultState, searchGridStateOptions) {
-        searchGridStateOptions.indexOfFirst { it.first == settings.floatBallPickSearchGridDefaultState }.coerceAtLeast(0)
-    }
-    val searchGridStateItems = remember(searchGridStateOptions) {
-        searchGridStateOptions.map { DropdownItem(text = it.second) }
-    }
+    val ocrSectionTitle = stringResource(R.string.pick_settings_section_ocr)
 
-    val copyButtonPositionLeftLabel = stringResource(R.string.float_ball_pick_copy_button_position_left)
-    val copyButtonPositionRightLabel = stringResource(R.string.float_ball_pick_copy_button_position_right)
-    val copyButtonPositionOptions = remember(copyButtonPositionLeftLabel, copyButtonPositionRightLabel) {
-        listOf(
-            com.slideindex.app.settings.PickResultCopyButtonPosition.LEFT to copyButtonPositionLeftLabel,
-            com.slideindex.app.settings.PickResultCopyButtonPosition.RIGHT to copyButtonPositionRightLabel,
-        )
-    }
-    val selectedCopyButtonPositionIndex = remember(settings.floatBallPickCopyButtonPosition, copyButtonPositionOptions) {
-        copyButtonPositionOptions.indexOfFirst { it.first == settings.floatBallPickCopyButtonPosition }.coerceAtLeast(0)
-    }
-    val copyButtonPositionItems = remember(copyButtonPositionOptions) {
-        copyButtonPositionOptions.map { DropdownItem(text = it.second) }
-    }
+    val longImageHistorySectionTitle = stringResource(R.string.pick_settings_section_long_image_history)
 
-    val imageToolbarPositionLeftLabel = stringResource(R.string.float_ball_pick_image_toolbar_position_left)
-    val imageToolbarPositionRightLabel = stringResource(R.string.float_ball_pick_image_toolbar_position_right)
-    val imageToolbarPositionOptions = remember(imageToolbarPositionLeftLabel, imageToolbarPositionRightLabel) {
-        listOf(
-            com.slideindex.app.settings.PickResultImageToolbarPosition.LEFT to imageToolbarPositionLeftLabel,
-            com.slideindex.app.settings.PickResultImageToolbarPosition.RIGHT to imageToolbarPositionRightLabel,
-        )
-    }
-    val selectedImageToolbarPositionIndex = remember(settings.floatBallPickImageToolbarPosition, imageToolbarPositionOptions) {
-        imageToolbarPositionOptions.indexOfFirst { it.first == settings.floatBallPickImageToolbarPosition }.coerceAtLeast(0)
-    }
-    val imageToolbarPositionItems = remember(imageToolbarPositionOptions) {
-        imageToolbarPositionOptions.map { DropdownItem(text = it.second) }
-    }
+    val imageOpenEditSectionTitle = stringResource(R.string.pick_settings_section_image_open_edit)
+
+    val panelTranslationSectionTitle = stringResource(R.string.float_ball_translation_settings_title)
+
+    val pickPanelSectionTitle = stringResource(R.string.float_ball_pick_section_panel)
+
+    val panelLayoutBehaviorTitle = stringResource(R.string.pick_settings_panel_layout_behavior_title)
+
+    val panelLayoutBehaviorNavSubtitle = stringResource(R.string.pick_settings_panel_layout_behavior_nav_subtitle)
+
+    val howToTriggerTip = stringResource(R.string.pick_settings_how_to_trigger_tip)
+
+    val imageOpenEditHint = stringResource(R.string.pick_settings_image_open_edit_hint)
+
+    val searchSectionTitle = stringResource(R.string.pick_settings_section_search)
+
+
 
     SettingsScreenScaffold(
+
         title = stringResource(R.string.float_ball_pick_settings_title),
-        pageHint = stringResource(R.string.float_ball_entry_desc),
-        onBack = onBack
+
+        pageHint = stringResource(R.string.pick_settings_page_hint),
+
+        onBack = onBack,
+
     ) {
-        settingsLazySmallTitle(
-            key = "recognition-image-section",
-            title = recognitionImageSectionTitle
+
+        settingsLazyTipCard(
+
+            key = "pick-how-to-trigger-tip",
+
+            text = howToTriggerTip,
+
         )
+
+        settingsLazySmallTitle(
+
+            key = "pick-panel-section",
+
+            title = pickPanelSectionTitle,
+
+        )
+
         groupedCardItems(
-            keyPrefix = "fb-pick-recognition-image",
+
+            keyPrefix = "fb-pick-panel-hub",
+
+            items = listOf(
+
+                settingsCardScopeItem("panel-layout-behavior") {
+
+                    SettingNavigationRow(
+
+                        icon = { label -> Icon(Icons.Outlined.ViewAgenda, contentDescription = label) },
+
+                        title = panelLayoutBehaviorTitle,
+
+                        subtitle = panelLayoutBehaviorNavSubtitle,
+
+                        enabled = true,
+
+                        onClick = onOpenPanelLayoutBehaviorSettings,
+
+                    )
+
+                },
+
+            ),
+
+        )
+
+        settingsLazySmallTitle(
+
+            key = "ocr-section",
+
+            title = ocrSectionTitle,
+
+        )
+
+        groupedCardItems(
+
+            keyPrefix = "fb-pick-ocr",
+
             items = buildList {
+
                 add(
+
                     settingsCardScopeItem("ocr-fallback") {
+
                         SettingSwitchRow(
+
                             title = stringResource(R.string.float_ball_ocr_fallback),
+
                             subtitle = stringResource(R.string.float_ball_ocr_fallback_desc),
+
                             checked = settings.floatBallOcrFallbackEnabled,
+
                             enabled = true,
+
                             onCheckedChange = onOcrFallbackChange
+
                         )
+
                     }
+
                 )
+
                 add(
+
                     settingsCardScopeItem("ocr-models") {
+
+                        MiuixNavigationRow(
+
+                            title = stringResource(R.string.ocr_models_title),
+
+                            summary = ocrModelSelectionSubtitle(settings.floatBallOcrModelId),
+
+                            enabled = true,
+
+                            onClick = onOpenOcrModels,
+
+                        )
+
+                    }
+
+                )
+
+            },
+
+        )
+
+        settingsLazySmallTitle(
+
+            key = "panel-translation-section",
+
+            title = panelTranslationSectionTitle,
+
+        )
+
+        groupedCardItems(
+
+            keyPrefix = "fb-pick-panel-translation",
+
+            items = listOf(
+
+                settingsCardScopeItem("panel-translation") {
+
+                    SettingNavigationRow(
+
+                        icon = { label -> Icon(Icons.Outlined.Translate, contentDescription = label) },
+
+                        title = stringResource(R.string.float_ball_translation_settings_title),
+
+                        subtitle = pickPanelTranslationNavSubtitle(settings),
+
+                        enabled = true,
+
+                        onClick = onOpenTranslationSettings,
+
+                    )
+
+                },
+
+            ),
+
+        )
+
+        settingsLazySmallTitle(
+
+            key = "pick-search-section",
+
+            title = searchSectionTitle,
+
+        )
+
+        groupedCardItems(
+
+            keyPrefix = "fb-pick-search",
+
+            items = buildList {
+
+                add(
+
+                    settingsCardScopeItem("search-engines") {
+
                         SettingNavigationRow(
-                            icon = { label -> Icon(Icons.Default.Download, contentDescription = label) },
-                            title = stringResource(R.string.float_ball_ocr_models),
-                            subtitle = ocrModelSelectionSubtitle(settings.floatBallOcrModelId),
+
+                            icon = { label -> Icon(Icons.Outlined.Search, contentDescription = label) },
+
+                            title = stringResource(R.string.search_engine_settings_title),
+
+                            subtitle = pluralStringResource(
+
+                                R.plurals.search_engine_settings_summary,
+
+                                SearchEngineStore.textPickPanelEngines(settings.searchEngines).size,
+
+                                SearchEngineStore.textPickPanelEngines(settings.searchEngines).size,
+
+                            ),
+
                             enabled = true,
-                            onClick = onOpenOcrModels
+
+                            onClick = onOpenSearchEngineSettings,
+
                         )
+
                     }
+
                 )
+
                 add(
-                    settingsCardScopeItem("history-enabled") {
-                        SettingSwitchRow(
-                            title = stringResource(R.string.share_image_ocr_history_enabled),
-                            subtitle = stringResource(R.string.share_image_ocr_history_enabled_desc),
-                            checked = settings.shareImageOcrHistoryEnabled,
+
+                    settingsCardScopeItem("image-search-engines") {
+
+                        SettingNavigationRow(
+
+                            icon = { label -> Icon(Icons.Outlined.ImageSearch, contentDescription = label) },
+
+                            title = stringResource(R.string.image_search_engine_settings_title),
+
+                            subtitle = pluralStringResource(
+
+                                R.plurals.image_search_engine_settings_summary,
+
+                                SearchEngineStore.imageSharePanelEngines(settings.searchEngines).size,
+
+                                SearchEngineStore.imageSharePanelEngines(settings.searchEngines).size,
+
+                                AggregatedImageSearchEnginePreferencesStore.panelConfigs(
+
+                                    settings.aggregatedImageSearchEngines,
+
+                                ).size,
+
+                            ),
+
                             enabled = true,
-                            onCheckedChange = onShareImageOcrHistoryEnabledChange
+
+                            onClick = onOpenImageSearchEngineSettings,
+
                         )
+
                     }
+
                 )
+
+            },
+
+        )
+
+        settingsLazySectionIntro(
+            key = "image-open-edit-header",
+            title = imageOpenEditSectionTitle,
+            hint = imageOpenEditHint,
+        )
+
+        groupedCardItems(
+
+            keyPrefix = "fb-pick-image-open-edit",
+
+            items = buildList {
+
                 add(
-                    settingsCardScopeItem("history-entry") {
-                        ShareImageOcrHistoryEntryRow(
-                            historyCount = historyCount,
-                            enabled = true,
-                            onClick = onOpenShareImageOcrHistory
-                        )
-                    }
-                )
-                add(
+
                     settingsCardScopeItem("image-viewer") {
+
                         SettingSpinnerRow(
+
                             title = stringResource(R.string.image_viewer_default_title),
+
                             subtitle = imageViewerSubtitle,
+
                             dialogButtonText = stringResource(R.string.cancel),
+
                             items = imageViewerItems,
+
                             selectedIndex = selectedImageViewerIndex,
+
                             enabled = imageViewerOptions is ImageViewerOptionsState.Ready,
-                            icon = { label -> Icon(Icons.Default.Image, contentDescription = label) },
+
                             onSelectedIndexChange = { index ->
+
                                 val option = readyOptions?.getOrNull(index) ?: return@SettingSpinnerRow
+
                                 onDefaultImageViewerPackageChange(option.packageName)
+
                             }
+
                         )
+
                     }
+
                 )
+
                 add(
+
                     settingsCardScopeItem("image-editor-delay-delete") {
+
                         SettingSwitchRow(
+
                             title = stringResource(R.string.image_editor_delay_delete_title),
+
                             subtitle = stringResource(R.string.image_editor_delay_delete_desc),
+
                             checked = settings.imageEditorDelayDeleteEnabled,
+
                             enabled = true,
+
                             onCheckedChange = onImageEditorDelayDeleteChange,
+
                         )
+
                     }
+
                 )
-            }
+
+            },
+
         )
 
         settingsLazySmallTitle(
-            key = "panel-section",
-            title = panelSectionTitle
+
+            key = "long-image-history-section",
+
+            title = longImageHistorySectionTitle,
+
         )
 
         groupedCardItems(
-            keyPrefix = "fb-pick-panel",
+
+            keyPrefix = "fb-pick-long-image-history",
+
             items = buildList {
+
                 add(
-                    settingsCardScopeItem("panel-style") {
-                        SettingSpinnerRow(
-                            title = stringResource(R.string.float_ball_pick_panel_style),
-                            subtitle = panelStyleOptions.getOrNull(selectedPanelStyleIndex)?.second.orEmpty(),
-                            dialogButtonText = stringResource(R.string.cancel),
-                            items = panelStyleItems,
-                            selectedIndex = selectedPanelStyleIndex,
-                            enabled = true,
-                            onSelectedIndexChange = { index ->
-                                val selected = panelStyleOptions.getOrNull(index)?.first ?: return@SettingSpinnerRow
-                                onPickPanelStyleChange(selected)
-                            }
-                        )
-                    }
-                )
-                add(
-                    settingsCardScopeItem("search-grid-default-state") {
-                        SettingSpinnerRow(
-                            title = stringResource(R.string.float_ball_pick_search_grid_state_title),
-                            subtitle = searchGridStateOptions.getOrNull(selectedSearchGridStateIndex)?.second.orEmpty(),
-                            dialogButtonText = stringResource(R.string.cancel),
-                            items = searchGridStateItems,
-                            selectedIndex = selectedSearchGridStateIndex,
-                            enabled = true,
-                            onSelectedIndexChange = { index ->
-                                val selected = searchGridStateOptions.getOrNull(index)?.first ?: return@SettingSpinnerRow
-                                onPickSearchGridDefaultStateChange(selected)
-                            }
-                        )
-                    }
-                )
-                add(
-                    settingsCardScopeItem("text-first-panel") {
+
+                    settingsCardScopeItem("history-enabled") {
+
                         SettingSwitchRow(
-                            title = stringResource(R.string.float_ball_pick_text_first_panel),
-                            subtitle = stringResource(R.string.float_ball_pick_text_first_panel_desc),
-                            checked = settings.floatBallPickTextFirstPanel,
+
+                            title = stringResource(R.string.share_image_ocr_history_enabled),
+
+                            subtitle = stringResource(R.string.share_image_ocr_history_enabled_desc),
+
+                            checked = settings.shareImageOcrHistoryEnabled,
+
                             enabled = true,
-                            onCheckedChange = onPickTextFirstPanelChange
+
+                            onCheckedChange = onShareImageOcrHistoryEnabledChange
+
                         )
+
                     }
+
                 )
+
                 add(
-                    settingsCardScopeItem("auto-select-all") {
-                        SettingSwitchRow(
-                            title = stringResource(R.string.float_ball_pick_auto_select_all),
-                            subtitle = stringResource(R.string.float_ball_pick_auto_select_all_desc),
-                            checked = settings.floatBallPickAutoSelectAll,
+
+                    settingsCardScopeItem("history-entry") {
+
+                        ShareImageOcrHistoryEntryRow(
+
+                            historyCount = historyCount,
+
                             enabled = true,
-                            onCheckedChange = onPickAutoSelectAllChange
+
+                            onClick = onOpenShareImageOcrHistory
+
                         )
+
                     }
+
                 )
-                add(
-                    settingsCardScopeItem("copy-dismiss-panel") {
-                        SettingSwitchRow(
-                            title = stringResource(R.string.float_ball_pick_copy_dismiss_panel),
-                            subtitle = stringResource(R.string.float_ball_pick_copy_dismiss_panel_desc),
-                            checked = settings.floatBallPickCopyDismissPanel,
-                            enabled = true,
-                            onCheckedChange = onPickCopyDismissPanelChange
-                        )
-                    }
-                )
-                add(
-                    settingsCardScopeItem("copy-button-position") {
-                        SettingSpinnerRow(
-                            title = stringResource(R.string.float_ball_pick_copy_button_position),
-                            subtitle = copyButtonPositionOptions.getOrNull(selectedCopyButtonPositionIndex)?.second.orEmpty(),
-                            dialogButtonText = stringResource(R.string.cancel),
-                            items = copyButtonPositionItems,
-                            selectedIndex = selectedCopyButtonPositionIndex,
-                            enabled = true,
-                            onSelectedIndexChange = { index ->
-                                val selected = copyButtonPositionOptions.getOrNull(index)?.first
-                                    ?: return@SettingSpinnerRow
-                                onPickCopyButtonPositionChange(selected)
-                            }
-                        )
-                    }
-                )
-                add(
-                    settingsCardScopeItem("image-toolbar-position") {
-                        SettingSpinnerRow(
-                            title = stringResource(R.string.float_ball_pick_image_toolbar_position),
-                            subtitle = imageToolbarPositionOptions.getOrNull(selectedImageToolbarPositionIndex)?.second.orEmpty(),
-                            dialogButtonText = stringResource(R.string.cancel),
-                            items = imageToolbarPositionItems,
-                            selectedIndex = selectedImageToolbarPositionIndex,
-                            enabled = true,
-                            onSelectedIndexChange = { index ->
-                                val selected = imageToolbarPositionOptions.getOrNull(index)?.first
-                                    ?: return@SettingSpinnerRow
-                                onPickImageToolbarPositionChange(selected)
-                            }
-                        )
-                    }
-                )
-                add(
-                    settingsCardScopeItem("pick-haptic-enabled") {
-                        SettingSwitchRow(
-                            title = stringResource(R.string.float_ball_pick_haptic_enabled),
-                            subtitle = stringResource(R.string.float_ball_pick_haptic_enabled_desc),
-                            checked = settings.floatBallPickHapticEnabled,
-                            enabled = true,
-                            onCheckedChange = onPickHapticEnabledChange
-                        )
-                    }
-                )
-                add(
-                    settingsCardScopeItem("text-size") {
-                        SettingsSliderRow(
-                            title = stringResource(R.string.float_ball_pick_text_size),
-                            value = settings.floatBallPickTextSizeSp,
-                            valueRange = 12f..22f,
-                            steps = 9,
-                            enabled = true,
-                            label = stringResource(R.string.float_ball_text_size_value, settings.floatBallPickTextSizeSp),
-                            onValueChange = onPickTextSizeChange
-                        )
-                    }
-                )
-                add(
-                    settingsCardScopeItem("enter-animation") {
-                        SettingsSliderRow(
-                            title = stringResource(R.string.float_ball_pick_panel_enter_animation),
-                            value = settings.floatBallPickPanelEnterAnimationMs.toFloat(),
-                            valueRange = PickPanelSlideAnimationDefaults.MIN_MS.toFloat()
-                                ..PickPanelSlideAnimationDefaults.MAX_MS.toFloat(),
-                            steps = (PickPanelSlideAnimationDefaults.MAX_MS - PickPanelSlideAnimationDefaults.MIN_MS) / 10,
-                            enabled = true,
-                            label = stringResource(
-                                R.string.float_ball_pick_panel_animation_ms_value,
-                                settings.floatBallPickPanelEnterAnimationMs
-                            ),
-                            onValueChange = { onPickPanelEnterAnimationMsChange(it.roundToInt()) }
-                        )
-                    }
-                )
-                add(
-                    settingsCardScopeItem("exit-animation") {
-                        SettingsSliderRow(
-                            title = stringResource(R.string.float_ball_pick_panel_exit_animation),
-                            value = settings.floatBallPickPanelExitAnimationMs.toFloat(),
-                            valueRange = PickPanelSlideAnimationDefaults.MIN_MS.toFloat()
-                                ..PickPanelSlideAnimationDefaults.MAX_MS.toFloat(),
-                            steps = (PickPanelSlideAnimationDefaults.MAX_MS - PickPanelSlideAnimationDefaults.MIN_MS) / 10,
-                            enabled = true,
-                            label = stringResource(
-                                R.string.float_ball_pick_panel_animation_ms_value,
-                                settings.floatBallPickPanelExitAnimationMs
-                            ),
-                            onValueChange = { onPickPanelExitAnimationMsChange(it.roundToInt()) }
-                        )
-                    }
-                )
-            }
+
+            },
+
         )
 
-        settingsLazySmallTitle(
-            key = "operation-section",
-            title = pickOperationSectionTitle
-        )
-        groupedCardItems(
-            keyPrefix = "fb-pick-operation",
-            items = buildList {
-                add(
-                    settingsCardScopeItem("drag-paste") {
-                        SettingSwitchRow(
-                            title = stringResource(R.string.float_ball_drag_paste_enabled),
-                            subtitle = stringResource(R.string.float_ball_drag_paste_enabled_desc),
-                            checked = settings.floatBallDragPasteEnabled,
-                            enabled = accessibilityGranted,
-                            onCheckedChange = onDragPasteEnabledChange
-                        )
-                    }
-                )
-                add(
-                    settingsCardScopeItem("cross-arm") {
-                        SettingsSliderRow(
-                            title = stringResource(R.string.float_ball_pick_cross_arm),
-                            value = settings.floatBallPickCrossArmDp,
-                            valueRange = 4f..16f,
-                            steps = 23,
-                            enabled = true,
-                            label = stringResource(
-                                R.string.float_ball_pick_cross_arm_value,
-                                settings.floatBallPickCrossArmDp
-                            ),
-                            onValueChange = onPickCrossArmChange
-                        )
-                    }
-                )
-                add(
-                    settingsCardScopeItem("offset") {
-                        SettingsSliderRow(
-                            title = stringResource(R.string.float_ball_pick_offset),
-                            value = settings.floatBallPickOffsetDp,
-                            valueRange = 4f..48f,
-                            steps = 10,
-                            enabled = true,
-                            label = stringResource(R.string.float_ball_size_value, settings.floatBallPickOffsetDp),
-                            onValueChange = onPickOffsetChange
-                        )
-                    }
-                )
-                add(
-                    settingsCardScopeItem("advanced-pick") {
-                        SettingExpandableSwitchRow(
-                            title = advancedPickSectionTitle,
-                            checked = advancedPickExpanded.value,
-                            enabled = true,
-                            onCheckedChange = { advancedPickExpanded.value = it }
-                        ) {
-                            SettingsSliderRow(
-                                title = stringResource(R.string.float_ball_pick_bottom_transition),
-                                value = settings.floatBallPickBottomTransitionFraction,
-                                valueRange = 0.05f..0.22f,
-                                steps = 8,
-                                enabled = true,
-                                label = stringResource(
-                                    R.string.floating_pointer_percent_value,
-                                    (settings.floatBallPickBottomTransitionFraction * 100).roundToInt()
-                                ),
-                                onValueChange = onPickBottomTransitionChange
-                            )
-                            SettingsSliderRow(
-                                title = stringResource(R.string.float_ball_pointer_speed),
-                                value = settings.floatBallPointerSpeedFraction,
-                                valueRange = FloatingPointerBounds.SENSITIVITY_MIN..FloatingPointerBounds.SENSITIVITY_MAX,
-                                steps = 10,
-                                enabled = true,
-                                label = stringResource(
-                                    R.string.floating_pointer_percent_value,
-                                    (settings.floatBallPointerSpeedFraction * 100).roundToInt()
-                                ),
-                                onValueChange = onPointerSpeedChange
-                            )
-                            SettingsSliderRow(
-                                title = stringResource(R.string.float_ball_pointer_speed_vertical),
-                                value = settings.floatBallPointerSpeedVerticalFraction,
-                                valueRange = FloatingPointerBounds.SENSITIVITY_MIN..FloatingPointerBounds.SENSITIVITY_MAX,
-                                steps = 10,
-                                enabled = true,
-                                label = stringResource(
-                                    R.string.floating_pointer_percent_value,
-                                    (settings.floatBallPointerSpeedVerticalFraction * 100).roundToInt()
-                                ),
-                                onValueChange = onPointerSpeedVerticalChange
-                            )
-                            SettingsSliderRow(
-                                title = stringResource(R.string.float_ball_pointer_slop),
-                                value = settings.floatBallPointerSlopDp,
-                                valueRange = 4f..32f,
-                                steps = 6,
-                                enabled = true,
-                                label = stringResource(R.string.float_ball_size_value, settings.floatBallPointerSlopDp),
-                                onValueChange = onPointerSlopChange
-                            )
-                            SettingsSliderRow(
-                                title = stringResource(R.string.float_ball_hover_pause_delay),
-                                value = settings.floatBallHoverPauseDelayMs.toFloat(),
-                                valueRange = 200f..1000f,
-                                steps = 15,
-                                enabled = true,
-                                label = stringResource(
-                                    R.string.float_ball_pick_panel_animation_ms_value,
-                                    settings.floatBallHoverPauseDelayMs
-                                ),
-                                onValueChange = { onHoverPauseDelayMsChange(it.roundToInt()) }
-                            )
-                            SettingsSliderRow(
-                                title = stringResource(R.string.float_ball_regional_cancel_slop),
-                                value = settings.floatBallRegionalCancelSlopDp,
-                                valueRange = 3f..30f,
-                                steps = 26,
-                                enabled = true,
-                                label = stringResource(R.string.float_ball_size_value, settings.floatBallRegionalCancelSlopDp),
-                                onValueChange = onRegionalCancelSlopDpChange
-                            )
-                        }
-                    }
-                )
-            }
-        )
     }
+
 }
+
+
 
 private fun ImageViewerDropdownOption.toDropdownItem(): DropdownItem =
+
     DropdownItem(
+
         text = label,
+
         icon = { modifier ->
+
             iconBitmap?.let { bitmap ->
+
                 Image(
+
                     bitmap = bitmap,
+
                     contentDescription = null,
+
                     modifier = modifier.size(24.dp)
+
                 )
+
             }
+
         }
+
     )
 
+
+
 @Composable
+
 internal fun ocrModelSelectionSubtitle(modelId: String): String {
+
     if (modelId.isBlank()) {
+
         return stringResource(R.string.ocr_model_status_not_installed)
+
     }
+
     return when (modelId) {
+
         "mlkit-chinese" -> stringResource(R.string.ocr_model_mlkit_chinese)
+
         "tesseract-chi-sim-eng" -> stringResource(R.string.ocr_model_tesseract_chi_sim_eng)
+
         "ppocrv5-arabic" -> stringResource(R.string.ocr_model_ppocrv5_arabic)
+
         "ppocrv6-tiny" -> stringResource(R.string.ocr_model_ppocrv6_tiny)
+
         "ppocrv6-small" -> stringResource(R.string.ocr_model_ppocrv6_small)
+
         "ppocrv6-medium" -> stringResource(R.string.ocr_model_ppocrv6_medium)
+
         else -> modelId
+
     }
+
 }
+
+

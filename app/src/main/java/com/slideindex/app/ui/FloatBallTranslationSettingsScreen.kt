@@ -46,7 +46,7 @@ fun FloatBallTranslationSettingsScreen(
 
     SettingsScreenScaffold(
         title = stringResource(R.string.float_ball_translation_settings_title),
-        pageHint = stringResource(R.string.float_ball_translate_mlkit_models_desc),
+        pageHint = stringResource(R.string.pick_panel_translation_page_hint),
         onBack = onBack
     ) {
         groupedCardItems(

@@ -22,7 +22,7 @@ fun NavEntryBuilder.searchPanelNavEntries(ctx: MainNavContext) {
         SearchPanelSettingsScreen(
             settings = settings,
             searchHistoryEntryCount = searchHistoryEntryCount,
-            onBack = { ctx.navigateBackTo(AppNavKey.ExtensionHub) },
+            onBack = { ctx.backStack.removeLastOrNull() },
             onSetSearchPanelContactSearchEnabled = viewModel::setSearchPanelContactSearchEnabled,
             onSetSearchPanelFileSearchEnabled = viewModel::setSearchPanelFileSearchEnabled,
             onSetSearchPanelAppSearchEnabled = viewModel::setSearchPanelAppSearchEnabled,

@@ -61,7 +61,7 @@ fun MessageReminderUnlockRulesScreen(
     }
 
     SettingsLazyScreenScaffoldWithExpandableSearch(
-        title = stringResource(R.string.message_reminder_open_last_rules_title),
+        title = stringResource(R.string.message_reminder_open_last_on_unlock),
         searchQuery = searchQuery,
         onSearchQueryChange = { searchQuery = it },
         onBack = onBack,

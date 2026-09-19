@@ -356,6 +356,18 @@ internal fun GestureSession.handleClassifiedGesture(
             sessionActionExecutor.dispatchClickPassthrough(rawX, rawY, ::endSession)
         }
 
+        GestureAction.FloatingPointer -> {
+            sessionCallbacks.hapticConfirmLaunch()
+            sessionActionExecutor.execute(
+                action,
+                sessionSettings,
+                anchorRawX = rawX,
+                anchorRawY = rawY,
+                continueTouch = false,
+            )
+            endSession()
+        }
+
         GestureAction.Flashlight, GestureAction.LaunchAssistant,
         GestureAction.VoiceSearch, GestureAction.VoiceAssistant,
         -> {
@@ -400,7 +412,6 @@ internal fun GestureSession.handleClassifiedGesture(
         GestureAction.ClipboardFloat,
         GestureAction.ClipboardPick,
         GestureAction.ClipboardPaste,
-        GestureAction.FloatingPointer,
         GestureAction.PointerGestureRecorder,
         GestureAction.PointerRealtimeGesture,
         GestureAction.OpenFloatingPointerRadialMenu,

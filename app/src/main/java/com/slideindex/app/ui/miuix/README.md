@@ -58,6 +58,11 @@ MiuixTabSettingsCard(
 - 进度块：`MiuixProgressCard { … }`
 - 不必改成类型 1。
 
+## 段标题与说明
+
+- 常规分段：`settingsLazySmallTitle` + 白卡；段前说明用独立 `settingsLazyHint`。
+- 标题与说明需 **等距**（说明↔标题 = 说明↔下一张白卡）：用 `settingsLazySectionIntro`（间距 token `SettingsSectionCaptionGap`）。
+
 ## 新页 Checklist
 
 1. 是列表、Tab 卡，还是自定义？

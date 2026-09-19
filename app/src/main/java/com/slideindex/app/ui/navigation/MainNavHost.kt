@@ -742,6 +742,8 @@ private fun NavEntryBuilder.registerMainTabNavEntries(
         MainBottomNavDestination.Home -> {
             homeNavEntries(ctx)
             floatBallNavEntries(ctx)
+            searchPanelNavEntries(ctx)
+            floatingPointerNavEntries(ctx)
         }
         MainBottomNavDestination.Shake -> shakeNavEntries(ctx)
         MainBottomNavDestination.Notification -> notificationNavEntries(ctx)

@@ -20,6 +20,8 @@ import com.slideindex.app.settings.toMinimalAppSettings
 import com.slideindex.app.ui.FloatBallAppearanceSettingsScreen
 import com.slideindex.app.ui.FloatBallGestureSettingsScreen
 import com.slideindex.app.ui.floatBallGestureLabel
+import com.slideindex.app.ui.FloatBallPickOperationSettingsScreen
+import com.slideindex.app.ui.FloatBallPickPanelLayoutBehaviorSettingsScreen
 import com.slideindex.app.ui.FloatBallPickSettingsScreen
 import com.slideindex.app.ui.FloatBallSettingsScreen
 import com.slideindex.app.ui.FloatBallStyleSettingsScreen
@@ -72,10 +74,7 @@ fun NavEntryBuilder.floatBallNavEntries(ctx: MainNavContext) {
             onEnabledChange = viewModel::setFloatBallEnabled,
             onOpenAppearanceSettings = { ctx.navigate(AppNavKey.FloatBallAppearance) },
             onOpenGestureSettings = { ctx.navigate(AppNavKey.FloatBallGesture) },
-            onOpenPickSettings = { ctx.navigate(AppNavKey.FloatBallPick) },
-            onOpenTranslationSettings = { ctx.navigate(AppNavKey.FloatBallTranslation) },
-            onOpenSearchEngineSettings = { ctx.navigate(AppNavKey.FloatBallSearchEngine) },
-            onOpenImageSearchEngineSettings = { ctx.navigate(AppNavKey.FloatBallImageSearchEngine) },
+            onOpenPickOperationSettings = { ctx.navigate(AppNavKey.FloatBallPickOperation) },
         )
     }
 
@@ -622,16 +621,50 @@ fun NavEntryBuilder.floatBallNavEntries(ctx: MainNavContext) {
         val permissions = ctx.collectPermissions()
         FloatBallPickSettingsScreen(
             settings = settings,
-            accessibilityGranted = permissions.accessibilityGranted,
             historyCount = historyEntries.size,
             imageViewerOptions = imageViewerOptions,
-            onBack = { ctx.navigateBackTo(AppNavKey.FloatBall) },
-            onPointerSpeedChange = viewModel::setFloatBallPointerSpeedFraction,
-            onPointerSpeedVerticalChange = viewModel::setFloatBallPointerSpeedVerticalFraction,
+            onOcrFallbackChange = viewModel::setFloatBallOcrFallbackEnabled,
+            onShareImageOcrHistoryEnabledChange = viewModel::setShareImageOcrHistoryEnabled,
+            onDefaultImageViewerPackageChange = viewModel::setDefaultImageViewerPackage,
+            onImageEditorDelayDeleteChange = viewModel::setImageEditorDelayDeleteEnabled,
+            onOpenOcrModels = { ctx.navigate(AppNavKey.OcrModels) },
+            onOpenShareImageOcrHistory = { ctx.navigate(AppNavKey.ShareImageOcrHistory) },
+            onOpenTranslationSettings = { ctx.navigate(AppNavKey.FloatBallTranslation) },
+            onOpenPanelLayoutBehaviorSettings = { ctx.navigate(AppNavKey.FloatBallPickPanelLayoutBehavior) },
+            onOpenSearchEngineSettings = { ctx.navigate(AppNavKey.FloatBallSearchEngine) },
+            onOpenImageSearchEngineSettings = { ctx.navigate(AppNavKey.FloatBallImageSearchEngine) },
+            onBack = { ctx.backStack.removeLastOrNull() },
+        )
+    }
+
+    hiltEntry<AppNavKey.FloatBallPickOperation> {
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val settings = overlaySettings.toMinimalAppSettings()
+        val permissions = ctx.collectPermissions()
+        FloatBallPickOperationSettingsScreen(
+            settings = settings,
+            accessibilityGranted = permissions.accessibilityGranted,
             onPickOffsetChange = viewModel::setFloatBallPickOffsetDp,
             onPickCrossArmChange = viewModel::setFloatBallPickCrossArmDp,
-            onPickTextSizeChange = viewModel::setFloatBallPickTextSizeSp,
+            onDragPasteEnabledChange = viewModel::setFloatBallDragPasteEnabled,
             onPickBottomTransitionChange = viewModel::setFloatBallPickBottomTransitionFraction,
+            onPointerSpeedChange = viewModel::setFloatBallPointerSpeedFraction,
+            onPointerSpeedVerticalChange = viewModel::setFloatBallPointerSpeedVerticalFraction,
+            onPointerSlopChange = viewModel::setFloatBallPointerSlopDp,
+            onHoverPauseDelayMsChange = viewModel::setFloatBallHoverPauseDelayMs,
+            onRegionalCancelSlopDpChange = viewModel::setFloatBallRegionalCancelSlopDp,
+            onBack = { ctx.backStack.removeLastOrNull() },
+        )
+    }
+
+    hiltEntry<AppNavKey.FloatBallPickPanelLayoutBehavior> {
+        val viewModel: ExtensionSettingsViewModel = hiltViewModel()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val settings = overlaySettings.toMinimalAppSettings()
+        FloatBallPickPanelLayoutBehaviorSettingsScreen(
+            settings = settings,
+            onBack = { ctx.navigateBackTo(AppNavKey.FloatBallPick) },
             onPickPanelStyleChange = viewModel::setFloatBallPickPanelStyle,
             onPickSearchGridDefaultStateChange = viewModel::setFloatBallPickSearchGridDefaultState,
             onPickTextFirstPanelChange = viewModel::setFloatBallPickTextFirstPanel,
@@ -639,19 +672,10 @@ fun NavEntryBuilder.floatBallNavEntries(ctx: MainNavContext) {
             onPickCopyDismissPanelChange = viewModel::setFloatBallPickCopyDismissPanel,
             onPickCopyButtonPositionChange = viewModel::setFloatBallPickCopyButtonPosition,
             onPickImageToolbarPositionChange = viewModel::setFloatBallPickImageToolbarPosition,
+            onPickTextSizeChange = viewModel::setFloatBallPickTextSizeSp,
             onPickHapticEnabledChange = viewModel::setFloatBallPickHapticEnabled,
-            onDragPasteEnabledChange = viewModel::setFloatBallDragPasteEnabled,
             onPickPanelEnterAnimationMsChange = viewModel::setFloatBallPickPanelEnterAnimationMs,
             onPickPanelExitAnimationMsChange = viewModel::setFloatBallPickPanelExitAnimationMs,
-            onPointerSlopChange = viewModel::setFloatBallPointerSlopDp,
-            onHoverPauseDelayMsChange = viewModel::setFloatBallHoverPauseDelayMs,
-            onRegionalCancelSlopDpChange = viewModel::setFloatBallRegionalCancelSlopDp,
-            onOcrFallbackChange = viewModel::setFloatBallOcrFallbackEnabled,
-            onShareImageOcrHistoryEnabledChange = viewModel::setShareImageOcrHistoryEnabled,
-            onDefaultImageViewerPackageChange = viewModel::setDefaultImageViewerPackage,
-            onImageEditorDelayDeleteChange = viewModel::setImageEditorDelayDeleteEnabled,
-            onOpenOcrModels = { ctx.navigate(AppNavKey.OcrModels) },
-            onOpenShareImageOcrHistory = { ctx.navigate(AppNavKey.ShareImageOcrHistory) },
         )
     }
 
@@ -670,7 +694,7 @@ fun NavEntryBuilder.floatBallNavEntries(ctx: MainNavContext) {
         val settings = overlaySettings.toMinimalAppSettings()
         FloatBallTranslationSettingsScreen(
             settings = settings,
-            onBack = { ctx.navigateBackTo(AppNavKey.FloatBall) },
+            onBack = { ctx.navigateBackTo(AppNavKey.FloatBallPick) },
             onInstantTranslateChange = viewModel::setInstantTranslate,
             onEngineChange = viewModel::setTranslateEngine,
             onTargetLangChange = viewModel::setTranslateTargetLang,

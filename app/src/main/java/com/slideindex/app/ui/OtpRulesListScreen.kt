@@ -68,7 +68,7 @@ fun OtpRulesListScreen(
     val showExtractionExtras = settings != null
 
     SettingsLazyScreenScaffold(
-        title = stringResource(R.string.otp_rules_list_title),
+        title = stringResource(R.string.otp_match_rules_entry_title),
         pageHint = stringResource(R.string.otp_match_rules_entry_desc),
         onBack = onBack,
         modifier = modifier,

@@ -8,10 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.History
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -30,7 +27,7 @@ import com.slideindex.app.R
 import com.slideindex.app.service.ShareImageOcrCoordinator
 import com.slideindex.app.service.ShareImageOcrHistoryEntry
 import com.slideindex.app.service.ShareImageOcrHistoryRepository
-import com.slideindex.app.ui.settings.components.SettingNavigationRow
+import com.slideindex.app.ui.settings.components.MiuixNavigationRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffold
 import com.slideindex.app.ui.settings.components.settingsLazyHint
@@ -43,10 +40,9 @@ fun SettingsCardScope.ShareImageOcrHistoryEntryRow(
     enabled: Boolean,
     onClick: () -> Unit,
 ) {
-    SettingNavigationRow(
-        icon = { label -> Icon(Icons.Default.History, contentDescription = label) },
+    MiuixNavigationRow(
         title = stringResource(R.string.share_image_ocr_history_title),
-        subtitle = if (historyCount > 0) {
+        summary = if (historyCount > 0) {
             pluralStringResource(R.plurals.share_image_ocr_history_entry_desc_count, historyCount, historyCount)
         } else {
             stringResource(R.string.share_image_ocr_history_entry_desc_empty)

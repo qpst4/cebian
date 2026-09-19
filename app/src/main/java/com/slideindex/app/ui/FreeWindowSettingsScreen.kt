@@ -56,7 +56,7 @@ fun FreeWindowSettingsScreen(
     val freeWindowModeHint = stringResource(R.string.free_window_mode_hint)
 
     SettingsScreenScaffold(
-        title = stringResource(R.string.free_window_settings_title),
+        title = stringResource(R.string.free_window_entry_title),
         pageHint = stringResource(R.string.free_window_entry_desc),
         onBack = onBack
     ) {

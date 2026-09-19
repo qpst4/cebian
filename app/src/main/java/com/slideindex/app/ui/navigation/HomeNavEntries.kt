@@ -108,6 +108,7 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
         val settings by viewModel.homeMainSettings.collectAsStateWithLifecycle()
         val appSettings by viewModel.settings.collectAsStateWithLifecycle()
         val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val extensionHubSettings by viewModel.extensionHubSettings.collectAsStateWithLifecycle()
         var privilegedAccessGranted by remember { mutableStateOf(false) }
         var rootAccessGranted by remember { mutableStateOf(false) }
         LaunchedEffect(appSettings.privilegeMode, permissions.shizukuGranted) {
@@ -141,6 +142,11 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
             onOpenPrivilegeModeSettings = { ctx.navigate(AppNavKey.HomePrivilegeMode) },
             onOpenAppKeepAliveSettings = { ctx.navigate(AppNavKey.HomeAppKeepAlive) },
             onOpenFloatBallSettings = { ctx.navigate(AppNavKey.FloatBall) },
+            onOpenPickSettings = { ctx.navigate(AppNavKey.FloatBallPick) },
+            pickOcrFallbackEnabled = appSettings.floatBallOcrFallbackEnabled,
+            extensionHubSettings = extensionHubSettings,
+            onOpenSearchPanel = { ctx.navigate(AppNavKey.SearchPanel) },
+            onOpenFloatingPointer = { ctx.navigate(AppNavKey.FloatingPointer) },
             onOpenFreeWindowSettings = { ctx.navigate(AppNavKey.HomeFreeWindow) },
             onOpenExcludedAppsSettings = { ctx.navigate(AppNavKey.HomeExcludedApps) },
             onOpenPreviousAppBlacklist = { ctx.navigate(AppNavKey.HomePreviousAppBlacklist) },

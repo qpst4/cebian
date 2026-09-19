@@ -92,7 +92,7 @@ fun AnimationStyleSelectScreen(
     val pageHint = "${stringResource(R.string.animation_style_select_desc)}\n$selectHint"
 
     SettingsScreenScaffold(
-        title = stringResource(R.string.gesture_hint_style_title),
+        title = stringResource(R.string.gesture_animation_title),
         pageHint = pageHint,
         onBack = onBack,
     ) {

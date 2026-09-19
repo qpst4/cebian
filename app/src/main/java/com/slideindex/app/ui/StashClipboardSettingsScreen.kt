@@ -45,10 +45,12 @@ import com.slideindex.app.ui.settings.components.SettingExpandableSwitchRow
 import com.slideindex.app.ui.settings.components.SettingLinkRow
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
 import com.slideindex.app.ui.settings.components.SettingSwitchRow
+import com.slideindex.app.ui.settings.components.SettingsSliderRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 import com.slideindex.app.ui.settings.components.settingsLazyHint
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
+import com.slideindex.app.ui.settings.components.settingsLazyTipCard
 import kotlin.math.roundToInt
 
 /** 「暂存夹与剪贴板」一级入口：暂存夹清理 + 剪贴板历史 / 收纳面板 / 小窗子页目录。 */
@@ -103,7 +105,7 @@ fun StashClipboardSettingsScreen(
                 settingsCardScopeItem("clipboard-history") {
                     SettingNavigationRow(
                         icon = { label -> Icon(Icons.Outlined.History, contentDescription = label) },
-                        title = stringResource(R.string.stash_clipboard_section_history),
+                        title = stringResource(R.string.stash_clipboard_section_clipboard),
                         subtitle = clipboardIndexHistorySubtitle(settings, monitoringUi, clipboardEntryCount),
                         onClick = onOpenClipboardHistory,
                     )
@@ -228,13 +230,14 @@ fun ClipboardHistorySettingsScreen(
 
     val historySectionTitle = stringResource(R.string.stash_clipboard_section_history)
     val pasteBehaviorSectionTitle = stringResource(R.string.clipboard_paste_behavior_section)
+    val pasteFvStyleScopeHint = stringResource(R.string.clipboard_paste_fv_style_scope_hint)
     val accessibilityGranted = SlideIndexAccessibilityService.accessibilityInstance() != null
     val screenshotSectionTitle = stringResource(R.string.clipboard_screenshot_monitoring_section)
     val backgroundSectionTitle = stringResource(R.string.clipboard_background_monitoring_section)
     val modeEntries = ClipboardMonitoringMode.entries
 
     SettingsScreenScaffold(
-        title = stringResource(R.string.stash_clipboard_section_history),
+        title = stringResource(R.string.stash_clipboard_section_clipboard),
         subtitle = stringResource(R.string.clipboard_history_settings_desc),
         onBack = onBack,
     ) {
@@ -275,6 +278,10 @@ fun ClipboardHistorySettingsScreen(
         settingsLazySmallTitle(
             key = "clipboard-paste-behavior-section",
             title = pasteBehaviorSectionTitle,
+        )
+        settingsLazyTipCard(
+            key = "clipboard-paste-fv-scope-tip",
+            text = pasteFvStyleScopeHint,
         )
         groupedCardItems(
             keyPrefix = "clipboard-paste-behavior",
@@ -455,13 +462,11 @@ fun ClipboardHistorySettingsScreen(
     )
 }
 
-/** 收纳面板子页：外观（背景模糊）+ 贴边历史浮窗。 */
+/** 收纳面板子页：贴边收纳把手。 */
 @Composable
 fun StashPanelSettingsScreen(
     settings: AppSettings,
     onBack: () -> Unit,
-    onStashPanelBackgroundBlurEnabledChange: (Boolean) -> Unit,
-    onStashPanelBackgroundBlurRadiusDpChange: (Int) -> Unit,
     onClipboardHistoryFloatEnabledChange: (Boolean) -> Unit,
     onClipboardHistoryFloatEnabledLandscapeChange: (Boolean) -> Unit,
     onClipboardHistoryFloatLockPositionChange: (Boolean) -> Unit,
@@ -470,7 +475,6 @@ fun StashPanelSettingsScreen(
 ) {
     val context = LocalContext.current
     val overlayPermissionGranted = PermissionHelper.canDrawOverlays(context)
-    val appearanceSectionTitle = stringResource(R.string.stash_panel_section_appearance)
     val floatSectionTitle = stringResource(R.string.clipboard_history_float_section)
     val floatOverlayHint = stringResource(R.string.clipboard_history_float_overlay_permission_hint)
     val handleWidthPresets = HistoryFloatHandleWidth.presets
@@ -483,38 +487,6 @@ fun StashPanelSettingsScreen(
         subtitle = stringResource(R.string.stash_panel_settings_desc),
         onBack = onBack,
     ) {
-        settingsLazySmallTitle(
-            key = "stash-appearance-section",
-            title = appearanceSectionTitle,
-        )
-        groupedCardItems(
-            keyPrefix = "stash-appearance",
-            items = listOf(
-                settingsCardScopeItem("stash-blur-enabled") {
-                    SettingExpandableSwitchRow(
-                        title = stringResource(R.string.stash_panel_background_blur),
-                        subtitle = stringResource(R.string.stash_panel_background_blur_desc),
-                        checked = settings.stashPanelBackgroundBlurEnabled,
-                        enabled = true,
-                        onCheckedChange = onStashPanelBackgroundBlurEnabledChange,
-                    ) {
-                        SettingsSliderRow(
-                            title = stringResource(R.string.honeycomb_blur_strength),
-                            value = settings.stashPanelBackgroundBlurRadiusDp.toFloat(),
-                            valueRange = AppSettings.STASH_PANEL_BLUR_RADIUS_MIN_DP.toFloat()..
-                                AppSettings.STASH_PANEL_BLUR_RADIUS_MAX_DP.toFloat(),
-                            steps = 16,
-                            enabled = true,
-                            label = stringResource(
-                                R.string.corner_gesture_zone_dp_value,
-                                settings.stashPanelBackgroundBlurRadiusDp,
-                            ),
-                            onValueChange = { onStashPanelBackgroundBlurRadiusDpChange(it.roundToInt()) },
-                        )
-                    }
-                },
-            ),
-        )
         settingsLazySmallTitle(
             key = "clipboard-float-section",
             title = floatSectionTitle,
@@ -603,7 +575,23 @@ fun ClipboardFloatSettingsScreen(
     onOpenClipboardFloatBlacklist: () -> Unit,
     onResetClipboardFloatLayout: () -> Unit,
 ) {
+    val clipboardFloatPageHint = stringResource(R.string.clipboard_float_settings_desc)
     val clipboardFloatA11yHint = stringResource(R.string.clipboard_float_a11y_hint)
+    val clipboardFloatScopeHint = stringResource(R.string.clipboard_float_settings_scope_hint)
+    val clipboardFloatImeSectionTitle = stringResource(R.string.clipboard_float_ime_section)
+    val clipboardFloatAppearanceSectionTitle = stringResource(R.string.clipboard_float_appearance_section)
+    val autoCloseOptions = listOf(0, 5, 10, 15, 30, 60)
+    val autoCloseLabels = listOf(
+        stringResource(R.string.clipboard_float_auto_close_never),
+        stringResource(R.string.clipboard_float_auto_close_5s),
+        stringResource(R.string.clipboard_float_auto_close_10s),
+        stringResource(R.string.clipboard_float_auto_close_15s),
+        stringResource(R.string.clipboard_float_auto_close_30s),
+        stringResource(R.string.clipboard_float_auto_close_60s),
+    )
+    val selectedAutoCloseIndex = autoCloseOptions.indexOf(settings.clipboardFloatAutoCloseSeconds).let {
+        if (it >= 0) it else 0
+    }
     val clickActionEntries = ClipboardFloatEntryClickAction.entries
     val longPressActionEntries = ClipboardFloatEntryLongPressAction.entries
     val singleLineClickIndex = clickActionEntries.indexOf(settings.clipboardFloatSingleLineEntryClickAction).let {
@@ -622,159 +610,210 @@ fun ClipboardFloatSettingsScreen(
 
     SettingsScreenScaffold(
         title = stringResource(R.string.clipboard_float_section),
-        subtitle = stringResource(R.string.clipboard_float_settings_desc),
+        pageHint = clipboardFloatPageHint,
         onBack = onBack,
     ) {
         if (!accessibilityGranted) {
-            settingsLazyHint(
-                key = "clipboard-float-a11y-hint",
+            settingsLazyTipCard(
+                key = "clipboard-float-a11y-tip",
                 text = clipboardFloatA11yHint,
             )
         }
+        settingsLazyTipCard(
+            key = "clipboard-float-scope-tip",
+            text = clipboardFloatScopeHint,
+        )
+        settingsLazySmallTitle(
+            key = "clipboard-float-ime-section",
+            title = clipboardFloatImeSectionTitle,
+        )
         groupedCardItems(
-            keyPrefix = "clipboard-floating",
+            keyPrefix = "clipboard-float-ime",
+            items = listOf(
+                settingsCardScopeItem("float-ime-enabled") {
+                    SettingExpandableSwitchRow(
+                        title = stringResource(R.string.clipboard_float_enabled_title),
+                        subtitle = stringResource(R.string.clipboard_float_enabled_desc),
+                        checked = settings.clipboardFloatEnabled,
+                        enabled = accessibilityGranted,
+                        onCheckedChange = { enabled ->
+                            if (!accessibilityGranted) {
+                                onRequestAccessibility()
+                            } else {
+                                onClipboardFloatEnabledChange(enabled)
+                            }
+                        },
+                    ) {
+                        SettingSwitchRow(
+                            title = stringResource(R.string.clipboard_float_show_chip_title),
+                            subtitle = stringResource(R.string.clipboard_float_show_chip_desc),
+                            checked = settings.clipboardFloatShowChip,
+                            enabled = true,
+                            onCheckedChange = onClipboardFloatShowChipChange,
+                        )
+                    }
+                },
+            ),
+        )
+        settingsLazySmallTitle(
+            key = "clipboard-float-appearance-section",
+            title = clipboardFloatAppearanceSectionTitle,
+        )
+        groupedCardItems(
+            keyPrefix = "clipboard-float-appearance",
             items = buildList {
                 add(
-                    settingsCardScopeItem("float-enabled") {
-                        SettingExpandableSwitchRow(
-                            title = stringResource(R.string.clipboard_float_enabled_title),
-                            subtitle = stringResource(R.string.clipboard_float_enabled_desc),
-                            checked = settings.clipboardFloatEnabled,
-                            enabled = accessibilityGranted,
-                            onCheckedChange = { enabled ->
-                                if (!accessibilityGranted) {
-                                    onRequestAccessibility()
-                                } else {
-                                    onClipboardFloatEnabledChange(enabled)
-                                }
+                    settingsCardScopeItem("float-pin") {
+                        SettingSwitchRow(
+                            title = stringResource(R.string.clipboard_float_pin_title),
+                            subtitle = stringResource(R.string.clipboard_float_pin_desc),
+                            checked = settings.clipboardFloatPanelPinPosition,
+                            enabled = true,
+                            onCheckedChange = onClipboardFloatPinPositionChange,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("float-style") {
+                        SettingDropdownRow(
+                            title = stringResource(R.string.clipboard_float_style_title),
+                            items = listOf(
+                                stringResource(R.string.clipboard_float_style_single_line),
+                                stringResource(R.string.clipboard_float_style_card),
+                            ),
+                            selectedIndex = if (settings.clipboardFloatListStyle == ClipboardFloatListStyle.SINGLE_LINE) 0 else 1,
+                            onSelectedIndexChange = {
+                                onClipboardFloatListStyleChange(
+                                    if (it == 0) ClipboardFloatListStyle.SINGLE_LINE
+                                    else ClipboardFloatListStyle.CARD,
+                                )
                             },
-                        ) {
-                            SettingSwitchRow(
-                                title = stringResource(R.string.clipboard_float_show_chip_title),
-                                subtitle = stringResource(R.string.clipboard_float_show_chip_desc),
-                                checked = settings.clipboardFloatShowChip,
-                                enabled = true,
-                                onCheckedChange = onClipboardFloatShowChipChange,
-                            )
-                            SettingSwitchRow(
-                                title = stringResource(R.string.clipboard_float_pin_title),
-                                subtitle = stringResource(R.string.clipboard_float_pin_desc),
-                                checked = settings.clipboardFloatPanelPinPosition,
-                                enabled = true,
-                                onCheckedChange = onClipboardFloatPinPositionChange,
-                            )
-                            SettingDropdownRow(
-                                title = stringResource(R.string.clipboard_float_style_title),
-                                items = listOf(
-                                    stringResource(R.string.clipboard_float_style_single_line),
-                                    stringResource(R.string.clipboard_float_style_card),
-                                ),
-                                selectedIndex = if (settings.clipboardFloatListStyle == ClipboardFloatListStyle.SINGLE_LINE) 0 else 1,
-                                onSelectedIndexChange = {
-                                    onClipboardFloatListStyleChange(
-                                        if (it == 0) ClipboardFloatListStyle.SINGLE_LINE
-                                        else ClipboardFloatListStyle.CARD,
-                                    )
-                                },
-                            )
-                            when (settings.clipboardFloatListStyle) {
-                                ClipboardFloatListStyle.SINGLE_LINE -> {
-                                    SettingDropdownRow(
-                                        title = stringResource(R.string.clipboard_float_gesture_click),
-                                        items = clickActionEntries.map { clipboardFloatClickActionLabel(it) },
-                                        selectedIndex = singleLineClickIndex,
-                                        onSelectedIndexChange = {
-                                            onClipboardFloatSingleLineEntryClickActionChange(clickActionEntries[it])
-                                        },
-                                    )
-                                    SettingDropdownRow(
-                                        title = stringResource(R.string.clipboard_float_gesture_long_press),
-                                        items = longPressActionEntries.map { clipboardFloatLongPressActionLabel(it) },
-                                        selectedIndex = singleLineLongPressIndex,
-                                        onSelectedIndexChange = {
-                                            onClipboardFloatSingleLineEntryLongPressActionChange(longPressActionEntries[it])
-                                        },
-                                    )
-                                }
-                                ClipboardFloatListStyle.CARD -> {
-                                    SettingDropdownRow(
-                                        title = stringResource(R.string.clipboard_float_gesture_click),
-                                        items = clickActionEntries.map { clipboardFloatClickActionLabel(it) },
-                                        selectedIndex = cardClickIndex,
-                                        onSelectedIndexChange = {
-                                            onClipboardFloatCardEntryClickActionChange(clickActionEntries[it])
-                                        },
-                                    )
-                                    SettingDropdownRow(
-                                        title = stringResource(R.string.clipboard_float_gesture_long_press),
-                                        items = longPressActionEntries.map { clipboardFloatLongPressActionLabel(it) },
-                                        selectedIndex = cardLongPressIndex,
-                                        onSelectedIndexChange = {
-                                            onClipboardFloatCardEntryLongPressActionChange(longPressActionEntries[it])
-                                        },
-                                    )
-                                }
-                            }
-                            SettingSwitchRow(
-                                title = stringResource(R.string.clipboard_float_paste_haptic_title),
-                                subtitle = stringResource(R.string.clipboard_float_paste_haptic_desc),
-                                checked = settings.clipboardFloatPasteHapticEnabled,
-                                enabled = true,
-                                onCheckedChange = onClipboardFloatPasteHapticEnabledChange,
-                            )
-                            SettingsSliderRow(
-                                title = stringResource(R.string.clipboard_float_opacity_title),
-                                value = settings.clipboardFloatAlpha,
-                                valueRange = 0.2f..1.0f,
-                                enabled = true,
-                                label = "${(settings.clipboardFloatAlpha * 100).toInt()}%",
-                                formatLabel = { "${(it * 100).toInt()}%" },
-                                onValueChange = onClipboardFloatAlphaChange,
-                            )
-                            SettingSwitchRow(
-                                title = stringResource(R.string.clipboard_float_auto_dim_title),
-                                subtitle = stringResource(R.string.clipboard_float_auto_dim_desc),
-                                checked = settings.clipboardFloatAutoDimWhenUnfocused,
-                                enabled = true,
-                                onCheckedChange = onClipboardFloatAutoDimWhenUnfocusedChange,
-                            )
-                            val autoCloseOptions = listOf(0, 5, 10, 15, 30, 60)
-                            val autoCloseLabels = listOf(
-                                stringResource(R.string.clipboard_float_auto_close_never),
-                                stringResource(R.string.clipboard_float_auto_close_5s),
-                                stringResource(R.string.clipboard_float_auto_close_10s),
-                                stringResource(R.string.clipboard_float_auto_close_15s),
-                                stringResource(R.string.clipboard_float_auto_close_30s),
-                                stringResource(R.string.clipboard_float_auto_close_60s),
-                            )
-                            val selectedAutoCloseIndex = autoCloseOptions.indexOf(settings.clipboardFloatAutoCloseSeconds).let {
-                                if (it >= 0) it else 0
-                            }
-                            SettingDropdownRow(
-                                title = stringResource(R.string.clipboard_float_auto_close_title),
-                                items = autoCloseLabels,
-                                selectedIndex = selectedAutoCloseIndex,
-                                onSelectedIndexChange = {
-                                    onClipboardFloatAutoCloseSecondsChange(autoCloseOptions[it])
-                                },
-                            )
-                            SettingLinkRow(
-                                title = stringResource(R.string.clipboard_float_app_blacklist),
-                                subtitle = pluralStringResource(
-                                    R.plurals.clipboard_float_app_blacklist_desc,
-                                    settings.clipboardFloatBlockedPackages.size,
-                                    settings.clipboardFloatBlockedPackages.size,
-                                    settings.clipboardFloatPasteSuccessCount,
-                                    settings.clipboardFloatPasteFailCount,
-                                ),
-                                onClick = onOpenClipboardFloatBlacklist,
-                            )
-                            SettingLinkRow(
-                                title = stringResource(R.string.clipboard_float_reset_layout),
-                                subtitle = null,
-                                onClick = onResetClipboardFloatLayout,
-                            )
-                        }
+                        )
+                    },
+                )
+                when (settings.clipboardFloatListStyle) {
+                    ClipboardFloatListStyle.SINGLE_LINE -> {
+                        add(
+                            settingsCardScopeItem("float-single-click") {
+                                SettingDropdownRow(
+                                    title = stringResource(R.string.clipboard_float_gesture_click),
+                                    items = clickActionEntries.map { clipboardFloatClickActionLabel(it) },
+                                    selectedIndex = singleLineClickIndex,
+                                    onSelectedIndexChange = {
+                                        onClipboardFloatSingleLineEntryClickActionChange(clickActionEntries[it])
+                                    },
+                                )
+                            },
+                        )
+                        add(
+                            settingsCardScopeItem("float-single-long-press") {
+                                SettingDropdownRow(
+                                    title = stringResource(R.string.clipboard_float_gesture_long_press),
+                                    items = longPressActionEntries.map { clipboardFloatLongPressActionLabel(it) },
+                                    selectedIndex = singleLineLongPressIndex,
+                                    onSelectedIndexChange = {
+                                        onClipboardFloatSingleLineEntryLongPressActionChange(longPressActionEntries[it])
+                                    },
+                                )
+                            },
+                        )
+                    }
+                    ClipboardFloatListStyle.CARD -> {
+                        add(
+                            settingsCardScopeItem("float-card-click") {
+                                SettingDropdownRow(
+                                    title = stringResource(R.string.clipboard_float_gesture_click),
+                                    items = clickActionEntries.map { clipboardFloatClickActionLabel(it) },
+                                    selectedIndex = cardClickIndex,
+                                    onSelectedIndexChange = {
+                                        onClipboardFloatCardEntryClickActionChange(clickActionEntries[it])
+                                    },
+                                )
+                            },
+                        )
+                        add(
+                            settingsCardScopeItem("float-card-long-press") {
+                                SettingDropdownRow(
+                                    title = stringResource(R.string.clipboard_float_gesture_long_press),
+                                    items = longPressActionEntries.map { clipboardFloatLongPressActionLabel(it) },
+                                    selectedIndex = cardLongPressIndex,
+                                    onSelectedIndexChange = {
+                                        onClipboardFloatCardEntryLongPressActionChange(longPressActionEntries[it])
+                                    },
+                                )
+                            },
+                        )
+                    }
+                }
+                add(
+                    settingsCardScopeItem("float-paste-haptic") {
+                        SettingSwitchRow(
+                            title = stringResource(R.string.clipboard_float_paste_haptic_title),
+                            subtitle = stringResource(R.string.clipboard_float_paste_haptic_desc),
+                            checked = settings.clipboardFloatPasteHapticEnabled,
+                            enabled = true,
+                            onCheckedChange = onClipboardFloatPasteHapticEnabledChange,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("float-opacity") {
+                        SettingsSliderRow(
+                            title = stringResource(R.string.clipboard_float_opacity_title),
+                            value = settings.clipboardFloatAlpha,
+                            valueRange = 0.2f..1.0f,
+                            enabled = true,
+                            label = "${(settings.clipboardFloatAlpha * 100).toInt()}%",
+                            formatLabel = { "${(it * 100).toInt()}%" },
+                            onValueChange = onClipboardFloatAlphaChange,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("float-auto-dim") {
+                        SettingSwitchRow(
+                            title = stringResource(R.string.clipboard_float_auto_dim_title),
+                            subtitle = stringResource(R.string.clipboard_float_auto_dim_desc),
+                            checked = settings.clipboardFloatAutoDimWhenUnfocused,
+                            enabled = true,
+                            onCheckedChange = onClipboardFloatAutoDimWhenUnfocusedChange,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("float-auto-close") {
+                        SettingDropdownRow(
+                            title = stringResource(R.string.clipboard_float_auto_close_title),
+                            items = autoCloseLabels,
+                            selectedIndex = selectedAutoCloseIndex,
+                            onSelectedIndexChange = {
+                                onClipboardFloatAutoCloseSecondsChange(autoCloseOptions[it])
+                            },
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("float-blacklist") {
+                        SettingLinkRow(
+                            title = stringResource(R.string.clipboard_float_app_blacklist),
+                            subtitle = pluralStringResource(
+                                R.plurals.clipboard_float_app_blacklist_desc,
+                                settings.clipboardFloatBlockedPackages.size,
+                                settings.clipboardFloatBlockedPackages.size,
+                                settings.clipboardFloatPasteSuccessCount,
+                                settings.clipboardFloatPasteFailCount,
+                            ),
+                            onClick = onOpenClipboardFloatBlacklist,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("float-reset-layout") {
+                        SettingLinkRow(
+                            title = stringResource(R.string.clipboard_float_reset_layout),
+                            subtitle = null,
+                            onClick = onResetClipboardFloatLayout,
+                        )
                     },
                 )
             },

@@ -38,7 +38,7 @@ fun NavEntryBuilder.floatingPointerNavEntries(ctx: MainNavContext) {
             areaPreviewEnabled = areaPreviewEnabled,
             previewAccessibilityGranted = permissions.accessibilityGranted,
             onAreaPreviewEnabledChange = { ctx.setFloatingPointerAreaPreviewEnabled(it) },
-            onBack = { ctx.navigateBackTo(AppNavKey.ExtensionHub) },
+            onBack = { ctx.backStack.removeLastOrNull() },
             onOpenPointerSettings = { ctx.navigate(AppNavKey.FloatingPointerPointer) },
             onOpenJoystickSettings = { ctx.navigate(AppNavKey.FloatingPointerJoystick) },
             onOpenRadialMenuSettings = { ctx.navigate(AppNavKey.FloatingPointerRadialMenu) },
