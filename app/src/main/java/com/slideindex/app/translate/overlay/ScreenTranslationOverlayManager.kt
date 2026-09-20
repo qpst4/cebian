@@ -15,6 +15,8 @@ import android.graphics.Rect
 import android.os.Looper
 import android.text.Layout
 import android.text.StaticLayout
+import android.text.TextDirectionHeuristics
+import android.text.TextUtils
 import android.util.TypedValue
 import android.view.Display
 import android.view.Gravity
@@ -48,6 +50,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import java.util.IdentityHashMap
+import java.util.Locale
 import kotlin.coroutines.resume
 
 class ScreenTranslationOverlayManager {
@@ -132,6 +135,7 @@ class ScreenTranslationOverlayManager {
         val bgColor: Int,
         val textColor: Int,
         val singleLine: Boolean,
+        val rtl: Boolean,
     )
 
     private suspend fun buildDisplayItems(): List<DisplayItem> {
@@ -153,6 +157,8 @@ class ScreenTranslationOverlayManager {
             storedCode = TranslateTargetLanguages.FOLLOW_APP,
             appUiLanguageTag = null,
         )
+        val targetRtl = TextUtils.getLayoutDirectionFromLocale(Locale.forLanguageTag(targetLang)) ==
+            View.LAYOUT_DIRECTION_RTL
         val engine = when (settings?.floatBallTranslateEngine) {
             FloatBallTranslateEngine.ML_KIT -> TranslateEngine.ML_KIT
             FloatBallTranslateEngine.CLOUD_LLM -> TranslateEngine.CLOUD_LLM
@@ -189,7 +195,7 @@ class ScreenTranslationOverlayManager {
             val bg = screenshot?.let { sampleBorderColor(it, sampleBounds) }
                 ?: if (darkMode == true) DARK_BG else Color.WHITE
             val fg = if (isLightColor(bg)) Color.BLACK else Color.WHITE
-            items += DisplayItem(textBounds, text, bg, fg, isLikelySingleLine(segments[i].text))
+            items += DisplayItem(textBounds, text, bg, fg, isLikelySingleLine(segments[i].text), targetRtl)
         }
         return items
     }
@@ -333,21 +339,30 @@ class ScreenTranslationOverlayManager {
             setBackgroundColor(item.bgColor)
             setTextColor(item.textColor)
             text = item.translated
+            textDirection = if (item.rtl) View.TEXT_DIRECTION_RTL else View.TEXT_DIRECTION_LTR
+            layoutDirection = if (item.rtl) View.LAYOUT_DIRECTION_RTL else View.LAYOUT_DIRECTION_LTR
             gravity = if (item.singleLine) Gravity.CENTER else (Gravity.START or Gravity.CENTER_VERTICAL)
             setPadding(paddingH, paddingV, paddingH, paddingV)
             includeFontPadding = false
         }
         fitTextToBounds(textView, (item.bounds.width() - paddingH * 2).coerceAtLeast(1),
-            (item.bounds.height() - paddingV * 2).coerceAtLeast(1), item.singleLine)
+            (item.bounds.height() - paddingV * 2).coerceAtLeast(1), item.singleLine, item.rtl)
         return textView
     }
 
-    private fun fitTextToBounds(textView: TextView, maxWidth: Int, maxHeight: Int, singleLine: Boolean) {
+    private fun fitTextToBounds(
+        textView: TextView,
+        maxWidth: Int,
+        maxHeight: Int,
+        singleLine: Boolean,
+        rtl: Boolean,
+    ) {
         val lineCount = textView.text.count { it == '\n' } + 1
         var size = (maxHeight / lineCount.toFloat()).coerceIn(8f, 40f)
         while (size > 6f) {
             textView.setTextSize(TypedValue.COMPLEX_UNIT_PX, size)
             val layout = StaticLayout.Builder.obtain(textView.text, 0, textView.text.length, textView.paint, maxWidth)
+                .setTextDirection(if (rtl) TextDirectionHeuristics.RTL else TextDirectionHeuristics.LTR)
                 .setAlignment(if (singleLine) Layout.Alignment.ALIGN_CENTER else Layout.Alignment.ALIGN_NORMAL)
                 .setLineSpacing(0f, 1f)
                 .build()
