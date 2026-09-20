@@ -59,5 +59,7 @@ object GlobalOverlayDismissHelper {
         runCatching { UniversalCopyOverlay.dismiss() }
         runCatching { ScreenTranslationController.dismissIfActive() }
         runCatching { com.slideindex.app.service.ClipboardFloatService.hideWindowFromStatic() }
+        runCatching { com.slideindex.app.clipboardoverlay.ClipboardOverlayWindow.dismiss() }
+        runCatching { com.slideindex.app.clipboardoverlay.ClipboardLinkPickerOverlay.dismissImmediate() }
     }
 }

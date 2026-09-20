@@ -92,9 +92,7 @@ class ClipboardHistoryRepository @Inject constructor(
         migrateLegacyJsonIfNeeded()
         refreshEntryCount()
         clipboardMonitorController.onPayloadCaptured = { payload ->
-            scope.launch {
-                ingestPayload(payload)
-            }
+            ingestPayload(payload, showOverlay = true)
         }
     }
 
@@ -242,7 +240,8 @@ class ClipboardHistoryRepository @Inject constructor(
     fun ingestPayload(
         payload: ClipboardPayload,
         promoteExistingOnMatch: Boolean = true,
-        fromPassiveRefresh: Boolean = false
+        fromPassiveRefresh: Boolean = false,
+        showOverlay: Boolean = false,
     ) {
         if (consumeOutgoingWriteSkip()) return
         if (payload.text.trim().isEmpty() &&
@@ -258,6 +257,7 @@ class ClipboardHistoryRepository @Inject constructor(
         if ((contentKey == lastCapturedKey || fingerprint == lastCapturedFingerprint) &&
             now - lastCapturedAtMs < SAME_CLIP_DEDUP_MS
         ) {
+            maybeShowClipboardOverlay(payload, fromPassiveRefresh, showOverlay)
             if (promoteExistingOnMatch) {
                 promoteExistingPayloadIfNeeded(payload, fromPassiveRefresh)
             }
@@ -289,12 +289,25 @@ class ClipboardHistoryRepository @Inject constructor(
         lastCapturedKey = contentKey
         lastCapturedFingerprint = fingerprint
         lastCapturedAtMs = now
+        maybeShowClipboardOverlay(payload, fromPassiveRefresh, showOverlay)
         scope.launch {
             try {
                 addPayload(payload, promoteExistingOnMatch, fromPassiveRefresh)
             } finally {
                 inFlightFingerprints.remove(fingerprint)
             }
+        }
+    }
+
+    private fun maybeShowClipboardOverlay(
+        payload: ClipboardPayload,
+        fromPassiveRefresh: Boolean,
+        showOverlay: Boolean,
+    ) {
+        if (!showOverlay || fromPassiveRefresh) return
+        if (!settingsRepository.readSnapshot().clipboardOverlayEnabled) return
+        refreshDebounceHandler.post {
+            com.slideindex.app.clipboardoverlay.ClipboardOverlayWindow.show(context, payload)
         }
     }
 

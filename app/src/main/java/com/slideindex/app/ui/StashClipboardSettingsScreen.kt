@@ -30,6 +30,7 @@ import com.slideindex.app.settings.ClipboardFloatEntryLongPressAction
 import com.slideindex.app.settings.ClipboardFloatListStyle
 import com.slideindex.app.settings.ClipboardHistoryCapacity
 import com.slideindex.app.settings.ClipboardMonitoringMode
+import com.slideindex.app.settings.ClipboardOverlayScale
 import com.slideindex.app.settings.effectiveClipboardMonitoringMode
 import com.slideindex.app.settings.ExtensionHubSettings
 import com.slideindex.app.settings.HistoryFloatHandleWidth
@@ -174,6 +175,8 @@ fun ClipboardHistorySettingsScreen(
     onClipboardScreenshotMonitoringChange: (Boolean) -> Unit,
     onClipboardMonitoringChange: (Boolean) -> Unit,
     onClipboardMonitoringModeChange: (ClipboardMonitoringMode) -> Unit,
+    onClipboardOverlayEnabledChange: (Boolean) -> Unit,
+    onClipboardOverlayScalePercentChange: (Int) -> Unit,
     onClipboardPasteFvStyleEnabledChange: (Boolean) -> Unit,
     onOpenOverlayPermission: () -> Unit,
 ) {
@@ -375,6 +378,30 @@ fun ClipboardHistorySettingsScreen(
                                     .coerceAtLeast(0),
                                 onSelectedIndexChange = { onClipboardMonitoringModeChange(modeEntries[it]) },
                             )
+                            SettingExpandableSwitchRow(
+                                title = stringResource(R.string.clipboard_overlay_enabled_title),
+                                subtitle = stringResource(R.string.clipboard_overlay_enabled_desc),
+                                checked = settings.clipboardOverlayEnabled,
+                                enabled = settings.clipboardBackgroundMonitoring && monitoringUi.overlayGranted,
+                                onCheckedChange = { enabled ->
+                                    if (enabled && !monitoringUi.overlayGranted) {
+                                        onOpenOverlayPermission()
+                                    } else {
+                                        onClipboardOverlayEnabledChange(enabled)
+                                    }
+                                },
+                            ) {
+                                SettingsSliderRow(
+                                    title = stringResource(R.string.clipboard_overlay_preview_size_title),
+                                    value = settings.clipboardOverlayScalePercent.toFloat(),
+                                    valueRange = ClipboardOverlayScale.MIN_PERCENT.toFloat()..
+                                        ClipboardOverlayScale.MAX_PERCENT.toFloat(),
+                                    enabled = true,
+                                    label = "${settings.clipboardOverlayScalePercent}%",
+                                    formatLabel = { "${it.roundToInt()}%" },
+                                    onValueChange = { onClipboardOverlayScalePercentChange(it.roundToInt()) },
+                                )
+                            }
                         }
                     },
                 )

@@ -62,6 +62,8 @@ fun NavEntryBuilder.stashClipboardNavEntries(ctx: MainNavContext) {
             onClipboardScreenshotMonitoringChange = viewModel::setClipboardScreenshotMonitoring,
             onClipboardMonitoringChange = viewModel::setClipboardBackgroundMonitoring,
             onClipboardMonitoringModeChange = viewModel::setClipboardBackgroundMonitoringMode,
+            onClipboardOverlayEnabledChange = viewModel::setClipboardOverlayEnabled,
+            onClipboardOverlayScalePercentChange = viewModel::setClipboardOverlayScalePercent,
             onClipboardPasteFvStyleEnabledChange = viewModel::setClipboardPasteFvStyleEnabled,
             onOpenOverlayPermission = {
                 context.startActivity(PermissionHelper.overlaySettingsIntent(context))

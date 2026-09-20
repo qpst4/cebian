@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.slideindex.app.clipboardoverlay.ClipboardOverlayView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/clipboard_ui"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:alpha="0"
+    android:contentDescription="@string/clipboard_overlay_window_name"
+    android:theme="@style/Theme.SlideIndex.ClipboardOverlay">
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/min_edge_guideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_begin="@dimen/overlay_action_container_minimum_edge_spacing" />
+
+    <FrameLayout
+        android:id="@+id/indication_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/overlay_action_container_margin_horizontal"
+        android:layout_marginEnd="@dimen/overlay_action_container_margin_horizontal"
+        android:layout_marginBottom="@dimen/overlay_action_container_margin_bottom"
+        android:background="@drawable/clipboard_overlay_toast_frame"
+        android:elevation="2dp"
+        android:gravity="center"
+        android:maxWidth="@dimen/clipboard_overlay_toast_max_width"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <TextView
+            android:id="@+id/indication_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
+            android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+            android:textColor="?attr/colorOnSurfaceInverse" />
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/actions_container_background"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="@dimen/negative_overlay_action_container_minimum_edge_spacing"
+        android:layout_marginEnd="@dimen/negative_overlay_action_container_minimum_edge_spacing"
+        android:layout_marginBottom="@dimen/overlay_action_container_margin_bottom"
+        android:background="@drawable/shelf_action_chip_container_background"
+        android:elevation="4dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/indication_container"
+        app:layout_constraintEnd_toEndOf="@id/actions_container"
+        app:layout_constraintStart_toStartOf="@id/min_edge_guideline"
+        app:layout_constraintTop_toTopOf="@id/actions_container" />
+
+    <HorizontalScrollView
+        android:id="@+id/actions_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="@dimen/overlay_action_container_margin_horizontal"
+        android:elevation="4dp"
+        android:paddingEnd="@dimen/overlay_action_container_padding_end"
+        android:paddingVertical="@dimen/overlay_action_container_padding_vertical"
+        android:scrollbars="none"
+        app:layout_constraintBottom_toBottomOf="@id/actions_container_background"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0"
+        app:layout_constraintStart_toEndOf="@id/preview_border"
+        app:layout_constraintWidth_max="wrap">
+
+        <LinearLayout
+            android:id="@+id/actions"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:animateLayoutChanges="true"
+            android:divider="@drawable/shelf_action_chip_divider"
+            android:paddingStart="@dimen/shelf_action_chip_margin_start"
+            android:showDividers="middle">
+
+            <include
+                android:id="@+id/share_chip"
+                layout="@layout/shelf_action_chip" />
+
+            <include
+                android:id="@+id/remote_copy_chip"
+                layout="@layout/shelf_action_chip" />
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <View
+        android:id="@+id/preview_border"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="@dimen/overlay_preview_container_margin"
+        android:layout_marginTop="@dimen/overlay_border_width_neg"
+        android:layout_marginEnd="@dimen/overlay_border_width_neg"
+        android:layout_marginBottom="@dimen/overlay_preview_container_margin"
+        android:background="@drawable/overlay_border"
+        android:elevation="7dp"
+        app:layout_constraintBottom_toBottomOf="@id/actions_container_background"
+        app:layout_constraintEnd_toEndOf="@id/clipboard_preview"
+        app:layout_constraintStart_toStartOf="@id/min_edge_guideline"
+        app:layout_constraintTop_toTopOf="@id/clipboard_preview" />
+
+    <FrameLayout
+        android:id="@+id/clipboard_preview"
+        android:layout_width="@dimen/clipboard_preview_size"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginStart="@dimen/overlay_border_width"
+        android:layout_marginBottom="@dimen/overlay_border_width"
+        android:background="@drawable/overlay_preview_background"
+        android:clipChildren="true"
+        android:clipToOutline="true"
+        android:clipToPadding="true"
+        android:elevation="7dp"
+        app:layout_constraintBottom_toBottomOf="@id/preview_border"
+        app:layout_constraintStart_toStartOf="@id/preview_border">
+
+        <TextView
+            android:id="@+id/text_preview"
+            android:layout_width="@dimen/clipboard_preview_size"
+            android:layout_height="@dimen/clipboard_preview_size"
+            android:autoSizeMaxTextSize="@dimen/clipboard_overlay_max_font"
+            android:autoSizeMinTextSize="@dimen/clipboard_overlay_min_font"
+            android:autoSizeTextType="uniform"
+            android:background="?attr/colorSecondaryContainer"
+            android:ellipsize="end"
+            android:gravity="center|start"
+            android:padding="8dp"
+            android:textColor="?attr/colorOnSecondaryContainer"
+            android:textColorLink="?attr/colorOnSecondaryContainer"
+            android:textFontWeight="500" />
+
+        <ImageView
+            android:id="@+id/image_preview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:adjustViewBounds="true"
+            android:contentDescription="@string/clipboard_overlay_image_preview"
+            android:scaleType="fitCenter" />
+
+        <TextView
+            android:id="@+id/hidden_preview"
+            android:layout_width="@dimen/clipboard_preview_size"
+            android:layout_height="@dimen/clipboard_preview_size"
+            android:background="?attr/colorSecondaryContainer"
+            android:gravity="center"
+            android:padding="8dp"
+            android:textColor="?attr/colorOnSecondaryContainer"
+            android:textFontWeight="500"
+            android:textSize="14sp"
+            android:visibility="gone" />
+    </FrameLayout>
+
+    <LinearLayout
+        android:id="@+id/minimized_preview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/overlay_action_container_margin_horizontal"
+        android:layout_marginBottom="@dimen/overlay_action_container_margin_bottom"
+        android:background="@drawable/clipboard_minimized_background"
+        android:elevation="7dp"
+        android:padding="8dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/indication_container"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_clipboard_overlay_paste"
+            android:tint="?attr/colorOnSecondaryContainer" />
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:contentDescription="@null"
+            android:paddingStart="-4dp"
+            android:paddingEnd="-8dp"
+            android:src="@drawable/ic_clipboard_overlay_chevron_end"
+            android:tint="?attr/colorOnSecondaryContainer" />
+    </LinearLayout>
+
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/clipboard_content_top"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:barrierDirection="top"
+        app:constraint_referenced_ids="clipboard_preview,minimized_preview" />
+
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/clipboard_content_end"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:barrierDirection="end"
+        app:constraint_referenced_ids="clipboard_preview,minimized_preview" />
+
+    <FrameLayout
+        android:id="@+id/dismiss_button"
+        android:layout_width="@dimen/overlay_dismiss_button_tappable_size"
+        android:layout_height="@dimen/overlay_dismiss_button_tappable_size"
+        android:alpha="0"
+        android:contentDescription="@string/clipboard_overlay_dismiss_description"
+        android:elevation="10dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/clipboard_content_top"
+        app:layout_constraintEnd_toEndOf="@id/clipboard_content_end"
+        app:layout_constraintStart_toEndOf="@id/clipboard_content_end"
+        app:layout_constraintTop_toTopOf="@id/clipboard_content_top">
+
+        <ImageView
+            android:id="@+id/dismiss_image"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="@dimen/overlay_dismiss_button_margin"
+            android:background="@drawable/clipboard_overlay_circular_background"
+            android:backgroundTint="?attr/colorPrimary"
+            android:padding="4dp"
+            android:src="@drawable/ic_clipboard_overlay_close"
+            android:tint="?attr/colorOnPrimary" />
+    </FrameLayout>
+</com.slideindex.app.clipboardoverlay.ClipboardOverlayView>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Ported from AOSP SystemUI clipboard / screenshot overlay dimens. -->
+    <dimen name="clipboard_preview_size">80dp</dimen>
+    <dimen name="clipboard_overlay_min_font">14sp</dimen>
+    <dimen name="clipboard_overlay_max_font">20sp</dimen>
+    <dimen name="overlay_x_scale">80dp</dimen>
+    <dimen name="overlay_border_width">4dp</dimen>
+    <dimen name="overlay_border_width_neg">-4dp</dimen>
+    <dimen name="overlay_action_container_minimum_edge_spacing">12dp</dimen>
+    <dimen name="negative_overlay_action_container_minimum_edge_spacing">-12dp</dimen>
+    <dimen name="overlay_action_container_margin_horizontal">20dp</dimen>
+    <dimen name="overlay_action_container_margin_bottom">20dp</dimen>
+    <dimen name="overlay_action_container_padding_end">12dp</dimen>
+    <dimen name="overlay_action_container_padding_vertical">12dp</dimen>
+    <dimen name="overlay_preview_container_margin">12dp</dimen>
+    <dimen name="overlay_dismiss_button_tappable_size">48dp</dimen>
+    <dimen name="overlay_dismiss_button_margin">8dp</dimen>
+    <dimen name="overlay_action_chip_padding_start">16dp</dimen>
+    <dimen name="overlay_action_chip_padding_end">16dp</dimen>
+    <dimen name="overlay_action_chip_spacing">8dp</dimen>
+    <dimen name="overlay_action_chip_icon_only_padding_horizontal">16dp</dimen>
+    <dimen name="overlay_action_chip_padding_vertical">12dp</dimen>
+    <dimen name="overlay_action_chip_icon_size">20dp</dimen>
+    <dimen name="overlay_action_chip_text_size">14sp</dimen>
+    <dimen name="shelf_action_chip_margin_start">8dp</dimen>
+    <dimen name="clipboard_overlay_toast_max_width">300dp</dimen>
+</resources>

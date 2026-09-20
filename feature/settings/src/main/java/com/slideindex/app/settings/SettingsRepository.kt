@@ -614,6 +614,12 @@ class SettingsRepository @Inject constructor(
     suspend fun setClipboardBackgroundMonitoringMode(mode: ClipboardMonitoringMode) =
         overlay.setClipboardBackgroundMonitoringMode(mode)
 
+    suspend fun setClipboardOverlayEnabled(enabled: Boolean) =
+        overlay.setClipboardOverlayEnabled(enabled)
+
+    suspend fun setClipboardOverlayScalePercent(percent: Int) =
+        overlay.setClipboardOverlayScalePercent(percent)
+
     suspend fun setClipboardScreenshotMonitoring(enabled: Boolean) =
         overlay.setClipboardScreenshotMonitoring(enabled)
 

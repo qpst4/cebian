@@ -14,6 +14,13 @@
         <item name="android:windowDisablePreview">true</item>
     </style>
 
+    <style name="Theme.SlideIndex.ClipboardOverlay" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:colorBackground">@android:color/transparent</item>
+        <item name="android:windowAnimationStyle">@null</item>
+    </style>
+
     <!-- GEVO 图片编辑页：MaterialButton / M3 色板 -->
     <style name="Theme.SlideIndex.ImageEditor" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="android:statusBarColor">@android:color/transparent</item>

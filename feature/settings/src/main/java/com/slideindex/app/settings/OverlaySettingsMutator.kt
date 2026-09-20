@@ -976,6 +976,15 @@ class OverlaySettingsMutator @Inject constructor(
         it[SettingsPreferenceKeys.CLIPBOARD_BACKGROUND_MONITORING_PATH] = mode.storageValue
     }
 
+    suspend fun setClipboardOverlayEnabled(enabled: Boolean) = editor.edit {
+        it[SettingsPreferenceKeys.CLIPBOARD_OVERLAY_ENABLED] = enabled
+    }
+
+    suspend fun setClipboardOverlayScalePercent(percent: Int) = editor.edit {
+        it[SettingsPreferenceKeys.CLIPBOARD_OVERLAY_SCALE_PERCENT] =
+            ClipboardOverlayScale.coerce(percent)
+    }
+
     suspend fun setClipboardScreenshotMonitoring(enabled: Boolean) = editor.edit {
         it[SettingsPreferenceKeys.CLIPBOARD_SCREENSHOT_MONITORING] = enabled
     }

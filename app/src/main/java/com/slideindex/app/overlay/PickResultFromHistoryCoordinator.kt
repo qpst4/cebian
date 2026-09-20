@@ -85,7 +85,8 @@ object PickResultFromHistoryCoordinator {
     /** Opens pick panel from the current system clipboard payload (text / image / mixed). */
     fun openFromClipboardPayload(
         context: Context,
-        payload: ClipboardPayload?
+        payload: ClipboardPayload?,
+        autoTranslate: Boolean = false,
     ) {
         scope.launch {
             val appContext = context.applicationContext
@@ -105,6 +106,9 @@ object PickResultFromHistoryCoordinator {
                 images = images,
                 initialImageIndex = 0
             )
+            if (autoTranslate && !text.isNullOrBlank()) {
+                FloatBallTranslateCoordinator.translate(hostContext, text)
+            }
         }
     }
 

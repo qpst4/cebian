@@ -9,6 +9,7 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.ClipboardFloatEntryClickAction
 import com.slideindex.app.settings.ClipboardFloatEntryLongPressAction
 import com.slideindex.app.settings.ClipboardMonitoringMode
+import com.slideindex.app.settings.ClipboardOverlayScale
 import com.slideindex.app.settings.HistoryFloatHandleWidth
 import com.slideindex.app.settings.SettingsRepository
 import com.slideindex.app.stash.StashRepository
@@ -45,6 +46,28 @@ class StashClipboardSettingsViewModel @Inject constructor(
                 restartMonitoring()
             }
         }
+    }
+
+    fun setClipboardOverlayEnabled(enabled: Boolean) = launchOptimisticSettingsWrite(
+        optimisticUpdate = { it.copy(clipboard = it.clipboard.copy(clipboardOverlayEnabled = enabled)) },
+    ) {
+        settingsRepository.setClipboardOverlayEnabled(enabled).also { result ->
+            if (result.isSuccess && !enabled) {
+                com.slideindex.app.clipboardoverlay.ClipboardOverlayWindow.dismiss()
+            }
+        }
+    }
+
+    fun setClipboardOverlayScalePercent(percent: Int) = launchOptimisticSettingsWrite(
+        optimisticUpdate = {
+            it.copy(
+                clipboard = it.clipboard.copy(
+                    clipboardOverlayScalePercent = ClipboardOverlayScale.coerce(percent),
+                ),
+            )
+        },
+    ) {
+        settingsRepository.setClipboardOverlayScalePercent(percent)
     }
 
     fun setClipboardScreenshotMonitoring(enabled: Boolean) = launchOptimisticSettingsWrite(

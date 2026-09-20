@@ -2820,6 +2820,34 @@
     <string name="clipboard_background_monitoring_section">后台监听</string>
     <string name="clipboard_background_monitoring_title">后台监听复制</string>
     <string name="clipboard_background_monitoring_desc">在其他应用复制后自动记录到剪贴板历史（通过 Shizuku/Root 特权监听）</string>
+    <string name="clipboard_overlay_enabled_title">剪贴板通知</string>
+    <string name="clipboard_overlay_enabled_desc">复制文本或图片后弹出系统风格预览浮窗。部分系统已自带相同提示，同时开启会叠两层。</string>
+    <string name="clipboard_overlay_preview_size_title">预览大小</string>
+    <string name="clipboard_overlay_open_pick">取词</string>
+    <string name="clipboard_overlay_window_name">剪贴板预览</string>
+    <string name="clipboard_overlay_text_copied">已复制文本</string>
+    <string name="clipboard_overlay_image_copied">已复制图片</string>
+    <string name="clipboard_overlay_content_copied">已复制内容</string>
+    <string name="clipboard_overlay_text_hidden">已复制隐藏内容</string>
+    <string name="clipboard_overlay_asterisks">********</string>
+    <string name="clipboard_overlay_edit">编辑</string>
+    <string name="clipboard_overlay_share">分享</string>
+    <string name="clipboard_overlay_action_open">打开</string>
+    <string name="clipboard_overlay_action_open_count">打开 %d 条</string>
+    <string name="clipboard_overlay_pick_links_title">选择链接</string>
+    <string name="clipboard_overlay_pick_links_count">%d 条</string>
+    <string name="clipboard_overlay_open_with">点击将由 %1$s 打开</string>
+    <string name="clipboard_overlay_pick_links_cancel">取消</string>
+    <string name="clipboard_overlay_pick_links_open_all">全部打开</string>
+    <string name="clipboard_overlay_action_call">拨打</string>
+    <string name="clipboard_overlay_action_email">邮件</string>
+    <string name="clipboard_overlay_action_map">地图</string>
+    <string name="clipboard_overlay_action_translate">翻译</string>
+    <string name="clipboard_overlay_send_nearby_description">发送到附近设备</string>
+    <string name="clipboard_overlay_dismiss_description">关闭剪贴板预览</string>
+    <string name="clipboard_overlay_image_preview">剪贴板图片预览</string>
+    <string name="clipboard_overlay_screenshot_editor" translatable="false" />
+    <string name="clipboard_overlay_remote_copy_package" translatable="false">com.google.android.gms/.nearby.sharing.RemoteCopyShareSheetActivity</string>
     <string name="clipboard_background_monitoring_mode_title">监听方式</string>
     <string name="clipboard_monitoring_mode_follow_privilege">跟随特权模式（推荐）</string>
     <string name="clipboard_monitoring_mode_follow_privilege_desc">跟随「特权执行方式」，当前为 %1$s</string>

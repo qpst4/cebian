@@ -436,6 +436,7 @@ dependencies {
 
     implementation(libs.core.ktx)
     implementation(libs.appcompat)
+    implementation("androidx.constraintlayout:constraintlayout:2.2.1")
     implementation(libs.androidx.palette)
     implementation(libs.profileinstaller)
     implementation(libs.lifecycle.runtime)

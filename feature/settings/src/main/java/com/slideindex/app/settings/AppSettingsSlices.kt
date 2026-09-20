@@ -299,6 +299,10 @@ data class ClipboardSettings(
     /** Background clipboard monitoring via Shizuku/Root privileged listener. */
     val clipboardBackgroundMonitoring: Boolean = true,
     val clipboardBackgroundMonitoringMode: ClipboardMonitoringMode = ClipboardMonitoringMode.FOLLOW_PRIVILEGE,
+    /** Show AOSP-style clipboard preview overlay when a copy is captured. */
+    val clipboardOverlayEnabled: Boolean = false,
+    /** Uniform overlay scale, in percent (50–100). */
+    val clipboardOverlayScalePercent: Int = ClipboardOverlayScale.DEFAULT_PERCENT,
     /** Monitor MediaStore for system/third-party screenshots and add to clipboard history. */
     val clipboardScreenshotMonitoring: Boolean = false,
     /** Max clipboard history entries; [ClipboardHistoryCapacity.UNLIMITED] means no limit. */

@@ -88,6 +88,19 @@
         </intent>
         <package android:name="moe.shizuku.privileged.api" />
         <package android:name="moe.shizuku.manager" />
+        <package android:name="com.google.android.gms" />
+        <intent>
+            <action android:name="android.intent.action.REMOTE_COPY" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.DIAL" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.SENDTO" />
+        </intent>
     </queries>
 
     <application
@@ -221,6 +234,20 @@
             android:name=".imageeditor.SlideIndexImageEditorActivity"
             android:exported="false"
             android:theme="@style/Theme.SlideIndex.ImageEditor" />
+
+        <activity
+            android:name=".clipboardoverlay.ClipboardOverlayEditTextActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:taskAffinity=""
+            android:theme="@style/Theme.SlideIndex.ClipboardOverlay" />
+
+        <activity
+            android:name=".clipboardoverlay.ClipboardLinkOpenAllActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:taskAffinity=""
+            android:theme="@style/Theme.SlideIndex.Transparent" />
 
         <activity
             android:name=".service.CreateShortcutTrampolineActivity"
