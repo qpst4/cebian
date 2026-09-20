@@ -13,6 +13,7 @@ import com.slideindex.app.settings.triggerHandles
 import com.slideindex.app.settings.withRuntimeLandscapeSettings
 import com.slideindex.app.util.TriggerVisibility
 import com.slideindex.app.overlay.animation.GestureAnimationOverlayRegistry
+import com.slideindex.app.overlay.backpanel.BackPanelOverlayRegistry
 import com.slideindex.app.overlay.compositor.OverlayCompositor
 import com.slideindex.app.util.TaskManagerUtil
 import kotlinx.coroutines.CoroutineScope
@@ -99,9 +100,8 @@ class SideOverlayController(
         }
         windowManager.syncCaptureWindowLayout()
         windowManager.presentationContainer?.let { container ->
-            GestureAnimationOverlayRegistry.controller(side).attach(container, overlayContext)
+            attachHintOverlays(container)
         }
-        GestureAnimationOverlayRegistry.controller(side).applySettings(settings)
         if (windowManager.edgeOverlayDetached) return
         syncRuntimeVisuals()
         if (previewMode) {
@@ -219,9 +219,8 @@ class SideOverlayController(
             }
             existingPresentation.applySettings(settings, screenWidthPx)
             windowManager.presentationContainer?.let { container ->
-                GestureAnimationOverlayRegistry.controller(side).attach(container, overlayContext)
+                attachHintOverlays(container)
             }
-            GestureAnimationOverlayRegistry.controller(side).applySettings(settings)
             windowManager.syncCaptureWindows(existingPresentation)
             windowManager.detachPresentationUnlessRequired()
             syncRuntimeVisuals()
@@ -242,9 +241,8 @@ class SideOverlayController(
             windowManager.presentationView?.let { presentation ->
                 presentation.applySettings(settings, screenWidthPx)
                 windowManager.presentationContainer?.let { container ->
-                    GestureAnimationOverlayRegistry.controller(side).attach(container, overlayContext)
+                    attachHintOverlays(container)
                 }
-                GestureAnimationOverlayRegistry.controller(side).applySettings(settings)
                 windowManager.syncCaptureWindows(presentation)
                 windowManager.detachPresentationUnlessRequired()
             }
@@ -297,9 +295,8 @@ class SideOverlayController(
                 }
                 windowManager.syncPresentationTouchState()
                 windowManager.presentationContainer?.let { container ->
-                    GestureAnimationOverlayRegistry.controller(side).attach(container, overlayContext)
+                    attachHintOverlays(container)
                 }
-                GestureAnimationOverlayRegistry.controller(side).applySettings(settings)
                 TaskManagerUtil.ensureServiceBound()
             },
             onAdjustPanelLayoutCallback = { _ ->
@@ -358,11 +355,7 @@ class SideOverlayController(
                 FrameLayout.LayoutParams.MATCH_PARENT
             )
         )
-        GestureAnimationOverlayRegistry.controller(side).attach(
-            container,
-            overlayContext
-        )
-        GestureAnimationOverlayRegistry.controller(side).applySettings(settings)
+        attachHintOverlays(container)
 
         val params = windowManager.createPresentationLayoutParams().apply {
             OverlayWindowTypes.ensureNoBrightnessOverride(this)
@@ -387,6 +380,7 @@ class SideOverlayController(
         }.onFailure {
             Log.e(TAG, "Failed to show overlay", it)
             GestureAnimationOverlayRegistry.controller(side).detach()
+            BackPanelOverlayRegistry.controller(side).detach()
             windowManager.detachAllCaptureWindows()
             windowManager.presentationView = null
             windowManager.presentationContainer = null
@@ -404,6 +398,7 @@ class SideOverlayController(
         windowManager.detachPresentationWindow()
         windowManager.detachAllCaptureWindows()
         GestureAnimationOverlayRegistry.controller(side).detach()
+        BackPanelOverlayRegistry.controller(side).detach()
         OverlayCompositor.detach()
         windowManager.presentationView = null
         windowManager.presentationContainer = null
@@ -536,6 +531,15 @@ class SideOverlayController(
             if (windowManager.edgeOverlayDetached || windowManager.overlayLayoutSuspended()) return@launch
             windowManager.presentationView?.setApps(apps)
         }
+    }
+
+    private fun attachHintOverlays(container: FrameLayout) {
+        GestureAnimationOverlayRegistry.controller(side).attach(container, overlayContext)
+        GestureAnimationOverlayRegistry.controller(side).applySettings(settings)
+        val back = BackPanelOverlayRegistry.controller(side)
+        back.attach(container, overlayContext)
+        back.applySettings(settings)
+        back.onSettled = { windowManager.detachPresentationUnlessRequired() }
     }
 
     companion object {

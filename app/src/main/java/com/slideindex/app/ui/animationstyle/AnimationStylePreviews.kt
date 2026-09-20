@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.painter.Painter
@@ -37,6 +38,7 @@ fun AnimationStylePreview(style: GestureHintStyle, modifier: Modifier = Modifier
                 GestureHintStyle.WAVE -> WaveStylePreview()
                 GestureHintStyle.CAPSULE -> CapsuleStylePreview()
                 GestureHintStyle.BUBBLE -> BubbleStylePreview()
+                GestureHintStyle.ANDROID -> AndroidBackStylePreview()
             }
         }
     }
@@ -148,6 +150,37 @@ private fun BoxScope.BubbleStylePreview() {
         contentDescription = stringResource(R.string.cd_animation_preview),
         colorFilter = ColorFilter.tint(colorScheme.onPrimary),
     )
+}
+
+@Composable
+private fun BoxScope.AndroidBackStylePreview() {
+    val colorScheme = MaterialTheme.colorScheme
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        val capsuleWidth = 36.dp.toPx()
+        val capsuleHeight = 28.dp.toPx()
+        val startX = 2.dp.toPx()
+        val top = size.height / 2f - capsuleHeight / 2f
+        drawRoundRect(
+            color = colorScheme.primary,
+            topLeft = Offset(startX, top),
+            size = Size(capsuleWidth, capsuleHeight),
+            cornerRadius = CornerRadius(capsuleHeight / 2f, capsuleHeight / 2f),
+        )
+        val centerX = startX + capsuleWidth / 2f
+        val centerY = top + capsuleHeight / 2f
+        val dx = 7.dp.toPx()
+        val dy = 6.dp.toPx()
+        val chevron = Path().apply {
+            moveTo(centerX + dx / 2f, centerY - dy)
+            lineTo(centerX - dx / 2f, centerY)
+            lineTo(centerX + dx / 2f, centerY + dy)
+        }
+        drawPath(
+            path = chevron,
+            color = colorScheme.onPrimary,
+            style = Stroke(width = 3.dp.toPx()),
+        )
+    }
 }
 
 private fun DrawScope.drawPreviewIcon(

@@ -1148,6 +1148,8 @@
     <string name="gesture_hint_style_capsule_desc">圆角胶囊跟随边栏展开</string>
     <string name="gesture_hint_style_bubble">圆泡</string>
     <string name="gesture_hint_style_bubble_desc">圆泡会从边缘向内弹出</string>
+    <string name="gesture_hint_style_android">系统箭头</string>
+    <string name="gesture_hint_style_android_desc">与 Android 原生边缘返回指示器相同的箭头和胶囊</string>
     <string name="animation_style_select_desc">选择边缘手势提示的动画样式</string>
     <string name="animation_style_select_hint">选中样式后可进入详细设置</string>
     <string name="gesture_hint_finger_offset_title">相对手指偏移</string>

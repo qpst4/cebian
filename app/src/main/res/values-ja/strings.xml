@@ -1137,6 +1137,8 @@
     <string name="gesture_hint_style_capsule_desc">Cebian とともに拡大する角丸カプセル</string>
     <string name="gesture_hint_style_bubble">バブル</string>
     <string name="gesture_hint_style_bubble_desc">端から内側にバブルがポップします</string>
+    <string name="gesture_hint_style_android">システム</string>
+    <string name="gesture_hint_style_android_desc">Android 純正のエッジ戻る矢印とカプセル</string>
     <string name="animation_style_select_desc">エッジジェスチャーヒントのアニメーションを選択</string>
     <string name="animation_style_select_hint">スタイル選択後、歯車アイコンをタップして詳細を確認できます。</string>
     <string name="gesture_hint_finger_offset_title">指からのオフセット</string>

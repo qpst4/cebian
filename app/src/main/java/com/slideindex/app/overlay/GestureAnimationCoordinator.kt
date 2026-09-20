@@ -11,13 +11,15 @@ import com.slideindex.app.gesture.GestureTriggerType
 import com.slideindex.app.gesture.SwipePathRecognizer
 
 import com.slideindex.app.overlay.animation.GestureAnimationOverlayRegistry
+import com.slideindex.app.overlay.backpanel.BackPanelOverlayRegistry
 import com.slideindex.app.overlay.compositor.OverlaySceneController
 
 import com.slideindex.app.overlay.animation.GestureAnimationState
 
 import com.slideindex.app.settings.AppSettings
-
+import com.slideindex.app.settings.GestureHintStyle
 import com.slideindex.app.settings.actionFor
+import com.slideindex.app.settings.gestureHintStyle
 
 import kotlin.math.abs
 
@@ -38,6 +40,7 @@ class GestureAnimationCoordinator(
 ) {
 
     private val overlay get() = GestureAnimationOverlayRegistry.controller(side)
+    private val androidBack get() = BackPanelOverlayRegistry.controller(side)
 
 
 
@@ -50,111 +53,101 @@ class GestureAnimationCoordinator(
 
 
     fun applySettings(settings: AppSettings) {
-
         overlay.applySettings(settings)
-
+        androidBack.applySettings(settings)
     }
 
 
 
     fun hide() {
-
         animationStarted = false
-
         overlay.hide()
-
+        androidBack.hide()
     }
 
 
 
     fun onTouchDown(rawX: Float, rawY: Float) {
-
         if (!settingsProvider().gestureHintEnabled) return
-
         OverlaySceneController.onEdgeGestureStarted()
-
         pendingDownRawX = rawX
-
         pendingDownRawY = rawY
-
         animationStarted = false
-
-        overlay.applySettings(settingsProvider(), gestureSessionProvider().activeHandleId())
-
+        val settings = settingsProvider()
+        val handleId = gestureSessionProvider().activeHandleId()
+        overlay.applySettings(settings, handleId)
+        androidBack.applySettings(settings, handleId)
+        if (useAndroidBackPanel()) {
+            overlay.hide()
+            val recognizer = pathRecognizerProvider()
+            androidBack.onDown(
+                rawX,
+                rawY,
+                translationOriginX = recognizer.stripOriginX(),
+                activationThresholdPx = recognizer.shortThresholdPx(),
+            )
+            animationStarted = true
+            return
+        }
+        androidBack.hide()
         overlay.bringToFront()
-
     }
-
-
 
     fun onTouchMove(rawX: Float, rawY: Float) {
-
         if (!settingsProvider().gestureHintEnabled) return
-
-        if (!animationStarted && shouldShowGestureAnimation()) {
-
-            startAnimationIfReady()
-
-        }
-
-        val state = overlay.animationState
-
-        if (state == null) {
-
-            if (overlay.isAttached && shouldShowGestureAnimation()) {
-
-                post { onTouchMove(rawX, rawY) }
-
+        if (useAndroidBackPanel()) {
+            if (shouldDismissDuringSession()) {
+                androidBack.hide()
+                return
             }
-
+            androidBack.onMove(rawX, rawY)
             return
-
         }
-
+        if (!animationStarted && shouldShowGestureAnimation()) {
+            startAnimationIfReady()
+        }
+        val state = overlay.animationState
+        if (state == null) {
+            if (overlay.isAttached && shouldShowGestureAnimation()) {
+                post { onTouchMove(rawX, rawY) }
+            }
+            return
+        }
         handleDrag(state, rawX, rawY)
-
     }
-
-
 
     fun onTouchUp(rawX: Float, rawY: Float) {
-
-        val recognizer = pathRecognizerProvider()
-
-        val stillTap = recognizer.movementPxFromStart() <
-
-            recognizer.tapDisqualifyMovementPx(classifyOptions())
-
-        if (!animationStarted || stillTap || !shouldShowGestureAnimation()) {
-
+        if (useAndroidBackPanel()) {
+            val stillTap = pathRecognizerProvider().movementPxFromStart() <
+                pathRecognizerProvider().tapDisqualifyMovementPx(classifyOptions())
+            if (shouldDismissDuringSession() || stillTap) {
+                androidBack.hide()
+            } else {
+                androidBack.onUp(rawX, rawY)
+            }
             animationStarted = false
-
-            overlay.hide()
-
             OverlaySceneController.onEdgeGestureEnded()
-
             return
-
         }
-
+        val recognizer = pathRecognizerProvider()
+        val stillTap = recognizer.movementPxFromStart() <
+            recognizer.tapDisqualifyMovementPx(classifyOptions())
+        if (!animationStarted || stillTap || !shouldShowGestureAnimation()) {
+            animationStarted = false
+            overlay.hide()
+            OverlaySceneController.onEdgeGestureEnded()
+            return
+        }
         overlay.animationState?.let { finishIfNeeded(it) }
-
         animationStarted = false
-
         OverlaySceneController.onEdgeGestureEnded()
-
     }
 
-
-
     fun onTouchCanceled() {
-
         animationStarted = false
-
         overlay.hide()
-
+        androidBack.onCancel()
         OverlaySceneController.onEdgeGestureEnded()
-
     }
 
 
@@ -247,6 +240,7 @@ class GestureAnimationCoordinator(
             if (state.isActive) {
                 overlay.hide()
             }
+            androidBack.hide()
             return
         }
 
@@ -276,7 +270,7 @@ class GestureAnimationCoordinator(
     fun onSessionStartDismissIfNeeded() {
 
         overlay.animationState?.let { finishIfNeeded(it) }
-
+        androidBack.hide()
         animationStarted = false
 
     }
@@ -291,6 +285,7 @@ class GestureAnimationCoordinator(
         if (!EdgeContinuedOverlayHandoff.shouldDismissGestureHint()) return
         EdgeContinuedOverlayHandoff.markGestureHintDismissed()
         overlay.hide()
+        androidBack.hide()
         animationStarted = false
     }
 
@@ -319,9 +314,14 @@ class GestureAnimationCoordinator(
         if (!settingsProvider().gestureHintEnabled) return
 
         state.onDragEnd()
-
     }
 
+    private fun useAndroidBackPanel(): Boolean {
+        val settings = settingsProvider()
+        return settings.gestureHintEnabled &&
+            settings.gestureHintStyle() == GestureHintStyle.ANDROID &&
+            side.isHorizontalEdge
+    }
 }
 
 

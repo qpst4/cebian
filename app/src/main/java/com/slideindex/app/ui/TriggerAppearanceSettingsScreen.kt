@@ -298,11 +298,13 @@ internal fun SettingsCardScope.GestureHintStyleRow(
         GestureHintStyle.WAVE -> stringResource(R.string.gesture_hint_style_wave)
         GestureHintStyle.CAPSULE -> stringResource(R.string.gesture_hint_style_capsule)
         GestureHintStyle.BUBBLE -> stringResource(R.string.gesture_hint_style_bubble)
+        GestureHintStyle.ANDROID -> stringResource(R.string.gesture_hint_style_android)
     }
     val subtitle = when (style) {
         GestureHintStyle.WAVE -> stringResource(R.string.gesture_hint_style_wave_desc)
         GestureHintStyle.CAPSULE -> stringResource(R.string.gesture_hint_style_capsule_desc)
         GestureHintStyle.BUBBLE -> stringResource(R.string.gesture_hint_style_bubble_desc)
+        GestureHintStyle.ANDROID -> stringResource(R.string.gesture_hint_style_android_desc)
     }
     val borderColor = if (selected) {
         MaterialTheme.colorScheme.primary
@@ -344,6 +346,7 @@ internal fun gestureHintStyleLabel(style: GestureHintStyle): String = when (styl
     GestureHintStyle.WAVE -> stringResource(R.string.gesture_hint_style_wave)
     GestureHintStyle.CAPSULE -> stringResource(R.string.gesture_hint_style_capsule)
     GestureHintStyle.BUBBLE -> stringResource(R.string.gesture_hint_style_bubble)
+    GestureHintStyle.ANDROID -> stringResource(R.string.gesture_hint_style_android)
 }
 
 @Composable

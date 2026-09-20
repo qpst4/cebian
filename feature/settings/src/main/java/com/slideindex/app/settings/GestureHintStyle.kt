@@ -4,6 +4,7 @@ enum class GestureHintStyle(val id: Int) {
     WAVE(0),
     CAPSULE(1),
     BUBBLE(2),
+    ANDROID(3),
     ;
 
     companion object {

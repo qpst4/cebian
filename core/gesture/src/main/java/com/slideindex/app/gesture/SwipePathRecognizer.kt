@@ -485,6 +485,12 @@ class SwipePathRecognizer(
 
     fun shortThresholdPx(): Float = shortDistanceDp * density
 
+    fun stripOriginX(): Float = when (side) {
+        PanelSide.LEFT -> stripBounds.left
+        PanelSide.RIGHT -> stripBounds.right
+        PanelSide.BOTTOM, PanelSide.TOP -> startRawX
+    }
+
     fun longThresholdPx(): Float = longDistanceDp * density
 
     fun disqualifyLongPress() {

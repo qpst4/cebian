@@ -9,6 +9,7 @@ import com.slideindex.app.gesture.CollapsedWindowBounds
 import com.slideindex.app.gesture.GestureZoneLayout
 import com.slideindex.app.gesture.KeyboardTriggerBoundsAdjuster
 import com.slideindex.app.gesture.TriggerHandleDesign
+import com.slideindex.app.overlay.backpanel.BackPanelOverlayRegistry
 import com.slideindex.app.overlay.compositor.OverlaySceneController
 import com.slideindex.app.settings.keyboardTriggerBehavior
 import com.slideindex.app.settings.keyboardTriggerNarrowScale
@@ -135,7 +136,8 @@ internal class SideOverlayWindowManager(
         if (overlayLayoutSuspended()) return
         val view = presentationView ?: return
         if (ctrl.previewMode || view.isSessionActive() || view.needsPresentationDirectTouch() ||
-            view.keepsOverlayExpanded()
+            view.keepsOverlayExpanded() ||
+            BackPanelOverlayRegistry.isAnyShowing()
         ) {
             return
         }

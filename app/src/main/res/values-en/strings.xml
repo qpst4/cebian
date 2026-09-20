@@ -2087,6 +2087,8 @@
     <string name="gesture_hint_style_capsule">Capsule</string>
     <string name="gesture_hint_style_bubble">Bubble</string>
     <string name="gesture_hint_style_bubble_desc">Bubbles pop inward from the edge</string>
+    <string name="gesture_hint_style_android">System</string>
+    <string name="gesture_hint_style_android_desc">Native Android edge-back arrow and capsule</string>
     <string name="animation_style_select_desc">Choose the edge gesture hint animation</string>
     <string name="animation_style_select_hint">Tap the gear after selecting a style for details.</string>
     <string name="gesture_hint_finger_offset_title">Offset from finger</string>

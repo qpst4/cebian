@@ -20,6 +20,7 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.GestureHintStyle
 import com.slideindex.app.settings.HomeMainSettings
 import com.slideindex.app.settings.gestureHintStyle
+import com.slideindex.app.settings.hasCustomizePage
 import com.slideindex.app.ui.SettingSwitchNavigationRow
 import com.slideindex.app.ui.SettingsScreenScaffold
 import com.slideindex.app.ui.SettingsSliderRow
@@ -116,7 +117,7 @@ fun AnimationStyleSelectScreen(
                                 modifier = Modifier.fillMaxSize(),
                             )
                         },
-                        trailing = if (isSelected) {
+                        trailing = if (isSelected && style.hasCustomizePage()) {
                             {
                                 AnimationStyleSettingsButton(
                                     onClick = { onOpenStyleConfig(style) },
@@ -170,4 +171,5 @@ private fun animationStyleDescription(style: GestureHintStyle): String = when (s
     GestureHintStyle.WAVE -> stringResource(R.string.gesture_hint_style_wave_desc)
     GestureHintStyle.CAPSULE -> stringResource(R.string.gesture_hint_style_capsule_desc)
     GestureHintStyle.BUBBLE -> stringResource(R.string.gesture_hint_style_bubble_desc)
+    GestureHintStyle.ANDROID -> stringResource(R.string.gesture_hint_style_android_desc)
 }

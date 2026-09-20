@@ -70,6 +70,7 @@ compose-material3-adaptive-navigation-suite = { group = "androidx.compose.materi
 compose-material-icons = { group = "androidx.compose.material", name = "material-icons-extended" }
 compose-foundation = { group = "androidx.compose.foundation", name = "foundation" }
 compose-animation = { group = "androidx.compose.animation", name = "animation" }
+dynamicanimation = { group = "androidx.dynamicanimation", name = "dynamicanimation", version = "1.1.0" }
 activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activity" }
 core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
 appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }

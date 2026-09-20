@@ -1149,6 +1149,8 @@
     <string name="gesture_hint_style_capsule_desc">كبسولة بزوايا مستديرة تتبع توسع الشريط الجانبي</string>
     <string name="gesture_hint_style_bubble">فقاعة دائرية</string>
     <string name="gesture_hint_style_bubble_desc">ستنبثق الفقاعة الدائرية من الحافة للداخل</string>
+    <string name="gesture_hint_style_android">سهم النظام</string>
+    <string name="gesture_hint_style_android_desc">سهم وكبسولة الرجوع الأصلية في Android</string>
     <string name="animation_style_select_desc">اختر نمط الرسوم المتحركة لتلميح إيماءة الحافة</string>
     <string name="animation_style_select_hint">بعد تحديد النمط، يمكنك الدخول إلى الإعدادات التفصيلية</string>
     <string name="gesture_hint_finger_offset_title">الإزاحة النسبية للإصبع</string>

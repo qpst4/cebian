@@ -1317,13 +1317,13 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
             onStyleSelected = viewModel::setGestureHintStyle,
             onGestureHintFingerOffsetDpChange = viewModel::setGestureHintFingerOffsetDp,
             onOpenStyleConfig = { style ->
-                ctx.navigate(
-                    when (style) {
-                        GestureHintStyle.WAVE -> AppNavKey.HomeWaveAnimationStyle
-                        GestureHintStyle.CAPSULE -> AppNavKey.HomeCapsuleAnimationStyle
-                        GestureHintStyle.BUBBLE -> AppNavKey.HomeBubbleAnimationStyle
-                    },
-                )
+                val dest = when (style) {
+                    GestureHintStyle.WAVE -> AppNavKey.HomeWaveAnimationStyle
+                    GestureHintStyle.CAPSULE -> AppNavKey.HomeCapsuleAnimationStyle
+                    GestureHintStyle.BUBBLE -> AppNavKey.HomeBubbleAnimationStyle
+                    GestureHintStyle.ANDROID -> null
+                }
+                if (dest != null) ctx.navigate(dest)
             },
         )
     }
