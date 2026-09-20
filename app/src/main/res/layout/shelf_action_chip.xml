@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:background="@drawable/shelf_action_chip_background"
@@ -11,7 +12,7 @@
         android:id="@+id/overlay_action_chip_icon"
         android:layout_width="@dimen/overlay_action_chip_icon_size"
         android:layout_height="@dimen/overlay_action_chip_icon_size"
-        android:tint="?attr/colorOnSecondary"
+        app:tint="?attr/colorOnSecondary"
         android:tintMode="src_in" />
 
     <TextView

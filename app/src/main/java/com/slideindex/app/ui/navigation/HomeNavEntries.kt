@@ -39,6 +39,7 @@ import com.slideindex.app.settings.slotAction
 import com.slideindex.app.settings.activeBubbleStyle
 import com.slideindex.app.settings.activeCapsuleStyle
 import com.slideindex.app.settings.activeWaveStyle
+import com.slideindex.app.settings.androidBackColorSource
 import com.slideindex.app.settings.defaultTriggerModeFor
 import com.slideindex.app.settings.descRes
 import com.slideindex.app.settings.displayTriggerMode
@@ -80,6 +81,7 @@ import com.slideindex.app.ui.SideGestureTriggerModePickerScreen
 import com.slideindex.app.ui.TriggerAppearanceSettingsScreen
 import com.slideindex.app.ui.TriggerCollectionScreen
 import com.slideindex.app.ui.TriggerDesignSettingsScreen
+import com.slideindex.app.ui.animationstyle.AndroidBackStyleSettingsScreen
 import com.slideindex.app.ui.animationstyle.AnimationStyleSelectScreen
 import com.slideindex.app.ui.animationstyle.BubbleStyleSettingsScreen
 import com.slideindex.app.ui.animationstyle.CapsuleStyleSettingsScreen
@@ -1321,7 +1323,7 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
                     GestureHintStyle.WAVE -> AppNavKey.HomeWaveAnimationStyle
                     GestureHintStyle.CAPSULE -> AppNavKey.HomeCapsuleAnimationStyle
                     GestureHintStyle.BUBBLE -> AppNavKey.HomeBubbleAnimationStyle
-                    GestureHintStyle.ANDROID -> null
+                    GestureHintStyle.ANDROID -> AppNavKey.HomeAndroidAnimationStyle
                 }
                 if (dest != null) ctx.navigate(dest)
             },
@@ -1364,6 +1366,19 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
             enabled = ctx.gestureActive(settings, permissions),
             onBack = { ctx.navigateBackTo(AppNavKey.HomeAnimationStyleSelect) },
             onStyleChange = viewModel::updateBubbleStyle,
+        )
+    }
+
+    hiltEntry<AppNavKey.HomeAndroidAnimationStyle> {
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val gestureSettings by viewModel.gestureSettings.collectAsStateWithLifecycle()
+        val settings = gestureSettings.toMinimalAppSettings()
+        val permissions = ctx.collectPermissions()
+        AndroidBackStyleSettingsScreen(
+            colorSource = settings.androidBackColorSource(),
+            enabled = ctx.gestureActive(settings, permissions),
+            onBack = { ctx.navigateBackTo(AppNavKey.HomeAnimationStyleSelect) },
+            onColorSourceChange = viewModel::setAndroidBackColorSource,
         )
     }
 

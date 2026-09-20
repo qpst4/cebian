@@ -1151,6 +1151,12 @@
     <string name="gesture_hint_style_bubble_desc">ستنبثق الفقاعة الدائرية من الحافة للداخل</string>
     <string name="gesture_hint_style_android">سهم النظام</string>
     <string name="gesture_hint_style_android_desc">سهم وكبسولة الرجوع الأصلية في Android</string>
+    <string name="android_back_color_source_title">لون الكبسولة</string>
+    <string name="android_back_color_source_desc">اختر مصدر ألوان كبسولة سهم النظام</string>
+    <string name="android_back_color_source_app">اتباع مظهر التطبيق</string>
+    <string name="android_back_color_source_app_desc">استخدم مظهر Cebian الحالي (الألوان المخصصة والديناميكية)</string>
+    <string name="android_back_color_source_system">اتباع النظام</string>
+    <string name="android_back_color_source_system_desc">استخدم ألوان الخلفية لتقترب من شريط الرجوع في النظام</string>
     <string name="animation_style_select_desc">اختر نمط الرسوم المتحركة لتلميح إيماءة الحافة</string>
     <string name="animation_style_select_hint">بعد تحديد النمط، يمكنك الدخول إلى الإعدادات التفصيلية</string>
     <string name="gesture_hint_finger_offset_title">الإزاحة النسبية للإصبع</string>
@@ -2794,9 +2800,9 @@
     <string name="clipboard_background_monitoring_section">المراقبة في الخلفية</string>
     <string name="clipboard_background_monitoring_title">مراقبة النسخ في الخلفية</string>
     <string name="clipboard_background_monitoring_desc">تسجيل النسخ تلقائياً في سجل الحافظة بعد النسخ في تطبيقات أخرى (عبر امتيازات Shizuku/Root)</string>
-    <string name="clipboard_overlay_enabled_title">إشعار الحافظة</string>
+    <string name="clipboard_overlay_enabled_title">نافذة معاينة النسخ</string>
     <string name="clipboard_overlay_enabled_desc">عرض معاينة بأسلوب النظام بعد نسخ نص أو صورة. قد يظهر تنبيه مماثل من النظام نفسه فيظهر إشعاران معاً.</string>
-    <string name="clipboard_overlay_preview_size_title">حجم المعاينة</string>
+    <string name="clipboard_overlay_preview_size_title">حجم نافذة المعاينة</string>
     <string name="clipboard_overlay_open_pick">اختيار كلمة</string>
     <string name="clipboard_overlay_window_name">معاينة الحافظة</string>
     <string name="clipboard_overlay_text_copied">تم نسخ النص</string>

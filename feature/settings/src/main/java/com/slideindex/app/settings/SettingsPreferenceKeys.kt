@@ -45,6 +45,7 @@ internal object SettingsPreferenceKeys {
     val GESTURE_HINT_ENABLED = booleanPreferencesKey("gesture_hint_enabled")
     val GESTURE_HINT_STYLE = intPreferencesKey("gesture_hint_style")
     val GESTURE_HINT_FINGER_OFFSET_DP = floatPreferencesKey("gesture_hint_finger_offset_dp")
+    val ANDROID_BACK_COLOR_SOURCE = intPreferencesKey("android_back_color_source")
     val SWIPE_HOVER_DURATION_MS = intPreferencesKey("swipe_hover_duration_ms")
     val TRIGGER_DOUBLE_TAP_INTERVAL_MS = intPreferencesKey("trigger_double_tap_interval_ms")
     val INWARD_HOVER_COMPOUND_ENABLED = booleanPreferencesKey("inward_hover_compound_enabled")

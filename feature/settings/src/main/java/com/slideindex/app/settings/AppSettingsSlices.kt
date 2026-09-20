@@ -64,6 +64,7 @@ data class EdgeTriggerSettings(
     val gestureHintStyleId: Int = GestureHintStyle.BUBBLE.id,
     /** 手势动画相对手指的垂直偏移（dp）；0 为贴在手指高度，增大则远离指腹（侧/底向上，顶向下）。 */
     val gestureHintFingerOffsetDp: Float = 0f,
+    val androidBackColorSourceId: Int = AndroidBackColorSource.APP_THEME.id,
     val swipeHoverDurationMs: Int = 250,
     /** 触钮双击判定间隔；0 表示无法构成双击。 */
     val triggerDoubleTapIntervalMs: Int = 300,

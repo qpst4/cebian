@@ -166,6 +166,8 @@ internal object SettingsSnapshotReader {
             gestureHintEnabled = prefs[SettingsPreferenceKeys.GESTURE_HINT_ENABLED] ?: true,
             gestureHintStyleId = prefs[SettingsPreferenceKeys.GESTURE_HINT_STYLE] ?: GestureHintStyle.BUBBLE.id,
             gestureHintFingerOffsetDp = prefs[SettingsPreferenceKeys.GESTURE_HINT_FINGER_OFFSET_DP] ?: 0f,
+            androidBackColorSourceId = prefs[SettingsPreferenceKeys.ANDROID_BACK_COLOR_SOURCE]
+                ?: AndroidBackColorSource.APP_THEME.id,
             swipeHoverDurationMs = prefs[SettingsPreferenceKeys.SWIPE_HOVER_DURATION_MS] ?: 250,
             triggerDoubleTapIntervalMs =
                 prefs[SettingsPreferenceKeys.TRIGGER_DOUBLE_TAP_INTERVAL_MS]?.coerceIn(0, 800) ?: 300,

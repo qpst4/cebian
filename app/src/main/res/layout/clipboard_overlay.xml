@@ -177,7 +177,7 @@
             android:layout_height="24dp"
             android:contentDescription="@null"
             android:src="@drawable/ic_clipboard_overlay_paste"
-            android:tint="?attr/colorOnSecondaryContainer" />
+            app:tint="?attr/colorOnSecondaryContainer" />
 
         <ImageView
             android:layout_width="24dp"
@@ -186,7 +186,7 @@
             android:paddingStart="-4dp"
             android:paddingEnd="-8dp"
             android:src="@drawable/ic_clipboard_overlay_chevron_end"
-            android:tint="?attr/colorOnSecondaryContainer" />
+            app:tint="?attr/colorOnSecondaryContainer" />
     </LinearLayout>
 
     <androidx.constraintlayout.widget.Barrier
@@ -227,6 +227,6 @@
             android:backgroundTint="?attr/colorPrimary"
             android:padding="4dp"
             android:src="@drawable/ic_clipboard_overlay_close"
-            android:tint="?attr/colorOnPrimary" />
+            app:tint="?attr/colorOnPrimary" />
     </FrameLayout>
 </com.slideindex.app.clipboardoverlay.ClipboardOverlayView>

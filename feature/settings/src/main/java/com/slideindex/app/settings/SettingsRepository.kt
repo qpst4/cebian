@@ -188,6 +188,8 @@ class SettingsRepository @Inject constructor(
     suspend fun setGestureHintEnabled(enabled: Boolean) = edge.setGestureHintEnabled(enabled)
     suspend fun setGestureHintStyle(style: GestureHintStyle) = edge.setGestureHintStyle(style)
     suspend fun setGestureHintFingerOffsetDp(value: Float) = edge.setGestureHintFingerOffsetDp(value)
+    suspend fun setAndroidBackColorSource(source: AndroidBackColorSource) =
+        edge.setAndroidBackColorSource(source)
     suspend fun setSwipeHoverDurationMs(value: Int) = edge.setSwipeHoverDurationMs(value)
 
     suspend fun setTriggerDoubleTapIntervalMs(value: Int) = edge.setTriggerDoubleTapIntervalMs(value)

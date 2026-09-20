@@ -2089,6 +2089,12 @@
     <string name="gesture_hint_style_bubble_desc">Bubbles pop inward from the edge</string>
     <string name="gesture_hint_style_android">System</string>
     <string name="gesture_hint_style_android_desc">Native Android edge-back arrow and capsule</string>
+    <string name="android_back_color_source_title">Capsule color</string>
+    <string name="android_back_color_source_desc">Choose where the system-arrow capsule gets its colors</string>
+    <string name="android_back_color_source_app">Follow app theme</string>
+    <string name="android_back_color_source_app_desc">Use Cebian’s current theme (custom and dynamic colors)</string>
+    <string name="android_back_color_source_system">Follow system</string>
+    <string name="android_back_color_source_system_desc">Use wallpaper colors, closer to the system back indicator</string>
     <string name="animation_style_select_desc">Choose the edge gesture hint animation</string>
     <string name="animation_style_select_hint">Tap the gear after selecting a style for details.</string>
     <string name="gesture_hint_finger_offset_title">Offset from finger</string>
@@ -2797,9 +2803,9 @@ Questions: open a GitHub Issue on the project repository.</string>
     <string name="clipboard_background_monitoring_section">Background monitoring</string>
     <string name="clipboard_background_monitoring_title">Monitor copies in background</string>
     <string name="clipboard_background_monitoring_desc">Automatically record copies from other apps (via Shizuku/Root privileged listener)</string>
-    <string name="clipboard_overlay_enabled_title">Clipboard overlay</string>
+    <string name="clipboard_overlay_enabled_title">Copy preview float</string>
     <string name="clipboard_overlay_enabled_desc">Show a system-style preview when text or images are copied. Some devices already show this; enabling both stacks two overlays.</string>
-    <string name="clipboard_overlay_preview_size_title">Preview size</string>
+    <string name="clipboard_overlay_preview_size_title">Preview float size</string>
     <string name="clipboard_overlay_open_pick">Word tap</string>
     <string name="clipboard_overlay_window_name">Clipboard preview</string>
     <string name="clipboard_overlay_text_copied">Text copied</string>

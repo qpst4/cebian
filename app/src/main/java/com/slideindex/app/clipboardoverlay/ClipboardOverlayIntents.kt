@@ -4,12 +4,12 @@ import android.content.ClipData
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.text.TextUtils
 import com.slideindex.app.R
 import com.slideindex.app.imageeditor.ImageEditorLaunchCache
 import com.slideindex.app.imageeditor.SlideIndexImageEditorActivity
+import com.slideindex.app.util.resolveActivityCompat
 
 internal object ClipboardOverlayIntents {
     private const val REMOTE_COPY_ACTION = "android.intent.action.REMOTE_COPY"
@@ -68,7 +68,6 @@ internal object ClipboardOverlayIntents {
 
     fun resolveRemoteCopyIntent(clipData: ClipData, context: Context): Intent? {
         val pm = context.packageManager
-        val flags = PackageManager.ResolveInfoFlags.of(0)
         val preferred = context.getString(R.string.clipboard_overlay_remote_copy_package)
         val candidates = buildList {
             add(remoteCopyIntent(clipData, packageName = GMS_PACKAGE))
@@ -78,7 +77,7 @@ internal object ClipboardOverlayIntents {
                 add(remoteCopyIntent(clipData, component = component))
             }
         }
-        return candidates.firstOrNull { pm.resolveActivity(it, flags) != null }
+        return candidates.firstOrNull { pm.resolveActivityCompat(it) != null }
     }
 
     private fun remoteCopyIntent(

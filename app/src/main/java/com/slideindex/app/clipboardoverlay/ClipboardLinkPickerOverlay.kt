@@ -2,7 +2,6 @@ package com.slideindex.app.clipboardoverlay
 
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.graphics.PixelFormat
 import android.os.Handler
 import android.os.Looper
@@ -88,6 +87,7 @@ import com.slideindex.app.search.SearchEngineLauncher
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.ui.theme.LocalAppDarkTheme
 import com.slideindex.app.ui.theme.OverlayAwareModuleTheme
+import com.slideindex.app.util.resolveActivityCompat
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 
@@ -481,7 +481,7 @@ private fun AutoScrollingUrlText(
 private fun resolveHandler(context: Context, url: String): LinkHandlerInfo {
     val intent = Intent(Intent.ACTION_VIEW, android.net.Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     val resolved = runCatching {
-        context.packageManager.resolveActivity(intent, PackageManager.ResolveInfoFlags.of(0))
+        context.packageManager.resolveActivityCompat(intent)
     }.getOrNull() ?: return LinkHandlerInfo(null, null)
     val label = runCatching { resolved.loadLabel(context.packageManager).toString() }.getOrNull()
     val icon = runCatching {

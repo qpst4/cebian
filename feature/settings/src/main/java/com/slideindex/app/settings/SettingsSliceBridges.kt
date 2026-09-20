@@ -39,6 +39,7 @@ fun GestureSettings.toMinimalAppSettings(): AppSettings = AppSettings(
         gestureHintEnabled = gestureHintEnabled,
         gestureHintStyleId = gestureHintStyleId,
         gestureHintFingerOffsetDp = gestureHintFingerOffsetDp,
+        androidBackColorSourceId = androidBackColorSourceId,
         swipeHoverDurationMs = swipeHoverDurationMs,
         triggerDoubleTapIntervalMs = triggerDoubleTapIntervalMs,
         inwardHoverCompoundEnabled = inwardHoverCompoundEnabled,

@@ -12,3 +12,15 @@ enum class GestureHintStyle(val id: Int) {
             entries.firstOrNull { it.id == id } ?: BUBBLE
     }
 }
+
+/** 系统箭头胶囊配色：跟侧编主题，或跟壁纸动态色。 */
+enum class AndroidBackColorSource(val id: Int) {
+    APP_THEME(0),
+    SYSTEM(1),
+    ;
+
+    companion object {
+        fun fromId(id: Int): AndroidBackColorSource =
+            entries.firstOrNull { it.id == id } ?: APP_THEME
+    }
+}

@@ -17,6 +17,7 @@ import com.slideindex.app.settings.GestureHintStyle
 import com.slideindex.app.settings.ExcludedAppScopes
 import com.slideindex.app.settings.AppCarouselSwitcherSettings
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.settings.AndroidBackColorSource
 import com.slideindex.app.settings.CornerSlotSubMenuConfig
 import com.slideindex.app.settings.SettingsRepository
 import kotlinx.coroutines.flow.first
@@ -387,6 +388,10 @@ class HomeDetailSettingsViewModel @Inject constructor(
 
     fun updateBubbleStyle(style: BubbleStyle) = launchSettingsWrite {
         settingsRepository.updateBubbleStyle(style)
+    }
+
+    fun setAndroidBackColorSource(source: AndroidBackColorSource) = launchSettingsWrite {
+        settingsRepository.setAndroidBackColorSource(source)
     }
 
     fun setCornerGestureEnabled(enabled: Boolean) = launchSettingsWrite {

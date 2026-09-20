@@ -113,6 +113,7 @@ sealed interface AppNavKey : NavKey {
     @Serializable data object HomeWaveAnimationStyle : AppNavKey
     @Serializable data object HomeCapsuleAnimationStyle : AppNavKey
     @Serializable data object HomeBubbleAnimationStyle : AppNavKey
+    @Serializable data object HomeAndroidAnimationStyle : AppNavKey
 
     @Serializable data object HomeCornerGesture : AppNavKey
     @Serializable data object HomeCornerGestureInteraction : AppNavKey

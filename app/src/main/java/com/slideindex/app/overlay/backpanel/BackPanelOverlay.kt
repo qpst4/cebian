@@ -51,6 +51,10 @@ class BackPanelOverlayController(
         }
         controller?.extraFingerOffsetPx = settings.gestureHintFingerOffsetDp * density
         controller?.setActivationThresholdPx(handle.shortSwipeDistanceDp * density)
+        panel?.let { host ->
+            val paints = AndroidBackPanelColors.resolve(host.context, settings)
+            host.setPaintColors(paints.background, paints.arrow)
+        }
         if (!enabled) {
             hide()
         }

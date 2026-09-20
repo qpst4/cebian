@@ -1,7 +1,6 @@
 package com.slideindex.app.overlay.backpanel
 
 import android.content.Context
-import android.content.res.Configuration
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Path
@@ -11,7 +10,6 @@ import androidx.dynamicanimation.animation.DynamicAnimation
 import androidx.dynamicanimation.animation.FloatPropertyCompat
 import androidx.dynamicanimation.animation.SpringAnimation
 import androidx.dynamicanimation.animation.SpringForce
-import com.google.android.material.R as MaterialR
 import kotlin.math.min
 
 /** Ported from AOSP SystemUI `BackPanel` (Apache-2.0). */
@@ -205,43 +203,20 @@ class BackPanel(context: Context) : View(context) {
             style = Paint.Style.FILL
             strokeJoin = Paint.Join.ROUND
             strokeCap = Paint.Cap.ROUND
+            color = 0xFFC4C6D0.toInt()
         }
+        arrowPaint.color = 0xFF1A1B21.toInt()
     }
 
     internal fun updateArrowPaint(arrowThickness: Float) {
         arrowPaint.strokeWidth = arrowThickness
-        val night = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
-            Configuration.UI_MODE_NIGHT_YES
-        if (night) {
-            arrowPaint.color = themeColor(
-                MaterialR.attr.colorOnSecondaryContainer,
-                0xFFDCE1F9.toInt(),
-            )
-            arrowBackgroundPaint.color = themeColor(
-                MaterialR.attr.colorSecondaryContainer,
-                0xFF3F4759.toInt(),
-            )
-        } else {
-            arrowPaint.color = themeColor(
-                MaterialR.attr.colorOnSecondaryFixed,
-                0xFF1A1B21.toInt(),
-            )
-            arrowBackgroundPaint.color = themeColor(
-                MaterialR.attr.colorSecondaryFixedDim,
-                0xFFC4C6D0.toInt(),
-            )
-        }
+        invalidate()
     }
 
-    private fun themeColor(attr: Int, fallback: Int): Int {
-        val typed = context.obtainStyledAttributes(intArrayOf(attr))
-        return try {
-            if (typed.hasValue(0)) typed.getColor(0, fallback) else fallback
-        } catch (_: RuntimeException) {
-            fallback
-        } finally {
-            typed.recycle()
-        }
+    fun setPaintColors(background: Int, arrow: Int) {
+        arrowBackgroundPaint.color = background
+        arrowPaint.color = arrow
+        invalidate()
     }
 
     private fun calculateArrowPath(dx: Float, dy: Float): Path {

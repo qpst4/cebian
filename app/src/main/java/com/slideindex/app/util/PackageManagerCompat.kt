@@ -18,3 +18,12 @@ fun PackageManager.queryIntentActivitiesCompat(intent: Intent, flags: Int): List
         queryIntentActivities(intent, flags)
     }
 }
+
+fun PackageManager.resolveActivityCompat(intent: Intent, flags: Int = 0): ResolveInfo? {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        resolveActivity(intent, PackageManager.ResolveInfoFlags.of(flags.toLong()))
+    } else {
+        @Suppress("DEPRECATION")
+        resolveActivity(intent, flags)
+    }
+}

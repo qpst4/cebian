@@ -1150,6 +1150,12 @@
     <string name="gesture_hint_style_bubble_desc">圆泡会从边缘向内弹出</string>
     <string name="gesture_hint_style_android">系统箭头</string>
     <string name="gesture_hint_style_android_desc">与 Android 原生边缘返回指示器相同的箭头和胶囊</string>
+    <string name="android_back_color_source_title">胶囊颜色</string>
+    <string name="android_back_color_source_desc">选择系统箭头胶囊与箭头的配色来源</string>
+    <string name="android_back_color_source_app">跟随应用主题</string>
+    <string name="android_back_color_source_app_desc">使用侧编当前主题（自定义颜色、动态配色）</string>
+    <string name="android_back_color_source_system">跟随系统</string>
+    <string name="android_back_color_source_system_desc">使用壁纸动态色，接近系统返回条</string>
     <string name="animation_style_select_desc">选择边缘手势提示的动画样式</string>
     <string name="animation_style_select_hint">选中样式后可进入详细设置</string>
     <string name="gesture_hint_finger_offset_title">相对手指偏移</string>
@@ -2822,9 +2828,9 @@
     <string name="clipboard_background_monitoring_section">后台监听</string>
     <string name="clipboard_background_monitoring_title">后台监听复制</string>
     <string name="clipboard_background_monitoring_desc">在其他应用复制后自动记录到剪贴板历史（通过 Shizuku/Root 特权监听）</string>
-    <string name="clipboard_overlay_enabled_title">剪贴板通知</string>
+    <string name="clipboard_overlay_enabled_title">复制预览浮窗</string>
     <string name="clipboard_overlay_enabled_desc">复制文本或图片后弹出系统风格预览浮窗。部分系统已自带相同提示，同时开启会叠两层。</string>
-    <string name="clipboard_overlay_preview_size_title">预览大小</string>
+    <string name="clipboard_overlay_preview_size_title">预览浮窗大小</string>
     <string name="clipboard_overlay_open_pick">取词</string>
     <string name="clipboard_overlay_window_name">剪贴板预览</string>
     <string name="clipboard_overlay_text_copied">已复制文本</string>

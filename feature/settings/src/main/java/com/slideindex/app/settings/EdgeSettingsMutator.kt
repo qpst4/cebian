@@ -363,6 +363,10 @@ class EdgeSettingsMutator @Inject constructor(
         it[SettingsPreferenceKeys.GESTURE_HINT_FINGER_OFFSET_DP] = value
     }
 
+    suspend fun setAndroidBackColorSource(source: AndroidBackColorSource) = editor.edit {
+        it[SettingsPreferenceKeys.ANDROID_BACK_COLOR_SOURCE] = source.id
+    }
+
     suspend fun setSwipeHoverDurationMs(value: Int) = editor.edit {
         it[SettingsPreferenceKeys.SWIPE_HOVER_DURATION_MS] =
             value.coerceIn(

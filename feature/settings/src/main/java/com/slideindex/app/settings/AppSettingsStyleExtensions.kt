@@ -13,7 +13,10 @@ fun GestureHintStyle.toAnimationType(): Int? = when (this) {
     GestureHintStyle.ANDROID -> null
 }
 
-fun GestureHintStyle.hasCustomizePage(): Boolean = this != GestureHintStyle.ANDROID
+fun GestureHintStyle.hasCustomizePage(): Boolean = true
+
+fun AppSettings.androidBackColorSource(): AndroidBackColorSource =
+    AndroidBackColorSource.fromId(androidBackColorSourceId)
 
 fun AppSettings.activeWaveStyle(): WaveStyle = animationStyles.waveStyle
 fun AppSettings.activeCapsuleStyle(): CapsuleStyle = animationStyles.capsuleStyle
