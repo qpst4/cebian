@@ -22,7 +22,8 @@ object ClipboardPasteTargetFinder {
         val sorted = rects.sortedBy { it.width().coerceAtLeast(1) * it.height().coerceAtLeast(1) }
         val kept = ArrayList<Rect>(sorted.size)
         for (candidate in sorted) {
-            if (kept.any { outer -> outer != candidate && outer.contains(candidate) }) {
+            // 由小到大遍历：候选若包住已保留的更小矩形，说明它是外层容器，丢弃（smallest wins）。
+            if (kept.any { inner -> inner != candidate && candidate.contains(inner) }) {
                 continue
             }
             kept.add(candidate)

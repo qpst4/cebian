@@ -1,6 +1,7 @@
 package com.slideindex.app.clipboard
 
 import android.content.ClipData
+import android.content.ClipDescription
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
@@ -66,7 +67,7 @@ object ClipboardWriter {
         if (entry.isPureImageEntry()) {
             val localUris = ClipboardImageStore.localUrisForEntry(context, entry)
             if (localUris.isNotEmpty()) {
-                return buildPureImageClip(context, entry.mimeType, localUris)
+                return buildPureImageClip(entry.mimeType, localUris)
             }
         }
         if (!entry.hasImageContent()) {
@@ -87,7 +88,7 @@ object ClipboardWriter {
                 mimeType = entry.mimeType,
                 htmlText = entry.htmlText,
                 blocks = blocks,
-                fallbackImageUris = imageSources,
+                fallbackImageUris = readableFallbackImageUris(imageSources, entry.uri),
                 resolveDataUri = { fileName -> ClipboardImageStore.uriForFile(context, fileName)?.toString() },
                 resolveContentUri = { ClipboardImageStore.uriForFile(context, it) },
                 resolveDimensions = { ClipboardImageStore.imageDimensions(context, it) }
@@ -107,6 +108,19 @@ object ClipboardWriter {
             )
         )
     }
+
+    /**
+     * 回退用的图片 URI 列表。
+     *
+     * 本地图片文件缺失时 [ClipboardImageStore.uriForFile] 解析不出 URI，此时才会退到这里。
+     * 内部文件名（`entry-1.png` 这类无 scheme 的相对路径）接收方读不到，必须过滤掉，
+     * 并补上 entry 自身的 content URI 作为可用回退。
+     */
+    private fun readableFallbackImageUris(imageSources: List<String>, entryUri: String?): List<String> =
+        (imageSources + listOfNotNull(entryUri))
+            .map(String::trim)
+            .filter { it.isNotEmpty() && it.toUri().scheme != null }
+            .distinct()
 
     fun buildClipForBlocks(
         context: Context? = null,
@@ -165,7 +179,7 @@ object ClipboardWriter {
         val imageBlocks = blocks.filter { it.kind == ClipboardBlockKind.IMAGE }
         val imageUris = resolveImageUrisForBlocks(imageBlocks, resolveContentUri, fallbackImageUris)
         if (blocks.all { it.kind == ClipboardBlockKind.IMAGE }) {
-            return buildPureImageClip(context, mimeType, imageUris)
+            return buildPureImageClip(mimeType, imageUris)
         }
 
         val plainText = blocks.filter { it.kind == ClipboardBlockKind.TEXT }
@@ -205,24 +219,25 @@ object ClipboardWriter {
         return fallbackImageUris.mapNotNull { runCatching { it.toUri() }.getOrNull() }
     }
 
-    private fun buildPureImageClip(
-        context: Context?,
-        mimeType: String?,
-        imageUris: List<Uri>
-    ): ClipData? {
+    /**
+     * 构造显式声明 mime 的 URI 剪贴项。
+     *
+     * `ClipData.newUri(resolver, label, uri)` 的第二参是 **label**，mime 由 resolver 反查：
+     * 一旦查不到（媒体行已删除、调用方没有读权限等），description 会退化成 `text/plain`，
+     * 图片剪贴就可能被接收方当纯文本处理。这里直接声明类型，不依赖反查结果。
+     */
+    private fun uriClip(mimeType: String, imageUris: List<Uri>): ClipData {
+        val clip = ClipData(
+            ClipDescription("clipboard", arrayOf(mimeType)),
+            ClipData.Item(imageUris.first())
+        )
+        imageUris.drop(1).forEach { clip.addItem(ClipData.Item(it)) }
+        return clip
+    }
+
+    private fun buildPureImageClip(mimeType: String?, imageUris: List<Uri>): ClipData? {
         if (imageUris.isEmpty()) return null
-        val type = mimeType ?: "image/*"
-        val first = imageUris.first()
-        if (context == null) {
-            return ClipData.newRawUri("clipboard", first)
-        }
-        return if (imageUris.size == 1) {
-            ClipData.newUri(context.contentResolver, type, first)
-        } else {
-            ClipData.newUri(context.contentResolver, type, first).also { clip ->
-                imageUris.drop(1).forEach { clip.addItem(ClipData.Item(it)) }
-            }
-        }
+        return uriClip(mimeType ?: "image/*", imageUris)
     }
 
     fun writePayload(context: Context, payload: ClipboardPayload) {
@@ -272,18 +287,19 @@ object ClipboardWriter {
             if (rebuiltHtml != null) {
                 return buildRichHtmlClip(plainText, rebuiltHtml, imageUris)
             }
-            return buildMultiImageClip(context, payload, imageUris, plainText, imageSrcs)
+            return buildMultiImageClip(payload, imageUris, plainText, imageSrcs)
         }
 
         return when (payload.type) {
             ClipboardEntryType.TEXT -> ClipData.newPlainText("clipboard", payload.text)
             ClipboardEntryType.URI -> {
                 val uri = payload.uri?.toUri() ?: return null
-                ClipData.newUri(
-                    context.contentResolver,
-                    payload.mimeType ?: "text/*",
-                    uri
-                )
+                val mime = payload.mimeType
+                if (mime.isNullOrBlank()) {
+                    ClipData.newUri(context.contentResolver, "clipboard", uri)
+                } else {
+                    uriClip(mime, listOf(uri))
+                }
             }
             ClipboardEntryType.INTENT -> {
                 val intentUri = payload.intentUri ?: return null
@@ -313,7 +329,6 @@ object ClipboardWriter {
     }
 
     private fun buildMultiImageClip(
-        context: Context,
         payload: ClipboardPayload,
         imageUris: List<Uri>,
         plainText: String,
@@ -324,14 +339,7 @@ object ClipboardWriter {
             val html = ClipboardHtmlParser.buildHtml(plainText, imageSrcs)
             return buildRichHtmlClip(plainText, html, imageUris)
         }
-        val first = imageUris.first()
-        return if (imageUris.size == 1) {
-            ClipData.newUri(context.contentResolver, mimeType, first)
-        } else {
-            ClipData.newUri(context.contentResolver, mimeType, first).also { clip ->
-                imageUris.drop(1).forEach { clip.addItem(ClipData.Item(it)) }
-            }
-        }
+        return uriClip(mimeType, imageUris)
     }
 
     private fun safeSetPrimaryClip(
@@ -353,7 +361,7 @@ object ClipboardWriter {
     private fun buildFallbackUriClip(context: Context, entry: ClipboardEntry): ClipData? {
         val uris = ClipboardImageStore.localUrisForEntry(context, entry)
         if (uris.isNotEmpty()) {
-            return buildPureImageClip(context, entry.mimeType, uris)
+            return buildPureImageClip(entry.mimeType, uris)
         }
         val text = entry.text.trim()
         if (text.isNotEmpty()) {

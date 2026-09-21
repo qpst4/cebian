@@ -108,6 +108,9 @@ object ClipboardPasteTargetOverlay {
                         context = hostContext,
                         entry = entry,
                         rect = hitRect,
+                        // 红框选择器只可能在 fvStyle 路径下弹出，这里必须显式传 true，
+                        // 否则协调器会走 pasteEntryToFocusedField，点红框等于没点。
+                        fvStyle = true,
                         onFinished = { result -> completePending(result) },
                     )
                     return true
