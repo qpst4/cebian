@@ -4,6 +4,9 @@ All notable changes to Cebian are documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- **剪贴板浮窗**：拖拽条目投放后（含投放未成功）浮窗丢失 `FLAG_WATCH_OUTSIDE_TOUCH`，导致点窗外不再关闭、只能用返回手势或关闭按钮的问题；窗口 flags 改为统一拼装，拖放恢复与退出搜索不再整体覆盖位标志
+
 ## [1.13.0] - 2026-09-21
 
 ### Changed

@@ -38,6 +38,7 @@ import com.slideindex.app.clipboardfloat.ClipboardFloatDisplayMode
 import com.slideindex.app.clipboardfloat.ClipboardFloatListController
 import com.slideindex.app.clipboardfloat.ClipboardDragHostPaste
 import com.slideindex.app.clipboardfloat.ClipboardFloatRoot
+import com.slideindex.app.clipboardfloat.ClipboardFloatWindowFlags
 import com.slideindex.app.clipboardfloat.ClipboardPasteCoordinator
 import com.slideindex.app.clipboardfloat.ClipboardPasteHelper
 import com.slideindex.app.clipboardfloat.PasteFailureReason
@@ -117,6 +118,8 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
 
     private var idleGeometryPersistRunnable: Runnable? = null
     private var isDraggingWindow = false
+    /** 起拖后若迟迟收不到 ACTION_DRAG_ENDED 的兜底恢复任务 */
+    private var entryDragRestoreWatchdog: Runnable? = null
     private var searchActive by mutableStateOf(false)
     private var chipRetainedAfterManualCollapse = false
     /** 搜索收起后大窗在无键盘时仍保持展开，直到用户手动收起或关闭 */
@@ -231,6 +234,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
     override fun onDestroy() {
         unregisterScreenOffReceiver()
         mainHandler.removeCallbacks(autoCloseRunnable)
+        cancelEntryDragRestoreWatchdog()
         backHandler = null
         if (activeInstance === this) {
             activeInstance = null
@@ -454,11 +458,10 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
         params = WindowManager.LayoutParams().apply {
             type = OverlayWindowTypes.overlayWindowType(context)
             format = PixelFormat.RGBA_8888
-            flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-                WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED or
-                WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM or
-                (if (displayMode == ClipboardFloatDisplayMode.Expanded) WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH else 0)
+            flags = ClipboardFloatWindowFlags.forMode(
+                expanded = displayMode == ClipboardFloatDisplayMode.Expanded,
+                keyboardFocus = searchActive
+            )
             alpha = panelAlpha
             gravity = Gravity.TOP or Gravity.START
             OverlayWindowTypes.ensureNoBrightnessOverride(this)
@@ -566,7 +569,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
         val screenHeight = resources.displayMetrics.heightPixels
 
         if (displayMode == ClipboardFloatDisplayMode.Chip) {
-            params.flags = params.flags and WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH.inv()
+            params.flags = ClipboardFloatWindowFlags.withOutsideTouch(params.flags, enabled = false)
             val chipWindowPx = ClipboardFloatWindowMetrics.chipWindowSizePx(density)
             params.width = chipWindowPx
             params.height = chipWindowPx
@@ -577,7 +580,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
                 params.y = effectiveChipPosY().coerceAtLeast(marginPx)
             }
         } else {
-            params.flags = params.flags or WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
+            params.flags = ClipboardFloatWindowFlags.withOutsideTouch(params.flags, enabled = true)
             params.width = ClipboardFloatWindowMetrics.expandedPanelWindowWidthPx(panelWidthDp, density)
             params.height = ClipboardFloatWindowMetrics.expandedPanelWindowHeightPx(panelHeightDp, density)
             if (shouldUseDefaultPanelPosition(forceDefaultPosition)) {
@@ -1044,16 +1047,29 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
     }
 
     private fun setEntryDragHidden(hidden: Boolean) {
+        cancelEntryDragRestoreWatchdog()
         if (!viewAdded) return
         val view = composeView ?: return
         if (hidden) {
             view.visibility = View.INVISIBLE
-            params.flags = params.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+            params.flags = ClipboardFloatWindowFlags.withNotTouchable(params.flags, notTouchable = true)
             windowManager.updateViewLayout(view, params)
+            // 个别 ROM / 宿主上跨应用拖放可能不回调 ACTION_DRAG_ENDED，兜底恢复可见与可点击。
+            val runnable = Runnable { setEntryDragHidden(hidden = false) }
+            entryDragRestoreWatchdog = runnable
+            mainHandler.postDelayed(runnable, ENTRY_DRAG_RESTORE_TIMEOUT_MS)
             return
         }
         view.visibility = View.VISIBLE
-        updateWindowFocusForSearch(searchActive)
+        // 只清掉起拖时加的 FLAG_NOT_TOUCHABLE。这里若整体重建 flags（原先走 updateWindowFocusForSearch），
+        // 会一并抹掉 FLAG_WATCH_OUTSIDE_TOUCH，于是拖放后「点窗外关闭」失效，只能用返回键或关闭按钮。
+        params.flags = ClipboardFloatWindowFlags.withNotTouchable(params.flags, notTouchable = false)
+        windowManager.updateViewLayout(view, params)
+    }
+
+    private fun cancelEntryDragRestoreWatchdog() {
+        entryDragRestoreWatchdog?.let(mainHandler::removeCallbacks)
+        entryDragRestoreWatchdog = null
     }
 
     private fun performPasteHapticIfEnabled() {
@@ -1073,15 +1089,10 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
     }
 
     private fun updateWindowFocusForSearch(active: Boolean) {
-        params.flags = if (active) {
-            WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-                WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED
-        } else {
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-                WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED or
-                WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM
-        }
+        params.flags = ClipboardFloatWindowFlags.forMode(
+            expanded = displayMode == ClipboardFloatDisplayMode.Expanded,
+            keyboardFocus = active
+        )
         composeView?.let { view ->
             view.setLayerType(View.LAYER_TYPE_HARDWARE, null)
             windowManager.updateViewLayout(view, params)
@@ -1098,6 +1109,9 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
         const val EXTRA_SHOW_CHIP = "show_chip"
 
         private const val IDLE_GEOMETRY_PERSIST_MS = 1500L
+
+        /** 起拖后等待 ACTION_DRAG_ENDED 的上限，超时则兜底恢复浮窗可见与可点击 */
+        private const val ENTRY_DRAG_RESTORE_TIMEOUT_MS = 10_000L
 
         @Volatile
         private var activeInstance: ClipboardFloatService? = null
