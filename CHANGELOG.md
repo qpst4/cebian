@@ -21,6 +21,7 @@ All notable changes to Cebian are documented in this file.
 - **取词目标**：粘贴候选框去重方向修正，保留最内层输入框（此前保留外层容器、丢掉真正的输入框）
 - **消息提醒**：新装"启用消息提醒"默认不再为开（总开关此前会被默认开启的提醒样式连带打开）
 - **测试**：修复 Robolectric SDK 与宿主 Application 配置、虚拟时间/主 looper 相关的挂起，app 与各库模块单元测试恢复全绿
+- **OCR 引擎包**：随 ONNX Runtime 1.30.0 升到 revision 6（`ocr-engine-arm64-v6.zip`），修复 APK 侧 ORT 与旧引擎包主版本不一致导致的「PaddleOCR 引擎未初始化」；设置页引擎版本显示随之更新
 
 ## [1.12.0] - 2026-09-20
 

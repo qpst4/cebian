@@ -3,12 +3,12 @@
   "packs": [
     {
       "id": "ocr-engine",
-      "packRevision": 5,
-      "displayVersion": "ONNX Runtime 1.29.0 / OpenCV 5.0.0.1",
-      "sizeBytes": 28775904,
-      "url": "https://github.com/qpst4/cebian/releases/download/v1.9.23/ocr-engine-arm64-v5.zip",
+      "packRevision": 6,
+      "displayVersion": "ONNX Runtime 1.30.0 / OpenCV 5.0.0.1",
+      "sizeBytes": 29062445,
+      "url": "https://github.com/qpst4/cebian/releases/download/v1.13.0/ocr-engine-arm64-v6.zip",
       "mirrorUrls": [],
-      "sha256": "914abcb8b6b4b5a4b139dbeaf440df40b6000cd470c892283a4226e44ccd6371",
+      "sha256": "27eb21243f3940782af232785c4fabdeb8078f00f0be58ed4e6b1f7a379bfc1b",
       "minAppVersionCode": 6,
       "libraries": [
         "libonnxruntime.so",

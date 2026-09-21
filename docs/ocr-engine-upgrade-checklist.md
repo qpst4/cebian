@@ -3,7 +3,8 @@
 > **适用范围**：仅在做 OCR 引擎包或 ONNX Runtime 相关升级时使用（例如升 `onnxruntime`、`packRevision`、重打 `ocr-engine-arm64-v*.zip`）。  
 > 普通依赖（WorkManager、MIUIX 等）**不需要**走本文档。
 
-当前基线（2026-09）：ORT **1.29.0**，OCR 引擎包 **revision 4**，zip 名 `ocr-engine-arm64-v4.zip`，仅 **arm64-v8a**。
+当前基线（2026-09）：ORT **1.30.0**，OCR 引擎包 **revision 6**，zip 名 `ocr-engine-arm64-v6.zip`，仅 **arm64-v8a**。
+（历史：revision 4 = ORT 1.29.0 之前；revision 5 = `ocr-engine-arm64-v5.zip` / ORT 1.29.0。）
 
 ---
 
@@ -23,7 +24,7 @@ Android 上 ONNX Runtime 拆成两部分，**主版本必须一致**：
 
 引擎包 zip 内还应包含（与 `app/build.gradle.kts` 中 `nativeEnginePackSpecs` 一致）：
 
-- `libopencv_java4.so`
+- `libopencv_java5.so`
 - `libleptonica.so`
 - `libtesseract.so`
 

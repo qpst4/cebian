@@ -193,7 +193,7 @@ private data class NativeEnginePackSpec(
 private val nativeEnginePackSpecs = listOf(
     NativeEnginePackSpec(
         taskName = "packageOcrEnginePack",
-        zipName = "ocr-engine-arm64-v5.zip",
+        zipName = "ocr-engine-arm64-v6.zip",
         libraries = listOf(
             "libonnxruntime.so",
             "libopencv_java5.so",
