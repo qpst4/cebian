@@ -37,6 +37,8 @@ fun MainMiuixNavigationRail(
     val shakeUnselectedIcon = ImageVector.vectorResource(R.drawable.ic_nav_shake_outlined)
     NavigationRail(
         modifier = modifier.fillMaxHeight(),
+        // 具名传 state 走可展开重载：本栏不提供展开/收起入口，仅用于保持既有布局。
+        // 固定紧凑重载（无 state）在 0.9.4 会给选中项加背板，属于视觉变更，需另行评估。
         state = rememberNavigationRailState(),
     ) {
         NavigationRailItem(

@@ -9,17 +9,21 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.interaction.collectIsDraggedAsState
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerDefaults
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.snapshots.SnapshotStateSet
 import androidx.compose.ui.Alignment
@@ -32,13 +36,15 @@ import com.slideindex.app.di.AppDependencies
 import com.slideindex.app.settings.BottomNavStyle
 import com.slideindex.app.ui.MainBottomNavDestination
 import com.slideindex.app.ui.MiuixFloatingBottomNavBar
-import com.slideindex.app.ui.mainMiuixLiquidGlassBottomNavPadding
 import com.slideindex.app.ui.MiuixOfficialFloatingBottomNavBar
 import com.slideindex.app.ui.miuix.rememberMiuixBlurBackdrop
 import dev.chrisbanes.haze.HazeState
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
+import top.yukonga.miuix.kmp.utils.PagerGestureNestedScrollConnection
+import top.yukonga.miuix.kmp.utils.PagerInterceptionMode
+import top.yukonga.miuix.kmp.utils.pagerGestureOverride
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
@@ -77,7 +83,9 @@ internal fun MainTabPagerHost(
         pageCount = { MainBottomNavDestination.entries.size },
     )
     val mainTabPagerState = rememberMainTabPagerState(pagerState)
-    val isDragged by pagerState.interactionSource.collectIsDraggedAsState()
+    // 横滑由 miuix 的 PagerSwipeNode 接管（见下方 pagerGestureOverride），不再经过 pager 原生
+    // 手势，interactionSource 收不到拖动事件，所以自行跟踪“用户正在横滑”用于底栏 1:1 跟随。
+    var isPagerDragTracking by remember(pagerState) { mutableStateOf(false) }
     val liquidGlassBackdrop = rememberLayerBackdrop()
     val floatingNavBackdrop = rememberMiuixBlurBackdrop(bottomNavUsesHaze)
     val activeBackdrop = when (bottomNavStyle) {
@@ -94,6 +102,13 @@ internal fun MainTabPagerHost(
                     mainTabPagerState.syncPage()
                 }
         }
+        launch {
+            // miuix 的横滑与落位共用一个 scroll 突变，突变结束即表示这一轮横滑收尾。
+            snapshotFlow { pagerState.isScrollInProgress }
+                .collect { inProgress ->
+                    if (!inProgress) isPagerDragTracking = false
+                }
+        }
         snapshotFlow { pagerState.settledPage }.collect { page ->
             val tab = MainBottomNavDestination.entries[page]
             visitedTabs.add(tab)
@@ -103,7 +118,7 @@ internal fun MainTabPagerHost(
 
     LaunchedEffect(currentTab) {
         val target = currentTab.ordinal
-        if (pagerState.currentPage != target && !isDragged && !mainTabPagerState.isNavigating) {
+        if (pagerState.currentPage != target && !isPagerDragTracking && !mainTabPagerState.isNavigating) {
             mainTabPagerState.animateToPage(target)
         }
     }
@@ -124,12 +139,8 @@ internal fun MainTabPagerHost(
                 exit = fadeOut(navBarFadeSpec) +
                     slideOutVertically(navBarSlideSpec) { fullHeight -> fullHeight },
             ) {
-                val bottomBarModifier = when (bottomNavStyle) {
-                    BottomNavStyle.LIQUID_GLASS -> Modifier.padding(
-                        bottom = mainMiuixLiquidGlassBottomNavPadding(),
-                    )
-                    else -> Modifier
-                }
+                // 液态玻璃底栏（Mishka 实现）内部自带 navigationBars 留白，这里不再叠加。
+                val bottomBarModifier = Modifier
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -141,7 +152,7 @@ internal fun MainTabPagerHost(
                             backdrop = liquidGlassBackdrop,
                             targetTabIndex = mainTabPagerState.selectedPage,
                             progress = { pagerState.currentPage + pagerState.currentPageOffsetFraction },
-                            isTracking = { isDragged },
+                            isTracking = { isPagerDragTracking },
                             blurRadiusDp = bottomNavBlurRadiusDp,
                             glassEnabled = bottomNavUsesHaze,
                             showLabel = showBottomNavLabels,
@@ -174,10 +185,25 @@ internal fun MainTabPagerHost(
                 .fillMaxSize()
                 .then(activeBackdrop?.let { Modifier.layerBackdrop(it) } ?: Modifier),
         ) {
+            // 竖列表惯性滚动 / 回弹过程中的横滑交给 miuix 的 Cross-Axis 拦截；只在本 Tab
+            // 根页启用，子页里的横向滚动（搜索面板、取词结果等）保持原生手势不被抢走。
+            val pagerGestureEnabled = isRootDestination
             HorizontalPager(
                 state = pagerState,
-                modifier = Modifier.fillMaxSize(),
-                userScrollEnabled = isRootDestination,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .pagerGestureOverride(
+                        pagerState = pagerState,
+                        mode = PagerInterceptionMode.CrossAxisInterceptor,
+                        enabled = pagerGestureEnabled,
+                        onTriggered = { isPagerDragTracking = true },
+                    ),
+                userScrollEnabled = false,
+                pageNestedScrollConnection = if (pagerGestureEnabled) {
+                    PagerGestureNestedScrollConnection
+                } else {
+                    PagerDefaults.pageNestedScrollConnection(pagerState, Orientation.Horizontal)
+                },
                 beyondViewportPageCount = 1,
                 key = { it },
             ) { page ->

@@ -1,9 +1,5 @@
 package com.slideindex.app.ui.navigation
 
-import androidx.compose.animation.core.EaseInOut
-import androidx.compose.animation.core.animate
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.MutatePriority
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
@@ -13,15 +9,18 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import top.yukonga.miuix.kmp.utils.springAnimateToPage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
-import kotlin.math.abs
 
 /**
- * Tab Pager 程序化切页，对齐 Mishka [MainPagerState.animateToPage]：
- * 相邻 Tab 约 300ms EaseInOut，跨页按距离线性加长。
+ * Tab Pager 程序化切页。
+ *
+ * 动画交给 miuix 的 [springAnimateToPage]（`PagerNavigationSpringSpec`，并在同一处
+ * `scroll(MutatePriority.UserInput)` 突变里完成，取消不会把新目标吸附回旧页）。
+ * 本类只保留选中页与「正在切页」状态，供底栏与 [MainTabPagerHost] 判断。
  */
 @Stable
 internal class MainTabPagerState(
@@ -51,28 +50,7 @@ internal class MainTabPagerState(
         navJob = coroutineScope.launch {
             val myJob = coroutineContext.job
             try {
-                pagerState.scroll(MutatePriority.UserInput) {
-                    val distance = abs(targetIndex - pagerState.currentPage).coerceAtLeast(2)
-                    val duration = 100 * distance + 100
-                    val layoutInfo = pagerState.layoutInfo
-                    val pageSize = layoutInfo.pageSize + layoutInfo.pageSpacing
-                    val currentDistanceInPages =
-                        targetIndex - pagerState.currentPage - pagerState.currentPageOffsetFraction
-                    val scrollPixels = currentDistanceInPages * pageSize
-
-                    var previousValue = 0f
-                    animate(
-                        initialValue = 0f,
-                        targetValue = scrollPixels,
-                        animationSpec = tween(easing = EaseInOut, durationMillis = duration),
-                    ) { currentValue, _ ->
-                        previousValue += scrollBy(currentValue - previousValue)
-                    }
-                }
-
-                if (pagerState.currentPage != targetIndex) {
-                    pagerState.scrollToPage(targetIndex)
-                }
+                pagerState.springAnimateToPage(targetIndex)
             } finally {
                 if (navJob == myJob) {
                     isNavigating = false
