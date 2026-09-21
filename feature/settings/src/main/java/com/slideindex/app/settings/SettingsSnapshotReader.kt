@@ -905,18 +905,14 @@ internal object SettingsSnapshotReader {
             ?: (((legacyStyleId == MessageStyle.SideBubble.id || wasLegacyCard) && primaryStyleEnabled))
         val danmakuEnabled = prefs[SettingsPreferenceKeys.MESSAGE_DANMAKU_ENABLED] ?: true
         val cNoticeEnabled = prefs[SettingsPreferenceKeys.MESSAGE_C_NOTICE_ENABLED] ?: false
-        val legacyMasterEnabled = prefs[SettingsPreferenceKeys.MESSAGE_REMINDER_ENABLED] ?: false
+        // 总开关只认自己的键：提醒样式是否默认开启不再影响它（新装即为关）。
+        val enabled = prefs[SettingsPreferenceKeys.MESSAGE_REMINDER_ENABLED] ?: false
         val hasInterceptKey = SettingsPreferenceKeys.MESSAGE_INTERCEPT_NOTIFICATIONS in prefs
-        val anyStyleEnabled = floatIconEnabled || sideBubbleEnabled || danmakuEnabled || cNoticeEnabled
         val interceptNotifications = if (hasInterceptKey) {
             prefs[SettingsPreferenceKeys.MESSAGE_INTERCEPT_NOTIFICATIONS] ?: false
         } else {
-            legacyMasterEnabled
-        }
-        val enabled = if (hasInterceptKey) {
-            legacyMasterEnabled
-        } else {
-            legacyMasterEnabled || anyStyleEnabled
+            // 老版本没有独立的拦截键时沿用总开关（迁移用），新装读 false。
+            enabled
         }
         return withGestures.copy(
             enabled = enabled,
