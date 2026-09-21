@@ -1,43 +1,23 @@
 package com.slideindex.app.ui
 
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Widgets
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.settings.BottomNavBlurDefaults
-import com.slideindex.app.ui.a11y.cdBottomNavExtension
-import com.slideindex.app.ui.a11y.cdBottomNavHome
-import com.slideindex.app.ui.a11y.cdBottomNavNotification
-import com.slideindex.app.ui.a11y.cdBottomNavShake
-import com.slideindex.app.ui.miuix.bottombar.FloatingBottomBar
-import com.slideindex.app.ui.miuix.bottombar.FloatingBottomBarDefaults
-import com.slideindex.app.ui.miuix.bottombar.FloatingBottomBarItem
-import top.yukonga.miuix.kmp.blur.Backdrop
-import top.yukonga.miuix.kmp.theme.MiuixTheme
+import com.slideindex.app.ui.miuix.bottombar.liquid.IosLiquidGlassNavigationBar
+import com.slideindex.app.ui.theme.LocalAppDarkTheme
+import top.yukonga.miuix.kmp.basic.NavigationItem
+import top.yukonga.miuix.kmp.blur.LayerBackdrop
 
 /** WeKit 式液态玻璃底栏高度（含内边距）。 */
 val MainMiuixBottomNavBarHeight = 64.dp
@@ -45,23 +25,15 @@ val MainMiuixBottomNavBarHeight = 64.dp
 /** 胶囊与系统导航栏之间的留白，对齐 Mishka IosLiquidGlass（8dp）。 */
 val MainMiuixBottomNavOuterPadding = 8.dp
 
-/** Mishka [IosLiquidGlassNavigationBar] 同款底部间距：outer + navigationBars，无 inset 时 36dp。 */
-@Composable
-fun mainMiuixLiquidGlassBottomNavPadding(): Dp {
-    val navBarBottomPadding = WindowInsets.navigationBars
-        .only(WindowInsetsSides.Bottom)
-        .asPaddingValues()
-        .calculateBottomPadding()
-    return if (navBarBottomPadding != 0.dp) {
-        MainMiuixBottomNavOuterPadding + navBarBottomPadding
-    } else {
-        36.dp
-    }
-}
-
+/**
+ * 液态玻璃底栏：内部直接使用 Mishka 的 [IosLiquidGlassNavigationBar] 实现。
+ *
+ * 对外保持本项目原有入参（pager 进度跟手、模糊半径、重复点击回顶），
+ * 由上游组件的三个本地扩展参数 progress / isTracking / blurRadiusDp 承接。
+ */
 @Composable
 fun MiuixFloatingBottomNavBar(
-    backdrop: Backdrop,
+    backdrop: LayerBackdrop?,
     targetTabIndex: Int,
     progress: () -> Float,
     isTracking: () -> Boolean,
@@ -74,91 +46,45 @@ fun MiuixFloatingBottomNavBar(
 ) {
     val haptic = LocalHapticFeedback.current
     val destinations = MainBottomNavDestination.entries
-    val blurRadius = blurRadiusDp.coerceIn(
-        BottomNavBlurDefaults.MIN_RADIUS_DP,
-        BottomNavBlurDefaults.MAX_RADIUS_DP,
-    ).dp
+    val items = destinations.map { destination ->
+        NavigationItem(
+            label = mainBottomNavLabel(destination),
+            icon = mainLiquidGlassNavIcon(destination),
+        )
+    }
 
-    FloatingBottomBar(
-        modifier = modifier,
+    IosLiquidGlassNavigationBar(
+        items = items,
         selectedIndex = targetTabIndex,
-        progress = progress,
-        isTracking = isTracking,
-        onSelected = { index ->
+        onItemClick = { index ->
             haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
-            onTabSelected(destinations[index])
-        },
-        onTabReselected = { index ->
-            haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
-            onTabReselected(destinations[index])
+            val destination = destinations[index]
+            if (index == targetTabIndex) {
+                onTabReselected(destination)
+            } else {
+                onTabSelected(destination)
+            }
         },
         backdrop = backdrop,
-        tabsCount = destinations.size,
-        isBlurEnabled = glassEnabled,
-        blurRadius = blurRadius,
-        colors = FloatingBottomBarDefaults.colors(
-            containerColor = MiuixTheme.colorScheme.surfaceContainer,
-            indicatorColor = MiuixTheme.colorScheme.primary,
-            contentColor = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-            activeContentColor = MiuixTheme.colorScheme.primary,
+        isBlurActive = glassEnabled,
+        isDark = LocalAppDarkTheme.current,
+        showLabels = showLabel,
+        modifier = modifier,
+        progress = progress,
+        isTracking = isTracking,
+        blurRadiusDp = blurRadiusDp.coerceIn(
+            BottomNavBlurDefaults.MIN_RADIUS_DP,
+            BottomNavBlurDefaults.MAX_RADIUS_DP,
         ),
-    ) {
-        destinations.forEachIndexed { index, destination ->
-            FloatingBottomBarItem(
-                onClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.ContextClick)
-                    onTabSelected(destination)
-                },
-                // Keep the capsule width stable when labels are hidden.
-                modifier = Modifier.defaultMinSize(minWidth = 76.dp),
-            ) {
-                Crossfade(
-                    targetState = index == targetTabIndex,
-                    animationSpec = tween(200),
-                    label = "mainNavIcon-$index",
-                ) { selected ->
-                    MainBottomNavTabIcon(destination = destination, selected = selected)
-                }
-                if (showLabel) {
-                    Text(
-                        text = mainBottomNavLabel(destination),
-                        style = MiuixTheme.textStyles.body2,
-                    )
-                }
-            }
-        }
-    }
+    )
 }
 
 @Composable
-private fun MainBottomNavTabIcon(
-    destination: MainBottomNavDestination,
-    selected: Boolean,
-) {
-    when (destination) {
-        MainBottomNavDestination.Home -> Icon(
-            imageVector = if (selected) Icons.Default.Home else Icons.Outlined.Home,
-            contentDescription = cdBottomNavHome(),
-            modifier = Modifier.size(MainBottomNavIconSize),
-        )
-        MainBottomNavDestination.Shake -> Icon(
-            painter = painterResource(
-                if (selected) R.drawable.ic_nav_shake else R.drawable.ic_nav_shake_outlined,
-            ),
-            contentDescription = cdBottomNavShake(),
-            modifier = Modifier.size(MainBottomNavIconSize),
-        )
-        MainBottomNavDestination.Notification -> Icon(
-            imageVector = if (selected) Icons.Default.Notifications else Icons.Outlined.Notifications,
-            contentDescription = cdBottomNavNotification(),
-            modifier = Modifier.size(MainBottomNavIconSize),
-        )
-        MainBottomNavDestination.Extension -> Icon(
-            imageVector = if (selected) Icons.Default.Widgets else Icons.Outlined.Widgets,
-            contentDescription = cdBottomNavExtension(),
-            modifier = Modifier.size(MainBottomNavIconSize),
-        )
-    }
+private fun mainLiquidGlassNavIcon(destination: MainBottomNavDestination): ImageVector = when (destination) {
+    MainBottomNavDestination.Home -> Icons.Outlined.Home
+    MainBottomNavDestination.Shake -> ImageVector.vectorResource(R.drawable.ic_nav_shake_outlined)
+    MainBottomNavDestination.Notification -> Icons.Outlined.Notifications
+    MainBottomNavDestination.Extension -> Icons.Outlined.Widgets
 }
 
 @Composable
@@ -168,5 +94,3 @@ private fun mainBottomNavLabel(destination: MainBottomNavDestination): String = 
     MainBottomNavDestination.Notification -> stringResource(R.string.main_nav_notification)
     MainBottomNavDestination.Extension -> stringResource(R.string.main_nav_extension)
 }
-
-private val MainBottomNavIconSize = 24.dp

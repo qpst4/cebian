@@ -412,7 +412,7 @@ data class OverlaySettings(
 
 object BottomNavBlurDefaults {
     const val DEFAULT_RADIUS_DP = 24f
-    const val LIQUID_GLASS_DEFAULT_RADIUS_DP = 7f
+    const val LIQUID_GLASS_DEFAULT_RADIUS_DP = 4f
     const val FLOATING_NAV_DEFAULT_RADIUS_DP = 7f
     const val MIN_RADIUS_DP = 0f
     const val MAX_RADIUS_DP = 32f

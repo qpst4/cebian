@@ -1,34 +1,41 @@
-// InstallerX-Revived / WeKit — GPL-3.0-only. Adapted for com.slideindex.app.
+// Copyright 2026, compose-miuix-ui contributors
+// SPDX-License-Identifier: Apache-2.0
+
+// Ported from Mishka (GPL-3.0) - https://github.com/YuKongA/Mishka
+
 package com.slideindex.app.ui.miuix.bottombar.animation
+
+// Adapted from Kyant0/AndroidLiquidGlass — https://github.com/Kyant0/AndroidLiquidGlass (Apache 2.0).
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.MutatorMutex
-import androidx.compose.runtime.snapshotFlow
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.input.pointer.util.VelocityTracker
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.withFrameMillis
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.AwaitPointerEventScope
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.PointerId
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.PointerInputScope
 import androidx.compose.ui.input.pointer.changedToUpIgnoreConsumed
-import androidx.compose.ui.input.pointer.positionChange
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChangeIgnoreConsumed
+import androidx.compose.ui.input.pointer.util.VelocityTracker
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.util.fastFirstOrNull
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.android.awaitFrame
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlin.math.abs
+import kotlin.time.TimeSource
 
-class DampedDragAnimation(
+internal class DampedDragAnimation(
     private val animationScope: CoroutineScope,
     val initialValue: Float,
     val valueRange: ClosedRange<Float>,
@@ -38,10 +45,10 @@ class DampedDragAnimation(
     val canDrag: (Offset) -> Boolean = { true },
     val onDragStarted: DampedDragAnimation.(position: Offset) -> Unit,
     val onDragStopped: DampedDragAnimation.() -> Unit,
+    val onDragCancelled: DampedDragAnimation.() -> Unit = onDragStopped,
     val onDrag: DampedDragAnimation.(size: IntSize, dragAmount: Offset) -> Unit,
-    val onTap: DampedDragAnimation.() -> Unit = {},
-    val onLongPress: DampedDragAnimation.() -> Unit = {},
 ) {
+
     private val valueAnimationSpec = spring(1f, 1000f, visibilityThreshold)
     private val velocityAnimationSpec = spring(0.5f, 300f, visibilityThreshold * 10f)
     private val pressProgressAnimationSpec = spring(1f, 1000f, 0.001f)
@@ -55,10 +62,15 @@ class DampedDragAnimation(
     private val scaleYAnimation = Animatable(initialScale, 0.001f)
 
     private val mutatorMutex = MutatorMutex()
+
+    private var pressJob: Job? = null
+    private var releaseJob: Job? = null
+
     private val velocityTracker = VelocityTracker()
 
-    var isDragging: Boolean = false
-        private set
+    private val startMark = TimeSource.Monotonic.markNow()
+
+    private fun nowMillis(): Long = startMark.elapsedNow().inWholeMilliseconds
 
     val value: Float get() = valueAnimation.value
     val targetValue: Float get() = valueAnimation.targetValue
@@ -68,61 +80,33 @@ class DampedDragAnimation(
     val velocity: Float get() = velocityAnimation.value
 
     val modifier: Modifier = Modifier.pointerInput(Unit) {
-        val tapSlop = viewConfiguration.touchSlop
-        val longPressTimeoutMs = viewConfiguration.longPressTimeoutMillis
-        var accumulatedDrag = 0f
-        var longPressJob: Job? = null
-        var longPressFired = false
         inspectDragGestures(
             onDragStart = { down ->
-                isDragging = true
-                accumulatedDrag = 0f
-                longPressFired = false
                 onDragStarted(down.position)
                 press()
-                longPressJob = animationScope.launch {
-                    delay(longPressTimeoutMs)
-                    longPressFired = true
-                    onLongPress()
-                }
             },
             onDragEnd = {
-                isDragging = false
-                longPressJob?.cancel()
-                longPressJob = null
                 onDragStopped()
                 release()
-                if (!longPressFired && accumulatedDrag <= tapSlop) {
-                    onTap()
-                }
             },
             onDragCancel = {
-                isDragging = false
-                longPressJob?.cancel()
-                longPressJob = null
-                longPressFired = false
-                onDragStopped()
+                onDragCancelled()
                 release()
             },
         ) { change, dragAmount ->
-            val position = change.position
-            val previousPosition = change.previousPosition
-            val isInside = canDrag(position)
-            val wasInside = canDrag(previousPosition)
+            val isInside = canDrag(change.position)
+            val wasInside = canDrag(change.previousPosition)
             if (isInside && wasInside) {
-                accumulatedDrag += abs(dragAmount.x) + abs(dragAmount.y)
                 onDrag(size, dragAmount)
-                if (accumulatedDrag > tapSlop) {
-                    longPressJob?.cancel()
-                    longPressJob = null
-                }
             }
         }
     }
 
     fun press() {
+        releaseJob?.cancel()
+        pressJob?.cancel()
         velocityTracker.resetTracking()
-        animationScope.launch {
+        pressJob = animationScope.launch {
             launch { pressProgressAnimation.animateTo(1f, pressProgressAnimationSpec) }
             launch { scaleXAnimation.animateTo(pressedScale, scaleXAnimationSpec) }
             launch { scaleYAnimation.animateTo(pressedScale, scaleYAnimationSpec) }
@@ -130,8 +114,9 @@ class DampedDragAnimation(
     }
 
     fun release() {
-        animationScope.launch {
-            awaitFrame()
+        releaseJob?.cancel()
+        releaseJob = animationScope.launch {
+            withFrameMillis { }
             if (value != targetValue) {
                 val threshold = (valueRange.endInclusive - valueRange.start) * 0.025f
                 snapshotFlow { valueAnimation.value }.first { abs(it - valueAnimation.targetValue) < threshold }
@@ -144,14 +129,8 @@ class DampedDragAnimation(
 
     fun updateValue(value: Float) {
         val targetValue = value.coerceIn(valueRange)
-        animationScope.launch {
-            launch { valueAnimation.animateTo(targetValue, valueAnimationSpec) { updateVelocity() } }
-        }
-    }
-
-    fun snapToValue(value: Float) {
-        animationScope.launch {
-            valueAnimation.snapTo(value.coerceIn(valueRange))
+        animationScope.launch(start = CoroutineStart.UNDISPATCHED) {
+            valueAnimation.animateTo(targetValue, valueAnimationSpec) { updateVelocity() }
         }
     }
 
@@ -170,9 +149,12 @@ class DampedDragAnimation(
     }
 
     private fun updateVelocity() {
-        velocityTracker.addPosition(System.currentTimeMillis(), Offset(value, 0f))
-        val targetVelocity = velocityTracker.calculateVelocity().x / (valueRange.endInclusive - valueRange.start)
-        animationScope.launch { velocityAnimation.animateTo(targetVelocity, velocityAnimationSpec) }
+        velocityTracker.addPosition(nowMillis(), Offset(value, 0f))
+        val span = (valueRange.endInclusive - valueRange.start).coerceAtLeast(1e-6f)
+        val targetVelocity = velocityTracker.calculateVelocity().x / span
+        animationScope.launch(start = CoroutineStart.UNDISPATCHED) {
+            velocityAnimation.snapTo(targetVelocity)
+        }
     }
 }
 
@@ -183,13 +165,15 @@ internal suspend fun PointerInputScope.inspectDragGestures(
     onDrag: (change: PointerInputChange, dragAmount: Offset) -> Unit,
 ) {
     awaitEachGesture {
-        val initialDown = awaitFirstDown(false, PointerEventPass.Initial)
-        val down = awaitFirstDown(false)
+        val down = awaitFirstDown(
+            requireUnconsumed = false,
+            pass = PointerEventPass.Initial,
+        )
         onDragStart(down)
-        onDrag(initialDown, Offset.Zero)
+        onDrag(down, Offset.Zero)
         val upEvent = drag(
-            pointerId = initialDown.id,
-            onDrag = { onDrag(it, it.positionChange()) },
+            pointerId = down.id,
+            onDrag = { onDrag(it, it.positionChangeIgnoreConsumed()) },
         )
         if (upEvent == null) {
             onDragCancel()
@@ -201,14 +185,13 @@ internal suspend fun PointerInputScope.inspectDragGestures(
 
 private suspend inline fun AwaitPointerEventScope.drag(
     pointerId: PointerId,
-    crossinline onDrag: (PointerInputChange) -> Unit,
+    onDrag: (PointerInputChange) -> Unit,
 ): PointerInputChange? {
     val isPointerUp = currentEvent.changes.fastFirstOrNull { it.id == pointerId }?.pressed != true
     if (isPointerUp) return null
     var pointer = pointerId
     while (true) {
         val change = awaitDragOrUp(pointer) ?: return null
-        if (change.isConsumed) return null
         if (change.changedToUpIgnoreConsumed()) return change
         onDrag(change)
         pointer = change.id
@@ -220,7 +203,7 @@ private suspend inline fun AwaitPointerEventScope.awaitDragOrUp(
 ): PointerInputChange? {
     var pointer = pointerId
     while (true) {
-        val event = awaitPointerEvent()
+        val event = awaitPointerEvent(PointerEventPass.Initial)
         val dragEvent = event.changes.fastFirstOrNull { it.id == pointer } ?: return null
         if (dragEvent.changedToUpIgnoreConsumed()) {
             val otherDown = event.changes.fastFirstOrNull { it.pressed }

@@ -1,5 +1,11 @@
-// Kyant0/AndroidLiquidGlass — Apache-2.0. Adapted for com.slideindex.app.
+// Copyright 2026, compose-miuix-ui contributors
+// SPDX-License-Identifier: Apache-2.0
+
+// Ported from Mishka (GPL-3.0) - https://github.com/YuKongA/Mishka
+
 package com.slideindex.app.ui.miuix.bottombar.liquid
+
+// Adapted from Kyant0/AndroidLiquidGlass — https://github.com/Kyant0/AndroidLiquidGlass (Apache 2.0).
 
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
@@ -50,6 +56,7 @@ private class InnerShadowElement(
     val shape: Shape,
     val shadow: () -> InnerShadow?,
 ) : ModifierNodeElement<InnerShadowNode>() {
+
     override fun create(): InnerShadowNode = InnerShadowNode(shape, shadow)
 
     override fun update(node: InnerShadowNode) {
@@ -82,7 +89,9 @@ private class InnerShadowElement(
 private class InnerShadowNode(
     var shape: Shape,
     var shadow: () -> InnerShadow?,
-) : Modifier.Node(), DrawModifierNode {
+) : Modifier.Node(),
+    DrawModifierNode {
+
     override val shouldAutoInvalidate: Boolean = false
 
     private var shadowLayer: GraphicsLayer? = null
@@ -92,11 +101,14 @@ private class InnerShadowNode(
 
     override fun ContentDrawScope.draw() {
         drawContent()
+
         val shadow = shadow() ?: return
         val layer = shadowLayer ?: return
+
         val radius = shadow.radius.toPx()
         val offsetX = shadow.offset.x.toPx()
         val offsetY = shadow.offset.y.toPx()
+
         val outline = shape.createOutline(size, layoutDirection, this)
         clipPath.reset()
         when (outline) {
@@ -104,6 +116,7 @@ private class InnerShadowNode(
             is Outline.Rounded -> clipPath.addRoundRect(outline.roundRect)
             is Outline.Generic -> clipPath.addPath(outline.path)
         }
+
         paint.color = shadow.color
         layer.alpha = shadow.alpha
         layer.blendMode = shadow.blendMode
@@ -111,6 +124,7 @@ private class InnerShadowNode(
             layer.renderEffect = if (radius > 0f) BlurEffect(radius, radius, TileMode.Decal) else null
             prevRadius = radius
         }
+
         layer.record {
             drawContext.canvas.let { canvas ->
                 canvas.save()
@@ -122,6 +136,7 @@ private class InnerShadowNode(
                 canvas.restore()
             }
         }
+
         drawContext.canvas.let { canvas ->
             canvas.save()
             canvas.clipPath(clipPath)
