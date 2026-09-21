@@ -4,10 +4,10 @@ All notable changes to Cebian are documented in this file.
 
 ## [Unreleased]
 
+## [1.13.0] - 2026-09-21
+
 ### Changed
-- **依赖**：Miuix 升级至 `0.9.4`（自 `0.9.4-rc01`），Kotlin 同步至 `2.4.20`
-- **工具链**：AGP `9.4.1`、KSP `2.3.12`、NDK 默认 `29.0.13599879`、compileSdk 提升到 `37.1`（compose 2026.09.00 的 AAR 要求）
-- **依赖**：compose-bom `2026.09.00`、material3 pin `1.5.0-alpha28`、appcompat `1.8.0`、colorpicker `1.3.0`、Robolectric `4.17`、benchmark `1.5.0`、onnxruntime `1.30.0`
+- **工具链与依赖**：Miuix `0.9.4`（自 `0.9.4-rc01`）、Kotlin `2.4.20`、AGP `9.4.1`、KSP `2.3.12`、compose-bom `2026.09.00`（material3 `1.5.0-alpha28`）、appcompat `1.8.0`、colorpicker `1.3.0`、Robolectric `4.17`、benchmark `1.5.0`、onnxruntime `1.30.0`；compileSdk 提升到 `37.1`，NDK 默认 `29.0.13599879`
 - **导航**：entry 内的 `viewModel()` / `hiltViewModel()` / `SavedStateHandle` 改用 miuix-nav 自带作用域，删除手工补齐 SavedState 的 `NavEntryHiltScope`
 - **主界面分页**：横滑切页改由 miuix `pagerGestureOverride`（Cross-Axis）接管，竖列表惯性滚动与回弹期间也能横滑切页；切页动画改用 `PagerState.springAnimateToPage`
 - **液态玻璃底栏**：改用 Mishka 的 `IosLiquidGlassNavigationBar` 实现（原 InstallerX-Revived fork 退役），并获得圆角折射修正、无 runtime shader 设备的降级光斑、tilt 重力高光；按压/未选中亮度随之上调，底部留白改由组件内部处理
