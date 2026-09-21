@@ -7,6 +7,9 @@ All notable changes to Cebian are documented in this file.
 ### Added
 - **应用选择**：应用内直达、按应用禁用、上一应用黑名单等"选应用"页面顶栏新增「显示系统应用」，候选集扩到带 Activity 的全量已安装包，可直达无启动器图标的系统应用（Aicy Engine、App Ops 等）内部页面；Activity 枚举放开 `MATCH_DISABLED_COMPONENTS`，厂商默认关闭/隐藏的页面也能列出
 
+### Changed
+- **本地化**：补齐应用选择页新增三条文案（更多 / 显示系统应用 / 隐藏系统应用）的日语与阿语翻译；删除 0 条字符串的空壳 `values-arz`（未在 `locales_config` 注册、无任何引用）
+
 ### Fixed
 - **应用选择**：空查询的应用列表此前沿用 `PackageManager` 返回顺序，现按 `letter → pinyinKey` 排序，与首页应用列表口径一致；有搜索词时仍保留相关度排序
 - **应用选择**：选中系统应用后，按应用禁用 / 上一应用黑名单的已添加条目因不在启动器列表中被显示为"缺失"，现回退按包名解析标签

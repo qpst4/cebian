@@ -3348,6 +3348,9 @@ APatch で Shell の永久 Root 権限を取り消してください。</string>
     </plurals>
     <string name="activity_shortcut_pick_app_shortcut_desc">アプリケーションに登録されているアクティビティまたはショートカットから1つ選択</string>
     <string name="activity_shortcut_pick_app_desc">ショートカットを追加したいアプリケーションの一覧からインストール済みのアプリケーションを選択</string>
+    <string name="app_picker_more_menu">その他</string>
+    <string name="app_picker_show_system_apps">システムアプリを表示</string>
+    <string name="app_picker_hide_system_apps">システムアプリを非表示</string>
     <string name="gesture_action_open_link">リンクを開く</string>
     <string name="gesture_action_open_link_desc">保存済みの外部リンク、ディープリンク、または Intent URI を開く</string>
     <string name="gesture_open_link_url_field">リンク</string>
