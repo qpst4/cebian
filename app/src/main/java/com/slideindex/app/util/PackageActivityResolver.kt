@@ -14,6 +14,13 @@ data class ExportedActivityInfo(
 )
 
 object PackageActivityResolver {
+    /**
+     * 默认 flags 下 `PackageInfo.activities` 不含被禁用的 Activity，而系统应用大量 Activity
+     * 是厂商默认关闭/隐藏的——不带 `MATCH_DISABLED_COMPONENTS` 就会漏掉「系统应用的隐藏页」
+     * 这一整类目标。此处的 flags 需与 AppRepository#hasAnyActivity 保持一致。
+     */
+    private const val ACTIVITY_FLAGS = PackageManager.GET_ACTIVITIES or
+        PackageManager.MATCH_DISABLED_COMPONENTS
     private val listCache = object : LruCache<String, List<ExportedActivityInfo>>(8) {}
 
     fun listActivities(context: Context, packageName: String): List<ExportedActivityInfo> {
@@ -22,13 +29,10 @@ object PackageActivityResolver {
         val pm = context.packageManager
         val activities = try {
             val packageInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                pm.getPackageInfo(
-                    packageName,
-                    PackageManager.PackageInfoFlags.of(PackageManager.GET_ACTIVITIES.toLong()),
-                )
+                pm.getPackageInfo(packageName, PackageManager.PackageInfoFlags.of(ACTIVITY_FLAGS.toLong()))
             } else {
                 @Suppress("DEPRECATION")
-                pm.getPackageInfo(packageName, PackageManager.GET_ACTIVITIES)
+                pm.getPackageInfo(packageName, ACTIVITY_FLAGS)
             }
             packageInfo.activities.orEmpty()
         } catch (_: PackageManager.NameNotFoundException) {
@@ -58,13 +62,10 @@ object PackageActivityResolver {
         val pm = context.packageManager
         val activities = try {
             val packageInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                pm.getPackageInfo(
-                    packageName,
-                    PackageManager.PackageInfoFlags.of(PackageManager.GET_ACTIVITIES.toLong()),
-                )
+                pm.getPackageInfo(packageName, PackageManager.PackageInfoFlags.of(ACTIVITY_FLAGS.toLong()))
             } else {
                 @Suppress("DEPRECATION")
-                pm.getPackageInfo(packageName, PackageManager.GET_ACTIVITIES)
+                pm.getPackageInfo(packageName, ACTIVITY_FLAGS)
             }
             packageInfo.activities.orEmpty()
         } catch (_: PackageManager.NameNotFoundException) {

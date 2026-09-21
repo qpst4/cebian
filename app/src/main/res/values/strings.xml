@@ -2241,6 +2241,9 @@
     <string name="activity_shortcut_pick_app_shortcut_title">选择快捷方式</string>
     <string name="activity_shortcut_pick_app_shortcut_desc">从该应用已注册的 Activity 或快捷方式中选择一项</string>
     <string name="activity_shortcut_pick_app_desc">从已安装应用中选择要添加快捷方式的应用</string>
+    <string name="app_picker_more_menu">更多</string>
+    <string name="app_picker_show_system_apps">显示系统应用</string>
+    <string name="app_picker_hide_system_apps">隐藏系统应用</string>
     <string name="activity_shortcut_change_icon">更换图标</string>
     <string name="activity_shortcut_reset_icon">恢复默认图标</string>
     <string name="activity_shortcut_add">添加快捷方式</string>

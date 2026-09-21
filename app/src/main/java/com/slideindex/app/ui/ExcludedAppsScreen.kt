@@ -32,6 +32,7 @@ import com.slideindex.app.data.AppInfo
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.ExcludedAppScopes
 import com.slideindex.app.ui.compose.collectLaunchableAppsAsState
+import com.slideindex.app.ui.compose.rememberAppRepository
 import com.slideindex.app.ui.picker.ActivityShortcutPickAppScreen
 import com.slideindex.app.ui.miuix.CardItem
 import com.slideindex.app.ui.miuix.groupedCardItems
@@ -51,6 +52,7 @@ fun ExcludedAppsScreen(
     onRemoveExcludedApp: (String) -> Unit,
     onExcludedAppScopesChange: (String, ExcludedAppScopes) -> Unit
 ) {
+    val appRepository = rememberAppRepository()
     val allApps by collectLaunchableAppsAsState()
     var editingEntry by remember { mutableStateOf<EditingExcludedApp?>(null) }
     val isLoading = allApps.isEmpty()
@@ -59,7 +61,9 @@ fun ExcludedAppsScreen(
     val appsByPackage = remember(allApps) { allApps.associateBy { it.packageName } }
     val excludedEntries = remember(excludedPackages, allApps) {
         excludedPackages.sorted().map { packageName ->
-            appsByPackage[packageName]?.let { AppPackageEntry.Installed(it) }
+            // 系统应用不在启动器列表里，回退按包名查询（仓库内缓存，重复调用无开销）
+            (appsByPackage[packageName] ?: appRepository.lookupApp(packageName))
+                ?.let { AppPackageEntry.Installed(it) }
                 ?: AppPackageEntry.Missing(packageName)
         }
     }

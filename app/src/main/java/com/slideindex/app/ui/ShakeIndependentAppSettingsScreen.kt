@@ -13,6 +13,7 @@ import com.slideindex.app.data.AppInfo
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.shake.ShakeGestureType
 import com.slideindex.app.ui.compose.collectLaunchableAppsAsState
+import com.slideindex.app.ui.compose.rememberAppRepository
 import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffold
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -24,13 +25,16 @@ fun ShakeIndependentAppSettingsScreen(
     onOpenConfiguredApp: (String) -> Unit,
     onRemoveAppConfig: (String) -> Unit,
 ) {
+    val appRepository = rememberAppRepository()
     val allApps by collectLaunchableAppsAsState()
     val isLoading = allApps.isEmpty()
 
     val appsByPackage = remember(allApps) { allApps.associateBy { it.packageName } }
     val configuredEntries = remember(perAppActions, allApps) {
         perAppActions.keys.sorted().map { packageName ->
-            appsByPackage[packageName]?.let { AppPackageEntry.Installed(it) }
+            // 系统应用不在启动器列表里，回退按包名查询（仓库内缓存，重复调用无开销）
+            (appsByPackage[packageName] ?: appRepository.lookupApp(packageName))
+                ?.let { AppPackageEntry.Installed(it) }
                 ?: AppPackageEntry.Missing(packageName)
         }
     }

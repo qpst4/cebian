@@ -10,10 +10,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
@@ -46,6 +49,11 @@ import com.slideindex.app.util.ExportedActivityInfo
 import com.slideindex.app.util.PackageActivityResolver
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import top.yukonga.miuix.kmp.basic.DropdownEntry
+import top.yukonga.miuix.kmp.basic.DropdownItem
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.menu.OverlayIconDropdownMenu
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalFoundationApi::class)
 @Composable
@@ -57,11 +65,16 @@ fun ActivityShortcutPickAppScreen(
     excludePackageNames: Set<String> = emptySet(),
     embedInParentChrome: Boolean = false,
     enableBackHandler: Boolean = true,
+    showSystemAppsOption: Boolean = true,
 ) {
     val appRepository = rememberAppRepository()
     val apps by collectLaunchableAppsAsState()
     val loading = apps.isEmpty()
     var query by remember { mutableStateOf("") }
+    // 系统应用默认不显示：打开开关才枚举（仓库内每进程缓存一次），仅会话级，不落设置
+    var showSystemApps by remember { mutableStateOf(false) }
+    var systemApps by remember { mutableStateOf<List<AppInfo>?>(null) }
+    var loadingSystemApps by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         if (apps.isEmpty()) {
@@ -69,10 +82,34 @@ fun ActivityShortcutPickAppScreen(
         }
     }
 
-    val filtered = remember(apps, query, excludePackageNames) {
-        appRepository.searchApps(apps, query)
-            .filter { it.packageName !in excludePackageNames }
+    LaunchedEffect(showSystemApps) {
+        if (showSystemApps && systemApps == null) {
+            loadingSystemApps = true
+            try {
+                systemApps = appRepository.loadActivityTargetApps()
+            } finally {
+                // 开关快速来回切会取消本次加载，这里要保证指示器不会卡住
+                loadingSystemApps = false
+            }
+        }
     }
+
+    val candidateApps = remember(apps, systemApps, showSystemApps) {
+        if (showSystemApps) {
+            appRepository.mergeActivityTargets(apps, systemApps.orEmpty())
+        } else {
+            apps
+        }
+    }
+
+    val filtered = remember(candidateApps, query, excludePackageNames) {
+        val matched = appRepository.searchApps(candidateApps, query)
+            .filter { it.packageName !in excludePackageNames }
+        // 空查询没有相关度可依，统一按「首字母 → 拼音」排序；有查询保留相关度排序
+        if (query.isBlank()) appRepository.sortedByLetter(matched) else matched
+    }
+
+    val systemAppsLoading = showSystemApps && loadingSystemApps
 
     if (embedInParentChrome) {
         EmbeddedActivityPickAppList(
@@ -82,6 +119,10 @@ fun ActivityShortcutPickAppScreen(
             filtered = filtered,
             selectedPackageName = selectedPackageName,
             onSelectApp = onSelectApp,
+            showSystemAppsOption = showSystemAppsOption,
+            showSystemApps = showSystemApps,
+            onToggleSystemApps = { showSystemApps = !showSystemApps },
+            systemAppsLoading = systemAppsLoading,
         )
         return
     }
@@ -95,6 +136,14 @@ fun ActivityShortcutPickAppScreen(
         onBack = onBack,
         enableBackHandler = enableBackHandler,
         hintResId = R.string.notification_rule_app_search_hint,
+        extraActions = {
+            if (showSystemAppsOption) {
+                SystemAppsMenuAction(
+                    showSystemApps = showSystemApps,
+                    onToggle = { showSystemApps = !showSystemApps },
+                )
+            }
+        },
     ) {
         activityPickerAppListBody(
             loading = loading,
@@ -102,6 +151,7 @@ fun ActivityShortcutPickAppScreen(
             selectedPackageName = selectedPackageName,
             onSelectApp = onSelectApp,
             emptyText = emptyAppsText,
+            systemAppsLoading = systemAppsLoading,
         )
     }
 }
@@ -183,6 +233,7 @@ private fun LazyListScope.activityPickerAppListBody(
     selectedPackageName: String?,
     onSelectApp: (AppInfo) -> Unit,
     emptyText: String,
+    systemAppsLoading: Boolean = false,
 ) {
     when {
         loading -> activityPickerLoadingItem()
@@ -211,6 +262,7 @@ private fun LazyListScope.activityPickerAppListBody(
             }
         }
     }
+    if (systemAppsLoading && !loading) activityPickerSystemAppsLoadingItem()
 }
 
 private fun LazyListScope.activityPickerActivityListBody(
@@ -274,6 +326,19 @@ private fun LazyListScope.activityPickerLoadingItem() {
     }
 }
 
+private fun LazyListScope.activityPickerSystemAppsLoadingItem() {
+    item(key = "system-apps-loading") {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            CircularProgressIndicator(modifier = Modifier.size(20.dp))
+        }
+    }
+}
+
 private fun LazyListScope.activityPickerEmptyItem(text: String) {
     item(key = "empty") {
         Text(
@@ -294,12 +359,26 @@ private fun EmbeddedActivityPickAppList(
     filtered: List<AppInfo>,
     selectedPackageName: String?,
     onSelectApp: (AppInfo) -> Unit,
+    showSystemAppsOption: Boolean,
+    showSystemApps: Boolean,
+    onToggleSystemApps: () -> Unit,
+    systemAppsLoading: Boolean,
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
         PickerSearchListHeader(
             query = query,
             onQueryChange = onQueryChange,
             hintResId = R.string.notification_rule_app_search_hint,
+            trailing = if (showSystemAppsOption) {
+                {
+                    SystemAppsMenuAction(
+                        showSystemApps = showSystemApps,
+                        onToggle = onToggleSystemApps,
+                    )
+                }
+            } else {
+                null
+            },
         )
         when {
             loading -> {
@@ -321,7 +400,14 @@ private fun EmbeddedActivityPickAppList(
                 )
             }
             else -> {
-                EmbeddedActivityPickerLazyList(itemCount = filtered.size) { index ->
+                EmbeddedActivityPickerLazyList(
+                    itemCount = filtered.size,
+                    footer = if (systemAppsLoading && !loading) {
+                        { activityPickerSystemAppsLoadingItem() }
+                    } else {
+                        null
+                    },
+                ) { index ->
                     val app = filtered[index]
                     val selected = selectedPackageName != null &&
                         app.packageName == selectedPackageName
@@ -426,6 +512,7 @@ private fun EmbeddedActivityPickActivityList(
 private fun ColumnScope.EmbeddedActivityPickerLazyList(
     itemCount: Int,
     itemKey: (Int) -> Any = { it },
+    footer: (LazyListScope.() -> Unit)? = null,
     itemContent: @Composable (Int) -> Unit,
 ) {
     LazyColumn(
@@ -447,5 +534,38 @@ private fun ColumnScope.EmbeddedActivityPickerLazyList(
         ) { index ->
             itemContent(index)
         }
+        footer?.invoke(this)
+    }
+}
+
+/**
+ * 顶栏/内嵌头部右上的「显示系统应用」菜单，与分应用代理页一致的入口形态。
+ * 浮层内嵌时也用它——Miuix 的 OverlayIconDropdownMenu 在 WindowManager 浮层里可用
+ * （冷冻库浮层就是同一用法）。
+ */
+@Composable
+private fun SystemAppsMenuAction(
+    showSystemApps: Boolean,
+    onToggle: () -> Unit,
+) {
+    val showLabel = stringResource(R.string.app_picker_show_system_apps)
+    val hideLabel = stringResource(R.string.app_picker_hide_system_apps)
+    val entry = remember(showSystemApps, showLabel, hideLabel) {
+        DropdownEntry(
+            items = listOf(
+                DropdownItem(
+                    text = if (showSystemApps) hideLabel else showLabel,
+                    selected = showSystemApps,
+                    onClick = onToggle,
+                ),
+            ),
+        )
+    }
+    OverlayIconDropdownMenu(entry = entry) {
+        Icon(
+            imageVector = Icons.Default.MoreVert,
+            contentDescription = stringResource(R.string.app_picker_more_menu),
+            tint = MiuixTheme.colorScheme.onBackground,
+        )
     }
 }

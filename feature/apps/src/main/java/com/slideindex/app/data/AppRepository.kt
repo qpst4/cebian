@@ -48,6 +48,9 @@ class AppRepository @Inject constructor(
     private var cachedFreezerApps: List<AppInfo> = emptyList()
 
     @Volatile
+    private var cachedActivityTargetApps: List<AppInfo> = emptyList()
+
+    @Volatile
     private var appsByPackage: Map<String, AppInfo> = emptyMap()
 
     private val refreshMutex = Mutex()
@@ -82,6 +85,25 @@ class AppRepository @Inject constructor(
         if (!force && cachedFreezerApps.isNotEmpty()) return cachedFreezerApps
         val apps = withContext(Dispatchers.IO) { queryInstalledFreezerApps() }
         cachedFreezerApps = apps
+        return apps
+    }
+
+    /**
+     * 「带 Activity 的已安装包」——启动器列表之外的系统应用候选集，供应用内直达 / 按应用禁用 /
+     * 黑名单这类「先选应用、再选 Activity」的页面使用。
+     *
+     * 与 [loadFreezerApps] 的区别：逐包查 `GET_ACTIVITIES` 丢掉没有任何 Activity 的包
+     * （provider / service-only 的系统包上百个，点进去只会得到空列表），且刻意**不预热图标**，
+     * 几百个系统图标常驻内存的代价远大于收益，图标交给 picker 懒加载。
+     */
+    suspend fun loadActivityTargetApps(force: Boolean = false): List<AppInfo> {
+        if (!force && cachedActivityTargetApps.isNotEmpty()) return cachedActivityTargetApps
+        // 排除集必须是完整的启动器列表，否则会重复列出普通应用
+        val launchable = if (_apps.value.isEmpty()) loadApps() else _apps.value
+        val apps = withContext(Dispatchers.IO) {
+            queryActivityTargetApps(launchable.mapTo(HashSet()) { it.packageName })
+        }
+        cachedActivityTargetApps = apps
         return apps
     }
 
@@ -173,6 +195,7 @@ class AppRepository @Inject constructor(
 
     fun invalidate() {
         cachedFreezerApps = emptyList()
+        cachedActivityTargetApps = emptyList()
         appsByPackage = emptyMap()
         launchIconCache.clear()
         _appsForSearch.value = emptyList()
@@ -221,9 +244,7 @@ class AppRepository @Inject constructor(
         queryDisabledAppsNotInLaunchable(launchablePackages).forEach { app ->
             byPackage[app.packageName] = app
         }
-        return byPackage.values.sortedWith(
-            compareBy<AppInfo> { it.letter }.thenBy { it.pinyinKey },
-        )
+        return byPackage.values.sortedWith(appLetterOrder)
     }
 
     private fun queryDisabledAppsNotInLaunchable(launchablePackages: Set<String>): List<AppInfo> {
@@ -253,10 +274,57 @@ class AppRepository @Inject constructor(
             .toList()
     }
 
+    private fun queryActivityTargetApps(excludePackages: Set<String>): List<AppInfo> {
+        val pm = context.packageManager
+        val selfPackage = context.packageName
+        val appInfos = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            pm.getInstalledApplications(
+                PackageManager.ApplicationInfoFlags.of(PackageManager.MATCH_DISABLED_COMPONENTS.toLong()),
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            pm.getInstalledApplications(PackageManager.MATCH_DISABLED_COMPONENTS)
+        }
+        return appInfos
+            .asSequence()
+            .filter { it.packageName != selfPackage }
+            .filter { it.packageName !in excludePackages }
+            .filter { hasAnyActivity(pm, it.packageName) }
+            .map { appInfo ->
+                val label = runCatching { pm.getApplicationLabel(appInfo).toString() }
+                    .getOrDefault(appInfo.packageName)
+                val isSystem = (appInfo.flags and ApplicationInfo.FLAG_SYSTEM) != 0 ||
+                    (appInfo.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0
+                buildAppInfo(appInfo.packageName, label, isSystem)
+            }
+            .sortedWith(appLetterOrder)
+            .toList()
+    }
+
+    /**
+     * flags 必须与 [com.slideindex.app.util.PackageActivityResolver] 保持一致（含
+     * `MATCH_DISABLED_COMPONENTS`），否则这里判定「有 Activity」的包，点进去可能列出空列表。
+     */
+    private fun hasAnyActivity(pm: PackageManager, packageName: String): Boolean = runCatching {
+        val flags = PackageManager.GET_ACTIVITIES or PackageManager.MATCH_DISABLED_COMPONENTS
+        val info = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            pm.getPackageInfo(packageName, PackageManager.PackageInfoFlags.of(flags.toLong()))
+        } else {
+            @Suppress("DEPRECATION")
+            pm.getPackageInfo(packageName, flags)
+        }
+        !info.activities.isNullOrEmpty()
+    }.getOrDefault(false)
+
+    /** 合并「启动器应用 + 补充候选包」，按包名去重（picker 的 LazyColumn 用包名做 key，重复会崩）。 */
+    fun mergeActivityTargets(launchable: List<AppInfo>, extras: List<AppInfo>): List<AppInfo> =
+        (launchable + extras).distinctBy { it.packageName }
+
+    /** 统一的「首字母 → 拼音」排序口径，与分组列表 / 搜索面板保持一致。 */
+    fun sortedByLetter(apps: List<AppInfo>): List<AppInfo> = apps.sortedWith(appLetterOrder)
+
     fun groupedItems(apps: List<AppInfo>): List<AppListItem> {
-        val sorted = apps.sortedWith(
-            compareBy<AppInfo> { it.letter }.thenBy { it.pinyinKey },
-        )
+        val sorted = apps.sortedWith(appLetterOrder)
         val items = mutableListOf<AppListItem>()
         var currentLetter: Char? = null
         sorted.forEach { app ->
@@ -370,3 +438,5 @@ class AppRepository @Inject constructor(
         private const val REFRESH_DEBOUNCE_MS = 400L
     }
 }
+
+private val appLetterOrder = compareBy<AppInfo> { it.letter }.thenBy { it.pinyinKey }

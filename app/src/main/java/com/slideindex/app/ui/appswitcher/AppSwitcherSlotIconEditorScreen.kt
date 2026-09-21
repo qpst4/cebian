@@ -118,6 +118,8 @@ internal fun AppSwitcherSlotIconEditorHost(
         ActivityShortcutPickAppScreen(
             titleResId = R.string.search_engine_pick_app_icon_title,
             selectedPackageName = "",
+            // 仅取图标，不需要系统应用候选
+            showSystemAppsOption = false,
             onBack = { pickingAppIcon = false },
             onSelectApp = { app ->
                 if (isSavingAppIcon) return@ActivityShortcutPickAppScreen

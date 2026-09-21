@@ -43,7 +43,9 @@ fun ShakeGestureBlacklistScreen(
     val appsByPackage = remember(allApps) { allApps.associateBy { it.packageName } }
     val blacklistedEntries = remember(blacklistedPackages, allApps) {
         blacklistedPackages.sorted().map { packageName ->
-            appsByPackage[packageName]?.let { AppPackageEntry.Installed(it) }
+            // 系统应用不在启动器列表里，回退按包名查询（仓库内缓存，重复调用无开销）
+            (appsByPackage[packageName] ?: appRepository.lookupApp(packageName))
+                ?.let { AppPackageEntry.Installed(it) }
                 ?: AppPackageEntry.Missing(packageName)
         }
     }

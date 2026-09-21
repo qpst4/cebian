@@ -87,6 +87,33 @@ class AppRepositoryTest {
     }
 
     @Test
+    fun sortedByLetter_ordersByLetterThenPinyin() {
+        val apps = listOf(
+            app("com.b", "Beta", 'B'),
+            app("com.a.two", "Another", 'A'),
+            app("com.a", "Alpha", 'A'),
+            app("com.digit", "1号", '#'),
+        )
+        assertEquals(
+            listOf("com.digit", "com.a", "com.a.two", "com.b"),
+            repository.sortedByLetter(apps).map { it.packageName },
+        )
+    }
+
+    @Test
+    fun mergeActivityTargets_dedupesByPackage() {
+        val launchable = listOf(app("com.a", "Alpha", 'A'))
+        val extras = listOf(
+            app("com.a", "Alpha", 'A'),
+            app("com.android.systemui", "系统界面", 'X'),
+        )
+        assertEquals(
+            listOf("com.a", "com.android.systemui"),
+            repository.mergeActivityTargets(launchable, extras).map { it.packageName },
+        )
+    }
+
+    @Test
     fun resolveInstalledPackage_returnsNullForBlankIdentifier() {
         assertNull(repository.resolveInstalledPackage("  "))
     }

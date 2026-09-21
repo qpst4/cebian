@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -118,15 +119,22 @@ internal fun PickerSearchListHeader(
     modifier: Modifier = Modifier,
     @androidx.annotation.StringRes hintResId: Int = R.string.search_hint,
     horizontalPadding: Dp = PickerListScaffoldEmbeddedHorizontalPadding,
+    trailing: (@Composable () -> Unit)? = null,
 ) {
-    SearchBar(
-        query = query,
-        onQueryChange = onQueryChange,
-        hintResId = hintResId,
+    Row(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = horizontalPadding, vertical = 8.dp),
-    )
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        SearchBar(
+            query = query,
+            onQueryChange = onQueryChange,
+            hintResId = hintResId,
+            modifier = if (trailing != null) Modifier.weight(1f) else Modifier,
+        )
+        trailing?.invoke()
+    }
 }
 
 @Composable
