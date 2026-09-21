@@ -112,7 +112,7 @@ Cebian（`com.slideindex.app`）在 [GNU Affero General Public License v3.0](LIC
 - **Copyright:** compose-miuix-ui contributors (YuKongA et al.)
 - **License:** [Apache License 2.0](app/src/main/assets/licenses/Apache-2.0.txt)
 - **Source:** https://github.com/compose-miuix-ui/miuix
-- **Used in:** 设置页与主界面 Miuix UI（`MiuixTheme`、`Scaffold`、`TopAppBar`、Preference 组件、模糊/Shader、`NavigationRail`、`FloatingNavigationBar`、`WindowDialog` 等）；Gradle 依赖 `top.yukonga.miuix.kmp:*`（当前 0.9.3）
+- **Used in:** 设置页与主界面 Miuix UI（`MiuixTheme`、`Scaffold`、`TopAppBar`、Preference 组件、模糊/Shader、`NavigationRail`、`FloatingNavigationBar`、`WindowDialog` 等）以及 `miuix-nav` 应用内导航；Gradle 依赖 `top.yukonga.miuix.kmp:*`（当前 0.9.4）
 - **Note:** 绝大部分为 Maven 运行时依赖，非源码嵌入；`ui/miuix/bottombar/liquid/Lens.kt` 自 miuix 官方示例 vendoring，保留 Apache-2.0 文件头
 
 ---
@@ -122,8 +122,8 @@ Cebian（`com.slideindex.app`）在 [GNU Affero General Public License v3.0](LIC
 - **Copyright:** YuKongA and contributors
 - **License:** [GNU General Public License v3.0](app/src/main/assets/licenses/GPL-3.0.txt)
 - **Source:** https://github.com/YuKongA/Mishka
-- **Used in:** Miuix 设置页 Lazy 虚拟化架构：`CardSegment` / `groupedCardItems` 分组卡片、`WideContentBox` 宽屏内容居中、`SettingsCardLazyGroup` 卡片拆行、宽屏 `NavigationRail` 与悬浮底栏布局契约、`MiuixScaffold` 子页 LazyColumn 脚手架等
-- **Modifications:** 包名与常量适配 Cebian（如 `SettingsContentMaxWidth`、导航目的地）；与 InstallerX-Revived / AndroidLiquidGlass 液态底栏实现链分离标注；去除 Mishka 代理客户端业务逻辑
+- **Used in:** Miuix 设置页 Lazy 虚拟化架构：`CardSegment` / `groupedCardItems` 分组卡片、`WideContentBox` 宽屏内容居中、`SettingsCardLazyGroup` 卡片拆行、宽屏 `NavigationRail` 与悬浮底栏布局契约、`MiuixScaffold` 子页 LazyColumn 脚手架等；液态玻璃底栏 `ui/miuix/bottombar/liquid/*`（`LiquidGlassNavigationBar` / `Lens` / `InnerShadow` / `CombinedBackdrop` / `Vibrancy`）与 `ui/miuix/bottombar/animation/*`（`DampedDragAnimation` / `InteractiveHighlight`）
+- **Modifications:** 包名与常量适配 Cebian（如 `SettingsContentMaxWidth`、导航目的地）；底栏文件改包名并做 4 处本地修改（均标注 `LOCAL PATCH (Cebian)`）：外部 pager 进度驱动胶囊跟手、可配置模糊半径入参、无障碍/键盘路径点击当前页回调、触摸点按当前页回调（后两者用于"回到顶部"）；去除 Mishka 代理客户端业务逻辑
 - **Note:** Mishka 自身亦基于 Miuix；Cebian 对 Miuix 另有独立 Maven 依赖与 NOTICES 条目
 
 ---

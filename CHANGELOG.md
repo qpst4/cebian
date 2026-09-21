@@ -4,6 +4,22 @@ All notable changes to Cebian are documented in this file.
 
 ## [Unreleased]
 
+### Changed
+- **依赖**：Miuix 升级至 `0.9.4`（自 `0.9.4-rc01`），Kotlin 同步至 `2.4.20`
+- **导航**：entry 内的 `viewModel()` / `hiltViewModel()` / `SavedStateHandle` 改用 miuix-nav 自带作用域，删除手工补齐 SavedState 的 `NavEntryHiltScope`
+- **主界面分页**：横滑切页改由 miuix `pagerGestureOverride`（Cross-Axis）接管，竖列表惯性滚动与回弹期间也能横滑切页；切页动画改用 `PagerState.springAnimateToPage`
+- **液态玻璃底栏**：改用 Mishka 的 `IosLiquidGlassNavigationBar` 实现（原 InstallerX-Revived fork 退役），并获得圆角折射修正、无 runtime shader 设备的降级光斑、tilt 重力高光；按压/未选中亮度随之上调，底部留白改由组件内部处理
+- **液态玻璃底栏模糊**：默认半径由 7dp 调整为 4dp（对齐 Mishka 内部取值；已手动调过该设置的用户不受影响）
+
+### Fixed
+- **主界面分页**：横滑与竖列表手势冲突、TabRow 横向嵌套滚动外抛、毛玻璃采样等随 miuix 0.9.4 一并修复
+- **剪贴板**：复制面板红框选择器点击后真正粘到所选输入框（此前未透传 `fvStyle`，点击等于没点，仍粘在光标处）
+- **剪贴板**：多图复制不再只剩第一张；本地图片文件缺失时改用条目的 content URI，不再把裸文件名当 URI 写入
+- **剪贴板**：图片剪贴的 MIME 改为显式声明（此前误填进 label，MIME 由 resolver 反查，查不到会退化成 `text/plain`）
+- **取词目标**：粘贴候选框去重方向修正，保留最内层输入框（此前保留外层容器、丢掉真正的输入框）
+- **消息提醒**：新装"启用消息提醒"默认不再为开（总开关此前会被默认开启的提醒样式连带打开）
+- **测试**：修复 Robolectric SDK 与宿主 Application 配置、虚拟时间/主 looper 相关的挂起，app 与各库模块单元测试恢复全绿
+
 ## [1.12.0] - 2026-09-20
 
 ### Added
