@@ -30,7 +30,8 @@ val keystoreProperties = Properties().apply {
 
 android {
     namespace = "com.slideindex.app"
-    compileSdk = 37
+    compileSdk = 37
+    compileSdkMinor = 1
 
     defaultConfig {
         applicationId = "com.slideindex.app"
@@ -66,7 +67,7 @@ android {
         }
     }
 
-    val defaultNdkVersion = "28.2.13676358"
+    val defaultNdkVersion = "29.0.13599879"
     val localPropFile = rootProject.file("local.properties")
     val localSdkDir = if (localPropFile.exists()) {
         val props = Properties()

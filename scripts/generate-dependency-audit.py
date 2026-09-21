@@ -168,6 +168,29 @@ def read_wrapper_version() -> str:
     return "?"
 
 
+def read_app_compile_sdk() -> str:
+    text = (ROOT / "app" / "build.gradle.kts").read_text(encoding="utf-8")
+    major = re.search(r"compileSdk\s*=\s*(\d+)", text)
+    minor = re.search(r"compileSdkMinor\s*=\s*(\d+)", text)
+    target = re.search(r"targetSdk\s*=\s*(\d+)", text)
+    if not major:
+        return "?"
+    compile_sdk = major.group(1) + (f".{minor.group(1)}" if minor else "")
+    return f"{compile_sdk} / {target.group(1) if target else '?'}"
+
+
+def read_default_ndk_version() -> str:
+    text = (ROOT / "app" / "build.gradle.kts").read_text(encoding="utf-8")
+    m = re.search(r'defaultNdkVersion\s*=\s*"([^"]+)"', text)
+    return m.group(1) if m else "?"
+
+
+def read_foojay_version() -> str:
+    text = (ROOT / "settings.gradle.kts").read_text(encoding="utf-8")
+    m = re.search(r'foojay-resolver-convention"\s*\)\s*version\s*"([^"]+)"', text)
+    return m.group(1) if m else "?"
+
+
 def read_included_modules() -> list[str]:
     mods = []
     for line in SETTINGS.read_text(encoding="utf-8").splitlines():
@@ -236,9 +259,9 @@ def main() -> None:
     lines.append(f"| Kotlin | {versions.get('kotlin', '?')} | `[versions].kotlin` |")
     lines.append(f"| KSP | {versions.get('ksp', '?')} | `[versions].ksp` |")
     lines.append(f"| Hilt | {versions.get('hilt', '?')} | `[versions].hilt` |")
-    lines.append(f"| foojay-resolver | 1.0.0 | `settings.gradle.kts` |")
-    lines.append(f"| compileSdk / targetSdk | 37 | `app/build.gradle.kts` |")
-    lines.append(f"| NDK 默认 | 28.2.13676358 | `app/build.gradle.kts` |")
+    lines.append(f"| foojay-resolver | {read_foojay_version()} | `settings.gradle.kts` |")
+    lines.append(f"| compileSdk / targetSdk | {read_app_compile_sdk()} | `app/build.gradle.kts` |")
+    lines.append(f"| NDK 默认 | {read_default_ndk_version()} | `app/build.gradle.kts` |")
     lines.append(f"| minSdk | {versions.get('minSdk', '?')} | `[versions].minSdk` |")
     lines.append("")
 

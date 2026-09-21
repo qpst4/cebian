@@ -7,7 +7,8 @@ plugins {
 
 android {
     namespace = "com.slideindex.app.ocr"
-    compileSdk = 37
+    compileSdk = 37
+    compileSdkMinor = 1
 
     defaultConfig {
         minSdk = libs.versions.minSdk.get().toInt()
