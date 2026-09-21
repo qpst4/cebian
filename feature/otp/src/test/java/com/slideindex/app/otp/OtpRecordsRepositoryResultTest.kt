@@ -12,7 +12,7 @@ import org.robolectric.annotation.Config
 import java.io.File
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [30])
+@Config(sdk = [31])
 class OtpRecordsRepositoryResultTest {
 
     @Test

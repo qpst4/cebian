@@ -16,7 +16,7 @@ import org.robolectric.annotation.Config
 class BundleParcelCompatTest {
 
     @Test
-    @Config(sdk = [30])
+    @Config(sdk = [31])
     fun getParcelableArrayOfBundles_readsBundleMessages_preTiramisu() {
         val message = Bundle().apply {
             putString("text", "hello")

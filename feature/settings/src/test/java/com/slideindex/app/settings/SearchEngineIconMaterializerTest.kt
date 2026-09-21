@@ -17,7 +17,7 @@ import java.io.File
 import java.util.zip.ZipInputStream
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [30])
+@Config(sdk = [31])
 class SearchEngineIconMaterializerTest {
     private lateinit var context: Context
     private lateinit var repository: SettingsRepository

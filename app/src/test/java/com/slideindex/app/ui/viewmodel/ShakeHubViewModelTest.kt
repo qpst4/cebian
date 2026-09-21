@@ -1,11 +1,14 @@
 package com.slideindex.app.ui.viewmodel
 
+import android.content.Context
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.SettingsRepository
 import com.slideindex.app.settings.clearTestSettings
 import com.slideindex.app.settings.testSettingsRepository
 import com.slideindex.app.ui.feedback.UserMessageBus
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -14,27 +17,25 @@ import org.junit.runner.RunWith
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.robolectric.Shadows
+import android.os.Looper
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [30])
+@Config(sdk = [31])
 class ShakeHubViewModelTest : ViewModelCoroutineTest() {
+    private lateinit var context: Context
     private lateinit var repository: SettingsRepository
-    private lateinit var viewModel: ShakeHubViewModel
 
     @Before
     fun setUp() = runBlocking {
-        val context = RuntimeEnvironment.getApplication()
+        context = RuntimeEnvironment.getApplication()
         clearTestSettings(context)
         repository = testSettingsRepository(context)
-        viewModel = ShakeHubViewModel(
-            settingsRepository = repository,
-            userMessageBus = UserMessageBus(),
-            context = context,
-        )
     }
 
     @Test
-    fun settings_initialValue_matchesAppDefaults() {
+    fun settings_initialValue_matchesAppDefaults() = runViewModelTest {
+        val viewModel = newViewModel()
         assertEquals(
             AppSettings().shakeGestureSettings,
             viewModel.settings.value.shakeGestureSettings,
@@ -43,9 +44,29 @@ class ShakeHubViewModelTest : ViewModelCoroutineTest() {
 
     @Test
     fun setEnabled_persistsToSettingsFlow() = runViewModelTest {
+        // viewModelScope 在构造时就会捕获 Dispatchers.Main，因此必须在 setMain 之后再构造 ViewModel，
+        // 否则写盘协程会被投递到 Robolectric 暂停的主 looper 上而永远不执行。
+        val viewModel = newViewModel()
         primeSettingsFlow(repository)
         viewModel.setEnabled(true)
 
-        assertTrue(awaitSettings(repository) { it.shakeGestureSettings.enabled }.shakeGestureSettings.enabled)
+        // Robolectric 主 looper 默认暂停，写盘完成后的分发要显式 idle 才能推进；
+        // 这里交替 idle + 真实时间片轮询，超时即失败（避免主线程 runBlocking 挂住整个 JVM）。
+        val enabled = withTimeout(5_000) {
+            var current = repository.readSnapshot().shakeGestureSettings.enabled
+            while (!current) {
+                Shadows.shadowOf(Looper.getMainLooper()).idle()
+                delay(20)
+                current = repository.readSnapshot().shakeGestureSettings.enabled
+            }
+            current
+        }
+        assertTrue(enabled)
     }
+
+    private fun newViewModel() = ShakeHubViewModel(
+        settingsRepository = repository,
+        userMessageBus = UserMessageBus(),
+        context = context,
+    )
 }

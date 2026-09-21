@@ -12,7 +12,7 @@ import org.robolectric.shadows.ShadowSystemClock
 import java.util.concurrent.TimeUnit
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [30], instrumentedPackages = ["com.slideindex.app.gesture"])
+@Config(sdk = [31], instrumentedPackages = ["com.slideindex.app.gesture"])
 class SwipePathRecognizerTest {
 
     private val leftStrip = RectF(0f, 0f, 20f, 2000f)

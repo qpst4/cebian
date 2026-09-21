@@ -29,12 +29,15 @@ import com.slideindex.app.settings.clearTestSettings
 import com.slideindex.app.settings.testSettingsRepository
 import com.slideindex.app.ui.feedback.UserMessage
 import com.slideindex.app.ui.feedback.UserMessageBus
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -45,9 +48,10 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 import java.io.IOException
+import java.io.File
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [30])
+@Config(sdk = [31])
 class HomeViewModelTest : ViewModelCoroutineTest() {
     private lateinit var context: Context
     private lateinit var repository: com.slideindex.app.settings.SettingsRepository
@@ -79,7 +83,7 @@ class HomeViewModelTest : ViewModelCoroutineTest() {
 }
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [30])
+@Config(sdk = [31])
 class KeepAliveSettingsViewModelTest : ViewModelCoroutineTest() {
     @Test
     fun settings_initialValue_matchesDefaults() = runViewModelTest {
@@ -101,7 +105,7 @@ class KeepAliveSettingsViewModelTest : ViewModelCoroutineTest() {
 }
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [30])
+@Config(sdk = [31])
 class ExtensionHubViewModelTest : ViewModelCoroutineTest() {
     @Test
     fun settings_initialValue_matchesDefaults() = runViewModelTest {
@@ -158,7 +162,7 @@ class ExtensionHubViewModelTest : ViewModelCoroutineTest() {
 }
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [30])
+@Config(sdk = [31])
 class ExtensionSettingsViewModelTest : ViewModelCoroutineTest() {
     @Test
     fun settings_initialValue_matchesDefaults() = runViewModelTest {
@@ -185,7 +189,7 @@ class ExtensionSettingsViewModelTest : ViewModelCoroutineTest() {
 }
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [30])
+@Config(sdk = [31])
 class HomeDetailSettingsViewModelTest : ViewModelCoroutineTest() {
     @Test
     fun settings_initialValue_matchesDefaults() = runViewModelTest {
@@ -216,7 +220,7 @@ class HomeDetailSettingsViewModelTest : ViewModelCoroutineTest() {
 }
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [30])
+@Config(sdk = [31])
 class MessageSettingsViewModelTest : ViewModelCoroutineTest() {
     @Test
     fun settings_initialValue_matchesDefaults() = runViewModelTest {
@@ -230,7 +234,10 @@ class MessageSettingsViewModelTest : ViewModelCoroutineTest() {
             NoOpMessageOverlayPort,
         )
 
-        assertFalse(viewModel.settings.value.messageReminderSettings.enabled)
+        // stateIn 的初始值是 codec 默认，必须先等到 DataStore 首帧快照再断言；
+        // 总开关只认自己的键，全新存储下应为关（不再被默认开启的提醒样式带成开）。
+        val settings = awaitSettings(repository) { !it.messageReminderSettings.enabled }
+        assertFalse(settings.messageReminderSettings.enabled)
     }
 
     @Test
@@ -253,7 +260,7 @@ class MessageSettingsViewModelTest : ViewModelCoroutineTest() {
 }
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [30])
+@Config(sdk = [31])
 class OtpSettingsViewModelTest : ViewModelCoroutineTest() {
     @Test
     fun refreshOfficialRules_reloadsBundledRules() {
@@ -340,20 +347,24 @@ class OtpSettingsViewModelTest : ViewModelCoroutineTest() {
             otpRecordsRepository = OtpRecordsRepository(context),
         )
         val message = async(Dispatchers.Unconfined) { awaitUserError(bus) }
-        context.filesDir.setWritable(false)
+        // Windows 下目录的只读属性并不阻止写入：先让仓库落一次盘，再把记录文件本身设为只读。
+        val recordsFile = File(context.filesDir, "otp_records.json")
+        assertTrue(OtpRecordsRepository(context).clearAll().isSuccess)
+        assertTrue("record file should exist before write", recordsFile.exists())
+        recordsFile.setWritable(false)
 
         try {
             viewModel.recordTestOtp(code = "000000", sampleText = "code", ruleName = null)
             delay(200)
-            assertTrue(message.await().text.isNotEmpty())
+            assertTrue(withTimeout(5_000) { message.await() }.text.isNotEmpty())
         } finally {
-            context.filesDir.setWritable(true)
+            recordsFile.setWritable(true)
         }
     }
 }
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [30])
+@Config(sdk = [31])
 class OtpRecordsViewModelTest : ViewModelCoroutineTest() {
     @Test
     fun records_initialValue_isEmpty() = runViewModelTest {
@@ -417,14 +428,17 @@ class OtpRecordsViewModelTest : ViewModelCoroutineTest() {
             appRepository = testAppRepository(context),
         )
         val message = async(Dispatchers.Unconfined) { awaitUserError(bus) }
-        context.filesDir.setWritable(false)
+        // Windows 下目录的只读属性并不阻止写入，必须把记录文件本身设为只读，写盘才会确定失败。
+        val recordsFile = File(context.filesDir, "otp_records.json")
+        assertTrue("record file should exist before delete", recordsFile.exists())
+        recordsFile.setWritable(false)
 
         try {
             viewModel.deleteRecord(recordId)
             delay(200)
-            assertTrue(message.await().text.isNotEmpty())
+            assertTrue(withTimeout(5_000) { message.await() }.text.isNotEmpty())
         } finally {
-            context.filesDir.setWritable(true)
+            recordsFile.setWritable(true)
         }
     }
 
@@ -441,6 +455,7 @@ class OtpRecordsViewModelTest : ViewModelCoroutineTest() {
                 ThrowingPackageManagerContext(context),
                 NoOpAppLaunchPort,
                 AppLaunchIconCache(context),
+                testApplicationScope,
             ),
         )
         val message = async(Dispatchers.Unconfined) { awaitUserError(bus) }
@@ -453,7 +468,7 @@ class OtpRecordsViewModelTest : ViewModelCoroutineTest() {
 }
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [30])
+@Config(sdk = [31])
 class NotificationHubViewModelTest : ViewModelCoroutineTest() {
     @Test
     fun visibleHistoryCount_startsAtZero() = runViewModelTest {
@@ -495,13 +510,25 @@ class NotificationHubViewModelTest : ViewModelCoroutineTest() {
             ),
         )
 
-        assertEquals(1, viewModel.visibleHistoryCount.first { it == 1 })
+        // visibleHistoryCount 走 combine(...).debounce(300)：debounce 用的是虚拟时间，而写入到 combine
+        // 发射之间隔着仓库的 IO 路径，timing 不定，所以交替「推进虚拟时间 + 让出真实时间片」直到更新，
+        // 超时即失败（否则主线程 runBlocking 会永久挂住整个测试 JVM）。
+        val visibleCount = withTimeout(5_000) {
+            var count = viewModel.visibleHistoryCount.value
+            while (count != 1) {
+                advanceMainVirtualTime(100)
+                delay(10)
+                count = viewModel.visibleHistoryCount.value
+            }
+            count
+        }
+        assertEquals(1, visibleCount)
         countCollector.cancel()
     }
 }
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [30])
+@Config(sdk = [31])
 class SettingsViewModelWriteTest : ViewModelCoroutineTest() {
     @Test
     fun launchSettingsWrite_onFailure_emitsError() = runViewModelTest {
@@ -529,7 +556,7 @@ class SettingsViewModelWriteTest : ViewModelCoroutineTest() {
 }
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [30])
+@Config(sdk = [31])
 class NotificationHistoryViewModelTest : ViewModelCoroutineTest() {
     @Test
     fun hideNotification_whenListenerDisabled_emitsError() = runBlocking {
@@ -584,8 +611,11 @@ private fun notificationHistoryViewModel(context: Context, bus: UserMessageBus):
         appRepository = testAppRepository(context),
     )
 
+/** 与生产 `AppModule.provideApplicationScope()` 等价，测试中不启动后台工作线程。 */
+private val testApplicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
+
 private fun testAppRepository(context: Context): AppRepository =
-    AppRepository(context, NoOpAppLaunchPort, AppLaunchIconCache(context))
+    AppRepository(context, NoOpAppLaunchPort, AppLaunchIconCache(context), testApplicationScope)
 
 private fun notificationHistoryRepository(context: Context): NotificationHistoryRepository =
     NotificationHistoryRepository(

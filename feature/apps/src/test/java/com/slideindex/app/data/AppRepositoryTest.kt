@@ -3,6 +3,9 @@ package com.slideindex.app.data
 import android.content.Intent
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.util.PinyinHelper
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -14,7 +17,7 @@ import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [30])
+@Config(sdk = [31])
 class AppRepositoryTest {
 
     private lateinit var repository: AppRepository
@@ -27,6 +30,7 @@ class AppRepositoryTest {
                 override fun launch(intent: Intent, settings: AppSettings, fullscreen: Boolean) = Unit
             },
             launchIconCache = AppLaunchIconCache(RuntimeEnvironment.getApplication()),
+            applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined),
         )
     }
 

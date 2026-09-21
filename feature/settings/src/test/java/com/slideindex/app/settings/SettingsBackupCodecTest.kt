@@ -1,7 +1,9 @@
 package com.slideindex.app.settings
 
 import android.content.Context
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -18,7 +20,7 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [30])
+@Config(sdk = [31])
 class SettingsBackupCodecTest {
     private lateinit var repository: SettingsRepository
 
@@ -34,6 +36,13 @@ class SettingsBackupCodecTest {
         }
     }
 
+    /**
+     * `readSnapshot()` 读的是 `cacheScope` 里异步更新的缓存，写完立刻读会拿到旧值，
+     * 因此这里等 flow 真正发射出期望的快照。
+     */
+    private suspend fun awaitSettings(predicate: (AppSettings) -> Boolean = { true }): AppSettings =
+        withTimeout(5_000) { repository.settings.first(predicate) }
+
     @Test
     fun exportImport_roundTrip_restoresSettingsWithoutOnboardingFlag() = runBlocking {
         val outStream = ByteArrayOutputStream()
@@ -47,9 +56,9 @@ class SettingsBackupCodecTest {
         val importedCount = repository.importSettings(inStream).getOrThrow().preferencesImported
 
         assertTrue(importedCount > 0)
-        assertTrue(repository.readSnapshot().serviceEnabled)
-        assertFalse(repository.readSnapshot().leftEdgeEnabled)
-        assertFalse(repository.readSnapshot().onboardingCompleted)
+        assertTrue(awaitSettings { it.serviceEnabled }.serviceEnabled)
+        assertFalse(awaitSettings { !it.leftEdgeEnabled }.leftEdgeEnabled)
+        assertFalse(awaitSettings { !it.onboardingCompleted }.onboardingCompleted)
     }
 
     @Test
@@ -66,8 +75,11 @@ class SettingsBackupCodecTest {
         val inStream = ByteArrayInputStream(outStream.toByteArray())
         repository.importSettings(inStream).getOrThrow()
 
-        assertEquals(1_200L, repository.readSnapshot().faceDownGestureSettings.holdDurationMs)
-        assertEquals(4_000L, repository.readSnapshot().faceDownGestureSettings.cooldownMs)
+        val restored = awaitSettings { it.faceDownGestureSettings.holdDurationMs == 1_200L }
+        assertEquals(1_200L, restored.faceDownGestureSettings.holdDurationMs)
+        assertEquals(4_000L, awaitSettings {
+            it.faceDownGestureSettings.cooldownMs == 4_000L
+        }.faceDownGestureSettings.cooldownMs)
     }
 
     @Test

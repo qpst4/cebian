@@ -12,7 +12,7 @@ import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowSystemClock
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [30], instrumentedPackages = ["com.slideindex.app.gesture"])
+@Config(sdk = [31], instrumentedPackages = ["com.slideindex.app.gesture"])
 class GestureSessionThresholdTrackerTest {
     private lateinit var pathRecognizer: SwipePathRecognizer
     private val leftStrip = RectF(0f, 0f, 20f, 2000f)
@@ -168,10 +168,12 @@ class GestureSessionThresholdTrackerTest {
         )
 
         // Slide in to 80dp (crosses 60dp short threshold) -> fires 1st haptic
+        pathRecognizer.onTouchMove(80f, 0f)
         configuredTracker.trackDistanceHaptics(80f, 0f)
         assertEquals(1, gestureStartCount)
 
         // Retract to 40dp (retraction = 40dp >= 16dp) -> fires 2nd haptic for return
+        pathRecognizer.onTouchMove(40f, 0f)
         configuredTracker.trackDistanceHaptics(40f, 0f)
         assertEquals(2, gestureStartCount)
     }
@@ -233,10 +235,18 @@ class GestureSessionThresholdTrackerTest {
     fun trackDistanceHaptics_firesHoverHapticAfterHoldWithoutIntermediateMoves() {
         pathRecognizer.applyHoverSettings(durationMs = 250L, inwardCompoundEnabled = true)
         pathRecognizer.onTouchDown(0f, 100f, leftStrip)
+        // hover 只在对应触发已配置时才会进入计时（生产由 applyCompoundGestureGate 传入设置里的动作表）。
+        // 注意顺序：onTouchDown 会重置该配置，必须在其之后应用，与 GestureSession.onTouchDown 一致。
+        pathRecognizer.applyCompoundGestureGate(
+            SwipePathRecognizer.ClassifyOptions(
+                isTriggerConfigured = { trigger -> trigger == GestureTriggerType.SHORT_SWIPE_IN_HOVER },
+            ),
+        )
         pathRecognizer.onTouchMove(80f, 100f)
         tracker.trackDistanceHaptics(80f, 100f)
         assertEquals(1, gestureStartCount)
 
+        // 生产里由 GestureSession.hoverHapticCheckRunnable 在 hover 时长后回调驱动。
         ShadowSystemClock.advanceBy(300L, TimeUnit.MILLISECONDS)
         pathRecognizer.onTouchMove(80f, 100f)
         tracker.trackDistanceHaptics(80f, 100f)
@@ -249,28 +259,31 @@ class GestureSessionThresholdTrackerTest {
         pathRecognizer.applyDistances(shortDp = 60f, longDp = 120f)
         pathRecognizer.applyAngles(GestureAngles())
         pathRecognizer.applyHoverSettings(durationMs = 250L, inwardCompoundEnabled = true)
+        pathRecognizer.onTouchDown(0f, 100f, leftStrip)
         pathRecognizer.applyCompoundGestureGate(
             SwipePathRecognizer.ClassifyOptions(
                 isTriggerConfigured = { trigger ->
                     trigger == GestureTriggerType.SHORT_SWIPE_IN_UP ||
-                        trigger == GestureTriggerType.LONG_SWIPE_IN_UP
+                        trigger == GestureTriggerType.LONG_SWIPE_IN_UP ||
+                        trigger == GestureTriggerType.SHORT_SWIPE_IN_HOVER
                 },
             ),
         )
-        pathRecognizer.onTouchDown(0f, 100f, leftStrip)
         pathRecognizer.onTouchMove(80f, 100f)
         tracker.trackDistanceHaptics(80f, 100f)
         assertEquals(1, gestureStartCount)
 
+        // 同 hover 用例：由 hover 定时 tick 在时长到达后判定满足。
         ShadowSystemClock.advanceBy(300L, TimeUnit.MILLISECONDS)
         pathRecognizer.onTouchMove(80f, 100f)
         tracker.trackDistanceHaptics(80f, 100f)
         assertEquals(2, gestureStartCount)
         assertEquals(0, longThresholdCount)
 
+        // 复合第二段的短阈值是距转向锚点 TURN_SLOP_DP(32dp)，(80,60) 距锚点 (80,100) 已有 40dp。
         pathRecognizer.onTouchMove(80f, 60f)
         tracker.trackDistanceHaptics(80f, 60f)
-        assertEquals(2, gestureStartCount)
+        assertEquals(3, gestureStartCount)
         assertEquals(0, longThresholdCount)
 
         pathRecognizer.onTouchMove(80f, 20f)

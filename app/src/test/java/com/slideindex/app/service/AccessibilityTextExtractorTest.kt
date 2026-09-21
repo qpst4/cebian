@@ -7,7 +7,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [30])
+@Config(sdk = [31])
 class AccessibilityTextExtractorTest {
     @Test
     fun pickBetterCandidate_prefersSmallerVisibleBounds() {
@@ -272,10 +272,11 @@ class AccessibilityTextExtractorTest {
 
     @Test
     fun previewMetadataLikelyBeyondRect_flagsCommentListAggregate() {
+        // 判定条件是「3 行以上 且 长度 > 80 且 预览框面积较小」，因此这里需要构造真实的长评论聚合。
         val aggregate = buildString {
-            appendLine("用户甲: 评论一")
-            appendLine("用户乙: 评论二")
-            appendLine("用户丙: 评论三")
+            appendLine("用户甲: 这条评论用来验证预览框只会取到框内文本，而不是整段评论列表")
+            appendLine("用户乙: 第二行评论同样应当被判定为列表聚合而非预览框内文本")
+            appendLine("用户丙: 第三行评论继续加长文本以越过长度阈值")
         }
         assertEquals(
             true,
@@ -309,7 +310,7 @@ class AccessibilityTextExtractorTest {
     }
 
     @Test
-    fun filterPrimaryTextEntriesForPreview_narrowBandOnlyFullyContained() {
+    fun filterPrimaryTextEntriesForPreview_narrowBandKeepsRowsOverlappingBand() {
         val preview = android.graphics.Rect(154, 1376, 1080, 1446)
         val expandRow = AccessibilityTextExtractor.TextEntry(
             text = "展开152条回复",
@@ -329,7 +330,9 @@ class AccessibilityTextExtractorTest {
             listOf(expandRow, tallComment),
             preview,
         )
-        assertEquals(listOf(expandRow), filtered)
+        // 窄条带下除「完全在框内」外，还保留与条带重叠 ≥35% 高度的长条目
+        // （见 AccessibilityTextExtractor.entryOverlapsPreviewBand 的 minOverlapFraction）。
+        assertEquals(listOf(expandRow, tallComment), filtered)
     }
 
     @Test

@@ -10,7 +10,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [30])
+@Config(sdk = [31])
 class OtpAutoInputNodeHelperTest {
     private fun sealedNode(configure: AccessibilityNodeInfo.() -> Unit): AccessibilityNodeInfo =
         AccessibilityNodeInfo.obtain().apply {

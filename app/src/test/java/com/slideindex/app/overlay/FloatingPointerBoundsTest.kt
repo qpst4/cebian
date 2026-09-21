@@ -5,7 +5,12 @@ import com.slideindex.app.settings.FloatingPointerSettings
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [31])
 class FloatingPointerBoundsTest {
     @Test
     fun travelFractionFromSpeed_higherSpeedMeansShorterTravel() {

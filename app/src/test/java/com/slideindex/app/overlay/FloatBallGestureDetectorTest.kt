@@ -188,9 +188,10 @@ class FloatBallGestureDetectorTest {
             onGesture = { type, _, _ -> fired = type },
         )
         val down = MotionEvent.obtain(0, 0, MotionEvent.ACTION_DOWN, 100f, 200f, 0)
-        val moveDown = MotionEvent.obtain(0, 50, MotionEvent.ACTION_MOVE, 100f, 350f, 0) // >= 60dp (180px at 3x)
-        val moveBack = MotionEvent.obtain(0, 100, MotionEvent.ACTION_MOVE, 100f, 250f, 0) // reverse >= 28dp (84px)
-        val up = MotionEvent.obtain(0, 150, MotionEvent.ACTION_UP, 100f, 250f, 0)
+        // 默认 DOWN 短滑阈值 = floatBallDownSwipeShortPercent(200) × SWIPE_BASE_DP(40dp) × 3 = 240px
+        val moveDown = MotionEvent.obtain(0, 50, MotionEvent.ACTION_MOVE, 100f, 500f, 0) // 300px >= 240px
+        val moveBack = MotionEvent.obtain(0, 100, MotionEvent.ACTION_MOVE, 100f, 350f, 0) // 回退 150px >= 28dp(84px)
+        val up = MotionEvent.obtain(0, 150, MotionEvent.ACTION_UP, 100f, 350f, 0)
         detector.onTouchEvent(down)
         detector.onTouchEvent(moveDown)
         detector.onTouchEvent(moveBack)
@@ -218,9 +219,10 @@ class FloatBallGestureDetectorTest {
             onGesture = { type, _, _ -> fired = type },
         )
         val down = MotionEvent.obtain(0, 0, MotionEvent.ACTION_DOWN, 100f, 200f, 0)
-        val moveSide = MotionEvent.obtain(0, 50, MotionEvent.ACTION_MOVE, 300f, 200f, 0)
-        val moveBack = MotionEvent.obtain(0, 100, MotionEvent.ACTION_MOVE, 180f, 200f, 0)
-        val up = MotionEvent.obtain(0, 150, MotionEvent.ACTION_UP, 180f, 200f, 0)
+        // 默认 SIDE 短滑阈值 = floatBallSideSwipeShortPercent(320) × SWIPE_BASE_DP(40dp) × 3 = 384px
+        val moveSide = MotionEvent.obtain(0, 50, MotionEvent.ACTION_MOVE, 550f, 200f, 0) // 450px >= 384px
+        val moveBack = MotionEvent.obtain(0, 100, MotionEvent.ACTION_MOVE, 250f, 200f, 0) // 回退 300px >= 84px
+        val up = MotionEvent.obtain(0, 150, MotionEvent.ACTION_UP, 250f, 200f, 0)
         detector.onTouchEvent(down)
         detector.onTouchEvent(moveSide)
         detector.onTouchEvent(moveBack)

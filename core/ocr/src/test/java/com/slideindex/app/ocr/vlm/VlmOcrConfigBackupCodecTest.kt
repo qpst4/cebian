@@ -10,7 +10,7 @@ import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [30])
+@Config(sdk = [31])
 class VlmOcrConfigBackupCodecTest {
     private lateinit var context: Context
     private lateinit var manager: VlmOcrConfigManager

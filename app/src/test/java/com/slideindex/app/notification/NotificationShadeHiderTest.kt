@@ -4,7 +4,6 @@ import android.app.Notification
 import android.os.Process
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
-import com.slideindex.app.service.MediaNotificationListener
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -15,7 +14,7 @@ import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [30])
+@Config(sdk = [31])
 class NotificationShadeHiderTest {
     @Test
     fun hideNotification_withoutListener_returnsFalse() {
@@ -40,7 +39,7 @@ class NotificationShadeHiderTest {
 
     @Test
     fun hideFromShade_whenNotificationNotActive_returnsTrue() {
-        val listener = Robolectric.setupService(MediaNotificationListener::class.java)
+        val listener = Robolectric.setupService(TestNotificationListenerService::class.java)
         val hider = NotificationShadeHider(FixedNotificationListenerPort(listener))
 
         assertTrue(hider.hideFromShade(listener, "inactive-key"))
@@ -48,7 +47,7 @@ class NotificationShadeHiderTest {
 
     @Test
     fun hideFromShade_skipsOwnPackageNotifications() {
-        val listener = Robolectric.setupService(MediaNotificationListener::class.java)
+        val listener = Robolectric.setupService(TestNotificationListenerService::class.java)
         val hider = NotificationShadeHider(FixedNotificationListenerPort(listener))
         val sbn = statusBarNotification(listener.packageName)
 
@@ -57,7 +56,7 @@ class NotificationShadeHiderTest {
 
     @Test
     fun cancelDismissibleFromShade_skipsOwnPackageNotifications() {
-        val listener = Robolectric.setupService(MediaNotificationListener::class.java)
+        val listener = Robolectric.setupService(TestNotificationListenerService::class.java)
         val hider = NotificationShadeHider(FixedNotificationListenerPort(listener))
         val sbn = statusBarNotification(listener.packageName)
 
@@ -66,7 +65,7 @@ class NotificationShadeHiderTest {
 
     @Test
     fun cancelDismissibleFromShade_whenNotificationNotActive_returnsTrue() {
-        val listener = Robolectric.setupService(MediaNotificationListener::class.java)
+        val listener = Robolectric.setupService(TestNotificationListenerService::class.java)
         val hider = NotificationShadeHider(FixedNotificationListenerPort(listener))
         val sbn = statusBarNotification("com.example.chat")
 
@@ -91,6 +90,12 @@ class NotificationShadeHiderTest {
             System.currentTimeMillis(),
         )
     }
+
+    /**
+     * 用例只验证 [NotificationShadeHider] 的行为，不需要应用真实的 Hilt 注入服务
+     * （`MediaNotificationListener` 在 Robolectric 下需要 Hilt 容器）。
+     */
+    private class TestNotificationListenerService : NotificationListenerService()
 
     private object EmptyNotificationListenerPort : NotificationListenerPort {
         override fun listenerOrNull(): NotificationListenerService? = null

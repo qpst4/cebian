@@ -13,7 +13,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [30])
+@Config(sdk = [31])
 class SmsCaptureForwarderTest {
     @Test
     fun isSmsUri_detectsTelephonyAndSmsAuthorities() {
