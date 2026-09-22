@@ -1604,6 +1604,7 @@
     <string name="stash_action_open_pick">进入取词</string>
     <string name="stash_action_delete">删除</string>
     <string name="history_drag_unsupported">此条目不支持拖拽</string>
+    <string name="pin_drag_unsupported">该内容无法拖出</string>
     <string name="stash_time_just_now">刚刚</string>
     <string name="stash_time_minutes_ago">%d分钟前</string>
     <string name="stash_time_hours_ago">%d小时前</string>

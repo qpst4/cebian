@@ -15,6 +15,7 @@ import android.os.Handler
 import android.os.Looper
 import android.util.DisplayMetrics
 import android.view.Gravity
+import android.view.HapticFeedbackConstants
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -65,6 +66,10 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.AwaitPointerEventScope
+import androidx.compose.ui.input.pointer.PointerEvent
+import androidx.compose.ui.input.pointer.PointerEventTimeoutCancellationException
+import androidx.compose.ui.input.pointer.PointerId
 import androidx.compose.ui.input.pointer.PointerInputScope
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
@@ -91,6 +96,8 @@ import com.slideindex.app.stash.StashPinNotificationHelper
 import com.slideindex.app.stash.resolvedContentBlocks
 import com.slideindex.app.ui.theme.OverlayAwareModuleTheme
 import java.util.UUID
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.withTimeout
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -161,7 +168,7 @@ private class PinUiState {
     var animator: ValueAnimator? = null
 }
 
-private sealed class PinContent {
+internal sealed class PinContent {
     data class Text(val body: String) : PinContent()
     data class Image(
         val bitmap: Bitmap,
@@ -171,7 +178,7 @@ private sealed class PinContent {
     data class Rich(val blocks: List<PinDisplayBlock>) : PinContent()
 }
 
-private sealed class PinDisplayBlock {
+internal sealed class PinDisplayBlock {
     data class Text(val body: String) : PinDisplayBlock()
     data class Image(val bitmap: Bitmap) : PinDisplayBlock()
 }
@@ -561,6 +568,7 @@ object ScreenPinManager {
                     onTap = { onPinTap(instance.id) },
                     onDoubleTap = { togglePinDoubleTapZoom(instance.id) },
                     onZoom = { zoomFactor -> zoomPin(instance.id, zoomFactor) },
+                    onLongPressDrag = { startPinDrag(instance) },
                     onDragStart = {
                         if (instance.uiState.isEdgeDocked.value) {
                             undockForDrag(instance)
@@ -668,6 +676,27 @@ object ScreenPinManager {
         instance.uiState.showControls.value = !instance.uiState.showControls.value
     }
 
+    /**
+     * 长按钉图 → 跨应用拖拽投放。
+     *
+     * 与「滑动拖动 = 挪窗口」和「拖动时的投放层 = 暂存/通知/删除」区分开：
+     * 这里只负责把钉图内容交给系统拖拽框架，拖到别的应用松手放下。
+     */
+    private fun startPinDrag(instance: PinInstance) {
+        val context = appContext ?: return
+        if (instance.uiState.isEdgeDocked.value) return
+        // 先给触感反馈，再做内容落盘，避免长按判定被编码耗时拖后。
+        instance.composeView.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+        instance.uiState.showControls.value = false
+        val items = PinDragHelper.itemsOf(instance.content, instance.id)
+        val clip = PinDragHelper.buildClip(context, items) ?: return
+        PinDragHelper.startDrag(
+            view = instance.composeView,
+            clipData = clip,
+            preview = PinDragHelper.previewOf(instance.content),
+        )
+    }
+
     private fun removePin(pinId: String) {
         val instance = pins.remove(pinId) ?: return
         instance.uiState.animator?.cancel()
@@ -677,6 +706,7 @@ object ScreenPinManager {
         }
         instance.owner.destroy()
         recyclePinBitmaps(instance.content)
+        appContext?.let { PinDragHelper.releaseCache(it, pinId) }
         if (pins.isEmpty()) {
             unregisterScreenOffReceiver()
         }
@@ -1209,6 +1239,7 @@ private fun ScreenPinContent(
     onTap: () -> Unit,
     onDoubleTap: () -> Unit,
     onZoom: (zoomFactor: Float) -> Unit,
+    onLongPressDrag: () -> Unit,
     onDragStart: () -> Unit,
     onDrag: (dx: Float, dy: Float, localX: Float, localY: Float) -> Unit,
     onDragEnd: (localX: Float, localY: Float) -> Unit,
@@ -1272,6 +1303,8 @@ private fun ScreenPinContent(
                     onTap = onTap,
                     onDoubleTap = onDoubleTap,
                     onZoom = onZoom,
+                    // 贴边收起时只保留「点击恢复」，长按留给收起的滑块本身。
+                    onLongPressDrag = if (isDocked) null else onLongPressDrag,
                     horizontalDragOnly = scrollEnabled && !isDocked
                 )
             },
@@ -1439,6 +1472,44 @@ private fun PinControlBar(
     }
 }
 
+private sealed interface PinPressOutcome {
+    /** 长按成立，本次触控改交给系统拖拽。 */
+    object LongPress : PinPressOutcome
+
+    /** 长按不成立，把结束等待的那个事件交回主循环继续处理。 */
+    data class Continue(val event: PointerEvent) : PinPressOutcome
+}
+
+/**
+ * 长按判定：手指按住不动超过 [timeoutMs] 判定为长按。
+ *
+ * 期间抬手、位移超过 [touchSlop]、或落下第二指都不算长按，
+ * 并把触发判定的那个事件原样交回主循环（否则点击 / 双击 / 直接拖动会丢事件）。
+ */
+private suspend fun AwaitPointerEventScope.awaitLongPressHold(
+    anchor: Offset,
+    pointerId: PointerId,
+    touchSlop: Float,
+    timeoutMs: Long
+): PinPressOutcome = try {
+    withTimeout<PinPressOutcome>(timeoutMs) {
+        var pending = awaitPointerEvent()
+        while (true) {
+            val change = pending.changes.firstOrNull { it.id == pointerId }
+            val fingerLifted = change == null || !change.pressed
+            val movedAway = change != null && (change.position - anchor).getDistance() > touchSlop
+            val secondFinger = pending.changes.count { it.pressed } >= 2
+            if (fingerLifted || movedAway || secondFinger) break
+            pending = awaitPointerEvent()
+        }
+        PinPressOutcome.Continue(pending)
+    }
+} catch (_: PointerEventTimeoutCancellationException) {
+    PinPressOutcome.LongPress
+} catch (_: TimeoutCancellationException) {
+    PinPressOutcome.LongPress
+}
+
 private suspend fun PointerInputScope.detectPinDragAndTap(
     onDragStart: () -> Unit,
     onDrag: (dx: Float, dy: Float, localX: Float, localY: Float) -> Unit,
@@ -1446,6 +1517,7 @@ private suspend fun PointerInputScope.detectPinDragAndTap(
     onTap: () -> Unit,
     onDoubleTap: (() -> Unit)? = null,
     onZoom: ((zoomFactor: Float) -> Unit)? = null,
+    onLongPressDrag: (() -> Unit)? = null,
     horizontalDragOnly: Boolean = false
 ) {
     var lastTapTime = 0L
@@ -1456,9 +1528,27 @@ private suspend fun PointerInputScope.detectPinDragAndTap(
         var dragged = false
         var isPinchZooming = false
         var prevPinchDistance = 0f
+        var pendingEvent: PointerEvent? = null
+
+        if (onLongPressDrag != null) {
+            when (val outcome = awaitLongPressHold(
+                anchor = down.position,
+                pointerId = pointerId,
+                touchSlop = touchSlop,
+                timeoutMs = viewConfiguration.longPressTimeoutMillis
+            )) {
+                is PinPressOutcome.LongPress -> {
+                    // 这次触控已交给系统拖拽，既不当作点击，也不再挪窗口。
+                    lastTapTime = 0L
+                    onLongPressDrag()
+                    return@awaitEachGesture
+                }
+                is PinPressOutcome.Continue -> pendingEvent = outcome.event
+            }
+        }
 
         while (true) {
-            val event = awaitPointerEvent()
+            val event = pendingEvent?.also { pendingEvent = null } ?: awaitPointerEvent()
             val pressedPointers = event.changes.filter { it.pressed }
 
             if (pressedPointers.size >= 2) {

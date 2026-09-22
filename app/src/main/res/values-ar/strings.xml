@@ -1586,6 +1586,7 @@
     <string name="stash_action_open_pick">الدخول إلى التقاط النص</string>
     <string name="stash_action_delete">حذف</string>
     <string name="history_drag_unsupported">هذا العنصر لا يدعم السحب</string>
+    <string name="pin_drag_unsupported">لا يمكن سحب هذا المحتوى</string>
     <string name="stash_time_just_now">الآن</string>
     <string name="stash_time_minutes_ago">قبل %d دقيقة</string>
     <string name="stash_time_hours_ago">قبل %d ساعة</string>

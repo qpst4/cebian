@@ -2938,6 +2938,7 @@ Questions: open a GitHub Issue on the project repository.</string>
     <string name="clipboard_image_unavailable">Image unavailable or expired</string>
     <string name="clipboard_action_save_image">Save image</string>
     <string name="history_drag_unsupported">This item cannot be dragged</string>
+    <string name="pin_drag_unsupported">This content cannot be dragged out</string>
     <string name="clipboard_history_float_section">Edge collection handle</string>
     <string name="clipboard_history_float_enabled_title">Show edge handle</string>
     <string name="clipboard_history_float_enabled_desc">Shows a handle on the right edge; swipe left or double-tap to open the collection panel (stash and clipboard).</string>
