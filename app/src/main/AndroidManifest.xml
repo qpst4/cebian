@@ -501,6 +501,11 @@
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden" />
 
         <service
+            android:name=".service.ModuleGestureBridgeService"
+            android:exported="true"
+            tools:ignore="ExportedService" />
+
+        <service
             android:name=".service.ClipboardFloatService"
             android:enabled="true"
             android:exported="false"
@@ -555,6 +560,16 @@
             tools:ignore="ExportedReceiver">
             <intent-filter>
                 <action android:name="com.slideindex.app.action.OTP_SMS_CAPTURED" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name=".receiver.ModuleHookBridgeReceiver"
+            android:exported="true"
+            tools:ignore="ExportedReceiver">
+            <intent-filter>
+                <action android:name="com.slideindex.app.xposed.action.CONFIG_SNAPSHOT_REQUEST" />
+                <action android:name="com.slideindex.app.xposed.action.MODULE_STATUS_RESPONSE" />
             </intent-filter>
         </receiver>
 

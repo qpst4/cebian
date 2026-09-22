@@ -4,6 +4,7 @@ import android.util.Log
 import com.slideindex.app.xposed.hook.PermissionGranterHook
 import com.slideindex.app.xposed.hook.SmsHandlerHook
 import com.slideindex.app.xposed.hook.SmsProviderHook
+import com.slideindex.app.xposed.hook.SystemInputFilterHook
 import com.slideindex.app.xposed.hook.SystemInputInjectorHook
 import io.github.libxposed.api.XposedInterface
 import io.github.libxposed.api.XposedModule
@@ -68,8 +69,21 @@ class SlideIndexLibXposedModule : XposedModule() {
   }
 
   private fun installSystemServerHooks(classLoader: ClassLoader) {
-    systemInputInjectorHook.install(this, classLoader)
-    permissionGranterHook.install(this, classLoader)
+    // 状态通道最先建立：后续任何一步失败都能通过状态响应回传到 app，避免静默失败。
+    runCatching { systemInputFilterHook.registerStatusChannel(classLoader) }
+      .onFailure { log(Log.ERROR, TAG, "status channel failed: $it") }
+    runCatching { systemInputInjectorHook.install(this, classLoader) }
+      .onFailure { reportStepFailure("inputInjector", it) }
+    runCatching { systemInputFilterHook.install(this, classLoader) }
+      .onFailure { reportStepFailure("inputFilter", it) }
+    runCatching { permissionGranterHook.install(this, classLoader) }
+      .onFailure { reportStepFailure("permissionGranter", it) }
+  }
+
+  private fun reportStepFailure(step: String, throwable: Throwable) {
+    val message = "$step: ${throwable.javaClass.simpleName}: ${throwable.message}"
+    systemInputFilterHook.recordModuleError(message)
+    log(Log.ERROR, TAG, "system hook failed -> $message")
   }
 
   private fun installPhoneHooks(classLoader: ClassLoader) {
@@ -87,6 +101,7 @@ class SlideIndexLibXposedModule : XposedModule() {
     private val smsHandlerHook = SmsHandlerHook()
     private val smsProviderHook = SmsProviderHook()
     private val systemInputInjectorHook = SystemInputInjectorHook()
+    private val systemInputFilterHook = SystemInputFilterHook()
     private val permissionGranterHook = PermissionGranterHook()
   }
 }

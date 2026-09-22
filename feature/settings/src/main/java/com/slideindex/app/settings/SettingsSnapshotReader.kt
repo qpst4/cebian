@@ -148,6 +148,9 @@ internal object SettingsSnapshotReader {
                     ?: GestureTriggerMode.ON_RELEASE.id,
             ),
             interceptSystemBackGesture = prefs[SettingsPreferenceKeys.INTERCEPT_SYSTEM_BACK] ?: false,
+            systemGestureTakeoverTop = prefs[SettingsPreferenceKeys.SYSTEM_GESTURE_TAKEOVER_TOP] ?: false,
+            systemGestureTakeoverSides = prefs[SettingsPreferenceKeys.SYSTEM_GESTURE_TAKEOVER_SIDES] ?: false,
+            systemGestureTakeoverBottom = prefs[SettingsPreferenceKeys.SYSTEM_GESTURE_TAKEOVER_BOTTOM] ?: false,
             limitMaxInterceptLength = prefs[SettingsPreferenceKeys.LIMIT_MAX_INTERCEPT_LENGTH] ?: false,
             leftDefaultTriggerMode = GestureTriggerMode.fromId(
                 prefs[SettingsPreferenceKeys.LEFT_DEFAULT_TRIGGER_MODE] ?: GestureTriggerMode.ON_RELEASE.id,

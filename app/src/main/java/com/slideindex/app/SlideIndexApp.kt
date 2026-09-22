@@ -8,6 +8,7 @@ import com.slideindex.app.di.AppDependencies
 import com.slideindex.app.di.OtpAutoFillStatsInstaller
 import com.slideindex.app.di.OcrEnginePackMigrationStartup
 import com.slideindex.app.di.OcrInstalledModelStartupVerifier
+import com.slideindex.app.di.ModuleHookConfigSync
 import com.slideindex.app.di.PrivilegeModeInitializer
 import com.slideindex.app.freezer.FreezerLauncherHelper
 import com.slideindex.app.di.ShizukuInitializer
@@ -46,6 +47,7 @@ class SlideIndexApp : Application() {
     @Inject lateinit var ocrEnginePackMigrationStartup: OcrEnginePackMigrationStartup
     @Inject lateinit var segmentationEngineProvisioner: SegmentationEngineProvisioner
     @Inject lateinit var updatePreferencesStore: UpdatePreferencesStore
+    @Inject lateinit var moduleHookConfigSync: ModuleHookConfigSync
 
     override fun attachBaseContext(base: Context) {
         super.attachBaseContext(AppLocaleApplier.wrapContextIfNeeded(base))
@@ -69,6 +71,7 @@ class SlideIndexApp : Application() {
         }
         ocrEnginePackMigrationStartup.start()
         shizukuInitializer.start()
+        moduleHookConfigSync.start()
         otpAutoFillStatsInstaller.install()
         com.slideindex.app.ui.icon.AppIconTheme.ensureSelectedThemeEnabled(this)
         FreezerLauncherHelper.cleanupLegacyAlias(this)

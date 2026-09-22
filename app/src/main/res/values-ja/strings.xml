@@ -673,10 +673,10 @@
     <string name="gesture_angle_side_bottom">下</string>
     <string name="gesture_angle_side_top">上</string>
     <string name="gesture_angle_live_preview_hint">境界をドラッグして端のジェスチャ角度をライブプレビュー。チェックマークをタップして保存。</string>
-    <string name="system_back_gesture_width_entry_title">システム戻るジェスチャ幅</string>
-    <string name="system_back_gesture_width_entry_desc">左右端のシステム戻るジェスチャ領域を調整</string>
-    <string name="system_back_gesture_width_title">システム戻るジェスチャ幅</string>
-    <string name="system_back_gesture_width_desc">ジェスチャナビで左右端のシステム戻るジェスチャのトリガー幅を調整</string>
+    <string name="system_back_gesture_width_entry_title">システムジェスチャを遮断</string>
+    <string name="system_back_gesture_width_entry_desc">指定した端のトリガー領域を入力層で引き継ぎ、対応するシステムジェスチャを上書きします（LSPosed 必須）</string>
+    <string name="system_back_gesture_width_title">システムジェスチャを遮断</string>
+    <string name="system_back_gesture_width_desc">左右の戻るジェスチャ幅を調整します。引き継ぎ範囲は下部にあります</string>
     <string name="system_back_gesture_width_experimental_tip" formatted="false">実験機能：機種や OS バージョンによっては効かない、または挙動が異なる場合があります。片側を 0% にすると、その側のシステム戻るジェスチャを無効にします。100% はシステム既定の幅です。トリガー設定の「システム戻るジェスチャを遮断」とは別の機能です。</string>
     <string name="system_back_gesture_width_not_gesture_nav">ジェスチャナビが有効ではないため、通常は効果がありません。</string>
     <string name="system_back_gesture_width_write_permission_desc">システムのセキュア設定を変更する権限が必要です。Shizuku で付与するか ADB コマンドを使用してください。</string>
@@ -684,6 +684,22 @@
     <string name="system_back_gesture_width_right">右側の幅</string>
     <string name="system_back_gesture_width_reset">デフォルトに戻す</string>
     <string name="system_back_gesture_width_reset_desc">左右を 100% に戻す</string>
+    <string name="system_back_gesture_width_section">システム戻るジェスチャ幅</string>
+    <string name="system_gesture_takeover_section">LSPosed 引き継ぎ範囲</string>
+    <string name="system_gesture_takeover_requires_module">システム入力層がこの領域を引き継ぎます。トリガーを設定した端のみ有効で、LSPosed モジュールが必要です。</string>
+    <string name="system_gesture_takeover_top">上部</string>
+    <string name="system_gesture_takeover_top_desc">ステータスバーの引き下げなど上部のシステムジェスチャを上書き</string>
+    <string name="system_gesture_takeover_sides">両側</string>
+    <string name="system_gesture_takeover_sides_desc">左右端のシステム戻るジェスチャを上書き（一部端末では無効な場合があります）</string>
+    <string name="system_gesture_takeover_bottom">下部</string>
+    <string name="system_gesture_takeover_bottom_desc">上スワイプでホームなど下部のシステムジェスチャを上書き</string>
+    <string name="system_gesture_takeover_bottom_three_button_nav">3 ボタンナビのため、下部の引き継ぎは反映されません</string>
+    <string name="system_gesture_takeover_module_status">LSPosed モジュールの状態</string>
+    <string name="system_gesture_takeover_module_ready">有効：入力層の引き継ぎが動作中</string>
+    <string name="system_gesture_takeover_module_not_ready">無効：モジュール未読み込み、または android スコープが未選択</string>
+    <string name="system_gesture_takeover_module_checking">確認中…</string>
+    <string name="system_gesture_takeover_module_tap_hint">タップして LSPosed モジュールの状態を確認</string>
+    <string name="system_gesture_takeover_tip" formatted="false">有効にすると、モジュールがシステム入力層でその端のトリガー領域を先に引き継ぎます。領域内のシステムジェスチャ（上部の引き下げ・戻る・上スワイプでホーム）は発動せず、タッチは本アプリが処理します。アクション未設定のタッチはシステムに渡されません。トリガー設定の「システム戻るジェスチャを遮断」やコーナーホイールの「システムナビゲーションジェスチャを上書き」とは別機能です。</string>
     <string name="accessibility_service_name">#Cebian👈</string>
     <string name="accessibility_service_desc">エッジジェスチャとサイドバーパネルに必要。Shizuku なしで戻る、ホーム、最近使ったアプリ、タップ透過にも使用します。</string>
     <string name="permission_accessibility_title">Cebian</string>

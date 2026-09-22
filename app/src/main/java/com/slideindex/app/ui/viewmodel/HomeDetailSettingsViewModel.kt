@@ -345,6 +345,18 @@ class HomeDetailSettingsViewModel @Inject constructor(
         settingsRepository.setInterceptSystemBackGesture(enabled)
     }
 
+    fun setSystemGestureTakeoverTop(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setSystemGestureTakeoverTop(enabled)
+    }
+
+    fun setSystemGestureTakeoverSides(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setSystemGestureTakeoverSides(enabled)
+    }
+
+    fun setSystemGestureTakeoverBottom(enabled: Boolean) = launchSettingsWrite {
+        settingsRepository.setSystemGestureTakeoverBottom(enabled)
+    }
+
     fun setLimitMaxInterceptLength(enabled: Boolean) = launchSettingsWrite {
         settingsRepository.setLimitMaxInterceptLength(enabled)
     }

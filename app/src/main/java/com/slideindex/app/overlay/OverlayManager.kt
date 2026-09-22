@@ -17,6 +17,14 @@ import com.slideindex.app.util.TriggerVisibility
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
+/** 输入层接管能力掩码位。 */
+private fun PanelSide.forwardingBit(): Int = when (this) {
+    PanelSide.LEFT -> 1 shl 0
+    PanelSide.RIGHT -> 1 shl 1
+    PanelSide.BOTTOM -> 1 shl 2
+    PanelSide.TOP -> 1 shl 3
+}
+
 class OverlayManager(
     private val context: Context,
     private val appRepository: AppRepository,
@@ -36,6 +44,13 @@ class OverlayManager(
     private var foregroundPackage: String? = null
     private var triggersSuppressed = false
     private var triggersShown = false
+
+    /**
+     * 可由 system_server 模块安全读取（volatile）的“该边可处理输入层转发触摸”位掩码。
+     * 只在主线程更新，binder 线程只读。
+     */
+    @Volatile
+    private var forwardingSideMask: Int = 0
     private val mainHandler = Handler(Looper.getMainLooper())
     private var refreshVisibilityPending = false
 
@@ -53,6 +68,7 @@ class OverlayManager(
             topController = null
             triggersShown = false
             triggersSuppressed = false
+            forwardingSideMask = 0
             return
         }
 
@@ -112,6 +128,23 @@ class OverlayManager(
         rightController?.forceCollapseIfIdle()
         bottomController?.forceCollapseIfIdle()
         topController?.forceCollapseIfIdle()
+    }
+
+    /** 路由输入层接管转发的触摸事件；返回 false 表示当前没有可处理该边的 overlay。 */
+    fun handleForwardedTouch(side: PanelSide, event: android.view.MotionEvent): Boolean {
+        val controller = controllerFor(side) ?: return false
+        return controller.handleForwardedTouch(event)
+    }
+
+    fun cancelForwardedTouch(side: PanelSide) {
+        controllerFor(side)?.cancelForwardedTouch()
+    }
+
+    private fun controllerFor(side: PanelSide): SideOverlayController? = when (side) {
+        PanelSide.LEFT -> leftController
+        PanelSide.RIGHT -> rightController
+        PanelSide.BOTTOM -> bottomController
+        PanelSide.TOP -> topController
     }
 
     fun updateForegroundPackage(packageName: String?) {
@@ -218,8 +251,14 @@ class OverlayManager(
     }
 
     private fun refreshTriggerVisibilityNow() {
-        if (!currentSettings.serviceEnabled) return
-        if (OverlayTrampolineGuard.blocksOverlayPresentationTouch()) return
+        if (!currentSettings.serviceEnabled) {
+            forwardingSideMask = 0
+            return
+        }
+        if (OverlayTrampolineGuard.blocksOverlayPresentationTouch()) {
+            forwardingSideMask = 0
+            return
+        }
 
         val suppress = shouldSuppressTrigger()
         if (suppress) {
@@ -231,6 +270,7 @@ class OverlayManager(
                 triggersSuppressed = true
                 triggersShown = false
             }
+            forwardingSideMask = 0
             return
         }
 
@@ -241,6 +281,30 @@ class OverlayManager(
             triggersShown = true
             ensureSideEdgesForHandles(currentSettings)
         }
+        updateForwardingCapability()
+    }
+
+    /** 输入层接管是否可用：服务开启、触钮未被隐藏、且该边 overlay 已就绪。 */
+    fun isForwardingCapable(side: PanelSide): Boolean =
+        (forwardingSideMask and side.forwardingBit()) != 0
+
+    private fun updateForwardingCapability() {
+        var mask = 0
+        if (currentSettings.serviceEnabled && !triggersSuppressed) {
+            if (leftController?.isEdgeInitialized() == true) {
+                mask = mask or PanelSide.LEFT.forwardingBit()
+            }
+            if (rightController?.isEdgeInitialized() == true) {
+                mask = mask or PanelSide.RIGHT.forwardingBit()
+            }
+            if (bottomController?.isEdgeInitialized() == true) {
+                mask = mask or PanelSide.BOTTOM.forwardingBit()
+            }
+            if (topController?.isEdgeInitialized() == true) {
+                mask = mask or PanelSide.TOP.forwardingBit()
+            }
+        }
+        forwardingSideMask = mask
     }
 
     fun onEnvironmentChanged() {
@@ -478,6 +542,7 @@ class OverlayManager(
         topController = null
         triggersShown = false
         triggersSuppressed = false
+        forwardingSideMask = 0
     }
 
     private fun clearAllOverlayBrightness() {
@@ -494,6 +559,11 @@ class OverlayManager(
     }
 
     private fun performClickPassthrough(rawX: Float, rawY: Float, onComplete: () -> Unit) {
+        // 输入层接管期间禁止注入放行：注入事件会再次进入模块的过滤器，形成回环。
+        if (ModuleForwardedTouchGate.isRecent()) {
+            onComplete()
+            return
+        }
         OverlayPassthrough.run(
             hideTriggers = ::suspendEdgeCapturesForPassthrough,
             showTriggers = ::resumeEdgeCapturesAfterPassthrough,

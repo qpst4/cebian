@@ -293,6 +293,15 @@ class EdgeSettingsMutator @Inject constructor(
     }
 
     suspend fun setInterceptSystemBackGesture(enabled: Boolean) = editor.edit { it[SettingsPreferenceKeys.INTERCEPT_SYSTEM_BACK] = enabled }
+
+    suspend fun setSystemGestureTakeoverTop(enabled: Boolean) =
+        editor.edit { it[SettingsPreferenceKeys.SYSTEM_GESTURE_TAKEOVER_TOP] = enabled }
+
+    suspend fun setSystemGestureTakeoverSides(enabled: Boolean) =
+        editor.edit { it[SettingsPreferenceKeys.SYSTEM_GESTURE_TAKEOVER_SIDES] = enabled }
+
+    suspend fun setSystemGestureTakeoverBottom(enabled: Boolean) =
+        editor.edit { it[SettingsPreferenceKeys.SYSTEM_GESTURE_TAKEOVER_BOTTOM] = enabled }
     suspend fun setLimitMaxInterceptLength(enabled: Boolean) = editor.edit { it[SettingsPreferenceKeys.LIMIT_MAX_INTERCEPT_LENGTH] = enabled }
 
     suspend fun setDefaultTriggerMode(

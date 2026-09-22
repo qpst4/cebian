@@ -315,6 +315,24 @@ class EdgeGestureOverlayView(
 
     fun handleOverlayTouch(event: MotionEvent): Boolean = touchDispatcher.handleTouch(event)
 
+    /**
+     * 处理由 LSPosed 模块在输入层接管并转发过来的触摸事件（屏幕原始坐标）。
+     *
+     * 复用与窗口触摸完全相同的分发路径，保证面板跟手、Pie、连续调节、子手势行为一致。
+     */
+    fun handleForwardedTouch(event: MotionEvent): Boolean {
+        if (event.actionMasked == MotionEvent.ACTION_DOWN) {
+            layoutCoordinator.applyExpandedOverlayLayout()
+        }
+        return touchDispatcher.handleTouch(event)
+    }
+
+    /** 模块侧判定会话需要提前结束（多指、屏幕关闭等）时调用。 */
+    fun cancelForwardedTouch() {
+        edgeCaptureTouchActive = false
+        forceRecoverInteractionState()
+    }
+
     fun handleCaptureStripTouch(event: MotionEvent, triggerIndex: Int): Boolean {
         val handle = settings.triggerHandles(side).getOrNull(triggerIndex) ?: return false
         val (localX, localY) = rawToLocal(event.rawX, event.rawY)

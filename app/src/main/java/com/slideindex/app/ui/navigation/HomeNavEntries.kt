@@ -1291,6 +1291,8 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
     }
 
     hiltEntry<AppNavKey.HomeSystemBackGestureWidth> {
+        val viewModel: HomeDetailSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
         val permissions = ctx.collectPermissions()
         var privilegedAccessGranted by remember { mutableStateOf(false) }
         LaunchedEffect(Unit) {
@@ -1299,6 +1301,12 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
             }
         }
         SystemBackGestureWidthSettingsScreen(
+            takeoverTop = settings.systemGestureTakeoverTop,
+            takeoverSides = settings.systemGestureTakeoverSides,
+            takeoverBottom = settings.systemGestureTakeoverBottom,
+            onTakeoverTopChange = viewModel::setSystemGestureTakeoverTop,
+            onTakeoverSidesChange = viewModel::setSystemGestureTakeoverSides,
+            onTakeoverBottomChange = viewModel::setSystemGestureTakeoverBottom,
             writeSecureSettingsGranted = permissions.writeSecureSettingsGranted,
             privilegedAccessGranted = privilegedAccessGranted,
             onBack = { ctx.navigateBackTo(AppNavKey.HomeMain) },

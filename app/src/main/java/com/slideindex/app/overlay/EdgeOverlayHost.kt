@@ -6,6 +6,7 @@ package com.slideindex.app.overlay
  */
 
 import android.content.Context
+import android.view.MotionEvent
 import com.slideindex.app.di.AppDependencies
 import com.slideindex.app.gesture.GestureAnglesPreviewStore
 import com.slideindex.app.monitoring.OverlayPerformanceMonitorBinding
@@ -127,6 +128,17 @@ class EdgeOverlayHost(
         OverlayService.foregroundPackage = null
         previewActive = false
     }
+
+    /** 输入层接管转发的触摸事件入口（system_server 模块 → app 现有手势引擎）。 */
+    fun handleForwardedTouch(side: PanelSide, event: MotionEvent): Boolean =
+        overlayManager?.handleForwardedTouch(side, event) ?: false
+
+    fun cancelForwardedTouch(side: PanelSide) {
+        overlayManager?.cancelForwardedTouch(side)
+    }
+
+    fun isForwardingCapable(side: PanelSide): Boolean =
+        overlayManager?.isForwardingCapable(side) == true
 
     fun recoverTriggerInteraction(forceReAddChrome: Boolean = false) {
         overlayManager?.recoverTriggerInteraction(forceReAddChrome)

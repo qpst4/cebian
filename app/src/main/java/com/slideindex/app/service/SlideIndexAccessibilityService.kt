@@ -51,6 +51,9 @@ class SlideIndexAccessibilityService : AccessibilityService() {
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var edgeOverlayHost: EdgeOverlayHost? = null
 
+    /** 当前由输入层接管并转发过来的边，用于会话结束时精确取消。 */
+    private var activeForwardedSide: PanelSide? = null
+
     private lateinit var otpCoordinator: SlideIndexAccessibilityOtpCoordinator
     private lateinit var foregroundTracker: SlideIndexAccessibilityForegroundTracker
     private lateinit var watchdog: SlideIndexAccessibilityWatchdog
@@ -95,6 +98,74 @@ class SlideIndexAccessibilityService : AccessibilityService() {
         }
 
         fun isConnected(): Boolean = instance != null
+
+        /** overlay 宿主是否就绪；未就绪时模块不应在输入层吞掉事件。 */
+        fun isOverlayReady(): Boolean = instance?.edgeOverlayHost != null
+
+        /**
+         * 该边当前是否真的能处理输入层转发的触摸。
+         *
+         * 只读 OverlayManager 维护的可能力掩码（volatile），可在 binder 线程安全调用。
+         */
+        fun canHandleForwardedSide(sideId: Int): Boolean {
+            val host = instance?.edgeOverlayHost ?: return false
+            val side = sideId.toPanelSideOrNull() ?: return false
+            return host.isForwardingCapable(side)
+        }
+
+        /**
+         * 接收 system_server 模块在输入层接管后转发来的触摸事件。
+         *
+         * 返回 false 表示当前 app 无法处理（服务未就绪/边不可用），模块据此放行事件。
+         */
+        fun handleModuleGestureTouch(
+            sessionId: Long,
+            sideId: Int,
+            action: Int,
+            x: Float,
+            y: Float,
+            eventTime: Long,
+            downTime: Long,
+            metaState: Int,
+        ): Boolean {
+            val service = instance ?: return false
+            val host = service.edgeOverlayHost ?: return false
+            val side = sideId.toPanelSideOrNull() ?: return false
+            com.slideindex.app.overlay.ModuleForwardedTouchGate.markForwarded()
+            if (action == android.view.MotionEvent.ACTION_DOWN) {
+                service.activeForwardedSide = side
+            }
+            mainHandler.post {
+                val event = android.view.MotionEvent.obtain(downTime, eventTime, action, x, y, metaState)
+                try {
+                    host.handleForwardedTouch(side, event)
+                } finally {
+                    event.recycle()
+                }
+            }
+            return true
+        }
+
+        fun handleModuleGestureSessionEnd(sessionId: Long, reason: Int) {
+            val service = instance ?: return
+            val host = service.edgeOverlayHost ?: return
+            com.slideindex.app.overlay.ModuleForwardedTouchGate.markForwarded()
+            val side = service.activeForwardedSide
+            service.activeForwardedSide = null
+            mainHandler.post {
+                if (side != null) {
+                    host.cancelForwardedTouch(side)
+                }
+            }
+        }
+
+        private fun Int.toPanelSideOrNull(): PanelSide? = when (this) {
+            com.slideindex.app.xposed.bridge.ModuleHookBridgeContract.SIDE_LEFT -> PanelSide.LEFT
+            com.slideindex.app.xposed.bridge.ModuleHookBridgeContract.SIDE_RIGHT -> PanelSide.RIGHT
+            com.slideindex.app.xposed.bridge.ModuleHookBridgeContract.SIDE_BOTTOM -> PanelSide.BOTTOM
+            com.slideindex.app.xposed.bridge.ModuleHookBridgeContract.SIDE_TOP -> PanelSide.TOP
+            else -> null
+        }
 
         fun applyServiceEnabledImmediate(enabled: Boolean) {
             val service = instance

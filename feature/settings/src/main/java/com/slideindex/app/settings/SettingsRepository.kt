@@ -166,6 +166,12 @@ class SettingsRepository @Inject constructor(
         landscape: Boolean = false,
     ) = edge.applyTriggerDesignPreset(side, handleId, preset, landscape)
     suspend fun setInterceptSystemBackGesture(enabled: Boolean) = edge.setInterceptSystemBackGesture(enabled)
+
+    suspend fun setSystemGestureTakeoverTop(enabled: Boolean) = edge.setSystemGestureTakeoverTop(enabled)
+
+    suspend fun setSystemGestureTakeoverSides(enabled: Boolean) = edge.setSystemGestureTakeoverSides(enabled)
+
+    suspend fun setSystemGestureTakeoverBottom(enabled: Boolean) = edge.setSystemGestureTakeoverBottom(enabled)
     suspend fun setLimitMaxInterceptLength(enabled: Boolean) = edge.setLimitMaxInterceptLength(enabled)
     suspend fun setDefaultTriggerMode(
         side: PanelSide,

@@ -675,10 +675,10 @@
     <string name="gesture_angle_side_bottom">底部</string>
     <string name="gesture_angle_side_top">顶部</string>
     <string name="gesture_angle_live_preview_hint">拖动分界点可实时在边缘测试手势角度，点勾号才保存</string>
-    <string name="system_back_gesture_width_entry_title">系统返回手势宽度</string>
-    <string name="system_back_gesture_width_entry_desc">调节左右边缘系统返回手势触发区域</string>
-    <string name="system_back_gesture_width_title">系统返回手势宽度</string>
-    <string name="system_back_gesture_width_desc">调节系统全面屏手势下，左右边缘返回手势的触发宽度</string>
+    <string name="system_back_gesture_width_entry_title">屏蔽系统手势</string>
+    <string name="system_back_gesture_width_entry_desc">接管指定边缘的触钮区域，覆盖对应系统手势（依赖 LSPosed 模块）</string>
+    <string name="system_back_gesture_width_title">屏蔽系统手势</string>
+    <string name="system_back_gesture_width_desc">调节左右边缘返回手势宽度；接管范围见下方</string>
     <string name="system_back_gesture_width_experimental_tip" formatted="false">实验性功能：部分机型或系统版本上可能无效或表现不同。某一侧设为 0% 时，相当于屏蔽该侧的系统返回手势；100% 为系统默认宽度。这与触钮设置里的「拦截系统返回手势」不是同一功能。</string>
     <string name="system_back_gesture_width_not_gesture_nav">当前未使用全面屏手势导航，此设置通常不会生效。</string>
     <string name="system_back_gesture_width_write_permission_desc">需要修改系统安全设置的权限，可通过 Shizuku 授权或使用 ADB 命令。</string>
@@ -686,6 +686,22 @@
     <string name="system_back_gesture_width_right">右侧宽度</string>
     <string name="system_back_gesture_width_reset">恢复默认</string>
     <string name="system_back_gesture_width_reset_desc">将左右宽度恢复为 100%</string>
+    <string name="system_back_gesture_width_section">系统返回手势宽度</string>
+    <string name="system_gesture_takeover_section">LSPosed 接管范围</string>
+    <string name="system_gesture_takeover_requires_module">由系统输入层接管该区域，仅对已配置触钮的边缘有效，依赖 LSPosed 模块。</string>
+    <string name="system_gesture_takeover_top">顶部</string>
+    <string name="system_gesture_takeover_top_desc">覆盖状态栏下拉等顶部系统手势</string>
+    <string name="system_gesture_takeover_sides">两侧</string>
+    <string name="system_gesture_takeover_sides_desc">覆盖左右边缘的系统返回手势；部分机型可能无效</string>
+    <string name="system_gesture_takeover_bottom">底部</string>
+    <string name="system_gesture_takeover_bottom_desc">覆盖上滑回桌面等底部系统手势</string>
+    <string name="system_gesture_takeover_bottom_three_button_nav">当前为三键导航，底部接管不会生效</string>
+    <string name="system_gesture_takeover_module_status">LSPosed 模块状态</string>
+    <string name="system_gesture_takeover_module_ready">已生效：输入层接管运行中</string>
+    <string name="system_gesture_takeover_module_not_ready">未生效：模块未加载或未勾选 android 作用域</string>
+    <string name="system_gesture_takeover_module_checking">正在检测…</string>
+    <string name="system_gesture_takeover_module_tap_hint">点按检测 LSPosed 模块状态</string>
+    <string name="system_gesture_takeover_tip" formatted="false">开启后，模块会在系统输入层先接管该边缘的触钮区域：区域内的系统手势（顶部下拉、左右返回、底部上滑回桌面）不再触发，触摸交由本应用处理；未绑定动作的触摸不会传给系统。这与触钮设置里的「拦截系统返回手势」、边角轮盘的「覆盖系统导航手势」不是同一功能。</string>
     <string name="accessibility_service_name">#边栏👈</string>
     <string name="accessibility_service_desc">开启后才能使用边缘手势与边栏面板，并执行返回、主屏幕、多任务等系统手势；未授权 Shizuku 时也可用于边缘单击穿透。</string>
     <string name="permission_accessibility_title">边栏</string>

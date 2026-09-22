@@ -52,6 +52,19 @@ internal object LibXposedReflect {
     throw NoSuchFieldException(fieldName)
   }
 
+  fun getLongField(obj: Any, fieldName: String): Long {
+    var clazz: Class<*>? = obj.javaClass
+    while (clazz != null) {
+      runCatching {
+        val field = clazz.getDeclaredField(fieldName)
+        field.isAccessible = true
+        return field.getLong(obj)
+      }
+      clazz = clazz.superclass
+    }
+    throw NoSuchFieldException(fieldName)
+  }
+
   fun getStaticIntField(clazz: Class<*>, fieldName: String): Int {
     val field = findField(clazz, fieldName)
     return field.getInt(null)

@@ -125,6 +125,19 @@ class SideOverlayController(
 
     fun isEdgeInitialized(): Boolean = windowManager.presentationView != null
 
+    /** 输入层接管转发的触摸事件；窗口未就绪时返回 false（模块会据此放行）。 */
+    fun handleForwardedTouch(event: android.view.MotionEvent): Boolean {
+        val view = windowManager.presentationView ?: return false
+        if (android.os.Looper.myLooper() != android.os.Looper.getMainLooper()) {
+            return false
+        }
+        return view.handleForwardedTouch(event)
+    }
+
+    fun cancelForwardedTouch() {
+        windowManager.presentationView?.cancelForwardedTouch()
+    }
+
     fun forceCollapseIfIdle() {
         val view = windowManager.presentationView ?: return
         // leave-open 面板抬手后 active=false，但 panelMode 仍非 NONE，不能当 idle 清掉。
