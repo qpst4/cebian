@@ -246,4 +246,30 @@ internal class FloatBallTouchHostLayout(
         if (!gestureCaptureActive && !ballDetector.isLauncherCaptureMode()) return false
         return ballDetector.onTouchEvent(event)
     }
+
+    /**
+     * 输入层接管（system_server 模块）转发来的球体触摸。
+     *
+     * 与 [onTouchEvent] 唯一差别是 DOWN 的命中已在模块 + app 的 `canAcceptTouchAt` 里现场复核过；
+     * 这里仍按同一份 `hitTestBall` 再验一次，避免几何在两次判定之间变化时出现"空处起手势"。
+     * 未命中即返回 false，调用方丢弃该事件（最坏只丢一次触摸，不产生残留状态）。
+     */
+    fun handleForwardedTouch(event: MotionEvent): Boolean {
+        when (event.actionMasked) {
+            MotionEvent.ACTION_DOWN -> {
+                if (!hitTestBall(event.rawX, event.rawY)) return false
+                gestureCaptureActive = true
+            }
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                if (!gestureCaptureActive && !ballDetector.isLauncherCaptureMode()) return false
+                val handled = ballDetector.onTouchEvent(event)
+                if (!ballDetector.isLauncherCaptureMode()) {
+                    gestureCaptureActive = false
+                }
+                return handled
+            }
+        }
+        if (!gestureCaptureActive && !ballDetector.isLauncherCaptureMode()) return false
+        return ballDetector.onTouchEvent(event)
+    }
 }

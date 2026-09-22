@@ -125,6 +125,9 @@ class SlideIndexAccessibilityService : AccessibilityService() {
         fun canHandleForwardedTargetAt(target: Int, x: Float, y: Float): Boolean {
             instance ?: return false
             return when (target) {
+                ModuleHookBridgeContract.TARGET_FLOAT_BALL,
+                ModuleHookBridgeContract.TARGET_FLOAT_LINE,
+                -> com.slideindex.app.overlay.FloatBallOverlay.canAcceptForwardedTouchAt(target, x, y)
                 ModuleHookBridgeContract.TARGET_CORNER_LEFT ->
                     CornerGestureHost.canAcceptForwardedTouchAt(CornerAnchor.LEFT, x, y)
                 ModuleHookBridgeContract.TARGET_CORNER_RIGHT ->
@@ -152,9 +155,10 @@ class SlideIndexAccessibilityService : AccessibilityService() {
             val side = sideId.toPanelSideOrNull()
             val cornerAnchor = if (side == null) sideId.toCornerAnchorOrNull() else null
             val cornerHost = if (cornerAnchor != null) CornerGestureHost.instanceOrNull() else null
+            val floatBallTarget = sideId.isFloatBallTarget()
             if (side != null) {
                 service.edgeOverlayHost ?: return false
-            } else if (cornerHost == null) {
+            } else if (cornerHost == null && !floatBallTarget) {
                 return false
             }
             com.slideindex.app.overlay.ModuleForwardedTouchGate.markForwarded()
@@ -168,6 +172,8 @@ class SlideIndexAccessibilityService : AccessibilityService() {
                         service.edgeOverlayHost?.handleForwardedTouch(side, event)
                     } else if (cornerAnchor != null) {
                         cornerHost?.handleForwardedTouch(cornerAnchor, event)
+                    } else if (floatBallTarget) {
+                        com.slideindex.app.overlay.FloatBallOverlay.handleForwardedTouch(sideId, event)
                     }
                 } finally {
                     event.recycle()
@@ -189,6 +195,8 @@ class SlideIndexAccessibilityService : AccessibilityService() {
                     service.edgeOverlayHost?.cancelForwardedTouch(side)
                 } else if (cornerAnchor != null) {
                     CornerGestureHost.instanceOrNull()?.cancelForwardedTouch(cornerAnchor)
+                } else if (target.isFloatBallTarget()) {
+                    com.slideindex.app.overlay.FloatBallOverlay.cancelForwardedTouch(target)
                 }
             }
         }
@@ -206,6 +214,10 @@ class SlideIndexAccessibilityService : AccessibilityService() {
             ModuleHookBridgeContract.TARGET_CORNER_RIGHT -> CornerAnchor.RIGHT
             else -> null
         }
+
+        private fun Int.isFloatBallTarget(): Boolean =
+            this == ModuleHookBridgeContract.TARGET_FLOAT_BALL ||
+                this == ModuleHookBridgeContract.TARGET_FLOAT_LINE
 
         private const val NO_FORWARDED_TARGET = -1
 

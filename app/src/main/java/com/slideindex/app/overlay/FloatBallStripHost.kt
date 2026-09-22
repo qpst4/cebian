@@ -207,4 +207,29 @@ internal class FloatBallStripHost(
         if (!gestureActive && !gestureDetector.isLauncherCaptureMode()) return false
         return gestureDetector.onTouchEvent(event)
     }
+
+    /**
+     * 输入层接管（system_server 模块）转发来的线条触摸。
+     *
+     * 与 [onTouchEvent] 唯一差别是 DOWN 的命中已在模块 + app 的 `canAcceptTouchAt` 里现场复核过；
+     * 这里再用同一份 `hitTestLine` 复核一次，几何变化导致未命中就丢弃（不产生残留状态）。
+     */
+    fun handleForwardedTouch(event: MotionEvent): Boolean {
+        when (event.actionMasked) {
+            MotionEvent.ACTION_DOWN -> {
+                if (!hitTestLine(event.rawX, event.rawY)) return false
+                gestureActive = true
+            }
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                if (!gestureActive && !gestureDetector.isLauncherCaptureMode()) return false
+                val handled = gestureDetector.onTouchEvent(event)
+                if (!gestureDetector.isLauncherCaptureMode()) {
+                    gestureActive = false
+                }
+                return handled
+            }
+        }
+        if (!gestureActive && !gestureDetector.isLauncherCaptureMode()) return false
+        return gestureDetector.onTouchEvent(event)
+    }
 }

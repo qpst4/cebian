@@ -1568,6 +1568,72 @@ object FloatBallOverlay {
         syncLineTouchWindowLayout(settings)
     }
 
+    /**
+     * 输入层接管（system_server 模块）用的现场命中复核。
+     *
+     * 由 binder 线程调用，因此只读快照数据（设置快照、场景状态、屏幕尺寸），不触碰 View 结构；
+     * 球的位置会随停靠/自定义/键盘弹出/横屏变化，所以这里**当次现算**，
+     * 不用缓存矩形——算不到就返回 false，模块据此放行，绝不吞掉无人处理的触摸。
+     */
+    fun canAcceptForwardedTouchAt(target: Int, x: Float, y: Float): Boolean {
+        val view = displayView ?: touchHost ?: lineTouchHost ?: return false
+        val state = sceneState ?: return false
+        val settings = state.settingsState.value
+        if (!settings.floatBallEnabled || captureSuppressed || passthroughRestorePending) return false
+        val isLandscape = isLandscapeLayout()
+        if (FloatBallLayout.isKeyboardTriggerDisabled(settings, isLandscape)) return false
+        val metrics = view.resources.displayMetrics
+        val (screenW, screenH) = FloatBallScreenMetrics.sizePx(view.context, windowManager)
+        val activeSide = effectiveActiveSide(settings)
+        return when (target) {
+            com.slideindex.app.xposed.bridge.ModuleHookBridgeContract.TARGET_FLOAT_BALL ->
+                state.ballHitRect(
+                    settings = settings,
+                    metrics = metrics,
+                    activeSide = activeSide,
+                    screenWidthPx = screenW,
+                    screenHeightPx = screenH,
+                    isLandscape = isLandscape,
+                ).contains(x.roundToInt(), y.roundToInt())
+
+            com.slideindex.app.xposed.bridge.ModuleHookBridgeContract.TARGET_FLOAT_LINE ->
+                FloatBallLayout.shouldShowLine(settings) &&
+                    state.lineHitRect(
+                        settings = settings,
+                        metrics = metrics,
+                        inactiveSide = FloatBallSide.opposite(activeSide),
+                        screenWidthPx = screenW,
+                        screenHeightPx = screenH,
+                        isLandscape = isLandscape,
+                    ).contains(x.roundToInt(), y.roundToInt())
+
+            else -> false
+        }
+    }
+
+    /** 输入层转发来的触摸：交给对应的触摸窗，复用既有手势检测（必须在主线程调用）。 */
+    fun handleForwardedTouch(target: Int, event: android.view.MotionEvent): Boolean = when (target) {
+        com.slideindex.app.xposed.bridge.ModuleHookBridgeContract.TARGET_FLOAT_BALL ->
+            touchHost?.handleForwardedTouch(event) ?: false
+        com.slideindex.app.xposed.bridge.ModuleHookBridgeContract.TARGET_FLOAT_LINE ->
+            lineTouchHost?.handleForwardedTouch(event) ?: false
+        else -> false
+    }
+
+    /** 输入层会话结束：结束该目标的手势并收回空闲布局。 */
+    fun cancelForwardedTouch(target: Int) {
+        when (target) {
+            com.slideindex.app.xposed.bridge.ModuleHookBridgeContract.TARGET_FLOAT_BALL -> {
+                touchHost?.forceEndGestureCapture()
+                collapseBallTouchHostFromFullscreen()
+            }
+            com.slideindex.app.xposed.bridge.ModuleHookBridgeContract.TARGET_FLOAT_LINE -> {
+                lineTouchHost?.cancelGesture()
+                collapseLineTouchHostFromFullscreen()
+            }
+        }
+    }
+
     private fun buildDisplayLayoutParams(context: Context): WindowManager.LayoutParams {
         return WindowManager.LayoutParams(
             WindowManager.LayoutParams.MATCH_PARENT,

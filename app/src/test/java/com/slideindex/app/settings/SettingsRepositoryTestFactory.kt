@@ -21,6 +21,21 @@ suspend fun clearTestSettings(context: Context) {
     }
 }
 
+/**
+ * 标记惯量灵敏度已从 V2 迁移到 V3。
+ *
+ * 没有这两个标记时，[com.slideindex.app.settings.SettingsSnapshotReader] 会把默认值按
+ * V2 语义迁移（14.0 → 13.6667），于是「断言读到 AppSettings() 默认值」的用例结果依赖于
+ * 同一 JVM 里是否有别的用例先写过 shake 设置——即执行顺序。显式打标记即可消除该顺序依赖。
+ *
+ * 这里通过公开的写入口来打标记（写灵敏度会一并置位迁移标记），避免依赖模块内 internal 的键名。
+ */
+suspend fun seedShakeSensitivityMigrationFlags(context: Context) {
+    testSettingsRepository(context).setShakeGlobalSensitivity(
+        AppSettings().shakeGestureSettings.globalSensitivity,
+    )
+}
+
 internal fun testSettingsRepository(context: Context): SettingsRepository = synchronized(testSettingsLock) {
     val editor = SettingsPreferencesEditor(context)
     SettingsRepository(

@@ -4,6 +4,7 @@ import android.content.Context
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.SettingsRepository
 import com.slideindex.app.settings.clearTestSettings
+import com.slideindex.app.settings.seedShakeSensitivityMigrationFlags
 import com.slideindex.app.settings.testSettingsRepository
 import com.slideindex.app.ui.feedback.UserMessageBus
 import kotlinx.coroutines.runBlocking
@@ -30,6 +31,9 @@ class ShakeHubViewModelTest : ViewModelCoroutineTest() {
     fun setUp() = runBlocking {
         context = RuntimeEnvironment.getApplication()
         clearTestSettings(context)
+        // 先标记灵敏度已迁移，否则全新 store 读到的默认值是迁移后的 13.6667，
+        // 本用例「与 AppSettings() 默认一致」的断言就会随执行顺序时好时坏。
+        seedShakeSensitivityMigrationFlags(context)
         repository = testSettingsRepository(context)
     }
 
