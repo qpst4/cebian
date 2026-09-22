@@ -41,6 +41,7 @@ internal class TaskSwitcherTouchHandler(
                     return true
                 }
                 scrollHandler.beginScrollDrag(localY)
+                scrollHandler.trackVelocity(event)
                 if (continuousPick && continuousPickReady()) {
                     val pick = pickResolver.resolve(layout, localX, localY)
                     pickResolver.updateContinuous(layout, pick, event.eventTime, haptic = true)
@@ -66,6 +67,7 @@ internal class TaskSwitcherTouchHandler(
                 return true
             }
             MotionEvent.ACTION_MOVE -> {
+                scrollHandler.trackVelocity(event)
                 if (continuousPick && contextMenuHandler.handleContinuousMenuMove(localX, touchX, localY)) {
                     return true
                 }
@@ -134,8 +136,10 @@ internal class TaskSwitcherTouchHandler(
                     resetTaskSwitcherTouchHighlights()
                     return true
                 }
-                scrollHandler.finishScrollDrag()
-                if (!continuousPick && ctrl.taskSwitcherGestureScrolled) {
+                scrollHandler.finishScrollDrag(event)
+                if (!continuousPick &&
+                    (ctrl.taskSwitcherGestureScrolled || scrollHandler.isFlinging)
+                ) {
                     resetTaskSwitcherTouchHighlights()
                     return true
                 }
@@ -178,7 +182,7 @@ internal class TaskSwitcherTouchHandler(
 
     internal fun cancelTaskSwitcherRowLongPress() = longPressHandler.cancelRowLongPress()
 
-    internal fun cancelTaskSwitcherOverscrollAnimation() = scrollHandler.cancelOverscrollAnimation()
+    internal fun cancelTaskSwitcherScrollMotion() = scrollHandler.cancelScrollMotion()
 
     internal fun continuousPickReady(): Boolean = host.panelEnterProgress() >= 1f
 

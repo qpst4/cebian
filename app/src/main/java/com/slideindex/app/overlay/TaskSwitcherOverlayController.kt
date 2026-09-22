@@ -207,7 +207,7 @@ internal class TaskSwitcherOverlayController(
         taskSwitcherMenuHighlight = -1
         taskSwitcherMenuAwaitingRelease = false
         taskSwitcherScrollDragging = false
-        touchHandler.cancelTaskSwitcherOverscrollAnimation()
+        touchHandler.cancelTaskSwitcherScrollMotion()
         taskSwitcherOverscrollOffset = 0f
         if (immediate || taskSwitcherMenuEnterProgress <= 0f) {
             finishTaskSwitcherMenuDismiss()
@@ -267,7 +267,7 @@ internal class TaskSwitcherOverlayController(
         taskSwitcherScrollOffset = 0f
         taskSwitcherScrollDragging = false
         taskSwitcherOverscrollOffset = 0f
-        touchHandler.cancelTaskSwitcherOverscrollAnimation()
+        touchHandler.cancelTaskSwitcherScrollMotion()
         taskSwitcherGestureScrolled = false
         taskSwitcherExiting = false
         dismissTaskSwitcherContextMenu(immediate = true)
