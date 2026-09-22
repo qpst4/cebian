@@ -411,13 +411,15 @@ internal fun FloatBallPickResultContent(
     }
 
     // 搜索按钮长按直搜：默认引擎未设置时长按不响应，窗口形态记住上次选择。
+    // 默认引擎允许是已移入隐藏池的引擎（隐藏只表示不在网格占位）。
     val pickDefaultSearchEngine = remember(
-        panelSearchEngines,
+        searchEngines,
         appSettings.floatBallPickDefaultSearchEngineId,
     ) {
-        appSettings.floatBallPickDefaultSearchEngineId?.let { id ->
-            panelSearchEngines.find { it.id == id }
-        }
+        SearchEngineStore.findTextEngineById(
+            searchEngines,
+            appSettings.floatBallPickDefaultSearchEngineId,
+        )
     }
     var lastSearchLaunchFullscreen by remember(panelShowToken) {
         mutableStateOf(PickResultSearchLaunchPrefs.resolveLastFullscreen(context))

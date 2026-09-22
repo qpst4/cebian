@@ -40,6 +40,7 @@ fun NavEntryBuilder.searchPanelNavEntries(ctx: MainNavContext) {
             onOpenPresentationLayoutSettings = { ctx.navigate(AppNavKey.SearchPanelPresentationLayout) },
             onOpenTextSearchEngines = { ctx.navigate(AppNavKey.FloatBallSearchEngine) },
             onOpenImageSearchEngines = { ctx.navigate(AppNavKey.FloatBallImageSearchEngine) },
+            onSetDefaultEngineId = viewModel::setDefaultEngineId,
         )
     }
 
@@ -56,7 +57,6 @@ fun NavEntryBuilder.searchPanelNavEntries(ctx: MainNavContext) {
             onSetSearchPanelBackgroundStyle = viewModel::setSearchPanelBackgroundStyle,
             onSetSearchPanelBlurRadiusDp = viewModel::setSearchPanelBlurRadiusDp,
             onSetSearchPanelDimPercent = viewModel::setSearchPanelDimPercent,
-            onSetDefaultEngineId = viewModel::setDefaultEngineId,
             onSetSearchPanelInputBehavior = viewModel::setSearchPanelInputBehavior,
             onSetSearchPanelEnterAction = viewModel::setSearchPanelEnterAction,
         )

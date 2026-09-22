@@ -2664,6 +2664,8 @@
     <string name="about_third_party_notices_subtitle">شكر وتقدير وتراخيص</string>
     <string name="search_panel_default_engine_title">محرك البحث الافتراضي</string>
     <string name="search_panel_default_engine_none">لا شيء (لا يتم تنفيذ بحث)</string>
+    <string name="search_panel_default_engine_desc">يُستخدم عندما يكون إجراء مفتاح Enter هو «محرك البحث»</string>
+    <string name="search_engine_default_hidden_marker">%1$s (مخفي)</string>
     <string name="search_panel_open_link_host">فتح %1$s</string>
     <string name="search_panel_entry_title">لوحة البحث</string>
     <string name="search_panel_entry_desc">التخطيط، محرك البحث الافتراضي، البحث المقترح، والأسماء المستعارة</string>
@@ -2700,6 +2702,7 @@
     <string name="search_panel_input_behavior_clear">مسح نص مربع الإدخال</string>
     <string name="search_panel_input_behavior_keep">الاحتفاظ بنص مربع الإدخال</string>
     <string name="search_panel_enter_action_title">إجراء مفتاح Enter</string>
+    <string name="search_panel_enter_action_engine_subtitle">سيُستخدم: %1$s</string>
     <string name="search_panel_enter_action_search_engine">محرك البحث (افتراضي)</string>
     <string name="search_panel_enter_action_first_candidate">تشغيل أول نتيجة</string>
     <string name="search_panel_app_quick_action_free_window">نافذة صغيرة</string>

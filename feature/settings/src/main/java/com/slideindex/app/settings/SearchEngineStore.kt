@@ -34,6 +34,20 @@ object SearchEngineStore {
         engines.filter { it.engineType != SearchEngineType.SHARE_IMAGE_TO_APP }
             .sortedBy { it.sortOrder }
 
+    /**
+     * 按 id 解析文本搜索引擎。
+     *
+     * 解析范围是全部文本引擎（含已移入隐藏池的「[SearchEngineConfig.showInPickPanel] = false」项）——
+     * 隐藏只表示不在面板网格里占位，不代表不能作为默认引擎使用。
+     */
+    fun findTextEngineById(
+        engines: List<SearchEngineConfig>,
+        id: String?,
+    ): SearchEngineConfig? {
+        if (id.isNullOrBlank()) return null
+        return textSettingsEngines(engines).find { it.id == id }
+    }
+
     fun mergeEngines(
         existing: List<SearchEngineConfig>,
         imported: List<SearchEngineConfig>,

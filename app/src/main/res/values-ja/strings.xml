@@ -2661,6 +2661,8 @@
     <string name="about_third_party_notices_subtitle">謝辞とライセンス表記</string>
     <string name="search_panel_default_engine_title">デフォルト検索エンジン</string>
     <string name="search_panel_default_engine_none">なし（検索しない）</string>
+    <string name="search_panel_default_engine_desc">Enter キーの動作が「検索エンジン」のときに使用します</string>
+    <string name="search_engine_default_hidden_marker">%1$s（非表示）</string>
     <string name="search_panel_open_link_host">%1$s を開く</string>
     <string name="search_panel_entry_title">検索パネル</string>
     <string name="search_panel_entry_desc">レイアウト、デフォルトエンジン、候補検索、エイリアス</string>
@@ -2697,6 +2699,7 @@
     <string name="search_panel_input_behavior_clear">テキストを消去</string>
     <string name="search_panel_input_behavior_keep">テキストを保持</string>
     <string name="search_panel_enter_action_title">Enter キーの動作</string>
+    <string name="search_panel_enter_action_engine_subtitle">使用エンジン：%1$s</string>
     <string name="search_panel_enter_action_search_engine">検索エンジン（既定）</string>
     <string name="search_panel_enter_action_first_candidate">先頭候補を実行</string>
     <string name="search_panel_app_quick_action_free_window">小窓</string>

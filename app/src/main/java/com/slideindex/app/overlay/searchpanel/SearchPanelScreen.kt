@@ -302,7 +302,8 @@ fun SearchPanelScreen(
 
     fun resolveTextSearchEngine(): SearchEngineConfig? {
         lockedEngineId?.let { id -> textEngines.find { it.id == id } }?.let { return it }
-        return textEngines.find { it.id == settings.searchPanelDefaultEngineId }
+        // 默认引擎允许是已隐藏的引擎，故按全量文本引擎解析；解析不到再回退首个可见引擎。
+        return SearchEngineStore.findTextEngineById(engines, settings.searchPanelDefaultEngineId)
             ?: textEngines.firstOrNull()
     }
 

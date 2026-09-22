@@ -2704,6 +2704,8 @@
 
     <string name="search_panel_default_engine_title">默认搜索引擎</string>
     <string name="search_panel_default_engine_none">无（不执行搜索）</string>
+    <string name="search_panel_default_engine_desc">回车键动作选择「搜索引擎」时生效</string>
+    <string name="search_engine_default_hidden_marker">%1$s（已隐藏）</string>
     <string name="search_panel_open_link_host">打开 %1$s</string>
     <string name="search_panel_entry_title">搜索面板</string>
     <string name="search_panel_entry_desc">布局、默认引擎、候选搜索与别名</string>
@@ -2740,6 +2742,7 @@
     <string name="search_panel_input_behavior_clear">清空输入框文本</string>
     <string name="search_panel_input_behavior_keep">保留输入框文本</string>
     <string name="search_panel_enter_action_title">回车键动作</string>
+    <string name="search_panel_enter_action_engine_subtitle">将使用：%1$s</string>
     <string name="search_panel_enter_action_search_engine">搜索引擎（默认）</string>
     <string name="search_panel_enter_action_first_candidate">优先执行首项候选</string>
     <string name="search_panel_app_quick_action_free_window">小窗</string>

@@ -2679,6 +2679,8 @@ Questions: open a GitHub Issue on the project repository.</string>
     <string name="about_third_party_notices_subtitle">Acknowledgments and license notices</string>
     <string name="search_panel_default_engine_title">Default search engine</string>
     <string name="search_panel_default_engine_none">None (do not search)</string>
+    <string name="search_panel_default_engine_desc">Used when the enter key action is \"Search engine\"</string>
+    <string name="search_engine_default_hidden_marker">%1$s (hidden)</string>
     <string name="search_panel_open_link_host">Open %1$s</string>
     <string name="search_panel_entry_title">Search panel</string>
     <string name="search_panel_entry_desc">Layout, default engine, candidate search and aliases</string>
@@ -2715,6 +2717,7 @@ Questions: open a GitHub Issue on the project repository.</string>
     <string name="search_panel_input_behavior_clear">Clear text</string>
     <string name="search_panel_input_behavior_keep">Keep text</string>
     <string name="search_panel_enter_action_title">Enter key action</string>
+    <string name="search_panel_enter_action_engine_subtitle">Uses: %1$s</string>
     <string name="search_panel_enter_action_search_engine">Search engine (default)</string>
     <string name="search_panel_enter_action_first_candidate">Launch first candidate</string>
     <string name="search_panel_app_quick_action_free_window">Freeform</string>

@@ -7,6 +7,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Apps
+import androidx.compose.material.icons.outlined.StarBorder
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Contacts
 import top.yukonga.miuix.kmp.icon.extended.File
@@ -39,6 +40,8 @@ import com.slideindex.app.settings.SearchPanelPresentationMode
 import com.slideindex.app.settings.SearchPanelSectionAliasSettings
 import com.slideindex.app.ui.miuix.MiuixConfirmDialog
 import com.slideindex.app.ui.miuix.groupedCardItems
+import com.slideindex.app.ui.searchengine.defaultSearchEngineCandidates
+import com.slideindex.app.ui.searchengine.defaultSearchEngineItemLabel
 import com.slideindex.app.ui.settings.components.SectionAliasCodeDisplay
 import com.slideindex.app.ui.settings.components.SettingDropdownRow
 import com.slideindex.app.ui.settings.components.SettingLinkRow
@@ -75,6 +78,7 @@ fun SearchPanelSettingsScreen(
     onOpenPresentationLayoutSettings: () -> Unit,
     onOpenTextSearchEngines: () -> Unit,
     onOpenImageSearchEngines: () -> Unit,
+    onSetDefaultEngineId: (String?) -> Unit,
 ) {
     val context = LocalContext.current
     var showClearHistoryDialog by remember { mutableStateOf(false) }
@@ -104,6 +108,18 @@ fun SearchPanelSettingsScreen(
     val presentationLayoutTitle = stringResource(R.string.search_panel_settings_section_layout)
     val presentationLayoutSubtitle = stringResource(R.string.search_panel_presentation_layout_entry_desc)
     val enginesSectionTitle = stringResource(R.string.search_panel_settings_section_engines)
+    val defaultEngineCandidates = remember(settings.searchEngines) {
+        defaultSearchEngineCandidates(settings.searchEngines)
+    }
+    val noneEngineLabel = stringResource(R.string.search_panel_default_engine_none)
+    val defaultEngineItems = listOf(noneEngineLabel) +
+        defaultEngineCandidates.map { defaultSearchEngineItemLabel(it) }
+    val defaultEngineIndex = if (settings.searchPanelDefaultEngineId == null) {
+        0
+    } else {
+        defaultEngineCandidates.indexOfFirst { it.id == settings.searchPanelDefaultEngineId }
+            .let { idx -> if (idx >= 0) idx + 1 else 0 }
+    }
     val localCandidatesSectionTitle = stringResource(R.string.search_panel_settings_section_local_search)
     val smartCandidatesSectionTitle = stringResource(R.string.search_panel_settings_section_smart_candidates)
     val appsTitle = stringResource(R.string.search_panel_section_apps)
@@ -144,6 +160,23 @@ fun SearchPanelSettingsScreen(
                             title = stringResource(R.string.search_engine_settings_title),
                             subtitle = stringResource(R.string.search_panel_text_engines_entry_desc),
                             onClick = onOpenTextSearchEngines,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("default-engine") {
+                        SettingDropdownRow(
+                            icon = { label -> Icon(Icons.Outlined.StarBorder, contentDescription = label) },
+                            title = stringResource(R.string.search_panel_default_engine_title),
+                            subtitle = stringResource(R.string.search_panel_default_engine_desc),
+                            items = defaultEngineItems,
+                            selectedIndex = defaultEngineIndex,
+                            enabled = defaultEngineCandidates.isNotEmpty(),
+                            onSelectedIndexChange = { index ->
+                                onSetDefaultEngineId(
+                                    if (index == 0) null else defaultEngineCandidates[index - 1].id,
+                                )
+                            },
                         )
                     },
                 )

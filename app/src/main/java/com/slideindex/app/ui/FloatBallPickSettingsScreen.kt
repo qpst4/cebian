@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 
 import androidx.compose.material.icons.outlined.ImageSearch
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material.icons.outlined.Translate
 
 import androidx.compose.material.icons.outlined.ViewAgenda
@@ -38,6 +39,8 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.SearchEngineStore
 
 import com.slideindex.app.ui.miuix.groupedCardItems
+import com.slideindex.app.ui.searchengine.defaultSearchEngineCandidates
+import com.slideindex.app.ui.searchengine.defaultSearchEngineItemLabel
 
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 
@@ -165,13 +168,14 @@ fun FloatBallPickSettingsScreen(
 
     val searchSectionTitle = stringResource(R.string.pick_settings_section_search)
 
-    val pickSearchEngines = remember(settings.searchEngines) {
-        SearchEngineStore.textPickPanelEngines(settings.searchEngines)
+    val defaultEngineCandidates = remember(settings.searchEngines) {
+        defaultSearchEngineCandidates(settings.searchEngines)
     }
 
     val noneEngineLabel = stringResource(R.string.search_panel_default_engine_none)
 
-    val defaultEngineItems = listOf(noneEngineLabel) + pickSearchEngines.map { it.name }
+    val defaultEngineItems = listOf(noneEngineLabel) +
+        defaultEngineCandidates.map { defaultSearchEngineItemLabel(it) }
 
     val defaultEngineIndex = if (settings.floatBallPickDefaultSearchEngineId == null) {
 
@@ -179,7 +183,7 @@ fun FloatBallPickSettingsScreen(
 
     } else {
 
-        pickSearchEngines.indexOfFirst { it.id == settings.floatBallPickDefaultSearchEngineId }.let { idx ->
+        defaultEngineCandidates.indexOfFirst { it.id == settings.floatBallPickDefaultSearchEngineId }.let { idx ->
 
             if (idx >= 0) idx + 1 else 0
 
@@ -393,17 +397,19 @@ fun FloatBallPickSettingsScreen(
 
                             subtitle = stringResource(R.string.float_ball_pick_default_engine_desc),
 
+                            icon = { label -> Icon(Icons.Outlined.StarBorder, contentDescription = label) },
+
                             items = defaultEngineItems,
 
                             selectedIndex = defaultEngineIndex,
 
-                            enabled = pickSearchEngines.isNotEmpty(),
+                            enabled = defaultEngineCandidates.isNotEmpty(),
 
                             onSelectedIndexChange = { index ->
 
                                 onDefaultSearchEngineChange(
 
-                                    if (index == 0) null else pickSearchEngines[index - 1].id,
+                                    if (index == 0) null else defaultEngineCandidates[index - 1].id,
 
                                 )
 

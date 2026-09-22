@@ -1255,10 +1255,10 @@ object FloatBallPickResultPanel {
                         }
                     },
                     onSearchQuickLaunch = { fullscreen ->
-                        val engine = settings.floatBallPickDefaultSearchEngineId?.let { id ->
-                            SearchEngineStore.textPickPanelEngines(settings.searchEngines)
-                                .find { it.id == id }
-                        }
+                        val engine = SearchEngineStore.findTextEngineById(
+                            settings.searchEngines,
+                            settings.floatBallPickDefaultSearchEngineId
+                        )
                         if (engine != null) {
                             val query = activeTextHolder.value
                             val launched = when (engine.engineType) {

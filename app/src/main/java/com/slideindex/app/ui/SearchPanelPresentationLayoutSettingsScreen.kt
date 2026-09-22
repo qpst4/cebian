@@ -4,7 +4,6 @@ package com.slideindex.app.ui
 
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.slideindex.app.R
@@ -38,7 +37,6 @@ fun SearchPanelPresentationLayoutSettingsScreen(
     onSetSearchPanelBackgroundStyle: (Int) -> Unit,
     onSetSearchPanelBlurRadiusDp: (Int) -> Unit,
     onSetSearchPanelDimPercent: (Int) -> Unit,
-    onSetDefaultEngineId: (String?) -> Unit,
     onSetSearchPanelInputBehavior: (SearchPanelInputBehavior) -> Unit,
     onSetSearchPanelEnterAction: (SearchPanelEnterAction) -> Unit,
 ) {
@@ -57,17 +55,15 @@ fun SearchPanelPresentationLayoutSettingsScreen(
     val backgroundSectionTitle = stringResource(R.string.honeycomb_display_section_background)
     val behaviorSectionTitle = stringResource(R.string.search_panel_settings_section_behavior)
 
-    val engines = remember(settings.searchEngines) {
-        SearchEngineStore.textSettingsEngines(settings.searchEngines)
-    }
-    val noneEngineLabel = stringResource(R.string.search_panel_default_engine_none)
-    val defaultEngineItems = listOf(noneEngineLabel) + engines.map { it.name }
-    val defaultEngineIndex = if (settings.searchPanelDefaultEngineId == null) {
-        0
+    // 默认引擎已挪到「搜索面板 → 搜索引擎」区，这里只在回车键动作会用到引擎时提示当前引擎。
+    val enterActionEngineName = if (settings.searchPanelEnterAction == SearchPanelEnterAction.SEARCH_ENGINE) {
+        val resolved = SearchEngineStore.findTextEngineById(
+            settings.searchEngines,
+            settings.searchPanelDefaultEngineId,
+        ) ?: SearchEngineStore.textPickPanelEngines(settings.searchEngines).firstOrNull()
+        resolved?.name
     } else {
-        engines.indexOfFirst { it.id == settings.searchPanelDefaultEngineId }.let { idx ->
-            if (idx >= 0) idx + 1 else 0
-        }
+        null
     }
 
     fun ensureWallpaperPermission() {
@@ -203,19 +199,6 @@ fun SearchPanelPresentationLayoutSettingsScreen(
             keyPrefix = "search_panel_behavior",
             items = buildList {
                 add(
-                    settingsCardScopeItem("default-engine") {
-                        SettingDropdownRow(
-                            title = stringResource(R.string.search_panel_default_engine_title),
-                            items = defaultEngineItems,
-                            selectedIndex = defaultEngineIndex,
-                            enabled = engines.isNotEmpty(),
-                            onSelectedIndexChange = { index ->
-                                onSetDefaultEngineId(if (index == 0) null else engines[index - 1].id)
-                            },
-                        )
-                    },
-                )
-                add(
                     settingsCardScopeItem("input-behavior") {
                         SettingDropdownRow(
                             title = stringResource(R.string.search_panel_input_behavior_title),
@@ -230,6 +213,9 @@ fun SearchPanelPresentationLayoutSettingsScreen(
                     settingsCardScopeItem("enter-action") {
                         SettingDropdownRow(
                             title = stringResource(R.string.search_panel_enter_action_title),
+                            subtitle = enterActionEngineName?.let {
+                                stringResource(R.string.search_panel_enter_action_engine_subtitle, it)
+                            },
                             items = enterActionEntries.map { searchPanelEnterActionLabel(it) },
                             selectedIndex = enterActionEntries.indexOf(settings.searchPanelEnterAction)
                                 .coerceAtLeast(0),
