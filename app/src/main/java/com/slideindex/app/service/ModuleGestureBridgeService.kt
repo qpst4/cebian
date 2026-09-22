@@ -17,8 +17,10 @@ import com.slideindex.app.xposed.bridge.IModuleGestureBridge
 class ModuleGestureBridgeService : Service() {
 
   private val binder = object : IModuleGestureBridge.Stub() {
-    override fun canAcceptTouch(sideId: Int): Boolean =
-      SlideIndexAccessibilityService.canHandleForwardedSide(sideId)
+    override fun canAcceptTouch(sideId: Int): Boolean {
+      if (!enforceTrustedCaller()) return false
+      return SlideIndexAccessibilityService.canHandleForwardedSide(sideId)
+    }
 
     override fun onTouchEvent(
       sessionId: Long,
@@ -30,6 +32,7 @@ class ModuleGestureBridgeService : Service() {
       downTime: Long,
       metaState: Int,
     ) {
+      if (!enforceTrustedCaller()) return
       SlideIndexAccessibilityService.handleModuleGestureTouch(
         sessionId = sessionId,
         sideId = sideId,
@@ -43,16 +46,21 @@ class ModuleGestureBridgeService : Service() {
     }
 
     override fun onSessionEnd(sessionId: Long, reason: Int) {
+      if (!enforceTrustedCaller()) return
       SlideIndexAccessibilityService.handleModuleGestureSessionEnd(sessionId, reason)
+    }
+
+    private fun enforceTrustedCaller(): Boolean {
+      val callingUid = Binder.getCallingUid()
+      if (!isTrustedCaller(callingUid)) {
+        Log.w(TAG, "Rejected module bridge call from uid=$callingUid")
+        return false
+      }
+      return true
     }
   }
 
   override fun onBind(intent: Intent?): IBinder? {
-    val callingUid = Binder.getCallingUid()
-    if (!isTrustedCaller(callingUid)) {
-      Log.w(TAG, "Rejected module bridge bind from uid=$callingUid")
-      return null
-    }
     if (!SlideIndexAccessibilityService.isOverlayReady()) {
       // 宿主未就绪时拒绝绑定，模块会退化为完全放行，避免吞掉事件却无人处理。
       Log.i(TAG, "Overlay host not ready, rejecting module bridge bind")
