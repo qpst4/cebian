@@ -51,6 +51,8 @@ import com.slideindex.app.ui.settings.components.MiuixNavigationRow
 
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
 
+import com.slideindex.app.ui.settings.components.SettingDropdownRow
+
 import com.slideindex.app.ui.settings.components.SettingSpinnerRow
 
 import com.slideindex.app.ui.settings.components.SettingSwitchRow
@@ -96,6 +98,8 @@ fun FloatBallPickSettingsScreen(
     onOpenSearchEngineSettings: () -> Unit,
 
     onOpenImageSearchEngineSettings: () -> Unit,
+
+    onDefaultSearchEngineChange: (String?) -> Unit,
 
     onBack: () -> Unit,
 
@@ -160,6 +164,28 @@ fun FloatBallPickSettingsScreen(
     val imageOpenEditHint = stringResource(R.string.pick_settings_image_open_edit_hint)
 
     val searchSectionTitle = stringResource(R.string.pick_settings_section_search)
+
+    val pickSearchEngines = remember(settings.searchEngines) {
+        SearchEngineStore.textPickPanelEngines(settings.searchEngines)
+    }
+
+    val noneEngineLabel = stringResource(R.string.search_panel_default_engine_none)
+
+    val defaultEngineItems = listOf(noneEngineLabel) + pickSearchEngines.map { it.name }
+
+    val defaultEngineIndex = if (settings.floatBallPickDefaultSearchEngineId == null) {
+
+        0
+
+    } else {
+
+        pickSearchEngines.indexOfFirst { it.id == settings.floatBallPickDefaultSearchEngineId }.let { idx ->
+
+            if (idx >= 0) idx + 1 else 0
+
+        }
+
+    }
 
 
 
@@ -350,6 +376,38 @@ fun FloatBallPickSettingsScreen(
                             enabled = true,
 
                             onClick = onOpenSearchEngineSettings,
+
+                        )
+
+                    }
+
+                )
+
+                add(
+
+                    settingsCardScopeItem("default-search-engine") {
+
+                        SettingDropdownRow(
+
+                            title = stringResource(R.string.search_panel_default_engine_title),
+
+                            subtitle = stringResource(R.string.float_ball_pick_default_engine_desc),
+
+                            items = defaultEngineItems,
+
+                            selectedIndex = defaultEngineIndex,
+
+                            enabled = pickSearchEngines.isNotEmpty(),
+
+                            onSelectedIndexChange = { index ->
+
+                                onDefaultSearchEngineChange(
+
+                                    if (index == 0) null else pickSearchEngines[index - 1].id,
+
+                                )
+
+                            },
 
                         )
 

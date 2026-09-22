@@ -633,6 +633,7 @@ fun NavEntryBuilder.floatBallNavEntries(ctx: MainNavContext) {
             onOpenPanelLayoutBehaviorSettings = { ctx.navigate(AppNavKey.FloatBallPickPanelLayoutBehavior) },
             onOpenSearchEngineSettings = { ctx.navigate(AppNavKey.FloatBallSearchEngine) },
             onOpenImageSearchEngineSettings = { ctx.navigate(AppNavKey.FloatBallImageSearchEngine) },
+            onDefaultSearchEngineChange = viewModel::setFloatBallPickDefaultSearchEngineId,
             onBack = { ctx.backStack.removeLastOrNull() },
         )
     }

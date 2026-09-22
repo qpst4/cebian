@@ -879,6 +879,7 @@
     <string name="float_ball_pick_search_grid_state_remember">Remember last state (Recommended)</string>
     <string name="float_ball_pick_search_grid_state_expanded">Always expanded on launch</string>
     <string name="float_ball_pick_search_grid_state_collapsed">Always collapsed on launch</string>
+    <string name="float_ball_pick_default_engine_desc">Long-press the pick panel search button to search directly; idle when unset</string>
     <string name="float_ball_pick_haptic_enabled">Panel Haptic Feedback</string>
     <string name="float_ball_pick_haptic_enabled_desc">Provide crisp micro-haptics upon successful copy and word selection in word-tap mode</string>
     <string name="float_ball_pick_panel_tab_text">Text</string>
@@ -1093,7 +1094,7 @@
     <string name="float_ball_image_search_tab_loading">Searching</string>
     <string name="float_ball_image_search_tab_ready">Search complete</string>
     <string name="float_ball_image_search_tab_failed">Search failed</string>
-    <string name="float_ball_pick_source_a11y">Text</string>
+    <string name="float_ball_pick_source_a11y">Accessibility</string>
     <string name="float_ball_pick_source_ocr">OCR</string>
     <string name="float_ball_pick_source_barcode">Scan</string>
     <string name="float_ball_action_edit">Edit</string>

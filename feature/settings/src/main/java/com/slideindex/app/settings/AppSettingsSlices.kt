@@ -263,6 +263,8 @@ data class FloatBallSettings(
     val floatBallPickSearchGridDefaultState: PickResultSearchGridDefaultState = PickResultSearchGridDefaultState.REMEMBER_LAST,
     /** Pick panel: last search grid expanded state for REMEMBER_LAST mode. */
     val floatBallPickSearchGridLastExpanded: Boolean = false,
+    /** Pick panel: engine used by search-button long-press quick search (null = long press idle). */
+    val floatBallPickDefaultSearchEngineId: String? = null,
     /** Pick panel: auto-select all text when the panel opens after word pick or screenshot. */
     val floatBallPickAutoSelectAll: Boolean = false,
     /** Pick panel: dismiss after tapping copy; long-press copy keeps the panel open. */
@@ -437,4 +439,3 @@ data class OtpSettings(
     val otpLsposedSmsCaptureEnabled: Boolean = false,
     val otpLsposedSystemInjectEnabled: Boolean = true,
 )
-

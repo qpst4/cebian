@@ -4,8 +4,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.ColumnScope
@@ -37,6 +40,8 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.UnfoldLess
+import androidx.compose.material.icons.outlined.Fullscreen
+import androidx.compose.material.icons.outlined.PictureInPictureAlt
 import androidx.compose.ui.draw.rotate
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.animateColorAsState
@@ -44,6 +49,9 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableLongStateOf
+import android.os.SystemClock
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.LaunchedEffect
@@ -73,8 +81,14 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.window.Popup
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.LayoutDirection
@@ -84,12 +98,45 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.slideindex.app.R
 import com.slideindex.app.overlay.overlayIsLandscape
+import com.slideindex.app.di.OverlayDependencyAccess
+import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.util.HapticHelper
 
 internal val PickResultPanelMaxWidth = 400.dp
 internal const val PickResultMaxVisibleTextLines = 7
 private const val PickResultLandscapeMaxVisibleTextLines = 5
 private const val PickResultPortraitMinTextBodyLines = 6
 private const val PickResultLandscapeMinTextBodyLines = 4
+
+/**
+ * 搜索按钮长按直搜的配置。
+ *
+ * 长按搜索按钮会在按钮上方弹出横向滑选条，选择本次搜索的窗口形态（全屏 / 小窗），
+ * 松手即按选中项搜索；[initialFullscreen] 是上一次使用的形态，作为初始选中项。
+ */
+internal data class PickResultSearchQuickLaunch(
+    /** 小窗是否可选；未开启小窗时滑选条只剩「全屏」，此时长按直接搜索。 */
+    val offerFreeWindow: Boolean,
+    val initialFullscreen: Boolean,
+    val onConfirm: (fullscreen: Boolean) -> Unit,
+)
+
+private val PickResultQuickLaunchItemWidth = 58.dp
+private val PickResultQuickLaunchItemSpacing = 6.dp
+private val PickResultQuickLaunchRowPadding = 8.dp
+private val PickResultQuickLaunchGapAboveButton = 10.dp
+private val PickResultQuickLaunchYCancel = 60.dp
+private val PickResultQuickLaunchScreenMargin = 8.dp
+
+/** 长按滑选条的可选项：开启小窗时两项（全屏 / 小窗），否则只剩全屏。 */
+internal fun pickResultSearchQuickLaunchOptions(offerFreeWindow: Boolean): List<Boolean> =
+    if (offerFreeWindow) listOf(true, false) else listOf(true)
+
+/** 滑选条初始选中项：上次使用的形态；该形态不可用时落到首项。 */
+internal fun pickResultSearchQuickLaunchStartIndex(
+    options: List<Boolean>,
+    initialFullscreen: Boolean,
+): Int = options.indexOf(initialFullscreen).coerceAtLeast(0)
 
 @Composable
 
@@ -264,6 +311,267 @@ internal fun Modifier.pickResultBottomPanelCard(suppressShadow: Boolean = false)
         )
 }
 
+/**
+ * 取词面板底栏的搜索按钮。
+ *
+ * - 单击：切换搜索网格展开/收起；
+ * - 长按：按钮上方弹出横向滑选条，滑动选择本次搜索的窗口形态（全屏 / 小窗），松手执行。
+ *
+ * [quickLaunch] 为 null 时（未设置取词默认搜索引擎）长按不响应。
+ */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun PickResultSearchActionButton(
+    enabled: Boolean,
+    selected: Boolean,
+    tint: Color,
+    background: Color,
+    buttonSize: Dp,
+    cornerRadius: Dp,
+    iconSize: Dp,
+    quickLaunch: PickResultSearchQuickLaunch?,
+    onClick: () -> Unit,
+) {
+    val options = remember(quickLaunch) {
+        quickLaunch?.let { pickResultSearchQuickLaunchOptions(it.offerFreeWindow) }.orEmpty()
+    }
+    val quickLaunchEnabled = quickLaunch != null && enabled
+    var anchorCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
+    var isSelecting by remember { mutableStateOf(false) }
+    var hoveredIndex by remember { mutableIntStateOf(-1) }
+    var rowAnchorLeftInWindow by remember { mutableFloatStateOf(0f) }
+    var dragStartFingerY by remember { mutableFloatStateOf(0f) }
+    // 滑选抬手后短暂抑制点击：`clickable` 与长按手势的派发先后不做保证，避免同一次抬手被当成单击。
+    var suppressClickUntilMs by remember { mutableLongStateOf(0L) }
+
+    val density = LocalDensity.current
+    val appContext = LocalContext.current.applicationContext
+    val view = LocalView.current
+    var appSettings by remember { mutableStateOf(AppSettings()) }
+    LaunchedEffect(appContext) {
+        OverlayDependencyAccess.overlayDependencies(appContext)
+            ?.settingsRepository
+            ?.settings
+            ?.collect { appSettings = it }
+    }
+    val currentAppSettings = rememberUpdatedState(appSettings)
+    val currentView = rememberUpdatedState(view)
+
+    LaunchedEffect(quickLaunchEnabled) {
+        if (!quickLaunchEnabled) {
+            isSelecting = false
+            hoveredIndex = -1
+        }
+    }
+
+    val itemWidthPx = with(density) { PickResultQuickLaunchItemWidth.toPx() }
+    val itemSpacingPx = with(density) { PickResultQuickLaunchItemSpacing.toPx() }
+    val rowPaddingPx = with(density) { PickResultQuickLaunchRowPadding.toPx() }
+    val totalItemStridePx = itemWidthPx + itemSpacingPx
+    val yCancelThresholdPx = with(density) { PickResultQuickLaunchYCancel.toPx() }
+    val screenMarginPx = with(density) { PickResultQuickLaunchScreenMargin.toPx() }
+    val popupOffsetAboveButtonPx = with(density) {
+        (buttonSize + PickResultQuickLaunchGapAboveButton).toPx()
+    }
+    val screenWidthPx = LocalWindowInfo.current.containerSize.width.toFloat()
+
+    fun quickLaunchRowWidthPx(): Float {
+        val itemCount = options.size
+        return rowPaddingPx * 2 + itemCount * itemWidthPx +
+            (itemCount - 1).coerceAtLeast(0) * itemSpacingPx
+    }
+
+    fun clampRowAnchorLeft(left: Float): Float {
+        val rowWidth = quickLaunchRowWidthPx()
+        return left.coerceIn(
+            screenMarginPx,
+            (screenWidthPx - rowWidth - screenMarginPx).coerceAtLeast(screenMarginPx),
+        )
+    }
+
+    fun indexAtFingerX(fingerX: Float): Int {
+        val localX = fingerX - rowAnchorLeftInWindow - rowPaddingPx
+        return (localX / totalItemStridePx).toInt().coerceIn(0, options.lastIndex)
+    }
+
+    fun anchorRowUnderFinger(fingerX: Float, underIndex: Int) {
+        val desiredLeft = fingerX - rowPaddingPx - underIndex * totalItemStridePx - itemWidthPx / 2f
+        rowAnchorLeftInWindow = clampRowAnchorLeft(desiredLeft)
+    }
+
+    Box(modifier = Modifier.onGloballyPositioned { anchorCoordinates = it }) {
+        Box(
+            modifier = Modifier
+                .size(buttonSize)
+                .clip(RoundedCornerShape(cornerRadius))
+                .background(background)
+                .then(
+                    if (quickLaunchEnabled) {
+                        Modifier.pointerInput(options, quickLaunch) {
+                            detectDragGesturesAfterLongPress(
+                                onDragStart = { startOffset ->
+                                    val coords = anchorCoordinates
+                                        ?: return@detectDragGesturesAfterLongPress
+                                    if (options.isEmpty()) return@detectDragGesturesAfterLongPress
+                                    val startIndex = pickResultSearchQuickLaunchStartIndex(
+                                        options,
+                                        quickLaunch.initialFullscreen,
+                                    )
+                                    val finger = coords.localToWindow(startOffset)
+                                    dragStartFingerY = finger.y
+                                    anchorRowUnderFinger(finger.x, startIndex)
+                                    hoveredIndex = startIndex
+                                    isSelecting = true
+                                    HapticHelper.appTick(currentView.value, currentAppSettings.value)
+                                },
+                                onDrag = { change, _ ->
+                                    change.consume()
+                                    val coords = anchorCoordinates
+                                        ?: return@detectDragGesturesAfterLongPress
+                                    val finger = coords.localToWindow(change.position)
+                                    if (abs(finger.y - dragStartFingerY) > yCancelThresholdPx) {
+                                        if (hoveredIndex != -1) {
+                                            hoveredIndex = -1
+                                            HapticHelper.appTick(currentView.value, currentAppSettings.value)
+                                        }
+                                    } else {
+                                        val index = indexAtFingerX(finger.x)
+                                        if (index != hoveredIndex) {
+                                            hoveredIndex = index
+                                            HapticHelper.appTick(currentView.value, currentAppSettings.value)
+                                        }
+                                    }
+                                },
+                                onDragEnd = {
+                                    val confirmedIndex = hoveredIndex.takeIf { it in options.indices }
+                                    isSelecting = false
+                                    hoveredIndex = -1
+                                    suppressClickUntilMs = SystemClock.uptimeMillis() + 250L
+                                    if (confirmedIndex != null) {
+                                        quickLaunch.onConfirm(options[confirmedIndex])
+                                    }
+                                },
+                                onDragCancel = {
+                                    isSelecting = false
+                                    hoveredIndex = -1
+                                    suppressClickUntilMs = SystemClock.uptimeMillis() + 250L
+                                },
+                            )
+                        }
+                    } else {
+                        Modifier
+                    }
+                )
+                .clickable(enabled = enabled) {
+                    if (!isSelecting && SystemClock.uptimeMillis() >= suppressClickUntilMs) onClick()
+                },
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = if (selected) Icons.Filled.Search else Icons.Outlined.Search,
+                contentDescription = null,
+                tint = tint,
+                modifier = Modifier.size(iconSize),
+            )
+        }
+
+        if (isSelecting && quickLaunch != null) {
+            val coords = anchorCoordinates
+            if (coords != null && coords.isAttached) {
+                val anchorTopLeft = coords.boundsInWindow().topLeft
+                Popup(
+                    alignment = Alignment.TopStart,
+                    offset = IntOffset(
+                        (rowAnchorLeftInWindow - anchorTopLeft.x).roundToInt(),
+                        (-popupOffsetAboveButtonPx).roundToInt(),
+                    ),
+                ) {
+                    PickResultSearchQuickLaunchRow(
+                        options = options,
+                        hoveredIndex = hoveredIndex,
+                    )
+                }
+            }
+        }
+    }
+}
+
+/** 长按直搜的窗口形态滑选条：选中项放大并高亮，未滑到任何项时松手取消。 */
+@Composable
+private fun PickResultSearchQuickLaunchRow(
+    options: List<Boolean>,
+    hoveredIndex: Int,
+) {
+    val shape = RoundedCornerShape(22.dp)
+    Row(
+        modifier = Modifier
+            .shadow(12.dp, shape)
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh, shape)
+            .border(
+                width = 0.8.dp,
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f),
+                shape = shape,
+            )
+            .padding(horizontal = PickResultQuickLaunchRowPadding, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(PickResultQuickLaunchItemSpacing),
+    ) {
+        options.forEachIndexed { index, fullscreen ->
+            val hovered = index == hoveredIndex
+            val itemScale by animateFloatAsState(
+                targetValue = if (hovered) 1.08f else 1f,
+                label = "pickSearchQuickLaunchScale",
+            )
+            Column(
+                modifier = Modifier
+                    .width(PickResultQuickLaunchItemWidth)
+                    .graphicsLayer {
+                        scaleX = itemScale
+                        scaleY = itemScale
+                    }
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(
+                        if (hovered) MaterialTheme.colorScheme.primaryContainer else Color.Transparent
+                    )
+                    .padding(vertical = 6.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
+                val contentColor = if (hovered) {
+                    MaterialTheme.colorScheme.onPrimaryContainer
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                }
+                Icon(
+                    imageVector = if (fullscreen) {
+                        Icons.Outlined.Fullscreen
+                    } else {
+                        Icons.Outlined.PictureInPictureAlt
+                    },
+                    contentDescription = null,
+                    tint = contentColor,
+                    modifier = Modifier.size(20.dp),
+                )
+                Text(
+                    text = stringResource(
+                        if (fullscreen) {
+                            R.string.search_panel_presentation_fullscreen
+                        } else {
+                            R.string.search_panel_app_quick_action_free_window
+                        },
+                    ),
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontSize = 12.sp,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,
+                    ),
+                    color = contentColor,
+                    maxLines = 1,
+                )
+            }
+        }
+    }
+}
+
 @Composable
 internal fun PickResultSectionHeader(
     title: String,
@@ -313,6 +621,7 @@ internal fun PickResultTextActionBar(
     openLinkChooserExpanded: Boolean = false,
     openLinkChoices: List<String> = emptyList(),
     onSearch: () -> Unit = {},
+    searchQuickLaunch: PickResultSearchQuickLaunch? = null,
     onOpenLink: () -> Unit = {},
     onOpenLinkChoice: (String) -> Unit = {},
     onDismissOpenLinkChooser: () -> Unit = {},
@@ -527,20 +836,17 @@ internal fun PickResultTextActionBar(
                         searchSelected -> MaterialTheme.colorScheme.primary
                         else -> if (isDark) androidx.compose.ui.graphics.Color(0xFFE0E0E6) else androidx.compose.ui.graphics.Color(0xFF333333)
                     }
-                    IconButton(
-                        onClick = onSearch,
+                    PickResultSearchActionButton(
                         enabled = enabled,
-                        modifier = Modifier
-                            .size(42.dp)
-                            .clip(RoundedCornerShape(21.dp))
-                    ) {
-                        Icon(
-                            imageVector = if (searchSelected) Icons.Filled.Search else Icons.Outlined.Search,
-                            contentDescription = null,
-                            tint = searchTint,
-                            modifier = Modifier.size(22.dp)
-                        )
-                    }
+                        selected = searchSelected,
+                        tint = searchTint,
+                        background = androidx.compose.ui.graphics.Color.Transparent,
+                        buttonSize = 42.dp,
+                        cornerRadius = 21.dp,
+                        iconSize = 22.dp,
+                        quickLaunch = searchQuickLaunch,
+                        onClick = onSearch,
+                    )
                 }
 
                 // 2.3 翻译（正对图片底栏的保存，无厚重蓝色底衬）
@@ -799,21 +1105,17 @@ internal fun PickResultTextActionBar(
                     searchSelected -> MaterialTheme.colorScheme.primary
                     else -> if (isDark) androidx.compose.ui.graphics.Color(0xFFE0E0E6) else androidx.compose.ui.graphics.Color(0xFF333333)
                 }
-                IconButton(
-                    onClick = onSearch,
+                PickResultSearchActionButton(
                     enabled = enabled,
-                    modifier = Modifier
-                        .size(38.dp)
-                        .clip(RoundedCornerShape(19.dp))
-                        .background(searchBg)
-                ) {
-                    Icon(
-                        imageVector = if (searchSelected) Icons.Filled.Search else Icons.Outlined.Search,
-                        contentDescription = null,
-                        tint = searchTint,
-                        modifier = Modifier.size(19.dp)
-                    )
-                }
+                    selected = searchSelected,
+                    tint = searchTint,
+                    background = searchBg,
+                    buttonSize = 38.dp,
+                    cornerRadius = 19.dp,
+                    iconSize = 19.dp,
+                    quickLaunch = searchQuickLaunch,
+                    onClick = onSearch,
+                )
             }
 
             // 3. Translate Action

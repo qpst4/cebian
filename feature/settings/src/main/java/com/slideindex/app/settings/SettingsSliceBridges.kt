@@ -200,6 +200,7 @@ fun OverlaySettings.toMinimalAppSettings(): AppSettings = AppSettings(
         floatBallPickPanelStyle = floatBallPickPanelStyle,
         floatBallPickSearchGridDefaultState = floatBallPickSearchGridDefaultState,
         floatBallPickSearchGridLastExpanded = floatBallPickSearchGridLastExpanded,
+        floatBallPickDefaultSearchEngineId = floatBallPickDefaultSearchEngineId,
         floatBallPickAutoSelectAll = floatBallPickAutoSelectAll,
         floatBallPickCopyDismissPanel = floatBallPickCopyDismissPanel,
         floatBallPickCopyButtonPosition = floatBallPickCopyButtonPosition,

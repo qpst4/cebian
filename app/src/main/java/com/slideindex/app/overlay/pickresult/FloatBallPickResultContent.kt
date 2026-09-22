@@ -102,6 +102,7 @@ internal fun FloatBallPickResultContent(
     onImageShareEngineClick: (com.slideindex.app.settings.SearchEngineConfig) -> Unit,
     onImageSearch: () -> Unit,
     onSearchEngineClick: (com.slideindex.app.settings.SearchEngineConfig, Boolean) -> Unit,
+    onSearchQuickLaunch: (fullscreen: Boolean) -> Unit = {},
     onPinTextToScreen: (String) -> Unit,
     onStashText: (String) -> Unit,
     onPinImageToScreen: () -> Unit,
@@ -409,6 +410,32 @@ internal fun FloatBallPickResultContent(
         }
     }
 
+    // 搜索按钮长按直搜：默认引擎未设置时长按不响应，窗口形态记住上次选择。
+    val pickDefaultSearchEngine = remember(
+        panelSearchEngines,
+        appSettings.floatBallPickDefaultSearchEngineId,
+    ) {
+        appSettings.floatBallPickDefaultSearchEngineId?.let { id ->
+            panelSearchEngines.find { it.id == id }
+        }
+    }
+    var lastSearchLaunchFullscreen by remember(panelShowToken) {
+        mutableStateOf(PickResultSearchLaunchPrefs.resolveLastFullscreen(context))
+    }
+    val searchQuickLaunch = if (hasSearchGrid && pickDefaultSearchEngine != null) {
+        PickResultSearchQuickLaunch(
+            offerFreeWindow = appSettings.freeWindowEnabled,
+            initialFullscreen = lastSearchLaunchFullscreen,
+            onConfirm = { fullscreen ->
+                lastSearchLaunchFullscreen = fullscreen
+                PickResultSearchLaunchPrefs.rememberLastFullscreen(context, fullscreen)
+                onSearchQuickLaunch(fullscreen)
+            },
+        )
+    } else {
+        null
+    }
+
     var panelBoundsInRoot by remember { mutableStateOf(ComposeRect.Zero) }
     val panelBoundsState = rememberUpdatedState(panelBoundsInRoot)
 
@@ -514,6 +541,7 @@ internal fun FloatBallPickResultContent(
                 textFirstPanelEnabled = textFirstPanelEnabled,
                 freezeCollapseAnimation = freezeCollapseAnimation,
                 landscapeDualColumn = landscapeDualColumn,
+                searchQuickLaunch = searchQuickLaunch,
                 onToggleSearchGrid = {
                     val next = !isSearchGridVisible.value
                     isSearchGridVisible.value = next

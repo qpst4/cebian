@@ -62,9 +62,43 @@ object SearchEngineLauncher {
             return false
         }
         return when (engine.engineType) {
-            SearchEngineType.DIRECT_LINK -> launchDirectLink(context, engine, text, settings, longPressTriggered)
-            SearchEngineType.EXTERN_JUMP_LINK -> launchExternJump(context, engine, text, settings, longPressTriggered)
-            SearchEngineType.JUMP_TO_ACTIVITY -> launchJumpActivity(context, engine, text, settings, longPressTriggered)
+            SearchEngineType.DIRECT_LINK ->
+                launchDirectLink(context, engine, text, settings, longPressTriggered, null)
+            SearchEngineType.EXTERN_JUMP_LINK ->
+                launchExternJump(context, engine, text, settings, longPressTriggered, null)
+            SearchEngineType.JUMP_TO_ACTIVITY ->
+                launchJumpActivity(context, engine, text, settings, longPressTriggered, null)
+            SearchEngineType.SHARE_TO_APP,
+            SearchEngineType.SHARE_IMAGE_TO_APP,
+            -> false // use launchTextShare / launchImageShare instead
+        }
+    }
+
+    /**
+     * 以显式窗口形态启动文本搜索：`fullscreen = true` 全屏，`false` 小窗（小窗未开启时仍按全屏）。
+     *
+     * 用于取词面板搜索按钮的长按直搜——此时窗口形态由手势当场指定，不再走启动策略的
+     * 「长按切换」判定。
+     */
+    fun launchWithWindowMode(
+        context: Context,
+        engine: SearchEngineConfig,
+        query: String,
+        settings: AppSettings,
+        fullscreen: Boolean
+    ): Boolean {
+        val text = query.trim()
+        if (text.isBlank()) {
+            Toast.makeText(context, R.string.search_engine_query_empty, Toast.LENGTH_SHORT).show()
+            return false
+        }
+        return when (engine.engineType) {
+            SearchEngineType.DIRECT_LINK ->
+                launchDirectLink(context, engine, text, settings, false, fullscreen)
+            SearchEngineType.EXTERN_JUMP_LINK ->
+                launchExternJump(context, engine, text, settings, false, fullscreen)
+            SearchEngineType.JUMP_TO_ACTIVITY ->
+                launchJumpActivity(context, engine, text, settings, false, fullscreen)
             SearchEngineType.SHARE_TO_APP,
             SearchEngineType.SHARE_IMAGE_TO_APP,
             -> false // use launchTextShare / launchImageShare instead
@@ -115,7 +149,8 @@ object SearchEngineLauncher {
         engine: SearchEngineConfig,
         query: String,
         settings: AppSettings,
-        longPressTriggered: Boolean
+        longPressTriggered: Boolean,
+        fullscreenOverride: Boolean?
     ): Boolean {
         val template = engine.searchLink?.takeIf { it.isNotBlank() }
             ?: engine.externJumpLink?.takeIf { it.isNotBlank() }
@@ -129,7 +164,8 @@ object SearchEngineLauncher {
             intent,
             settings,
             longPressTriggered,
-            useTrampoline = isIntentUri(url)
+            useTrampoline = isIntentUri(url),
+            fullscreenOverride = fullscreenOverride
         )
         val hasPlaceholder = template.contains("%s") || template.contains("%q")
         if (started && engine.autoInputEnter && !hasPlaceholder) {
@@ -143,15 +179,17 @@ object SearchEngineLauncher {
         engine: SearchEngineConfig,
         query: String,
         settings: AppSettings,
-        longPressTriggered: Boolean
-    ): Boolean = launchDirectLink(context, engine, query, settings, longPressTriggered)
+        longPressTriggered: Boolean,
+        fullscreenOverride: Boolean?
+    ): Boolean = launchDirectLink(context, engine, query, settings, longPressTriggered, fullscreenOverride)
 
     private fun launchJumpActivity(
         context: Context,
         engine: SearchEngineConfig,
         query: String,
         settings: AppSettings,
-        longPressTriggered: Boolean
+        longPressTriggered: Boolean,
+        fullscreenOverride: Boolean?
     ): Boolean {
         val pkg = engine.targetPackage?.takeIf { it.isNotBlank() }
         val activity = engine.targetActivity?.takeIf { it.isNotBlank() }
@@ -161,7 +199,13 @@ object SearchEngineLauncher {
                 val intent = Intent()
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                     .setComponent(ComponentName(pkg, activity))
-                val started = startActivity(context, intent, settings, longPressTriggered)
+                val started = startActivity(
+                    context,
+                    intent,
+                    settings,
+                    longPressTriggered,
+                    fullscreenOverride = fullscreenOverride
+                )
                 if (started) {
                     if (engine.autoInputEnter) {
                         scheduleAutoInput(query)
@@ -180,7 +224,13 @@ object SearchEngineLauncher {
         val intent = context.packageManager.getLaunchIntentForPackage(pkg)
             ?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             ?: return false
-        val started = startActivity(context, intent, settings, longPressTriggered)
+        val started = startActivity(
+            context,
+            intent,
+            settings,
+            longPressTriggered,
+            fullscreenOverride = fullscreenOverride
+        )
         if (started && engine.autoInputEnter) {
             scheduleAutoInput(query)
         }
@@ -287,10 +337,11 @@ object SearchEngineLauncher {
         intent: Intent,
         settings: AppSettings,
         longPressTriggered: Boolean,
-        useTrampoline: Boolean = false
+        useTrampoline: Boolean = false,
+        fullscreenOverride: Boolean? = null
     ): Boolean {
         return runCatching {
-            val fullscreen = settings.shouldLaunchFullscreen(longPressTriggered)
+            val fullscreen = fullscreenOverride ?: settings.shouldLaunchFullscreen(longPressTriggered)
             if (useTrampoline) {
                 val launchOptions = if (!fullscreen && settings.freeWindowEnabled) {
                     FreeWindowLauncher.launchOptionsBundle(context, settings)

@@ -569,6 +569,7 @@ internal fun PickResultPanelTextSlot(
     autoSelectAll: Boolean = false,
     showSearch: Boolean = false,
     searchSelected: Boolean = false,
+    searchQuickLaunch: PickResultSearchQuickLaunch? = null,
     onToggleSearchGrid: () -> Unit = {},
     hasImageContent: Boolean = false,
     onImageSearch: (() -> Unit)? = null,
@@ -632,6 +633,7 @@ internal fun PickResultPanelTextSlot(
                 bodyMaxHeight = if (useExpandedLayout) null else compactBodyMaxHeight,
                 showSearch = showSearch,
                 searchSelected = searchSelected,
+                searchQuickLaunch = searchQuickLaunch,
                 onSearch = { onToggleSearchGrid() },
                 onActiveTextChange = onActiveTextChange,
                 onShare = onShareText,
@@ -795,6 +797,7 @@ internal fun PickResultCollapsePanelColumn(
     textFirstPanelEnabled: Boolean = false,
     freezeCollapseAnimation: Boolean = false,
     landscapeDualColumn: Boolean = false,
+    searchQuickLaunch: PickResultSearchQuickLaunch? = null,
     onToggleSearchGrid: () -> Unit = {}
 ) {
     val panelStyle = appSettings.floatBallPickPanelStyle
@@ -1160,6 +1163,7 @@ internal fun PickResultCollapsePanelColumn(
             autoSelectAll = appSettings.floatBallPickAutoSelectAll,
             showSearch = hasSearchGrid,
             searchSelected = searchExpansionFraction > 0.5f,
+            searchQuickLaunch = searchQuickLaunch,
             onToggleSearchGrid = onToggleSearchGrid,
             hasImageContent = false,
             onImageSearch = null,

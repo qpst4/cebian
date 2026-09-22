@@ -593,6 +593,10 @@ class ExtensionSettingsViewModel @Inject constructor(
         settingsRepository.setFloatBallPickSearchGridLastExpanded(expanded)
     }
 
+    fun setFloatBallPickDefaultSearchEngineId(id: String?) = launchSettingsWrite {
+        settingsRepository.setFloatBallPickDefaultSearchEngineId(id)
+    }
+
     fun setFloatBallPickAutoSelectAll(enabled: Boolean) = launchSettingsWrite {
         settingsRepository.setFloatBallPickAutoSelectAll(enabled)
     }

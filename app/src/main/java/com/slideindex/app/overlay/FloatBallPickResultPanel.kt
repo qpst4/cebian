@@ -1254,6 +1254,32 @@ object FloatBallPickResultPanel {
                             dismiss()
                         }
                     },
+                    onSearchQuickLaunch = { fullscreen ->
+                        val engine = settings.floatBallPickDefaultSearchEngineId?.let { id ->
+                            SearchEngineStore.textPickPanelEngines(settings.searchEngines)
+                                .find { it.id == id }
+                        }
+                        if (engine != null) {
+                            val query = activeTextHolder.value
+                            val launched = when (engine.engineType) {
+                                SearchEngineType.SHARE_TO_APP ->
+                                    SearchEngineLauncher.launchTextShare(context, engine, query)
+                                else -> SearchEngineLauncher.launchWithWindowMode(
+                                    context,
+                                    engine,
+                                    query,
+                                    settings,
+                                    fullscreen
+                                )
+                            }
+                            if (launched) {
+                                if (engine.engineType != SearchEngineType.SHARE_TO_APP) {
+                                    SearchPanelQueryBridge.rememberQuery(context, query)
+                                }
+                                dismiss()
+                            }
+                        }
+                    },
                     onPinTextToScreen = { value ->
                         StashCoordinator.pinTextToScreen(overlayContext, value)
                         dismiss()

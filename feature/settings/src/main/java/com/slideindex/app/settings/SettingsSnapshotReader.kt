@@ -424,6 +424,8 @@ internal object SettingsSnapshotReader {
                 PickResultSearchGridDefaultState.fromStorageKey(prefs[SettingsPreferenceKeys.FLOAT_BALL_PICK_SEARCH_GRID_DEFAULT_STATE]),
             floatBallPickSearchGridLastExpanded =
                 prefs[SettingsPreferenceKeys.FLOAT_BALL_PICK_SEARCH_GRID_LAST_EXPANDED] ?: false,
+            floatBallPickDefaultSearchEngineId =
+                prefs[SettingsPreferenceKeys.FLOAT_BALL_PICK_DEFAULT_SEARCH_ENGINE_ID],
             floatBallPickAutoSelectAll =
                 prefs[SettingsPreferenceKeys.FLOAT_BALL_PICK_AUTO_SELECT_ALL] ?: false,
             floatBallPickCopyDismissPanel =

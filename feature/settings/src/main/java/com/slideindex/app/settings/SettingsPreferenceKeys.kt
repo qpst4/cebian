@@ -427,6 +427,7 @@ internal object SettingsPreferenceKeys {
     val FLOAT_BALL_PICK_PANEL_STYLE = stringPreferencesKey("float_ball_pick_panel_style")
     val FLOAT_BALL_PICK_SEARCH_GRID_DEFAULT_STATE = stringPreferencesKey("float_ball_pick_search_grid_default_state")
     val FLOAT_BALL_PICK_SEARCH_GRID_LAST_EXPANDED = booleanPreferencesKey("float_ball_pick_search_grid_last_expanded")
+    val FLOAT_BALL_PICK_DEFAULT_SEARCH_ENGINE_ID = stringPreferencesKey("float_ball_pick_default_search_engine_id")
     val FLOAT_BALL_PICK_AUTO_SELECT_ALL = booleanPreferencesKey("float_ball_pick_auto_select_all")
     val FLOAT_BALL_PICK_COPY_DISMISS_PANEL = booleanPreferencesKey("float_ball_pick_copy_dismiss_panel")
     val FLOAT_BALL_PICK_COPY_BUTTON_POSITION = stringPreferencesKey("float_ball_pick_copy_button_position")
