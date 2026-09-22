@@ -1094,7 +1094,7 @@
     <string name="float_ball_image_search_tab_loading">Searching</string>
     <string name="float_ball_image_search_tab_ready">Search complete</string>
     <string name="float_ball_image_search_tab_failed">Search failed</string>
-    <string name="float_ball_pick_source_a11y">Accessibility</string>
+    <string name="float_ball_pick_source_a11y">A11y</string>
     <string name="float_ball_pick_source_ocr">OCR</string>
     <string name="float_ball_pick_source_barcode">Scan</string>
     <string name="float_ball_action_edit">Edit</string>

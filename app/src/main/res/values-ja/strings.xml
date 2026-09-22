@@ -1589,7 +1589,7 @@
     <string name="float_ball_image_search_tab_loading">検索中</string>
     <string name="float_ball_image_search_tab_ready">検索完了</string>
     <string name="float_ball_image_search_tab_failed">検索失敗</string>
-    <string name="float_ball_pick_source_a11y">アクセシビリティ</string>
+    <string name="float_ball_pick_source_a11y">ユーザー補助</string>
     <string name="float_ball_pick_source_ocr">OCR</string>
     <string name="float_ball_pick_source_barcode">スキャン</string>
     <string name="float_ball_action_edit">編集</string>
