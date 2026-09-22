@@ -95,6 +95,12 @@ android {
     }
 
     buildTypes {
+        debug {
+            // 本地快速装机：debug 也用发布签名，可直接覆盖安装在发布包上，不丢数据。
+            if (keystorePropertiesFile.exists()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true

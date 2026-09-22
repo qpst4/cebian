@@ -709,6 +709,25 @@ class SwipePathRecognizerTest {
         )
 
     @Test
+    fun classifyOnUp_leftPanelInwardThenSlightDiagonal_noneIsNotStolenByCorner() {
+        val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
+        recognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        recognizer.applyAngles(GestureAngles())
+        val options = alongOptions(
+            GestureTriggerType.SHORT_SWIPE_IN,
+            GestureTriggerType.SHORT_SWIPE_IN_UP,
+        )
+        recognizer.onTouchDown(0f, 100f, leftStrip)
+        recognizer.applyCompoundGestureGate(options)
+        recognizer.onTouchMove(80f, 100f) // 内滑 80dp：转向锚点落在这里
+        recognizer.onTouchMove(85f, 92f) // 轻微斜上（第二段仅 ~9dp）
+        val result = recognizer.classifyOnUp(85f, 92f, options)
+
+        // 第二段距离自锚点起算，"距边缘深度"不再计入：轻微斜飘不该升级为 L 形组合。
+        assertEquals(GestureTriggerType.SHORT_SWIPE_IN, result?.trigger)
+    }
+
+    @Test
     fun classifyOnUp_leftPanelUpThenInward_returnsShortSwipeUpIn() {
         val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
         recognizer.applyDistances(shortDp = 60f, longDp = 120f)
@@ -794,6 +813,77 @@ class SwipePathRecognizerTest {
         val result = recognizer.classifyOnUp(0f, 108f, options)
 
         assertEquals(null, result?.trigger)
+    }
+
+    @Test
+    fun classifyOnUp_leftPanelInwardThenJitterAtReturnThreshold_fallsBackToShortIn() {
+        val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
+        recognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        recognizer.applyAngles(GestureAngles())
+        val options = alongOptions(
+            GestureTriggerType.SHORT_SWIPE_IN,
+            GestureTriggerType.SHORT_SWIPE_IN_AND_BACK,
+        )
+        recognizer.onTouchDown(0f, 100f, leftStrip)
+        recognizer.applyCompoundGestureGate(options)
+        recognizer.onTouchMove(90f, 100f)
+        recognizer.classifyPartial(90f, 100f, options)
+        recognizer.onTouchMove(62f, 100f) // 回缩 28dp → 折返成立
+        recognizer.classifyPartial(62f, 100f, options)
+        recognizer.onTouchMove(63f, 100f) // 前抖 1dp，回缩跌到 27dp
+        val result = recognizer.classifyOnUp(63f, 100f, options)
+
+        // 回缩跌破门槛即不再是折返；此时距离仍在短距之上 → 内滑短滑（提示去重由 tracker 负责）。
+        assertEquals(GestureTriggerType.SHORT_SWIPE_IN, result?.trigger)
+    }
+
+    @Test
+    fun classifyOnUp_leftPanelBackToStartThenInwardAgain_doesNotReturnUntilShortDistance() {
+        val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
+        recognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        recognizer.applyAngles(GestureAngles())
+        val options = alongOptions(
+            GestureTriggerType.SHORT_SWIPE_IN,
+            GestureTriggerType.SHORT_SWIPE_IN_AND_BACK,
+        )
+        recognizer.onTouchDown(0f, 100f, leftStrip)
+        recognizer.applyCompoundGestureGate(options)
+        recognizer.onTouchMove(90f, 100f)
+        recognizer.classifyPartial(90f, 100f, options)
+        recognizer.onTouchMove(62f, 100f) // 折返成立
+        recognizer.classifyPartial(62f, 100f, options)
+        recognizer.onTouchMove(5f, 100f) // 退回起手位置 → 撤销并重置本段
+        recognizer.classifyPartial(5f, 100f, options)
+        recognizer.onTouchMove(20f, 100f) // 重新内滑，但还没到短距
+        val partial = recognizer.classifyPartial(20f, 100f, options)
+        val result = recognizer.classifyOnUp(20f, 100f, options)
+
+        // 撤销后必须重新滑过短距才算重新开始：这里既不是折返也不是短滑。
+        assertEquals(null, partial?.trigger)
+        assertEquals(null, result?.trigger)
+    }
+
+    @Test
+    fun classifyOnUp_leftPanelInwardThenDeepRecoverAndRetract_keepsReturn() {
+        val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
+        recognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        recognizer.applyAngles(GestureAngles())
+        val options = alongOptions(
+            GestureTriggerType.SHORT_SWIPE_IN,
+            GestureTriggerType.SHORT_SWIPE_IN_AND_BACK,
+        )
+        recognizer.onTouchDown(0f, 100f, leftStrip)
+        recognizer.applyCompoundGestureGate(options)
+        recognizer.onTouchMove(90f, 100f)
+        recognizer.classifyPartial(90f, 100f, options)
+        recognizer.onTouchMove(62f, 100f) // 折返成立
+        recognizer.classifyPartial(62f, 100f, options)
+        recognizer.onTouchMove(80f, 100f) // 退回 10dp（仍 ≥ 释放门槛 16dp）
+        recognizer.classifyPartial(80f, 100f, options)
+        recognizer.onTouchMove(50f, 100f) // 再次回缩 40dp
+        val result = recognizer.classifyOnUp(50f, 100f, options)
+
+        assertEquals(GestureTriggerType.SHORT_SWIPE_IN_AND_BACK, result?.trigger)
     }
 
     @Test

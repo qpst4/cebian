@@ -66,6 +66,8 @@ class SwipePathRecognizer(
     private var compoundModeArmed = false
     /** 本次手势内组合已被解除（越过长距阈值），不再重新就绪。 */
     private var compoundDisarmed = false
+    /** 本段清零信号（撤销/回到起手位置时置位），供上层重置提示用的峰值与去重状态。 */
+    private var segmentResetPending = false
     private var hoverDurationMs = DEFAULT_HOVER_DURATION_MS
     private var lCornerHoverGateRequired = false
     private var returnSwipeHoverGateRequired = false
@@ -130,6 +132,7 @@ class SwipePathRecognizer(
         resetSlotHoverState()
         compoundModeArmed = false
         compoundDisarmed = false
+        segmentResetPending = false
         lCornerHoverGateRequired = false
         returnSwipeHoverGateRequired = false
         alongCornerGateRequired = false
@@ -263,6 +266,13 @@ class SwipePathRecognizer(
         val inward = inwardDelta(dx, dy)
         val resolvedDir = resolveDirectionAt(rawX, rawY)
         val shortPx = shortDistanceDp * density
+
+        // 回到起手位置附近 = 撤销：本次手势重新开始（峰值清零、短距达成标记复位、折返清零），
+        // 之后必须重新滑过短距阈值才算重新开始，避免"旧峰值算出的回缩量"让折返立刻又成立。
+        if (isBackAtGestureStart(rawX, rawY)) {
+            resetSegment()
+        }
+
         if (resolvedDir == SwipeDirection.IN && inward >= shortPx) {
             inwardReachedShortThreshold = true
         }
@@ -303,6 +313,38 @@ class SwipePathRecognizer(
         }
         updateSlotHoverState(rawX, rawY, resolvedDir, swipeDist)
         updateCompoundGateState(rawX, rawY)
+    }
+
+    /** 手指是否回到起手位置附近（撤销区）。 */
+    private fun isBackAtGestureStart(rawX: Float, rawY: Float): Boolean {
+        val cancelPx = RETURN_CANCEL_INWARD_DP * density
+        val direction = firstSegmentDirection
+        return if (direction == SwipeDirection.UP || direction == SwipeDirection.DOWN) {
+            alongProgressPx(rawX, rawY, direction) <= cancelPx
+        } else {
+            inwardDelta(rawX - startRawX, rawY - startRawY) <= startInwardPx() + cancelPx
+        }
+    }
+
+    /** 撤销：把本次手势"清零重来"（保留峰值用于点击判定的部分，不动 tap 去抖）。 */
+    private fun resetSegment() {
+        peakInward = inwardDelta(lastRawX - startRawX, lastRawY - startRawY).coerceAtLeast(0f)
+        peakAlongUpProgress = alongProgressPx(lastRawX, lastRawY, SwipeDirection.UP).coerceAtLeast(0f)
+        peakAlongDownProgress = alongProgressPx(lastRawX, lastRawY, SwipeDirection.DOWN).coerceAtLeast(0f)
+        inwardReachedShortThreshold = false
+        firstSegmentDirection = null
+        firstAnchorX = 0f
+        firstAnchorY = 0f
+        compoundModeArmed = false
+        compoundDisarmed = false
+        segmentResetPending = true
+    }
+
+    /** 消费"本段清零"信号（撤销/回到起手位置）。 */
+    fun consumeSegmentReset(): Boolean {
+        if (!segmentResetPending) return false
+        segmentResetPending = false
+        return true
     }
 
     private fun updateSlotHoverState(
@@ -400,11 +442,12 @@ class SwipePathRecognizer(
     }
 
     /**
-     * 第二段是否已真正转向（走够 [TURN_SLOP_DP] 且方向族切换）。
-     * 震动分档与"悬停是否让位给组合"都以它为准，而不是"离锚点多远"。
+     * 组合第二段当前解析出的转向触发（走够 [TURN_SLOP_DP] 且方向族切换）。
+     * 注意：这里只保证几何成立，**不代表该槽位已配置动作**——调用方（震动分档）必须自己过滤，
+     * 否则会出现"给没配置的组合手势响提示震动、但图标与松手结果都不是它"的幽灵震动。
      */
-    fun hasTurnedFromCompoundAnchor(rawX: Float, rawY: Float): Boolean =
-        resolveCompoundSecondSegment(rawX, rawY) != null
+    fun compoundSecondSegmentTrigger(rawX: Float, rawY: Float): GestureTriggerType? =
+        resolveCompoundSecondSegment(rawX, rawY)
 
     /** 组合已就绪时的第二段判定；锚点取第一段越过短距阈值的位置。 */
     private fun resolveCompoundSecondSegment(rawX: Float, rawY: Float): GestureTriggerType? {
@@ -658,9 +701,30 @@ class SwipePathRecognizer(
         options: ClassifyOptions = ClassifyOptions.DEFAULT,
     ): Boolean {
         if (!tracking) return false
-        if (resolveAlongReturnTrigger(rawX, rawY) != null) return true
+        return isReturnGeometryActive(rawX, rawY, RETURN_SLOP_DP * density)
+    }
+
+    /** 用给定回缩门槛做一次折返几何判定（含首段家族、闸门与守卫等全部前提）。 */
+    private fun isReturnGeometryActive(rawX: Float, rawY: Float, returnThresholdPx: Float): Boolean {
+        val direction = firstSegmentDirection ?: return false
+        if (direction == SwipeDirection.UP || direction == SwipeDirection.DOWN) {
+            if (!compoundModeArmed && !alongReturnGateRequired) return false
+            val peak = if (direction == SwipeDirection.UP) peakAlongUpProgress else peakAlongDownProgress
+            return SwipePathGeometry.resolveAlongReturnTrigger(
+                side = side,
+                firstDirection = direction,
+                startX = startRawX,
+                startY = startRawY,
+                peakProgress = peak,
+                fingerX = rawX,
+                fingerY = rawY,
+                returnThresholdPx = returnThresholdPx,
+                cancelProgressPx = RETURN_CANCEL_INWARD_DP * density,
+                turnThresholdPx = TURN_SLOP_DP * density,
+            ) != null
+        }
+        if (direction != SwipeDirection.IN) return false
         if (returnSwipeHoverGateRequired && !compoundModeArmed) return false
-        if (compoundModeArmed && firstSegmentDirection != SwipeDirection.IN) return false
         return SwipePathGeometry.resolveReturnSwipeTrigger(
             side = side,
             inwardReachedThreshold = inwardReachedShortThreshold,
@@ -671,29 +735,17 @@ class SwipePathRecognizer(
             startY = startRawY,
             fingerX = rawX,
             fingerY = rawY,
-            returnThresholdPx = RETURN_SLOP_DP * density,
+            returnThresholdPx = returnThresholdPx,
             cancelInwardPx = returnCancelInwardPx(),
         ) != null
     }
 
-    /** 沿边首段（上/下）的折返判定：未就绪（未配置或已越过长距）时返回 null。 */
-    private fun resolveAlongReturnTrigger(rawX: Float, rawY: Float): GestureTriggerType? {
-        val direction = firstSegmentDirection ?: return null
-        if (direction != SwipeDirection.UP && direction != SwipeDirection.DOWN) return null
-        if (!compoundModeArmed && !alongReturnGateRequired) return null
-        val peak = if (direction == SwipeDirection.UP) peakAlongUpProgress else peakAlongDownProgress
-        return SwipePathGeometry.resolveAlongReturnTrigger(
-            side = side,
-            firstDirection = direction,
-            startX = startRawX,
-            startY = startRawY,
-            peakProgress = peak,
-            fingerX = rawX,
-            fingerY = rawY,
-            returnThresholdPx = RETURN_SLOP_DP * density,
-            cancelProgressPx = RETURN_CANCEL_INWARD_DP * density,
-            turnThresholdPx = TURN_SLOP_DP * density,
-        )
+    /** 当前首段家族对应的折返触发类型。 */
+    private fun returnSwipeTriggerType(): GestureTriggerType? = when (firstSegmentDirection) {
+        SwipeDirection.UP -> GestureTriggerType.SHORT_SWIPE_UP_AND_BACK
+        SwipeDirection.DOWN -> GestureTriggerType.SHORT_SWIPE_DOWN_AND_BACK
+        SwipeDirection.IN -> GestureTriggerType.SHORT_SWIPE_IN_AND_BACK
+        else -> null
     }
 
     private fun directionTrigger(
@@ -703,33 +755,13 @@ class SwipePathRecognizer(
         options: ClassifyOptions,
         partial: Boolean,
     ): GestureTriggerType? {
-        if (!returnSwipeHoverGateRequired ||
-            (compoundModeArmed && firstSegmentDirection == SwipeDirection.IN)
-        ) {
-            val returnSwipe = SwipePathGeometry.resolveReturnSwipeTrigger(
-                side = side,
-                inwardReachedThreshold = inwardReachedShortThreshold,
-                peakInward = peakInward,
-                currentInward = inwardDelta(rawX - startRawX, rawY - startRawY),
-                shortThresholdPx = shortDistanceDp * density,
-                startX = startRawX,
-                startY = startRawY,
-                fingerX = rawX,
-                fingerY = rawY,
-                returnThresholdPx = RETURN_SLOP_DP * density,
-                cancelInwardPx = returnCancelInwardPx(),
-            )
-            if (returnSwipe != null) {
+        // 折返：与震动共用同一个粘滞状态，保证"响了就是它、图标与松手也一定是它"。
+        if (isReturnSwipeActive(rawX, rawY, options)) {
+            val returnTrigger = returnSwipeTriggerType()
+            if (returnTrigger != null) {
                 val filter = options.isTriggerConfigured
-                if (filter == null || filter(returnSwipe)) {
-                    return returnSwipe
-                }
+                if (filter == null || filter(returnTrigger)) return returnTrigger
             }
-        }
-
-        resolveAlongReturnTrigger(rawX, rawY)?.let { alongReturn ->
-            val filter = options.isTriggerConfigured
-            if (filter == null || filter(alongReturn)) return alongReturn
         }
 
         resolveCompoundSecondSegment(rawX, rawY)?.let { compoundCorner ->
@@ -810,6 +842,7 @@ class SwipePathRecognizer(
             fingerX = rawX,
             fingerY = rawY,
             stripBounds = stripBounds,
+            anchorRelativeInward = true,
         )
     }
 

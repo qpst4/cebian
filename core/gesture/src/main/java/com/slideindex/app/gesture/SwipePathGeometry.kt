@@ -88,12 +88,22 @@ internal object SwipePathGeometry {
         fingerX: Float,
         fingerY: Float,
         stripBounds: RectF,
+        /**
+         * true 时内滑分量按"相对 start（转向锚点）"计算，用于组合第二段；
+         * false 时按"距屏幕边缘的绝对深度"计算，用于第一段（触钮的滑出距离语义）。
+         */
+        anchorRelativeInward: Boolean = false,
     ): Float {
-        val inwardSlide = when (side) {
+        val absoluteInwardSlide = when (side) {
             PanelSide.LEFT -> fingerX - stripBounds.left
             PanelSide.RIGHT -> stripBounds.right - fingerX
             PanelSide.BOTTOM -> stripBounds.bottom - fingerY
             PanelSide.TOP -> fingerY - stripBounds.top
+        }
+        val inwardSlide = if (anchorRelativeInward) {
+            inwardDelta(fingerX - startX, fingerY - startY, side)
+        } else {
+            absoluteInwardSlide
         }
         val alongForExtreme = when (side) {
             PanelSide.LEFT, PanelSide.RIGHT -> startY - fingerY
@@ -174,6 +184,7 @@ internal object SwipePathGeometry {
             fingerX = fingerX,
             fingerY = fingerY,
             stripBounds = stripBounds,
+            anchorRelativeInward = true,
         )
         if (secondSegmentDistance < turnThresholdPx) return null
         val alongFromStart = alongDelta(fingerX - gestureStartX, fingerY - gestureStartY, side)

@@ -21,6 +21,43 @@ class GestureSessionThresholdTrackerTest {
     private var cancelLongPressCount = 0
     private lateinit var tracker: GestureSessionThresholdTracker
 
+    private val callbacks = object : GestureSession.Callbacks {
+        override fun onSessionStart(mode: com.slideindex.app.overlay.OverlayPanelMode) = Unit
+        override fun onOpenShellCommandPanel(continuousPick: Boolean) = Unit
+        override fun onShellCommandPanelContinuousRelease() = Unit
+        override fun onShowHoneycombLauncher(
+            continuousPick: Boolean,
+            rawX: Float,
+            rawY: Float,
+            forceBrowseMode: Boolean,
+        ): Boolean = true
+        override fun onHoneycombLauncherPointerMove(rawX: Float, rawY: Float) = Unit
+        override fun onHoneycombLauncherContinuousRelease(rawX: Float, rawY: Float) = Unit
+        override fun onShowAppSwitcher(continuousPick: Boolean, rawX: Float, rawY: Float): Boolean = true
+        override fun onAppSwitcherPointerMove(rawX: Float, rawY: Float) = Unit
+        override fun onAppSwitcherContinuousRelease(rawX: Float, rawY: Float) = Unit
+        override fun onShowFingertipRing(continuousPick: Boolean, rawX: Float, rawY: Float): Boolean = true
+        override fun onFingertipRingPointerMove(rawX: Float, rawY: Float) = Unit
+        override fun onFingertipRingContinuousRelease(rawX: Float, rawY: Float) = Unit
+        override fun onShowAdjustPanel(
+            mode: com.slideindex.app.util.ContinuousAdjustController.Mode,
+            fraction: Float,
+            anchorRawY: Float,
+            deferWindowLayout: Boolean,
+        ) = Unit
+        override fun onSessionEnd() = Unit
+        override fun onRequestInvalidate() = Unit
+        override fun hapticGestureStart() {
+            gestureStartCount++
+        }
+        override fun hapticLongThreshold() {
+            longThresholdCount++
+        }
+        override fun hapticConfirmLaunch() = Unit
+        override fun scheduleDelayed(runnable: Runnable, delayMs: Long) = Unit
+        override fun cancelDelayed(runnable: Runnable) = Unit
+    }
+
     @Before
     fun setUp() {
         pathRecognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f).apply {
@@ -33,42 +70,7 @@ class GestureSessionThresholdTrackerTest {
         cancelLongPressCount = 0
         tracker = GestureSessionThresholdTracker(
             pathRecognizer = pathRecognizer,
-            callbacks = object : GestureSession.Callbacks {
-                override fun onSessionStart(mode: com.slideindex.app.overlay.OverlayPanelMode) = Unit
-                override fun onOpenShellCommandPanel(continuousPick: Boolean) = Unit
-                override fun onShellCommandPanelContinuousRelease() = Unit
-                override fun onShowHoneycombLauncher(
-                    continuousPick: Boolean,
-                    rawX: Float,
-                    rawY: Float,
-                    forceBrowseMode: Boolean,
-                ): Boolean = true
-                override fun onHoneycombLauncherPointerMove(rawX: Float, rawY: Float) = Unit
-                override fun onHoneycombLauncherContinuousRelease(rawX: Float, rawY: Float) = Unit
-                override fun onShowAppSwitcher(continuousPick: Boolean, rawX: Float, rawY: Float): Boolean = true
-                override fun onAppSwitcherPointerMove(rawX: Float, rawY: Float) = Unit
-                override fun onAppSwitcherContinuousRelease(rawX: Float, rawY: Float) = Unit
-                override fun onShowFingertipRing(continuousPick: Boolean, rawX: Float, rawY: Float): Boolean = true
-                override fun onFingertipRingPointerMove(rawX: Float, rawY: Float) = Unit
-                override fun onFingertipRingContinuousRelease(rawX: Float, rawY: Float) = Unit
-                override fun onShowAdjustPanel(
-                    mode: com.slideindex.app.util.ContinuousAdjustController.Mode,
-                    fraction: Float,
-                    anchorRawY: Float,
-                    deferWindowLayout: Boolean,
-                ) = Unit
-                override fun onSessionEnd() = Unit
-                override fun onRequestInvalidate() = Unit
-                override fun hapticGestureStart() {
-                    gestureStartCount++
-                }
-                override fun hapticLongThreshold() {
-                    longThresholdCount++
-                }
-                override fun hapticConfirmLaunch() = Unit
-                override fun scheduleDelayed(runnable: Runnable, delayMs: Long) = Unit
-                override fun cancelDelayed(runnable: Runnable) = Unit
-            },
+            callbacks = callbacks,
             cancelLongPressCheck = { cancelLongPressCount++ },
         )
     }
@@ -100,6 +102,32 @@ class GestureSessionThresholdTrackerTest {
     }
 
     @Test
+    fun trackDistanceHaptics_dipBelowShortThresholdThenCrossAgain_doesNotFireAgain() {
+        tracker.trackDistanceHaptics(70f, 0f)
+        assertEquals(1, gestureStartCount)
+
+        // 本段峰值只增不减：回退时"距离回升"不再重复提示（退回起点清零后才允许再响）。
+        tracker.trackDistanceHaptics(50f, 0f)
+        tracker.trackDistanceHaptics(65f, 0f)
+
+        assertEquals(1, gestureStartCount)
+    }
+
+    @Test
+    fun trackDistanceHaptics_backToStartThenCrossAgain_firesAgain() {
+        tracker.trackDistanceHaptics(70f, 0f)
+        assertEquals(1, gestureStartCount)
+
+        // 退回起手位置（撤销清零）后再重新滑过门槛 → 再次提示。
+        pathRecognizer.onTouchMove(4f, 0f)
+        tracker.trackDistanceHaptics(4f, 0f)
+        pathRecognizer.onTouchMove(70f, 0f)
+        tracker.trackDistanceHaptics(70f, 0f)
+
+        assertEquals(2, gestureStartCount)
+    }
+
+    @Test
     fun maybeHapticLongPress_firesOnceWhenLongPressArmed() {
         pathRecognizer.onTouchDown(0f, 0f, leftStrip)
         ShadowSystemClock.advanceBy(SwipePathRecognizer.LONG_PRESS_MS + 50L, TimeUnit.MILLISECONDS)
@@ -120,6 +148,37 @@ class GestureSessionThresholdTrackerTest {
         tracker.trackDistanceHaptics(70f, 0f)
 
         assertEquals(2, gestureStartCount)
+    }
+
+    @Test
+    fun trackDistanceHaptics_unconfiguredCornerResolved_doesNotFireCompoundHaptic() {
+        // 几何上转向成立（第二段沿边为主 ≥32dp），但该组合槽位没配置动作：
+        // 不应该给它响"第二段短距"的震动（幽灵震动），而应走第一段分档。
+        val options = SwipePathRecognizer.ClassifyOptions(
+            isTriggerConfigured = { trigger ->
+                trigger == GestureTriggerType.SHORT_SWIPE_IN ||
+                    trigger == GestureTriggerType.SHORT_SWIPE_IN_AND_BACK
+            },
+        )
+        val localTracker = GestureSessionThresholdTracker(
+            pathRecognizer = pathRecognizer,
+            callbacks = callbacks,
+            cancelLongPressCheck = { },
+            isTriggerConfigured = { trigger -> options.isTriggerConfigured?.invoke(trigger) == true },
+        )
+        pathRecognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        pathRecognizer.applyAngles(GestureAngles())
+        pathRecognizer.onTouchDown(0f, 100f, leftStrip)
+        pathRecognizer.applyCompoundGestureGate(options)
+        pathRecognizer.onTouchMove(80f, 100f)
+        localTracker.trackDistanceHaptics(80f, 100f) // 已达短距：1 声
+        assertEquals(1, gestureStartCount)
+
+        pathRecognizer.onTouchMove(80f, 40f) // 第二段沿边 60dp：几何上像 L 形
+        localTracker.trackDistanceHaptics(80f, 40f)
+
+        // 未配置的 L 形不再单独补一声（第二段的 32dp 门槛震动不响）。
+        assertEquals(1, gestureStartCount)
     }
 
     @Test

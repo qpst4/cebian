@@ -311,9 +311,24 @@ internal class EdgeGestureSessionCoordinator(
         }
     }
 
-    override fun hapticGestureStart() = HapticHelper.gestureStart(view, settingsProvider())
+    override fun hapticGestureStart() {
+        logHapticPlay("gestureStart")
+        HapticHelper.gestureStart(view, settingsProvider())
+    }
 
-    override fun hapticLongThreshold() = HapticHelper.longThreshold(view, settingsProvider())
+    override fun hapticLongThreshold() {
+        logHapticPlay("longThreshold")
+        HapticHelper.longThreshold(view, settingsProvider())
+    }
+
+    /** 临时诊断日志：看清"哪条会话实例播了一次震动"（仅 debug 生效）。 */
+    private fun logHapticPlay(kind: String) {
+        if (!com.slideindex.app.BuildConfig.DEBUG) return
+        android.util.Log.i(
+            "GestureHaptic",
+            "play=$kind session=${System.identityHashCode(this)} t=${System.currentTimeMillis()}",
+        )
+    }
 
     override fun hapticConfirmLaunch() = HapticHelper.confirmLaunch(view, settingsProvider())
 
