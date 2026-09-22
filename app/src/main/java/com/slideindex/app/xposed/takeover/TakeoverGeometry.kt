@@ -1,10 +1,16 @@
 package com.slideindex.app.xposed.takeover
 
 import com.slideindex.app.xposed.bridge.ModuleHookBridgeContract
+import com.slideindex.app.xposed.bridge.ModuleHookExtraRect
 import com.slideindex.app.xposed.bridge.ModuleHookSide
 import com.slideindex.app.xposed.bridge.ModuleHookSnapshot
 
-/** 屏幕坐标系下的接管矩形，附带所属边，便于回传给 app 路由。 */
+/**
+ * 屏幕坐标系下的接管矩形。
+ *
+ * [sideId] 现承载通用 target id：触钮用 `SIDE_*`，角轮盘/悬浮球线条用 `TARGET_*`，
+ * 便于回传给 app 做路由。
+ */
 data class TakeoverRect(
   val sideId: Int,
   val left: Float,
@@ -24,6 +30,10 @@ data class TakeoverRect(
  * 规则与 app 侧 `GestureZoneLayout.interceptZoneRect` 对齐：
  * - LEFT/RIGHT：厚度用该边接管宽度（已含「拦截系统返回手势」加宽），纵向取各自触钮的比例区间；
  * - TOP/BOTTOM：厚度用各自触钮的边宽，横向取各自触钮的比例区间。
+ *
+ * 另外合并 [ModuleHookSnapshot.extraRects]（角轮盘；悬浮球线条待下一步）：
+ * 它们的开关归属由自身 `groups` 位决定（方案 A：贴哪条边归哪个开关），
+ * 且**排在触钮矩形之前**，重叠处优先归扩展目标。
  */
 object TakeoverGeometry {
   fun rectsForGroups(
@@ -32,7 +42,7 @@ object TakeoverGeometry {
     screenHeightPx: Int,
   ): List<TakeoverRect> {
     if (screenWidthPx <= 0 || screenHeightPx <= 0) return emptyList()
-    return buildList {
+    val triggerRects = buildList {
       if (snapshot.hasGroup(ModuleHookBridgeContract.GROUP_TOP)) {
         snapshot.side(ModuleHookBridgeContract.SIDE_TOP)?.let { side ->
           addAll(rectsForSide(side, snapshot.density, screenWidthPx, screenHeightPx))
@@ -54,11 +64,47 @@ object TakeoverGeometry {
         }
       }
     }.filterNot { it.isEmpty }
+    val extraRects = snapshot.extraRects.mapNotNull { extra ->
+      if (!isExtraRectEffective(snapshot, extra)) return@mapNotNull null
+      extra.toTakeoverRect(screenWidthPx, screenHeightPx)
+    }.filterNot { it.isEmpty }
+    return extraRects + triggerRects
   }
 
   /** 三键导航下底部是真实导航键区域，接管会吃掉返回/桌面键，因此自动停用。 */
   fun isBottomGroupEffective(snapshot: ModuleHookSnapshot): Boolean =
     snapshot.navigationMode == ModuleHookBridgeContract.NAVIGATION_MODE_GESTURAL
+
+  /**
+   * 扩展矩形是否生效。
+   *
+   * - 其 [ModuleHookExtraRect.groups] 位必须在当前开启的分组里；
+   * - 三键导航下底部组停用，但**角轮盘豁免**：它位于底部左右两角，与中间三个导航键不重叠，
+   *   不豁免的话三键导航用户永远用不了轮盘；底部触钮的既有行为不受影响（仍走上面的判定）。
+   */
+  private fun isExtraRectEffective(
+    snapshot: ModuleHookSnapshot,
+    extra: ModuleHookExtraRect,
+  ): Boolean {
+    if (extra.groups == 0 || (extra.groups and snapshot.takeoverGroups) == 0) return false
+    if (extra.groups and ModuleHookBridgeContract.GROUP_BOTTOM == 0) return true
+    if (extra.groups != ModuleHookBridgeContract.GROUP_BOTTOM) return true
+    if (isBottomGroupEffective(snapshot)) return true
+    return extra.target == ModuleHookBridgeContract.TARGET_CORNER_LEFT ||
+      extra.target == ModuleHookBridgeContract.TARGET_CORNER_RIGHT
+  }
+
+  private fun ModuleHookExtraRect.toTakeoverRect(
+    screenWidthPx: Int,
+    screenHeightPx: Int,
+  ): TakeoverRect = TakeoverRect(
+    // sideId 现承载通用 target id（SIDE_* / TARGET_*）。
+    sideId = target,
+    left = leftFraction * screenWidthPx,
+    top = topFraction * screenHeightPx,
+    right = rightFraction * screenWidthPx,
+    bottom = bottomFraction * screenHeightPx,
+  )
 
   /**
    * 点是否落在"两侧接管的触钮条"内。

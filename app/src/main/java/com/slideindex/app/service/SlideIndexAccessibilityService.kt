@@ -36,6 +36,9 @@ import com.slideindex.app.overlay.FloatingPointerOverlayWindow
 import com.slideindex.app.overlay.LayoutPreviewContent
 import com.slideindex.app.overlay.LayoutPreviewFocus
 import com.slideindex.app.overlay.PanelSide
+import com.slideindex.app.overlay.corner.CornerAnchor
+import com.slideindex.app.overlay.corner.CornerGestureHost
+import com.slideindex.app.xposed.bridge.ModuleHookBridgeContract
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -51,8 +54,8 @@ class SlideIndexAccessibilityService : AccessibilityService() {
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var edgeOverlayHost: EdgeOverlayHost? = null
 
-    /** 当前由输入层接管并转发过来的边，用于会话结束时精确取消。 */
-    private var activeForwardedSide: PanelSide? = null
+    /** 当前由输入层接管并转发过来的目标（SIDE_* / TARGET_*），用于会话结束时精确取消。 */
+    private var activeForwardedTarget: Int = NO_FORWARDED_TARGET
 
     private lateinit var otpCoordinator: SlideIndexAccessibilityOtpCoordinator
     private lateinit var foregroundTracker: SlideIndexAccessibilityForegroundTracker
@@ -114,6 +117,23 @@ class SlideIndexAccessibilityService : AccessibilityService() {
         }
 
         /**
+         * 触钮之外的接管目标（角轮盘；悬浮球线条待下一步）的实时命中复核。
+         *
+         * 由 system_server 的 binder 线程调用，因此只读各宿主维护的 volatile 快照，
+         * 不触碰 Compose/UI 状态；命中区随设置或旋转变化时，宿主会刷新该快照。
+         */
+        fun canHandleForwardedTargetAt(target: Int, x: Float, y: Float): Boolean {
+            instance ?: return false
+            return when (target) {
+                ModuleHookBridgeContract.TARGET_CORNER_LEFT ->
+                    CornerGestureHost.canAcceptForwardedTouchAt(CornerAnchor.LEFT, x, y)
+                ModuleHookBridgeContract.TARGET_CORNER_RIGHT ->
+                    CornerGestureHost.canAcceptForwardedTouchAt(CornerAnchor.RIGHT, x, y)
+                else -> canHandleForwardedSide(target)
+            }
+        }
+
+        /**
          * 接收 system_server 模块在输入层接管后转发来的触摸事件。
          *
          * 返回 false 表示当前 app 无法处理（服务未就绪/边不可用），模块据此放行事件。
@@ -129,16 +149,26 @@ class SlideIndexAccessibilityService : AccessibilityService() {
             metaState: Int,
         ): Boolean {
             val service = instance ?: return false
-            val host = service.edgeOverlayHost ?: return false
-            val side = sideId.toPanelSideOrNull() ?: return false
+            val side = sideId.toPanelSideOrNull()
+            val cornerAnchor = if (side == null) sideId.toCornerAnchorOrNull() else null
+            val cornerHost = if (cornerAnchor != null) CornerGestureHost.instanceOrNull() else null
+            if (side != null) {
+                service.edgeOverlayHost ?: return false
+            } else if (cornerHost == null) {
+                return false
+            }
             com.slideindex.app.overlay.ModuleForwardedTouchGate.markForwarded()
             if (action == android.view.MotionEvent.ACTION_DOWN) {
-                service.activeForwardedSide = side
+                service.activeForwardedTarget = sideId
             }
             mainHandler.post {
                 val event = android.view.MotionEvent.obtain(downTime, eventTime, action, x, y, metaState)
                 try {
-                    host.handleForwardedTouch(side, event)
+                    if (side != null) {
+                        service.edgeOverlayHost?.handleForwardedTouch(side, event)
+                    } else if (cornerAnchor != null) {
+                        cornerHost?.handleForwardedTouch(cornerAnchor, event)
+                    }
                 } finally {
                     event.recycle()
                 }
@@ -148,13 +178,17 @@ class SlideIndexAccessibilityService : AccessibilityService() {
 
         fun handleModuleGestureSessionEnd(sessionId: Long, reason: Int) {
             val service = instance ?: return
-            val host = service.edgeOverlayHost ?: return
             com.slideindex.app.overlay.ModuleForwardedTouchGate.markForwarded()
-            val side = service.activeForwardedSide
-            service.activeForwardedSide = null
+            val target = service.activeForwardedTarget
+            service.activeForwardedTarget = NO_FORWARDED_TARGET
+            if (target == NO_FORWARDED_TARGET) return
+            val side = target.toPanelSideOrNull()
+            val cornerAnchor = if (side == null) target.toCornerAnchorOrNull() else null
             mainHandler.post {
                 if (side != null) {
-                    host.cancelForwardedTouch(side)
+                    service.edgeOverlayHost?.cancelForwardedTouch(side)
+                } else if (cornerAnchor != null) {
+                    CornerGestureHost.instanceOrNull()?.cancelForwardedTouch(cornerAnchor)
                 }
             }
         }
@@ -166,6 +200,14 @@ class SlideIndexAccessibilityService : AccessibilityService() {
             com.slideindex.app.xposed.bridge.ModuleHookBridgeContract.SIDE_TOP -> PanelSide.TOP
             else -> null
         }
+
+        private fun Int.toCornerAnchorOrNull(): CornerAnchor? = when (this) {
+            ModuleHookBridgeContract.TARGET_CORNER_LEFT -> CornerAnchor.LEFT
+            ModuleHookBridgeContract.TARGET_CORNER_RIGHT -> CornerAnchor.RIGHT
+            else -> null
+        }
+
+        private const val NO_FORWARDED_TARGET = -1
 
         fun applyServiceEnabledImmediate(enabled: Boolean) {
             val service = instance

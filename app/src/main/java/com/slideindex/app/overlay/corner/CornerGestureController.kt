@@ -62,6 +62,24 @@ internal class CornerGestureController(
     private var capturesAttached = false
     private var expandedCaptureAnchor: CornerAnchor? = null
     private var expandedCaptureStrip: CornerZoneStrip? = null
+    /**
+     * 输入层接管（system_server 模块）用的命中快照。
+     *
+     * 由主线程在 [applySettings] 里刷新，binder 线程只读；不做 UI 状态读取，保证跨线程安全。
+     * 未启用 / 被抑制 / 当前方向不生效时为空列表，模块据此完全放行。
+     */
+    @Volatile
+    private var forwardedZones: List<ForwardedZone> = emptyList()
+
+    /** 单个角落触发带的屏幕坐标（不可变，供 binder 线程读取）。 */
+    private data class ForwardedZone(
+        val anchor: CornerAnchor,
+        val strip: CornerZoneStrip,
+        val left: Float,
+        val top: Float,
+        val right: Float,
+        val bottom: Float,
+    )
     private var zonePreviewActive = false
     private var previewRoot: FrameLayout? = null
     private var previewView: CornerZonePreviewView? = null
@@ -100,6 +118,7 @@ internal class CornerGestureController(
         this.density = context.resources.displayMetrics.density
         val corner = settings.cornerGestureSettings
         syncZoneLayout(corner)
+        refreshForwardedZones()
         if (zonePreviewActive) {
             ensurePreviewView()
             previewView?.update(zoneLayout, corner, density)
@@ -420,6 +439,77 @@ internal class CornerGestureController(
         zoneLayout.update(screenW, screenH, density, corner)
     }
 
+    /** 刷新 [forwardedZones]：只在真正可用时给出矩形，其余情况一律空（模块放行）。 */
+    private fun refreshForwardedZones() {
+        val corner = settings.cornerGestureSettings
+        val landscape =
+            context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        val usable = settings.serviceEnabled &&
+            corner.enabled &&
+            corner.hasActiveTriggerZone() &&
+            corner.isActiveInCurrentOrientation(landscape) &&
+            !isCornerWheelSuppressed(settings)
+        if (!usable) {
+            forwardedZones = emptyList()
+            return
+        }
+        forwardedZones = FORWARD_ANCHORS.flatMap { anchor ->
+            val anchorEnabled = when (anchor) {
+                CornerAnchor.LEFT -> corner.leftEnabled
+                CornerAnchor.RIGHT -> corner.rightEnabled
+            }
+            if (!anchorEnabled) {
+                emptyList()
+            } else {
+                FORWARD_STRIPS.mapNotNull { strip ->
+                    val rect = zoneLayout.stripRect(anchor, strip) ?: return@mapNotNull null
+                    if (rect.width() <= 0f || rect.height() <= 0f) {
+                        null
+                    } else {
+                        ForwardedZone(
+                            anchor = anchor,
+                            strip = strip,
+                            left = rect.left,
+                            top = rect.top,
+                            right = rect.right,
+                            bottom = rect.bottom,
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    /** binder 线程调用：这一点是否落在当前可用的角轮盘触发带上。 */
+    fun canAcceptForwardedTouchAt(anchor: CornerAnchor, x: Float, y: Float): Boolean =
+        forwardedZones.any { zone ->
+            zone.anchor == anchor &&
+                x >= zone.left && x <= zone.right && y >= zone.top && y <= zone.bottom
+        }
+
+    /**
+     * 输入层接管转发来的触摸：直接复用既有会话路径（与窗口触摸完全同一条流程），
+     * 因而捕获窗扩展、松开后的 passthrough、会话结束回收都自动一致。
+     */
+    fun handleForwardedTouch(anchor: CornerAnchor, event: android.view.MotionEvent) {
+        val strip = stripForPoint(anchor, event.rawX, event.rawY)
+        handleCaptureTouch(anchor, strip, event)
+    }
+
+    /** 输入层会话结束：结束轮盘会话并把捕获窗收回空闲尺寸。 */
+    fun cancelForwardedTouch(anchor: CornerAnchor) {
+        overlayView?.cancelSession()
+        expandedCaptureAnchor = null
+        expandedCaptureStrip = null
+        if (capturesAttached) syncCaptureWindows()
+    }
+
+    private fun stripForPoint(anchor: CornerAnchor, x: Float, y: Float): CornerZoneStrip =
+        FORWARD_STRIPS.firstOrNull { strip ->
+            val rect = zoneLayout.stripRect(anchor, strip) ?: return@firstOrNull false
+            rect.width() > 0f && rect.height() > 0f && rect.contains(x, y)
+        } ?: CornerZoneStrip.VERTICAL
+
     private fun stripEnabled(corner: CornerGestureSettings, strip: CornerZoneStrip): Boolean =
         when (strip) {
             CornerZoneStrip.VERTICAL ->
@@ -617,5 +707,7 @@ internal class CornerGestureController(
 
     companion object {
         private const val TAG = "CornerGestureController"
+        private val FORWARD_ANCHORS = listOf(CornerAnchor.LEFT, CornerAnchor.RIGHT)
+        private val FORWARD_STRIPS = listOf(CornerZoneStrip.VERTICAL, CornerZoneStrip.HORIZONTAL)
     }
 }

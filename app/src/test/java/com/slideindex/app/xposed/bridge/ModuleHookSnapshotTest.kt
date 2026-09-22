@@ -55,6 +55,54 @@ class ModuleHookSnapshotTest {
     val parsed = ModuleHookSnapshot.parse("{}")!!
     assertEquals(0, parsed.takeoverGroups)
     assertTrue(parsed.sides.isEmpty())
+    assertTrue(parsed.extraRects.isEmpty())
     assertEquals(1f, parsed.density, 0.001f)
+  }
+
+  @Test
+  fun jsonRoundTrip_preservesExtraRects() {
+    val snapshot = ModuleHookSnapshot(
+      takeoverGroups = ModuleHookBridgeContract.GROUP_BOTTOM,
+      extraRects = listOf(
+        ModuleHookExtraRect(
+          target = ModuleHookBridgeContract.TARGET_CORNER_LEFT,
+          groups = ModuleHookBridgeContract.GROUP_BOTTOM,
+          leftFraction = 0f,
+          topFraction = 0.9f,
+          rightFraction = 0.1f,
+          bottomFraction = 1f,
+          strip = ModuleHookBridgeContract.CORNER_STRIP_HORIZONTAL,
+        ),
+        ModuleHookExtraRect(
+          target = ModuleHookBridgeContract.TARGET_CORNER_RIGHT,
+          groups = ModuleHookBridgeContract.GROUP_BOTTOM,
+          leftFraction = 0.9f,
+          topFraction = 0.9f,
+          rightFraction = 1f,
+          bottomFraction = 1f,
+        ),
+      ),
+    )
+
+    val parsed = ModuleHookSnapshot.parse(snapshot.toJson())!!
+
+    assertEquals(2, parsed.extraRects.size)
+    val left = parsed.extraRects[0]
+    assertEquals(ModuleHookBridgeContract.TARGET_CORNER_LEFT, left.target)
+    assertEquals(ModuleHookBridgeContract.GROUP_BOTTOM, left.groups)
+    assertEquals(0.9f, left.topFraction, 0.001f)
+    assertEquals(ModuleHookBridgeContract.CORNER_STRIP_HORIZONTAL, left.strip)
+    assertEquals(ModuleHookBridgeContract.CORNER_STRIP_VERTICAL, parsed.extraRects[1].strip)
+  }
+
+  /** 旧模块读到 v2 快照时忽略未知键，行为与今天一致（反向兼容）。 */
+  @Test
+  fun parse_v1SnapshotWithoutExtraRectsStillWorks() {
+    val parsed = ModuleHookSnapshot.parse(
+      """{"version":1,"groups":2,"nav_mode":2,"density":2.0,"sides":[]}""",
+    )!!
+
+    assertEquals(ModuleHookBridgeContract.GROUP_SIDES, parsed.takeoverGroups)
+    assertTrue(parsed.extraRects.isEmpty())
   }
 }

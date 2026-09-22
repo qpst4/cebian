@@ -22,6 +22,11 @@ class ModuleGestureBridgeService : Service() {
       return SlideIndexAccessibilityService.canHandleForwardedSide(sideId)
     }
 
+    override fun canAcceptTouchAt(target: Int, x: Float, y: Float): Boolean {
+      if (!enforceTrustedCaller()) return false
+      return SlideIndexAccessibilityService.canHandleForwardedTargetAt(target, x, y)
+    }
+
     override fun onTouchEvent(
       sessionId: Long,
       sideId: Int,

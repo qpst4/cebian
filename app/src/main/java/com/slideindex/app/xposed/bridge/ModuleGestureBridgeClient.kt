@@ -109,6 +109,19 @@ class ModuleGestureBridgeClient(
     }
   }
 
+  /**
+   * 同步确认 app 能否处理该扩展目标（角轮盘/悬浮球线条）的这一点。
+   *
+   * 不做缓存：命中区随位置设置与键盘状态变化，按 DOWN 现场询问最稳妥。
+   */
+  fun canAcceptTouchAt(target: Int, x: Float, y: Float): Boolean {
+    val bridgeTarget = bridge ?: return false
+    return runCatching { bridgeTarget.canAcceptTouchAt(target, x, y) }.getOrElse {
+      log("module gesture bridge canAcceptTouchAt failed: ${it.message}")
+      false
+    }
+  }
+
   fun endSession(sessionId: Long, reason: Int) {
     val target = bridge ?: return
     runCatching { target.onSessionEnd(sessionId, reason) }

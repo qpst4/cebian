@@ -29,7 +29,8 @@ object ModuleHookBridgeContract {
   /** 系统侧读取 app 快照的兜底路径（`/data/user_de/0/<pkg>/files/`）。 */
   const val APP_SNAPSHOT_PATH = "/data/user_de/0/$MODULE_PACKAGE/files/$SNAPSHOT_FILE_NAME"
 
-  const val SNAPSHOT_VERSION = 1
+  /** 2 起新增 `extra_rects`（悬浮球线条 / 边角轮盘）；旧模块忽略未知键，兼容。 */
+  const val SNAPSHOT_VERSION = 2
 
   /** 接管分组位掩码：顶部。 */
   const val GROUP_TOP = 1 shl 0
@@ -44,6 +45,21 @@ object ModuleHookBridgeContract {
   const val SIDE_RIGHT = 1
   const val SIDE_BOTTOM = 2
   const val SIDE_TOP = 3
+
+  /**
+   * 触钮之外的接管目标（16 起，和 [SIDE_LEFT] 等边号不重叠）。
+   *
+   * 这些目标由 app 侧下发屏幕比例矩形，模块只负责命中判断与转发，
+   * 真正的命中复核由 app 侧 `canAcceptTouchAt` 完成。
+   */
+  const val TARGET_FLOAT_BALL = 16
+  const val TARGET_FLOAT_LINE = 17
+  const val TARGET_CORNER_LEFT = 18
+  const val TARGET_CORNER_RIGHT = 19
+
+  /** 边角轮盘两条触发带的编号，用于区分同一角落的竖条与横条。 */
+  const val CORNER_STRIP_VERTICAL = 0
+  const val CORNER_STRIP_HORIZONTAL = 1
 
   /** 全面屏手势导航（`Settings.Secure.navigation_mode == 2`）。 */
   const val NAVIGATION_MODE_GESTURAL = 2

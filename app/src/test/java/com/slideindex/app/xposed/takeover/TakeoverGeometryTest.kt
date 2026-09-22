@@ -1,6 +1,7 @@
 package com.slideindex.app.xposed.takeover
 
 import com.slideindex.app.xposed.bridge.ModuleHookBridgeContract
+import com.slideindex.app.xposed.bridge.ModuleHookExtraRect
 import com.slideindex.app.xposed.bridge.ModuleHookHandle
 import com.slideindex.app.xposed.bridge.ModuleHookSide
 import com.slideindex.app.xposed.bridge.ModuleHookSnapshot
@@ -99,6 +100,87 @@ class TakeoverGeometryTest {
 
     assertTrue(rects.isEmpty())
   }
+
+  @Test
+  fun cornerExtraRect_isMergedAndWinsOverTriggerRect() {
+    val snapshot = ModuleHookSnapshot(
+      takeoverGroups = ModuleHookBridgeContract.GROUP_BOTTOM,
+      navigationMode = ModuleHookBridgeContract.NAVIGATION_MODE_GESTURAL,
+      density = 2f,
+      sides = listOf(
+        ModuleHookSide(
+          sideId = ModuleHookBridgeContract.SIDE_BOTTOM,
+          widthDp = 20f,
+          handles = listOf(
+            ModuleHookHandle(topFraction = 0f, heightFraction = 0.5f, widthDp = 20f),
+          ),
+        ),
+      ),
+      extraRects = listOf(cornerLeftExtraRect()),
+    )
+
+    val rects = TakeoverGeometry.rectsForGroups(snapshot, 1000, 2000)
+
+    // 扩展矩形排在触钮矩形之前：重叠处优先归角轮盘。
+    assertEquals(2, rects.size)
+    val corner = rects.first()
+    assertEquals(ModuleHookBridgeContract.TARGET_CORNER_LEFT, corner.sideId)
+    assertEquals(0f, corner.left, 0.001f)
+    assertEquals(100f, corner.right, 0.001f)
+    assertEquals(1800f, corner.top, 0.001f)
+    assertEquals(2000f, corner.bottom, 0.001f)
+    assertEquals(ModuleHookBridgeContract.SIDE_BOTTOM, rects[1].sideId)
+  }
+
+  @Test
+  fun cornerExtraRect_staysEffectiveUnderThreeButtonNavigation() {
+    val snapshot = ModuleHookSnapshot(
+      takeoverGroups = ModuleHookBridgeContract.GROUP_BOTTOM,
+      navigationMode = 0,
+      density = 2f,
+      extraRects = listOf(cornerLeftExtraRect()),
+    )
+
+    val rects = TakeoverGeometry.rectsForGroups(snapshot, 1000, 2000)
+
+    // 底部触钮组在三键导航下停用，但角轮盘豁免（它在底部两角，不压导航键）。
+    assertEquals(1, rects.size)
+    assertEquals(ModuleHookBridgeContract.TARGET_CORNER_LEFT, rects.first().sideId)
+  }
+
+  @Test
+  fun extraRect_isDroppedWhenItsGroupIsOff() {
+    val snapshot = ModuleHookSnapshot(
+      takeoverGroups = ModuleHookBridgeContract.GROUP_SIDES,
+      navigationMode = ModuleHookBridgeContract.NAVIGATION_MODE_GESTURAL,
+      density = 2f,
+      extraRects = listOf(cornerLeftExtraRect()),
+    )
+
+    assertTrue(TakeoverGeometry.rectsForGroups(snapshot, 1000, 2000).isEmpty())
+  }
+
+  @Test
+  fun extraRect_isDroppedWhenNoGroupIsEnabled() {
+    val snapshot = ModuleHookSnapshot(
+      takeoverGroups = 0,
+      navigationMode = ModuleHookBridgeContract.NAVIGATION_MODE_GESTURAL,
+      density = 2f,
+      extraRects = listOf(cornerLeftExtraRect()),
+    )
+
+    assertTrue(TakeoverGeometry.rectsForGroups(snapshot, 1000, 2000).isEmpty())
+  }
+
+  private fun cornerLeftExtraRect(): ModuleHookExtraRect = ModuleHookExtraRect(
+    target = ModuleHookBridgeContract.TARGET_CORNER_LEFT,
+    groups = ModuleHookBridgeContract.GROUP_BOTTOM,
+    leftFraction = 0f,
+    topFraction = 0.9f,
+    rightFraction = 0.1f,
+    bottomFraction = 1f,
+    strip = ModuleHookBridgeContract.CORNER_STRIP_VERTICAL,
+  )
 
   private fun snapshot(groups: Int, navigationMode: Int): ModuleHookSnapshot =
     ModuleHookSnapshot(

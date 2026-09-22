@@ -13,6 +13,14 @@ interface IModuleGestureBridge {
      */
     boolean canAcceptTouch(int sideId);
 
+    /**
+     * 触钮之外的目标（角轮盘、悬浮球线条）用：带屏幕坐标实时复核命中区。
+     *
+     * 这类目标的命中区随位置设置、键盘弹出、悬浮球停靠变化，模块侧缓存的矩形只能用来缩小询问范围，
+     * 真正的判定由 app 当次现场几何给出——返回 false 时模块必须放行，避免吞掉却无人处理。
+     */
+    boolean canAcceptTouchAt(int target, float x, float y);
+
     oneway void onTouchEvent(
         long sessionId,
         int sideId,

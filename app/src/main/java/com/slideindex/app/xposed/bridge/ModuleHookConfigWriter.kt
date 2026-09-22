@@ -4,11 +4,14 @@ import android.content.Context
 import android.content.Intent
 import android.provider.Settings
 import com.slideindex.app.overlay.PanelSide
+import com.slideindex.app.overlay.FloatBallScreenMetrics
+import com.slideindex.app.overlay.TakeoverExtraRects
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.interceptWindowWidthDp
 import com.slideindex.app.settings.maxEdgeTriggerWidthDp
 import com.slideindex.app.settings.triggerHandleEdgeWidthDp
 import com.slideindex.app.settings.triggerHandles
+import com.slideindex.app.util.OverlaySuppression
 import java.io.File
 
 /**
@@ -33,8 +36,21 @@ object ModuleHookConfigWriter {
       density = context.resources.displayMetrics.density,
       sides = listOf(PanelSide.LEFT, PanelSide.RIGHT, PanelSide.BOTTOM, PanelSide.TOP)
         .map { side -> settings.toSideSnapshot(side) },
+      extraRects = extraRects(context, settings),
       updatedAtMs = System.currentTimeMillis(),
     )
+
+  /** 触钮之外的接管矩形（角轮盘；悬浮球线条待下一步）。 */
+  private fun extraRects(context: Context, settings: AppSettings): List<ModuleHookExtraRect> {
+    val (screenWidthPx, screenHeightPx) = FloatBallScreenMetrics.sizePx(context)
+    return TakeoverExtraRects.build(
+      settings = settings,
+      screenWidthPx = screenWidthPx,
+      screenHeightPx = screenHeightPx,
+      density = context.resources.displayMetrics.density,
+      isLandscape = OverlaySuppression.isLandscape(context),
+    )
+  }
 
   fun takeoverGroups(settings: AppSettings): Int {
     var groups = 0

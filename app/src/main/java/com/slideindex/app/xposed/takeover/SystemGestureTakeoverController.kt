@@ -106,8 +106,9 @@ internal class SystemGestureTakeoverController(
     val rects = resolveRects(snapshot, action)
     if (action == MotionEvent.ACTION_DOWN && !policy.hasActiveSession) {
       val hit = rects.firstOrNull { it.contains(event.rawX, event.rawY) } ?: return false
-      // 确认 app 真的能处理这一边，避免吞掉 DOWN 却无人处理；带 TTL 缓存，避免每条触摸都跨进程。
-      if (!canAcceptCached(hit.sideId)) return false
+      // 确认 app 真的能处理这一目标，避免吞掉 DOWN 却无人处理。
+      // 触钮：带 TTL 缓存，避免每条触摸都跨进程；扩展目标：带坐标实时复核（命中区随位置/键盘变化）。
+      if (!canAccept(hit.sideId, event.rawX, event.rawY)) return false
     }
     val injected = (policyFlags and POLICY_FLAG_INJECTED) != 0
     val decision = policy.onEvent(
@@ -168,6 +169,16 @@ internal class SystemGestureTakeoverController(
     lastCapabilityResult = result
     lastCapabilityCheckedAtMs = now
     return result
+  }
+
+  /** 触钮沿用旧的按边缓存查询；扩展目标（角轮盘/悬浮球线条）改带坐标实时复核。 */
+  private fun canAccept(target: Int, x: Float, y: Float): Boolean = when (target) {
+    ModuleHookBridgeContract.SIDE_LEFT,
+    ModuleHookBridgeContract.SIDE_RIGHT,
+    ModuleHookBridgeContract.SIDE_BOTTOM,
+    ModuleHookBridgeContract.SIDE_TOP,
+    -> canAcceptCached(target)
+    else -> bridge.canAcceptTouchAt(target, x, y)
   }
 
   private fun computeRects(snapshot: ModuleHookSnapshot): List<TakeoverRect> = runCatching {

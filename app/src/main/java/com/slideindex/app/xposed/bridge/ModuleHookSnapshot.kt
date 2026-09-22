@@ -16,6 +16,12 @@ data class ModuleHookSnapshot(
   val navigationMode: Int = 0,
   val density: Float = 1f,
   val sides: List<ModuleHookSide> = emptyList(),
+  /**
+   * 触钮之外的接管矩形（悬浮球线条、边角轮盘），坐标为屏幕比例。
+   *
+   * 归属哪个开关由 [ModuleHookExtraRect.groups] 单一位决定；列表靠前的矩形优先命中。
+   */
+  val extraRects: List<ModuleHookExtraRect> = emptyList(),
   val updatedAtMs: Long = 0L,
 ) {
   fun hasGroup(group: Int): Boolean = (takeoverGroups and group) != 0
@@ -35,6 +41,14 @@ data class ModuleHookSnapshot(
         sides.forEach { put(it.toJson()) }
       },
     )
+    if (extraRects.isNotEmpty()) {
+      put(
+        KEY_EXTRA_RECTS,
+        JSONArray().apply {
+          extraRects.forEach { put(it.toJson()) }
+        },
+      )
+    }
   }.toString()
 
   companion object {
@@ -44,6 +58,7 @@ data class ModuleHookSnapshot(
     private const val KEY_NAV_MODE = "nav_mode"
     private const val KEY_DENSITY = "density"
     private const val KEY_SIDES = "sides"
+    private const val KEY_EXTRA_RECTS = "extra_rects"
     private const val KEY_UPDATED_AT = "updated_at"
 
     /** 解析失败的快照一律视为“未配置”，模块据此保持完全放行。 */
@@ -58,6 +73,13 @@ data class ModuleHookSnapshot(
             add(ModuleHookSide.fromJson(item))
           }
         }
+        val extraRectsJson = json.optJSONArray(KEY_EXTRA_RECTS) ?: JSONArray()
+        val extraRects = buildList {
+          for (index in 0 until extraRectsJson.length()) {
+            val item = extraRectsJson.optJSONObject(index) ?: continue
+            add(ModuleHookExtraRect.fromJson(item))
+          }
+        }
         ModuleHookSnapshot(
           version = json.optInt(KEY_VERSION, ModuleHookBridgeContract.SNAPSHOT_VERSION),
           takeoverGroups = json.optInt(KEY_GROUPS, 0),
@@ -65,10 +87,57 @@ data class ModuleHookSnapshot(
           navigationMode = json.optInt(KEY_NAV_MODE, 0),
           density = json.optDouble(KEY_DENSITY, 1.0).toFloat().coerceIn(0.5f, 6f),
           sides = sides,
+          extraRects = extraRects,
           updatedAtMs = json.optLong(KEY_UPDATED_AT, 0L),
         )
       }.getOrNull()
     }
+  }
+}
+
+/**
+ * 触钮之外的接管矩形：屏幕比例坐标 + 所属开关位 + 目标号。
+ *
+ * [strip] 仅角轮盘使用（[ModuleHookBridgeContract.CORNER_STRIP_VERTICAL] /
+ * [ModuleHookBridgeContract.CORNER_STRIP_HORIZONTAL]），其余目标固定 0。
+ */
+data class ModuleHookExtraRect(
+  val target: Int,
+  val groups: Int,
+  val leftFraction: Float,
+  val topFraction: Float,
+  val rightFraction: Float,
+  val bottomFraction: Float,
+  val strip: Int = 0,
+) {
+  fun toJson(): JSONObject = JSONObject().apply {
+    put(KEY_TARGET, target)
+    put(KEY_GROUPS, groups)
+    put(KEY_LEFT, leftFraction.toDouble())
+    put(KEY_TOP, topFraction.toDouble())
+    put(KEY_RIGHT, rightFraction.toDouble())
+    put(KEY_BOTTOM, bottomFraction.toDouble())
+    if (strip != 0) put(KEY_STRIP, strip)
+  }
+
+  companion object {
+    private const val KEY_TARGET = "target"
+    private const val KEY_GROUPS = "groups"
+    private const val KEY_LEFT = "left"
+    private const val KEY_TOP = "top"
+    private const val KEY_RIGHT = "right"
+    private const val KEY_BOTTOM = "bottom"
+    private const val KEY_STRIP = "strip"
+
+    fun fromJson(json: JSONObject): ModuleHookExtraRect = ModuleHookExtraRect(
+      target = json.optInt(KEY_TARGET, -1),
+      groups = json.optInt(KEY_GROUPS, 0),
+      leftFraction = json.optDouble(KEY_LEFT, 0.0).toFloat().coerceIn(0f, 1f),
+      topFraction = json.optDouble(KEY_TOP, 0.0).toFloat().coerceIn(0f, 1f),
+      rightFraction = json.optDouble(KEY_RIGHT, 0.0).toFloat().coerceIn(0f, 1f),
+      bottomFraction = json.optDouble(KEY_BOTTOM, 0.0).toFloat().coerceIn(0f, 1f),
+      strip = json.optInt(KEY_STRIP, 0),
+    )
   }
 }
 

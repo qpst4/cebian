@@ -20,11 +20,32 @@ class CornerGestureHost(
         @Volatile
         private var active: CornerGestureHost? = null
 
+        /** 供输入层接管（system_server 模块）拿到当前宿主；未启动时为 null。 */
+        fun instanceOrNull(): CornerGestureHost? = active
+
+        /**
+         * 该角落此刻是否能处理输入层转发来的触摸。
+         *
+         * 由 binder 线程调用，只读控制器维护的 volatile 命中快照。
+         */
+        fun canAcceptForwardedTouchAt(anchor: CornerAnchor, x: Float, y: Float): Boolean =
+            active?.controller?.canAcceptForwardedTouchAt(anchor, x, y) == true
+
         fun resumeAfterSlotPicker() {
             val host = active ?: return
             host.controller?.resumeAfterSlotPicker()
             host.controller?.applySettings(host.deps.settingsRepository.readSnapshot())
         }
+    }
+
+    /** 输入层转发来的触摸：直接喂给既有会话流程（与窗口触摸同一条路径）。 */
+    fun handleForwardedTouch(anchor: CornerAnchor, event: android.view.MotionEvent) {
+        controller?.handleForwardedTouch(anchor, event)
+    }
+
+    /** 输入层会话结束：取消该角落进行中的轮盘会话。 */
+    fun cancelForwardedTouch(anchor: CornerAnchor) {
+        controller?.cancelForwardedTouch(anchor)
     }
 
     fun start() {

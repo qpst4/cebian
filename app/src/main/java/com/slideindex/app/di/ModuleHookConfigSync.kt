@@ -7,6 +7,7 @@ import com.slideindex.app.settings.SettingsRepository
 import com.slideindex.app.settings.edgeTriggerWidthDp
 import com.slideindex.app.settings.interceptWindowWidthDp
 import com.slideindex.app.settings.triggerHandles
+import com.slideindex.app.util.OverlaySuppression
 import com.slideindex.app.xposed.bridge.ModuleHookConfigWriter
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
@@ -58,6 +59,14 @@ class ModuleHookConfigSync @Inject constructor(
     append('|').append(settings.interceptSystemBackGesture)
     append('|').append(ModuleHookConfigWriter.navigationMode(context))
     append('|').append(settings.limitMaxInterceptLength)
+    // 角轮盘接管矩形的输入；不含这些的话开关/尺寸变化不会重新下发。
+    val corner = settings.cornerGestureSettings
+    append('|').append(corner.enabled)
+    append('|').append(corner.leftEnabled).append(corner.rightEnabled)
+    append('|').append(corner.verticalEdgeWidthDp).append(',').append(corner.verticalEdgeHeightDp)
+    append('|').append(corner.horizontalEdgeWidthDp).append(',').append(corner.horizontalEdgeHeightDp)
+    append('|').append(corner.hideInLandscape)
+    append('|').append(OverlaySuppression.isLandscape(context))
     for (side in listOf(PanelSide.LEFT, PanelSide.RIGHT, PanelSide.BOTTOM, PanelSide.TOP)) {
       append('#').append(side.name)
       append(':').append(settings.interceptWindowWidthDp(side))
