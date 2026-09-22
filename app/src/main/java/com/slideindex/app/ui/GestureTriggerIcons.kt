@@ -55,6 +55,26 @@ fun gestureTriggerIconImageVector(side: PanelSide, trigger: GestureTriggerType):
         PanelSide.RIGHT, PanelSide.TOP -> ThinActionIcons.DoubleCornerArrowUpRight
     }
     GestureTriggerType.SHORT_SWIPE_IN_AND_BACK -> ThinActionIcons.SwipeReturn
+    // 沿边首段后的组合：走线必须是「先沿边、再向内」，箭头落在内侧端
+    GestureTriggerType.SHORT_SWIPE_UP_IN -> when (side) {
+        PanelSide.LEFT, PanelSide.BOTTOM -> ThinActionIcons.CornerArrowDownRight
+        PanelSide.RIGHT, PanelSide.TOP -> ThinActionIcons.CornerArrowUpRight
+    }
+    GestureTriggerType.SHORT_SWIPE_DOWN_IN -> when (side) {
+        PanelSide.LEFT, PanelSide.BOTTOM -> ThinActionIcons.CornerArrowUpRight
+        PanelSide.RIGHT, PanelSide.TOP -> ThinActionIcons.CornerArrowDownRight
+    }
+    GestureTriggerType.LONG_SWIPE_UP_IN -> when (side) {
+        PanelSide.LEFT, PanelSide.BOTTOM -> ThinActionIcons.DoubleCornerArrowDownRight
+        PanelSide.RIGHT, PanelSide.TOP -> ThinActionIcons.DoubleCornerArrowUpRight
+    }
+    GestureTriggerType.LONG_SWIPE_DOWN_IN -> when (side) {
+        PanelSide.LEFT, PanelSide.BOTTOM -> ThinActionIcons.DoubleCornerArrowUpRight
+        PanelSide.RIGHT, PanelSide.TOP -> ThinActionIcons.DoubleCornerArrowDownRight
+    }
+    GestureTriggerType.SHORT_SWIPE_UP_AND_BACK,
+    GestureTriggerType.SHORT_SWIPE_DOWN_AND_BACK,
+    -> ThinActionIcons.SwipeReturn
     else -> when {
         trigger.isLongPress -> MaterialTouchIcons.LongPress
         trigger.isSingleTap -> MaterialTouchIcons.SingleTap
@@ -77,6 +97,8 @@ fun gestureTriggerIconRotationZ(side: PanelSide, trigger: GestureTriggerType): F
             TriggerDirectionKind.Down -> 90f
             TriggerDirectionKind.InUp -> 0f
             TriggerDirectionKind.InDown -> 0f
+            TriggerDirectionKind.UpIn -> -90f
+            TriggerDirectionKind.DownIn -> 90f
             null -> 0f
         }
         PanelSide.RIGHT -> when (trigger.directionKind()) {
@@ -88,6 +110,8 @@ fun gestureTriggerIconRotationZ(side: PanelSide, trigger: GestureTriggerType): F
             TriggerDirectionKind.Down -> 90f
             TriggerDirectionKind.InUp -> 180f
             TriggerDirectionKind.InDown -> 180f
+            TriggerDirectionKind.UpIn -> -90f
+            TriggerDirectionKind.DownIn -> 90f
             null -> 0f
         }
         PanelSide.BOTTOM -> when (trigger.directionKind()) {
@@ -99,6 +123,8 @@ fun gestureTriggerIconRotationZ(side: PanelSide, trigger: GestureTriggerType): F
             TriggerDirectionKind.Down -> 0f
             TriggerDirectionKind.InUp -> -90f
             TriggerDirectionKind.InDown -> -90f
+            TriggerDirectionKind.UpIn -> 180f
+            TriggerDirectionKind.DownIn -> 0f
             null -> 0f
         }
         PanelSide.TOP -> when (trigger.directionKind()) {
@@ -110,6 +136,8 @@ fun gestureTriggerIconRotationZ(side: PanelSide, trigger: GestureTriggerType): F
             TriggerDirectionKind.Down -> 0f
             TriggerDirectionKind.InUp -> 90f
             TriggerDirectionKind.InDown -> 90f
+            TriggerDirectionKind.UpIn -> 180f
+            TriggerDirectionKind.DownIn -> 0f
             null -> 0f
         }
     }
@@ -124,6 +152,9 @@ private enum class TriggerDirectionKind {
     Down,
     InUp,
     InDown,
+    /** 先沿边（上/下家族）再向内。 */
+    UpIn,
+    DownIn,
 }
 
 private fun GestureTriggerType.directionKind(): TriggerDirectionKind? = when (this) {
@@ -131,6 +162,10 @@ private fun GestureTriggerType.directionKind(): TriggerDirectionKind? = when (th
     GestureTriggerType.SHORT_SWIPE_IN_HOVER,
     -> TriggerDirectionKind.In
     GestureTriggerType.SHORT_SWIPE_IN_AND_BACK -> TriggerDirectionKind.InReturn
+    GestureTriggerType.SHORT_SWIPE_UP_AND_BACK -> TriggerDirectionKind.Up
+    GestureTriggerType.SHORT_SWIPE_DOWN_AND_BACK -> TriggerDirectionKind.Down
+    GestureTriggerType.SHORT_SWIPE_UP_IN, GestureTriggerType.LONG_SWIPE_UP_IN -> TriggerDirectionKind.UpIn
+    GestureTriggerType.SHORT_SWIPE_DOWN_IN, GestureTriggerType.LONG_SWIPE_DOWN_IN -> TriggerDirectionKind.DownIn
     GestureTriggerType.SHORT_SWIPE_UP_RIGHT, GestureTriggerType.LONG_SWIPE_UP_RIGHT,
     GestureTriggerType.SHORT_SWIPE_UP_RIGHT_HOVER,
     -> TriggerDirectionKind.UpRight

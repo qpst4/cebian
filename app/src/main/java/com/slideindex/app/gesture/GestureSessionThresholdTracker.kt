@@ -60,7 +60,7 @@ internal class GestureSessionThresholdTracker(
     }
 
     private fun trackReturnHaptics(rawX: Float, rawY: Float) {
-        if (isTriggerConfigured(GestureTriggerType.SHORT_SWIPE_IN_AND_BACK) &&
+        if (isReturnSwipeHapticEnabled() &&
             pathRecognizer.isReturnSwipeActive(rawX, rawY)
         ) {
             if (!returnHapticFired) {
@@ -88,7 +88,16 @@ internal class GestureSessionThresholdTracker(
         isTriggerConfigured(GestureTriggerType.SHORT_SWIPE_IN_UP) ||
             isTriggerConfigured(GestureTriggerType.LONG_SWIPE_IN_UP) ||
             isTriggerConfigured(GestureTriggerType.SHORT_SWIPE_IN_DOWN) ||
-            isTriggerConfigured(GestureTriggerType.LONG_SWIPE_IN_DOWN)
+            isTriggerConfigured(GestureTriggerType.LONG_SWIPE_IN_DOWN) ||
+            isTriggerConfigured(GestureTriggerType.SHORT_SWIPE_UP_IN) ||
+            isTriggerConfigured(GestureTriggerType.LONG_SWIPE_UP_IN) ||
+            isTriggerConfigured(GestureTriggerType.SHORT_SWIPE_DOWN_IN) ||
+            isTriggerConfigured(GestureTriggerType.LONG_SWIPE_DOWN_IN)
+
+    private fun isReturnSwipeHapticEnabled(): Boolean =
+        isTriggerConfigured(GestureTriggerType.SHORT_SWIPE_IN_AND_BACK) ||
+            isTriggerConfigured(GestureTriggerType.SHORT_SWIPE_UP_AND_BACK) ||
+            isTriggerConfigured(GestureTriggerType.SHORT_SWIPE_DOWN_AND_BACK)
 
     fun maybeHapticLongPress(rawX: Float, rawY: Float) {
         if (longPressHapticFired) return

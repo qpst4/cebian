@@ -20,6 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 
 import androidx.compose.ui.Modifier
 
@@ -53,6 +54,8 @@ import com.slideindex.app.settings.gestureConfigSide
 import com.slideindex.app.gesture.supportsAction
 
 import com.slideindex.app.ui.miuix.MiuixSliderRow
+import com.slideindex.app.ui.miuix.MiuixTabSettingsCard
+import com.slideindex.app.gesture.compoundTierTriggers
 
 import com.slideindex.app.ui.miuix.groupedCardItems
 
@@ -83,15 +86,15 @@ fun SideGestureSlotConfigScreen(
 
     onBack: () -> Unit,
 
-    onOpenActionPick: () -> Unit,
+    onOpenActionPick: (GestureTriggerType) -> Unit,
 
-    onOpenModePick: () -> Unit,
+    onOpenModePick: (GestureTriggerType) -> Unit,
 
-    onOpenShellCommand: (String) -> Unit,
+    onOpenShellCommand: (GestureTriggerType, String) -> Unit,
 
-    onOpenQuickLauncherPanel: (String) -> Unit = {},
+    onOpenQuickLauncherPanel: (GestureTriggerType, String) -> Unit = { _, _ -> },
 
-    onOpenFingertipRingConfig: () -> Unit = {},
+    onOpenFingertipRingConfig: (GestureTriggerType) -> Unit = {},
 
     onTriggerDoubleTapIntervalChange: (Int) -> Unit = {},
 
@@ -103,9 +106,15 @@ fun SideGestureSlotConfigScreen(
 
     val configSide = settings.gestureConfigSide(side, handleId)
 
-    val selectedAction = settings.slotAction(configSide, trigger, handleId)
+    // 组合手势一条路径含短滑/长滑两档，行内可切档（折返等单档路径退化为无切换）。
+    val tierTriggers = remember(trigger) { trigger.compoundTierTriggers() }
+    var selectedTrigger by rememberSaveable(trigger) { mutableStateOf(trigger) }
+    val shortTierLabel = stringResource(R.string.side_gestures_direction_short_slot)
+    val longTierLabel = stringResource(R.string.side_gestures_direction_long_slot)
 
-    val selectedMode = settings.slotTriggerMode(configSide, trigger, handleId)
+    val selectedAction = settings.slotAction(configSide, selectedTrigger, handleId)
+
+    val selectedMode = settings.slotTriggerMode(configSide, selectedTrigger, handleId)
 
     var localAppCarouselSettings by remember(appCarouselSettings) {
         mutableStateOf(appCarouselSettings)
@@ -116,7 +125,7 @@ fun SideGestureSlotConfigScreen(
 
     val sideDefaultMode = settings.defaultTriggerModeFor(configSide)
 
-    val screenTitle = triggerSlotLabel(side, trigger)
+    val screenTitle = triggerSlotLabel(side, selectedTrigger)
 
 
 
@@ -147,6 +156,19 @@ fun SideGestureSlotConfigScreen(
         onBack = onBack,
 
     ) {
+
+        if (tierTriggers.size > 1) {
+            item(key = "slot-tier-tabs") {
+                MiuixTabSettingsCard(
+                    tabs = tierTriggers.map { tier ->
+                        if (tier.isLongDistance) longTierLabel else shortTierLabel
+                    },
+                    selectedTabIndex = tierTriggers.indexOf(selectedTrigger).coerceAtLeast(0),
+                    onTabSelected = { index -> selectedTrigger = tierTriggers[index] },
+                    contentTopPadding = 0.dp,
+                ) {}
+            }
+        }
 
         settingsLazySmallTitle(
 
@@ -188,7 +210,7 @@ fun SideGestureSlotConfigScreen(
 
                             subtitle = stringResource(R.string.slot_pick_action),
 
-                            onClick = onOpenActionPick,
+                            onClick = { onOpenActionPick(selectedTrigger) },
 
                         )
 
@@ -244,7 +266,9 @@ fun SideGestureSlotConfigScreen(
 
                                 subtitle = stringResource(R.string.quick_launcher_panel_pick_title),
 
-                                onClick = { onOpenQuickLauncherPanel(selectedAction.panelId) },
+                                onClick = {
+                                    onOpenQuickLauncherPanel(selectedTrigger, selectedAction.panelId)
+                                },
 
                             )
 
@@ -338,7 +362,7 @@ fun SideGestureSlotConfigScreen(
 
                                 subtitle = stringResource(R.string.fingertip_ring_config_desc),
 
-                                onClick = onOpenFingertipRingConfig,
+                                onClick = { onOpenFingertipRingConfig(selectedTrigger) },
 
                             )
 
@@ -396,7 +420,9 @@ fun SideGestureSlotConfigScreen(
 
                                 subtitle = stringResource(R.string.gesture_shell_command_config_title),
 
-                                onClick = { onOpenShellCommand(selectedAction.command) },
+                                onClick = {
+                                    onOpenShellCommand(selectedTrigger, selectedAction.command)
+                                },
 
                             )
 
@@ -412,7 +438,7 @@ fun SideGestureSlotConfigScreen(
 
 
 
-        if (trigger == GestureTriggerType.SHORT_DOUBLE_TAP) {
+        if (selectedTrigger == GestureTriggerType.SHORT_DOUBLE_TAP) {
 
             settingsLazySmallTitle(
 
@@ -500,7 +526,7 @@ fun SideGestureSlotConfigScreen(
 
                             summary = slotTriggerModeSubtitle(selectedMode, sideDefaultMode),
 
-                            onClick = onOpenModePick,
+                            onClick = { onOpenModePick(selectedTrigger) },
 
                         )
 
@@ -790,6 +816,34 @@ fun triggerLabel(side: PanelSide, trigger: GestureTriggerType): String = stringR
 
             PanelSide.TOP -> R.string.gesture_swipe_in_and_back_top
 
+        }
+
+        GestureTriggerType.SHORT_SWIPE_UP_IN, GestureTriggerType.LONG_SWIPE_UP_IN -> when (side) {
+            PanelSide.LEFT -> R.string.gesture_swipe_up_in_left
+            PanelSide.RIGHT -> R.string.gesture_swipe_up_in_right
+            PanelSide.BOTTOM -> R.string.gesture_swipe_up_in_bottom
+            PanelSide.TOP -> R.string.gesture_swipe_up_in_top
+        }
+
+        GestureTriggerType.SHORT_SWIPE_DOWN_IN, GestureTriggerType.LONG_SWIPE_DOWN_IN -> when (side) {
+            PanelSide.LEFT -> R.string.gesture_swipe_down_in_left
+            PanelSide.RIGHT -> R.string.gesture_swipe_down_in_right
+            PanelSide.BOTTOM -> R.string.gesture_swipe_down_in_bottom
+            PanelSide.TOP -> R.string.gesture_swipe_down_in_top
+        }
+
+        GestureTriggerType.SHORT_SWIPE_UP_AND_BACK -> when (side) {
+            PanelSide.LEFT -> R.string.gesture_swipe_up_and_back_left
+            PanelSide.RIGHT -> R.string.gesture_swipe_up_and_back_right
+            PanelSide.BOTTOM -> R.string.gesture_swipe_up_and_back_bottom
+            PanelSide.TOP -> R.string.gesture_swipe_up_and_back_top
+        }
+
+        GestureTriggerType.SHORT_SWIPE_DOWN_AND_BACK -> when (side) {
+            PanelSide.LEFT -> R.string.gesture_swipe_down_and_back_left
+            PanelSide.RIGHT -> R.string.gesture_swipe_down_and_back_right
+            PanelSide.BOTTOM -> R.string.gesture_swipe_down_and_back_bottom
+            PanelSide.TOP -> R.string.gesture_swipe_down_and_back_top
         }
 
         GestureTriggerType.SHORT_SWIPE_UP -> when (side) {

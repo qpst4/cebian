@@ -22,6 +22,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -29,7 +30,6 @@ import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
 import com.slideindex.app.gesture.GestureAction
 import com.slideindex.app.gesture.GestureTriggerType
-import com.slideindex.app.gesture.InwardCompoundBranch
 import com.slideindex.app.gesture.SwipeDirectionFamily
 import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.settings.AppSettings
@@ -111,7 +111,8 @@ fun SideGestureSettingsScreen(
 
     val slotSide = settings.gestureConfigSide(side, handleId)
     var showMirrorDirectionDialog by remember { mutableStateOf(false) }
-    var selectedTab by remember { mutableStateOf(SideGestureDistanceTab.Short) }
+    // 进子页再返回要停留原 tab：用 rememberSaveable，随返回栈条目一起保留。
+    var selectedTab by rememberSaveable { mutableStateOf(SideGestureDistanceTab.Short) }
     val showAlignGesturesSwitch = side.isHorizontalEdge &&
         settings.triggerHandle(PanelSide.LEFT, handleId) != null &&
         settings.triggerHandle(PanelSide.RIGHT, handleId) != null
@@ -123,6 +124,8 @@ fun SideGestureSettingsScreen(
     val hoverSectionTitle = stringResource(R.string.side_gestures_direction_pause_section)
     val hoverDurationSummary = stringResource(R.string.side_gestures_hover_duration_desc)
     val compoundHint = stringResource(R.string.side_gestures_inward_branch_hint)
+    val compoundInwardGroupTitle = stringResource(R.string.side_gestures_compound_group_inward)
+    val compoundAlongGroupTitle = stringResource(R.string.side_gestures_compound_group_along)
     val resources = LocalContext.current.resources
 
     val pressTapItems = sideGestureSlotCardItems(
@@ -298,12 +301,31 @@ fun SideGestureSettingsScreen(
                             horizontalPadding = 0.dp,
                             modifier = Modifier.padding(bottom = 8.dp),
                         )
+                        SmallTitle(
+                            text = compoundInwardGroupTitle,
+                            insideMargin = PaddingValues(bottom = 4.dp),
+                        )
                         RenderSideGestureSlotItems(
-                            sideGestureCompoundSlotItems(
+                            sideGestureCompoundPathItems(
                                 settings = settings,
                                 slotSide = slotSide,
                                 handleId = handleId,
                                 side = side,
+                                paths = inwardCompoundPaths(),
+                                onOpenSlotConfig = onOpenSlotConfig,
+                            ),
+                        )
+                        SmallTitle(
+                            text = compoundAlongGroupTitle,
+                            insideMargin = PaddingValues(top = 8.dp, bottom = 4.dp),
+                        )
+                        RenderSideGestureSlotItems(
+                            sideGestureCompoundPathItems(
+                                settings = settings,
+                                slotSide = slotSide,
+                                handleId = handleId,
+                                side = side,
+                                paths = alongCompoundPaths(),
                                 onOpenSlotConfig = onOpenSlotConfig,
                             ),
                         )
@@ -339,34 +361,95 @@ fun SideGestureSettingsScreen(
     }
 }
 
-private fun sideGestureCompoundTriggers(): List<GestureTriggerType> = buildList {
-    InwardCompoundBranch.orderedEntries().forEach { branch ->
-        add(branch.shortTrigger)
-        branch.pairedLongTrigger?.let { add(it) }
-    }
+/** 组合页的一条路径：短滑档 + 可选长滑档（折返只有短滑档）。 */
+private data class CompoundSlotPath(
+    val shortTrigger: GestureTriggerType,
+    val longTrigger: GestureTriggerType? = null,
+) {
+    val tiers: List<GestureTriggerType> get() = listOfNotNull(shortTrigger, longTrigger)
 }
+
+/** 先向内侧滑（内滑起手）的组合路径。 */
+private fun inwardCompoundPaths(): List<CompoundSlotPath> = listOf(
+    CompoundSlotPath(GestureTriggerType.SHORT_SWIPE_IN_UP, GestureTriggerType.LONG_SWIPE_IN_UP),
+    CompoundSlotPath(GestureTriggerType.SHORT_SWIPE_IN_DOWN, GestureTriggerType.LONG_SWIPE_IN_DOWN),
+    CompoundSlotPath(GestureTriggerType.SHORT_SWIPE_IN_AND_BACK),
+)
+
+/** 先沿边滑（上/下起手，顶底边为左/右）的组合路径。 */
+private fun alongCompoundPaths(): List<CompoundSlotPath> = listOf(
+    CompoundSlotPath(GestureTriggerType.SHORT_SWIPE_UP_IN, GestureTriggerType.LONG_SWIPE_UP_IN),
+    CompoundSlotPath(GestureTriggerType.SHORT_SWIPE_DOWN_IN, GestureTriggerType.LONG_SWIPE_DOWN_IN),
+    CompoundSlotPath(GestureTriggerType.SHORT_SWIPE_UP_AND_BACK),
+    CompoundSlotPath(GestureTriggerType.SHORT_SWIPE_DOWN_AND_BACK),
+)
 
 private enum class SideGestureSlotTitleStyle {
     SlotLabel,
     TriggerLabel,
 }
 
-private fun sideGestureCompoundSlotItems(
+/** 组合页一行 = 一条路径，副标题同时给出短滑/长滑两档的动作摘要。 */
+private fun sideGestureCompoundPathItems(
     settings: AppSettings,
     slotSide: PanelSide,
     handleId: String,
     side: PanelSide,
+    paths: List<CompoundSlotPath>,
     onOpenSlotConfig: (GestureTriggerType) -> Unit,
-): List<CardItem> = sideGestureSlotCardItems(
-    settings = settings,
-    slotSide = slotSide,
-    handleId = handleId,
-    side = side,
-    triggers = sideGestureCompoundTriggers(),
-    titleStyle = SideGestureSlotTitleStyle.SlotLabel,
-    onOpenSlotConfig = onOpenSlotConfig,
-    rowInsideMargin = MiuixInsetCardComponentMargin,
-)
+): List<CardItem> = buildList {
+    paths.forEach { path ->
+        add(
+            settingsCardScopeItem("compound-path-${path.shortTrigger.name}") {
+                val actions = path.tiers.associateWith { settings.slotAction(slotSide, it, handleId) }
+                // 默认打开已配置的那一档；两档都空则打开短滑档。
+                val target = path.tiers.firstOrNull { actions[it] !is GestureAction.None }
+                    ?: path.shortTrigger
+                val summaries = path.tiers.map { tier ->
+                    val prefix = if (path.tiers.size > 1) {
+                        stringResource(
+                            if (tier.isLongDistance) {
+                                R.string.side_gestures_direction_long_slot
+                            } else {
+                                R.string.side_gestures_direction_short_slot
+                            },
+                        ) + "："
+                    } else {
+                        ""
+                    }
+                    prefix + compoundTierSummary(settings, slotSide, tier, handleId)
+                }
+                val subtitle = summaries.joinToString(" ｜ ")
+                GestureSlotRow(
+                    side = side,
+                    trigger = target,
+                    label = triggerLabel(side, path.shortTrigger),
+                    action = actions[target] ?: GestureAction.None,
+                    modeLabel = null,
+                    subtitleOverride = subtitle,
+                    onClick = { onOpenSlotConfig(target) },
+                    insideMargin = MiuixInsetCardComponentMargin,
+                )
+            },
+        )
+    }
+}
+
+@Composable
+private fun compoundTierSummary(
+    settings: AppSettings,
+    slotSide: PanelSide,
+    trigger: GestureTriggerType,
+    handleId: String,
+): String {
+    val actionText = gestureActionSettingSubtitle(settings.slotAction(slotSide, trigger, handleId))
+    val mode = settings.slotTriggerMode(slotSide, trigger, handleId)
+    return if (mode == com.slideindex.app.gesture.GestureTriggerMode.DEFAULT) {
+        actionText
+    } else {
+        "$actionText · ${triggerModeLabel(mode, includeDefault = false)}"
+    }
+}
 
 private fun sideGestureSlotCardItems(
     settings: AppSettings,
@@ -464,8 +547,9 @@ private fun SettingsCardScope.GestureSlotRow(
     modeLabel: String?,
     onClick: () -> Unit,
     insideMargin: PaddingValues = BasicComponentDefaults.InsideMargin,
+    subtitleOverride: String? = null,
 ) {
-    val subtitle = if (modeLabel == null) {
+    val subtitle = subtitleOverride ?: if (modeLabel == null) {
         gestureActionSettingSubtitle(action)
     } else {
         listOf(gestureActionSettingSubtitle(action), modeLabel).joinToString(" · ")

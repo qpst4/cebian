@@ -71,11 +71,17 @@ fun GestureTriggerType.directionFamily(): SwipeDirectionFamily? = when (this) {
     GestureTriggerType.SHORT_SWIPE_UP,
     GestureTriggerType.LONG_SWIPE_UP,
     GestureTriggerType.SHORT_SWIPE_UP_HOVER,
+    GestureTriggerType.SHORT_SWIPE_UP_IN,
+    GestureTriggerType.LONG_SWIPE_UP_IN,
+    GestureTriggerType.SHORT_SWIPE_UP_AND_BACK,
     -> SwipeDirectionFamily.UP
 
     GestureTriggerType.SHORT_SWIPE_DOWN,
     GestureTriggerType.LONG_SWIPE_DOWN,
     GestureTriggerType.SHORT_SWIPE_DOWN_HOVER,
+    GestureTriggerType.SHORT_SWIPE_DOWN_IN,
+    GestureTriggerType.LONG_SWIPE_DOWN_IN,
+    GestureTriggerType.SHORT_SWIPE_DOWN_AND_BACK,
     -> SwipeDirectionFamily.DOWN
 
     else -> null

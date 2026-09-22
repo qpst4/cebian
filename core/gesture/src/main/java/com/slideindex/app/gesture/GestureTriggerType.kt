@@ -26,10 +26,20 @@ enum class GestureTriggerType(val id: Int, val isLongDistance: Boolean) {
     SHORT_SWIPE_UP_HOVER(22, false),
     SHORT_SWIPE_DOWN_HOVER(23, false),
     SHORT_DOUBLE_TAP(24, false),
+    /** 沿边首段（上/下）后再向内侧滑；顶/底触钮上「上/下」即沿边左/右。 */
+    SHORT_SWIPE_UP_IN(25, false),
+    SHORT_SWIPE_DOWN_IN(26, false),
+    LONG_SWIPE_UP_IN(27, true),
+    LONG_SWIPE_DOWN_IN(28, true),
+    /** 沿边首段（上/下）后原路折返。 */
+    SHORT_SWIPE_UP_AND_BACK(29, false),
+    SHORT_SWIPE_DOWN_AND_BACK(30, false),
     ;
 
     val isReturnSwipe: Boolean
-        get() = this == SHORT_SWIPE_IN_AND_BACK
+        get() = this == SHORT_SWIPE_IN_AND_BACK ||
+            this == SHORT_SWIPE_UP_AND_BACK ||
+            this == SHORT_SWIPE_DOWN_AND_BACK
 
     val isHoverSwipe: Boolean
         get() = this == SHORT_SWIPE_IN_HOVER ||
@@ -40,7 +50,9 @@ enum class GestureTriggerType(val id: Int, val isLongDistance: Boolean) {
 
     val isCornerSwipe: Boolean
         get() = this == SHORT_SWIPE_IN_UP || this == SHORT_SWIPE_IN_DOWN ||
-            this == LONG_SWIPE_IN_UP || this == LONG_SWIPE_IN_DOWN
+            this == LONG_SWIPE_IN_UP || this == LONG_SWIPE_IN_DOWN ||
+            this == SHORT_SWIPE_UP_IN || this == SHORT_SWIPE_DOWN_IN ||
+            this == LONG_SWIPE_UP_IN || this == LONG_SWIPE_DOWN_IN
 
     val isCompoundSwipe: Boolean
         get() = isCornerSwipe || isReturnSwipe
@@ -76,6 +88,12 @@ enum class GestureTriggerType(val id: Int, val isLongDistance: Boolean) {
             SHORT_SWIPE_IN_AND_BACK,
             LONG_SWIPE_IN_UP,
             LONG_SWIPE_IN_DOWN,
+            SHORT_SWIPE_UP_IN,
+            SHORT_SWIPE_DOWN_IN,
+            SHORT_SWIPE_UP_AND_BACK,
+            SHORT_SWIPE_DOWN_AND_BACK,
+            LONG_SWIPE_UP_IN,
+            LONG_SWIPE_DOWN_IN,
         )
 
         fun hoverSwipeEntries(): List<GestureTriggerType> =

@@ -702,4 +702,153 @@ class SwipePathRecognizerTest {
 
         assertEquals(GestureTriggerType.SHORT_SWIPE_IN, result?.trigger)
     }
+
+    private fun alongOptions(vararg triggers: GestureTriggerType): SwipePathRecognizer.ClassifyOptions =
+        SwipePathRecognizer.ClassifyOptions(
+            isTriggerConfigured = { trigger -> trigger in triggers },
+        )
+
+    @Test
+    fun classifyOnUp_leftPanelUpThenInward_returnsShortSwipeUpIn() {
+        val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
+        recognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        recognizer.applyAngles(GestureAngles())
+        val options = alongOptions(
+            GestureTriggerType.SHORT_SWIPE_UP,
+            GestureTriggerType.SHORT_SWIPE_UP_IN,
+        )
+        recognizer.onTouchDown(0f, 100f, leftStrip)
+        recognizer.applyCompoundGestureGate(options)
+        recognizer.onTouchMove(0f, 40f) // 沿边上滑 60dp 越过短距阈值
+        recognizer.onTouchMove(40f, 40f) // 第二段转入内滑 40dp（>= TURN_SLOP）
+        val result = recognizer.classifyOnUp(40f, 40f, options)
+
+        assertEquals(GestureTriggerType.SHORT_SWIPE_UP_IN, result?.trigger)
+    }
+
+    @Test
+    fun classifyOnUp_leftPanelDownThenInwardUnconfigured_staysDownRight() {
+        val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
+        recognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        recognizer.applyAngles(GestureAngles())
+        val options = alongOptions(GestureTriggerType.SHORT_SWIPE_DOWN_RIGHT)
+        recognizer.onTouchDown(0f, 100f, leftStrip)
+        recognizer.applyCompoundGestureGate(options)
+        recognizer.onTouchMove(0f, 160f) // 沿边下滑 60dp
+        recognizer.onTouchMove(40f, 160f) // 转入内滑
+        val result = recognizer.classifyOnUp(40f, 160f, options)
+
+        // 未配置「先下滑再向内」时照旧走斜下滑。
+        assertEquals(GestureTriggerType.SHORT_SWIPE_DOWN_RIGHT, result?.trigger)
+    }
+
+    @Test
+    fun classifyOnUp_leftPanelUpThenBack_returnsShortSwipeUpAndBack() {
+        val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
+        recognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        recognizer.applyAngles(GestureAngles())
+        val options = alongOptions(
+            GestureTriggerType.SHORT_SWIPE_UP,
+            GestureTriggerType.SHORT_SWIPE_UP_AND_BACK,
+        )
+        recognizer.onTouchDown(0f, 100f, leftStrip)
+        recognizer.applyCompoundGestureGate(options)
+        recognizer.onTouchMove(0f, 10f) // 上滑 90dp
+        recognizer.onTouchMove(0f, 50f) // 回缩 40dp（>= 折返门槛 28dp）
+        val result = recognizer.classifyOnUp(0f, 50f, options)
+
+        assertEquals(GestureTriggerType.SHORT_SWIPE_UP_AND_BACK, result?.trigger)
+    }
+
+    @Test
+    fun classifyOnUp_leftPanelUpThenSmallRetract_staysShortSwipeUp() {
+        val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
+        recognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        recognizer.applyAngles(GestureAngles())
+        val options = alongOptions(
+            GestureTriggerType.SHORT_SWIPE_UP,
+            GestureTriggerType.SHORT_SWIPE_UP_AND_BACK,
+        )
+        recognizer.onTouchDown(0f, 100f, leftStrip)
+        recognizer.applyCompoundGestureGate(options)
+        recognizer.onTouchMove(0f, 10f) // 上滑 90dp
+        recognizer.onTouchMove(0f, 36f) // 只回缩 26dp < 28dp
+        val result = recognizer.classifyOnUp(0f, 36f, options)
+
+        assertEquals(GestureTriggerType.SHORT_SWIPE_UP, result?.trigger)
+    }
+
+    @Test
+    fun classifyOnUp_leftPanelUpThenBackToStart_cancelsGesture() {
+        val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
+        recognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        recognizer.applyAngles(GestureAngles())
+        val options = alongOptions(
+            GestureTriggerType.SHORT_SWIPE_UP,
+            GestureTriggerType.SHORT_SWIPE_UP_AND_BACK,
+        )
+        recognizer.onTouchDown(0f, 100f, leftStrip)
+        recognizer.applyCompoundGestureGate(options)
+        recognizer.onTouchMove(0f, 10f) // 上滑 90dp
+        recognizer.onTouchMove(0f, 108f) // 一路滑回起点附近
+        val result = recognizer.classifyOnUp(0f, 108f, options)
+
+        assertEquals(null, result?.trigger)
+    }
+
+    @Test
+    fun classifyOnUp_leftPanelDiagramSwipeUpRight_isNotStolenByUpIn() {
+        val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
+        recognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        recognizer.applyAngles(GestureAngles())
+        val options = alongOptions(
+            GestureTriggerType.SHORT_SWIPE_UP_RIGHT,
+            GestureTriggerType.SHORT_SWIPE_UP_IN,
+        )
+        recognizer.onTouchDown(0f, 100f, leftStrip)
+        recognizer.applyCompoundGestureGate(options)
+        recognizer.onTouchMove(20f, 60f) // 平缓斜上（未进入沿边扇区）
+        recognizer.onTouchMove(40f, 20f)
+        val result = recognizer.classifyOnUp(40f, 20f, options)
+
+        // 直线/平缓斜滑不会被「先上滑再向内」抢走。
+        assertEquals(GestureTriggerType.SHORT_SWIPE_UP_RIGHT, result?.trigger)
+    }
+
+    @Test
+    fun classifyOnUp_leftPanelLongUpThenInward_staysLongSwipeUp() {
+        val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
+        recognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        recognizer.applyAngles(GestureAngles())
+        val options = alongOptions(
+            GestureTriggerType.LONG_SWIPE_UP,
+            GestureTriggerType.SHORT_SWIPE_UP_IN,
+        )
+        recognizer.onTouchDown(0f, 100f, leftStrip)
+        recognizer.applyCompoundGestureGate(options)
+        recognizer.onTouchMove(0f, -30f) // 上滑 130dp，越过长距阈值
+        recognizer.onTouchMove(40f, -30f)
+        val result = recognizer.classifyOnUp(40f, -30f, options)
+
+        assertEquals(GestureTriggerType.LONG_SWIPE_UP, result?.trigger)
+    }
+
+    @Test
+    fun classifyOnUp_bottomPanelLeftThenInward_returnsShortSwipeUpIn() {
+        val bottomStrip = RectF(0f, 1980f, 1080f, 2000f)
+        val recognizer = SwipePathRecognizer(PanelSide.BOTTOM, density = 1f)
+        recognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        recognizer.applyAngles(GestureAngles())
+        val options = alongOptions(
+            GestureTriggerType.SHORT_SWIPE_UP,
+            GestureTriggerType.SHORT_SWIPE_UP_IN,
+        )
+        recognizer.onTouchDown(500f, 1990f, bottomStrip)
+        recognizer.applyCompoundGestureGate(options)
+        recognizer.onTouchMove(440f, 1990f) // 沿边向左滑 60dp（底边「UP 家族」）
+        recognizer.onTouchMove(440f, 1950f) // 转入内滑（底边向上）40dp
+        val result = recognizer.classifyOnUp(440f, 1950f, options)
+
+        assertEquals(GestureTriggerType.SHORT_SWIPE_UP_IN, result?.trigger)
+    }
 }

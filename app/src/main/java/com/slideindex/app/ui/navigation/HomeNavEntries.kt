@@ -676,42 +676,42 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
             trigger = trigger,
             settings = settings,
             onBack = { ctx.navigateBackTo(gesturesKey) },
-            onOpenActionPick = {
+            onOpenActionPick = { tierTrigger ->
                 ctx.navigate(
-                    AppNavKey.HomeSideGestureSlotActionPick(key.side, key.handleId, key.triggerId),
+                    AppNavKey.HomeSideGestureSlotActionPick(key.side, key.handleId, tierTrigger.id),
                 )
             },
-            onOpenModePick = {
+            onOpenModePick = { tierTrigger ->
                 ctx.navigate(
-                    AppNavKey.HomeSideGestureSlotModePick(key.side, key.handleId, key.triggerId),
+                    AppNavKey.HomeSideGestureSlotModePick(key.side, key.handleId, tierTrigger.id),
                 )
             },
-            onOpenShellCommand = { command ->
+            onOpenShellCommand = { tierTrigger, command ->
                 ctx.navigate(
                     AppNavKey.HomeSideGestureSlotShellCommand(
                         side = key.side,
                         handleId = key.handleId,
-                        triggerId = key.triggerId,
+                        triggerId = tierTrigger.id,
                         initialCommand = command,
                     ),
                 )
             },
-            onOpenQuickLauncherPanel = { panelId ->
+            onOpenQuickLauncherPanel = { tierTrigger, panelId ->
                 ctx.navigate(
                     AppNavKey.HomeSideGestureSlotQuickLauncherPanel(
                         side = key.side,
                         handleId = key.handleId,
-                        triggerId = key.triggerId,
+                        triggerId = tierTrigger.id,
                         panelId = panelId,
                     ),
                 )
             },
-            onOpenFingertipRingConfig = {
+            onOpenFingertipRingConfig = { tierTrigger ->
                 ctx.navigate(
                     AppNavKey.HomeSideGestureFingertipRing(
                         side = key.side,
                         handleId = key.handleId,
-                        triggerId = key.triggerId,
+                        triggerId = tierTrigger.id,
                     ),
                 )
             },

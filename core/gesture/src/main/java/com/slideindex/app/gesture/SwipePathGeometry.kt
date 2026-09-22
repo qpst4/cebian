@@ -217,6 +217,73 @@ internal object SwipePathGeometry {
         return GestureTriggerType.SHORT_SWIPE_IN_AND_BACK
     }
 
+    /**
+     * 沿边首段（上/下）后的第二段向内侧滑：次段必须以向内为主且走够 [turnThresholdPx]。
+     * 用于「先上滑再向内」「先下滑再向内」组合；斜滑/自然弧线不会升级为组合。
+     */
+    fun resolveAlongToInwardTrigger(
+        side: PanelSide,
+        firstDirection: SwipeDirection,
+        anchorX: Float,
+        anchorY: Float,
+        fingerX: Float,
+        fingerY: Float,
+        turnThresholdPx: Float,
+        longThresholdPx: Float,
+    ): GestureTriggerType? {
+        if (firstDirection != SwipeDirection.UP && firstDirection != SwipeDirection.DOWN) return null
+        val secondInward = inwardDelta(fingerX - anchorX, fingerY - anchorY, side).coerceAtLeast(0f)
+        if (secondInward < turnThresholdPx) return null
+        val secondAlong = abs(alongDelta(fingerX - anchorX, fingerY - anchorY, side))
+        // 次段必须以内滑为主：向内与沿边分量接近时按斜滑处理。
+        if (secondAlong > secondInward * ALONG_TURN_MAX_ALONG_RATIO) return null
+        val isLong = secondInward >= longThresholdPx
+        return when (firstDirection) {
+            SwipeDirection.UP ->
+                if (isLong) GestureTriggerType.LONG_SWIPE_UP_IN else GestureTriggerType.SHORT_SWIPE_UP_IN
+            else ->
+                if (isLong) GestureTriggerType.LONG_SWIPE_DOWN_IN else GestureTriggerType.SHORT_SWIPE_DOWN_IN
+        }
+    }
+
+    /**
+     * 沿边首段（上/下）的折返：相对峰值回缩 ≥ [returnThresholdPx]，
+     * 回到手势起点附近（[cancelProgressPx] 以内）视为撤销。
+     */
+    fun resolveAlongReturnTrigger(
+        side: PanelSide,
+        firstDirection: SwipeDirection,
+        startX: Float,
+        startY: Float,
+        peakProgress: Float,
+        fingerX: Float,
+        fingerY: Float,
+        returnThresholdPx: Float,
+        cancelProgressPx: Float,
+        turnThresholdPx: Float,
+    ): GestureTriggerType? {
+        if (firstDirection != SwipeDirection.UP && firstDirection != SwipeDirection.DOWN) return null
+        val alongFromStart = alongDelta(fingerX - startX, fingerY - startY, side)
+        val progress = if (firstDirection == SwipeDirection.UP) -alongFromStart else alongFromStart
+        val retraction = peakProgress - progress
+        if (retraction < returnThresholdPx) return null
+        if (progress <= cancelProgressPx) return null
+        // 若这段里已经明显向内侧推进，说明是斜滑而非折返。
+        val inward = inwardDelta(fingerX - startX, fingerY - startY, side).coerceAtLeast(0f)
+        if (inward >= turnThresholdPx && inward > retraction * INWARD_RETURN_MAX_RATIO) return null
+        return if (firstDirection == SwipeDirection.UP) {
+            GestureTriggerType.SHORT_SWIPE_UP_AND_BACK
+        } else {
+            GestureTriggerType.SHORT_SWIPE_DOWN_AND_BACK
+        }
+    }
+
+    /** 沿边转向内滑时，次段沿边分量相对内滑分量的上限。 */
+    private const val ALONG_TURN_MAX_ALONG_RATIO = 0.8f
+
+    /** 沿边折返时，向内分量相对回缩量的上限。 */
+    private const val INWARD_RETURN_MAX_RATIO = 1.2f
+
     fun classifySwipeTrigger(
         inward: Float,
         dy: Float,
