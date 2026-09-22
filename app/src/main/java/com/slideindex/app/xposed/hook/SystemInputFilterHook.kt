@@ -352,7 +352,13 @@ class SystemInputFilterHook {
     }.onFailure { XposedLog.w(TAG, "Status response failed: ${it.message}") }
   }
 
-  /** 状态串：`filter=ok,enable=ok,start=ok,receiver=ok,controller=<detail>[,errors=...]`。 */
+  /**
+   * 状态串：`hook=ok,proxy=ok,enable=ok,start=ok,receiver=ok,controller=<detail>[,errors=...]`。
+   *
+   * `ready` 表示「模块已就绪」：hook/接收器装齐，且已能读到配置快照——**与三个接管开关是否开启无关**。
+   * 开关全关时接管本身不生效，但那不是模块的问题；当前接管到底跑没跑由 `controller=` 段表达
+   * （`disabled` / `bridge-pending` / `ready:<掩码>`）。
+   */
   private fun buildStatusDetail(): String {
     val controllerDetail = controller?.statusDetail() ?: "no-controller"
     val errors = synchronized(moduleErrors) { moduleErrors.toList() }
@@ -370,9 +376,19 @@ class SystemInputFilterHook {
         append(",errors=").append(errors.joinToString(" | "))
       }
     }
-    val ready = filterHookInstalled && enableHookInstalled && controllerDetail.startsWith("ready")
+    val ready = filterHookInstalled &&
+      enableHookInstalled &&
+      startHookInstalled &&
+      receiverRegistered &&
+      controllerAvailable(controllerDetail)
     return if (ready) "ready:$steps" else "not-ready:$steps"
   }
+
+  /** 控制器是否可用：已读到配置快照（`disabled` 表示开关全关，模块本身是好的）。 */
+  private fun controllerAvailable(controllerDetail: String): Boolean =
+    controllerDetail.startsWith("ready") ||
+      controllerDetail == CONTROLLER_DISABLED ||
+      controllerDetail == CONTROLLER_BRIDGE_PENDING
 
   /** 让 native 层的 InputFilter 开关与当前接管开关保持一致。 */
   private fun syncFilterEnabled(takeoverController: SystemGestureTakeoverController) {
@@ -540,6 +556,8 @@ class SystemInputFilterHook {
     const val FILTER_INPUT_EVENT = "filterInputEvent"
     const val SET_INPUT_FILTER_ENABLED = "setInputFilterEnabled"
     const val NATIVE_SET_INPUT_FILTER_ENABLED = "nativeSetInputFilterEnabled"
+    const val CONTROLLER_DISABLED = "disabled"
+    const val CONTROLLER_BRIDGE_PENDING = "bridge-pending"
     const val RECEIVER_REGISTER_RETRY_MS = 500L
     const val MAX_RECEIVER_REGISTER_ATTEMPTS = 40
     const val BRIDGE_WAIT_ATTEMPTS = 5

@@ -691,13 +691,13 @@
     <string name="system_gesture_takeover_requires_module">由系统输入层接管该区域，仅对已配置触钮的边缘有效，依赖 LSPosed 模块。</string>
     <string name="system_gesture_takeover_top">顶部</string>
     <string name="system_gesture_takeover_top_desc">覆盖状态栏下拉等顶部系统手势</string>
-    <string name="system_gesture_takeover_sides">两侧</string>
-    <string name="system_gesture_takeover_sides_desc">覆盖左右边缘的系统返回手势；部分机型可能无效</string>
+    <string name="system_gesture_takeover_sides">两侧（可能无效）</string>
+    <string name="system_gesture_takeover_sides_desc">覆盖左右边缘的系统返回手势</string>
     <string name="system_gesture_takeover_bottom">底部</string>
     <string name="system_gesture_takeover_bottom_desc">覆盖上滑回桌面等底部系统手势</string>
     <string name="system_gesture_takeover_bottom_three_button_nav">当前为三键导航，底部接管不会生效</string>
     <string name="system_gesture_takeover_module_status">LSPosed 模块状态</string>
-    <string name="system_gesture_takeover_module_ready">已生效：输入层接管运行中</string>
+    <string name="system_gesture_takeover_module_ready">已就绪：LSPosed 模块已加载，接管随开关即时生效</string>
     <string name="system_gesture_takeover_module_not_ready">未生效：模块未加载或未勾选 android 作用域</string>
     <string name="system_gesture_takeover_module_checking">正在检测…</string>
     <string name="system_gesture_takeover_module_tap_hint">点按检测 LSPosed 模块状态</string>

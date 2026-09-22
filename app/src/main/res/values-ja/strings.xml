@@ -689,13 +689,13 @@
     <string name="system_gesture_takeover_requires_module">システム入力層がこの領域を引き継ぎます。トリガーを設定した端のみ有効で、LSPosed モジュールが必要です。</string>
     <string name="system_gesture_takeover_top">上部</string>
     <string name="system_gesture_takeover_top_desc">ステータスバーの引き下げなど上部のシステムジェスチャを上書き</string>
-    <string name="system_gesture_takeover_sides">両側</string>
-    <string name="system_gesture_takeover_sides_desc">左右端のシステム戻るジェスチャを上書き（一部端末では無効な場合があります）</string>
+    <string name="system_gesture_takeover_sides">両側（無効の可能性あり）</string>
+    <string name="system_gesture_takeover_sides_desc">左右端のシステム戻るジェスチャを上書き</string>
     <string name="system_gesture_takeover_bottom">下部</string>
     <string name="system_gesture_takeover_bottom_desc">上スワイプでホームなど下部のシステムジェスチャを上書き</string>
     <string name="system_gesture_takeover_bottom_three_button_nav">3 ボタンナビのため、下部の引き継ぎは反映されません</string>
     <string name="system_gesture_takeover_module_status">LSPosed モジュールの状態</string>
-    <string name="system_gesture_takeover_module_ready">有効：入力層の引き継ぎが動作中</string>
+    <string name="system_gesture_takeover_module_ready">準備完了：LSPosed モジュール読み込み済み、引き継ぎはスイッチに追従</string>
     <string name="system_gesture_takeover_module_not_ready">無効：モジュール未読み込み、または android スコープが未選択</string>
     <string name="system_gesture_takeover_module_checking">確認中…</string>
     <string name="system_gesture_takeover_module_tap_hint">タップして LSPosed モジュールの状態を確認</string>

@@ -405,13 +405,13 @@
     <string name="system_gesture_takeover_requires_module">The system input layer takes over this area; only edges with configured triggers are affected. Requires the LSPosed module.</string>
     <string name="system_gesture_takeover_top">Top</string>
     <string name="system_gesture_takeover_top_desc">Override top system gestures such as pulling down the status bar</string>
-    <string name="system_gesture_takeover_sides">Sides</string>
-    <string name="system_gesture_takeover_sides_desc">Override the system back gesture on both edges; may not work on some devices</string>
+    <string name="system_gesture_takeover_sides">Sides (may not work)</string>
+    <string name="system_gesture_takeover_sides_desc">Override the system back gesture on both edges</string>
     <string name="system_gesture_takeover_bottom">Bottom</string>
     <string name="system_gesture_takeover_bottom_desc">Override bottom system gestures such as swipe up to home</string>
     <string name="system_gesture_takeover_bottom_three_button_nav">Three-button navigation is active, bottom takeover will not apply</string>
     <string name="system_gesture_takeover_module_status">LSPosed module status</string>
-    <string name="system_gesture_takeover_module_ready">Active: input layer takeover is running</string>
+    <string name="system_gesture_takeover_module_ready">Ready: LSPosed module loaded; takeover follows the switches</string>
     <string name="system_gesture_takeover_module_not_ready">Inactive: module not loaded or “android” scope not enabled</string>
     <string name="system_gesture_takeover_module_checking">Checking…</string>
     <string name="system_gesture_takeover_module_tap_hint">Tap to check LSPosed module status</string>
