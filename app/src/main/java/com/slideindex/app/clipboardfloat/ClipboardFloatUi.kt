@@ -104,6 +104,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
+import com.slideindex.app.clipboard.ClipboardDragShareFallback
 import com.slideindex.app.clipboard.ClipboardEntry
 import com.slideindex.app.clipboard.ClipboardEntryType
 import com.slideindex.app.clipboard.ClipboardHtmlParser
@@ -157,7 +158,6 @@ fun ClipboardFloatRoot(
     onEntryLongClick: (ClipboardEntry) -> Unit,
     onEntryDragStart: () -> Unit,
     onEntryDragEnd: () -> Unit,
-    onEntryHostPasteFallback: (ClipboardEntry) -> Unit,
     onUserInteraction: () -> Unit = {}
 ) {
     OverlayAwareModuleTheme {
@@ -204,7 +204,6 @@ fun ClipboardFloatRoot(
                     onEntryLongClick = onEntryLongClick,
                     onEntryDragStart = onEntryDragStart,
                     onEntryDragEnd = onEntryDragEnd,
-                    onEntryHostPasteFallback = onEntryHostPasteFallback,
                 )
             }
         }
@@ -295,7 +294,6 @@ private fun ClipboardFloatExpandedChrome(
     onEntryLongClick: (ClipboardEntry) -> Unit,
     onEntryDragStart: () -> Unit,
     onEntryDragEnd: () -> Unit,
-    onEntryHostPasteFallback: (ClipboardEntry) -> Unit,
 ) {
     val scheme = MiuixTheme.colorScheme
     val searchQuery by listController.searchQuery.collectAsState()
@@ -472,7 +470,6 @@ private fun ClipboardFloatExpandedChrome(
                     onEntryLongClick = onEntryLongClick,
                     onEntryDragStart = onEntryDragStart,
                     onEntryDragEnd = onEntryDragEnd,
-                    onEntryHostPasteFallback = onEntryHostPasteFallback,
                 )
             }
             }
@@ -531,7 +528,6 @@ private fun ClipboardFloatContentSection(
     onEntryLongClick: (ClipboardEntry) -> Unit,
     onEntryDragStart: () -> Unit,
     onEntryDragEnd: () -> Unit,
-    onEntryHostPasteFallback: (ClipboardEntry) -> Unit,
 ) {
     val entries by listController.filteredEntries.collectAsState()
     val loading by listController.loading.collectAsState()
@@ -573,7 +569,6 @@ private fun ClipboardFloatContentSection(
                 onEntryLongClick = onEntryLongClick,
                 onEntryDragStart = onEntryDragStart,
                 onEntryDragEnd = onEntryDragEnd,
-                onEntryHostPasteFallback = onEntryHostPasteFallback,
             )
         }
         ClipboardFloatListStyle.SINGLE_LINE -> {
@@ -585,7 +580,6 @@ private fun ClipboardFloatContentSection(
                 onEntryLongClick = onEntryLongClick,
                 onEntryDragStart = onEntryDragStart,
                 onEntryDragEnd = onEntryDragEnd,
-                onEntryHostPasteFallback = onEntryHostPasteFallback,
             )
         }
     }
@@ -600,7 +594,6 @@ private fun ClipboardFloatSingleLineList(
     onEntryLongClick: (ClipboardEntry) -> Unit,
     onEntryDragStart: () -> Unit,
     onEntryDragEnd: () -> Unit,
-    onEntryHostPasteFallback: (ClipboardEntry) -> Unit,
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -615,7 +608,6 @@ private fun ClipboardFloatSingleLineList(
                 onWordTapLongClick = { onEntryLongClick(entry) },
                 onEntryDragStart = onEntryDragStart,
                 onEntryDragEnd = onEntryDragEnd,
-                onEntryHostPasteFallback = onEntryHostPasteFallback,
             )
         }
     }
@@ -630,7 +622,6 @@ private fun ClipboardFloatSingleLineRow(
     onWordTapLongClick: () -> Unit,
     onEntryDragStart: () -> Unit,
     onEntryDragEnd: () -> Unit,
-    onEntryHostPasteFallback: (ClipboardEntry) -> Unit,
 ) {
     val context = LocalContext.current
     val view = LocalView.current
@@ -673,7 +664,6 @@ private fun ClipboardFloatSingleLineRow(
                         thumbnail = thumbnail,
                         onDragStart = onEntryDragStart,
                         onDragEnd = onEntryDragEnd,
-                        onHostPasteFallback = onEntryHostPasteFallback,
                     )
                 }
             ),
@@ -759,7 +749,6 @@ private fun ClipboardFloatGrid(
     onEntryLongClick: (ClipboardEntry) -> Unit,
     onEntryDragStart: () -> Unit,
     onEntryDragEnd: () -> Unit,
-    onEntryHostPasteFallback: (ClipboardEntry) -> Unit,
 ) {
     LazyVerticalGrid(
         columns = GridCells.Fixed(columnCount),
@@ -778,7 +767,6 @@ private fun ClipboardFloatGrid(
                 onWordTapLongClick = { onEntryLongClick(entry) },
                 onEntryDragStart = onEntryDragStart,
                 onEntryDragEnd = onEntryDragEnd,
-                onEntryHostPasteFallback = onEntryHostPasteFallback,
             )
         }
     }
@@ -795,7 +783,6 @@ private fun ClipboardFloatEntryCard(
     onWordTapLongClick: () -> Unit,
     onEntryDragStart: () -> Unit,
     onEntryDragEnd: () -> Unit,
-    onEntryHostPasteFallback: (ClipboardEntry) -> Unit,
 ) {
     val context = LocalContext.current
     val view = LocalView.current
@@ -840,7 +827,6 @@ private fun ClipboardFloatEntryCard(
                         thumbnail = thumbnail,
                         onDragStart = onEntryDragStart,
                         onDragEnd = onEntryDragEnd,
-                        onHostPasteFallback = onEntryHostPasteFallback,
                     )
                 }
             ),
@@ -982,17 +968,12 @@ private fun startClipboardFloatEntryDrag(
     thumbnail: Bitmap?,
     onDragStart: () -> Unit,
     onDragEnd: () -> Unit,
-    onHostPasteFallback: (ClipboardEntry) -> Unit,
 ) {
-    if (ClipboardDragHostPaste.shouldPasteInsteadOfDrag(context, entry)) {
-        onHostPasteFallback(entry)
-        return
-    }
     val clipData = ClipboardWriter.buildClipForEntry(context, entry) ?: run {
         Toast.makeText(context, R.string.history_drag_unsupported, Toast.LENGTH_SHORT).show()
         return
     }
-    HistoryEntryDragHelper.startDrag(
+    val started = HistoryEntryDragHelper.startDrag(
         view = view,
         clipData = clipData,
         preview = HistoryEntryDragHelper.previewForClipboardEntry(
@@ -1001,12 +982,20 @@ private fun startClipboardFloatEntryDrag(
         ),
         onDragStart = onDragStart,
         onDragEnd = onDragEnd,
-        onDragAccepted = { accepted ->
-            if (!accepted && ClipboardDragHostPaste.isPasteInsteadOfDragHostForeground(context)) {
-                onHostPasteFallback(entry)
+        onDragAccepted = { accepted, effectiveClip ->
+            if (!accepted &&
+                ClipboardDragShareFallback.hasShareableContent(effectiveClip) &&
+                !ClipboardDragShareFallback.shareToForegroundHost(context, effectiveClip)
+            ) {
+                Toast.makeText(context, R.string.history_drag_unsupported, Toast.LENGTH_SHORT).show()
             }
         },
     )
+    if (!started) {
+        if (!ClipboardDragShareFallback.shareToForegroundHost(context, clipData)) {
+            Toast.makeText(context, R.string.history_drag_unsupported, Toast.LENGTH_SHORT).show()
+        }
+    }
 }
 
 @Composable

@@ -36,7 +36,6 @@ import com.slideindex.app.clipboard.ClipboardAccess
 import com.slideindex.app.clipboard.hasImageContent
 import com.slideindex.app.clipboardfloat.ClipboardFloatDisplayMode
 import com.slideindex.app.clipboardfloat.ClipboardFloatListController
-import com.slideindex.app.clipboardfloat.ClipboardDragHostPaste
 import com.slideindex.app.clipboardfloat.ClipboardFloatRoot
 import com.slideindex.app.clipboardfloat.ClipboardFloatWindowFlags
 import com.slideindex.app.clipboardfloat.ClipboardPasteCoordinator
@@ -494,7 +493,6 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
                     onEntryLongClick = ::onEntryLongClick,
                     onEntryDragStart = ::onEntryDragStart,
                     onEntryDragEnd = ::onEntryDragEnd,
-                    onEntryHostPasteFallback = ::onEntryHostPasteFallback,
                     onUserInteraction = ::onUserInteraction
                 )
             }
@@ -1028,22 +1026,6 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
 
     private fun onEntryDragEnd() {
         setEntryDragHidden(hidden = false)
-    }
-
-    private fun onEntryHostPasteFallback(entry: com.slideindex.app.clipboard.ClipboardEntry) {
-        resetAutoCloseTimer()
-        val fvStyle = deps.settingsRepository.readSnapshot().clipboardPasteFvStyleEnabled
-        ClipboardDragHostPaste.pasteEntryToForegroundHost(
-            context = this,
-            entry = entry,
-            fvStyle = fvStyle,
-            onFinished = { result ->
-                handleClipboardFloatPasteResult(result)
-                if (!panelPinned) {
-                    collapseAfterEntryAction()
-                }
-            },
-        )
     }
 
     private fun setEntryDragHidden(hidden: Boolean) {

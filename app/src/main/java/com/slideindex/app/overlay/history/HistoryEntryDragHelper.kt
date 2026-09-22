@@ -15,6 +15,7 @@ import android.view.DragEvent
 import android.view.View
 import android.view.View.DragShadowBuilder
 import com.slideindex.app.clipboard.ClipboardEntry
+import com.slideindex.app.clipboard.ClipboardDragClipHelper
 import com.slideindex.app.clipboard.ClipboardWriter
 import com.slideindex.app.clipboard.resolvedContentBlocks
 import com.slideindex.app.stash.StashEntry
@@ -86,30 +87,41 @@ internal object HistoryEntryDragHelper {
         preview: HistoryDragPreview,
         onDragStart: () -> Unit,
         onDragEnd: () -> Unit,
-        onDragAccepted: ((Boolean) -> Unit)? = null,
-    ) {
+        onDragAccepted: ((Boolean, ClipData) -> Unit)? = null,
+    ): Boolean {
+        val context = view.context
+        val targetPackage = AccessibilityForegroundResolver.resolve(context)
+        val effectiveClip = ClipboardDragClipHelper.remapForHostIfNeeded(
+            context = context,
+            clipData = clipData,
+            hostPackage = targetPackage,
+        ) ?: return false
         view.setOnDragListener { _, event ->
             when (event.action) {
                 DragEvent.ACTION_DRAG_STARTED -> onDragStart()
                 DragEvent.ACTION_DRAG_ENDED -> {
-                    onDragAccepted?.invoke(event.result)
+                    onDragAccepted?.invoke(event.result, effectiveClip)
                     onDragEnd()
                     view.setOnDragListener(null)
                 }
             }
             true
         }
-        val context = view.context
-        grantDragUriPermissionsToForegroundHost(context, clipData)
-        val flags = buildDragFlags(clipData)
-        view.startDragAndDrop(clipData, EntryDragShadowBuilder(view, preview), null, flags)
+        grantDragUriPermissionsToForegroundHost(context, effectiveClip, targetPackage)
+        val flags = buildDragFlags(effectiveClip)
+        view.startDragAndDrop(effectiveClip, EntryDragShadowBuilder(view, preview), null, flags)
+        return true
     }
 
     /**
      * 部分宿主（如微信）除 [View.DRAG_FLAG_GLOBAL_URI_READ] 外仍要求对前台包显式 [Context.grantUriPermission]。
      */
-    private fun grantDragUriPermissionsToForegroundHost(context: Context, clipData: ClipData) {
-        val targetPackage = AccessibilityForegroundResolver.resolve(context) ?: return
+    private fun grantDragUriPermissionsToForegroundHost(
+        context: Context,
+        clipData: ClipData,
+        targetPackage: String?,
+    ) {
+        if (targetPackage.isNullOrBlank()) return
         if (targetPackage == context.packageName) return
         for (index in 0 until clipData.itemCount) {
             val uri = clipData.getItemAt(index).uri ?: continue

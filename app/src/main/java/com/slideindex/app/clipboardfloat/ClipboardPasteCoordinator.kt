@@ -3,7 +3,6 @@ package com.slideindex.app.clipboardfloat
 import android.accessibilityservice.AccessibilityService
 import android.content.Context
 import android.graphics.Rect
-import android.os.SystemClock
 import android.widget.Toast
 import com.slideindex.app.R
 import com.slideindex.app.clipboard.ClipboardEntry
@@ -20,52 +19,6 @@ import kotlinx.coroutines.withContext
 object ClipboardPasteCoordinator {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
-
-    private const val HOST_CLIP_SETTLE_MS = 60L
-    private const val HOST_PASTE_RETRY_DELAY_MS = 150L
-    private const val HOST_PASTE_MAX_ATTEMPTS = 8
-
-    /**
-     * grantUri + 写剪贴板 + 延迟后按 [hostPackage] 无障碍粘贴（对齐参考 PASTE_CLIP / b9 重试）。
-     */
-    fun pasteEntryViaHostChain(
-        service: AccessibilityService,
-        context: Context,
-        entry: ClipboardEntry,
-        hostPackage: String,
-        onFinished: (PasteResult?) -> Unit,
-    ) {
-        scope.launch {
-            val prepared = withContext(Dispatchers.Main.immediate) {
-                ClipboardWriter.writeForPasteToHost(context, entry, hostPackage)
-            }
-            if (!prepared) {
-                onFinished(PasteResult.Failure(PasteFailureReason.PASTE_AND_INSERT_FAILED))
-                return@launch
-            }
-            SystemClock.sleep(HOST_CLIP_SETTLE_MS)
-            val result = withContext(Dispatchers.Default) {
-                repeat(HOST_PASTE_MAX_ATTEMPTS) { attempt ->
-                    when (
-                        ClipboardPasteHelper.attemptPasteInHostPackage(
-                            service = service,
-                            hostPackage = hostPackage,
-                        )
-                    ) {
-                        ClipboardPasteHelper.HostPasteAttempt.SUCCESS ->
-                            return@withContext PasteResult.Success
-                        ClipboardPasteHelper.HostPasteAttempt.RETRY -> {
-                            if (attempt < HOST_PASTE_MAX_ATTEMPTS - 1) {
-                                SystemClock.sleep(HOST_PASTE_RETRY_DELAY_MS)
-                            }
-                        }
-                    }
-                }
-                PasteResult.Failure(PasteFailureReason.NO_EDITABLE_FOCUS)
-            }
-            onFinished(result)
-        }
-    }
 
     fun pasteEntry(
         service: AccessibilityService,

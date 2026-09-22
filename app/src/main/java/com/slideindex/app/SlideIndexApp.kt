@@ -3,6 +3,7 @@ package com.slideindex.app
 import android.app.Application
 import android.content.Context
 import android.os.Build
+import com.slideindex.app.clipboard.DragFileMirror
 import com.slideindex.app.clipboard.monitor.ClipboardMonitorStartup
 import com.slideindex.app.di.AppDependencies
 import com.slideindex.app.di.OtpAutoFillStatsInstaller
@@ -92,6 +93,9 @@ class SlideIndexApp : Application() {
         deps.applicationScope.launch(Dispatchers.IO) {
             val enabled = deps.settingsRepository.settings.first().serviceEnabled
             ServiceEnabledStore.write(this@SlideIndexApp, enabled)
+        }
+        deps.applicationScope.launch(Dispatchers.IO) {
+            DragFileMirror.purgeExpired(this@SlideIndexApp)
         }
         deps.applicationScope.launch {
             HistoryFloatLifecycle.syncFromSettings(this@SlideIndexApp, deps.settingsRepository)

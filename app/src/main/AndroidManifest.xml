@@ -591,12 +591,6 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
-        <provider
-            android:name=".clipboard.SendableClipFileProvider"
-            android:authorities="${applicationId}.sendfiles"
-            android:exported="false"
-            android:grantUriPermissions="true" />
-
         <service
             android:name=".clipboard.monitor.ClipboardMonitorForegroundService"
             android:exported="false"

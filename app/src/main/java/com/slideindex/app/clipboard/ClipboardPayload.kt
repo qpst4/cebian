@@ -130,3 +130,11 @@ fun ClipboardEntry.displayTypeLabelKey(): ClipboardEntryType = when {
 
 }
 
+/** 本地 `content://` / `file://` 条目代表文件本身，不能按文本/富文本粘贴。 */
+fun ClipboardEntry.isLocalFileUriEntry(): Boolean {
+    if (type != ClipboardEntryType.URI) return false
+    val raw = uri?.trim().orEmpty()
+    return raw.startsWith("content://", ignoreCase = true) ||
+        raw.startsWith("file://", ignoreCase = true)
+}
+

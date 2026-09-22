@@ -24,6 +24,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
+import com.slideindex.app.clipboard.ClipboardDragShareFallback
 import com.slideindex.app.clipboard.ClipboardEntry
 import com.slideindex.app.clipboard.ClipboardEntryType
 import com.slideindex.app.clipboard.ClipboardThumbnailCache
@@ -111,13 +112,26 @@ internal fun HistoryClipboardEntryCard(
         if (clipData == null) {
             onShowMessage(R.string.history_drag_unsupported)
         } else {
-            HistoryEntryDragHelper.startDrag(
+            val started = HistoryEntryDragHelper.startDrag(
                 view = view,
                 clipData = clipData,
                 preview = HistoryEntryDragHelper.previewForClipboardEntry(entry, thumbnails),
                 onDragStart = { FloatBallStashPanel.setDragHidden(true) },
                 onDragEnd = { FloatBallStashPanel.setDragHidden(false) },
+                onDragAccepted = { accepted, effectiveClip ->
+                    if (!accepted &&
+                        ClipboardDragShareFallback.hasShareableContent(effectiveClip) &&
+                        !ClipboardDragShareFallback.shareToForegroundHost(context, effectiveClip)
+                    ) {
+                        onShowMessage(R.string.history_drag_unsupported)
+                    }
+                },
             )
+            if (!started) {
+                if (!ClipboardDragShareFallback.shareToForegroundHost(context, clipData)) {
+                    onShowMessage(R.string.history_drag_unsupported)
+                }
+            }
         }
     }
 
@@ -314,13 +328,26 @@ internal fun HistoryStashEntryCard(
         if (clipData == null) {
             onShowMessage(R.string.history_drag_unsupported)
         } else {
-            HistoryEntryDragHelper.startDrag(
+            val started = HistoryEntryDragHelper.startDrag(
                 view = view,
                 clipData = clipData,
                 preview = HistoryEntryDragHelper.previewForStashEntry(entry, singleThumb, richThumbnails),
                 onDragStart = { FloatBallStashPanel.setDragHidden(true) },
                 onDragEnd = { FloatBallStashPanel.setDragHidden(false) },
+                onDragAccepted = { accepted, effectiveClip ->
+                    if (!accepted &&
+                        ClipboardDragShareFallback.hasShareableContent(effectiveClip) &&
+                        !ClipboardDragShareFallback.shareToForegroundHost(context, effectiveClip)
+                    ) {
+                        onShowMessage(R.string.history_drag_unsupported)
+                    }
+                },
             )
+            if (!started) {
+                if (!ClipboardDragShareFallback.shareToForegroundHost(context, clipData)) {
+                    onShowMessage(R.string.history_drag_unsupported)
+                }
+            }
         }
     }
 

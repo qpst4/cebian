@@ -6,7 +6,9 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.webkit.MimeTypeMap
 import androidx.core.net.toUri
+import java.util.Locale
 
 object ClipboardWriter {
 
@@ -70,6 +72,9 @@ object ClipboardWriter {
                 return buildPureImageClip(entry.mimeType, localUris)
             }
         }
+        if (!entry.hasImageContent() && entry.isLocalFileUriEntry()) {
+            return buildLocalFileClip(context, entry)
+        }
         if (!entry.hasImageContent()) {
             val text = entry.text.trim()
             if (text.isNotEmpty()) {
@@ -107,6 +112,18 @@ object ClipboardWriter {
                 imageFileNames = entry.resolvedImageFileNames()
             )
         )
+    }
+
+    private fun buildLocalFileClip(context: Context, entry: ClipboardEntry): ClipData? {
+        val raw = entry.uri?.trim()?.takeIf { it.isNotEmpty() } ?: return null
+        val uri = raw.toUri()
+        val mime = entry.mimeType?.trim()?.takeIf { it.isNotEmpty() && it != "*/*" }
+            ?: runCatching { context.contentResolver.getType(uri) }.getOrNull()?.takeIf { it.isNotBlank() }
+            ?: MimeTypeMap.getSingleton().getMimeTypeFromExtension(
+                raw.substringAfterLast('.', "").lowercase(Locale.ROOT)
+            )
+            ?: "application/octet-stream"
+        return uriClip(mime, listOf(uri))
     }
 
     /**
