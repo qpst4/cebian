@@ -51,7 +51,6 @@ internal object SettingsPreferenceKeys {
     val ANDROID_BACK_COLOR_SOURCE = intPreferencesKey("android_back_color_source")
     val SWIPE_HOVER_DURATION_MS = intPreferencesKey("swipe_hover_duration_ms")
     val TRIGGER_DOUBLE_TAP_INTERVAL_MS = intPreferencesKey("trigger_double_tap_interval_ms")
-    val INWARD_HOVER_COMPOUND_ENABLED = booleanPreferencesKey("inward_hover_compound_enabled")
     val ANIMATION_STYLES = stringPreferencesKey("animation_styles")
     val GESTURE_ANGLE_UP = floatPreferencesKey("gesture_angle_up")
     val GESTURE_ANGLE_UP_RIGHT = floatPreferencesKey("gesture_angle_up_right")

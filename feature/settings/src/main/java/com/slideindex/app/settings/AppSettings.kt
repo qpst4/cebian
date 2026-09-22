@@ -159,7 +159,6 @@ data class AppSettings(
     val androidBackColorSourceId get() = edgeTrigger.androidBackColorSourceId
     val swipeHoverDurationMs get() = edgeTrigger.swipeHoverDurationMs
     val triggerDoubleTapIntervalMs get() = edgeTrigger.triggerDoubleTapIntervalMs
-    val inwardHoverCompoundEnabled get() = edgeTrigger.inwardHoverCompoundEnabled
     val animationStyles get() = edgeTrigger.animationStyles
     val gestureAngles get() = edgeTrigger.gestureAngles
     val keyboardTriggerBehaviorPortrait get() = edgeTrigger.keyboardTriggerBehaviorPortrait

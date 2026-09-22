@@ -56,22 +56,16 @@ class SwipePathRecognizer(
     private var slotHoverSatisfiedAnchorX = 0f
     private var slotHoverSatisfiedAnchorY = 0f
     private var slotHoverHoldStartMs = 0L
-    private var slotHoverPeakDirectionDistance = 0f
     private var slotHoverTracking = false
     private var slotHoverSatisfied = false
     private var slotHoverCancelled = false
     private var slotHoverJustSatisfied = false
-    private var compoundGateAnchorX = 0f
-    private var compoundGateAnchorY = 0f
-    private var compoundGateHoldStartMs = 0L
-    private var compoundGatePeakDirectionDistance = 0f
-    private var compoundGateTracking = false
-    private var compoundGateCancelled = false
     private var compoundAnchorX = 0f
     private var compoundAnchorY = 0f
     private var compoundModeArmed = false
+    /** 本次手势内组合已被解除（越过长距阈值），不再重新就绪。 */
+    private var compoundDisarmed = false
     private var hoverDurationMs = DEFAULT_HOVER_DURATION_MS
-    private var inwardHoverCompoundEnabled = true
     private var lCornerHoverGateRequired = false
     private var returnSwipeHoverGateRequired = false
     private var slotHoverConfigured: (SwipeDirection) -> Boolean = { false }
@@ -90,9 +84,9 @@ class SwipePathRecognizer(
         gestureAngle = angles.forSide(side)
     }
 
-    fun applyHoverSettings(durationMs: Long, inwardCompoundEnabled: Boolean) {
+    /** [durationMs] 为「短滑后悬停」的静止时长；0 表示滑过短距即视为悬停成立。 */
+    fun applyHoverSettings(durationMs: Long) {
         hoverDurationMs = durationMs.coerceIn(HOVER_DURATION_MIN_MS, HOVER_DURATION_MAX_MS)
-        inwardHoverCompoundEnabled = inwardCompoundEnabled
     }
 
     fun applyCompoundGestureGate(options: ClassifyOptions) {
@@ -127,10 +121,10 @@ class SwipePathRecognizer(
         shortThresholdAnchorY = 0f
         hasShortThresholdAnchor = false
         resetSlotHoverState()
-        resetCompoundGateState()
         compoundAnchorX = 0f
         compoundAnchorY = 0f
         compoundModeArmed = false
+        compoundDisarmed = false
         lCornerHoverGateRequired = false
         returnSwipeHoverGateRequired = false
         slotHoverConfigured = { false }
@@ -143,20 +137,10 @@ class SwipePathRecognizer(
         slotHoverSatisfiedAnchorX = 0f
         slotHoverSatisfiedAnchorY = 0f
         slotHoverHoldStartMs = 0L
-        slotHoverPeakDirectionDistance = 0f
         slotHoverTracking = false
         slotHoverSatisfied = false
         slotHoverCancelled = false
         slotHoverJustSatisfied = false
-    }
-
-    private fun resetCompoundGateState() {
-        compoundGateAnchorX = 0f
-        compoundGateAnchorY = 0f
-        compoundGateHoldStartMs = 0L
-        compoundGatePeakDirectionDistance = 0f
-        compoundGateTracking = false
-        compoundGateCancelled = false
     }
 
     private fun cancelSlotHover() {
@@ -165,22 +149,34 @@ class SwipePathRecognizer(
         slotHoverSatisfied = false
     }
 
-    private fun cancelCompoundGate() {
-        compoundGateCancelled = true
-        compoundGateTracking = false
-    }
-
+    /** 越过长距阈值后本次手势不再判定组合，避免长滑被第二段抢走。 */
     private fun disarmCompoundMode() {
+        if (compoundDisarmed) return
         compoundModeArmed = false
+        compoundDisarmed = true
         compoundAnchorX = 0f
         compoundAnchorY = 0f
-        cancelCompoundGate()
     }
 
     private fun passedLongInwardThreshold(rawX: Float, rawY: Float): Boolean {
         val directionDistance = measureDistanceForDirection(rawX, rawY, SwipeDirection.IN)
         return directionDistance >= longDistanceDp * density
     }
+
+    /** 起手位置距屏幕边缘的内距（px）。 */
+    private fun startInwardPx(): Float =
+        SwipePathGeometry.measureTriggerDistance(
+            side = side,
+            direction = SwipeDirection.IN,
+            startX = startRawX,
+            startY = startRawY,
+            fingerX = startRawX,
+            fingerY = startRawY,
+            stripBounds = stripBounds,
+        )
+
+    /** 折返撤销区：手指回到起手位置附近（含滑到屏幕边缘）时不再判折返。 */
+    private fun returnCancelInwardPx(): Float = startInwardPx() + RETURN_CANCEL_INWARD_DP * density
 
     fun gestureStartRawX(): Float = startRawX
 
@@ -266,7 +262,7 @@ class SwipePathRecognizer(
             movedBeyondLongPressSlop = true
         }
         updateSlotHoverState(rawX, rawY, resolvedDir, swipeDist)
-        updateCompoundGateState(rawX, rawY, resolvedDir, swipeDist)
+        updateCompoundGateState(rawX, rawY)
     }
 
     private fun updateSlotHoverState(
@@ -283,7 +279,6 @@ class SwipePathRecognizer(
                 slotHoverDirection = resolvedDir
                 slotHoverAnchorX = rawX
                 slotHoverAnchorY = rawY
-                slotHoverPeakDirectionDistance = measureDistanceForDirection(rawX, rawY, resolvedDir)
                 slotHoverHoldStartMs = 0L
                 slotHoverTracking = true
             }
@@ -297,101 +292,50 @@ class SwipePathRecognizer(
             return
         }
 
-        if (!slotHoverSatisfied) {
-            if (directionDistance > slotHoverPeakDirectionDistance + DIRECTION_PROGRESS_EPSILON_DP * density) {
-                val advanced = directionDistance - slotHoverPeakDirectionDistance
-                slotHoverPeakDirectionDistance = directionDistance
-                slotHoverAnchorX = rawX
-                slotHoverAnchorY = rawY
-                if (slotHoverHoldStartMs == 0L || advanced >= HOVER_HOLD_RESET_DP * density) {
-                    slotHoverHoldStartMs = 0L
-                }
-                return
-            }
+        if (slotHoverSatisfied) return
 
-            val anchorDist = hypot(
-                (rawX - slotHoverAnchorX).toDouble(),
-                (rawY - slotHoverAnchorY).toDouble(),
-            ).toFloat()
-            if (anchorDist >= HOVER_SLOP_DP * density) {
-                cancelSlotHover()
-                return
-            }
-
-            val now = System.currentTimeMillis()
-            if (slotHoverHoldStartMs == 0L) {
-                slotHoverHoldStartMs = now
-            }
-            if (now - slotHoverHoldStartMs < hoverDurationMs) return
-
-            slotHoverSatisfied = true
-            slotHoverJustSatisfied = true
-            slotHoverSatisfiedAnchorX = rawX
-            slotHoverSatisfiedAnchorY = rawY
+        // 悬停锚点固定不动：手指离开锚点达到静止容差即视为"仍在移动"，
+        // 锚点前移并重新计时。这样任何持续滑动都会不断重启计时，只有真的停住
+        //（整段时长内累计位移 < HOVER_SLOP）才会攒够时长，避免"边滑边攒计时"误判悬停。
+        val anchorDist = hypot(
+            (rawX - slotHoverAnchorX).toDouble(),
+            (rawY - slotHoverAnchorY).toDouble(),
+        ).toFloat()
+        val now = System.currentTimeMillis()
+        if (anchorDist >= HOVER_SLOP_DP * density) {
+            slotHoverAnchorX = rawX
+            slotHoverAnchorY = rawY
+            slotHoverHoldStartMs = now
+            return
         }
+
+        if (slotHoverHoldStartMs == 0L) {
+            slotHoverHoldStartMs = now
+        }
+        if (now - slotHoverHoldStartMs < hoverDurationMs) return
+
+        slotHoverSatisfied = true
+        slotHoverJustSatisfied = true
+        slotHoverSatisfiedAnchorX = rawX
+        slotHoverSatisfiedAnchorY = rawY
     }
 
-    private fun updateCompoundGateState(
-        rawX: Float,
-        rawY: Float,
-        resolvedDir: SwipeDirection?,
-        swipeDist: Float,
-    ) {
+    /**
+     * 组合手势不再要求"短滑后悬停"：第一段以 [SwipeDirection.IN] 越过短距阈值即就绪，
+     * 由第二段自己证明是转向（[SwipePathGeometry.resolveCornerSwipeTrigger] 要求以沿边为主且
+     * 走够 [TURN_SLOP_DP]），或折返。未配置对应组合槽位时始终不就绪，方向判定照旧走直滑。
+     */
+    private fun updateCompoundGateState(rawX: Float, rawY: Float) {
         if (passedLongInwardThreshold(rawX, rawY)) {
-            if (compoundModeArmed) {
-                disarmCompoundMode()
-            } else {
-                cancelCompoundGate()
-            }
+            disarmCompoundMode()
             return
         }
-
-        if (compoundModeArmed) return
-
-        val shortPx = shortDistanceDp * density
-        val compoundGateRequired = lCornerHoverGateRequired || returnSwipeHoverGateRequired
-        if (!compoundGateRequired) return
-
-        if (!compoundGateTracking && resolvedDir == SwipeDirection.IN && swipeDist >= shortPx) {
-            compoundGateAnchorX = rawX
-            compoundGateAnchorY = rawY
-            compoundGatePeakDirectionDistance = measureDistanceForDirection(rawX, rawY, SwipeDirection.IN)
-            compoundGateHoldStartMs = 0L
-            compoundGateTracking = true
-        }
-
-        if (compoundGateCancelled || !compoundGateTracking) return
-
-        val directionDistance = measureDistanceForDirection(rawX, rawY, SwipeDirection.IN)
-        if (directionDistance > compoundGatePeakDirectionDistance + DIRECTION_PROGRESS_EPSILON_DP * density) {
-            val advanced = directionDistance - compoundGatePeakDirectionDistance
-            compoundGatePeakDirectionDistance = directionDistance
-            compoundGateAnchorX = rawX
-            compoundGateAnchorY = rawY
-            if (compoundGateHoldStartMs == 0L || advanced >= HOVER_HOLD_RESET_DP * density) {
-                compoundGateHoldStartMs = 0L
-            }
-            return
-        }
-
-        val anchorDist = hypot(
-            (rawX - compoundGateAnchorX).toDouble(),
-            (rawY - compoundGateAnchorY).toDouble(),
-        ).toFloat()
-        if (anchorDist >= HOVER_SLOP_DP * density) {
-            cancelCompoundGate()
-            return
-        }
-
-        val now = System.currentTimeMillis()
-        if (compoundGateHoldStartMs == 0L) {
-            compoundGateHoldStartMs = now
-        }
-        if (now - compoundGateHoldStartMs < hoverDurationMs) return
-
+        if (compoundModeArmed || compoundDisarmed) return
+        if (!(lCornerHoverGateRequired || returnSwipeHoverGateRequired)) return
+        if (!hasShortThresholdAnchor) return
         compoundModeArmed = true
-        compoundAnchorX = rawX
-        compoundAnchorY = rawY
+        compoundAnchorX = shortThresholdAnchorX
+        compoundAnchorY = shortThresholdAnchorY
     }
 
     fun consumeHoverJustSatisfied(): Boolean {
@@ -406,22 +350,39 @@ class SwipePathRecognizer(
     fun isHoverSatisfied(): Boolean = slotHoverSatisfied
 
     fun hoverHoldRemainingMs(): Long? {
-        if (slotHoverCancelled || !slotHoverTracking || slotHoverSatisfied || compoundModeArmed) return null
+        if (slotHoverCancelled || !slotHoverTracking || slotHoverSatisfied) return null
         if (slotHoverDirection == null || slotHoverHoldStartMs == 0L) return null
         val elapsed = System.currentTimeMillis() - slotHoverHoldStartMs
         return (hoverDurationMs - elapsed).coerceAtLeast(0L)
     }
 
-    fun isCompoundModeArmed(): Boolean = compoundModeArmed
+    /**
+     * 第二段是否已真正转向（以沿边为主且走够 [TURN_SLOP_DP]）。
+     * 震动分档与"悬停是否让位给组合"都以它为准，而不是"离锚点多远"。
+     */
+    fun hasTurnedFromCompoundAnchor(rawX: Float, rawY: Float): Boolean =
+        resolveCompoundCornerTrigger(rawX, rawY) != null
 
-    fun hasMovedFromCompoundAnchor(rawX: Float, rawY: Float): Boolean =
-        compoundModeArmed && movedFromCompoundAnchor(rawX, rawY)
-
-    private fun movedFromCompoundAnchor(rawX: Float, rawY: Float): Boolean {
-        return hypot(
-            (rawX - compoundAnchorX).toDouble(),
-            (rawY - compoundAnchorY).toDouble(),
-        ) >= HOVER_SLOP_DP * density
+    /** 组合已就绪时的第二段判定；锚点取第一段越过短距阈值的位置。 */
+    private fun resolveCompoundCornerTrigger(rawX: Float, rawY: Float): GestureTriggerType? {
+        if (!compoundModeArmed) return null
+        return SwipePathGeometry.resolveCornerSwipeTrigger(
+            side = side,
+            stripBounds = stripBounds,
+            inwardReachedThreshold = true,
+            currentInward = inwardDelta(rawX - startRawX, rawY - startRawY),
+            shortThresholdPx = shortDistanceDp * density,
+            longThresholdPx = longDistanceDp * density,
+            gestureStartX = startRawX,
+            gestureStartY = startRawY,
+            anchorX = compoundAnchorX,
+            anchorY = compoundAnchorY,
+            fingerX = rawX,
+            fingerY = rawY,
+            turnThresholdPx = TURN_SLOP_DP * density,
+            angle = gestureAngle,
+            longFromSecondSegmentOnly = true,
+        )
     }
 
     private fun movedFromSlotHoverAnchor(rawX: Float, rawY: Float): Boolean {
@@ -527,15 +488,9 @@ class SwipePathRecognizer(
     ): Boolean {
         if (!tracking) return false
         if (trigger.isHoverSwipe) return isHoverReady(rawX, rawY)
-        if (shouldDeferBaseSwipeForHover(rawX, rawY, options)) {
+        if (shouldDeferBaseSwipeForHover(options)) {
             val baseTrigger = slotHoverDirection?.toBaseShortTrigger()
-            if (trigger == baseTrigger && !slotHoverSatisfied && !compoundModeArmed) return false
-            if (trigger == GestureTriggerType.SHORT_SWIPE_IN &&
-                isCompoundGateWaiting() &&
-                !compoundModeArmed
-            ) {
-                return false
-            }
+            if (trigger == baseTrigger && !slotHoverSatisfied) return false
         }
         if (trigger.isCornerSwipe && compoundModeArmed) {
             val distance = compoundSecondSegmentDistance(rawX, rawY)
@@ -655,6 +610,7 @@ class SwipePathRecognizer(
             fingerX = rawX,
             fingerY = rawY,
             returnThresholdPx = RETURN_SLOP_DP * density,
+            cancelInwardPx = returnCancelInwardPx(),
         ) != null
     }
 
@@ -677,6 +633,7 @@ class SwipePathRecognizer(
                 fingerX = rawX,
                 fingerY = rawY,
                 returnThresholdPx = RETURN_SLOP_DP * density,
+                cancelInwardPx = returnCancelInwardPx(),
             )
             if (returnSwipe != null) {
                 val filter = options.isTriggerConfigured
@@ -686,59 +643,14 @@ class SwipePathRecognizer(
             }
         }
 
-        if (compoundModeArmed && movedFromCompoundAnchor(rawX, rawY)) {
-            val compoundCorner = SwipePathGeometry.resolveCornerSwipeTrigger(
-                side = side,
-                stripBounds = stripBounds,
-                inwardReachedThreshold = true,
-                currentInward = inwardDelta(rawX - startRawX, rawY - startRawY),
-                shortThresholdPx = shortDistanceDp * density,
-                longThresholdPx = longDistanceDp * density,
-                gestureStartX = startRawX,
-                gestureStartY = startRawY,
-                anchorX = compoundAnchorX,
-                anchorY = compoundAnchorY,
-                fingerX = rawX,
-                fingerY = rawY,
-                turnThresholdPx = TURN_SLOP_DP * density,
-                angle = gestureAngle,
-                longFromSecondSegmentOnly = true,
-            )
-            if (compoundCorner != null && isCornerConfigured(compoundCorner, options)) {
-                return compoundCorner
-            }
+        resolveCompoundCornerTrigger(rawX, rawY)?.let { compoundCorner ->
+            if (isCornerConfigured(compoundCorner, options)) return compoundCorner
         }
 
         resolveHoverTrigger(rawX, rawY, options, partial)?.let { return it }
 
-        if (partial && shouldDeferBaseSwipeForHover(rawX, rawY, options)) {
+        if (partial && shouldDeferBaseSwipeForHover(options)) {
             return null
-        }
-
-        val corner = if (hasShortThresholdAnchor && !compoundModeArmed && !lCornerHoverGateRequired) {
-            SwipePathGeometry.resolveCornerSwipeTrigger(
-                side = side,
-                stripBounds = stripBounds,
-                inwardReachedThreshold = inwardReachedShortThreshold,
-                currentInward = inwardDelta(rawX - startRawX, rawY - startRawY),
-                shortThresholdPx = shortDistanceDp * density,
-                longThresholdPx = longDistanceDp * density,
-                gestureStartX = startRawX,
-                gestureStartY = startRawY,
-                anchorX = shortThresholdAnchorX,
-                anchorY = shortThresholdAnchorY,
-                fingerX = rawX,
-                fingerY = rawY,
-                turnThresholdPx = TURN_SLOP_DP * density,
-                angle = gestureAngle,
-            )
-        } else {
-            null
-        }
-        if (corner != null) {
-            if (isCornerConfigured(corner, options)) {
-                return corner
-            }
         }
 
         return SwipePathGeometry.classifySwipeTrigger(
@@ -819,23 +731,9 @@ class SwipePathRecognizer(
     private fun isSlotHoverTrackingActive(): Boolean =
         slotHoverTracking && !slotHoverCancelled && slotHoverDirection != null
 
-    private fun isCompoundGateWaiting(): Boolean =
-        compoundGateTracking && !compoundGateCancelled && !compoundModeArmed
-
-    private fun isCompoundGateHoldingAtAnchor(): Boolean =
-        isCompoundGateWaiting() && compoundGateHoldStartMs != 0L
-
-    private fun shouldDeferBaseSwipeForHover(
-        rawX: Float,
-        rawY: Float,
-        options: ClassifyOptions,
-    ): Boolean {
-        if (isSlotHoverTrackingActive() && isHoverSlotConfigured(options)) return true
-        if (!isCompoundGateHoldingAtAnchor()) return false
-        if (!(lCornerHoverGateRequired || returnSwipeHoverGateRequired)) return false
-        val inwardDistance = measureDistanceForDirection(rawX, rawY, SwipeDirection.IN)
-        return inwardDistance < longDistanceDp * density
-    }
+    /** 悬停槽位计时期间先压住基础短滑，避免手指还没停稳就把内滑动作派发出去。 */
+    private fun shouldDeferBaseSwipeForHover(options: ClassifyOptions): Boolean =
+        isSlotHoverTrackingActive() && isHoverSlotConfigured(options)
 
     private fun resolveHoverTrigger(
         rawX: Float,
@@ -844,8 +742,6 @@ class SwipePathRecognizer(
         partial: Boolean,
     ): GestureTriggerType? {
         if (!isHoverReady(rawX, rawY)) return null
-        // 组合已就绪但尚未离开悬停点：松手仍走槽位悬停；离开锚点后才交给 L/回弹第二段。
-        if (compoundModeArmed && movedFromCompoundAnchor(rawX, rawY)) return null
         val hoverTrigger = slotHoverDirection?.toHoverTrigger() ?: return null
         val filter = options.isTriggerConfigured
         if (filter != null && !filter(hoverTrigger)) return null
@@ -923,13 +819,16 @@ class SwipePathRecognizer(
         private const val TAP_SLOP_DP = 12f
         private const val TAP_LENIENT_SLOP_DP = 36f
         const val TURN_SLOP_DP = 32f
-        const val RETURN_SLOP_DP = 16f
-        const val HOVER_SLOP_DP = 12f
-        const val DIRECTION_PROGRESS_EPSILON_DP = 2f
-        const val HOVER_HOLD_RESET_DP = 8f
-        const val DEFAULT_HOVER_DURATION_MS = 250L
-        const val HOVER_DURATION_MIN_MS = 150L
-        const val HOVER_DURATION_MAX_MS = 500L
+        /** 折返手势的回缩门槛；无悬停时更易误触，对齐悬浮球的 28dp。 */
+        const val RETURN_SLOP_DP = 28f
+        /** 折返撤销区：内距回到「起手内距 + 该值」以内即视为撤销。 */
+        const val RETURN_CANCEL_INWARD_DP = 12f
+        /** 悬停的静止容差：偏移超过该值即取消悬停 / 松手不再算悬停。 */
+        const val HOVER_SLOP_DP = 6f
+        /** 悬停时长：0 = 滑过短距即视为悬停成立。 */
+        const val DEFAULT_HOVER_DURATION_MS = 500L
+        const val HOVER_DURATION_MIN_MS = 0L
+        const val HOVER_DURATION_MAX_MS = 1000L
         private const val INDEX_ENTER_DP = 24f
         private const val TAP_MAX_MS = 220L
         private const val TAP_LENIENT_MAX_MS = 450L

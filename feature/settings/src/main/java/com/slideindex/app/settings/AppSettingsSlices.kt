@@ -71,10 +71,9 @@ data class EdgeTriggerSettings(
     /** 手势动画相对手指的垂直偏移（dp）；0 为贴在手指高度，增大则远离指腹（侧/底向上，顶向下）。 */
     val gestureHintFingerOffsetDp: Float = 0f,
     val androidBackColorSourceId: Int = AndroidBackColorSource.APP_THEME.id,
-    val swipeHoverDurationMs: Int = 250,
+    val swipeHoverDurationMs: Int = SwipeHoverDurationLimits.DEFAULT_MS,
     /** 触钮双击判定间隔；0 表示无法构成双击。 */
     val triggerDoubleTapIntervalMs: Int = 300,
-    val inwardHoverCompoundEnabled: Boolean = true,
     val animationStyles: AnimationStyles = AnimationStyles(),
     val gestureAngles: GestureAngles = GestureAngles(),
     /** 竖屏下软键盘弹出时如何影响触发器（悬浮球 + 侧边触钮）。 */

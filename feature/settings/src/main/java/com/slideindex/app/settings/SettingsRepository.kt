@@ -199,7 +199,6 @@ class SettingsRepository @Inject constructor(
     suspend fun setSwipeHoverDurationMs(value: Int) = edge.setSwipeHoverDurationMs(value)
 
     suspend fun setTriggerDoubleTapIntervalMs(value: Int) = edge.setTriggerDoubleTapIntervalMs(value)
-    suspend fun setInwardHoverCompoundEnabled(enabled: Boolean) = edge.setInwardHoverCompoundEnabled(enabled)
     suspend fun setAnimationStyles(styles: AnimationStyles) = edge.setAnimationStyles(styles)
     suspend fun updateWaveStyle(style: WaveStyle) = edge.updateWaveStyle(style)
     suspend fun updateCapsuleStyle(style: CapsuleStyle) = edge.updateCapsuleStyle(style)

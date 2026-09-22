@@ -15,8 +15,10 @@ internal class GestureSessionThresholdTracker(
     private var hoverHapticFired = false
 
     fun trackDistanceHaptics(rawX: Float, rawY: Float) {
-        if (pathRecognizer.isCompoundModeArmed() &&
-            pathRecognizer.hasMovedFromCompoundAnchor(rawX, rawY)
+        // 只有真的转向才切到第二段分档：仅"离锚点多远"会把普通内滑也当成第二段，
+        // 门槛从短滑距离掉到 TURN_SLOP 后立刻多补一声震动（只配折返时还会丢掉长距那声）。
+        if (isCompoundCornerHapticEnabled() &&
+            pathRecognizer.hasTurnedFromCompoundAnchor(rawX, rawY)
         ) {
             trackCompoundSecondSegmentHaptics(rawX, rawY)
         } else {

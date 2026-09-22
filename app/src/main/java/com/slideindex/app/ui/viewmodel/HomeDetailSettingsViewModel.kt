@@ -300,10 +300,6 @@ class HomeDetailSettingsViewModel @Inject constructor(
         settingsRepository.setTriggerDoubleTapIntervalMs(value)
     }
 
-    fun setInwardHoverCompoundEnabled(enabled: Boolean) = launchSettingsWrite {
-        settingsRepository.setInwardHoverCompoundEnabled(enabled)
-    }
-
     fun setEdgeTriggerWidthDp(side: PanelSide, value: Float) = launchSettingsWrite {
         settingsRepository.setEdgeTriggerWidthDp(side, value)
     }

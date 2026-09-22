@@ -251,7 +251,9 @@ fun SideGestureSettingsScreen(
                             valueRange = SwipeHoverDurationLimits.MIN_MS.toFloat()..SwipeHoverDurationLimits.MAX_MS.toFloat(),
                             enabled = serviceEnabled,
                             insideMargin = MiuixInsetCardComponentMargin,
-                            steps = (SwipeHoverDurationLimits.MAX_MS - SwipeHoverDurationLimits.MIN_MS) / 10,
+                            steps = 0,
+                            showKeyPoints = true,
+                            keyPoints = SwipeHoverDurationLimits.UI_KEY_POINTS,
                             commitOnFinish = true,
                             formatLabel = { ms ->
                                 resources.getString(

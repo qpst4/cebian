@@ -28,13 +28,13 @@ class SwipePathRecognizerTest {
     ) {
         onTouchDown(x, y, strip)
         applyCompoundGestureGate(options)
-        applyHoverSettings(durationMs = 250L, inwardCompoundEnabled = true)
+        applyHoverSettings(durationMs = 250L)
     }
 
     private fun SwipePathRecognizer.beginGesture(x: Float, y: Float, strip: RectF = leftStrip) {
         onTouchDown(x, y, strip)
         applyCompoundGestureGate(defaultOptions)
-        applyHoverSettings(durationMs = 250L, inwardCompoundEnabled = true)
+        applyHoverSettings(durationMs = 250L)
     }
 
     private fun SwipePathRecognizer.holdInwardAt(x: Float, y: Float) {
@@ -256,7 +256,7 @@ class SwipePathRecognizerTest {
     }
 
     @Test
-    fun classifyOnUp_leftPanelInwardThenDownWhileOverallStillIn_staysShortSwipeIn() {
+    fun classifyOnUp_leftPanelInwardThenDownWhileOverallStillIn_returnsShortSwipeInDown() {
         val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
         recognizer.applyDistances(shortDp = 60f, longDp = 120f)
         recognizer.applyAngles(GestureAngles())
@@ -265,11 +265,12 @@ class SwipePathRecognizerTest {
         recognizer.onTouchMove(80f, 100f)
         val result = recognizer.classifyOnUp(80f, 140f)
 
-        assertEquals(GestureTriggerType.SHORT_SWIPE_IN, result?.trigger)
+        // 免悬停后由第二段单独判向：纯下移 40dp >= TURN_SLOP，整体仍偏内滑也不再阻止组合。
+        assertEquals(GestureTriggerType.SHORT_SWIPE_IN_DOWN, result?.trigger)
     }
 
     @Test
-    fun classifyOnUp_leftPanelHorizontalThenDownWithoutLeavingInSector_staysShortSwipeIn() {
+    fun classifyOnUp_leftPanelHorizontalThenDownWithoutLeavingInSector_returnsShortSwipeInDown() {
         val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
         recognizer.applyDistances(shortDp = 60f, longDp = 120f)
         recognizer.applyAngles(GestureAngles())
@@ -278,7 +279,8 @@ class SwipePathRecognizerTest {
         recognizer.onTouchMove(90f, 100f)
         val result = recognizer.classifyOnUp(100f, 135f)
 
-        assertEquals(GestureTriggerType.SHORT_SWIPE_IN, result?.trigger)
+        // 内滑 90dp 后下移 35dp（沿边为主）即组合，整体仍在内滑扇区不再阻止。
+        assertEquals(GestureTriggerType.SHORT_SWIPE_IN_DOWN, result?.trigger)
     }
 
     @Test
@@ -331,7 +333,7 @@ class SwipePathRecognizerTest {
         val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
         recognizer.applyDistances(shortDp = 60f, longDp = 120f)
         recognizer.applyAngles(GestureAngles())
-        recognizer.applyHoverSettings(durationMs = 250L, inwardCompoundEnabled = true)
+        recognizer.applyHoverSettings(durationMs = 250L)
 
         recognizer.beginGesture(0f, 100f)
         recognizer.onTouchMove(80f, 100f)
@@ -348,7 +350,7 @@ class SwipePathRecognizerTest {
         val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
         recognizer.applyDistances(shortDp = 60f, longDp = 120f)
         recognizer.applyAngles(GestureAngles())
-        recognizer.applyHoverSettings(durationMs = 250L, inwardCompoundEnabled = false)
+        recognizer.applyHoverSettings(durationMs = 250L)
 
         recognizer.onTouchDown(0f, 100f, leftStrip)
         recognizer.onTouchMove(80f, 100f)
@@ -404,7 +406,7 @@ class SwipePathRecognizerTest {
         val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
         recognizer.applyDistances(shortDp = 60f, longDp = 120f)
         recognizer.applyAngles(GestureAngles())
-        recognizer.applyHoverSettings(durationMs = 250L, inwardCompoundEnabled = true)
+        recognizer.applyHoverSettings(durationMs = 250L)
 
         recognizer.onTouchDown(0f, 100f, leftStrip)
         recognizer.onTouchMove(40f, 100f)
@@ -444,16 +446,16 @@ class SwipePathRecognizerTest {
     }
 
     @Test
-    fun classifyOnUp_leftPanelInwardThenUpWithoutHover_doesNotReturnInUp() {
+    fun classifyOnUp_leftPanelInwardThenUpWithoutHover_returnsShortSwipeInUp() {
         val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
         recognizer.applyDistances(shortDp = 60f, longDp = 120f)
         recognizer.applyAngles(GestureAngles())
         recognizer.beginGesture(0f, 100f)
-        recognizer.onTouchMove(80f, 100f)
-        recognizer.onTouchMove(80f, 60f)
+        recognizer.onTouchMove(80f, 100f) // 内滑越过短距阈值即就绪，不再要求悬停
+        recognizer.onTouchMove(80f, 60f) // 直接转向
         val result = recognizer.classifyOnUp(80f, 55f)
 
-        assertEquals(GestureTriggerType.SHORT_SWIPE_UP_RIGHT, result?.trigger)
+        assertEquals(GestureTriggerType.SHORT_SWIPE_IN_UP, result?.trigger)
     }
 
     @Test
@@ -531,7 +533,7 @@ class SwipePathRecognizerTest {
     }
 
     @Test
-    fun classifyPartial_inwardHoldWithLConfigured_defersWhileHoldingAtShortZone() {
+    fun classifyPartial_inwardHoldWithLConfigured_returnsShortSwipeInUntilTurned() {
         val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
         recognizer.applyDistances(shortDp = 60f, longDp = 120f)
         recognizer.applyAngles(GestureAngles())
@@ -548,7 +550,8 @@ class SwipePathRecognizerTest {
 
         val partial = recognizer.classifyPartial(80f, 100f, options)
 
-        assertEquals(null, partial?.trigger)
+        // 免悬停后不再为组合压住基础短滑：还没转向就是普通内滑短滑。
+        assertEquals(GestureTriggerType.SHORT_SWIPE_IN, partial?.trigger)
     }
 
     @Test
@@ -570,5 +573,133 @@ class SwipePathRecognizerTest {
         val result = recognizer.classifyOnUp(150f, 100f, options)
 
         assertEquals(GestureTriggerType.LONG_SWIPE_IN, result?.trigger)
+    }
+
+    @Test
+    fun classifyOnUp_leftPanelInwardThenBackWithoutHover_returnsShortSwipeInAndBack() {
+        val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
+        recognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        recognizer.applyAngles(GestureAngles())
+        recognizer.beginGesture(0f, 100f)
+        recognizer.onTouchMove(90f, 100f) // 越过短距阈值即就绪，不再要求悬停
+        recognizer.onTouchMove(50f, 100f) // 回缩 40dp >= 折返门槛 28dp
+        val result = recognizer.classifyOnUp(50f, 100f)
+
+        assertEquals(GestureTriggerType.SHORT_SWIPE_IN_AND_BACK, result?.trigger)
+    }
+
+    @Test
+    fun classifyOnUp_leftPanelInwardThenSmallRetract_staysShortSwipeIn() {
+        val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
+        recognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        recognizer.applyAngles(GestureAngles())
+        recognizer.beginGesture(0f, 100f)
+        recognizer.onTouchMove(90f, 100f)
+        recognizer.onTouchMove(64f, 100f) // 回缩 26dp < 折返门槛 28dp
+        val result = recognizer.classifyOnUp(64f, 100f)
+
+        assertEquals(GestureTriggerType.SHORT_SWIPE_IN, result?.trigger)
+    }
+
+    @Test
+    fun classifyOnUp_leftPanelInwardThenShortUpJitter_staysShortSwipeIn() {
+        val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
+        recognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        recognizer.applyAngles(GestureAngles())
+        recognizer.beginGesture(0f, 100f)
+        recognizer.onTouchMove(80f, 100f)
+        recognizer.onTouchMove(82f, 78f) // 第二段仅 22dp < TURN_SLOP(32dp)
+        val result = recognizer.classifyOnUp(82f, 78f)
+
+        assertEquals(GestureTriggerType.SHORT_SWIPE_IN, result?.trigger)
+    }
+
+    @Test
+    fun classifyOnUp_hoverSlotSurvivesPastCompoundArmingAnchor() {
+        val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
+        recognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        recognizer.applyAngles(GestureAngles())
+        val options = SwipePathRecognizer.ClassifyOptions(
+            isTriggerConfigured = { trigger ->
+                trigger == GestureTriggerType.SHORT_SWIPE_IN_HOVER ||
+                    trigger == GestureTriggerType.SHORT_SWIPE_IN ||
+                    trigger == GestureTriggerType.SHORT_SWIPE_IN_UP
+            },
+        )
+        recognizer.beginHoverGesture(0f, 100f, options = options)
+        recognizer.onTouchMove(70f, 100f) // 组合锚点落在 70dp
+        recognizer.onTouchMove(100f, 100f)
+        recognizer.onTouchMove(100f, 100f)
+        ShadowSystemClock.advanceBy(300L, TimeUnit.MILLISECONDS)
+        recognizer.onTouchMove(100f, 100f)
+        val result = recognizer.classifyOnUp(100f, 100f, options)
+
+        // 组合锚点不再作废悬停：停在 100dp 静止后松手仍走悬停槽位。
+        assertEquals(GestureTriggerType.SHORT_SWIPE_IN_HOVER, result?.trigger)
+    }
+
+    @Test
+    fun classifyOnUp_leftPanelInwardThenBackToStart_cancelsGesture() {
+        val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
+        recognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        recognizer.applyAngles(GestureAngles())
+        recognizer.beginGesture(0f, 100f)
+        recognizer.onTouchMove(90f, 100f) // 内滑越过短距阈值
+        recognizer.onTouchMove(8f, 100f) // 回缩到起手位置附近（<= 起手内距 + 12dp）
+        val result = recognizer.classifyOnUp(8f, 100f)
+
+        // 滑回边缘/起点视为撤销：既不判折返，也不判内滑短滑。
+        assertEquals(null, result?.trigger)
+    }
+
+    @Test
+    fun classifyOnUp_hoverDurationZero_satisfiesHoverImmediately() {
+        val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
+        recognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        recognizer.applyAngles(GestureAngles())
+        recognizer.applyHoverSettings(durationMs = 0L)
+        recognizer.onTouchDown(0f, 100f, leftStrip)
+        recognizer.applyCompoundGestureGate(hoverConfiguredOptions())
+        recognizer.onTouchMove(80f, 100f) // 0ms：越过短距阈值即视为悬停成立，无需等待
+        val result = recognizer.classifyOnUp(80f, 100f, hoverConfiguredOptions())
+
+        assertEquals(GestureTriggerType.SHORT_SWIPE_IN_HOVER, result?.trigger)
+    }
+
+    @Test
+    fun classifyOnUp_hoverThenDriftBeyondSlop_isNotHover() {
+        val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
+        recognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        recognizer.applyAngles(GestureAngles())
+        recognizer.beginHoverGesture(0f, 100f)
+        recognizer.onTouchMove(80f, 100f)
+        ShadowSystemClock.advanceBy(300L, TimeUnit.MILLISECONDS)
+        recognizer.onTouchMove(80f, 100f) // 悬停成立，锚点 (80,100)
+        recognizer.onTouchMove(87f, 100f) // 偏移 7dp，超过 6dp 静止容差
+        val result = recognizer.classifyOnUp(87f, 100f)
+
+        assertEquals(GestureTriggerType.SHORT_SWIPE_IN, result?.trigger)
+    }
+
+    @Test
+    fun classifyOnUp_continuousSlideWithRepeatedSamples_isNotHover() {
+        val recognizer = SwipePathRecognizer(PanelSide.LEFT, density = 1f)
+        recognizer.applyDistances(shortDp = 60f, longDp = 120f)
+        recognizer.applyAngles(GestureAngles())
+        recognizer.beginHoverGesture(0f, 100f)
+
+        // 持续滑动：每次前进 4dp，并在每步夹杂一帧位置不变的重复采样。
+        // 锚点固定 + 位移容差后，计时会被不断重启，攒不到设定时长。
+        var x = 60f
+        repeat(8) {
+            recognizer.onTouchMove(x, 100f)
+            ShadowSystemClock.advanceBy(80L, TimeUnit.MILLISECONDS)
+            recognizer.onTouchMove(x, 100f)
+            ShadowSystemClock.advanceBy(40L, TimeUnit.MILLISECONDS)
+            x += 4f
+        }
+        val result = recognizer.classifyOnUp(x - 4f, 100f)
+
+        assertEquals(GestureTriggerType.SHORT_SWIPE_IN, result?.trigger)
     }
 }

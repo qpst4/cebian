@@ -142,7 +142,6 @@ class GestureSession(
         pathRecognizer.applyAngles(newSettings.gestureAngles)
         pathRecognizer.applyHoverSettings(
             durationMs = newSettings.swipeHoverDurationMs.toLong(),
-            inwardCompoundEnabled = newSettings.inwardHoverCompoundEnabled
         )
         applyActiveHandleDistances()
     }

@@ -388,10 +388,6 @@ class EdgeSettingsMutator @Inject constructor(
         it[SettingsPreferenceKeys.TRIGGER_DOUBLE_TAP_INTERVAL_MS] = value.coerceIn(0, 800)
     }
 
-    suspend fun setInwardHoverCompoundEnabled(enabled: Boolean) = editor.edit {
-        it[SettingsPreferenceKeys.INWARD_HOVER_COMPOUND_ENABLED] = enabled
-    }
-
     suspend fun setAnimationStyles(styles: AnimationStyles) = editor.edit {
         it[SettingsPreferenceKeys.ANIMATION_STYLES] = AnimationStyleCodec.encode(styles)
     }

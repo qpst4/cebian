@@ -171,10 +171,10 @@ internal object SettingsSnapshotReader {
             gestureHintFingerOffsetDp = prefs[SettingsPreferenceKeys.GESTURE_HINT_FINGER_OFFSET_DP] ?: 0f,
             androidBackColorSourceId = prefs[SettingsPreferenceKeys.ANDROID_BACK_COLOR_SOURCE]
                 ?: AndroidBackColorSource.APP_THEME.id,
-            swipeHoverDurationMs = prefs[SettingsPreferenceKeys.SWIPE_HOVER_DURATION_MS] ?: 250,
+            swipeHoverDurationMs = prefs[SettingsPreferenceKeys.SWIPE_HOVER_DURATION_MS]
+                ?: SwipeHoverDurationLimits.DEFAULT_MS,
             triggerDoubleTapIntervalMs =
                 prefs[SettingsPreferenceKeys.TRIGGER_DOUBLE_TAP_INTERVAL_MS]?.coerceIn(0, 800) ?: 300,
-            inwardHoverCompoundEnabled = prefs[SettingsPreferenceKeys.INWARD_HOVER_COMPOUND_ENABLED] ?: true,
             animationStyles = AnimationStyleCodec.decode(prefs[SettingsPreferenceKeys.ANIMATION_STYLES]),
             gestureAngles = GestureAnglesCodec.read(prefs, legacyAngleConfig),
             keyboardTriggerBehaviorPortrait = KeyboardTriggerBehavior.fromStorageKey(

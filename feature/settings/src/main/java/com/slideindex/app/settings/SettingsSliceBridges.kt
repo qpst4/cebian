@@ -42,7 +42,6 @@ fun GestureSettings.toMinimalAppSettings(): AppSettings = AppSettings(
         androidBackColorSourceId = androidBackColorSourceId,
         swipeHoverDurationMs = swipeHoverDurationMs,
         triggerDoubleTapIntervalMs = triggerDoubleTapIntervalMs,
-        inwardHoverCompoundEnabled = inwardHoverCompoundEnabled,
         animationStyles = animationStyles,
         gestureAngles = gestureAngles,
         keyboardTriggerBehaviorPortrait = keyboardTriggerBehaviorPortrait,

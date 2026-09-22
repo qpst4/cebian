@@ -172,7 +172,7 @@ class GestureSessionThresholdTrackerTest {
         configuredTracker.trackDistanceHaptics(80f, 0f)
         assertEquals(1, gestureStartCount)
 
-        // Retract to 40dp (retraction = 40dp >= 16dp) -> fires 2nd haptic for return
+        // Retract to 40dp (retraction = 40dp >= 28dp) -> fires 2nd haptic for return
         pathRecognizer.onTouchMove(40f, 0f)
         configuredTracker.trackDistanceHaptics(40f, 0f)
         assertEquals(2, gestureStartCount)
@@ -233,7 +233,7 @@ class GestureSessionThresholdTrackerTest {
 
     @Test
     fun trackDistanceHaptics_firesHoverHapticAfterHoldWithoutIntermediateMoves() {
-        pathRecognizer.applyHoverSettings(durationMs = 250L, inwardCompoundEnabled = true)
+        pathRecognizer.applyHoverSettings(durationMs = 250L)
         pathRecognizer.onTouchDown(0f, 100f, leftStrip)
         // hover 只在对应触发已配置时才会进入计时（生产由 applyCompoundGestureGate 传入设置里的动作表）。
         // 注意顺序：onTouchDown 会重置该配置，必须在其之后应用，与 GestureSession.onTouchDown 一致。
@@ -258,7 +258,7 @@ class GestureSessionThresholdTrackerTest {
     fun trackDistanceHaptics_firesCompoundSecondSegmentShortAndLongThresholds() {
         pathRecognizer.applyDistances(shortDp = 60f, longDp = 120f)
         pathRecognizer.applyAngles(GestureAngles())
-        pathRecognizer.applyHoverSettings(durationMs = 250L, inwardCompoundEnabled = true)
+        pathRecognizer.applyHoverSettings(durationMs = 250L)
         pathRecognizer.onTouchDown(0f, 100f, leftStrip)
         pathRecognizer.applyCompoundGestureGate(
             SwipePathRecognizer.ClassifyOptions(

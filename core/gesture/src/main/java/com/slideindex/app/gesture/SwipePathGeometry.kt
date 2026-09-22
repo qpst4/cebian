@@ -205,10 +205,13 @@ internal object SwipePathGeometry {
         fingerX: Float,
         fingerY: Float,
         returnThresholdPx: Float,
+        /** 当前内距小于等于该值（回到起手位置/屏幕边缘附近）视为撤销，不判折返。 */
+        cancelInwardPx: Float = 0f,
     ): GestureTriggerType? {
         if (!inwardReachedThreshold && peakInward < shortThresholdPx) return null
         val retraction = peakInward - currentInward
         if (retraction < returnThresholdPx) return null
+        if (currentInward <= cancelInwardPx) return null
         val along = alongDelta(fingerX - startX, fingerY - startY, side)
         if (abs(along) > shortThresholdPx * 0.75f && abs(along) > retraction * 1.2f) return null
         return GestureTriggerType.SHORT_SWIPE_IN_AND_BACK
