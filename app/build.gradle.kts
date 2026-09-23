@@ -30,15 +30,16 @@ val keystoreProperties = Properties().apply {
 
 android {
     namespace = "com.slideindex.app"
-    compileSdk = 37
+    compileSdk = 37
+
     compileSdkMinor = 1
 
     defaultConfig {
         applicationId = "com.slideindex.app"
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = 37
-        versionCode = 59
-        versionName = "1.13.0"
+        versionCode = 60
+        versionName = "1.20.0"
 
         ndk {
             abiFilters += "arm64-v8a"
