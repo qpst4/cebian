@@ -327,6 +327,8 @@
     <string name="secure_settings_adb_copy">نسخ الأمر</string>
     <string name="secure_settings_adb_copied">تم النسخ إلى الحافظة</string>
     <string name="accessibility_recover_reopen_app_hint">إيماءة الحافة غير متصلة، يرجى إغلاق التطبيق بالكامل ثم إعادة فتحه</string>
+    <string name="accessibility_offline_notification_title">إيماءات الحافة غير متصلة</string>
+    <string name="accessibility_offline_notification_text">اضغط لإعادة تفعيل خدمة إمكانية الوصول</string>
     <string name="hide_from_recents_title">الإخفاء في قائمة المهام الأخيرة</string>
     <string name="hide_from_recents_desc">عند التفعيل، لن تظهر واجهة إعدادات هذا التطبيق في واجهة المهام المتعددة للنظام</string>
     <string name="live_preview_hint">اسحب شريط التمرير للمعاينة في الوقت الفعلي؛ يمكنك عادةً تجربة الإيماءات على حافة الشاشة</string>

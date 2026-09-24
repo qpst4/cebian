@@ -351,6 +351,8 @@
     <string name="secure_settings_adb_copy">Copy command</string>
     <string name="secure_settings_adb_copied">Copied to clipboard</string>
     <string name="accessibility_recover_reopen_app_hint">Edge gestures are not connected. Force stop the app, then open it again.</string>
+    <string name="accessibility_offline_notification_title">Edge gestures offline</string>
+    <string name="accessibility_offline_notification_text">Tap to re-enable this app\'s accessibility service</string>
     <string name="gesture_action_switch_input_method">Switch input method</string>
     <string name="hide_from_recents_title">Hide from recents</string>
     <string name="hide_from_recents_desc">When enabled, this app\'s settings screen won\'t appear in the system recents list</string>

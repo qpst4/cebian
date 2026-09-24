@@ -326,6 +326,8 @@
     <string name="secure_settings_adb_copy">复制命令</string>
     <string name="secure_settings_adb_copied">已复制到剪贴板</string>
     <string name="accessibility_recover_reopen_app_hint">边缘手势未连接，请完全关闭后重新打开本应用</string>
+    <string name="accessibility_offline_notification_title">触钮已掉线</string>
+    <string name="accessibility_offline_notification_text">点这里重新开启「边栏」的无障碍服务</string>
     <string name="hide_from_recents_title">在最近任务列表中隐藏</string>
     <string name="hide_from_recents_desc">开启后，本应用设置界面不会出现在系统多任务界面</string>
     <string name="live_preview_hint">拖动滑块可实时预览；平时可在屏幕边缘试用手势</string>

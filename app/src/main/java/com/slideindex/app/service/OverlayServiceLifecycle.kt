@@ -3,6 +3,7 @@ package com.slideindex.app.service
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import android.os.SystemClock
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.SettingsRepository
 import com.slideindex.app.util.PermissionHelper
@@ -55,6 +56,12 @@ object OverlayServiceLifecycle {
             }
             if (SecureSettingsHelper.hasWriteSecureSettings(appContext)) {
                 SecureSettingsHelper.ensureAccessibilityEnabled(appContext)
+                // ensureAccessibilityEnabled 只保证「列表里有我」。覆盖安装或被系统杀过之后，
+                // 列表里仍然有我、但系统已拒绝重绑（AccessibilityManagerService 记成 crashed），
+                // 这种状态必须重写条目才会重新绑定，否则防被杀等于没生效。
+                if (!SlideIndexAccessibilityService.isConnected()) {
+                    tryNudgeAccessibilityRebindThrottled(appContext)
+                }
             }
         }
 
@@ -69,7 +76,7 @@ object OverlayServiceLifecycle {
         }
 
         // 4. 已配置但未连接（假死或未绑定），尝试 nudge 抖动重绑
-        if (tryNudgeAccessibilityRebind(appContext)) {
+        if (tryNudgeAccessibilityRebindThrottled(appContext)) {
             Log.i(TAG, "recoverAccessibilityBinding: nudged accessibility rebind")
         } else {
             Log.w(
@@ -116,6 +123,13 @@ object OverlayServiceLifecycle {
         }
         if (!SecureSettingsHelper.hasWriteSecureSettings(context)) return false
         return SecureSettingsHelper.nudgeAccessibilityRebind(context)
+    }
+
+    private val nudgeThrottle = NudgeThrottle()
+
+    private fun tryNudgeAccessibilityRebindThrottled(context: Context): Boolean {
+        if (!nudgeThrottle.beginIfDue(SystemClock.elapsedRealtime())) return false
+        return tryNudgeAccessibilityRebind(context)
     }
 
     private val APP_LAUNCH_REBIND_DELAYS_MS = longArrayOf(800L, 2_000L, 5_000L)

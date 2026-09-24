@@ -56,8 +56,21 @@ class OverlayService : LifecycleService() {
             while (isActive) {
                 delay(ACCESSIBILITY_WATCHDOG_INTERVAL_MS)
                 val settings = deps.settingsRepository.settings.first()
-                if (!settings.serviceEnabled) continue
-                OverlayServiceLifecycle.recoverAccessibilityBinding(this@OverlayService, settings)
+                if (!settings.serviceEnabled) {
+                    AccessibilityRecoverNotifier.clearOffline(this@OverlayService)
+                    continue
+                }
+                val outcome = OverlayServiceLifecycle.recoverAccessibilityBinding(
+                    this@OverlayService,
+                    settings,
+                )
+                if (outcome == AccessibilityRecoverOutcome.Failed) {
+                    // 设置里显示已开启、实际却连不上（覆盖安装或被系统杀掉后系统拒绝重绑）：
+                    // 静默重绑做不到时，得明确告诉用户点哪里恢复，不能只写日志。
+                    AccessibilityRecoverNotifier.notifyOffline(this@OverlayService)
+                } else {
+                    AccessibilityRecoverNotifier.clearOffline(this@OverlayService)
+                }
             }
         }
     }
