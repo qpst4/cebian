@@ -76,6 +76,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -176,8 +177,14 @@ private const val APP_CANDIDATE_LIMIT = 10
 private const val SETTINGS_CANDIDATE_LIMIT = 6
 private const val FILE_CANDIDATE_LIMIT = 8
 private const val SEARCH_DEBOUNCE_MS = 200L
-/** Keep in sync with [SearchPanelOverlayWindow] dismiss hide delay. */
-internal const val SEARCH_PANEL_ANIM_MS = 320
+/** 呼出时抢输入框焦点的重试次数：窗口焦点可能早于输入框进入组合。 */
+private const val SEARCH_PANEL_IME_FOCUS_ATTEMPTS = 3
+/**
+ * 面板呼出 / 退出的过渡时长，同时作为 [SearchPanelOverlayWindow] 退出后的收尾隐藏延迟。
+ *
+ * 超过 200ms 呼出会有明显「慢」的感觉，压到 0 又会像闪一下，这里取 140ms。
+ */
+internal const val SEARCH_PANEL_ANIM_MS = 140
 
 /** 单行搜索框粘贴多行文本时，换行符会导致 TextField 内容不可见。 */
 private fun normalizeSearchPanelQuery(input: String): String =
@@ -685,8 +692,13 @@ fun SearchPanelScreen(
     val dismissPreviewForBack by rememberUpdatedState(newValue = { dismissPreview() })
     DisposableEffect(Unit) {
         SearchPanelSessionState.onBackPressed = { dismissPreviewForBack() }
+        // 供浮层窗口在「窗口获得焦点」的第一时间抢焦点，绕开 Compose 重组延迟。
+        SearchPanelSessionState.focusSearchTextField = {
+            runCatching { focusRequester.requestFocus() }.isSuccess
+        }
         onDispose {
             SearchPanelSessionState.onBackPressed = null
+            SearchPanelSessionState.focusSearchTextField = null
         }
     }
 
@@ -700,11 +712,30 @@ fun SearchPanelScreen(
                 lastQuery = SearchPanelSessionState.lastTextQuery,
             )
             debouncedQuery = if (textFieldValue.text.isBlank()) "" else textFieldValue.text
-            kotlinx.coroutines.delay(100)
-            focusRequester.requestFocus()
-            keyboardController?.show()
         }
         wasPanelVisible = visible
+    }
+
+    // 文本搜索时让窗口保持「获得焦点即弹键盘」（窗口隐藏时不生效），图片模式关掉。
+    // 提前常驻这个标志，窗口真正获得焦点的那一刻系统就会弹键盘，不用等我们后面再请求。
+    LaunchedEffect(mode) {
+        SearchPanelOverlayWindow.updateSoftInputAlwaysVisible(
+            visible = mode == SearchMode.TEXT,
+        )
+    }
+
+    // 焦点与输入法：呼出即抢输入框焦点，并按固定节奏补发几次输入法请求（覆盖窗口焦点稍晚到的情况）。
+    LaunchedEffect(visibilityState.targetState, mode) {
+        if (!visibilityState.targetState || mode != SearchMode.TEXT) return@LaunchedEffect
+        var focused = false
+        repeat(SEARCH_PANEL_IME_FOCUS_ATTEMPTS) { attempt ->
+            if (focused) return@repeat
+            focused = runCatching { focusRequester.requestFocus() }.isSuccess
+            if (!focused && attempt < SEARCH_PANEL_IME_FOCUS_ATTEMPTS - 1) {
+                withFrameNanos { }
+            }
+        }
+        SearchPanelOverlayWindow.requestImeShow()
     }
 
     fun persistTextQuery() {

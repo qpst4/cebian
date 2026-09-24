@@ -10,7 +10,10 @@ import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
 import android.view.WindowManager
+import android.view.inputmethod.InputMethodManager
 import android.widget.FrameLayout
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.ui.platform.ComposeView
 import androidx.lifecycle.setViewTreeLifecycleOwner
@@ -29,7 +32,12 @@ import kotlin.math.roundToInt
 
 object SearchPanelOverlayWindow {
     private const val TAG = "SearchPanelOverlay"
+    private const val IME_RETRY_DELAY_MS = 90L
+    private const val IME_MAX_ATTEMPTS = 4
+    private const val IME_FOCUS_RETRY_DELAY_MS = 16L
     private val mainHandler = Handler(Looper.getMainLooper())
+    /** 文本模式呼出期间为 true：窗口一拿到焦点就抢输入框焦点并请求输入法。 */
+    private var imeOnWindowFocusEnabled = false
     private var windowManager: WindowManager? = null
     private var composeViewRef = java.lang.ref.WeakReference<FrameLayout>(null)
     private var composeView: FrameLayout?
@@ -113,6 +121,11 @@ object SearchPanelOverlayWindow {
             }
             OverlaySceneController.onContentPanelShown()
             scheduleBringFloatBallAbovePanels()
+            // 面板已经开着时再次呼出（例如键盘被返回键收起后）：把键盘重新拉起来。
+            if (imeOnWindowFocusEnabled) {
+                focusSearchFieldSoon()
+                requestImeShow()
+            }
             return true
         }
         if (!PermissionHelper.isAccessibilityServiceEnabledForOverlays(context)) {
@@ -227,6 +240,87 @@ object SearchPanelOverlayWindow {
         return nativeBlurActive
     }
 
+    /**
+     * 文本搜索呼出时让窗口「获得焦点即弹出输入法」，图片模式或收起时关掉。
+     *
+     * 交给系统判断弹出时机，省掉自己请求输入法的竞态；图片模式没有可编辑控件，不该弹。
+     */
+    fun updateSoftInputAlwaysVisible(visible: Boolean) {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { updateSoftInputAlwaysVisible(visible) }
+            return
+        }
+        val wm = windowManager ?: return
+        val view = composeView ?: return
+        val params = layoutParams ?: return
+        val flag = WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE
+        imeOnWindowFocusEnabled = visible
+        val flagOn = params.softInputMode and flag != 0
+        if (flagOn == visible) return
+        params.softInputMode = if (visible) {
+            params.softInputMode or flag
+        } else {
+            params.softInputMode and flag.inv()
+        }
+        runCatching { wm.updateViewLayout(view, params) }
+    }
+
+    /**
+     * 明确请求显示输入法。窗口已获得焦点时调用，越早越好。
+     *
+     * 部分机型 / 输入法会吞掉第一次请求，这里按 [IME_RETRY_DELAY_MS] 间隔最多补发 [IME_MAX_ATTEMPTS] 次；
+     * 已经可见就不再打扰。
+     */
+    fun requestImeShow() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { requestImeShow() }
+            return
+        }
+        var issued = 0
+        fun issue() {
+            val view = composeView ?: return
+            if (issued > 0 && isImeVisible(view)) return
+            showIme(view)
+            issued++
+            if (issued < IME_MAX_ATTEMPTS) {
+                view.postDelayed({ issue() }, IME_RETRY_DELAY_MS)
+            }
+        }
+        issue()
+    }
+
+    /**
+     * 窗口刚拿到焦点时调用：抢搜索框焦点并请求输入法。
+     *
+     * 直接挂窗口焦点回调（View 级）而不是等 Compose 的 `isWindowFocused` 重组，能早 1~3 帧发出请求。
+     */
+    private fun onWindowFocusGained() {
+        if (!imeOnWindowFocusEnabled) return
+        focusSearchFieldSoon()
+        requestImeShow()
+    }
+
+    private fun focusSearchFieldSoon(attempt: Int = 0) {
+        val view = composeView ?: return
+        val focused = SearchPanelSessionState.focusSearchTextField?.invoke() == true
+        if (focused || attempt >= IME_MAX_ATTEMPTS - 1) return
+        // 输入框可能还没进入组合，下一帧再试。
+        view.postDelayed({ focusSearchFieldSoon(attempt + 1) }, IME_FOCUS_RETRY_DELAY_MS)
+    }
+
+    private fun isImeVisible(view: View): Boolean =
+        ViewCompat.getRootWindowInsets(view)?.isVisible(WindowInsetsCompat.Type.ime()) == true
+
+    private fun showIme(view: View) {
+        val controller = view.windowInsetsController
+        val requested = controller != null && runCatching {
+            controller.show(WindowInsetsCompat.Type.ime())
+        }.isSuccess
+        if (requested) return
+        val imm = view.context.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+        runCatching { imm?.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT) }
+    }
+
     /** Invisible prefetch shell: must not intercept touches beneath the system UI. */
     private fun applyPanelShellPassive() {
         val wm = windowManager ?: return
@@ -275,6 +369,10 @@ object SearchPanelOverlayWindow {
             isFocusable = true
             isFocusableInTouchMode = true
             visibility = View.GONE
+            // 窗口一拿到焦点就尽早抢焦点并请求输入法（不等 Compose 重组）。
+            viewTreeObserver.addOnWindowFocusChangeListener { hasFocus ->
+                if (hasFocus) onWindowFocusGained()
+            }
             setViewTreeLifecycleOwner(owner)
             setViewTreeSavedStateRegistryOwner(owner)
             val cv = OverlayCompose.createComposeView(hostContext, owner!!).apply {
@@ -352,6 +450,7 @@ object SearchPanelOverlayWindow {
         windowManager = null
         layoutParams = null
         nativeBlurActive = false
+        imeOnWindowFocusEnabled = false
         panelVisibilityState = null
         screenOffDismissReceiver.unregister()
         appContext = null
