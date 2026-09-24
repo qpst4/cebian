@@ -2805,6 +2805,16 @@
     <string name="search_panel_expand_more_files">展开更多文件</string>
     <string name="search_panel_expand_more_settings">展开更多设置</string>
     <string name="search_panel_collapse">收起</string>
+    <string name="search_panel_card_expand">展开</string>
+    <string name="search_panel_card_search_history">搜索历史</string>
+    <string name="search_panel_card_local_apps">本地应用</string>
+    <string name="search_panel_card_links">链接</string>
+    <string name="search_panel_card_calculator">计算器</string>
+    <string name="search_panel_card_web_suggestions">网络联想</string>
+    <string name="search_panel_card_search_engines">搜索引擎</string>
+    <string name="search_panel_card_contacts">联系人</string>
+    <string name="search_panel_card_files">文件</string>
+    <string name="search_panel_card_settings">系统设置</string>
     <string name="search_panel_web_suggestions_title">网络联想建议</string>
     <string name="search_panel_web_suggestions_desc">输入时从 Google 获取搜索联想词</string>
     <string name="search_panel_web_suggestions_count_title">联想建议数量</string>

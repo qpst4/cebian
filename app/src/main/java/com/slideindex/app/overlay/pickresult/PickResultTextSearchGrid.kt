@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.BoxWithConstraints
 import com.slideindex.app.overlay.overlayIsLandscape
 import androidx.compose.foundation.gestures.Orientation
@@ -22,6 +23,7 @@ import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -139,6 +141,9 @@ fun PickResultTextSearchGrid(
     onEngineClick: (SearchEngineConfig, Boolean) -> Unit,
     modifier: Modifier = Modifier,
     longPressEnabled: Boolean = false,
+    showPageIndicator: Boolean = false,
+    pageIndicatorTopPadding: Dp = 8.dp,
+    pageIndicatorBottomPadding: Dp = 6.dp,
 ) {
     if (engines.isEmpty()) return
     val isLandscape = overlayIsLandscape()
@@ -204,6 +209,55 @@ fun PickResultTextSearchGrid(
                     onEngineClick = onEngineClick,
                 )
             }
+            if (showPageIndicator && pages.size > 1) {
+                PickResultSearchGridPageIndicator(
+                    pageCount = pages.size,
+                    currentPage = pagerState.currentPage,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = pageIndicatorTopPadding, bottom = pageIndicatorBottomPadding),
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PickResultSearchGridPageIndicator(
+    pageCount: Int,
+    currentPage: Int,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        repeat(pageCount) { index ->
+            val selected = index == currentPage
+            Box(
+                modifier = Modifier
+                    .padding(horizontal = 3.dp)
+                    .then(
+                        if (selected) {
+                            Modifier
+                                .width(16.dp)
+                                .height(4.dp)
+                                .clip(RoundedCornerShape(50))
+                        } else {
+                            Modifier
+                                .size(4.dp)
+                                .clip(CircleShape)
+                        },
+                    )
+                    .background(
+                        if (selected) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f)
+                        },
+                    ),
+            )
         }
     }
 }

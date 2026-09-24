@@ -2779,6 +2779,16 @@ Questions: open a GitHub Issue on the project repository.</string>
     <string name="search_panel_expand_more_files">Show more files</string>
     <string name="search_panel_expand_more_settings">Show more settings</string>
     <string name="search_panel_collapse">Collapse</string>
+    <string name="search_panel_card_expand">Expand</string>
+    <string name="search_panel_card_search_history">Search history</string>
+    <string name="search_panel_card_local_apps">Local apps</string>
+    <string name="search_panel_card_links">Links</string>
+    <string name="search_panel_card_calculator">Calculator</string>
+    <string name="search_panel_card_web_suggestions">Web suggestions</string>
+    <string name="search_panel_card_search_engines">Search engines</string>
+    <string name="search_panel_card_contacts">Contacts</string>
+    <string name="search_panel_card_files">Files</string>
+    <string name="search_panel_card_settings">System settings</string>
     <string name="search_panel_web_suggestions_title">Web suggestions</string>
     <string name="search_panel_web_suggestions_desc">Fetch search suggestions from Google while typing</string>
     <string name="search_panel_web_suggestions_count_title">Suggestion count</string>

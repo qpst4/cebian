@@ -100,8 +100,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-private val CardShape = RoundedCornerShape(16.dp)
 private const val INITIAL_VISIBLE_COUNT = 1
+private const val HISTORY_INITIAL_VISIBLE_COUNT = 3
 private const val APP_LIST_INITIAL_VISIBLE_COUNT = 3
 private val ExpandedCardMaxHeight = 280.dp
 private val LeadingSlotSize = 40.dp
@@ -128,14 +128,10 @@ fun SearchPanelCalculatorCard(
     }
     SearchPanelGroupedResultCard(
         modifier = modifier,
+        sectionTitle = stringResource(R.string.search_panel_card_calculator),
+        itemCount = 1,
         scrollWhenExpanded = false,
         maxHeight = ExpandedCardMaxHeight,
-        showExpandMore = false,
-        onExpandMore = {},
-        showCollapse = false,
-        onCollapse = {},
-        expandLabel = "",
-        collapseLabel = "",
     ) {
         Column(
             modifier = Modifier
@@ -179,15 +175,11 @@ fun SearchPanelLinkResultCards(
 ) {
     if (urls.isEmpty()) return
     SearchPanelGroupedResultCard(
-        modifier = modifier.padding(horizontal = 16.dp),
+        modifier = modifier,
+        sectionTitle = stringResource(R.string.search_panel_card_links),
+        itemCount = urls.size,
         scrollWhenExpanded = urls.size > 4,
         maxHeight = ExpandedCardMaxHeight,
-        showExpandMore = false,
-        onExpandMore = {},
-        showCollapse = false,
-        onCollapse = {},
-        expandLabel = "",
-        collapseLabel = "",
     ) {
         urls.forEachIndexed { index, url ->
             val host = remember(url) { PickResultUrl.linkDisplayLabel(url) }
@@ -215,10 +207,15 @@ fun SearchPanelWebSuggestionsCard(
     onSuggestionClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    var expanded by remember(suggestions) { mutableStateOf(false) }
     SearchPanelQueryListCard(
         queries = suggestions,
         leadingIcon = Icons.Rounded.NorthWest,
         onQueryClick = onSuggestionClick,
+        sectionTitle = stringResource(R.string.search_panel_card_web_suggestions),
+        expanded = expanded,
+        onExpandedChange = { expanded = it },
+        collapseThreshold = 4,
         modifier = modifier,
     )
 }
@@ -227,12 +224,18 @@ fun SearchPanelWebSuggestionsCard(
 fun SearchPanelSearchHistoryCard(
     queries: List<String>,
     onQueryClick: (String) -> Unit,
+    expanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     SearchPanelQueryListCard(
         queries = queries,
         leadingIcon = Icons.Outlined.History,
         onQueryClick = onQueryClick,
+        sectionTitle = stringResource(R.string.search_panel_card_search_history),
+        expanded = expanded,
+        onExpandedChange = onExpandedChange,
+        collapseThreshold = HISTORY_INITIAL_VISIBLE_COUNT,
         modifier = modifier,
     )
 }
@@ -242,21 +245,30 @@ private fun SearchPanelQueryListCard(
     queries: List<String>,
     leadingIcon: androidx.compose.ui.graphics.vector.ImageVector,
     onQueryClick: (String) -> Unit,
+    sectionTitle: String,
+    expanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit,
+    collapseThreshold: Int,
     modifier: Modifier = Modifier,
 ) {
     if (queries.isEmpty()) return
+    val displayQueries = if (expanded) queries else queries.take(collapseThreshold)
+    val canExpand = queries.size > collapseThreshold
     SearchPanelGroupedResultCard(
-        modifier = modifier.padding(horizontal = 16.dp),
-        scrollWhenExpanded = queries.size > 4,
+        modifier = modifier,
+        sectionTitle = sectionTitle,
+        itemCount = queries.size,
+        expanded = expanded,
+        onToggleExpand = if (canExpand) {
+            { onExpandedChange(!expanded) }
+        } else {
+            null
+        },
+        collapseThreshold = collapseThreshold,
+        scrollWhenExpanded = expanded && queries.size > collapseThreshold,
         maxHeight = ExpandedCardMaxHeight,
-        showExpandMore = false,
-        onExpandMore = {},
-        showCollapse = false,
-        onCollapse = {},
-        expandLabel = "",
-        collapseLabel = "",
     ) {
-        queries.forEachIndexed { index, query ->
+        displayQueries.forEachIndexed { index, query ->
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -268,8 +280,14 @@ private fun SearchPanelQueryListCard(
                 Icon(
                     imageVector = leadingIcon,
                     contentDescription = null,
-                    modifier = Modifier.size(20.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier
+                        .size(32.dp)
+                        .background(
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                            CircleShape,
+                        )
+                        .padding(6.dp),
+                    tint = MaterialTheme.colorScheme.primary,
                 )
                 Text(
                     text = query,
@@ -337,15 +355,14 @@ private fun SearchPanelAppIconStrip(
     longPressEnabled: Boolean = false,
 ) {
     SearchPanelGroupedResultCard(
-        modifier = modifier.padding(horizontal = 16.dp),
+        modifier = modifier,
+        sectionTitle = stringResource(R.string.search_panel_card_local_apps),
+        itemCount = apps.size,
+        expanded = true,
+        onToggleExpand = null,
+        collapseThreshold = apps.size,
         scrollWhenExpanded = false,
         maxHeight = ExpandedCardMaxHeight,
-        showExpandMore = false,
-        onExpandMore = {},
-        showCollapse = false,
-        onCollapse = {},
-        expandLabel = "",
-        collapseLabel = "",
     ) {
         Row(
             modifier = Modifier
@@ -410,19 +427,20 @@ private fun SearchPanelAppListCards(
     longPressEnabled: Boolean = false,
 ) {
     val displayApps = if (expanded) apps else apps.take(APP_LIST_INITIAL_VISIBLE_COUNT)
-    val showExpand = !expanded && apps.size > APP_LIST_INITIAL_VISIBLE_COUNT
-    val showCollapse = expanded && apps.size > APP_LIST_INITIAL_VISIBLE_COUNT
 
     SearchPanelGroupedResultCard(
-        modifier = modifier.padding(horizontal = 16.dp),
+        modifier = modifier,
+        sectionTitle = stringResource(R.string.search_panel_card_local_apps),
+        itemCount = apps.size,
+        expanded = expanded,
+        onToggleExpand = if (apps.size > APP_LIST_INITIAL_VISIBLE_COUNT) {
+            { onExpandedChange(!expanded) }
+        } else {
+            null
+        },
+        collapseThreshold = APP_LIST_INITIAL_VISIBLE_COUNT,
         scrollWhenExpanded = expanded && apps.size > APP_LIST_INITIAL_VISIBLE_COUNT,
         maxHeight = ExpandedCardMaxHeight,
-        showExpandMore = showExpand,
-        onExpandMore = { onExpandedChange(true) },
-        showCollapse = showCollapse,
-        onCollapse = { onExpandedChange(false) },
-        expandLabel = stringResource(R.string.search_panel_expand_more_apps),
-        collapseLabel = stringResource(R.string.search_panel_collapse),
     ) {
         displayApps.forEachIndexed { index, app ->
             val context = LocalContext.current
@@ -525,19 +543,20 @@ fun SearchPanelSettingsResultCards(
 ) {
     if (entries.isEmpty()) return
     val displayEntries = if (expanded) entries else entries.take(INITIAL_VISIBLE_COUNT)
-    val showExpand = !expanded && entries.size > INITIAL_VISIBLE_COUNT
-    val showCollapse = expanded && entries.size > INITIAL_VISIBLE_COUNT
 
     SearchPanelGroupedResultCard(
-        modifier = modifier.padding(horizontal = 16.dp),
+        modifier = modifier,
+        sectionTitle = stringResource(R.string.search_panel_card_settings),
+        itemCount = entries.size,
+        expanded = expanded,
+        onToggleExpand = if (entries.size > INITIAL_VISIBLE_COUNT) {
+            { onExpandedChange(!expanded) }
+        } else {
+            null
+        },
+        collapseThreshold = INITIAL_VISIBLE_COUNT,
         scrollWhenExpanded = expanded && entries.size > INITIAL_VISIBLE_COUNT,
         maxHeight = ExpandedCardMaxHeight,
-        showExpandMore = showExpand,
-        onExpandMore = { onExpandedChange(true) },
-        showCollapse = showCollapse,
-        onCollapse = { onExpandedChange(false) },
-        expandLabel = stringResource(R.string.search_panel_expand_more_settings),
-        collapseLabel = stringResource(R.string.search_panel_collapse),
     ) {
         displayEntries.forEachIndexed { index, entry ->
             SearchPanelResultCard(
@@ -571,19 +590,20 @@ fun SearchPanelContactResultCards(
 ) {
     if (contacts.isEmpty()) return
     val displayContacts = if (expanded) contacts else contacts.take(INITIAL_VISIBLE_COUNT)
-    val showExpand = !expanded && contacts.size > INITIAL_VISIBLE_COUNT
-    val showCollapse = expanded && contacts.size > INITIAL_VISIBLE_COUNT
 
     SearchPanelGroupedResultCard(
-        modifier = modifier.padding(horizontal = 16.dp),
+        modifier = modifier,
+        sectionTitle = stringResource(R.string.search_panel_card_contacts),
+        itemCount = contacts.size,
+        expanded = expanded,
+        onToggleExpand = if (contacts.size > INITIAL_VISIBLE_COUNT) {
+            { onExpandedChange(!expanded) }
+        } else {
+            null
+        },
+        collapseThreshold = INITIAL_VISIBLE_COUNT,
         scrollWhenExpanded = expanded && contacts.size > INITIAL_VISIBLE_COUNT,
         maxHeight = ExpandedCardMaxHeight,
-        showExpandMore = showExpand,
-        onExpandMore = { onExpandedChange(true) },
-        showCollapse = showCollapse,
-        onCollapse = { onExpandedChange(false) },
-        expandLabel = stringResource(R.string.search_panel_expand_more_contacts),
-        collapseLabel = stringResource(R.string.search_panel_collapse),
     ) {
         displayContacts.forEachIndexed { index, contact ->
             SearchPanelContactResultRow(
@@ -614,19 +634,20 @@ fun SearchPanelFileResultCards(
 ) {
     if (files.isEmpty()) return
     val displayFiles = if (expanded) files else files.take(INITIAL_VISIBLE_COUNT)
-    val showExpand = !expanded && files.size > INITIAL_VISIBLE_COUNT
-    val showCollapse = expanded && files.size > INITIAL_VISIBLE_COUNT
 
     SearchPanelGroupedResultCard(
-        modifier = modifier.padding(horizontal = 16.dp),
+        modifier = modifier,
+        sectionTitle = stringResource(R.string.search_panel_card_files),
+        itemCount = files.size,
+        expanded = expanded,
+        onToggleExpand = if (files.size > INITIAL_VISIBLE_COUNT) {
+            { onExpandedChange(!expanded) }
+        } else {
+            null
+        },
+        collapseThreshold = INITIAL_VISIBLE_COUNT,
         scrollWhenExpanded = expanded && files.size > INITIAL_VISIBLE_COUNT,
         maxHeight = ExpandedCardMaxHeight,
-        showExpandMore = showExpand,
-        onExpandMore = { onExpandedChange(true) },
-        showCollapse = showCollapse,
-        onCollapse = { onExpandedChange(false) },
-        expandLabel = stringResource(R.string.search_panel_expand_more_files),
-        collapseLabel = stringResource(R.string.search_panel_collapse),
     ) {
         displayFiles.forEachIndexed { index, file ->
             SearchPanelResultCard(
@@ -656,9 +677,7 @@ fun SearchPanelPermissionResultCard(
     onRequestPermission: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp),
-    ) {
+    SearchPanelFrostedCard(modifier = modifier) {
         SearchPanelResultCard(
             title = label,
             subtitle = null,
@@ -673,25 +692,29 @@ fun SearchPanelPermissionResultCard(
 @Composable
 private fun SearchPanelGroupedResultCard(
     modifier: Modifier = Modifier,
+    sectionTitle: String? = null,
+    itemCount: Int = 0,
+    expanded: Boolean = true,
+    onToggleExpand: (() -> Unit)? = null,
+    collapseThreshold: Int = INITIAL_VISIBLE_COUNT,
     scrollWhenExpanded: Boolean,
     maxHeight: Dp,
-    showExpandMore: Boolean,
-    onExpandMore: () -> Unit,
-    showCollapse: Boolean,
-    onCollapse: () -> Unit,
-    expandLabel: String,
-    collapseLabel: String,
     content: @Composable () -> Unit,
 ) {
     val scrollState = rememberScrollState()
-    Surface(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(CardShape),
-        shape = CardShape,
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.92f),
-        tonalElevation = 1.dp,
-    ) {
+    val showExpandControl = sectionTitle != null &&
+        onToggleExpand != null &&
+        itemCount > collapseThreshold
+    SearchPanelFrostedCard(modifier = modifier) {
+        if (sectionTitle != null) {
+            SearchPanelSectionCardHeader(
+                title = sectionTitle,
+                count = itemCount,
+                expanded = expanded,
+                showExpandControl = showExpandControl,
+                onToggleExpand = onToggleExpand ?: {},
+            )
+        }
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -712,49 +735,7 @@ private fun SearchPanelGroupedResultCard(
                 ),
         ) {
             content()
-            if (showExpandMore) {
-                ExpandCollapseButton(
-                    label = expandLabel,
-                    expand = true,
-                    onClick = onExpandMore,
-                )
-            }
-            if (showCollapse) {
-                ExpandCollapseButton(
-                    label = collapseLabel,
-                    expand = false,
-                    onClick = onCollapse,
-                )
-            }
         }
-    }
-}
-
-@Composable
-private fun ExpandCollapseButton(
-    label: String,
-    expand: Boolean,
-    onClick: () -> Unit,
-) {
-    TextButton(
-        onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 4.dp),
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.primary,
-        )
-        Icon(
-            imageVector = if (expand) Icons.Rounded.ExpandMore else Icons.Rounded.ExpandLess,
-            contentDescription = null,
-            modifier = Modifier
-                .padding(start = 4.dp)
-                .size(18.dp),
-            tint = MaterialTheme.colorScheme.primary,
-        )
     }
 }
 

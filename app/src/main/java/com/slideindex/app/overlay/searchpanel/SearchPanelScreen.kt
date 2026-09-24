@@ -23,6 +23,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -59,8 +60,8 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
@@ -77,6 +78,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
@@ -122,7 +124,6 @@ import com.slideindex.app.overlay.overlayIsLandscape
 import com.slideindex.app.overlay.pasteIntoTextFieldValue
 import com.slideindex.app.overlay.pickresult.PickResultTextSearchGrid
 import com.slideindex.app.overlay.pickresult.PickResultUrl
-import com.slideindex.app.overlay.pickresult.searchGridContentHeight
 import com.slideindex.app.overlay.rememberOverlaySelectionToolbarState
 import com.slideindex.app.overlay.suppressSystemTextContextMenu
 import com.slideindex.app.overlay.viewportModifier
@@ -247,6 +248,7 @@ fun SearchPanelScreen(
     var filesExpanded by remember { mutableStateOf(false) }
     var appsExpanded by remember { mutableStateOf(false) }
     var settingsExpanded by remember { mutableStateOf(false) }
+    var historyExpanded by remember { mutableStateOf(false) }
     var manuallySwitchedToNumberKeyboard by remember { mutableStateOf(false) }
     var backgroundBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var usesNativeWindowBlur by remember { mutableStateOf(false) }
@@ -426,6 +428,7 @@ fun SearchPanelScreen(
         filesExpanded = false
         appsExpanded = false
         settingsExpanded = false
+        historyExpanded = false
     }
 
     LaunchedEffect(textQuery) {
@@ -906,17 +909,6 @@ fun SearchPanelScreen(
             || backgroundStyle == SearchPanelBackgroundStyle.WALLPAPER_BLUR)
     val hasBlurBackground = showBitmapBackground || usesNativeWindowBlur
     val showDimMask = dimAlpha > 0f
-    val panelShape = if (isFullscreen) {
-        RectangleShape
-    } else {
-        RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
-    }
-    val panelSurfaceColor = when {
-        !showDimMask && !hasBlurBackground -> MaterialTheme.colorScheme.surface
-        backgroundStyle == SearchPanelBackgroundStyle.BLACK ->
-            MaterialTheme.colorScheme.surface.copy(alpha = 0.92f)
-        else -> MaterialTheme.colorScheme.surface.copy(alpha = 0.72f)
-    }
     val panelAnimSpec = tween<Float>(SEARCH_PANEL_ANIM_MS, easing = FastOutSlowInEasing)
     val panelSlideSpec = tween<IntOffset>(SEARCH_PANEL_ANIM_MS, easing = FastOutSlowInEasing)
     val enterTransition = if (isFullscreen) {
@@ -949,7 +941,7 @@ fun SearchPanelScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .then(
-                        if (!isFullscreen && showDimMask) {
+                        if (showDimMask) {
                             Modifier.background(Color.Black.copy(alpha = dimAlpha))
                         } else {
                             Modifier
@@ -961,22 +953,13 @@ fun SearchPanelScreen(
                         onClick = ::dismissPanel,
                     ),
             ) {
-                if (isFullscreen) {
-                    if (showBitmapBackground) {
-                        Image(
-                            bitmap = backgroundBitmap!!.asImageBitmap(),
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize(),
-                        )
-                    }
-                    if (showDimMask) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(Color.Black.copy(alpha = dimAlpha)),
-                        )
-                    }
+                if (showBitmapBackground) {
+                    Image(
+                        bitmap = backgroundBitmap!!.asImageBitmap(),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize(),
+                    )
                 }
             }
         }
@@ -1001,25 +984,24 @@ fun SearchPanelScreen(
                     .overlayBottomPanelHeightCap()
             }
             BoxWithConstraints(modifier = panelModifier) {
+                val panelMaxHeight = maxHeight
                 val hasQueryCandidates = mode == SearchMode.TEXT && textQuery.isNotBlank()
                 val hasCandidatePanel = hasQueryCandidates || showHistoryPanel
-                // Bottom panel always wraps; only fullscreen uses flex tall-anchor.
-                // Bottom-up order is list reverse + BottomCenter, not a stretched empty slot.
-                val useFlexLayout = isFullscreen
-                val gridHeight = searchGridContentHeight(
+                val engineDockHeight = SearchPanelEngineDockHeight(
                     rows = settings.searchEngineGridRows,
                     showLabels = settings.searchEngineShowLabels,
                     columns = settings.searchEngineGridColumns,
                 )
-                val topSectionHeight = if (mode == SearchMode.IMAGE) {
+                val forceTallPanel = isFullscreen || mode == SearchMode.IMAGE
+                val searchFieldBlockHeight = if (mode == SearchMode.IMAGE) {
                     if (isLandscape) landscapeImagePreviewMaxHeight else 240.dp
                 } else {
                     72.dp
                 }
-                val verticalPadding = 26.dp
-                val candidateScrollMaxHeight = (maxHeight - topSectionHeight - gridHeight - verticalPadding)
-                    .coerceAtLeast(0.dp)
-                val forceTallPanel = isFullscreen || mode == SearchMode.IMAGE
+                val panelVerticalPadding = 24.dp
+                val middleScrollMaxHeight = (
+                    panelMaxHeight - engineDockHeight - searchFieldBlockHeight - panelVerticalPadding
+                    ).coerceAtLeast(0.dp)
 
                 Box(
                     modifier = Modifier
@@ -1028,65 +1010,37 @@ fun SearchPanelScreen(
                             if (isFullscreen) {
                                 Modifier.fillMaxSize()
                             } else if (forceTallPanel) {
-                                Modifier.height(maxHeight)
+                                Modifier.height(panelMaxHeight)
                             } else {
                                 Modifier
                             },
+                        )
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = {},
                         ),
                 ) {
-                    if (!isFullscreen && showBitmapBackground) {
-                        Image(
-                            bitmap = backgroundBitmap!!.asImageBitmap(),
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .matchParentSize()
-                                .clip(panelShape),
-                        )
-                    }
-                    if (!isFullscreen && showDimMask) {
-                        Box(
-                            modifier = Modifier
-                                .matchParentSize()
-                                .clip(panelShape)
-                                .background(Color.Black.copy(alpha = dimAlpha)),
-                        )
-                    }
-
-                    Surface(
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .then(
-                                if (isFullscreen || forceTallPanel) {
+                                if (isFullscreen) {
                                     Modifier.fillMaxSize()
                                 } else {
-                                    Modifier
+                                    Modifier.height(panelMaxHeight)
                                 },
                             )
-                            .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null,
-                                onClick = {},
+                            .padding(
+                                horizontal = SearchPanelCardHorizontalPadding,
+                                vertical = 12.dp,
                             ),
-                        shape = panelShape,
-                        color = panelSurfaceColor,
-                        tonalElevation = if (showDimMask || hasBlurBackground) 0.dp else 8.dp,
+                        verticalArrangement = Arrangement.spacedBy(SearchPanelCardVerticalSpacing),
+                        horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .then(
-                                    if (isFullscreen || forceTallPanel) {
-                                        Modifier.fillMaxSize()
-                                    } else {
-                                        Modifier
-                                    },
-                                )
-                                .padding(top = 16.dp, bottom = 10.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                        ) {
                             val searchFieldBlock: @Composable () -> Unit = {
-                                Crossfade(targetState = mode, label = "SearchModeCrossfade") { currentMode ->
+                                SearchPanelFrostedCard {
+                                    Crossfade(targetState = mode, label = "SearchModeCrossfade") { currentMode ->
                                     when (currentMode) {
                                         SearchMode.TEXT -> {
                                             val toolbarState = rememberOverlaySelectionToolbarState()
@@ -1114,14 +1068,14 @@ fun SearchPanelScreen(
                                                     .fillMaxWidth()
                                                     .then(Modifier.viewportModifier(toolbarState)),
                                             ) {
-                                                OutlinedTextField(
+                                                TextField(
                                                     value = textFieldValue,
                                                     onValueChange = { updated ->
                                                         applyTextFieldInput(updated)
                                                     },
                                                     modifier = Modifier
                                                         .fillMaxWidth()
-                                                        .padding(horizontal = 16.dp)
+                                                        .padding(horizontal = 4.dp)
                                                         .focusRequester(focusRequester)
                                                         .suppressSystemTextContextMenu()
                                                         .onPreviewKeyEvent { event ->
@@ -1235,8 +1189,16 @@ fun SearchPanelScreen(
                                                             }
                                                         }
                                                     },
-                                                    shape = RoundedCornerShape(24.dp),
+                                                    shape = RoundedCornerShape(28.dp),
                                                     singleLine = true,
+                                                    colors = TextFieldDefaults.colors(
+                                                        focusedContainerColor = Color.Transparent,
+                                                        unfocusedContainerColor = Color.Transparent,
+                                                        disabledContainerColor = Color.Transparent,
+                                                        focusedIndicatorColor = Color.Transparent,
+                                                        unfocusedIndicatorColor = Color.Transparent,
+                                                        disabledIndicatorColor = Color.Transparent,
+                                                    ),
                                                     keyboardOptions = KeyboardOptions(
                                                         keyboardType = searchKeyboardType,
                                                         imeAction = ImeAction.Search,
@@ -1262,10 +1224,12 @@ fun SearchPanelScreen(
                                             Box(
                                                 modifier = Modifier
                                                     .fillMaxWidth()
-                                                    .padding(horizontal = 16.dp)
+                                                    .padding(horizontal = 8.dp, vertical = 8.dp)
                                                     .heightIn(min = 120.dp, max = imagePreviewMaxHeight)
                                                     .clip(RoundedCornerShape(16.dp))
-                                                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                                                    .background(
+                                                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f),
+                                                    ),
                                                 contentAlignment = Alignment.Center,
                                             ) {
                                                 if (imageBitmap != null) {
@@ -1297,6 +1261,7 @@ fun SearchPanelScreen(
                                         }
                                     }
                                 }
+                            }
                             }
 
 
@@ -1343,19 +1308,14 @@ fun SearchPanelScreen(
                                     LazyColumn(
                                         state = candidateListState,
                                         modifier = Modifier.fillMaxWidth(),
+                                        verticalArrangement = Arrangement.spacedBy(SearchPanelCardVerticalSpacing),
                                     ) {
-                                        if (hasCandidateSection) {
-                                            item(key = "candidate_top_spacer") {
-                                                Spacer(modifier = Modifier.height(10.dp))
-                                            }
-                                        }
                                         items(
                                             count = candidateSectionKeys.size,
                                             key = { candidateSectionKeys[it] },
                                         ) { index ->
                                             when (candidateSectionKeys[index]) {
                                                 "links" -> {
-                                                    Spacer(modifier = Modifier.height(8.dp))
                                                     SearchPanelLinkResultCards(
                                                         urls = linkUrls,
                                                         onOpenUrl = ::openUrl,
@@ -1365,18 +1325,20 @@ fun SearchPanelScreen(
                                                 "calculator" -> {
                                                     val calcResult = calculatorResult
                                                     if (calcResult != null) {
-                                                        Spacer(modifier = Modifier.height(8.dp))
                                                         SearchPanelCalculatorCard(
                                                             expression = textQuery.trim(),
                                                             result = calcResult,
-                                                            modifier = Modifier.padding(horizontal = 16.dp),
                                                         )
                                                     }
                                                 }
                                                 "history" -> {
-                                                    Spacer(modifier = Modifier.height(8.dp))
                                                     SearchPanelSearchHistoryCard(
                                                         queries = filteredSearchHistoryQueries,
+                                                        expanded = historyExpanded,
+                                                        onExpandedChange = { expanded ->
+                                                            if (expanded) hideSearchKeyboard()
+                                                            historyExpanded = expanded
+                                                        },
                                                         onQueryClick = { query ->
                                                             textFieldValue = TextFieldValue(
                                                                 text = query,
@@ -1388,7 +1350,6 @@ fun SearchPanelScreen(
                                                     )
                                                 }
                                                 "apps" -> {
-                                                    Spacer(modifier = Modifier.height(8.dp))
                                                     SearchPanelAppResultCards(
                                                         apps = appCandidates,
                                                         style = settings.searchPanelAppDisplayStyle,
@@ -1404,7 +1365,6 @@ fun SearchPanelScreen(
                                                     )
                                                 }
                                                 "file_permission" -> {
-                                                    Spacer(modifier = Modifier.height(8.dp))
                                                     SearchPanelPermissionResultCard(
                                                         label = stringResource(
                                                             R.string.search_panel_file_permission_prompt,
@@ -1421,7 +1381,6 @@ fun SearchPanelScreen(
                                                     )
                                                 }
                                                 "files" -> {
-                                                    Spacer(modifier = Modifier.height(8.dp))
                                                     SearchPanelFileResultCards(
                                                         files = fileCandidates,
                                                         expanded = filesExpanded,
@@ -1434,7 +1393,6 @@ fun SearchPanelScreen(
                                                     )
                                                 }
                                                 "contact_permission" -> {
-                                                    Spacer(modifier = Modifier.height(8.dp))
                                                     SearchPanelPermissionResultCard(
                                                         label = stringResource(
                                                             R.string.search_panel_contact_permission_prompt,
@@ -1451,7 +1409,6 @@ fun SearchPanelScreen(
                                                     )
                                                 }
                                                 "contacts" -> {
-                                                    Spacer(modifier = Modifier.height(8.dp))
                                                     SearchPanelContactResultCards(
                                                         contacts = contactCandidates,
                                                         expanded = contactsExpanded,
@@ -1466,7 +1423,6 @@ fun SearchPanelScreen(
                                                     )
                                                 }
                                                 "settings" -> {
-                                                    Spacer(modifier = Modifier.height(8.dp))
                                                     SearchPanelSettingsResultCards(
                                                         entries = settingsCandidates,
                                                         expanded = settingsExpanded,
@@ -1479,7 +1435,6 @@ fun SearchPanelScreen(
                                                     )
                                                 }
                                                 "web_suggestions" -> {
-                                                    Spacer(modifier = Modifier.height(8.dp))
                                                     SearchPanelWebSuggestionsCard(
                                                         suggestions = webSuggestions,
                                                         onSuggestionClick = { suggestion ->
@@ -1502,30 +1457,23 @@ fun SearchPanelScreen(
                                                 }
                                             }
                                         }
-                                        if (hasCandidateSection) {
-                                            item(key = "candidate_bottom_divider") {
-                                                Spacer(modifier = Modifier.height(10.dp))
-                                                HorizontalDivider(
-                                                    modifier = Modifier.padding(horizontal = 16.dp),
-                                                    color = MaterialTheme.colorScheme.outlineVariant.copy(
-                                                        alpha = 0.45f,
-                                                    ),
-                                                )
-                                            }
-                                        }
                                     }
                                 }
                             }
 
-                            val candidatesSlot: @Composable ColumnScope.(flex: Boolean) -> Unit = { flex ->
+                            val candidatesSlot: @Composable ColumnScope.() -> Unit = {
                                 Box(
-                                    modifier = when {
-                                        flex -> Modifier.weight(1f, fill = true).fillMaxWidth()
-                                        hasCandidatePanel -> Modifier
-                                            .fillMaxWidth()
-                                            .heightIn(max = candidateScrollMaxHeight)
-                                        else -> Modifier.fillMaxWidth()
-                                    },
+                                    modifier = Modifier
+                                        .weight(1f, fill = true)
+                                        .fillMaxWidth()
+                                        .clipToBounds()
+                                        .then(
+                                            if (hasCandidatePanel && !forceTallPanel && !isFullscreen) {
+                                                Modifier.heightIn(max = middleScrollMaxHeight)
+                                            } else {
+                                                Modifier
+                                            },
+                                        ),
                                     contentAlignment = if (bottomUpListOrder) {
                                         Alignment.BottomCenter
                                     } else {
@@ -1567,36 +1515,42 @@ fun SearchPanelScreen(
                                 } else {
                                     listOf(aggregateSearchEngine) + imageEngines
                                 }
-                                PickResultTextSearchGrid(
-                                    engines = activeEngines,
-                                    query = if (mode == SearchMode.TEXT) {
-                                        textQuery
-                                    } else if (imageBitmap != null) {
-                                        "image"
-                                    } else {
-                                        ""
-                                    },
-                                    columns = settings.searchEngineGridColumns,
-                                    rows = settings.searchEngineGridRows,
-                                    showLabels = settings.searchEngineShowLabels,
-                                    longPressEnabled = longPressEnabled,
-                                    onEngineClick = { engine, longPressTriggered ->
-                                        launchSearchEngine(engine, longPressTriggered)
-                                    },
-                                )
+                                SearchPanelEngineDockCard(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .heightIn(min = engineDockHeight),
+                                ) {
+                                    PickResultTextSearchGrid(
+                                        engines = activeEngines,
+                                        query = if (mode == SearchMode.TEXT) {
+                                            textQuery
+                                        } else if (imageBitmap != null) {
+                                            "image"
+                                        } else {
+                                            ""
+                                        },
+                                        columns = settings.searchEngineGridColumns,
+                                        rows = settings.searchEngineGridRows,
+                                        showLabels = settings.searchEngineShowLabels,
+                                        longPressEnabled = longPressEnabled,
+                                        showPageIndicator = true,
+                                        pageIndicatorTopPadding = 4.dp,
+                                        pageIndicatorBottomPadding = 2.dp,
+                                        onEngineClick = { engine, longPressTriggered ->
+                                            launchSearchEngine(engine, longPressTriggered)
+                                        },
+                                    )
+                                }
                             }
 
                             if (!barAtBottom) {
                                 searchFieldBlock()
-                                candidatesSlot(useFlexLayout)
+                                candidatesSlot()
                                 actionPillsBlock()
-                                Spacer(modifier = Modifier.height(16.dp))
                                 engineGridBlock()
                             } else {
-                                // Wrap: candidates (heightIn) → engines → search, panel hugs IME.
-                                candidatesSlot(useFlexLayout)
+                                candidatesSlot()
                                 actionPillsBlock()
-                                Spacer(modifier = Modifier.height(16.dp))
                                 engineGridBlock()
                                 searchFieldBlock()
                             }
@@ -1604,7 +1558,6 @@ fun SearchPanelScreen(
                     }
                 }
             }
-        }
 
         previewFile?.let { previewTarget ->
             FilePreviewBottomSheet(
