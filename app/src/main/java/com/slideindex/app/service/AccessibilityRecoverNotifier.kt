@@ -1,5 +1,6 @@
 package com.slideindex.app.service
 
+import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -56,6 +57,9 @@ object AccessibilityRecoverNotifier {
      *
      * 同一次掉线只发一条；[clearOffline] 之后才允许再发。
      */
+    // 发送前已用 areNotificationsEnabled() 确认通知开关（含 POST_NOTIFICATIONS），
+    // 但 lint 的 MissingPermission 不认这条守卫；与本仓库 RemindAlarmScheduler / ForegroundAppTracker 同款做法。
+    @SuppressLint("MissingPermission")
     fun notifyOffline(context: Context) {
         val appContext = context.applicationContext
         if (offlineNotificationShown) return
