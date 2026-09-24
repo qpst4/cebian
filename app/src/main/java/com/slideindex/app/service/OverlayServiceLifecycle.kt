@@ -45,7 +45,7 @@ object OverlayServiceLifecycle {
      * 在任何门禁判定前优先自动写回系统设置，确保冷启动与强停后能自动秒开授权；
      * 只要手势总开关开着且系统里已开启无障碍但实际未连接，就尝试 nudge 抖动重绑。
      */
-    fun recoverAccessibilityBinding(context: Context, settings: AppSettings): AccessibilityRecoverOutcome {
+    suspend fun recoverAccessibilityBinding(context: Context, settings: AppSettings): AccessibilityRecoverOutcome {
         if (!settings.serviceEnabled) return AccessibilityRecoverOutcome.NotNeeded
         val appContext = context.applicationContext
 
@@ -61,6 +61,8 @@ object OverlayServiceLifecycle {
                 // 这种状态必须重写条目才会重新绑定，否则防被杀等于没生效。
                 if (!SlideIndexAccessibilityService.isConnected()) {
                     tryNudgeAccessibilityRebindThrottled(appContext)
+                    // 系统 bind 是异步的：等几秒看是否真的连上，否则会把刚发起的重绑误判成失败。
+                    awaitAccessibilityConnected()
                 }
             }
         }
@@ -85,6 +87,7 @@ object OverlayServiceLifecycle {
                     "WRITE_SECURE_SETTINGS required for silent rebind",
             )
         }
+        awaitAccessibilityConnected()
         return if (SlideIndexAccessibilityService.isConnected()) {
             AccessibilityRecoverOutcome.Connected
         } else {
@@ -115,7 +118,7 @@ object OverlayServiceLifecycle {
         }
     }
 
-    private fun tryNudgeAccessibilityRebind(context: Context): Boolean {
+    private suspend fun tryNudgeAccessibilityRebind(context: Context): Boolean {
         if (SlideIndexAccessibilityService.isConnected()) return true
         if (!PermissionHelper.isAccessibilityServiceEnabled(context)) return false
         if (!SecureSettingsHelper.hasWriteSecureSettings(context)) {
@@ -127,12 +130,27 @@ object OverlayServiceLifecycle {
 
     private val nudgeThrottle = NudgeThrottle()
 
-    private fun tryNudgeAccessibilityRebindThrottled(context: Context): Boolean {
+    private suspend fun tryNudgeAccessibilityRebindThrottled(context: Context): Boolean {
         if (!nudgeThrottle.beginIfDue(SystemClock.elapsedRealtime())) return false
         return tryNudgeAccessibilityRebind(context)
     }
 
+    /** 重绑写入之后等连接真正建立（系统 bind 是异步的，最多等 [timeoutMs]）。 */
+    private suspend fun awaitAccessibilityConnected(
+        timeoutMs: Long = REBIND_VERIFY_TIMEOUT_MS,
+    ): Boolean {
+        val deadline = SystemClock.elapsedRealtime() + timeoutMs
+        while (true) {
+            if (SlideIndexAccessibilityService.isConnected()) return true
+            if (SystemClock.elapsedRealtime() >= deadline) return false
+            delay(REBIND_VERIFY_POLL_MS)
+        }
+    }
+
     private val APP_LAUNCH_REBIND_DELAYS_MS = longArrayOf(800L, 2_000L, 5_000L)
+
+    private const val REBIND_VERIFY_TIMEOUT_MS = 5_000L
+    private const val REBIND_VERIFY_POLL_MS = 250L
 
     private const val TAG = "OverlayServiceLifecycle"
 }

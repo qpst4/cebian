@@ -8,10 +8,16 @@ import android.os.Build
 import android.provider.Settings
 import android.text.TextUtils
 import com.slideindex.app.service.SlideIndexAccessibilityService
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 object SecureSettingsHelper {
 
     const val PERMISSION = Manifest.permission.WRITE_SECURE_SETTINGS
+
+    /** 重绑时两次写之间的默认间隔：覆盖安装/被杀之后，系统需要观察到一次真正的「解绑」。 */
+    const val DEFAULT_REBIND_GAP_MS = 800L
+    private const val MIN_REBIND_GAP_MS = 300L
 
     fun hasWriteSecureSettings(context: Context): Boolean =
         context.checkSelfPermission(PERMISSION) == PackageManager.PERMISSION_GRANTED
@@ -71,8 +77,19 @@ object SecureSettingsHelper {
     /**
      * Toggles our accessibility entry in Secure settings so the system re-binds the service.
      * Use when settings show enabled but [SlideIndexAccessibilityService] is not connected yet.
+     *
+     * 两次写之间必须有足够间隔（[gapMs]）：AccessibilityManagerService 的 ContentObserver 会把挨在
+     * 一起的两次写合并成一次，等于没有解绑，系统也就不会重新绑定（实测 60ms 无效、3s 有效）。
+     * 间隔在 IO 线程上阻塞等待，调用方保持挂起，不阻塞主线程。
      */
-    fun nudgeAccessibilityRebind(context: Context): Boolean {
+    suspend fun nudgeAccessibilityRebind(
+        context: Context,
+        gapMs: Long = DEFAULT_REBIND_GAP_MS,
+    ): Boolean = withContext(Dispatchers.IO) {
+        nudgeAccessibilityRebindBlocking(context, gapMs)
+    }
+
+    private fun nudgeAccessibilityRebindBlocking(context: Context, gapMs: Long): Boolean {
         if (!hasWriteSecureSettings(context)) return false
         if (!PermissionHelper.isAccessibilityServiceEnabled(context)) return false
         if (SlideIndexAccessibilityService.isConnected()) return true
@@ -101,12 +118,11 @@ object SecureSettingsHelper {
             Settings.Secure.putInt(resolver, Settings.Secure.ACCESSIBILITY_ENABLED, 0)
         }
 
-        // 异步短暂延迟（60ms），确保系统 ContentObserver 与 AMS 能捕获到解绑事件，避免被系统合并丢弃
-        if (android.os.Looper.myLooper() != android.os.Looper.getMainLooper()) {
-            try {
-                Thread.sleep(60L)
-            } catch (_: InterruptedException) {
-            }
+        // 给系统留出观察到「解绑」的时间：间隔太短会被 ContentObserver 合并，服务不会重绑。
+        try {
+            Thread.sleep(gapMs.coerceAtLeast(MIN_REBIND_GAP_MS))
+        } catch (_: InterruptedException) {
+            Thread.currentThread().interrupt()
         }
 
         val restored = others.toMutableSet()
