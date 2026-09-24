@@ -11,6 +11,7 @@ import android.view.WindowManager
 import android.widget.FrameLayout
 import com.slideindex.app.data.AppRepository
 import com.slideindex.app.overlay.EdgeSystemGestureExclusionView
+import com.slideindex.app.overlay.ModuleForwardedTouchGate
 import com.slideindex.app.overlay.OverlayPassthrough
 import com.slideindex.app.overlay.OverlayScreenMetrics
 import com.slideindex.app.overlay.OverlayWindowTypes
@@ -691,6 +692,8 @@ internal class CornerGestureController(
     }
 
     private fun performTapPassthrough(rawX: Float, rawY: Float) {
+        // 输入层接管期间禁止注入放行：注入事件会再次进入模块的过滤器，形成回环。
+        if (ModuleForwardedTouchGate.isRecent()) return
         OverlayPassthrough.run(
             hideTriggers = {
                 restoreCaptureSize()

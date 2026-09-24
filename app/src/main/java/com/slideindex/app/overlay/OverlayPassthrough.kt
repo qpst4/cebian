@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 object OverlayPassthrough {
     private const val TAG = "OverlayPassthrough"
     private val mainHandler = Handler(Looper.getMainLooper())
+    private val echoGuard = PassthroughEchoGuard()
 
     fun run(
         hideTriggers: () -> Unit,
@@ -23,6 +24,12 @@ object OverlayPassthrough {
         framesBeforeInject: Int = DEFAULT_FRAMES_BEFORE_INJECT,
         restoreDelayMs: Long = DEFAULT_RESTORE_DELAY_MS
     ) {
+        // 上一次注入的回声如果又落回触发器，就不要再放行一次，否则隐藏/恢复会自持成抽搐。
+        if (echoGuard.isEcho(rawX, rawY)) {
+            Log.i(TAG, "passthrough echo suppressed at ($rawX, $rawY)")
+            onComplete()
+            return
+        }
         hideTriggers()
         val restored = AtomicBoolean(false)
         var safetyRestore: Runnable? = null
@@ -45,6 +52,8 @@ object OverlayPassthrough {
         val scheduleInject = {
             runAfterNextFrames(frames = framesBeforeInject) {
                 try {
+                    // 注入前记录位置：这一下的回声不允许再次触发放行。
+                    echoGuard.arm(rawX, rawY)
                     InputTapUtil.dispatchTapAsync(rawX, rawY, onFinished = { ok ->
                         if (!ok) {
                             Log.w(TAG, "dispatchTapAsync failed at ($rawX, $rawY)")

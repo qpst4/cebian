@@ -282,6 +282,11 @@ internal class SideOverlayWindowManager(
             removeOverlayView(slot.view)
         }
         touchCaptureWindows.clear()
+        // 兜底：同步路径曾用「只清表不动 WM」的方式收尾，留下过一批无人管理、却仍然可触摸的触钮窗。
+        // 这类残窗会吞掉点击穿透注入的那一拍（穿透失效），并再次触发同一个放行动作（自持抽搐）。
+        trackedWmViews.toList()
+            .filterIsInstance<EdgeTouchCaptureView>()
+            .forEach { removeOverlayView(it) }
     }
 
     fun reattachCaptureWindows() {
@@ -344,10 +349,11 @@ internal class SideOverlayWindowManager(
     ) {
         if (!forceLayout && overlayLayoutSuspended()) return
         if (presentation.presentationShouldPassthroughTouches()) {
+            // applyToWindowManager=false 表示调用方明确要求不动 WindowManager，此时追踪表也必须保持原样：
+            // 清表会让窗口变成「没人管却还挂着」的幽灵窗（吞掉点击穿透），
+            // 而摘窗又会让后续 reattachCaptureWindows() 无从回贴（触钮消失）。
             if (applyToWindowManager) {
                 detachTouchCaptureViewsOnly()
-            } else {
-                touchCaptureWindows.clear()
             }
             exclusionWindows.clear()
             presentation.syncOverlayDialogZOrder()
