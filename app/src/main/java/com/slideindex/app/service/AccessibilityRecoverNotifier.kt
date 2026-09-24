@@ -60,8 +60,8 @@ object AccessibilityRecoverNotifier {
         val appContext = context.applicationContext
         if (offlineNotificationShown) return
         if (!PermissionHelper.isAccessibilityServiceEnabled(appContext)) return
-        val manager = NotificationManagerCompat.from(appContext)
-        if (!manager.areNotificationsEnabled()) return
+        // 先确认通知开关（含 POST_NOTIFICATIONS）再直接发送：与 StashPinNotificationHelper 同款写法。
+        if (!NotificationManagerCompat.from(appContext).areNotificationsEnabled()) return
         ensureChannel(appContext)
         val contentIntent = PendingIntent.getActivity(
             appContext,
@@ -80,8 +80,8 @@ object AccessibilityRecoverNotifier {
             .setAutoCancel(true)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .build()
-        val posted = runCatching { manager.notify(NOTIFICATION_ID, notification) }.isSuccess
-        if (posted) offlineNotificationShown = true
+        NotificationManagerCompat.from(appContext).notify(NOTIFICATION_ID, notification)
+        offlineNotificationShown = true
     }
 
     /** 服务重新连上（或总开关被关掉）时清掉提示，并允许下一轮掉线再提示。 */
