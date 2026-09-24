@@ -8,6 +8,14 @@ package com.slideindex.app.xposed.bridge;
  */
 interface IModuleGestureBridge {
     /**
+     * app 侧边缘 overlay 宿主是否就绪（无障碍服务已连上且 overlay 宿主已建立）。
+     *
+     * 宿主未就绪时 `canAcceptTouch` / `canAcceptTouchAt` 一律返回 false，模块应完全放行；
+     * 这个方法只用于让模块侧的状态显示如实反映「桥已连但接管仍不生效」。
+     */
+    boolean isHostReady();
+
+    /**
      * 同步询问 app 当前是否真的能处理该边的接管触摸（宿主未就绪、边被隐藏时返回 false）。
      * 模块据此在吞掉 DOWN 之前决定放行，避免事件被吞掉却无人处理。
      */

@@ -26,6 +26,7 @@ class ModuleHookBridgeReceiver : BroadcastReceiver() {
         ModuleBridgeStatusStore.write(
           context = context,
           active = intent.getBooleanExtra(ModuleHookBridgeContract.EXTRA_STATUS_ACTIVE, false),
+          state = intent.getStringExtra(ModuleHookBridgeContract.EXTRA_STATUS_STATE).orEmpty(),
           detail = intent.getStringExtra(ModuleHookBridgeContract.EXTRA_STATUS_DETAIL).orEmpty(),
         )
       }

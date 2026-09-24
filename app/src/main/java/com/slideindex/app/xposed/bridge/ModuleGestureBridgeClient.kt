@@ -36,29 +36,41 @@ class ModuleGestureBridgeClient(
     override fun onServiceDisconnected(name: ComponentName?) {
       bridge = null
       binding = false
+      lastBindAttemptAtMs = 0L
       log("module gesture bridge disconnected")
     }
 
     override fun onBindingDied(name: ComponentName?) {
       bridge = null
       binding = false
+      lastBindAttemptAtMs = 0L
       log("module gesture bridge binding died")
     }
 
     override fun onNullBinding(name: ComponentName?) {
-      // app 侧宿主未就绪时会返回 null，这里复位以便稍后重试。
+      // app 侧宿主未就绪时会返回 null。连接此时已作废，显式解绑再等待重试，
+      // 避免一直挂在"空绑定"状态（配合宿主就绪广播可立刻恢复）。
       bridge = null
       binding = false
-      log("module gesture bridge null binding, will retry")
+      lastBindAttemptAtMs = 0L
+      releaseDeadConnection()
+      log("module gesture bridge null binding, unbound and will retry")
     }
+  }
+
+  /** 丢弃作废的绑定；失败只记日志，不影响后续重试。 */
+  private fun releaseDeadConnection() {
+    runCatching { context.unbindService(connection) }
+      .onFailure { log("module gesture bridge unbind failed: ${it.message}") }
   }
 
   val isConnected: Boolean get() = bridge != null
 
-  fun ensureBound() {
+  /** [force] 为 true 时忽略重试冷却（宿主就绪广播等"值得立刻重试"的时机）。 */
+  fun ensureBound(force: Boolean = false) {
     if (bridge != null) return
     val now = SystemClock.elapsedRealtime()
-    if (now - lastBindAttemptAtMs < BIND_RETRY_COOLDOWN_MS) return
+    if (!force && now - lastBindAttemptAtMs < BIND_RETRY_COOLDOWN_MS) return
     lastBindAttemptAtMs = now
     binding = true
     runCatching {
@@ -105,6 +117,20 @@ class ModuleGestureBridgeClient(
     val target = bridge ?: return false
     return runCatching { target.canAcceptTouch(sideId) }.getOrElse {
       log("module gesture bridge canAcceptTouch failed: ${it.message}")
+      false
+    }
+  }
+
+  /**
+   * app 侧边缘 overlay 宿主是否就绪。
+   *
+   * 桥已连接但宿主没起来时，接管同样不该生效；状态显示据此区分
+   * 「模块就绪但未生效」和「接管已生效」。
+   */
+  fun isHostReady(): Boolean {
+    val target = bridge ?: return false
+    return runCatching { target.isHostReady() }.getOrElse {
+      log("module gesture bridge isHostReady failed: ${it.message}")
       false
     }
   }

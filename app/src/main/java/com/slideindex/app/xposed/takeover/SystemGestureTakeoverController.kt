@@ -83,13 +83,31 @@ internal class SystemGestureTakeoverController(
   }
 
   fun statusDetail(): String {
-    val snapshot = snapshot() ?: return "no-config"
-    if (snapshot.takeoverGroups == 0) return "disabled"
+    val snapshot = snapshot() ?: return STATUS_NO_CONFIG
+    if (snapshot.takeoverGroups == 0) return STATUS_DISABLED
     if (!bridge.isConnected) {
       bridge.ensureBound()
-      return "bridge-pending"
+      return STATUS_BRIDGE_PENDING
     }
-    return "ready:${snapshot.takeoverGroups}"
+    // 桥连上了不代表能接管：app 侧 overlay 宿主没就绪时 canAcceptTouch* 一律 false，
+    // 此时接管同样不会发生，必须如实报告，不能沿用旧的"桥在手就算 ready"。
+    if (!bridge.isHostReady()) return STATUS_HOST_NOT_READY
+    return "$STATUS_READY_PREFIX:${snapshot.takeoverGroups}"
+  }
+
+  /**
+   * app 侧广播宿主就绪状态变化。
+   *
+   * - 就绪：立刻补一次绑定（绕过重试冷却），并清掉能力缓存，让随后的 DOWN 现场复核。
+   * - 失活：立刻结束可能存在的吞流会话，避免事件被吞掉却没人处理。
+   */
+  fun onHostStateChanged(ready: Boolean) {
+    lastCapabilityCheckedAtMs = 0L
+    if (ready) {
+      bridge.ensureBound(force = true)
+      return
+    }
+    endActiveSession(TakeoverSessionPolicy.REASON_RESET)
   }
 
   private fun handleEventInternal(event: MotionEvent, policyFlags: Int): Boolean {
@@ -200,6 +218,21 @@ internal class SystemGestureTakeoverController(
 
   companion object {
     private const val NAVIGATION_MODE_KEY = "navigation_mode"
+
+    /** 控制器状态串：还没读到 app 下发的配置快照。 */
+    const val STATUS_NO_CONFIG = "no-config"
+
+    /** 控制器状态串：三个接管开关全关。 */
+    const val STATUS_DISABLED = "disabled"
+
+    /** 控制器状态串：app 事件桥还没连上（正在重试绑定）。 */
+    const val STATUS_BRIDGE_PENDING = "bridge-pending"
+
+    /** 控制器状态串：桥已连上，但 app 侧 overlay 宿主没就绪，接管仍不会发生。 */
+    const val STATUS_HOST_NOT_READY = "host-not-ready"
+
+    /** 控制器状态串前缀：`ready:<分组掩码>`，此时接管真的会生效。 */
+    const val STATUS_READY_PREFIX = "ready"
 
     /** `WindowManagerPolicyConstants.POLICY_FLAG_INJECTED`，注入事件一律放行。 */
     private const val POLICY_FLAG_INJECTED = 0x01000000

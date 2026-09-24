@@ -13,10 +13,29 @@ object ModuleHookBridgeContract {
   const val ACTION_CONFIG_SNAPSHOT_REQUEST = "com.slideindex.app.xposed.action.CONFIG_SNAPSHOT_REQUEST"
   const val ACTION_MODULE_STATUS_REQUEST = "com.slideindex.app.xposed.action.MODULE_STATUS_REQUEST"
   const val ACTION_MODULE_STATUS_RESPONSE = "com.slideindex.app.xposed.action.MODULE_STATUS_RESPONSE"
+  /**
+   * app 侧边缘 overlay 宿主就绪状态变化（app → system_server 模块）。
+   *
+   * 模块据此立刻重绑事件桥，或主动放弃正在进行的接管会话；不依赖 2.5s 冷却轮询。
+   */
+  const val ACTION_HOST_STATE_CHANGED = "com.slideindex.app.xposed.action.HOST_STATE_CHANGED"
 
   const val EXTRA_CONFIG_JSON = "config_json"
   const val EXTRA_STATUS_ACTIVE = "status_active"
+  const val EXTRA_STATUS_STATE = "status_state"
   const val EXTRA_STATUS_DETAIL = "status_detail"
+  const val EXTRA_HOST_READY = "host_ready"
+
+  /**
+   * 模块状态三态（随 [EXTRA_STATUS_STATE] 回传，[EXTRA_STATUS_ACTIVE] 仅表示是否 [STATUS_STATE_READY]）。
+   *
+   * - [STATUS_STATE_READY]：接管真的会生效（hook 装齐 + 输入过滤器可用 + 控制器已连上 app 事件桥 + app 宿主就绪）。
+   * - [STATUS_STATE_ARMED]：模块本身装好了，但接管此刻不会生效（事件桥未连、app 宿主未就绪、或开关全关）。
+   * - [STATUS_STATE_NOT_READY]：模块没装齐（hook / 状态通道缺失）。
+   */
+  const val STATUS_STATE_READY = "ready"
+  const val STATUS_STATE_ARMED = "armed"
+  const val STATUS_STATE_NOT_READY = "not-ready"
 
   /** 模块侧绑定的 app 服务；服务声明为 exported 并在入口校验调用方 uid。 */
   const val BRIDGE_SERVICE_ACTION = "com.slideindex.app.xposed.bridge.ModuleGestureBridgeService"

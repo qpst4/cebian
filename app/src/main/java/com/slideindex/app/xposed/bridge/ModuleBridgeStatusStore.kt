@@ -6,12 +6,14 @@ import android.content.Context
 object ModuleBridgeStatusStore {
   private const val PREFS_NAME = "module_bridge_status"
   private const val KEY_ACTIVE = "active"
+  private const val KEY_STATE = "state"
   private const val KEY_DETAIL = "detail"
   private const val KEY_UPDATED_AT = "updated_at"
 
-  fun write(context: Context, active: Boolean, detail: String) {
+  fun write(context: Context, active: Boolean, state: String, detail: String) {
     prefs(context).edit()
       .putBoolean(KEY_ACTIVE, active)
+      .putString(KEY_STATE, state)
       .putString(KEY_DETAIL, detail)
       .putLong(KEY_UPDATED_AT, System.currentTimeMillis())
       .apply()
@@ -19,6 +21,7 @@ object ModuleBridgeStatusStore {
 
   fun read(context: Context): Snapshot = Snapshot(
     active = prefs(context).getBoolean(KEY_ACTIVE, false),
+    state = prefs(context).getString(KEY_STATE, "").orEmpty(),
     detail = prefs(context).getString(KEY_DETAIL, "").orEmpty(),
     updatedAtMs = prefs(context).getLong(KEY_UPDATED_AT, 0L),
   )
@@ -28,6 +31,8 @@ object ModuleBridgeStatusStore {
 
   data class Snapshot(
     val active: Boolean,
+    /** 模块三态：`ready` / `armed` / `not-ready`；旧模块可能为空串。 */
+    val state: String,
     val detail: String,
     val updatedAtMs: Long,
   )

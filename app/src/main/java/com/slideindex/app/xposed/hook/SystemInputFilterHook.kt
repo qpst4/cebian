@@ -309,6 +309,12 @@ class SystemInputFilterHook {
             ensureController()?.requestSnapshotIfNeeded()
             sendStatusResponse(context)
           }
+          ModuleHookBridgeContract.ACTION_HOST_STATE_CHANGED -> {
+            // app 侧 overlay 宿主就绪/失活：就绪时立刻重绑，失活时立刻收掉吞流会话。
+            ensureController()?.onHostStateChanged(
+              intent.getBooleanExtra(ModuleHookBridgeContract.EXTRA_HOST_READY, false),
+            )
+          }
           Intent.ACTION_SCREEN_OFF -> {
             takeoverController?.endActiveSession(TakeoverSessionPolicy.REASON_RESET)
           }
@@ -322,6 +328,7 @@ class SystemInputFilterHook {
     val filter = IntentFilter().apply {
       addAction(ModuleHookBridgeContract.ACTION_CONFIG_CHANGED)
       addAction(ModuleHookBridgeContract.ACTION_MODULE_STATUS_REQUEST)
+      addAction(ModuleHookBridgeContract.ACTION_HOST_STATE_CHANGED)
       addAction(Intent.ACTION_SCREEN_OFF)
       addAction(Intent.ACTION_SCREEN_ON)
       addAction(Intent.ACTION_USER_PRESENT)
@@ -330,37 +337,46 @@ class SystemInputFilterHook {
   }
 
   private fun sendStatusResponse(context: Context, attempt: Int = 0) {
-    val detail = buildStatusDetail()
-    // 桥接刚发起绑定时状态是 bridge-pending，稍等一下再回，避免 app 误判为未生效。
-    if (detail.contains("bridge-pending") && attempt < BRIDGE_WAIT_ATTEMPTS) {
+    val report = buildStatusReport()
+    // 桥在重连中、或 app 宿主刚随进程启动还没挂上时，稍等一下再回，避免 app 误判为故障。
+    val waitForRecovery = report.detail.contains(SystemGestureTakeoverController.STATUS_BRIDGE_PENDING) ||
+      report.detail.contains(SystemGestureTakeoverController.STATUS_HOST_NOT_READY)
+    if (waitForRecovery && attempt < BRIDGE_WAIT_ATTEMPTS) {
       mainHandler.postDelayed(
         { sendStatusResponse(context, attempt + 1) },
         BRIDGE_WAIT_INTERVAL_MS,
       )
       return
     }
-    val active = detail.startsWith("ready")
     runCatching {
       context.sendBroadcast(
         Intent(ModuleHookBridgeContract.ACTION_MODULE_STATUS_RESPONSE).apply {
           setPackage(ModuleHookBridgeContract.MODULE_PACKAGE)
           addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES)
-          putExtra(ModuleHookBridgeContract.EXTRA_STATUS_ACTIVE, active)
-          putExtra(ModuleHookBridgeContract.EXTRA_STATUS_DETAIL, detail)
+          putExtra(ModuleHookBridgeContract.EXTRA_STATUS_ACTIVE, report.state == ACTIVE_STATE)
+          putExtra(ModuleHookBridgeContract.EXTRA_STATUS_STATE, report.state)
+          putExtra(ModuleHookBridgeContract.EXTRA_STATUS_DETAIL, report.detail)
         },
       )
     }.onFailure { XposedLog.w(TAG, "Status response failed: ${it.message}") }
   }
 
+  private data class StatusReport(val state: String, val detail: String)
+
   /**
-   * 状态串：`hook=ok,proxy=ok,enable=ok,start=ok,receiver=ok,controller=<detail>[,errors=...]`。
+   * 状态串：`<state>:hook=ok,proxy=ok,enable=ok,start=ok,receiver=ok,controller=<detail>[,errors=...]`。
    *
-   * `ready` 表示「模块已就绪」：hook/接收器装齐，且已能读到配置快照——**与三个接管开关是否开启无关**。
-   * 开关全关时接管本身不生效，但那不是模块的问题；当前接管到底跑没跑由 `controller=` 段表达
-   * （`disabled` / `bridge-pending` / `ready:<掩码>`）。
+   * 三态（同时随 [ModuleHookBridgeContract.EXTRA_STATUS_STATE] 回传）：
+   *
+   * - `ready`：接管**真的会生效**——hook 装齐、输入过滤器可用、且控制器已连上 app 事件桥并确认 app 宿主就绪。
+   * - `armed`：模块本身装好了，但接管此刻不生效。`controller=` 段给出原因：
+   *   `disabled`（三个开关全关）/ `bridge-pending`（事件桥没连上）/ `host-not-ready`（桥在但 app 宿主没起来）。
+   * - `not-ready`：模块没装齐（hook / 状态通道缺失）。
+   *
+   * 旧实现把 `bridge-pending` 也算 `ready`，于是出现了「状态显示已就绪、实际一个事件都没接管」的假阳性。
    */
-  private fun buildStatusDetail(): String {
-    val controllerDetail = controller?.statusDetail() ?: "no-controller"
+  private fun buildStatusReport(): StatusReport {
+    val controllerDetail = controller?.statusDetail() ?: CONTROLLER_NO_CONTROLLER
     val errors = synchronized(moduleErrors) { moduleErrors.toList() }
     val steps = buildString {
       append("hook=").append(if (filterHookInstalled) "ok" else "fail")
@@ -376,19 +392,22 @@ class SystemInputFilterHook {
         append(",errors=").append(errors.joinToString(" | "))
       }
     }
-    val ready = filterHookInstalled &&
+    val moduleArmed = filterHookInstalled &&
       enableHookInstalled &&
       startHookInstalled &&
-      receiverRegistered &&
-      controllerAvailable(controllerDetail)
-    return if (ready) "ready:$steps" else "not-ready:$steps"
+      receiverRegistered
+    // 吞流靠"原样转发过滤器"（proxy）或 Java 侧 filterInputEvent hook，两者至少要有一个可用。
+    val transportReady = filterHookInstalled || forwardingFilterInstalled
+    val active = moduleArmed &&
+      transportReady &&
+      controllerDetail.startsWith(SystemGestureTakeoverController.STATUS_READY_PREFIX)
+    val state = when {
+      active -> ACTIVE_STATE
+      moduleArmed -> ModuleHookBridgeContract.STATUS_STATE_ARMED
+      else -> ModuleHookBridgeContract.STATUS_STATE_NOT_READY
+    }
+    return StatusReport(state = state, detail = "$state:$steps")
   }
-
-  /** 控制器是否可用：已读到配置快照（`disabled` 表示开关全关，模块本身是好的）。 */
-  private fun controllerAvailable(controllerDetail: String): Boolean =
-    controllerDetail.startsWith("ready") ||
-      controllerDetail == CONTROLLER_DISABLED ||
-      controllerDetail == CONTROLLER_BRIDGE_PENDING
 
   /** 让 native 层的 InputFilter 开关与当前接管开关保持一致。 */
   private fun syncFilterEnabled(takeoverController: SystemGestureTakeoverController) {
@@ -556,8 +575,8 @@ class SystemInputFilterHook {
     const val FILTER_INPUT_EVENT = "filterInputEvent"
     const val SET_INPUT_FILTER_ENABLED = "setInputFilterEnabled"
     const val NATIVE_SET_INPUT_FILTER_ENABLED = "nativeSetInputFilterEnabled"
-    const val CONTROLLER_DISABLED = "disabled"
-    const val CONTROLLER_BRIDGE_PENDING = "bridge-pending"
+    const val CONTROLLER_NO_CONTROLLER = "no-controller"
+    const val ACTIVE_STATE = ModuleHookBridgeContract.STATUS_STATE_READY
     const val RECEIVER_REGISTER_RETRY_MS = 500L
     const val MAX_RECEIVER_REGISTER_ATTEMPTS = 40
     const val BRIDGE_WAIT_ATTEMPTS = 5

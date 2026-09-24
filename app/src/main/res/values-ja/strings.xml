@@ -697,7 +697,9 @@
     <string name="system_gesture_takeover_bottom_desc">上スワイプでホームなど下部のシステムジェスチャを上書き</string>
     <string name="system_gesture_takeover_bottom_three_button_nav">3 ボタンナビのため、下部の引き継ぎは反映されません</string>
     <string name="system_gesture_takeover_module_status">LSPosed モジュールの状態</string>
-    <string name="system_gesture_takeover_module_ready">準備完了：LSPosed モジュール読み込み済み、引き継ぎはスイッチに追従</string>
+    <string name="system_gesture_takeover_module_ready">有効：LSPosed モジュールが入力層の引き継ぎに接続済み、スイッチに追従します</string>
+    <string name="system_gesture_takeover_module_armed">無効：モジュールは読み込み済みですが、引き継ぎが動作していません（イベントブリッジ未接続、またはアプリ側ホスト未準備）</string>
+    <string name="system_gesture_takeover_module_switched_off">未有効：モジュールは準備完了、3 つの引き継ぎスイッチがすべてオフです</string>
     <string name="system_gesture_takeover_module_not_ready">無効：モジュール未読み込み、または android スコープが未選択</string>
     <string name="system_gesture_takeover_module_checking">確認中…</string>
     <string name="system_gesture_takeover_module_tap_hint">タップして LSPosed モジュールの状態を確認</string>

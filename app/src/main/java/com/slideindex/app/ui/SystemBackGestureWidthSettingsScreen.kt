@@ -265,6 +265,12 @@ fun SystemBackGestureWidthSettingsScreen(
                                 moduleChecking -> stringResource(R.string.system_gesture_takeover_module_checking)
                                 moduleState == ModuleBridgeStatusProbe.Status.Ready ->
                                     stringResource(R.string.system_gesture_takeover_module_ready)
+                                moduleState == ModuleBridgeStatusProbe.Status.Armed ->
+                                    stringResource(R.string.system_gesture_takeover_module_armed) +
+                                        moduleDetailSuffix(moduleDetail)
+                                moduleState == ModuleBridgeStatusProbe.Status.SwitchedOff ->
+                                    stringResource(R.string.system_gesture_takeover_module_switched_off) +
+                                        moduleDetailSuffix(moduleDetail)
                                 moduleState == ModuleBridgeStatusProbe.Status.NotReady ->
                                     stringResource(R.string.system_gesture_takeover_module_not_ready) +
                                         moduleDetailSuffix(moduleDetail)

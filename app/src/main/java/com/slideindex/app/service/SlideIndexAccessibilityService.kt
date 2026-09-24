@@ -678,6 +678,7 @@ class SlideIndexAccessibilityService : AccessibilityService() {
         syncMonitoring()
         backTapGestureHost.start(serviceScope)
         GestureToggleTileWarmup.requestListening(this, "a11yConnected")
+        notifyModuleHostState(ready = true)
         Log.i(TAG, "onServiceConnected: edge overlays attached")
     }
 
@@ -751,6 +752,7 @@ class SlideIndexAccessibilityService : AccessibilityService() {
         ScreenSearchFloating.destroy()
         if (::backTapGestureHost.isInitialized) backTapGestureHost.stop()
         instance = null
+        notifyModuleHostState(ready = false)
         return true
     }
 
@@ -769,6 +771,7 @@ class SlideIndexAccessibilityService : AccessibilityService() {
         if (::backTapGestureHost.isInitialized) backTapGestureHost.start(serviceScope)
         syncMonitoring()
         GestureToggleTileWarmup.requestListening(this, "a11yRebound")
+        notifyModuleHostState(ready = true)
     }
 
     override fun onDestroy() {
@@ -786,7 +789,25 @@ class SlideIndexAccessibilityService : AccessibilityService() {
         if (::backTapGestureHost.isInitialized) backTapGestureHost.stop()
         serviceScope.cancel()
         instance = null
+        notifyModuleHostState(ready = false)
         super.onDestroy()
+    }
+
+    /**
+     * 通知 system_server 里的 LSPosed 模块：app 侧边缘 overlay 宿主是否就绪。
+     *
+     * 模块收到 ready 会立刻重绑事件桥（不必等 2.5s 冷却 + 下一次触摸/状态探测），
+     * 收到失活会立刻收掉可能存在的吞流会话。广播内容只有一个布尔值，
+     * 不携带任何用户数据（与配置下发一样是自定义 action 的普通广播）。
+     */
+    private fun notifyModuleHostState(ready: Boolean) {
+        runCatching {
+            sendBroadcast(
+                Intent(ModuleHookBridgeContract.ACTION_HOST_STATE_CHANGED).apply {
+                    putExtra(ModuleHookBridgeContract.EXTRA_HOST_READY, ready)
+                },
+            )
+        }.onFailure { Log.w(TAG, "notifyModuleHostState($ready) failed: ${it.message}") }
     }
 
     internal fun launchPreviousApp(): Boolean = foregroundTracker.launchPreviousApp()

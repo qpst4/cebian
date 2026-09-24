@@ -699,7 +699,9 @@
     <string name="system_gesture_takeover_bottom_desc">覆盖上滑回桌面等底部系统手势</string>
     <string name="system_gesture_takeover_bottom_three_button_nav">当前为三键导航，底部接管不会生效</string>
     <string name="system_gesture_takeover_module_status">LSPosed 模块状态</string>
-    <string name="system_gesture_takeover_module_ready">已就绪：LSPosed 模块已加载，接管随开关即时生效</string>
+    <string name="system_gesture_takeover_module_ready">生效中：LSPosed 模块已连上输入层接管，开关即时生效</string>
+    <string name="system_gesture_takeover_module_armed">未生效：模块已加载，但接管没跑起来（事件桥未连接或宿主未就绪）</string>
+    <string name="system_gesture_takeover_module_switched_off">未启用：模块已就绪，三个接管开关都关着</string>
     <string name="system_gesture_takeover_module_not_ready">未生效：模块未加载或未勾选 android 作用域</string>
     <string name="system_gesture_takeover_module_checking">正在检测…</string>
     <string name="system_gesture_takeover_module_tap_hint">点按检测 LSPosed 模块状态</string>

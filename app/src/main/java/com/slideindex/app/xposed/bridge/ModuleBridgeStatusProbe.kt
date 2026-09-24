@@ -11,7 +11,19 @@ import android.os.Looper
  * 模块未安装/未启用时不会有响应，按超时处理为“未生效”。
  */
 object ModuleBridgeStatusProbe {
-  enum class Status { Ready, NotReady }
+  enum class Status {
+    /** 接管真的会生效：模块已连上事件桥，且 app 侧 overlay 宿主就绪。 */
+    Ready,
+
+    /** 模块已装好，但接管此刻跑不起来（事件桥未连 / app 宿主未就绪）。 */
+    Armed,
+
+    /** 模块已装好，三个接管开关全关——这不是故障，只是没启用。 */
+    SwitchedOff,
+
+    /** 模块没装齐，或压根没回应。 */
+    NotReady,
+  }
 
   private const val TIMEOUT_MS = 2_500L
 
@@ -28,7 +40,7 @@ object ModuleBridgeStatusProbe {
       override fun run() {
         val snapshot = ModuleBridgeStatusStore.read(appContext)
         if (snapshot.updatedAtMs >= requestedAtMs) {
-          callback(if (snapshot.active) Status.Ready else Status.NotReady, snapshot.detail)
+          callback(classify(snapshot), snapshot.detail)
           return
         }
         if (android.os.SystemClock.elapsedRealtime() >= deadline) {
@@ -43,5 +55,17 @@ object ModuleBridgeStatusProbe {
 
   const val NO_RESPONSE = "no-response"
 
+  private fun classify(snapshot: ModuleBridgeStatusStore.Snapshot): Status = when {
+    snapshot.active -> Status.Ready
+    snapshot.state == ModuleHookBridgeContract.STATUS_STATE_ARMED ->
+      if (snapshot.detail.contains(CONTROLLER_DISABLED_MARK)) Status.SwitchedOff else Status.Armed
+    // 旧模块不带 state 字段，只能从状态串前缀推断；认不出来就按未就绪处理（旧行为）。
+    snapshot.detail.startsWith(ARMED_DETAIL_PREFIX) ->
+      if (snapshot.detail.contains(CONTROLLER_DISABLED_MARK)) Status.SwitchedOff else Status.Armed
+    else -> Status.NotReady
+  }
+
+  private const val ARMED_DETAIL_PREFIX = "armed:"
+  private const val CONTROLLER_DISABLED_MARK = "controller=disabled"
   private const val POLL_INTERVAL_MS = 250L
 }

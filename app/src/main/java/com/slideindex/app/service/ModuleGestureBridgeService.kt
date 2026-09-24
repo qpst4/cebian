@@ -17,6 +17,11 @@ import com.slideindex.app.xposed.bridge.IModuleGestureBridge
 class ModuleGestureBridgeService : Service() {
 
   private val binder = object : IModuleGestureBridge.Stub() {
+    override fun isHostReady(): Boolean {
+      if (!enforceTrustedCaller()) return false
+      return SlideIndexAccessibilityService.isOverlayReady()
+    }
+
     override fun canAcceptTouch(sideId: Int): Boolean {
       if (!enforceTrustedCaller()) return false
       return SlideIndexAccessibilityService.canHandleForwardedSide(sideId)
@@ -65,12 +70,19 @@ class ModuleGestureBridgeService : Service() {
     }
   }
 
+  /**
+   * 永远返回 binder。
+   *
+   * 曾经在宿主未就绪时返回 null，结果模块收到 onNullBinding 后只能每 2.5s 重试，
+   * 而宿主稍后就绪也不会被感知——状态显示"已就绪"、实际一次接管都没发生。
+   * 现在改为：绑定恒成立，`isHostReady()` / `canAcceptTouch*` 如实返回 false，
+   * 模块据此完全放行（fail-open），宿主就绪后由 [SlideIndexAccessibilityService] 广播唤醒重绑。
+   */
   override fun onBind(intent: Intent?): IBinder? {
-    if (!SlideIndexAccessibilityService.isOverlayReady()) {
-      // 宿主未就绪时拒绝绑定，模块会退化为完全放行，避免吞掉事件却无人处理。
-      Log.i(TAG, "Overlay host not ready, rejecting module bridge bind")
-      return null
-    }
+    Log.i(
+      TAG,
+      "Module bridge bound, hostReady=${SlideIndexAccessibilityService.isOverlayReady()}",
+    )
     return binder
   }
 
