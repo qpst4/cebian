@@ -41,18 +41,35 @@ internal val SearchPanelCardShape = PickResultPanelCardShape
 internal val SearchPanelCardHorizontalPadding = 12.dp
 internal val SearchPanelCardVerticalSpacing = 10.dp
 
-/** 搜索引擎 dock 固定高度：网格 + 毛玻璃卡内边距 + 分页指示预留（与 [PickResultTextSearchGrid] 解耦布局）。 */
+internal val SearchPanelEngineDockTopPadding = 10.dp
+internal val SearchPanelEngineDockBottomPadding = 2.dp
+internal val SearchPanelPageIndicatorTopPadding = 3.dp
+internal val SearchPanelPageIndicatorBottomPadding = 3.dp
+private val SearchPanelPageIndicatorBodyHeight = 4.dp
+
+/** 搜索引擎 Dock 内容高度（网格 + 内边距；多页时才含分页指示行）。 */
 internal fun SearchPanelEngineDockHeight(
     rows: Int,
     showLabels: Boolean,
     columns: Int,
+    engineCount: Int,
+    showPageIndicator: Boolean,
 ): Dp {
     val gridHeight = com.slideindex.app.overlay.pickresult.searchGridContentHeight(
         rows = rows,
         showLabels = showLabels,
         columns = columns,
     )
-    return gridHeight + 10.dp + 4.dp + 10.dp
+    val pageSize = columns.coerceIn(3, 7) * rows.coerceIn(1, 4)
+    val pageCount = if (engineCount <= 0) 0 else (engineCount + pageSize - 1) / pageSize
+    val indicatorHeight = if (showPageIndicator && pageCount > 1) {
+        SearchPanelPageIndicatorTopPadding +
+            SearchPanelPageIndicatorBodyHeight +
+            SearchPanelPageIndicatorBottomPadding
+    } else {
+        0.dp
+    }
+    return gridHeight + SearchPanelEngineDockTopPadding + SearchPanelEngineDockBottomPadding + indicatorHeight
 }
 
 @Composable
@@ -67,7 +84,10 @@ fun SearchPanelEngineDockCard(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 10.dp, bottom = 4.dp),
+                    .padding(
+                        top = SearchPanelEngineDockTopPadding,
+                        bottom = SearchPanelEngineDockBottomPadding,
+                    ),
                 content = content,
             )
         },
@@ -138,7 +158,8 @@ fun SearchPanelSectionCardHeader(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 10.dp),
+            .padding(horizontal = 16.dp)
+            .padding(top = 8.dp, bottom = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(

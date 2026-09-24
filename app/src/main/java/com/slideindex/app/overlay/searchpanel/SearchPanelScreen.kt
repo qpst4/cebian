@@ -36,6 +36,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -78,7 +79,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
@@ -92,8 +92,10 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.toClipEntry
@@ -987,21 +989,7 @@ fun SearchPanelScreen(
                 val panelMaxHeight = maxHeight
                 val hasQueryCandidates = mode == SearchMode.TEXT && textQuery.isNotBlank()
                 val hasCandidatePanel = hasQueryCandidates || showHistoryPanel
-                val engineDockHeight = SearchPanelEngineDockHeight(
-                    rows = settings.searchEngineGridRows,
-                    showLabels = settings.searchEngineShowLabels,
-                    columns = settings.searchEngineGridColumns,
-                )
                 val forceTallPanel = isFullscreen || mode == SearchMode.IMAGE
-                val searchFieldBlockHeight = if (mode == SearchMode.IMAGE) {
-                    if (isLandscape) landscapeImagePreviewMaxHeight else 240.dp
-                } else {
-                    72.dp
-                }
-                val panelVerticalPadding = 24.dp
-                val middleScrollMaxHeight = (
-                    panelMaxHeight - engineDockHeight - searchFieldBlockHeight - panelVerticalPadding
-                    ).coerceAtLeast(0.dp)
 
                 Box(
                     modifier = Modifier
@@ -1265,6 +1253,12 @@ fun SearchPanelScreen(
                             }
 
 
+                            // 悬浮 chrome 的高度：胶囊 / 引擎 dock / 搜索框叠在列表之上、不占行高，
+                            // 列表底部按实测高度留内边距，滚到底时最后一张卡片仍完整可见。
+                            val actionPillsDensity = LocalDensity.current
+                            var actionPillsHeight by remember { mutableStateOf(0.dp) }
+                            var bottomChromeHeight by remember { mutableStateOf(0.dp) }
+
                             val candidatesContent: @Composable () -> Unit = {
                                 val expandEdge = if (bottomUpListOrder) {
                                     Alignment.Bottom
@@ -1275,7 +1269,7 @@ fun SearchPanelScreen(
                                     visible = hasCandidatePanel,
                                     enter = expandVertically(expandFrom = expandEdge) + fadeIn(),
                                     exit = shrinkVertically(shrinkTowards = expandEdge) + fadeOut(),
-                                    modifier = Modifier.fillMaxWidth(),
+                                    modifier = Modifier.fillMaxSize(),
                                 ) {
                                     val candidateListState = rememberLazyListState()
                                     val candidateSectionKeys = remember(
@@ -1307,7 +1301,11 @@ fun SearchPanelScreen(
                                     }
                                     LazyColumn(
                                         state = candidateListState,
-                                        modifier = Modifier.fillMaxWidth(),
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentPadding = PaddingValues(
+                                            bottom = SearchPanelCardVerticalSpacing +
+                                                if (barAtBottom) bottomChromeHeight else actionPillsHeight,
+                                        ),
                                         verticalArrangement = Arrangement.spacedBy(SearchPanelCardVerticalSpacing),
                                     ) {
                                         items(
@@ -1461,29 +1459,6 @@ fun SearchPanelScreen(
                                 }
                             }
 
-                            val candidatesSlot: @Composable ColumnScope.() -> Unit = {
-                                Box(
-                                    modifier = Modifier
-                                        .weight(1f, fill = true)
-                                        .fillMaxWidth()
-                                        .clipToBounds()
-                                        .then(
-                                            if (hasCandidatePanel && !forceTallPanel && !isFullscreen) {
-                                                Modifier.heightIn(max = middleScrollMaxHeight)
-                                            } else {
-                                                Modifier
-                                            },
-                                        ),
-                                    contentAlignment = if (bottomUpListOrder) {
-                                        Alignment.BottomCenter
-                                    } else {
-                                        Alignment.TopCenter
-                                    },
-                                ) {
-                                    candidatesContent()
-                                }
-                            }
-
                             val actionPillsBlock: @Composable () -> Unit = {
                                 if (mode == SearchMode.TEXT && textQuery.isNotBlank()) {
                                     SearchPanelActionPillsRow(
@@ -1516,9 +1491,7 @@ fun SearchPanelScreen(
                                     listOf(aggregateSearchEngine) + imageEngines
                                 }
                                 SearchPanelEngineDockCard(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .heightIn(min = engineDockHeight),
+                                    modifier = Modifier.fillMaxWidth(),
                                 ) {
                                     PickResultTextSearchGrid(
                                         engines = activeEngines,
@@ -1534,8 +1507,8 @@ fun SearchPanelScreen(
                                         showLabels = settings.searchEngineShowLabels,
                                         longPressEnabled = longPressEnabled,
                                         showPageIndicator = true,
-                                        pageIndicatorTopPadding = 4.dp,
-                                        pageIndicatorBottomPadding = 2.dp,
+                                        pageIndicatorTopPadding = SearchPanelPageIndicatorTopPadding,
+                                        pageIndicatorBottomPadding = SearchPanelPageIndicatorBottomPadding,
                                         onEngineClick = { engine, longPressTriggered ->
                                             launchSearchEngine(engine, longPressTriggered)
                                         },
@@ -1543,16 +1516,75 @@ fun SearchPanelScreen(
                                 }
                             }
 
-                            if (!barAtBottom) {
-                                searchFieldBlock()
-                                candidatesSlot()
-                                actionPillsBlock()
-                                engineGridBlock()
+                            // 搜索框在底部时：引擎 dock 与搜索框一起做真悬浮，叠在列表之上（列表内容从它们后面滑过）。
+                            // 搜索框在顶部时保持原来的布局流，只让操作胶囊悬浮。
+                            val floatingBottomChrome = barAtBottom
+                            val candidatesAndDockBlock: @Composable ColumnScope.() -> Unit = {
+                                Column(
+                                    modifier = Modifier
+                                        .weight(1f, fill = true)
+                                        .fillMaxWidth(),
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f, fill = true)
+                                            .fillMaxWidth(),
+                                    ) {
+                                        // 候选列表：底边按卡片圆角裁切，切口被悬浮卡片盖住。
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .clip(RoundedCornerShape(SearchPanelCardCorner)),
+                                            contentAlignment = if (bottomUpListOrder) {
+                                                Alignment.BottomCenter
+                                            } else {
+                                                Alignment.TopCenter
+                                            },
+                                        ) {
+                                            candidatesContent()
+                                        }
+                                        if (floatingBottomChrome) {
+                                            Column(
+                                                modifier = Modifier
+                                                    .align(Alignment.BottomCenter)
+                                                    .fillMaxWidth()
+                                                    .onSizeChanged {
+                                                        bottomChromeHeight =
+                                                            with(actionPillsDensity) { it.height.toDp() }
+                                                    },
+                                                verticalArrangement = Arrangement.spacedBy(
+                                                    SearchPanelCardVerticalSpacing,
+                                                ),
+                                            ) {
+                                                actionPillsBlock()
+                                                engineGridBlock()
+                                                searchFieldBlock()
+                                            }
+                                        } else {
+                                            // 搜索框在顶部时，只有操作胶囊悬浮在列表底边。
+                                            Box(
+                                                modifier = Modifier
+                                                    .align(Alignment.BottomCenter)
+                                                    .onSizeChanged {
+                                                        actionPillsHeight =
+                                                            with(actionPillsDensity) { it.height.toDp() }
+                                                    },
+                                            ) {
+                                                actionPillsBlock()
+                                            }
+                                        }
+                                    }
+                                    if (!floatingBottomChrome) {
+                                        engineGridBlock()
+                                    }
+                                }
+                            }
+
+                            if (floatingBottomChrome) {
+                                candidatesAndDockBlock()
                             } else {
-                                candidatesSlot()
-                                actionPillsBlock()
-                                engineGridBlock()
                                 searchFieldBlock()
+                                candidatesAndDockBlock()
                             }
                         }
                     }

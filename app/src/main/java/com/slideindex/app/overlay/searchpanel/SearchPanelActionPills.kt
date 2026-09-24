@@ -90,6 +90,7 @@ private fun SearchPanelKeyboardSwitchPill(
         interactionSource = interactionSource,
         shape = RoundedCornerShape(50),
         color = MaterialTheme.colorScheme.surface,
+        shadowElevation = 6.dp,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)),
     ) {
         Text(
@@ -134,6 +135,7 @@ private fun SearchPanelPhoneCallPill(
         interactionSource = interactionSource,
         shape = RoundedCornerShape(50),
         color = MaterialTheme.colorScheme.surface,
+        shadowElevation = 6.dp,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)),
     ) {
         Row(
