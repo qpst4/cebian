@@ -75,6 +75,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
@@ -162,6 +163,7 @@ import com.slideindex.app.settings.launchPolicyLongPressEligible
 import com.slideindex.app.settings.shouldLaunchFullscreen
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
@@ -1037,7 +1039,7 @@ fun SearchPanelScreen(
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null,
-                            onClick = {},
+                            onClick = ::dismissPanel,
                         ),
                 ) {
                     Column(
@@ -1303,6 +1305,15 @@ fun SearchPanelScreen(
                                     modifier = Modifier.fillMaxSize(),
                                 ) {
                                     val candidateListState = rememberLazyListState()
+                                    // 滑动候选列表时自动收起键盘：键盘挡着内容时用户想滚动，就别再让
+                                    // 它跟着面板一起 resize 打架；只在真正发生滚动时收一次。
+                                    LaunchedEffect(candidateListState) {
+                                        snapshotFlow { candidateListState.isScrollInProgress }
+                                            .distinctUntilChanged()
+                                            .collect { scrolling ->
+                                                if (scrolling) hideSearchKeyboard()
+                                            }
+                                    }
                                     val candidateSectionKeys = remember(
                                         linkUrls.isNotEmpty(),
                                         showCalculator,

@@ -121,7 +121,13 @@ fun SearchPanelFrostedCard(
                 clip = false,
             )
             .clip(SearchPanelCardShape)
-            .border(width = 0.5.dp, color = borderColor, shape = SearchPanelCardShape),
+            .border(width = 0.5.dp, color = borderColor, shape = SearchPanelCardShape)
+            // 卡片自己吃掉点击：面板空白处点击退出，但点卡片（非按钮区域）不该退出。
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = {},
+            ),
     ) {
         Box(modifier = Modifier.matchParentSize()) {
             Box(
