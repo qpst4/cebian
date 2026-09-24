@@ -9,6 +9,7 @@ import android.util.Log
 import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
+import android.view.WindowInsets
 import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import android.widget.FrameLayout
@@ -314,11 +315,14 @@ object SearchPanelOverlayWindow {
     private fun showIme(view: View) {
         val controller = view.windowInsetsController
         val requested = controller != null && runCatching {
-            controller.show(WindowInsetsCompat.Type.ime())
+            // 平台 WindowInsetsController 的 show() 期望 android.view.WindowInsets.Type 常量，
+            // 传 WindowInsetsCompat.Type 会被 lint(IncorrectConstant) 判成非法常量。
+            controller.show(WindowInsets.Type.ime())
         }.isSuccess
         if (requested) return
         val imm = view.context.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
-        runCatching { imm?.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT) }
+        // showSoftInput 的 flags 传 0 即可（SHOW_IMPLICIT 已废弃）。
+        runCatching { imm?.showSoftInput(view, 0) }
     }
 
     /** Invisible prefetch shell: must not intercept touches beneath the system UI. */
