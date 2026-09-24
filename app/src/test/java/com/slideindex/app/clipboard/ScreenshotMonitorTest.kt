@@ -53,6 +53,27 @@ class ScreenshotMonitorTest {
         )
     }
 
+    /** 拖拽镜像只是临时落给宿主读的副本，不能当成新截图回流进剪贴板历史。 */
+    @Test
+    fun ignoresDragMirrorCopies() {
+        assertFalse(
+            ScreenshotMonitor.isScreenshotCandidate(
+                displayName = "Screenshot_20260725-175800.png",
+                mimeType = "image/png",
+                relativePath = "Pictures/SlideIndex/DragCache/",
+                dataPath = null,
+            ),
+        )
+        assertFalse(
+            ScreenshotMonitor.isScreenshotCandidate(
+                displayName = "Screenshot_20260725-175800.png",
+                mimeType = "image/png",
+                relativePath = null,
+                dataPath = "/storage/emulated/0/Pictures/SlideIndex/DragCache/Screenshot_20260725-175800.png",
+            ),
+        )
+    }
+
     @Test
     fun rejectsStaleImages() {
         val nowSec = System.currentTimeMillis() / 1000

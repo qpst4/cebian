@@ -140,10 +140,9 @@ internal object PinDragHelper {
             preview = preview,
             onDragStart = onDragStart,
             onDragEnd = onDragEnd,
-            onDragAccepted = { accepted, effectiveClip ->
-                if (!accepted &&
-                    ClipboardDragShareFallback.hasShareableContent(effectiveClip) &&
-                    !ClipboardDragShareFallback.shareToForegroundHost(context, effectiveClip)
+            onDropRejected = {
+                if (ClipboardDragShareFallback.hasShareableContent(clipData) &&
+                    !ClipboardDragShareFallback.shareToForegroundHost(context, clipData)
                 ) {
                     showUnsupported(context)
                 }

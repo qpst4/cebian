@@ -118,10 +118,9 @@ internal fun HistoryClipboardEntryCard(
                 preview = HistoryEntryDragHelper.previewForClipboardEntry(entry, thumbnails),
                 onDragStart = { FloatBallStashPanel.setDragHidden(true) },
                 onDragEnd = { FloatBallStashPanel.setDragHidden(false) },
-                onDragAccepted = { accepted, effectiveClip ->
-                    if (!accepted &&
-                        ClipboardDragShareFallback.hasShareableContent(effectiveClip) &&
-                        !ClipboardDragShareFallback.shareToForegroundHost(context, effectiveClip)
+                onDropRejected = {
+                    if (ClipboardDragShareFallback.hasShareableContent(clipData) &&
+                        !ClipboardDragShareFallback.shareToForegroundHost(context, clipData)
                     ) {
                         onShowMessage(R.string.history_drag_unsupported)
                     }
@@ -334,10 +333,9 @@ internal fun HistoryStashEntryCard(
                 preview = HistoryEntryDragHelper.previewForStashEntry(entry, singleThumb, richThumbnails),
                 onDragStart = { FloatBallStashPanel.setDragHidden(true) },
                 onDragEnd = { FloatBallStashPanel.setDragHidden(false) },
-                onDragAccepted = { accepted, effectiveClip ->
-                    if (!accepted &&
-                        ClipboardDragShareFallback.hasShareableContent(effectiveClip) &&
-                        !ClipboardDragShareFallback.shareToForegroundHost(context, effectiveClip)
+                onDropRejected = {
+                    if (ClipboardDragShareFallback.hasShareableContent(clipData) &&
+                        !ClipboardDragShareFallback.shareToForegroundHost(context, clipData)
                     ) {
                         onShowMessage(R.string.history_drag_unsupported)
                     }

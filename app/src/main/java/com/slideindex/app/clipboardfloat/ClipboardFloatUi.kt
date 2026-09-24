@@ -982,10 +982,9 @@ private fun startClipboardFloatEntryDrag(
         ),
         onDragStart = onDragStart,
         onDragEnd = onDragEnd,
-        onDragAccepted = { accepted, effectiveClip ->
-            if (!accepted &&
-                ClipboardDragShareFallback.hasShareableContent(effectiveClip) &&
-                !ClipboardDragShareFallback.shareToForegroundHost(context, effectiveClip)
+        onDropRejected = {
+            if (ClipboardDragShareFallback.hasShareableContent(clipData) &&
+                !ClipboardDragShareFallback.shareToForegroundHost(context, clipData)
             ) {
                 Toast.makeText(context, R.string.history_drag_unsupported, Toast.LENGTH_SHORT).show()
             }

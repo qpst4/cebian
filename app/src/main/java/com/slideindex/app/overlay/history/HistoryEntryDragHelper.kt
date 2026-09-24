@@ -17,6 +17,7 @@ import android.view.View.DragShadowBuilder
 import com.slideindex.app.clipboard.ClipboardEntry
 import com.slideindex.app.clipboard.ClipboardDragClipHelper
 import com.slideindex.app.clipboard.ClipboardWriter
+import com.slideindex.app.clipboard.DragFileMirror
 import com.slideindex.app.clipboard.resolvedContentBlocks
 import com.slideindex.app.stash.StashEntry
 import com.slideindex.app.stash.StashEntryType
@@ -87,20 +88,34 @@ internal object HistoryEntryDragHelper {
         preview: HistoryDragPreview,
         onDragStart: () -> Unit,
         onDragEnd: () -> Unit,
-        onDragAccepted: ((Boolean, ClipData) -> Unit)? = null,
+        onDropRejected: (() -> Unit)? = null,
     ): Boolean {
         val context = view.context
         val targetPackage = AccessibilityForegroundResolver.resolve(context)
-        val effectiveClip = ClipboardDragClipHelper.remapForHostIfNeeded(
+        val preparation = ClipboardDragClipHelper.remapForHostIfNeeded(
             context = context,
             clipData = clipData,
             hostPackage = targetPackage,
         ) ?: return false
+        val effectiveClip = preparation.clipData
         view.setOnDragListener { _, event ->
             when (event.action) {
                 DragEvent.ACTION_DRAG_STARTED -> onDragStart()
                 DragEvent.ACTION_DRAG_ENDED -> {
-                    onDragAccepted?.invoke(event.result, effectiveClip)
+                    val accepted = event.result
+                    Log.i(
+                        TAG,
+                        "drag ended accepted=$accepted target=$targetPackage " +
+                            "mirrors=${preparation.mirrorSession.mirrors.size}",
+                    )
+                    if (accepted) {
+                        // 宿主接下了这次投放：它松手时已经拿到文件，只留异步拷贝的余量。
+                        preparation.mirrorSession.releaseAfter(DragFileMirror.DROP_RELEASE_GRACE_MS)
+                    } else {
+                        // 没有任何接收方会读这份镜像（分享兜底用的是原始 clip），立即回收。
+                        preparation.mirrorSession.releaseNow()
+                        onDropRejected?.invoke()
+                    }
                     onDragEnd()
                     view.setOnDragListener(null)
                 }

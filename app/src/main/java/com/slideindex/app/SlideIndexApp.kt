@@ -95,7 +95,8 @@ class SlideIndexApp : Application() {
             ServiceEnabledStore.write(this@SlideIndexApp, enabled)
         }
         deps.applicationScope.launch(Dispatchers.IO) {
-            DragFileMirror.purgeExpired(this@SlideIndexApp)
+            // 兜底清理进程被杀留下的拖拽镜像；按年龄判定，任何进程调用都安全。
+            DragFileMirror.purgeOrphans(this@SlideIndexApp)
         }
         deps.applicationScope.launch {
             HistoryFloatLifecycle.syncFromSettings(this@SlideIndexApp, deps.settingsRepository)

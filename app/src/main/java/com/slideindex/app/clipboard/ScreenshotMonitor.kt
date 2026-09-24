@@ -342,6 +342,10 @@ class ScreenshotMonitor(
 
             val rel = relativePath?.lowercase().orEmpty()
             val data = dataPath?.lowercase().orEmpty()
+            // 拖拽给宿主用的临时镜像不进历史：它随时会被回收，收进来的条目只会变成死链。
+            if (rel.contains(DragFileMirror.PATH_MARKER) || data.contains(DragFileMirror.PATH_MARKER)) {
+                return false
+            }
             if (rel.contains("screenshots") || data.contains("/screenshots/")) {
                 return true
             }
