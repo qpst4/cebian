@@ -388,6 +388,9 @@ class SystemInputFilterHook {
       append(",events=").append(eventsSeen.get())
       append(",passed=").append(eventsPassed.get())
       append(",swallowed=").append(eventsSwallowed.get())
+      // 模块代码版本 + 剪贴板白名单 hook 状态：app 侧据此判断"是不是覆盖安装后还没重启"。
+      append(",code=").append(ModuleHookBridgeContract.MODULE_CODE_VERSION)
+      append(",clip=").append(ClipboardWhitelistHook.installStatus)
       if (errors.isNotEmpty()) {
         append(",errors=").append(errors.joinToString(" | "))
       }

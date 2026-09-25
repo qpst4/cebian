@@ -2825,7 +2825,7 @@
     <string name="stash_panel_background_blur">背景ぼかし</string>
     <string name="stash_panel_background_blur_desc">Android 12 以降でパネル背面をぼかし。スクロール中はヘッダーがパネル内コンテンツをぼかします</string>
     <string name="clipboard_background_monitoring_section">バックグラウンド監視</string>
-    <string name="clipboard_background_monitoring_title">バックグラウンドでコピーを監視</string>
+    <string name="clipboard_background_monitoring_title">クリップボードのバックグラウンド監視</string>
     <string name="clipboard_background_monitoring_desc">他アプリからのコピーを自動記録（Shizuku/Root 特権リスナー経由）</string>
     <string name="clipboard_overlay_enabled_title">コピー後プレビュー浮動</string>
     <string name="clipboard_overlay_enabled_desc">テキストや画像をコピーするとシステム風のプレビューを表示します。端末側にも同じ表示がある場合、二重に出ることがあります。</string>

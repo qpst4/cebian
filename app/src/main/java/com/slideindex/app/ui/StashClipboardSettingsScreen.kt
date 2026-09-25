@@ -188,9 +188,6 @@ fun ClipboardHistorySettingsScreen(
         if (it >= 0) it else capacityPresets.indexOf(100).coerceAtLeast(0)
     }
     val monitoringUi = rememberClipboardMonitoringUiState(settings)
-    var readLogsGranted by remember {
-        mutableStateOf(ClipboardPermissionHelper.hasReadLogsPermission(context))
-    }
     var mediaReadGranted by remember {
         mutableStateOf(ClipboardPermissionHelper.hasMediaReadPermission(context))
     }
@@ -227,10 +224,7 @@ fun ClipboardHistorySettingsScreen(
 
     LaunchedEffect(settings.clipboardScreenshotMonitoring) {
         mediaReadGranted = ClipboardPermissionHelper.hasMediaReadPermission(context)
-        readLogsGranted = ClipboardPermissionHelper.hasReadLogsPermission(context)
     }
-
-    var showShizukuReadLogsDialog by remember { mutableStateOf(false) }
 
     val historySectionTitle = stringResource(R.string.stash_clipboard_section_history)
     val pasteBehaviorSectionTitle = stringResource(R.string.clipboard_paste_behavior_section)
@@ -297,72 +291,6 @@ fun ClipboardHistorySettingsScreen(
                 )
             },
         )
-        if (settings.clipboardBackgroundMonitoring) {
-            groupedCardItems(
-                keyPrefix = "clipboard-background-status",
-                items = buildList {
-                    val monitoringMode = settings.effectiveClipboardMonitoringMode()
-                    val backendReady = settings.isClipboardMonitoringBackendReady(monitoringUi)
-                    add(
-                        settingsCardScopeItem("backend-status") {
-                            SettingLinkRow(
-                                title = stringResource(R.string.clipboard_monitor_backend_status_title),
-                                subtitle = when {
-                                    monitoringMode.usesStandardApi ->
-                                        stringResource(R.string.clipboard_monitor_backend_standard_ready)
-                                    monitoringMode.usesRoot && monitoringUi.rootAvailable ->
-                                        stringResource(R.string.clipboard_monitor_backend_root_ready)
-                                    monitoringMode.usesRoot ->
-                                        stringResource(R.string.clipboard_monitor_backend_root_missing)
-                                    monitoringUi.shizukuGranted ->
-                                        stringResource(R.string.clipboard_monitor_backend_shizuku_ready)
-                                    else ->
-                                        stringResource(R.string.clipboard_monitor_backend_shizuku_missing)
-                                },
-                                onClick = {},
-                            )
-                        },
-                    )
-                    add(
-                        settingsCardScopeItem("overlay-status") {
-                            SettingLinkRow(
-                                title = stringResource(R.string.clipboard_monitor_overlay_status_title),
-                                subtitle = if (monitoringUi.overlayGranted) {
-                                    stringResource(R.string.clipboard_monitor_overlay_ready)
-                                } else {
-                                    stringResource(R.string.clipboard_monitor_overlay_missing)
-                                },
-                                onClick = if (!monitoringUi.overlayGranted) onOpenOverlayPermission else ({}),
-                            )
-                        },
-                    )
-                    add(
-                        settingsCardScopeItem("service-status") {
-                            SettingLinkRow(
-                                title = stringResource(R.string.clipboard_monitor_service_status_title),
-                                subtitle = if (monitoringUi.monitorRunning && backendReady) {
-                                    stringResource(R.string.clipboard_monitor_service_running)
-                                } else {
-                                    stringResource(R.string.clipboard_monitor_service_stopped)
-                                },
-                                onClick = {},
-                            )
-                        },
-                    )
-                    if (monitoringMode == ClipboardMonitoringMode.SHIZUKU_LOGS && !readLogsGranted) {
-                        add(
-                            settingsCardScopeItem("read-logs-grant") {
-                                SettingLinkRow(
-                                    title = stringResource(R.string.clipboard_read_logs_shizuku_grant),
-                                    subtitle = null,
-                                    onClick = { showShizukuReadLogsDialog = true },
-                                )
-                            },
-                        )
-                    }
-                },
-            )
-        }
         settingsLazySmallTitle(
             key = "clipboard-history-section",
             title = historySectionTitle,
@@ -479,10 +407,6 @@ fun ClipboardHistorySettingsScreen(
         onConfirm = onClearClipboardHistory,
     )
 
-    ClipboardBackgroundReadLogsDialog(
-        show = showShizukuReadLogsDialog,
-        onDismiss = { showShizukuReadLogsDialog = false },
-    )
 }
 
 /** 收纳面板子页：贴边收纳把手。 */
@@ -842,25 +766,6 @@ fun ClipboardFloatSettingsScreen(
             },
         )
     }
-}
-
-@Composable
-private fun ClipboardBackgroundReadLogsDialog(
-    show: Boolean,
-    onDismiss: () -> Unit,
-) {
-    val context = LocalContext.current
-    MiuixConfirmDialog(
-        show = show,
-        onDismissRequest = onDismiss,
-        title = stringResource(R.string.clipboard_read_logs_shizuku_reminder_title),
-        message = stringResource(R.string.clipboard_read_logs_shizuku_reminder_message),
-        confirmText = stringResource(R.string.clipboard_read_logs_shizuku_reminder_continue),
-        onConfirm = {
-            ClipboardPermissionHelper.grantViaShizuku(context)
-            onDismiss()
-        },
-    )
 }
 
 @Composable

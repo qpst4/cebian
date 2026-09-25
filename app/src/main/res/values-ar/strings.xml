@@ -2826,7 +2826,7 @@
     <string name="stash_panel_background_blur">ضبابية الخلفية</string>
     <string name="stash_panel_background_blur_desc">Android 12+ يقوم بتمويه محتوى النافذة خلف اللوحة؛ ويتم تمويه محتوى اللوحة نفسها في الشريط العلوي عند التمرير</string>
     <string name="clipboard_background_monitoring_section">المراقبة في الخلفية</string>
-    <string name="clipboard_background_monitoring_title">مراقبة النسخ في الخلفية</string>
+    <string name="clipboard_background_monitoring_title">مراقبة الحافظة في الخلفية</string>
     <string name="clipboard_background_monitoring_desc">تسجيل النسخ تلقائياً في سجل الحافظة بعد النسخ في تطبيقات أخرى (عبر امتيازات Shizuku/Root)</string>
     <string name="clipboard_overlay_enabled_title">نافذة معاينة النسخ</string>
     <string name="clipboard_overlay_enabled_desc">عرض معاينة بأسلوب النظام بعد نسخ نص أو صورة. قد يظهر تنبيه مماثل من النظام نفسه فيظهر إشعاران معاً.</string>

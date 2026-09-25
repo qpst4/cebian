@@ -25,6 +25,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Text as MaterialText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,14 +42,17 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.slideindex.app.R
+import com.slideindex.app.clipboard.ClipboardPermissionHelper
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.ClipboardMonitoringMode
 import com.slideindex.app.settings.ClipboardMonitoringCapture
 import com.slideindex.app.settings.ClipboardMonitoringChannel
 import com.slideindex.app.settings.PrivilegeMode
 import com.slideindex.app.settings.effectiveClipboardMonitoringMode
+import com.slideindex.app.ui.miuix.MiuixConfirmDialog
 import com.slideindex.app.ui.miuix.groupedCardItems
 import com.slideindex.app.ui.miuix.miuixGroupedRowInsets
+import com.slideindex.app.ui.settings.clipboard.ClipboardLsposedModuleStatus
 import com.slideindex.app.ui.settings.clipboard.isClipboardMonitoringBackendReady
 import com.slideindex.app.ui.settings.clipboard.rememberClipboardMonitoringUiState
 import com.slideindex.app.ui.settings.components.SettingLinkRow
@@ -89,10 +93,21 @@ fun ClipboardMonitoringSettingsScreen(
     var batteryExempt by remember {
         mutableStateOf(PermissionHelper.isBatteryOptimizationExempt(context))
     }
+    // LSPosed 通道：模块代码是否是当前版本、白名单 hook 是否装上——不是"服务在跑"就算正常。
+    var lsposedReadiness by remember {
+        mutableStateOf(ClipboardLsposedModuleStatus.Readiness.NotReady)
+    }
+    var readLogsGranted by remember {
+        mutableStateOf(ClipboardPermissionHelper.hasReadLogsPermission(context))
+    }
+    var showShizukuReadLogsDialog by remember { mutableStateOf(false) }
     val notificationLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) { granted ->
         notificationGranted = granted || PermissionHelper.hasNotificationPermission(context)
+    }
+    LaunchedEffect(Unit) {
+        ClipboardLsposedModuleStatus.refresh(context) { lsposedReadiness = it }
     }
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     DisposableEffect(lifecycle) {
@@ -100,39 +115,79 @@ fun ClipboardMonitoringSettingsScreen(
             if (event == Lifecycle.Event.ON_RESUME) {
                 notificationGranted = PermissionHelper.hasNotificationPermission(context)
                 batteryExempt = PermissionHelper.isBatteryOptimizationExempt(context)
+                readLogsGranted = ClipboardPermissionHelper.hasReadLogsPermission(context)
+                ClipboardLsposedModuleStatus.refresh(context) { lsposedReadiness = it }
             }
         }
         lifecycle.addObserver(observer)
         onDispose { lifecycle.removeObserver(observer) }
     }
 
+    val channelLabel = clipboardMonitoringModeLabel(activeMode)
+    val principleText = clipboardMonitoringPrinciple(activeMode, settings)
+    val lsposedChannelActive = activeMode == ClipboardMonitoringMode.LSPOSED
     val statusLabel: String
     val statusPill: String
     val statusOk: Boolean
+    val statusDetail: String
     when {
         !settings.clipboardBackgroundMonitoring -> {
             statusLabel = stringResource(R.string.clipboard_monitoring_state_off)
             statusPill = stringResource(R.string.clipboard_monitoring_pill_off)
             statusOk = false
+            statusDetail = principleText
+        }
+        lsposedChannelActive && lsposedReadiness != ClipboardLsposedModuleStatus.Readiness.Ready -> {
+            statusOk = false
+            statusDetail = when (lsposedReadiness) {
+                ClipboardLsposedModuleStatus.Readiness.StaleModuleCode -> {
+                    statusLabel = stringResource(
+                        R.string.clipboard_monitoring_lsposed_state_restart_needed,
+                    )
+                    statusPill = stringResource(
+                        R.string.clipboard_monitoring_lsposed_pill_restart_needed,
+                    )
+                    stringResource(R.string.clipboard_monitoring_lsposed_detail_restart_needed)
+                }
+                ClipboardLsposedModuleStatus.Readiness.ClipboardHookMissing -> {
+                    statusLabel = stringResource(
+                        R.string.clipboard_monitoring_lsposed_state_clipboard_missing,
+                    )
+                    statusPill = stringResource(
+                        R.string.clipboard_monitoring_lsposed_pill_clipboard_missing,
+                    )
+                    stringResource(R.string.clipboard_monitoring_lsposed_detail_clipboard_missing)
+                }
+                else -> {
+                    statusLabel = stringResource(
+                        R.string.clipboard_monitoring_lsposed_state_not_ready,
+                    )
+                    statusPill = stringResource(
+                        R.string.clipboard_monitoring_lsposed_pill_not_ready,
+                    )
+                    stringResource(R.string.clipboard_monitoring_lsposed_detail_not_ready)
+                }
+            }
         }
         monitoringUi.monitorRunning -> {
             statusLabel = stringResource(R.string.clipboard_monitoring_state_running)
             statusPill = stringResource(R.string.clipboard_monitoring_pill_service)
             statusOk = true
+            statusDetail = principleText
         }
         !backendReady -> {
             statusLabel = stringResource(R.string.clipboard_monitoring_state_blocked)
             statusPill = stringResource(R.string.clipboard_monitoring_pill_blocked)
             statusOk = false
+            statusDetail = principleText
         }
         else -> {
             statusLabel = stringResource(R.string.clipboard_monitoring_state_idle)
             statusPill = stringResource(R.string.clipboard_monitoring_pill_idle)
             statusOk = false
+            statusDetail = principleText
         }
     }
-    val channelLabel = clipboardMonitoringModeLabel(activeMode)
-    val principleText = clipboardMonitoringPrinciple(activeMode, settings)
     // settingsLazySmallTitle 不是 @Composable，标题文字要先取出来。
     val statusSectionTitle = stringResource(R.string.clipboard_monitoring_status_section)
     val channelSectionTitle = stringResource(R.string.clipboard_monitoring_section_channel)
@@ -168,7 +223,7 @@ fun ClipboardMonitoringSettingsScreen(
                             statusLabel = statusLabel,
                             statusPill = statusPill,
                             ok = statusOk,
-                            detail = principleText,
+                            detail = statusDetail,
                         )
                     },
                 )
@@ -242,6 +297,18 @@ fun ClipboardMonitoringSettingsScreen(
                                     selected = settings.clipboardMonitoringCapture == capture,
                                     segmentKey = capture.name,
                                     onClick = { onClipboardMonitoringCaptureChange(capture) },
+                                )
+                            },
+                        )
+                    }
+                    // Shizuku·系统日志 这一档要单独授权读日志（原来在「剪贴板」页，搬到这里跟采集方式放一起）。
+                    if (effectiveMode == ClipboardMonitoringMode.SHIZUKU_LOGS && !readLogsGranted) {
+                        add(
+                            settingsCardScopeItem("capture-read-logs") {
+                                SettingLinkRow(
+                                    title = stringResource(R.string.clipboard_read_logs_shizuku_grant),
+                                    subtitle = null,
+                                    onClick = { showShizukuReadLogsDialog = true },
                                 )
                             },
                         )
@@ -338,6 +405,30 @@ fun ClipboardMonitoringSettingsScreen(
             },
         )
     }
+
+    ClipboardBackgroundReadLogsDialog(
+        show = showShizukuReadLogsDialog,
+        onDismiss = { showShizukuReadLogsDialog = false },
+    )
+}
+
+@Composable
+internal fun ClipboardBackgroundReadLogsDialog(
+    show: Boolean,
+    onDismiss: () -> Unit,
+) {
+    val context = LocalContext.current
+    MiuixConfirmDialog(
+        show = show,
+        onDismissRequest = onDismiss,
+        title = stringResource(R.string.clipboard_read_logs_shizuku_reminder_title),
+        message = stringResource(R.string.clipboard_read_logs_shizuku_reminder_message),
+        confirmText = stringResource(R.string.clipboard_read_logs_shizuku_reminder_continue),
+        onConfirm = {
+            ClipboardPermissionHelper.grantViaShizuku(context)
+            onDismiss()
+        },
+    )
 }
 
 @Composable

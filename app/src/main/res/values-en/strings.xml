@@ -2856,7 +2856,7 @@ Questions: open a GitHub Issue on the project repository.</string>
     <string name="stash_panel_background_blur">Background blur</string>
     <string name="stash_panel_background_blur_desc">Android 12+ blurs content behind the panel; the header blurs in-panel content while scrolling</string>
     <string name="clipboard_background_monitoring_section">Background monitoring</string>
-    <string name="clipboard_background_monitoring_title">Monitor copies in background</string>
+    <string name="clipboard_background_monitoring_title">Clipboard background monitoring</string>
     <string name="clipboard_background_monitoring_desc">Automatically record copies from other apps (via Shizuku/Root privileged listener)</string>
     <string name="clipboard_overlay_enabled_title">Copy preview float</string>
     <string name="clipboard_overlay_enabled_desc">Show a system-style preview when text or images are copied. Some devices already show this; enabling both stacks two overlays.</string>

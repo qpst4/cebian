@@ -31,6 +31,7 @@ class ClipboardWhitelistHook {
     runCatching { installInternal(xposed, classLoader) }
       .getOrElse {
         XposedLog.e(TAG, "ClipboardWhitelistHook failed", it)
+        installStatus = STATUS_FAILED
         emptyList()
       }
 
@@ -43,6 +44,7 @@ class ClipboardWhitelistHook {
       classLoader,
     ) ?: run {
       XposedLog.w(TAG, "ClipboardService not found")
+      installStatus = STATUS_MISSING_SERVICE
       return emptyList()
     }
     val method = LibXposedReflect.findMethodExactIfExists(
@@ -53,6 +55,7 @@ class ClipboardWhitelistHook {
     ) ?: run {
       // 系统版本改了内部实现时走到这里：记录一条状态，避免"装上了但没生效"的黑盒。
       XposedLog.w(TAG, "ClipboardService.isDefaultIme(int, String) not found")
+      installStatus = STATUS_MISSING_METHOD
       return emptyList()
     }
     val handle = xposed.hookMethod(
@@ -69,6 +72,7 @@ class ClipboardWhitelistHook {
       id = HOOK_ID,
     )
     XposedLog.i(TAG, "ClipboardWhitelistHook installed")
+    installStatus = STATUS_OK
     return listOf(handle)
   }
 
@@ -83,5 +87,19 @@ class ClipboardWhitelistHook {
   companion object {
     private const val TAG = "ClipboardWhitelist"
     private const val HOOK_ID = "clipboard_whitelist_is_default_ime"
+
+    const val STATUS_OK = "ok"
+    const val STATUS_MISSING_SERVICE = "missing-service"
+    const val STATUS_MISSING_METHOD = "missing-method"
+    const val STATUS_FAILED = "failed"
+
+    /**
+     * 最近一次安装结果，随模块状态串回传给 app（system_server 单进程，volatile 读足够）。
+     *
+     * 默认 [STATUS_FAILED]：app 侧看到它就知道"白名单 hook 此刻没生效"，不会误报正常。
+     */
+    @Volatile
+    var installStatus: String = STATUS_FAILED
+      private set
   }
 }

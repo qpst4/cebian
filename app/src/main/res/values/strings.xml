@@ -2882,7 +2882,7 @@
     <string name="stash_panel_background_blur">背景模糊</string>
     <string name="stash_panel_background_blur_desc">Android 12+ 模糊面板后方窗口内容；顶栏在列表滚动时会模糊面板内内容</string>
     <string name="clipboard_background_monitoring_section">后台监听</string>
-    <string name="clipboard_background_monitoring_title">后台监听复制</string>
+    <string name="clipboard_background_monitoring_title">剪贴板后台监听</string>
     <string name="clipboard_background_monitoring_desc">在其他应用复制后自动记录到剪贴板历史（通过 Shizuku/Root 特权监听）</string>
     <string name="clipboard_overlay_enabled_title">复制预览浮窗</string>
     <string name="clipboard_overlay_enabled_desc">复制文本或图片后弹出系统风格预览浮窗。部分系统已自带相同提示，同时开启会叠两层。</string>
@@ -2940,6 +2940,15 @@
     <string name="clipboard_lsposed_whitelist_section_add">添加应用</string>
     <string name="clipboard_lsposed_whitelist_subtitle">仅 LSPosed 模式使用 · 已放行 %1$d 个应用</string>
     <string name="clipboard_lsposed_whitelist_self_missing">未放行本应用，本模式不会生效</string>
+    <string name="clipboard_monitoring_lsposed_state_restart_needed">模块待重启</string>
+    <string name="clipboard_monitoring_lsposed_pill_restart_needed">需重启手机</string>
+    <string name="clipboard_monitoring_lsposed_detail_restart_needed">system_server 里跑的还是覆盖安装前的模块代码，重启手机后新代码才会生效。</string>
+    <string name="clipboard_monitoring_lsposed_state_not_ready">模块未生效</string>
+    <string name="clipboard_monitoring_lsposed_pill_not_ready">未就绪</string>
+    <string name="clipboard_monitoring_lsposed_detail_not_ready">LSPosed 模块没有回应：确认模块已启用、作用域勾选「系统框架」，然后重启手机。</string>
+    <string name="clipboard_monitoring_lsposed_state_clipboard_missing">白名单未挂上</string>
+    <string name="clipboard_monitoring_lsposed_pill_clipboard_missing">未就绪</string>
+    <string name="clipboard_monitoring_lsposed_detail_clipboard_missing">模块已加载，但剪贴板白名单 hook 没装上，可能当前系统的内部实现不兼容。</string>
     <string name="clipboard_monitoring_page_title">剪贴板后台监听</string>
     <string name="clipboard_monitoring_status_section">后台监听状态</string>
     <string name="clipboard_monitoring_master_desc">复制内容后自动进入剪贴板历史</string>
@@ -2975,7 +2984,7 @@
     <string name="clipboard_monitoring_status_joined">已加入</string>
     <string name="clipboard_monitoring_status_not_joined">未加入</string>
     <string name="clipboard_monitoring_action_open_settings">去设置</string>
-    <string name="clipboard_monitoring_section_channel">提权通道</string>
+    <string name="clipboard_monitoring_section_channel">监听通道</string>
     <string name="clipboard_monitoring_section_capture">采集方式</string>
     <string name="clipboard_monitoring_section_principle">技术原理</string>
     <string name="clipboard_monitoring_principle_title">当前链路做什么</string>

@@ -51,6 +51,21 @@ object ModuleHookBridgeContract {
   /** 2 起新增 `extra_rects`（悬浮球线条 / 边角轮盘）；旧模块忽略未知键，兼容。 */
   const val SNAPSHOT_VERSION = 2
 
+  /**
+   * 模块代码版本：`xposed/` 目录下的模块代码有实质改动时 +1。
+   *
+   * app 侧把自己的这个常量与模块回传的 `code=` 比对：不一致说明 system_server 里跑的还是
+   * 覆盖安装前的旧模块代码（模块在开机时加载），必须重启手机新代码才会生效。
+   * 只是普通构建、模块代码没改时这个值不变，所以不会每次安装都误报。
+   */
+  const val MODULE_CODE_VERSION = 2
+
+  /** 状态串里模块代码版本字段：`code=<int>`。 */
+  const val STATUS_DETAIL_CODE_PREFIX = "code="
+
+  /** 状态串里剪贴板白名单 hook 字段：`clip=<ClipboardWhitelistHook.installStatus>`。 */
+  const val STATUS_DETAIL_CLIPBOARD_PREFIX = "clip="
+
   /** 接管分组位掩码：顶部。 */
   const val GROUP_TOP = 1 shl 0
 
