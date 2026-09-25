@@ -1,6 +1,8 @@
 package com.slideindex.app.di
 
 import android.content.Context
+import android.util.Log
+import com.slideindex.app.clipboard.ClipboardHistoryRepository
 import com.slideindex.app.privilege.ShizukuRequirement
 import com.slideindex.app.settings.SettingsRepository
 import com.slideindex.app.shizuku.ShizukuUserServiceHost
@@ -19,7 +21,8 @@ import rikka.shizuku.Shizuku
 @Singleton
 class ShizukuInitializer @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    private val clipboardHistoryRepository: ClipboardHistoryRepository
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
@@ -35,6 +38,14 @@ class ShizukuInitializer @Inject constructor(
                     settingsRepository,
                     accessibilityRecoverRetries = true
                 )
+                // Shizuku 可能在开机后很久才起来：此时剪贴板监听不会自己恢复，
+                // 会一直空窗到用户手动打开应用。binder 到达时按设置补一次启动。
+                // binder 可能刚回来就又掉线（pingBinder 与权限检查之间），不能让它把进程带崩。
+                runCatching {
+                    clipboardHistoryRepository.syncClipboardMonitoringFromSettings()
+                }.onFailure {
+                    Log.w(TAG, "sync clipboard monitoring after binder received failed: ${it.message}")
+                }
             }
         }
     }
@@ -69,5 +80,9 @@ class ShizukuInitializer @Inject constructor(
             }
             ShizukuUserServiceHost.drop(context)
         }
+    }
+
+    private companion object {
+        private const val TAG = "ShizukuInitializer"
     }
 }
