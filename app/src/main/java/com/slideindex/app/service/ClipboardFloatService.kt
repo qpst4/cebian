@@ -181,6 +181,7 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
                 }
                 expandedRetainedWithoutIme = true
                 displayMode = ClipboardFloatDisplayMode.Expanded
+                catchUpLatestClipboard()
                 if (viewAdded) {
                     applyWindowGeometry(forceDefaultPosition = forceDefaultPositionForMode())
                     resetAutoCloseTimer()
@@ -730,6 +731,15 @@ class ClipboardFloatService : Service(), LifecycleOwner, SavedStateRegistryOwner
         captureCurrentWindowPosition()
         persistGeometryOnClose(blocking = false)
         resetAutoCloseTimer()
+        catchUpLatestClipboard()
+    }
+
+    /**
+     * 打开剪贴板浮窗时补读一次系统剪贴板：监听失效期间（Shizuku 未启动、监听服务被停）
+     * 复制的内容，打开浮窗后也能看到。监听正常时内部会直接返回。
+     */
+    private fun catchUpLatestClipboard() {
+        runCatching { deps.clipboardHistoryRepository.catchUpLatestClipboard(this) }
     }
 
     private fun collapseWindow() {

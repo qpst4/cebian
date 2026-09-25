@@ -142,10 +142,10 @@ class HistoryPanelViewModel(
         clipboardActivateJob?.cancel()
         clipboardActivateJob = viewModelScope.launch {
             delay(CLIPBOARD_TAB_ACTIVATE_DELAY_MS)
-            clipboardRepository?.refreshClipboardWithFocus(
-                context,
-                force = true,
-                promoteExistingOnMatch = false,
+            // 打开剪贴板面板就是「我要看最新的」：主动补读一次，且不受截图保护 / 自己写剪贴板的 skip 影响。
+            clipboardRepository?.catchUpLatestClipboard(
+                triggerContext = context,
+                skipWhenListening = false,
             )
             if (!clipboardPagesInitialized || _clipboardPagedEntries.value.isEmpty()) {
                 refreshClipboardPages(showInitialLoading = _clipboardPagedEntries.value.isEmpty())

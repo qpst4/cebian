@@ -275,6 +275,9 @@ class MainActivity : ComponentActivity() {
         schedulePermissionRefreshRetries()
         refreshServiceState()
         ClipboardMonitorStartup.runOnMainWhenIdle {
+            // 兜底：监听没在跑时（Shizuku 未启动 / 监听服务被停 / binder 掉线）先把最新一条补进历史，
+            // 再尝试拉起监听。监听正常时这个方法内部会直接返回，不会多抢一次焦点。
+            deps.clipboardHistoryRepository.catchUpLatestClipboard(this)
             deps.clipboardHistoryRepository.syncClipboardMonitoringFromSettings()
         }
         com.slideindex.app.widget.WidgetPopupHost.startListening(this)

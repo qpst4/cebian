@@ -69,11 +69,7 @@ class ClipboardHistoryRepository @Inject constructor(
     private val _revision = MutableStateFlow(0L)
     val revision: StateFlow<Long> = _revision.asStateFlow()
 
-    private val refreshDebounceHandler = Handler(Looper.getMainLooper())
-    private var pendingRefreshContext: Context? = null
-    private var pendingPromoteExistingOnMatch = false
-    private var pendingPassiveClipboardRefresh = false
-    private val refreshRunnable = Runnable { performClipboardRefresh(pendingRefreshContext) }
+    private val mainHandler = Handler(Looper.getMainLooper())
 
     private var screenshotMonitor: ScreenshotMonitor? = null
     private var lastCapturedKey: String? = null
@@ -191,27 +187,51 @@ class ClipboardHistoryRepository @Inject constructor(
         }
     }
 
-    fun refreshClipboardWithFocus(
+    /**
+     * 兜底补读：主动读一次系统剪贴板，把最新一条补进历史。
+     *
+     * 用途：特权监听失效期间（Shizuku 没起来、监听服务被停、binder 掉线）复制的内容，
+     * 在用户进入应用或打开剪贴板界面时补回来。
+     *
+     * 与「监听事件驱动的入库」相比：
+     * - 不弹复制预览浮窗、不置顶已存在的内容；
+     * - 无视「自己写剪贴板」的 skip 计数：这是一次主动采样，不是在消化事件流；
+     * - 无视「截图保护」：用户主动打开界面的意图优先于该保护。
+     *
+     * @param skipWhenListening 监听正常时不重复补读（进应用、打开剪贴板浮窗用 true；
+     *   剪贴板面板用 false，保持「打开面板总能刷新一次」的既有行为）。
+     */
+    fun catchUpLatestClipboard(
         triggerContext: Context? = null,
-        force: Boolean = false,
-        promoteExistingOnMatch: Boolean = true
+        skipWhenListening: Boolean = true,
     ) {
-        if (force) {
-            cancelScheduledClipboardRefresh()
-            pendingPassiveClipboardRefresh = true
-            pendingPromoteExistingOnMatch = promoteExistingOnMatch
-            performClipboardRefresh(triggerContext)
+        if (!ClipboardMonitorProcess.isMainProcess(context)) return
+        if (skipWhenListening) {
+            if (!settingsRepository.readSnapshot().clipboardBackgroundMonitoring) return
+            if (clipboardMonitorController.isListening) return
+        }
+        val readContext = triggerContext ?: context
+        val direct = ClipboardReader.read(readContext)
+        if (direct != null) {
+            ClipboardReadTelemetry.onCatchUp(readContext, "direct", true)
+            ingestCatchUpPayload(direct)
             return
         }
-        scheduleClipboardRefresh(
-            triggerContext = triggerContext,
-            promoteExistingOnMatch = promoteExistingOnMatch,
-            passiveRefresh = true
-        )
+        // 直接读不到通常是还没有窗口焦点（例如刚回到前台），用焦点探针补一次。
+        ClipboardFocusReader.read(readContext) { payload ->
+            ClipboardReadTelemetry.onCatchUp(readContext, "focus", payload != null)
+            if (payload != null) ingestCatchUpPayload(payload)
+        }
     }
 
-    fun refreshClipboard(readContext: Context? = null) {
-        refreshClipboardWithFocus(readContext, force = true)
+    private fun ingestCatchUpPayload(payload: ClipboardPayload) {
+        ingestPayload(
+            payload = payload,
+            promoteExistingOnMatch = false,
+            fromPassiveRefresh = false,
+            showOverlay = false,
+            bypassOutgoingSkip = true,
+        )
     }
 
     fun noteOutgoingWrite(entry: ClipboardEntry) {
@@ -242,8 +262,9 @@ class ClipboardHistoryRepository @Inject constructor(
         promoteExistingOnMatch: Boolean = true,
         fromPassiveRefresh: Boolean = false,
         showOverlay: Boolean = false,
+        bypassOutgoingSkip: Boolean = false,
     ) {
-        if (consumeOutgoingWriteSkip()) return
+        if (!bypassOutgoingSkip && consumeOutgoingWriteSkip()) return
         if (payload.text.trim().isEmpty() &&
             payload.uri.isNullOrBlank() &&
             payload.intentUri.isNullOrBlank() &&
@@ -306,7 +327,7 @@ class ClipboardHistoryRepository @Inject constructor(
     ) {
         if (!showOverlay || fromPassiveRefresh) return
         if (!settingsRepository.readSnapshot().clipboardOverlayEnabled) return
-        refreshDebounceHandler.post {
+            mainHandler.post {
             com.slideindex.app.clipboardoverlay.ClipboardOverlayWindow.show(context, payload)
         }
     }
@@ -336,12 +357,6 @@ class ClipboardHistoryRepository @Inject constructor(
         )
     }
 
-    fun captureFromSystemClipboard(readContext: Context? = null): Boolean {
-        val payload = ClipboardReader.read(readContext ?: context) ?: return false
-        ingestPayload(payload)
-        return true
-    }
-
     fun syncClipboardMonitoringFromSettings() {
         if (!ClipboardMonitorProcess.isMainProcess(context)) return
         val settings = settingsRepository.readSnapshot()
@@ -367,7 +382,6 @@ class ClipboardHistoryRepository @Inject constructor(
     }
 
     fun stopClipboardListening() {
-        cancelScheduledClipboardRefresh()
         clipboardMonitorController.stop()
     }
 
@@ -459,36 +473,6 @@ class ClipboardHistoryRepository @Inject constructor(
         }.also { it.start() }
     }
 
-    private var pendingUseFocusReader = true
-
-    private fun scheduleClipboardRefresh(
-        triggerContext: Context? = null,
-        useFocusReader: Boolean = shouldUseFocusReader(),
-        promoteExistingOnMatch: Boolean = true,
-        passiveRefresh: Boolean = false
-    ) {
-        pendingPassiveClipboardRefresh = passiveRefresh
-        pendingRefreshContext = triggerContext ?: pendingRefreshContext
-        pendingUseFocusReader = useFocusReader
-        pendingPromoteExistingOnMatch = promoteExistingOnMatch
-        refreshDebounceHandler.removeCallbacks(refreshRunnable)
-        refreshDebounceHandler.postDelayed(refreshRunnable, REFRESH_DEBOUNCE_MS)
-    }
-
-    private fun shouldUseFocusReader(): Boolean = true
-
-    private fun cancelScheduledClipboardRefresh() {
-        pendingRefreshContext = null
-        pendingPromoteExistingOnMatch = false
-        pendingPassiveClipboardRefresh = false
-        refreshDebounceHandler.removeCallbacks(refreshRunnable)
-    }
-
-    private fun resolvePromoteExistingOnMatch(requested: Boolean): Boolean {
-        if (pendingPassiveClipboardRefresh) return false
-        return requested
-    }
-
     private fun shouldBlockDisplacingScreenshot(
         payload: ClipboardPayload,
         fromPassiveRefresh: Boolean
@@ -498,25 +482,6 @@ class ClipboardHistoryRepository @Inject constructor(
         if (System.currentTimeMillis() - lastScreenshotIngestAtMs >= SCREENSHOT_TOP_GUARD_MS) return false
         val top = store.queryLatest() ?: return false
         return top.hasImageContent()
-    }
-
-    private fun performClipboardRefresh(triggerContext: Context? = null) {
-        val fromPassiveRefresh = pendingPassiveClipboardRefresh
-        pendingRefreshContext = null
-        val promoteExistingOnMatch = resolvePromoteExistingOnMatch(pendingPromoteExistingOnMatch)
-        pendingPromoteExistingOnMatch = false
-        pendingPassiveClipboardRefresh = false
-        if (consumeOutgoingWriteSkip()) return
-        val readContext = triggerContext ?: context
-        if (pendingUseFocusReader) {
-            ClipboardFocusReader.read(readContext) { payload ->
-                if (payload != null) ingestPayload(payload, promoteExistingOnMatch, fromPassiveRefresh)
-            }
-        } else {
-            ClipboardReader.read(readContext)?.let {
-                ingestPayload(it, promoteExistingOnMatch, fromPassiveRefresh)
-            }
-        }
     }
 
     private fun consumeOutgoingWriteSkip(): Boolean {
@@ -662,7 +627,6 @@ class ClipboardHistoryRepository @Inject constructor(
     companion object {
         private const val DIR_NAME = "clipboard"
         private const val INDEX_FILE_NAME = "history.json"
-        private const val REFRESH_DEBOUNCE_MS = 400L
         private const val SAME_CLIP_DEDUP_MS = 400L
         private const val SCREENSHOT_TOP_GUARD_MS = 10_000L
     }

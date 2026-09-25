@@ -57,6 +57,12 @@ internal object ClipboardReadTelemetry {
         recordResult(success)
     }
 
+    /** 进应用 / 打开剪贴板面板时的兜底补读。 */
+    fun onCatchUp(context: Context, source: String, success: Boolean) {
+        recordResult(success)
+        append(context, "catch-up source=$source result=${if (success) "ok" else "null"}")
+    }
+
     fun onAttempt(
         context: Context,
         attempt: Int,
