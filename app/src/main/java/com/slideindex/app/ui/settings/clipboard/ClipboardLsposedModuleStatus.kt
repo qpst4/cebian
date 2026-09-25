@@ -4,6 +4,7 @@ import android.content.Context
 import com.slideindex.app.xposed.bridge.ModuleBridgeStatusProbe
 import com.slideindex.app.xposed.bridge.ModuleBridgeStatusStore
 import com.slideindex.app.xposed.bridge.ModuleHookBridgeContract
+import com.slideindex.app.xposed.bridge.ModuleStatusFields
 
 /**
  * LSPosed 通道「模块此刻能不能真的干活」的判定。
@@ -44,35 +45,20 @@ object ClipboardLsposedModuleStatus {
     }
 
     fun classify(snapshot: ModuleBridgeStatusStore.Snapshot): Readiness {
-        if (snapshot.updatedAtMs <= 0L) return Readiness.NotReady
-        val detail = snapshot.detail
-        val moduleCode = intField(detail, ModuleHookBridgeContract.STATUS_DETAIL_CODE_PREFIX)
         // 旧模块不带 code 字段：能回应就说明模块活着，但那一定是覆盖安装前的代码。
-        if (moduleCode == null) {
-            return if (detail.isNotEmpty() || snapshot.state.isNotEmpty()) {
-                Readiness.StaleModuleCode
-            } else {
-                Readiness.NotReady
-            }
+        when (ModuleStatusFields.codeStateOf(snapshot)) {
+            ModuleStatusFields.CodeState.Unknown -> return Readiness.NotReady
+            ModuleStatusFields.CodeState.Stale -> return Readiness.StaleModuleCode
+            ModuleStatusFields.CodeState.Current -> Unit
         }
-        if (moduleCode != ModuleHookBridgeContract.MODULE_CODE_VERSION) {
-            return Readiness.StaleModuleCode
-        }
-        val clipboardHook = field(detail, ModuleHookBridgeContract.STATUS_DETAIL_CLIPBOARD_PREFIX)
+        val clipboardHook = ModuleStatusFields.field(
+            snapshot.detail,
+            ModuleHookBridgeContract.STATUS_DETAIL_CLIPBOARD_PREFIX,
+        )
         return when (clipboardHook) {
             "ok" -> Readiness.Ready
             null -> Readiness.StaleModuleCode
             else -> Readiness.ClipboardHookMissing
         }
     }
-
-    private fun field(detail: String, prefix: String): String? =
-        detail.split(',')
-            .firstOrNull { it.startsWith(prefix) }
-            ?.removePrefix(prefix)
-            ?.trim()
-            ?.takeIf { it.isNotEmpty() }
-
-    private fun intField(detail: String, prefix: String): Int? =
-        field(detail, prefix)?.toIntOrNull()
 }

@@ -34,6 +34,7 @@ import com.slideindex.app.util.SecureSettingsHelper
 import com.slideindex.app.util.SystemBackGestureConflictHelper
 import com.slideindex.app.util.SystemBackGestureInsetHelper
 import com.slideindex.app.xposed.bridge.ModuleBridgeStatusProbe
+import com.slideindex.app.xposed.bridge.ModuleStatusFields
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -58,6 +59,8 @@ fun SystemBackGestureWidthSettingsScreen(
     var showAdbDialog by remember { mutableStateOf(false) }
     var moduleState by remember { mutableStateOf<ModuleBridgeStatusProbe.Status?>(null) }
     var moduleDetail by remember { mutableStateOf<String?>(null) }
+    // 覆盖安装后 system_server 里跑的还是旧模块代码：这时"有响应"也不代表按新逻辑跑。
+    var moduleCodeStale by remember { mutableStateOf(false) }
     var moduleChecking by remember { mutableStateOf(false) }
     val adbCommand = remember { SecureSettingsHelper.adbGrantCommand(context) }
     val copiedMessage = stringResource(R.string.secure_settings_adb_copied)
@@ -75,6 +78,8 @@ fun SystemBackGestureWidthSettingsScreen(
             moduleChecking = false
             moduleState = status
             moduleDetail = detail
+            moduleCodeStale =
+                ModuleStatusFields.codeStateOfDetail(detail) == ModuleStatusFields.CodeState.Stale
         }
     }
 
@@ -263,6 +268,8 @@ fun SystemBackGestureWidthSettingsScreen(
                             title = stringResource(R.string.system_gesture_takeover_module_status),
                             subtitle = when {
                                 moduleChecking -> stringResource(R.string.system_gesture_takeover_module_checking)
+                                moduleCodeStale ->
+                                    stringResource(R.string.system_gesture_takeover_module_restart_needed)
                                 moduleState == ModuleBridgeStatusProbe.Status.Ready ->
                                     stringResource(R.string.system_gesture_takeover_module_ready)
                                 moduleState == ModuleBridgeStatusProbe.Status.Armed ->

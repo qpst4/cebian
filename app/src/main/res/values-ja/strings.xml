@@ -702,6 +702,7 @@
     <string name="system_gesture_takeover_module_switched_off">未有効：モジュールは準備完了、3 つの引き継ぎスイッチがすべてオフです</string>
     <string name="system_gesture_takeover_module_not_ready">無効：モジュール未読み込み、または android スコープが未選択</string>
     <string name="system_gesture_takeover_module_checking">確認中…</string>
+    <string name="system_gesture_takeover_module_restart_needed">モジュールのコードが古い：system_server では更新前のモジュールが動作中です。再起動後に新しいコードが読み込まれます</string>
     <string name="system_gesture_takeover_module_tap_hint">タップして LSPosed モジュールの状態を確認</string>
     <string name="system_gesture_takeover_tip" formatted="false">有効にすると、モジュールがシステム入力層でその端のトリガー領域を先に引き継ぎます。領域内のシステムジェスチャ（上部の引き下げ・戻る・上スワイプでホーム）は発動せず、タッチは本アプリが処理します。アクション未設定のタッチはシステムに渡されません。トリガー設定の「システム戻るジェスチャを遮断」やコーナーホイールの「システムナビゲーションジェスチャを上書き」とは別機能です。</string>
     <string name="accessibility_service_name">#Cebian👈</string>
