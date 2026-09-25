@@ -52,7 +52,7 @@ fun OtpHubScreen(
 
     var checking by remember { mutableStateOf(false) }
     var moduleState by remember { mutableStateOf<ModuleBridgeStatusProbe.Status?>(null) }
-    var moduleCodeStale by remember { mutableStateOf(false) }
+    var moduleCodeState by remember { mutableStateOf<ModuleStatusFields.CodeState?>(null) }
     var phoneSnapshot by remember {
         mutableStateOf(ModuleBridgeStatusStore.read(appContext, ModuleHookBridgeContract.CHANNEL_PHONE))
     }
@@ -64,8 +64,7 @@ fun OtpHubScreen(
                 ModuleBridgeStatusProbe.probe(appContext) { status, detail ->
                     checking = false
                     moduleState = status
-                    moduleCodeStale = ModuleStatusFields.codeStateOfDetail(appContext, detail) ==
-                        ModuleStatusFields.CodeState.Stale
+                    moduleCodeState = ModuleStatusFields.codeStateOfDetail(appContext, detail)
                     phoneSnapshot = ModuleBridgeStatusStore.read(
                         appContext,
                         ModuleHookBridgeContract.CHANNEL_PHONE,
@@ -100,9 +99,17 @@ fun OtpHubScreen(
             )
         },
         settingsCardScopeItem("otp-lsposed-status") {
+            val codeState = moduleCodeState
+            // 「模块」只看两件事：system_server 里有没有回应、跑的是不是当前版本的代码。
+            // 不能拿 ModuleBridgeStatusProbe.Status.Ready 当依据——那是"手势接管真的生效"，
+            // 手势开关全关时它是 Armed，会把健康的模块显示成未就绪。
+            val moduleReady = moduleState != null &&
+                moduleState != ModuleBridgeStatusProbe.Status.NotReady &&
+                codeState == ModuleStatusFields.CodeState.Current
             val phoneStale = ModuleStatusFields.codeStateOf(appContext, phoneSnapshot) ==
                 ModuleStatusFields.CodeState.Stale
             val phoneReady = phoneSnapshot.state == ModuleHookBridgeContract.STATUS_STATE_READY
+            val injectReadyNow = injectReady == true
             val pill: String
             val tone: StatusTone
             when {
@@ -110,20 +117,22 @@ fun OtpHubScreen(
                     pill = stringResource(R.string.system_gesture_takeover_module_pill_checking)
                     tone = StatusTone.Neutral
                 }
-                moduleCodeStale || phoneStale -> {
+                codeState == ModuleStatusFields.CodeState.Stale || phoneStale -> {
                     pill = stringResource(R.string.system_gesture_takeover_module_pill_restart_needed)
                     tone = StatusTone.Bad
                 }
-                moduleState == ModuleBridgeStatusProbe.Status.Ready && phoneReady -> {
-                    pill = stringResource(R.string.system_gesture_takeover_module_pill_ready)
-                    tone = StatusTone.Good
-                }
-                moduleState == ModuleBridgeStatusProbe.Status.NotReady -> {
+                !moduleReady -> {
                     pill = stringResource(R.string.system_gesture_takeover_module_pill_not_ready)
                     tone = StatusTone.Bad
                 }
+                phoneReady && injectReadyNow -> {
+                    pill = stringResource(R.string.system_gesture_takeover_module_pill_ready)
+                    tone = StatusTone.Good
+                }
                 else -> {
-                    pill = stringResource(R.string.system_gesture_takeover_module_pill_armed)
+                    // 模块已就绪，但短信通道 / 系统注入还有一项没就绪：这三件事本来互相独立，
+                    // 不该因为一项没到位就把整行说成「未生效」。
+                    pill = stringResource(R.string.otp_lsposed_pill_partial)
                     tone = StatusTone.Neutral
                 }
             }
@@ -141,7 +150,7 @@ fun OtpHubScreen(
                 title = stringResource(R.string.otp_lsposed_status_section),
                 pill = pill,
                 tone = tone,
-                detail = "$moduleLabel：${if (moduleState == ModuleBridgeStatusProbe.Status.Ready) okText else badText}" +
+                detail = "$moduleLabel：${if (moduleReady) okText else badText}" +
                     " ｜ $smsLabel：${if (phoneReady) okText else badText}" +
                     " ｜ $injectLabel：$injectSummary",
                 segmentKey = "otp-lsposed-status",

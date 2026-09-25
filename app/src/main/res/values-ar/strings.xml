@@ -2332,7 +2332,8 @@
     <string name="otp_show_code_toast_title">تنبيه Toast</string>
     <string name="otp_show_code_toast_desc">عرض رمز التحقق المستخرج في Toast</string>
  <string name="otp_code_toast_text">رمز التحقق: %1$s</string>
- <string name="otp_lsposed_status_section">حالة LSPosed</string>
+<string name="otp_lsposed_status_section">حالة LSPosed</string>
+<string name="otp_lsposed_pill_partial">نشط جزئيًا</string>
  <string name="otp_status_module_title">وحدة LSPosed (إطار النظام)</string>
  <string name="otp_status_module_detail_ready">نشط: الوحدة محمّلة في إطار النظام وبالإصدار الحالي</string>
  <string name="otp_status_module_detail_armed">غير نشط: الوحدة محمّلة لكن الاعتراض غير جاهز</string>

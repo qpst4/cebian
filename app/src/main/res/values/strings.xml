@@ -2366,6 +2366,7 @@
     <string name="otp_show_code_toast_desc">提取成功后直接以 Toast 显示验证码</string>
     <string name="otp_code_toast_text">验证码：%1$s</string>
     <string name="otp_lsposed_status_section">LSPosed 状态</string>
+    <string name="otp_lsposed_pill_partial">部分生效</string>
    <string name="otp_hub_tab_settings">设置</string>
    <string name="otp_extraction_entry_title">验证码提取</string>
    <string name="otp_extraction_entry_desc">提取成功后做什么：系统通知、Toast、自动复制；以及短信拦截与安全</string>

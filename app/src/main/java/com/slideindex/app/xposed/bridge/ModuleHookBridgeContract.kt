@@ -72,7 +72,7 @@ object ModuleHookBridgeContract {
    * 覆盖安装前的旧模块代码（模块在开机时加载），必须重启手机新代码才会生效。
    * 只是普通构建、模块代码没改时这个值不变，所以不会每次安装都误报。
    */
-  const val MODULE_CODE_VERSION = 3
+  const val MODULE_CODE_VERSION = 4
 
   /** 状态串里模块代码版本字段：`code=<int>`。 */
   const val STATUS_DETAIL_CODE_PREFIX = "code="

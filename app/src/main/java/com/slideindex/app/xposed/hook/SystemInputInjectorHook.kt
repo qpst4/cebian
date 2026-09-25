@@ -232,7 +232,11 @@ class SystemInputInjectorHook {
           )
           return
         }
-        if (isOrderedBroadcast && resultCode != 0) return
+        // 这里曾用 `if (isOrderedBroadcast && resultCode != 0) return` 判断"已被高优先级接收者处理"。
+        // 那个判断是错的：App 侧用 sendOrderedBroadcast(intent, null) 发送，首个接收者看到的初始
+        // resultCode 是 Activity.RESULT_OK(-1) 而不是 0，于是本方法每次都在这里静默 return，
+        // 既不回执也不 abort —— App 侧表现为探测超时（状态行「LSPosed 系统注入：未就绪」）与自动
+        // 填充 timeout。真正的"已被处理"信号是 abortBroadcast()，不需要这个前置返回。
         val sendingUid = resolveSendingUid(this)
         val senderPackages = resolvePackagesForUid(context, sendingUid)
         if (!shouldAllowAutoInputSender(sendingUid, context.applicationInfo.uid, senderPackages)) {

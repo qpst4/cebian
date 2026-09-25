@@ -38,8 +38,14 @@ internal object SmsPolicyRuntime {
   private val handler = Handler(Looper.getMainLooper())
   private val configReader = HookConfigReader { line -> XposedLog.d(TAG, line) }
 
-  @Volatile
-  private var channel: String = ModuleHookBridgeContract.CHANNEL_PHONE
+  /**
+   * 本进程已注册的通道集合。
+   *
+   * 同一进程可能同时承载多个作用域包（例如 Flyme 把「短信存储」并进电话进程：pid 与 uid 都属于
+   * `com.android.phone`），此时 phone 与 telephony 两个通道会先后注册进同一个进程。以前只存一个
+   * 通道名，后注册的会把先注册的覆盖掉，App 侧对应槽位就永远收不到回执（表现为「短信通道：未就绪」）。
+   */
+  private val channels = java.util.Collections.synchronizedSet(LinkedHashSet<String>())
 
   @Volatile
   private var processContext: Context? = null
@@ -57,9 +63,12 @@ internal object SmsPolicyRuntime {
   private var cachedKeywords: Pair<String, Regex?>? = null
 
   fun register(channel: String) {
-    this.channel = channel
+    channels.add(channel)
     attemptRegistration(attempt = 0)
   }
+
+  /** 当前通道快照（回执按通道逐个发，避免一个进程只点亮 App 侧一个槽位）。 */
+  private fun currentChannels(): List<String> = synchronized(channels) { channels.toList() }
 
   fun markDispatchHooked(installed: Boolean) {
     dispatchHooked = installed
@@ -75,7 +84,16 @@ internal object SmsPolicyRuntime {
     attemptRegistration(attempt = 0)
   }
 
-  fun policy(): ModuleHookOtpPolicy = configReader.current()?.otp ?: ModuleHookOtpPolicy()
+  fun policy(): ModuleHookOtpPolicy {
+    val snapshot = configReader.current()
+    if (snapshot == null) {
+      // 本进程还没拿到任何配置（典型：先于 App 启动）。按默认值放行的同时主动拉一次，
+      // 否则「短信安全」会一直停在默认值上。requestSnapshotIfNeeded 自带 30s 节流。
+      processContext?.let { configReader.requestSnapshotIfNeeded(it) }
+      return ModuleHookOtpPolicy()
+    }
+    return snapshot.otp ?: ModuleHookOtpPolicy()
+  }
 
   /** 是否被策略要求拦截投递（黑名单动作优先于"屏蔽所有验证码短信"）。 */
   fun shouldBlock(sender: String?, body: String?): BlockDecision {
@@ -129,7 +147,7 @@ internal object SmsPolicyRuntime {
     val context = processContext ?: resolveProcessContext()?.also { processContext = it }
     if (context != null && tryRegister(context)) return
     if (attempt >= MAX_ATTEMPTS) {
-      XposedLog.w(TAG, "status channel not registered in ${channel} process")
+      XposedLog.w(TAG, "status channel not registered in ${currentChannels()} process")
       return
     }
     handler.postDelayed({ attemptRegistration(attempt + 1) }, RETRY_MS)
@@ -144,13 +162,17 @@ internal object SmsPolicyRuntime {
               intent.getStringExtra(ModuleHookBridgeContract.EXTRA_CONFIG_JSON),
             )
           ModuleHookBridgeContract.ACTION_MODULE_STATUS_REQUEST -> {
-            configReader.requestSnapshotIfNeeded(receiverContext ?: context)
-            sendStatusResponse(receiverContext ?: context)
+            val statusContext = receiverContext ?: context
+            configReader.requestSnapshotIfNeeded(statusContext)
+            currentChannels().forEach { sendStatusResponse(statusContext, it) }
           }
           ModuleHookBridgeContract.ACTION_RESTART_PROCESS -> {
             val confirm = intent.getStringExtra(ModuleHookBridgeContract.EXTRA_RESTART_CONFIRM)
             if (confirm != ModuleHookBridgeContract.RESTART_CONFIRM_VALUE) return
-            XposedLog.i(TAG, "Restart requested in $channel process, reloading module code")
+            XposedLog.i(
+              TAG,
+              "Restart requested in ${currentChannels()} process, reloading module code",
+            )
             handler.postDelayed({
               runCatching { Process.killProcess(Process.myPid()) }
               runCatching { System.exit(0) }
@@ -166,13 +188,13 @@ internal object SmsPolicyRuntime {
     }
     ContextCompat.registerReceiver(context, receiver, filter, ContextCompat.RECEIVER_EXPORTED)
     receiverRegistered = true
-    XposedLog.i(TAG, "status channel registered in $channel process")
+    XposedLog.i(TAG, "status channel registered in ${currentChannels()} process")
     configReader.requestSnapshotIfNeeded(context)
   }.onFailure {
-    XposedLog.d(TAG, "register status channel retry in $channel: ${it.message}")
+    XposedLog.d(TAG, "register status channel retry in ${currentChannels()}: ${it.message}")
   }.isSuccess
 
-  private fun sendStatusResponse(context: Context) {
+  private fun sendStatusResponse(context: Context, channel: String) {
     val policy = configReader.current()?.otp
     val policyLoaded = policy != null
     val hookInstalled = if (channel == ModuleHookBridgeContract.CHANNEL_TELEPHONY) {

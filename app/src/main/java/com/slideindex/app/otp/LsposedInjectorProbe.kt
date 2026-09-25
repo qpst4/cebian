@@ -25,7 +25,7 @@ object LsposedInjectorProbe {
   private val mainHandler = Handler(Looper.getMainLooper())
   private var receiverRegistered = false
   private var pendingAttemptId: Long? = null
-  private var pendingCallback: ((Status, String) -> Unit)? = null
+  private var pendingCallbacks = mutableListOf<(Status, String) -> Unit>()
 
   private val resultReceiver = object : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
@@ -61,13 +61,17 @@ object LsposedInjectorProbe {
   fun probe(context: Context, callback: (Status, String) -> Unit) {
     val appContext = context.applicationContext
     ensureReceiver(appContext)
-    if (pendingCallback != null) {
-      callback(Status.NotReady, appContext.getString(R.string.otp_lsposed_probe_busy))
+    if (pendingAttemptId != null) {
+      // 已有一轮探测在途：复用它的结果。
+      // 以前这里直接回调"检测中"并按未就绪处理，页面 2.5s 自动重测正好撞上上一轮的 2.5s 超时，
+      // 会把"注入其实就绪、只是回得慢"误报成未就绪。
+      pendingCallbacks += callback
+      Log.i(TAG, "Probe already in flight, reusing result")
       return
     }
     val attemptId = SystemClock.elapsedRealtimeNanos()
     pendingAttemptId = attemptId
-    pendingCallback = callback
+    pendingCallbacks = mutableListOf(callback)
     Log.i(TAG, "Sending LSPosed probe attemptId=$attemptId")
     appContext.sendOrderedBroadcast(
       OtpAutoInputBroadcastContract.buildProbeIntent(attemptId),
@@ -85,9 +89,9 @@ object LsposedInjectorProbe {
   private fun finish(result: Pair<Status, String>) {
     pendingAttemptId = null
     mainHandler.removeCallbacksAndMessages(null)
-    val callback = pendingCallback
-    pendingCallback = null
-    mainHandler.post { callback?.invoke(result.first, result.second) }
+    val callbacks = pendingCallbacks
+    pendingCallbacks = mutableListOf()
+    mainHandler.post { callbacks.forEach { it(result.first, result.second) } }
   }
 
   private fun ensureReceiver(context: Context) {

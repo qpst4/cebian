@@ -32,7 +32,10 @@ class HookConfigReader(
     if (cachedValue != null && now - lastLoadAtMs < ModuleHookBridgeContract.SNAPSHOT_TTL_MS) {
       return cachedValue
     }
-    return loadFromDisk()
+    // 磁盘读不到时保留内存里那份。电话进程既写不了也读不到 /data/system/slideindex，又读不到 app 的
+    // 设备保护目录，唯一来源就是广播下发；如果这里把 cached 清掉，策略会在 TTL 到期后凭空消失
+    //（现象：「短信安全」的拦截 / 标记已读 / 提取后删除静默失效，状态回执里 config=fail）。
+    return loadFromDisk() ?: cachedValue
   }
 
   fun applyBroadcast(json: String?) {
@@ -77,7 +80,8 @@ class HookConfigReader(
     }
     val parsed = ModuleHookSnapshot.parse(fromSystem ?: fromApp)
     lastLoadAtMs = SystemClock.elapsedRealtime()
-    cached = parsed
+    // 只在真的解析出配置时覆盖缓存，避免"读不到文件"把已下发的配置顶掉。
+    if (parsed != null) cached = parsed
     return parsed
   }
 

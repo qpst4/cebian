@@ -1405,7 +1405,8 @@
     <string name="otp_show_code_toast_title">Toast alert</string>
     <string name="otp_show_code_toast_desc">Show the extracted code in a toast</string>
    <string name="otp_code_toast_text">Code: %1$s</string>
-   <string name="otp_lsposed_status_section">LSPosed status</string>
+  <string name="otp_lsposed_status_section">LSPosed status</string>
+  <string name="otp_lsposed_pill_partial">Partly active</string>
   <string name="otp_hub_tab_settings">Settings</string>
   <string name="otp_extraction_entry_title">Code extraction</string>
   <string name="otp_extraction_entry_desc">What happens after a code is found: notification, toast, auto copy; plus SMS blocking and safety</string>

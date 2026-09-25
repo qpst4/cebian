@@ -2332,7 +2332,8 @@
     <string name="otp_show_code_toast_title">トースト表示</string>
     <string name="otp_show_code_toast_desc">抽出したコードをトーストで表示</string>
   <string name="otp_code_toast_text">認証コード: %1$s</string>
-  <string name="otp_lsposed_status_section">LSPosed の状態</string>
+ <string name="otp_lsposed_status_section">LSPosed の状態</string>
+ <string name="otp_lsposed_pill_partial">一部有効</string>
  <string name="otp_hub_tab_settings">設定</string>
  <string name="otp_extraction_entry_title">認証コードの抽出</string>
  <string name="otp_extraction_entry_desc">抽出後の動作（通知・トースト・自動コピー）と SMS の遮断／安全設定</string>
