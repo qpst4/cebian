@@ -9,7 +9,8 @@ import com.slideindex.app.xposed.bridge.ModuleStatusFields
 /**
  * LSPosed 通道「模块此刻能不能真的干活」的判定。
  *
- * 只看两件事：模块回传的代码版本是否与当前 APK 一致、剪贴板白名单 hook 是否装上。
+ * 只看两件事：模块回传的代码版本是否与当前 APK 一致（且当前 APK 不是本次开机后才覆盖安装的）、
+ * 剪贴板白名单 hook 是否装上。
  * 不看 [ModuleBridgeStatusStore.Snapshot.active]——那个是手势接管是否生效，和剪贴板无关。
  */
 object ClipboardLsposedModuleStatus {
@@ -35,18 +36,18 @@ object ClipboardLsposedModuleStatus {
     /** 先按本地缓存给一次结果，再按节流主动探一次模块。 */
     fun refresh(context: Context, onResult: (Readiness) -> Unit) {
         val appContext = context.applicationContext
-        onResult(classify(ModuleBridgeStatusStore.read(appContext)))
+        onResult(classify(appContext, ModuleBridgeStatusStore.read(appContext)))
         val now = System.currentTimeMillis()
         if (now - lastProbeAtMs < PROBE_THROTTLE_MS) return
         lastProbeAtMs = now
         ModuleBridgeStatusProbe.probe(appContext) { _, _ ->
-            onResult(classify(ModuleBridgeStatusStore.read(appContext)))
+            onResult(classify(appContext, ModuleBridgeStatusStore.read(appContext)))
         }
     }
 
-    fun classify(snapshot: ModuleBridgeStatusStore.Snapshot): Readiness {
+    fun classify(context: Context, snapshot: ModuleBridgeStatusStore.Snapshot): Readiness {
         // 旧模块不带 code 字段：能回应就说明模块活着，但那一定是覆盖安装前的代码。
-        when (ModuleStatusFields.codeStateOf(snapshot)) {
+        when (ModuleStatusFields.codeStateOf(context, snapshot)) {
             ModuleStatusFields.CodeState.Unknown -> return Readiness.NotReady
             ModuleStatusFields.CodeState.Stale -> return Readiness.StaleModuleCode
             ModuleStatusFields.CodeState.Current -> Unit

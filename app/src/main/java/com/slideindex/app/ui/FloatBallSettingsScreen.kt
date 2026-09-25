@@ -28,11 +28,13 @@ fun FloatBallSettingsScreen(
     accessibilityGranted: Boolean,
     onBack: () -> Unit,
     onEnabledChange: (Boolean) -> Unit,
+    onDragPasteEnabledChange: (Boolean) -> Unit,
     onOpenAppearanceSettings: () -> Unit,
     onOpenGestureSettings: () -> Unit,
-    onOpenPickOperationSettings: () -> Unit,
+    onOpenPickHandfeelSettings: () -> Unit,
 ) {
     val sectionFeaturesTitle = stringResource(R.string.settings_section_features)
+    val sectionPickTitle = stringResource(R.string.float_ball_pick_section_operation)
 
     SettingsScreenScaffold(
         title = stringResource(R.string.float_ball_settings_title),
@@ -92,14 +94,34 @@ fun FloatBallSettingsScreen(
                         )
                     }
                 )
+            }
+        )
+        settingsLazySmallTitle(
+            key = "section-pick",
+            title = sectionPickTitle
+        )
+        groupedCardItems(
+            keyPrefix = "float-ball-pick",
+            items = buildList {
                 add(
-                    settingsCardScopeItem("pick-operation") {
+                    settingsCardScopeItem("drag-paste") {
+                        SettingSwitchRow(
+                            title = stringResource(R.string.float_ball_drag_paste_enabled),
+                            subtitle = stringResource(R.string.float_ball_drag_paste_enabled_desc),
+                            checked = settings.floatBallDragPasteEnabled,
+                            enabled = accessibilityGranted,
+                            onCheckedChange = onDragPasteEnabledChange,
+                        )
+                    }
+                )
+                add(
+                    settingsCardScopeItem("pick-handfeel") {
                         SettingNavigationRow(
                             icon = { label -> Icon(Icons.Outlined.TouchApp, contentDescription = label) },
                             title = stringResource(R.string.float_ball_pick_word_config_title),
-                            subtitle = stringResource(R.string.float_ball_pick_operation_nav_subtitle),
+                            subtitle = stringResource(R.string.float_ball_pick_word_config_moved_desc),
                             enabled = accessibilityGranted,
-                            onClick = onOpenPickOperationSettings,
+                            onClick = onOpenPickHandfeelSettings,
                         )
                     }
                 )

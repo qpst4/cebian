@@ -10,6 +10,7 @@ import com.slideindex.app.notification.NotificationHistoryRepository
 import com.slideindex.app.notification.NotificationIntentLaunchPort
 import com.slideindex.app.notification.NotificationListenerPort
 import com.slideindex.app.otp.OtpOfficialRulesLoader
+import com.slideindex.app.otp.OtpCodeAlertPresenter
 import com.slideindex.app.otp.OtpRecordsRepository
 import com.slideindex.app.service.ShareImageOcrHistoryRepository
 import com.slideindex.app.search.SearchHistoryRepository
@@ -35,6 +36,7 @@ class AppDependencies @Inject constructor(
     override val notificationListenerPort: NotificationListenerPort,
     val otpOfficialRulesLoader: OtpOfficialRulesLoader,
     val otpRecordsRepository: OtpRecordsRepository,
+    val otpCodeAlertPresenter: OtpCodeAlertPresenter,
     val userMessageBus: UserMessageBus,
     val applicationScope: CoroutineScope,
     val shareImageOcrHistoryRepository: ShareImageOcrHistoryRepository,

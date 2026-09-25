@@ -38,6 +38,14 @@ object ModuleHookConfigWriter {
         .map { side -> settings.toSideSnapshot(side) },
       extraRects = extraRects(context, settings),
       clipboardWhitelist = settings.clipboardLsposedWhitelist.sorted(),
+      otp = ModuleHookOtpPolicy(
+        captureEnabled = settings.otpLsposedSmsCaptureEnabled,
+        blockCodeSmsEnabled = settings.otpBlockCodeSmsEnabled,
+        markAsReadEnabled = settings.otpMarkSmsReadEnabled,
+        deleteSmsEnabled = settings.otpDeleteSmsAfterExtractEnabled,
+        keywordsRegex = settings.otpKeywordsRegex,
+        blacklist = settings.otpSmsBlacklist,
+      ),
       updatedAtMs = System.currentTimeMillis(),
     )
 

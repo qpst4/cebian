@@ -12,12 +12,17 @@ import android.provider.Telephony
 import com.slideindex.app.autofill.OtpAutoInputBroadcastContract
 import com.slideindex.app.otp.OtpCaptureDeduplicator
 import com.slideindex.app.xposed.XposedLog
+import com.slideindex.app.xposed.hook.otp.SmsPolicyRuntime
 
 internal object SmsCaptureForwarder {
   private const val MODULE_PACKAGE = "com.slideindex.app"
 
   fun forward(context: Context, body: String, sender: String, slot: Int, tag: String) {
     if (body.isBlank()) return
+    if (!SmsPolicyRuntime.policy().captureEnabled) {
+      XposedLog.d(tag, "Skipping SMS forward: LSPosed SMS capture disabled")
+      return
+    }
     if (!OtpCaptureDeduplicator.tryConsumeSmsForward(sender, body)) {
       XposedLog.d(tag, "Skipping duplicate SMS forward")
       return

@@ -186,6 +186,9 @@ fun SettingsCardScope.SettingsLabeledTextFieldRow(
     value: String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
+    singleLine: Boolean = true,
+    minLines: Int = 1,
+    maxLines: Int = 1,
 ) {
     SettingsCardRow(key = key) { _ ->
         MiuixLabeledTextField(
@@ -195,6 +198,9 @@ fun SettingsCardScope.SettingsLabeledTextFieldRow(
             modifier = modifier
                 .fillMaxWidth()
                 .padding(horizontal = 12.dp, vertical = 6.dp),
+            singleLine = singleLine,
+            minLines = minLines,
+            maxLines = maxLines,
         )
     }
 }

@@ -20,7 +20,7 @@ import com.slideindex.app.settings.toMinimalAppSettings
 import com.slideindex.app.ui.FloatBallAppearanceSettingsScreen
 import com.slideindex.app.ui.FloatBallGestureSettingsScreen
 import com.slideindex.app.ui.floatBallGestureLabel
-import com.slideindex.app.ui.FloatBallPickOperationSettingsScreen
+import com.slideindex.app.ui.FloatBallPickHandfeelSettingsScreen
 import com.slideindex.app.ui.FloatBallPickPanelLayoutBehaviorSettingsScreen
 import com.slideindex.app.ui.FloatBallPickSettingsScreen
 import com.slideindex.app.ui.FloatBallSettingsScreen
@@ -72,9 +72,10 @@ fun NavEntryBuilder.floatBallNavEntries(ctx: MainNavContext) {
             accessibilityGranted = permissions.accessibilityGranted,
             onBack = { ctx.navigateBackTo(AppNavKey.HomeMain) },
             onEnabledChange = viewModel::setFloatBallEnabled,
+            onDragPasteEnabledChange = viewModel::setFloatBallDragPasteEnabled,
             onOpenAppearanceSettings = { ctx.navigate(AppNavKey.FloatBallAppearance) },
             onOpenGestureSettings = { ctx.navigate(AppNavKey.FloatBallGesture) },
-            onOpenPickOperationSettings = { ctx.navigate(AppNavKey.FloatBallPickOperation) },
+            onOpenPickHandfeelSettings = { ctx.navigate(AppNavKey.FloatBallPickHandfeel) },
         )
     }
 
@@ -631,6 +632,7 @@ fun NavEntryBuilder.floatBallNavEntries(ctx: MainNavContext) {
             onOpenShareImageOcrHistory = { ctx.navigate(AppNavKey.ShareImageOcrHistory) },
             onOpenTranslationSettings = { ctx.navigate(AppNavKey.FloatBallTranslation) },
             onOpenPanelLayoutBehaviorSettings = { ctx.navigate(AppNavKey.FloatBallPickPanelLayoutBehavior) },
+            onOpenPickHandfeelSettings = { ctx.navigate(AppNavKey.FloatBallPickHandfeel) },
             onOpenSearchEngineSettings = { ctx.navigate(AppNavKey.FloatBallSearchEngine) },
             onOpenImageSearchEngineSettings = { ctx.navigate(AppNavKey.FloatBallImageSearchEngine) },
             onDefaultSearchEngineChange = viewModel::setFloatBallPickDefaultSearchEngineId,
@@ -638,17 +640,15 @@ fun NavEntryBuilder.floatBallNavEntries(ctx: MainNavContext) {
         )
     }
 
-    hiltEntry<AppNavKey.FloatBallPickOperation> {
+    // 从取词页或悬浮球页均可进入，返回键回到各自的来源页。
+    hiltEntry<AppNavKey.FloatBallPickHandfeel> {
         val viewModel: ExtensionSettingsViewModel = hiltViewModel()
         val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
         val settings = overlaySettings.toMinimalAppSettings()
-        val permissions = ctx.collectPermissions()
-        FloatBallPickOperationSettingsScreen(
+        FloatBallPickHandfeelSettingsScreen(
             settings = settings,
-            accessibilityGranted = permissions.accessibilityGranted,
-            onPickOffsetChange = viewModel::setFloatBallPickOffsetDp,
             onPickCrossArmChange = viewModel::setFloatBallPickCrossArmDp,
-            onDragPasteEnabledChange = viewModel::setFloatBallDragPasteEnabled,
+            onPickOffsetChange = viewModel::setFloatBallPickOffsetDp,
             onPickBottomTransitionChange = viewModel::setFloatBallPickBottomTransitionFraction,
             onPointerSpeedChange = viewModel::setFloatBallPointerSpeedFraction,
             onPointerSpeedVerticalChange = viewModel::setFloatBallPointerSpeedVerticalFraction,

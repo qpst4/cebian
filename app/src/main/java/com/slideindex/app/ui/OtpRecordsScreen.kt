@@ -37,6 +37,7 @@ import com.slideindex.app.data.AppInfo
 import com.slideindex.app.otp.OtpAutoFillUiLabels
 import com.slideindex.app.otp.OtpClipboardHelper
 import com.slideindex.app.otp.OtpRecord
+import com.slideindex.app.otp.OtpRecordCategory
 import com.slideindex.app.otp.OtpRecordFillStatus
 import com.slideindex.app.ui.miuix.CardItem
 import com.slideindex.app.ui.miuix.groupedCardItems
@@ -136,6 +137,7 @@ fun rememberOtpRecordsUi(
             senderHint = senderHint,
             onOpenTestFlow = onOpenTestFlow,
             onCopy = { record ->
+                if (record.code.isBlank()) return@otpRecordsListItems
                 OtpClipboardHelper.copyCode(context, record.code)
                 Toast.makeText(
                     context,
@@ -259,32 +261,6 @@ fun LazyListScope.otpRecordsListItems(
             },
         )
     }
-}
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun OtpRecordsScreen(
-    onBack: (() -> Unit)? = null,
-    onOpenTestFlow: (() -> Unit)? = null,
-    contentPadding: PaddingValues = PaddingValues(),
-    viewModel: OtpRecordsViewModel = hiltViewModel(),
-) {
-    val recordsUi = rememberOtpRecordsUi(
-        embeddedInHub = false,
-        onOpenTestFlow = onOpenTestFlow,
-        viewModel = viewModel,
-    )
-
-    SettingsLazyScreenScaffold(
-        title = stringResource(R.string.otp_records_title),
-        pageHint = stringResource(R.string.otp_records_entry_desc),
-        onBack = onBack,
-        actions = recordsUi.scaffoldActions,
-    ) {
-        recordsUi.appendListItems(this)
-    }
-
-    recordsUi.overlays()
 }
 
 @Composable
@@ -422,11 +398,22 @@ private fun OtpRecordRow(
     onCopy: () -> Unit,
     onDelete: () -> Unit,
 ) {
-    val sourceLabel = when {
-        record.isTest -> stringResource(R.string.otp_records_test_source)
-        appInfo != null -> appInfo.label
-        else -> record.packageName
+    val categoryLabel = when (record.category) {
+        OtpRecordCategory.PLAIN_SMS -> stringResource(R.string.otp_records_category_plain_sms)
+        OtpRecordCategory.APP_NOTIFY -> stringResource(R.string.otp_records_category_app_notify)
+        OtpRecordCategory.TEST -> stringResource(R.string.otp_records_test_source)
+        OtpRecordCategory.CODE -> stringResource(R.string.otp_records_category_code)
     }
+    val slotLabel = if (record.simSlot >= 0) {
+        stringResource(R.string.otp_sim_slot_label, record.simSlot + 1)
+    } else {
+        null
+    }
+    val sourceLabel = when {
+        record.category == OtpRecordCategory.TEST -> categoryLabel
+        appInfo != null -> "$categoryLabel · ${appInfo.label}"
+        else -> "$categoryLabel · ${record.packageName}"
+    }.let { label -> if (slotLabel == null) label else "$slotLabel · $label" }
     val snippet = record.text.ifBlank { record.title }.ifBlank { record.packageName }
     val context = LocalContext.current
     val fillLabel = OtpAutoFillUiLabels.formatRecordFillStatus(context, record.autoFillStatus)
@@ -452,7 +439,9 @@ private fun OtpRecordRow(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = record.code,
+                    text = record.code.ifBlank {
+                        stringResource(R.string.otp_records_plain_sms_no_code)
+                    },
                     style = MiuixTheme.textStyles.title1,
                     color = MiuixTheme.colorScheme.primary,
                     modifier = Modifier.weight(1f),

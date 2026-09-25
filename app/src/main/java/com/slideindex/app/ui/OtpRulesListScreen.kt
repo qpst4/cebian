@@ -1,28 +1,22 @@
 package com.slideindex.app.ui
 
-import com.slideindex.app.ui.miuix.CardItem
-import com.slideindex.app.ui.miuix.MiuixLabeledTextField
-import com.slideindex.app.ui.miuix.MiuixHintText
-import top.yukonga.miuix.kmp.basic.SmallTitle
-import com.slideindex.app.ui.miuix.groupedCardItems
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.Refresh
-import com.slideindex.app.ui.miuix.MiuixFormDialog
+import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import com.slideindex.app.ui.miuix.MiuixSettingsFab
-import top.yukonga.miuix.kmp.basic.Text
-import top.yukonga.miuix.kmp.theme.MiuixTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,223 +28,84 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.slideindex.app.R
+import com.slideindex.app.otp.OtpKeywords
 import com.slideindex.app.otp.OtpMatchRule
-import com.slideindex.app.settings.AppSettings
-import com.slideindex.app.ui.settings.components.SettingsLazyScreenScaffold
+import com.slideindex.app.otp.OtpRuleInference
+import com.slideindex.app.ui.miuix.CardItem
+import com.slideindex.app.ui.miuix.MiuixFormDialog
+import com.slideindex.app.ui.miuix.MiuixLabeledTextField
+import com.slideindex.app.ui.miuix.groupedCardItems
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.Switch
+import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-fun OtpRulesListScreen(
-    officialRules: List<OtpMatchRule>,
-    userRules: List<OtpMatchRule>,
-    disabledOfficialRuleIds: Set<String>,
-    onBack: (() -> Unit)?,
-    onRefreshOfficialRules: () -> Unit,
-    onOfficialRuleEnabledChange: (String, Boolean) -> Unit,
-    onUserRulesChange: (List<OtpMatchRule>) -> Unit,
-    modifier: Modifier = Modifier,
-    settings: AppSettings? = null,
-    onKeywordsRegexChange: ((String) -> Unit)? = null,
-    showTestDialog: Boolean = false,
-    onShowTestDialog: (() -> Unit)? = null,
-    onDismissTestDialog: (() -> Unit)? = null,
-) {
-    val context = LocalContext.current
-    var showEditor by remember { mutableStateOf(false) }
-    var editingRule by remember { mutableStateOf<OtpMatchRule?>(null) }
-    var keywordsText by remember(settings?.otpKeywordsRegex) {
-        mutableStateOf(settings?.otpKeywordsRegex.orEmpty())
-    }
-
-    val showExtractionExtras = settings != null
-
-    SettingsLazyScreenScaffold(
-        title = stringResource(R.string.otp_match_rules_entry_title),
-        pageHint = stringResource(R.string.otp_match_rules_entry_desc),
-        onBack = onBack,
-        modifier = modifier,
-        actions = {
-            IconButton(onClick = onRefreshOfficialRules) {
-                Icon(
-                    Icons.Outlined.Refresh,
-                    contentDescription = stringResource(R.string.otp_rules_refresh),
-                    tint = MiuixTheme.colorScheme.onSurfaceSecondary,
-                )
-            }
-        },
-        floatingActionButton = {
-            MiuixSettingsFab(
-                onClick = {
-                    editingRule = null
-                    showEditor = true
-                },
-                icon = Icons.Outlined.Add,
-                contentDescription = stringResource(R.string.otp_rules_add),
-            )
-        },
-    ) {
-        otpRulesListItems(
-            embeddedInHub = false,
-            officialRules = officialRules,
-            userRules = userRules,
-            disabledOfficialRuleIds = disabledOfficialRuleIds,
-            showExtractionExtras = showExtractionExtras,
-            settings = settings,
-            keywordsText = keywordsText,
-            onKeywordsTextChange = { keywordsText = it },
-            onRefreshOfficialRules = onRefreshOfficialRules,
-            onOfficialRuleEnabledChange = onOfficialRuleEnabledChange,
-            onUserRulesChange = onUserRulesChange,
-            onKeywordsRegexChange = onKeywordsRegexChange,
-            onShowTestDialog = onShowTestDialog,
-            onEditRule = { rule ->
-                editingRule = rule
-                showEditor = true
-            },
-        )
-    }
-
-    if (showExtractionExtras && showTestDialog) {
-        @Suppress("UNNECESSARY_NOT_NULL_ASSERTION")
-        OtpTestDialogHost(
-            settings = settings!!,
-            officialRules = officialRules,
-            keywordsRegex = keywordsText,
-            onDismiss = onDismissTestDialog!!,
-        )
-    }
-
-    if (showEditor) {
-        OtpRuleEditorDialog(
-            initialRule = editingRule,
-            onDismiss = {
-                showEditor = false
-                editingRule = null
-            },
-            onSave = { saved ->
-                val next = if (userRules.any { it.id == saved.id }) {
-                    userRules.map { if (it.id == saved.id) saved else it }
-                } else {
-                    userRules + saved
-                }
-                onUserRulesChange(next)
-                showEditor = false
-                editingRule = null
-            },
-        )
-    }
-}
-
+/**
+ * 验证码规则页：**一张列表 + 一个测试按钮**。
+ *
+ * 「我的规则」与「内置规则」合并成同一张表，行内用小标签区分来源；
+ * 新增规则走"贴一条真实短信 → 自动生成"（见 [OtpRuleEditorDialog]）。
+ */
 internal fun LazyListScope.otpRulesListItems(
     embeddedInHub: Boolean,
     officialRules: List<OtpMatchRule>,
     userRules: List<OtpMatchRule>,
     disabledOfficialRuleIds: Set<String>,
-    showExtractionExtras: Boolean,
-    settings: AppSettings?,
-    keywordsText: String,
-    onKeywordsTextChange: (String) -> Unit,
-    onRefreshOfficialRules: () -> Unit,
     onOfficialRuleEnabledChange: (String, Boolean) -> Unit,
     onUserRulesChange: (List<OtpMatchRule>) -> Unit,
-    onKeywordsRegexChange: ((String) -> Unit)?,
     onShowTestDialog: (() -> Unit)?,
     onEditRule: (OtpMatchRule) -> Unit,
+    onCopyOfficialRule: ((OtpMatchRule) -> Unit)? = null,
+    onOpenRulesMenu: (() -> Unit)? = null,
 ) {
     if (embeddedInHub) {
-        item(key = "hub_header") {
+        item(key = "rules_toolbar") {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 28.dp, end = 16.dp, top = 8.dp, bottom = 4.dp),
+                    // 12dp + TextButton 自带的水平内边距 ≈ 28dp，与下方区块标题左对齐。
+                    .padding(start = 12.dp, end = 16.dp, top = 4.dp, bottom = 0.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(
-                    text = stringResource(R.string.otp_rules_tab_title),
-                    style = MiuixTheme.textStyles.title4,
-                    color = MiuixTheme.colorScheme.onSurface,
-                    modifier = Modifier.weight(1f),
+                TextButton(
+                    text = stringResource(R.string.otp_test_title),
+                    onClick = { onShowTestDialog?.invoke() },
                 )
-                IconButton(onClick = onRefreshOfficialRules) {
-                    Icon(
-                        Icons.Outlined.Refresh,
-                        contentDescription = stringResource(R.string.otp_rules_refresh),
-                        tint = MiuixTheme.colorScheme.onSurfaceSecondary,
-                    )
+                Spacer(Modifier.weight(1f))
+                if (onOpenRulesMenu != null) {
+                    IconButton(onClick = onOpenRulesMenu) {
+                        Icon(
+                            Icons.Outlined.MoreVert,
+                            contentDescription = stringResource(R.string.otp_rules_more),
+                            tint = MiuixTheme.colorScheme.onSurfaceSecondary,
+                        )
+                    }
                 }
             }
         }
-        item(key = "hub_hint") {
-            MiuixHintText(stringResource(R.string.otp_hub_rules_hint))
-        }
     }
 
-    item(key = "official_section_title") {
-        SmallTitle(
-            text = stringResource(R.string.otp_rules_official_section),
-            modifier = Modifier.fillMaxWidth(),
-        )
-    }
-    item(key = "official_section_hint") {
-        MiuixHintText(
-            stringResource(R.string.otp_rules_official_hint, officialRules.size),
-        )
-    }
-    if (officialRules.isEmpty()) {
-        item(key = "official_empty") {
-            Text(
-                text = stringResource(R.string.otp_rules_official_empty),
-                style = MiuixTheme.textStyles.body2,
-                color = MiuixTheme.colorScheme.onSurfaceSecondary,
-                modifier = Modifier.padding(horizontal = 28.dp, vertical = 8.dp),
-            )
-        }
-    } else {
-        groupedCardItems(
-            keyPrefix = "otp-official-rules",
-            items = officialRules.map { rule ->
-                val enabled = rule.id !in disabledOfficialRuleIds
-                CardItem(key = rule.id) {
-                    OtpRuleRowContent(
-                        rule = rule,
-                        enabled = enabled,
-                        showDelete = false,
-                        onEnabledChange = { onOfficialRuleEnabledChange(rule.id, it) },
-                        onDelete = null,
-                        onEdit = null,
-                    )
-                }
-            },
+    item(key = "rules_section_title") {
+        RulesSectionHeader(
+            title = stringResource(R.string.otp_rules_list_section),
+            trailing = stringResource(
+                R.string.otp_rules_count_summary,
+                userRules.size,
+                officialRules.size,
+            ),
         )
     }
 
-    item(key = "user_section_title") {
-        SmallTitle(
-            text = stringResource(R.string.otp_rules_user_section),
-            modifier = Modifier.fillMaxWidth(),
-        )
-    }
-    if (userRules.isEmpty()) {
-        item(key = "user_empty") {
-            Text(
-                text = stringResource(R.string.otp_rules_user_empty),
-                style = MiuixTheme.textStyles.body2,
-                color = MiuixTheme.colorScheme.onSurfaceSecondary,
-                modifier = Modifier.padding(horizontal = 28.dp, vertical = 8.dp),
-            )
-        }
-    } else {
-        groupedCardItems(
-            keyPrefix = "otp-user-rules",
-            items = userRules.map { rule ->
+    val items = buildList {
+        userRules.forEach { rule ->
+            add(
                 CardItem(key = rule.id) {
                     OtpRuleRowContent(
                         rule = rule,
                         enabled = rule.enabled,
-                        showDelete = true,
+                        sourceLabel = stringResource(R.string.otp_rules_source_mine),
                         onEnabledChange = { enabled ->
                             onUserRulesChange(
                                 userRules.map {
@@ -259,56 +114,83 @@ internal fun LazyListScope.otpRulesListItems(
                             )
                         },
                         onEdit = { onEditRule(rule) },
-                        onDelete = {
-                            onUserRulesChange(userRules.filterNot { it.id == rule.id })
-                        },
+                        onDelete = { onUserRulesChange(userRules.filterNot { it.id == rule.id }) },
                     )
-                }
-            },
-        )
-    }
-
-    if (showExtractionExtras) {
-        item(key = "keywords_section") {
-            OtpKeywordsEditorSection(
-                keywordsText = keywordsText,
-                onKeywordsTextChange = onKeywordsTextChange,
-                onSave = { onKeywordsRegexChange!!(keywordsText) },
-                onReset = {
-                    val defaultRegex = com.slideindex.app.otp.VerificationCodeExtractor.DEFAULT_KEYWORDS_REGEX
-                    onKeywordsTextChange(defaultRegex)
-                    onKeywordsRegexChange!!(defaultRegex)
                 },
-                sectionTitle = stringResource(R.string.otp_keywords_fallback_section),
             )
         }
-        item(key = "test_link") {
-            OtpTestLinkSection(onOpenTest = onShowTestDialog!!)
+        officialRules.forEach { rule ->
+            add(
+                CardItem(key = rule.id) {
+                    OtpRuleRowContent(
+                        rule = rule,
+                        enabled = rule.id !in disabledOfficialRuleIds,
+                        sourceLabel = stringResource(R.string.otp_rules_source_builtin),
+                        onEnabledChange = { onOfficialRuleEnabledChange(rule.id, it) },
+                        onEdit = null,
+                        onDelete = null,
+                        onCopyToUser = onCopyOfficialRule?.let { copy -> { copy(rule) } },
+                    )
+                },
+            )
+        }
+    }
+    if (items.isEmpty()) {
+        item(key = "rules_empty") {
+            Text(
+                text = stringResource(R.string.otp_rules_user_empty),
+                style = MiuixTheme.textStyles.body2,
+                color = MiuixTheme.colorScheme.onSurfaceSecondary,
+                modifier = Modifier.padding(horizontal = 28.dp, vertical = 8.dp),
+            )
+        }
+    } else {
+        groupedCardItems(keyPrefix = "otp-rules", items = items)
+    }
+}
+
+/** 区块标题：统一层级，右侧可带计数。 */
+@Composable
+private fun RulesSectionHeader(title: String, trailing: String? = null) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 28.dp, end = 16.dp, top = 8.dp, bottom = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = title,
+            style = MiuixTheme.textStyles.title4,
+            color = MiuixTheme.colorScheme.onSurface,
+            modifier = Modifier.weight(1f),
+        )
+        if (trailing != null) {
+            Text(
+                text = trailing,
+                style = MiuixTheme.textStyles.footnote1,
+                color = MiuixTheme.colorScheme.onSurfaceSecondary,
+            )
         }
     }
 }
 
+/** 单条规则：第一行 `名称 · 触发词` + 来源标签，第二行正则（单行截断）。 */
 @Composable
 private fun OtpRuleRowContent(
     rule: OtpMatchRule,
     enabled: Boolean,
-    showDelete: Boolean,
+    sourceLabel: String,
     onEnabledChange: (Boolean) -> Unit,
     onEdit: (() -> Unit)?,
     onDelete: (() -> Unit)?,
+    onCopyToUser: (() -> Unit)? = null,
 ) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .then(
-                if (onEdit != null) {
-                    Modifier.clickable(onClick = onEdit)
-                } else {
-                    Modifier
-                },
-            )
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+            .then(if (onEdit != null) Modifier.clickable(onClick = onEdit) else Modifier)
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -316,7 +198,7 @@ private fun OtpRuleRowContent(
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Text(
-                text = rule.name,
+                text = "${rule.name} · ${rule.keyword}",
                 style = MiuixTheme.textStyles.title4,
                 color = MiuixTheme.colorScheme.onSurface,
                 modifier = Modifier.weight(1f),
@@ -324,7 +206,22 @@ private fun OtpRuleRowContent(
                 overflow = TextOverflow.Ellipsis,
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
-                if (showDelete && onDelete != null) {
+                Text(
+                    text = sourceLabel,
+                    style = MiuixTheme.textStyles.footnote2,
+                    color = MiuixTheme.colorScheme.onSurfaceSecondary,
+                    modifier = Modifier.padding(end = 6.dp),
+                )
+                if (onCopyToUser != null) {
+                    IconButton(onClick = onCopyToUser) {
+                        Icon(
+                            Icons.Outlined.ContentCopy,
+                            contentDescription = stringResource(R.string.otp_rules_copy_to_user),
+                            tint = MiuixTheme.colorScheme.onSurfaceSecondary,
+                        )
+                    }
+                }
+                if (onDelete != null) {
                     IconButton(onClick = onDelete) {
                         Icon(
                             Icons.Default.Delete,
@@ -333,87 +230,87 @@ private fun OtpRuleRowContent(
                         )
                     }
                 }
-                Switch(
-                    checked = enabled,
-                    onCheckedChange = onEnabledChange,
-                )
+                Switch(checked = enabled, onCheckedChange = onEnabledChange)
             }
         }
-        Text(
-            text = stringResource(R.string.otp_rules_keyword_label, rule.keyword),
-            style = MiuixTheme.textStyles.body2,
-            color = MiuixTheme.colorScheme.onSurfaceSecondary,
-        )
         Text(
             text = rule.regex,
             style = MiuixTheme.textStyles.footnote1,
             color = MiuixTheme.colorScheme.onSurfaceSecondary,
-            maxLines = 2,
+            maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
     }
 }
 
+/**
+ * 规则编辑弹窗。
+ *
+ * 新增时**先贴一条真实短信**，[OtpRuleInference] 自动推断触发词与正则并回填；
+ * 推断不出来（或需要手改）时展开"高级"，直接编辑触发词 / 正则 / 限定包名。
+ */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun OtpRuleEditorDialog(
     initialRule: OtpMatchRule?,
     onDismiss: () -> Unit,
     onSave: (OtpMatchRule) -> Unit,
+    keywordsRegex: String = OtpKeywords.DEFAULT_KEYWORDS_REGEX,
 ) {
+    val context = LocalContext.current
+    var sample by remember(initialRule) { mutableStateOf("") }
     var name by remember(initialRule) { mutableStateOf(initialRule?.name.orEmpty()) }
     var keyword by remember(initialRule) { mutableStateOf(initialRule?.keyword.orEmpty()) }
     var regex by remember(initialRule) { mutableStateOf(initialRule?.regex.orEmpty()) }
     var packageName by remember(initialRule) { mutableStateOf(initialRule?.packageName.orEmpty()) }
-    val context = LocalContext.current
+    var advanced by remember(initialRule) { mutableStateOf(initialRule != null) }
 
-    val nameLabel = stringResource(R.string.otp_rules_name_label)
-    val keywordLabel = stringResource(R.string.otp_rules_keyword_field_label)
-    val regexLabel = stringResource(R.string.otp_rules_regex_label)
-    val packageLabel = stringResource(R.string.otp_rules_package_label)
+    val inference = remember(sample, keywordsRegex) {
+        if (initialRule == null && sample.isNotBlank()) {
+            OtpRuleInference.infer(sample, keywordsRegex)
+        } else {
+            null
+        }
+    }
+    LaunchedEffect(inference) {
+        inference?.let { result ->
+            keyword = result.keyword
+            regex = result.regex
+            if (name.isBlank()) name = context.getString(R.string.otp_rules_default_name)
+        }
+    }
+
     val invalidMessage = stringResource(R.string.otp_rules_invalid)
-
     MiuixFormDialog(
         show = true,
         onDismissRequest = onDismiss,
         title = stringResource(
-            if (initialRule != null) R.string.otp_rules_edit
-            else R.string.otp_rules_add,
+            if (initialRule != null) R.string.otp_rules_edit else R.string.otp_rules_add,
         ),
         confirmText = stringResource(R.string.confirm),
         dismissText = stringResource(R.string.cancel),
         onConfirm = {
-            val trimmedName = name.trim()
             val trimmedKeyword = keyword.trim()
             val trimmedRegex = regex.trim()
-            val trimmedPackage = packageName.trim()
-            if (trimmedName.isEmpty() || trimmedKeyword.isEmpty() || trimmedRegex.isEmpty()) {
-                Toast.makeText(
-                    context,
-                    invalidMessage,
-                    Toast.LENGTH_SHORT,
-                ).show()
+            if (name.trim().isEmpty() || trimmedKeyword.isEmpty() || trimmedRegex.isEmpty()) {
+                Toast.makeText(context, invalidMessage, Toast.LENGTH_SHORT).show()
                 return@MiuixFormDialog
             }
-            try {
-                Regex(trimmedRegex)
-            } catch (_: Exception) {
-                Toast.makeText(
-                    context,
-                    invalidMessage,
-                    Toast.LENGTH_SHORT,
-                ).show()
+            if (runCatching { Regex(trimmedRegex) }.isFailure) {
+                Toast.makeText(context, invalidMessage, Toast.LENGTH_SHORT).show()
                 return@MiuixFormDialog
             }
-            val rule = OtpMatchRule(
-                id = initialRule?.id ?: java.util.UUID.randomUUID().toString(),
-                name = trimmedName,
-                keyword = trimmedKeyword,
-                regex = trimmedRegex,
-                packageName = trimmedPackage.ifEmpty { null },
-                isOfficial = false,
-                enabled = initialRule?.enabled ?: true,
+            onSave(
+                OtpMatchRule(
+                    id = initialRule?.id ?: java.util.UUID.randomUUID().toString(),
+                    name = name.trim(),
+                    keyword = trimmedKeyword,
+                    regex = trimmedRegex,
+                    packageName = packageName.trim().ifEmpty { null },
+                    isOfficial = false,
+                    enabled = initialRule?.enabled ?: true,
+                ),
             )
-            onSave(rule)
         },
     ) {
         Column(
@@ -422,34 +319,74 @@ internal fun OtpRuleEditorDialog(
                 .padding(vertical = 4.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            MiuixLabeledTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = nameLabel,
-            )
-            MiuixLabeledTextField(
-                value = keyword,
-                onValueChange = { keyword = it },
-                label = keywordLabel,
-            )
-            MiuixLabeledTextField(
-                value = regex,
-                onValueChange = { regex = it },
-                label = regexLabel,
-                singleLine = false,
-                minLines = 2,
-                maxLines = 4,
-            )
-            MiuixLabeledTextField(
-                value = packageName,
-                onValueChange = { packageName = it },
-                label = packageLabel,
-            )
-            Text(
-                text = stringResource(R.string.otp_rules_package_hint),
-                style = MiuixTheme.textStyles.footnote1,
-                color = MiuixTheme.colorScheme.onSurfaceSecondary,
-            )
+            if (initialRule == null) {
+                MiuixLabeledTextField(
+                    value = sample,
+                    onValueChange = { sample = it },
+                    label = stringResource(R.string.otp_rules_sample_label),
+                    singleLine = false,
+                    minLines = 3,
+                    maxLines = 6,
+                )
+                when {
+                    sample.isBlank() -> Unit
+                    inference != null -> Text(
+                        text = stringResource(R.string.otp_test_result_success, inference.code),
+                        style = MiuixTheme.textStyles.body2,
+                        color = MiuixTheme.colorScheme.primary,
+                    )
+                    else -> Text(
+                        text = stringResource(R.string.otp_rules_sample_unrecognized),
+                        style = MiuixTheme.textStyles.body2,
+                        color = MiuixTheme.colorScheme.error,
+                    )
+                }
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { advanced = !advanced },
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(
+                    Icons.Outlined.Tune,
+                    contentDescription = null,
+                    tint = MiuixTheme.colorScheme.onSurfaceSecondary,
+                )
+                Text(
+                    text = stringResource(R.string.otp_rules_advanced),
+                    style = MiuixTheme.textStyles.body2,
+                    color = MiuixTheme.colorScheme.onSurfaceSecondary,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(start = 8.dp),
+                )
+            }
+            if (advanced) {
+                MiuixLabeledTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = stringResource(R.string.otp_rules_name_label),
+                )
+                MiuixLabeledTextField(
+                    value = keyword,
+                    onValueChange = { keyword = it },
+                    label = stringResource(R.string.otp_rules_keyword_field_label),
+                )
+                MiuixLabeledTextField(
+                    value = regex,
+                    onValueChange = { regex = it },
+                    label = stringResource(R.string.otp_rules_regex_label),
+                    singleLine = false,
+                    minLines = 2,
+                    maxLines = 4,
+                )
+                MiuixLabeledTextField(
+                    value = packageName,
+                    onValueChange = { packageName = it },
+                    label = stringResource(R.string.otp_rules_package_label),
+                )
+            }
         }
     }
 }

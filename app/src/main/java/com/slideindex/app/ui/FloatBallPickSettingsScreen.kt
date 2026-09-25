@@ -8,9 +8,11 @@ import androidx.compose.foundation.layout.size
 
 import androidx.compose.material.icons.Icons
 
+import androidx.compose.material.icons.outlined.DocumentScanner
 import androidx.compose.material.icons.outlined.ImageSearch
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.StarBorder
+import androidx.compose.material.icons.outlined.TouchApp
 import androidx.compose.material.icons.outlined.Translate
 
 import androidx.compose.material.icons.outlined.ViewAgenda
@@ -49,8 +51,6 @@ import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import com.slideindex.app.ui.settings.components.settingsLazySectionIntro
 
 import com.slideindex.app.ui.settings.components.settingsLazyTipCard
-
-import com.slideindex.app.ui.settings.components.MiuixNavigationRow
 
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
 
@@ -97,6 +97,8 @@ fun FloatBallPickSettingsScreen(
     onOpenTranslationSettings: () -> Unit,
 
     onOpenPanelLayoutBehaviorSettings: () -> Unit,
+
+    onOpenPickHandfeelSettings: () -> Unit,
 
     onOpenSearchEngineSettings: () -> Unit,
 
@@ -148,21 +150,21 @@ fun FloatBallPickSettingsScreen(
 
     }
 
-    val ocrSectionTitle = stringResource(R.string.pick_settings_section_ocr)
+    val ocrTranslationSectionTitle = stringResource(R.string.pick_settings_section_ocr_translation)
 
     val longImageHistorySectionTitle = stringResource(R.string.pick_settings_section_long_image_history)
 
     val imageOpenEditSectionTitle = stringResource(R.string.pick_settings_section_image_open_edit)
-
-    val panelTranslationSectionTitle = stringResource(R.string.float_ball_translation_settings_title)
-
-    val pickPanelSectionTitle = stringResource(R.string.float_ball_pick_section_panel)
 
     val panelLayoutBehaviorTitle = stringResource(R.string.pick_settings_panel_layout_behavior_title)
 
     val panelLayoutBehaviorNavSubtitle = stringResource(R.string.pick_settings_panel_layout_behavior_nav_subtitle)
 
     val howToTriggerTip = stringResource(R.string.pick_settings_how_to_trigger_tip)
+
+    val pickHandfeelTitle = stringResource(R.string.pick_handfeel_settings_title)
+
+    val pickHandfeelNavSubtitle = stringResource(R.string.pick_settings_advanced_nav_subtitle)
 
     val imageOpenEditHint = stringResource(R.string.pick_settings_image_open_edit_hint)
 
@@ -211,17 +213,10 @@ fun FloatBallPickSettingsScreen(
 
         )
 
-        settingsLazySmallTitle(
-
-            key = "pick-panel-section",
-
-            title = pickPanelSectionTitle,
-
-        )
-
+        // 布局与行为、拾取与手感都是取词页的子页入口，合成一张卡：面板在前、手感在后。
         groupedCardItems(
 
-            keyPrefix = "fb-pick-panel-hub",
+            keyPrefix = "fb-pick-hub",
 
             items = listOf(
 
@@ -243,83 +238,63 @@ fun FloatBallPickSettingsScreen(
 
                 },
 
+                settingsCardScopeItem("pick-handfeel") {
+
+                    SettingNavigationRow(
+
+                        icon = { label -> Icon(Icons.Outlined.TouchApp, contentDescription = label) },
+
+                        title = pickHandfeelTitle,
+
+                        subtitle = pickHandfeelNavSubtitle,
+
+                        enabled = true,
+
+                        onClick = onOpenPickHandfeelSettings,
+
+                    )
+
+                },
+
             ),
 
         )
 
         settingsLazySmallTitle(
 
-            key = "ocr-section",
+            key = "ocr-translation-section",
 
-            title = ocrSectionTitle,
-
-        )
-
-        groupedCardItems(
-
-            keyPrefix = "fb-pick-ocr",
-
-            items = buildList {
-
-                add(
-
-                    settingsCardScopeItem("ocr-fallback") {
-
-                        SettingSwitchRow(
-
-                            title = stringResource(R.string.float_ball_ocr_fallback),
-
-                            subtitle = stringResource(R.string.float_ball_ocr_fallback_desc),
-
-                            checked = settings.floatBallOcrFallbackEnabled,
-
-                            enabled = true,
-
-                            onCheckedChange = onOcrFallbackChange
-
-                        )
-
-                    }
-
-                )
-
-                add(
-
-                    settingsCardScopeItem("ocr-models") {
-
-                        MiuixNavigationRow(
-
-                            title = stringResource(R.string.ocr_models_title),
-
-                            summary = ocrModelSelectionSubtitle(settings.floatBallOcrModelId),
-
-                            enabled = true,
-
-                            onClick = onOpenOcrModels,
-
-                        )
-
-                    }
-
-                )
-
-            },
-
-        )
-
-        settingsLazySmallTitle(
-
-            key = "panel-translation-section",
-
-            title = panelTranslationSectionTitle,
+            title = ocrTranslationSectionTitle,
 
         )
 
         groupedCardItems(
 
-            keyPrefix = "fb-pick-panel-translation",
+            keyPrefix = "fb-pick-ocr-translation",
 
             items = listOf(
+
+                settingsCardScopeItem("ocr") {
+
+                    SettingSwitchNavigationRow(
+
+                        title = stringResource(R.string.ocr_recognize_title),
+
+                        subtitle = ocrModelSelectionSubtitle(settings.floatBallOcrModelId),
+
+                        icon = { label -> Icon(Icons.Outlined.DocumentScanner, contentDescription = label) },
+
+                        checked = settings.floatBallOcrFallbackEnabled,
+
+                        enabled = true,
+
+                        onCheckedChange = onOcrFallbackChange,
+
+                        onNavigate = onOpenOcrModels,
+
+                    )
+
+                },
 
                 settingsCardScopeItem("panel-translation") {
 

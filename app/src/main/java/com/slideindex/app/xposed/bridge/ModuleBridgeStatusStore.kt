@@ -10,21 +10,43 @@ object ModuleBridgeStatusStore {
   private const val KEY_DETAIL = "detail"
   private const val KEY_UPDATED_AT = "updated_at"
 
-  fun write(context: Context, active: Boolean, state: String, detail: String) {
+  /**
+   * 写入某个通道的状态回执。
+   *
+   * 系统框架通道沿用原有偏好键（旧数据继续可用），电话进程通道加后缀分槽存放。
+   */
+  fun write(
+    context: Context,
+    active: Boolean,
+    state: String,
+    detail: String,
+    channel: String = ModuleHookBridgeContract.CHANNEL_SYSTEM,
+  ) {
+    val suffix = keySuffix(channel)
     prefs(context).edit()
-      .putBoolean(KEY_ACTIVE, active)
-      .putString(KEY_STATE, state)
-      .putString(KEY_DETAIL, detail)
-      .putLong(KEY_UPDATED_AT, System.currentTimeMillis())
+      .putBoolean(KEY_ACTIVE + suffix, active)
+      .putString(KEY_STATE + suffix, state)
+      .putString(KEY_DETAIL + suffix, detail)
+      .putLong(KEY_UPDATED_AT + suffix, System.currentTimeMillis())
       .apply()
   }
 
-  fun read(context: Context): Snapshot = Snapshot(
-    active = prefs(context).getBoolean(KEY_ACTIVE, false),
-    state = prefs(context).getString(KEY_STATE, "").orEmpty(),
-    detail = prefs(context).getString(KEY_DETAIL, "").orEmpty(),
-    updatedAtMs = prefs(context).getLong(KEY_UPDATED_AT, 0L),
-  )
+  fun read(
+    context: Context,
+    channel: String = ModuleHookBridgeContract.CHANNEL_SYSTEM,
+  ): Snapshot {
+    val suffix = keySuffix(channel)
+    val prefs = prefs(context)
+    return Snapshot(
+      active = prefs.getBoolean(KEY_ACTIVE + suffix, false),
+      state = prefs.getString(KEY_STATE + suffix, "").orEmpty(),
+      detail = prefs.getString(KEY_DETAIL + suffix, "").orEmpty(),
+      updatedAtMs = prefs.getLong(KEY_UPDATED_AT + suffix, 0L),
+    )
+  }
+
+  private fun keySuffix(channel: String): String =
+    if (channel == ModuleHookBridgeContract.CHANNEL_SYSTEM) "" else "_$channel"
 
   private fun prefs(context: Context) =
     context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)

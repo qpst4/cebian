@@ -20,6 +20,16 @@ object ModuleHookBridgeContract {
    */
   const val ACTION_HOST_STATE_CHANGED = "com.slideindex.app.xposed.action.HOST_STATE_CHANGED"
 
+  /**
+   * App → 电话 / 短信存储进程：请求进程自我重启，让覆盖安装后的新模块代码立即生效。
+   *
+   * [EXTRA_RESTART_CONFIRM] 只为防误触发（本广播不是安全边界：配置快照全局可读，
+   * 被滥用的后果仅是电话进程重启，不涉及数据）。
+   */
+  const val ACTION_RESTART_PROCESS = "com.slideindex.app.xposed.action.RESTART_PROCESS"
+  const val EXTRA_RESTART_CONFIRM = "restart_confirm"
+  const val RESTART_CONFIRM_VALUE = "slideindex-otp-restart"
+
   const val EXTRA_CONFIG_JSON = "config_json"
   const val EXTRA_STATUS_ACTIVE = "status_active"
   const val EXTRA_STATUS_STATE = "status_state"
@@ -48,8 +58,12 @@ object ModuleHookBridgeContract {
   /** 系统侧读取 app 快照的兜底路径（`/data/user_de/0/<pkg>/files/`）。 */
   const val APP_SNAPSHOT_PATH = "/data/user_de/0/$MODULE_PACKAGE/files/$SNAPSHOT_FILE_NAME"
 
-  /** 2 起新增 `extra_rects`（悬浮球线条 / 边角轮盘）；旧模块忽略未知键，兼容。 */
-  const val SNAPSHOT_VERSION = 2
+  /**
+   * 3 起新增 `otp` 段（短信黑名单 / 屏蔽 / 标记已读 / 提取后删除策略）。
+   *
+   * 2 起新增 `extra_rects`（悬浮球线条 / 边角轮盘）。旧模块忽略未知键，兼容。
+   */
+  const val SNAPSHOT_VERSION = 3
 
   /**
    * 模块代码版本：`xposed/` 目录下的模块代码有实质改动时 +1。
@@ -58,13 +72,24 @@ object ModuleHookBridgeContract {
    * 覆盖安装前的旧模块代码（模块在开机时加载），必须重启手机新代码才会生效。
    * 只是普通构建、模块代码没改时这个值不变，所以不会每次安装都误报。
    */
-  const val MODULE_CODE_VERSION = 2
+  const val MODULE_CODE_VERSION = 3
 
   /** 状态串里模块代码版本字段：`code=<int>`。 */
   const val STATUS_DETAIL_CODE_PREFIX = "code="
 
   /** 状态串里剪贴板白名单 hook 字段：`clip=<ClipboardWhitelistHook.installStatus>`。 */
   const val STATUS_DETAIL_CLIPBOARD_PREFIX = "clip="
+
+  /**
+   * 状态回执所属通道：`system`（系统框架）/ `phone`（电话进程）。
+   *
+   * 电话进程与系统框架各注册一个状态通道，App 侧按通道分槽缓存；
+   * 旧模块不带该字段，一律按 [CHANNEL_SYSTEM] 处理。
+   */
+  const val EXTRA_STATUS_CHANNEL = "status_channel"
+  const val CHANNEL_SYSTEM = "system"
+  const val CHANNEL_PHONE = "phone"
+  const val CHANNEL_TELEPHONY = "telephony"
 
   /** 接管分组位掩码：顶部。 */
   const val GROUP_TOP = 1 shl 0

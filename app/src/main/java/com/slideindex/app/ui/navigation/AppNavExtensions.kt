@@ -39,11 +39,13 @@ fun AppNavKey.isNotificationBranch(): Boolean = when (this) {
     is AppNavKey.MessageStyleDetail,
     AppNavKey.MessageStyleSideBubbleCount,
     AppNavKey.OtpHub,
-    AppNavKey.OtpSettings,
-    is AppNavKey.OtpRecords,
-    AppNavKey.OtpRulesList,
-    AppNavKey.OtpAutoInput,
-    is AppNavKey.OtpAutoFillStats,
+    AppNavKey.OtpExtraction,
+    AppNavKey.OtpAutoFill,
+    AppNavKey.OtpRules,
+    AppNavKey.OtpRecords,
+    AppNavKey.OtpSmsBlacklist,
+    AppNavKey.OtpBlockedApps,
+    AppNavKey.OtpBlockedAppsPick,
     -> true
     else -> false
 }

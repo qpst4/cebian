@@ -23,11 +23,16 @@ class ModuleHookBridgeReceiver : BroadcastReceiver() {
     when (intent.action) {
       ModuleHookBridgeContract.ACTION_CONFIG_SNAPSHOT_REQUEST -> publishSnapshot(context)
       ModuleHookBridgeContract.ACTION_MODULE_STATUS_RESPONSE -> {
+        val channel = intent
+          .getStringExtra(ModuleHookBridgeContract.EXTRA_STATUS_CHANNEL)
+          ?.takeIf { it.isNotBlank() }
+          ?: ModuleHookBridgeContract.CHANNEL_SYSTEM
         ModuleBridgeStatusStore.write(
           context = context,
           active = intent.getBooleanExtra(ModuleHookBridgeContract.EXTRA_STATUS_ACTIVE, false),
           state = intent.getStringExtra(ModuleHookBridgeContract.EXTRA_STATUS_STATE).orEmpty(),
           detail = intent.getStringExtra(ModuleHookBridgeContract.EXTRA_STATUS_DETAIL).orEmpty(),
+          channel = channel,
         )
       }
       else -> Unit

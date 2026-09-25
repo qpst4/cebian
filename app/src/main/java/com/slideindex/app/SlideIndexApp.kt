@@ -7,6 +7,7 @@ import com.slideindex.app.clipboard.DragFileMirror
 import com.slideindex.app.clipboard.monitor.ClipboardMonitorStartup
 import com.slideindex.app.di.AppDependencies
 import com.slideindex.app.di.OtpAutoFillStatsInstaller
+import com.slideindex.app.di.OtpRecordLimitsInstaller
 import com.slideindex.app.di.OcrEnginePackMigrationStartup
 import com.slideindex.app.di.OcrInstalledModelStartupVerifier
 import com.slideindex.app.di.ModuleHookConfigSync
@@ -48,6 +49,7 @@ class SlideIndexApp : Application() {
     @Inject lateinit var shizukuInitializer: ShizukuInitializer
     @Inject lateinit var privilegeModeInitializer: PrivilegeModeInitializer
     @Inject lateinit var otpAutoFillStatsInstaller: OtpAutoFillStatsInstaller
+    @Inject lateinit var otpRecordLimitsInstaller: OtpRecordLimitsInstaller
     @Inject lateinit var ocrInstalledModelStartupVerifier: OcrInstalledModelStartupVerifier
     @Inject lateinit var nativeEnginePackCoordinator: NativeEnginePackCoordinator
     @Inject lateinit var ocrEnginePackMigrationStartup: OcrEnginePackMigrationStartup
@@ -79,6 +81,7 @@ class SlideIndexApp : Application() {
         shizukuInitializer.start()
         moduleHookConfigSync.start()
         otpAutoFillStatsInstaller.install()
+        otpRecordLimitsInstaller.install()
         com.slideindex.app.ui.icon.AppIconTheme.ensureSelectedThemeEnabled(this)
         FreezerLauncherHelper.cleanupLegacyAlias(this)
         ClipboardMonitorStartup.applicationReady = true

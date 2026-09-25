@@ -845,6 +845,23 @@ class SettingsRepository @Inject constructor(
     suspend fun setOtpAutoInputIntervalMs(value: Int) = otp.setOtpAutoInputIntervalMs(value)
     suspend fun setOtpLsposedSmsCaptureEnabled(enabled: Boolean) = otp.setOtpLsposedSmsCaptureEnabled(enabled)
     suspend fun setOtpLsposedSystemInjectEnabled(enabled: Boolean) = otp.setOtpLsposedSystemInjectEnabled(enabled)
+    suspend fun setOtpCodeNotificationEnabled(enabled: Boolean) = otp.setOtpCodeNotificationEnabled(enabled)
+    suspend fun setOtpCodeNotificationRetentionSeconds(value: Int) =
+        otp.setOtpCodeNotificationRetentionSeconds(value)
+    suspend fun setOtpShowCodeToast(enabled: Boolean) = otp.setOtpShowCodeToast(enabled)
+    suspend fun setOtpSmsBlacklist(rules: com.slideindex.app.otp.SmsBlacklistRuleSet) =
+        otp.setOtpSmsBlacklist(rules)
+    suspend fun setOtpBlockCodeSmsEnabled(enabled: Boolean) = otp.setOtpBlockCodeSmsEnabled(enabled)
+    suspend fun setOtpMarkSmsReadEnabled(enabled: Boolean) = otp.setOtpMarkSmsReadEnabled(enabled)
+    suspend fun setOtpDeleteSmsAfterExtractEnabled(enabled: Boolean) =
+        otp.setOtpDeleteSmsAfterExtractEnabled(enabled)
+    suspend fun setOtpRecordCodeEnabled(enabled: Boolean) = otp.setOtpRecordCodeEnabled(enabled)
+    suspend fun setOtpRecordPlainSmsEnabled(enabled: Boolean) = otp.setOtpRecordPlainSmsEnabled(enabled)
+    suspend fun setOtpRecordAppNotifyEnabled(enabled: Boolean) = otp.setOtpRecordAppNotifyEnabled(enabled)
+    suspend fun setOtpRecordCodeLimit(value: Int) = otp.setOtpRecordCodeLimit(value)
+    suspend fun setOtpRecordPlainSmsLimit(value: Int) = otp.setOtpRecordPlainSmsLimit(value)
+    suspend fun setOtpRecordAppNotifyLimit(value: Int) = otp.setOtpRecordAppNotifyLimit(value)
+    suspend fun setOtpBlockedPackages(packages: Set<String>) = otp.setOtpBlockedPackages(packages)
 
     suspend fun setShakeGesturesEnabled(enabled: Boolean) = shake.setShakeGesturesEnabled(enabled)
     suspend fun setShakeGestureAction(type: ShakeGestureType, action: GestureAction) = shake.setShakeGestureAction(type, action)

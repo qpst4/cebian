@@ -12,15 +12,18 @@ import com.slideindex.app.xposed.LibXposedMethodHook
 import com.slideindex.app.xposed.LibXposedReflect
 import com.slideindex.app.xposed.XposedLog
 import com.slideindex.app.xposed.hookMethod
+import com.slideindex.app.xposed.hook.otp.SmsPolicyRuntime
 import io.github.libxposed.api.XposedInterface
 
 class SmsHandlerHook {
   fun install(xposed: XposedInterface, classLoader: ClassLoader): List<XposedInterface.HookHandle> {
-    return runCatching { hookSmsHandler(xposed, classLoader) }
+    val handles = runCatching { hookSmsHandler(xposed, classLoader) }
       .getOrElse {
         XposedLog.e(TAG, "SmsHandlerHook failed", it)
         emptyList()
       }
+    SmsPolicyRuntime.markDispatchHooked(handles.isNotEmpty())
+    return handles
   }
 
   private fun hookSmsHandler(
@@ -60,6 +63,17 @@ class SmsHandlerHook {
           val context = runCatching {
             LibXposedReflect.getObjectField(param.thisObject!!, "mContext") as android.content.Context
           }.getOrNull() ?: return
+          SmsPolicyRuntime.ensureRegistered(context)
+          val decision = SmsPolicyRuntime.shouldBlock(sender, body)
+          if (decision.block) {
+            XposedLog.i(
+              TAG,
+              "Blocked SMS by policy: reason=${decision.reason} pattern=${decision.detail.pattern}",
+            )
+            param.returnEarly = true
+            param.result = null
+            return
+          }
           SmsCaptureForwarder.forward(context, body, sender, slot, TAG)
         }
       },

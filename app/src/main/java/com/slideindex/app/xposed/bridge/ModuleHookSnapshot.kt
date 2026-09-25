@@ -24,6 +24,8 @@ data class ModuleHookSnapshot(
   val extraRects: List<ModuleHookExtraRect> = emptyList(),
   /** 剪贴板白名单（LSPosed 模式）：这些包会被当作默认输入法放行，可在后台读剪贴板。 */
   val clipboardWhitelist: List<String> = emptyList(),
+  /** 验证码短信策略（电话进程消费）。 */
+  val otp: ModuleHookOtpPolicy = ModuleHookOtpPolicy(),
   val updatedAtMs: Long = 0L,
 ) {
   fun hasGroup(group: Int): Boolean = (takeoverGroups and group) != 0
@@ -59,6 +61,7 @@ data class ModuleHookSnapshot(
         },
       )
     }
+    put(KEY_OTP, otp.toJson())
   }.toString()
 
   companion object {
@@ -70,6 +73,7 @@ data class ModuleHookSnapshot(
     private const val KEY_SIDES = "sides"
     private const val KEY_EXTRA_RECTS = "extra_rects"
     private const val KEY_CLIPBOARD_WHITELIST = "clipboard_whitelist"
+    private const val KEY_OTP = "otp"
     private const val KEY_UPDATED_AT = "updated_at"
 
     /** 解析失败的快照一律视为“未配置”，模块据此保持完全放行。 */
@@ -107,6 +111,7 @@ data class ModuleHookSnapshot(
           sides = sides,
           extraRects = extraRects,
           clipboardWhitelist = clipboardWhitelist,
+          otp = ModuleHookOtpPolicy.fromJson(json.optJSONObject(KEY_OTP)),
           updatedAtMs = json.optLong(KEY_UPDATED_AT, 0L),
         )
       }.getOrNull()

@@ -31,7 +31,10 @@ import com.slideindex.app.message.DanmakuSpeed
 import com.slideindex.app.message.MessageAppFilterCodec
 import com.slideindex.app.message.MessageThemeIds
 import com.slideindex.app.otp.OtpKeywords
+import com.slideindex.app.otp.OtpCodeAlertPolicy
 import com.slideindex.app.otp.OtpMatchRuleCodec
+import com.slideindex.app.otp.OtpRecordLimits
+import com.slideindex.app.otp.SmsBlacklistRuleSetCodec
 import com.slideindex.app.shake.FaceDownGestureCodec
 import com.slideindex.app.shake.FaceDownGestureSettings
 import com.slideindex.app.shake.ShakeGestureCodec
@@ -366,6 +369,33 @@ internal object SettingsSnapshotReader {
                 otpAutoInputIntervalMs = prefs[SettingsPreferenceKeys.OTP_AUTO_INPUT_INTERVAL_MS] ?: 0,
                 otpLsposedSmsCaptureEnabled = prefs[SettingsPreferenceKeys.OTP_LSPOSED_SMS_CAPTURE_ENABLED] ?: false,
                 otpLsposedSystemInjectEnabled = prefs[SettingsPreferenceKeys.OTP_LSPOSED_SYSTEM_INJECT_ENABLED] ?: true,
+                otpCodeNotificationEnabled = prefs[SettingsPreferenceKeys.OTP_CODE_NOTIFICATION_ENABLED] ?: false,
+                otpCodeNotificationRetentionSeconds = OtpCodeAlertPolicy.normalizeRetentionSeconds(
+                    prefs[SettingsPreferenceKeys.OTP_CODE_NOTIFICATION_RETENTION_SECONDS]
+                        ?: OtpCodeAlertPolicy.DEFAULT_RETENTION_SECONDS,
+                ),
+                otpShowCodeToast = prefs[SettingsPreferenceKeys.OTP_SHOW_CODE_TOAST] ?: false,
+                otpSmsBlacklist = SmsBlacklistRuleSetCodec.decode(
+                    prefs[SettingsPreferenceKeys.OTP_SMS_BLACKLIST],
+                ),
+                otpBlockCodeSmsEnabled = prefs[SettingsPreferenceKeys.OTP_BLOCK_CODE_SMS_ENABLED] ?: false,
+                otpMarkSmsReadEnabled = prefs[SettingsPreferenceKeys.OTP_MARK_SMS_READ_ENABLED] ?: false,
+                otpDeleteSmsAfterExtractEnabled =
+                prefs[SettingsPreferenceKeys.OTP_DELETE_SMS_AFTER_EXTRACT_ENABLED] ?: false,
+                otpRecordCodeEnabled = prefs[SettingsPreferenceKeys.OTP_RECORD_CODE_ENABLED] ?: true,
+                otpRecordPlainSmsEnabled = prefs[SettingsPreferenceKeys.OTP_RECORD_PLAIN_SMS_ENABLED] ?: false,
+                otpRecordAppNotifyEnabled =
+                prefs[SettingsPreferenceKeys.OTP_RECORD_APP_NOTIFY_ENABLED] ?: true,
+                otpRecordCodeLimit = OtpRecordLimits.normalize(
+                    prefs[SettingsPreferenceKeys.OTP_RECORD_CODE_LIMIT] ?: OtpRecordLimits.DEFAULT,
+                ),
+                otpRecordPlainSmsLimit = OtpRecordLimits.normalize(
+                    prefs[SettingsPreferenceKeys.OTP_RECORD_PLAIN_SMS_LIMIT] ?: OtpRecordLimits.DEFAULT,
+                ),
+                otpRecordAppNotifyLimit = OtpRecordLimits.normalize(
+                    prefs[SettingsPreferenceKeys.OTP_RECORD_APP_NOTIFY_LIMIT] ?: OtpRecordLimits.DEFAULT,
+                ),
+                otpBlockedPackages = prefs[SettingsPreferenceKeys.OTP_BLOCKED_PACKAGES] ?: emptySet(),
             ),
             shakeGestureSettings = readShakeGestureSettings(prefs),
             backTapSettings = readBackTapSettings(prefs),

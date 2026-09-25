@@ -1,7 +1,11 @@
 package com.slideindex.app.settings
 
 import com.slideindex.app.otp.OtpKeywords
+import com.slideindex.app.otp.OtpCodeAlertPolicy
 import com.slideindex.app.otp.OtpMatchRuleCodec
+import com.slideindex.app.otp.OtpRecordLimits
+import com.slideindex.app.otp.SmsBlacklistRuleSet
+import com.slideindex.app.otp.SmsBlacklistRuleSetCodec
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -52,4 +56,53 @@ class OtpSettingsMutator @Inject constructor(
 
     suspend fun setOtpLsposedSystemInjectEnabled(enabled: Boolean) =
         editor.edit { it[SettingsPreferenceKeys.OTP_LSPOSED_SYSTEM_INJECT_ENABLED] = enabled }
+
+    suspend fun setOtpCodeNotificationEnabled(enabled: Boolean) =
+        editor.edit { it[SettingsPreferenceKeys.OTP_CODE_NOTIFICATION_ENABLED] = enabled }
+
+    suspend fun setOtpCodeNotificationRetentionSeconds(value: Int) = editor.edit {
+        it[SettingsPreferenceKeys.OTP_CODE_NOTIFICATION_RETENTION_SECONDS] =
+            OtpCodeAlertPolicy.normalizeRetentionSeconds(value)
+    }
+
+    suspend fun setOtpShowCodeToast(enabled: Boolean) =
+        editor.edit { it[SettingsPreferenceKeys.OTP_SHOW_CODE_TOAST] = enabled }
+
+    suspend fun setOtpSmsBlacklist(rules: SmsBlacklistRuleSet) = editor.edit {
+        it[SettingsPreferenceKeys.OTP_SMS_BLACKLIST] = SmsBlacklistRuleSetCodec.encode(rules)
+    }
+
+    suspend fun setOtpBlockCodeSmsEnabled(enabled: Boolean) =
+        editor.edit { it[SettingsPreferenceKeys.OTP_BLOCK_CODE_SMS_ENABLED] = enabled }
+
+    suspend fun setOtpMarkSmsReadEnabled(enabled: Boolean) =
+        editor.edit { it[SettingsPreferenceKeys.OTP_MARK_SMS_READ_ENABLED] = enabled }
+
+    suspend fun setOtpDeleteSmsAfterExtractEnabled(enabled: Boolean) =
+        editor.edit { it[SettingsPreferenceKeys.OTP_DELETE_SMS_AFTER_EXTRACT_ENABLED] = enabled }
+
+    suspend fun setOtpRecordCodeEnabled(enabled: Boolean) =
+        editor.edit { it[SettingsPreferenceKeys.OTP_RECORD_CODE_ENABLED] = enabled }
+
+    suspend fun setOtpRecordPlainSmsEnabled(enabled: Boolean) =
+        editor.edit { it[SettingsPreferenceKeys.OTP_RECORD_PLAIN_SMS_ENABLED] = enabled }
+
+    suspend fun setOtpRecordAppNotifyEnabled(enabled: Boolean) =
+        editor.edit { it[SettingsPreferenceKeys.OTP_RECORD_APP_NOTIFY_ENABLED] = enabled }
+
+    suspend fun setOtpRecordCodeLimit(value: Int) = editor.edit {
+        it[SettingsPreferenceKeys.OTP_RECORD_CODE_LIMIT] = OtpRecordLimits.normalize(value)
+    }
+
+    suspend fun setOtpRecordPlainSmsLimit(value: Int) = editor.edit {
+        it[SettingsPreferenceKeys.OTP_RECORD_PLAIN_SMS_LIMIT] = OtpRecordLimits.normalize(value)
+    }
+
+    suspend fun setOtpRecordAppNotifyLimit(value: Int) = editor.edit {
+        it[SettingsPreferenceKeys.OTP_RECORD_APP_NOTIFY_LIMIT] = OtpRecordLimits.normalize(value)
+    }
+
+    suspend fun setOtpBlockedPackages(packages: Set<String>) = editor.edit {
+        it[SettingsPreferenceKeys.OTP_BLOCKED_PACKAGES] = packages
+    }
 }

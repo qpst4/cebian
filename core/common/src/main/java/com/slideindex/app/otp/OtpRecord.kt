@@ -13,6 +13,9 @@ data class OtpRecord(
     val timestampMs: Long,
     val ruleName: String? = null,
     val isTest: Boolean = false,
+    val category: OtpRecordCategory = if (isTest) OtpRecordCategory.TEST else OtpRecordCategory.CODE,
+    /** 单卡设备或未知来源为 -1；0 = 卡1，1 = 卡2。 */
+    val simSlot: Int = -1,
     val autoFillStatus: OtpRecordFillStatus = OtpRecordFillStatus.NONE,
     val autoFillReason: String? = null,
 )
@@ -31,6 +34,8 @@ object OtpRecordCodec {
                     .put("timestampMs", item.timestampMs)
                     .put("ruleName", item.ruleName)
                     .put("isTest", item.isTest)
+                    .put("category", item.category.storageKey)
+                    .put("simSlot", item.simSlot)
                     .put("autoFillStatus", item.autoFillStatus.storageKey())
                     .put("autoFillReason", item.autoFillReason.orEmpty()),
             )
@@ -47,7 +52,14 @@ object OtpRecordCodec {
                     val obj = array.optJSONObject(index) ?: continue
                     val code = obj.optString("code")
                     val packageName = obj.optString("packageName")
-                    if (code.isBlank() || packageName.isBlank()) continue
+                    val isTest = obj.optBoolean("isTest", false)
+                    val category = obj.optString("category")
+                        .takeIf { it.isNotBlank() }
+                        ?.let(OtpRecordCategory::fromStorageKey)
+                        ?: if (isTest) OtpRecordCategory.TEST else OtpRecordCategory.CODE
+                    if (packageName.isBlank()) continue
+                    // 普通短信记录没有验证码，code 允许为空；其余分类必须有码。
+                    if (code.isBlank() && category != OtpRecordCategory.PLAIN_SMS) continue
                     add(
                         OtpRecord(
                             id = obj.optString("id").ifBlank { UUID.randomUUID().toString() },
@@ -57,7 +69,9 @@ object OtpRecordCodec {
                             text = obj.optString("text"),
                             timestampMs = obj.optLong("timestampMs", System.currentTimeMillis()),
                             ruleName = obj.optString("ruleName").takeIf { it.isNotBlank() },
-                            isTest = obj.optBoolean("isTest", false),
+                            isTest = isTest,
+                            category = category,
+                            simSlot = obj.optInt("simSlot", -1),
                             autoFillStatus = OtpRecordFillStatus.fromStorageKey(
                                 obj.optString("autoFillStatus").takeIf { it.isNotBlank() },
                             ),

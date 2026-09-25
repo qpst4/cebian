@@ -171,7 +171,8 @@ fun NavEntryBuilder.stashClipboardNavEntries(ctx: MainNavContext) {
         val settings = overlaySettings.toMinimalAppSettings()
         ShakeGestureBlacklistScreen(
             blacklistedPackages = settings.clipboardLsposedWhitelist,
-            onBack = { ctx.navigateBackTo(AppNavKey.ClipboardHistorySettings) },
+            // 本页由「剪贴板后台监听」进入；返回目标是上上级的「剪贴板」页会一次退两级。
+            onBack = { ctx.navigateBackTo(AppNavKey.ClipboardMonitoringSettings) },
             onOpenAddApp = { ctx.navigate(AppNavKey.ClipboardLsposedWhitelistPick) },
             onRemoveBlacklistedApp = viewModel::removeClipboardLsposedWhitelistPackage,
             titleRes = R.string.clipboard_lsposed_whitelist,

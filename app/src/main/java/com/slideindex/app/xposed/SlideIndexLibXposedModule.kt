@@ -7,6 +7,8 @@ import com.slideindex.app.xposed.hook.SmsHandlerHook
 import com.slideindex.app.xposed.hook.SmsProviderHook
 import com.slideindex.app.xposed.hook.SystemInputFilterHook
 import com.slideindex.app.xposed.hook.SystemInputInjectorHook
+import com.slideindex.app.xposed.hook.otp.SmsPolicyRuntime
+import com.slideindex.app.xposed.bridge.ModuleHookBridgeContract
 import io.github.libxposed.api.XposedInterface
 import io.github.libxposed.api.XposedModule
 import io.github.libxposed.api.XposedModuleInterface.HotReloadedParam
@@ -90,10 +92,12 @@ class SlideIndexLibXposedModule : XposedModule() {
   }
 
   private fun installPhoneHooks(classLoader: ClassLoader) {
+    SmsPolicyRuntime.register(ModuleHookBridgeContract.CHANNEL_PHONE)
     smsHandlerHook.install(this, classLoader)
   }
 
   private fun installTelephonyProviderHooks(classLoader: ClassLoader) {
+    SmsPolicyRuntime.register(ModuleHookBridgeContract.CHANNEL_TELEPHONY)
     smsProviderHook.install(this, classLoader)
   }
 

@@ -10,6 +10,7 @@ import com.slideindex.app.otp.OtpExtractionConfig
 import com.slideindex.app.otp.OtpExtractionResult
 import com.slideindex.app.otp.OtpOfficialRulesLoader
 import com.slideindex.app.otp.OtpRecordFillStatus
+import com.slideindex.app.otp.OtpRecordCategory
 import com.slideindex.app.otp.OtpRecordsRepository
 import com.slideindex.app.otp.OtpSmsSourcePackages
 import com.slideindex.app.otp.VerificationCodeExtractor
@@ -64,9 +65,10 @@ class NotificationHistoryRecorder @Inject constructor(
 
         val settings = settingsRepository.readSnapshot()
         val officialRules = otpOfficialRulesLoader.getRules()
+        val blockedApp = sbn.packageName in settings.otpBlockedPackages
         val skipOtpFromSmsNotification = settings.otpLsposedSmsCaptureEnabled &&
             OtpSmsSourcePackages.isSystemSmsPackage(sbn.packageName)
-        val extraction = if (skipOtpFromSmsNotification) {
+        val extraction = if (blockedApp || skipOtpFromSmsNotification) {
             OtpExtractionResult(code = null, attempted = false)
         } else {
             VerificationCodeExtractor.extract(
@@ -93,16 +95,21 @@ class NotificationHistoryRecorder @Inject constructor(
                 } else {
                     OtpRecordFillStatus.NONE
                 }
-                val recordId = runBlocking {
-                    otpRecordsRepository.recordSuspend(
-                        code = extractedCode,
-                        packageName = sbn.packageName,
-                        title = title,
-                        text = text,
-                        timestampMs = postedAtMs,
-                        ruleName = extraction.ruleName,
-                        autoFillStatus = fillStatus,
-                    ).getOrNull()
+                val recordId = if (settings.otpRecordAppNotifyEnabled) {
+                    runBlocking {
+                        otpRecordsRepository.recordSuspend(
+                            code = extractedCode,
+                            packageName = sbn.packageName,
+                            title = title,
+                            text = text,
+                            timestampMs = postedAtMs,
+                            ruleName = extraction.ruleName,
+                            autoFillStatus = fillStatus,
+                            category = OtpRecordCategory.APP_NOTIFY,
+                        ).getOrNull()
+                    }
+                } else {
+                    null
                 }
                 otpSideEffects.onVerificationCodeExtracted(
                     context = context,

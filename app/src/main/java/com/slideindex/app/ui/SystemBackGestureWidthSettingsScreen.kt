@@ -81,7 +81,8 @@ fun SystemBackGestureWidthSettingsScreen(
             moduleState = status
             moduleDetail = detail
             moduleCodeStale =
-                ModuleStatusFields.codeStateOfDetail(detail) == ModuleStatusFields.CodeState.Stale
+                ModuleStatusFields.codeStateOfDetail(context.applicationContext, detail) ==
+                ModuleStatusFields.CodeState.Stale
         }
     }
 

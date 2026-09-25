@@ -73,11 +73,4 @@ class OtpAutoFillUiLabelsTest {
         assertTrue(status.contains("LSPosed"))
     }
 
-    @Test
-    fun formatStatsEntrySubtitleWhenEmpty() {
-        assertEquals(
-            context.getString(R.string.otp_autofill_stats_entry_empty),
-            OtpAutoFillUiLabels.formatStatsEntrySubtitle(context, OtpAutoFillStats()),
-        )
-    }
 }

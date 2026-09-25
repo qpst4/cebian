@@ -564,6 +564,10 @@
         </receiver>
 
         <receiver
+            android:name=".receiver.OtpCodeCopyReceiver"
+            android:exported="false" />
+
+        <receiver
             android:name=".receiver.ModuleHookBridgeReceiver"
             android:exported="true"
             tools:ignore="ExportedReceiver">

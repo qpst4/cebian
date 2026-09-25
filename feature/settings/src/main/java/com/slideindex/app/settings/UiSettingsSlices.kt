@@ -1,6 +1,9 @@
 package com.slideindex.app.settings
 
 import com.slideindex.app.otp.OtpKeywords
+import com.slideindex.app.otp.OtpCodeAlertPolicy
+import com.slideindex.app.otp.OtpRecordLimits
+import com.slideindex.app.otp.SmsBlacklistRuleSet
 import com.slideindex.app.shake.FaceDownGestureSettings
 import com.slideindex.app.shake.ShakeGestureSettings
 import com.slideindex.app.widget.WidgetPanelPage
@@ -187,6 +190,20 @@ data class OtpUiSettings(
     val otpAutoInputIntervalMs: Int = 0,
     val otpLsposedSmsCaptureEnabled: Boolean = false,
     val otpLsposedSystemInjectEnabled: Boolean = true,
+    val otpCodeNotificationEnabled: Boolean = false,
+    val otpCodeNotificationRetentionSeconds: Int = OtpCodeAlertPolicy.DEFAULT_RETENTION_SECONDS,
+    val otpShowCodeToast: Boolean = false,
+    val otpSmsBlacklist: SmsBlacklistRuleSet = SmsBlacklistRuleSet.DISABLED,
+    val otpBlockCodeSmsEnabled: Boolean = false,
+    val otpMarkSmsReadEnabled: Boolean = false,
+    val otpDeleteSmsAfterExtractEnabled: Boolean = false,
+    val otpRecordCodeEnabled: Boolean = true,
+    val otpRecordPlainSmsEnabled: Boolean = false,
+    val otpRecordAppNotifyEnabled: Boolean = true,
+    val otpRecordCodeLimit: Int = OtpRecordLimits.DEFAULT,
+    val otpRecordPlainSmsLimit: Int = OtpRecordLimits.DEFAULT,
+    val otpRecordAppNotifyLimit: Int = OtpRecordLimits.DEFAULT,
+    val otpBlockedPackages: Set<String> = emptySet(),
 ) {
     companion object {
         fun from(settings: AppSettings): OtpUiSettings = OtpUiSettings(
@@ -200,6 +217,20 @@ data class OtpUiSettings(
             otpAutoInputIntervalMs = settings.otpAutoInputIntervalMs,
             otpLsposedSmsCaptureEnabled = settings.otpLsposedSmsCaptureEnabled,
             otpLsposedSystemInjectEnabled = settings.otpLsposedSystemInjectEnabled,
+            otpCodeNotificationEnabled = settings.otpCodeNotificationEnabled,
+            otpCodeNotificationRetentionSeconds = settings.otpCodeNotificationRetentionSeconds,
+            otpShowCodeToast = settings.otpShowCodeToast,
+            otpSmsBlacklist = settings.otpSmsBlacklist,
+            otpBlockCodeSmsEnabled = settings.otpBlockCodeSmsEnabled,
+            otpMarkSmsReadEnabled = settings.otpMarkSmsReadEnabled,
+            otpDeleteSmsAfterExtractEnabled = settings.otpDeleteSmsAfterExtractEnabled,
+            otpRecordCodeEnabled = settings.otpRecordCodeEnabled,
+            otpRecordPlainSmsEnabled = settings.otpRecordPlainSmsEnabled,
+            otpRecordAppNotifyEnabled = settings.otpRecordAppNotifyEnabled,
+            otpRecordCodeLimit = settings.otpRecordCodeLimit,
+            otpRecordPlainSmsLimit = settings.otpRecordPlainSmsLimit,
+            otpRecordAppNotifyLimit = settings.otpRecordAppNotifyLimit,
+            otpBlockedPackages = settings.otpBlockedPackages,
         )
     }
 }

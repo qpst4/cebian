@@ -74,6 +74,18 @@ object OtpAutoInputOrchestrator {
         recordId: String? = null
     ) {
         if (!settings.otpAutoInputEnabled) return
+        // 前台应用在"不处理的应用"名单里时整条链路跳过（不注入、也不回退无障碍）。
+        if (settings.otpBlockedPackages.isNotEmpty()) {
+            val foreground = SlideIndexAccessibilityService.currentForegroundPackage()
+            if (foreground != null && foreground in settings.otpBlockedPackages) {
+                Log.i(TAG, "Skipping auto-fill: $foreground is in the blocked list")
+                val recorder = statsRecorder
+                if (recorder != null) {
+                    statsScope.launch { recorder(false, "none", "blocked_app", recordId) }
+                }
+                return
+            }
+        }
         if (!OtpCaptureDeduplicator.tryConsumeAutoFillRequest(code)) {
             Log.d(TAG, "Skipping duplicate auto-fill request")
             return

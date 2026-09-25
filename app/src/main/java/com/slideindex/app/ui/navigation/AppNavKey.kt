@@ -266,11 +266,13 @@ sealed interface AppNavKey : NavKey {
     @Serializable data class MessageStyleDetail(val styleId: String) : AppNavKey
     @Serializable data object MessageStyleSideBubbleCount : AppNavKey
     @Serializable data object OtpHub : AppNavKey
-    @Serializable data object OtpSettings : AppNavKey
-    @Serializable data class OtpRecords(val returnTo: OtpRecordsReturn) : AppNavKey
-    @Serializable data object OtpRulesList : AppNavKey
-    @Serializable data object OtpAutoInput : AppNavKey
-    @Serializable data class OtpAutoFillStats(val returnTo: OtpAutoFillStatsReturn) : AppNavKey
+    @Serializable data object OtpExtraction : AppNavKey
+    @Serializable data object OtpAutoFill : AppNavKey
+    @Serializable data object OtpRules : AppNavKey
+    @Serializable data object OtpRecords : AppNavKey
+    @Serializable data object OtpSmsBlacklist : AppNavKey
+    @Serializable data object OtpBlockedApps : AppNavKey
+    @Serializable data object OtpBlockedAppsPick : AppNavKey
 
     // Extension tab
     @Serializable data object ExtensionHub : AppNavKey
@@ -408,7 +410,8 @@ sealed interface AppNavKey : NavKey {
         val initialIsLongPress: Boolean = false,
     ) : AppNavKey
     @Serializable data object FloatBallPick : AppNavKey
-    @Serializable data object FloatBallPickOperation : AppNavKey
+    /** 「取词 → 拾取与手感」：拾取十字与指针手感参数（原「取词拾取配置」页）。 */
+    @Serializable data object FloatBallPickHandfeel : AppNavKey
     @Serializable data object FloatBallPickPanelLayoutBehavior : AppNavKey
     @Serializable data object ShareImageOcrHistory : AppNavKey
     @Serializable data object FloatBallTranslation : AppNavKey
@@ -498,18 +501,6 @@ sealed interface AppNavKey : NavKey {
 enum class FloatingPointerRadialActionTarget {
     LONG_PRESS,
     SLOT,
-}
-
-@Serializable
-enum class OtpRecordsReturn {
-    Hub,
-    Settings,
-}
-
-@Serializable
-enum class OtpAutoFillStatsReturn {
-    Hub,
-    AutoInput,
 }
 
 fun AppNavKey.isRootDestination(): Boolean = when (this) {

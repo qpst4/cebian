@@ -446,4 +446,20 @@ data class OtpSettings(
     val otpAutoInputIntervalMs: Int = 0,
     val otpLsposedSmsCaptureEnabled: Boolean = false,
     val otpLsposedSystemInjectEnabled: Boolean = true,
+    val otpCodeNotificationEnabled: Boolean = false,
+    val otpCodeNotificationRetentionSeconds: Int = com.slideindex.app.otp.OtpCodeAlertPolicy.DEFAULT_RETENTION_SECONDS,
+    val otpShowCodeToast: Boolean = false,
+    val otpSmsBlacklist: com.slideindex.app.otp.SmsBlacklistRuleSet =
+        com.slideindex.app.otp.SmsBlacklistRuleSet.DISABLED,
+    val otpBlockCodeSmsEnabled: Boolean = false,
+    val otpMarkSmsReadEnabled: Boolean = false,
+    val otpDeleteSmsAfterExtractEnabled: Boolean = false,
+    val otpRecordCodeEnabled: Boolean = true,
+    val otpRecordPlainSmsEnabled: Boolean = false,
+    val otpRecordAppNotifyEnabled: Boolean = true,
+    val otpRecordCodeLimit: Int = com.slideindex.app.otp.OtpRecordLimits.DEFAULT,
+    val otpRecordPlainSmsLimit: Int = com.slideindex.app.otp.OtpRecordLimits.DEFAULT,
+    val otpRecordAppNotifyLimit: Int = com.slideindex.app.otp.OtpRecordLimits.DEFAULT,
+    /** 这些应用的验证码不处理（既不提取也不自动填充）。 */
+    val otpBlockedPackages: Set<String> = emptySet(),
 )

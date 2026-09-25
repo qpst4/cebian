@@ -117,6 +117,20 @@ data class AppSettings(
     val otpAutoInputIntervalMs get() = otp.otpAutoInputIntervalMs
     val otpLsposedSmsCaptureEnabled get() = otp.otpLsposedSmsCaptureEnabled
     val otpLsposedSystemInjectEnabled get() = otp.otpLsposedSystemInjectEnabled
+    val otpCodeNotificationEnabled get() = otp.otpCodeNotificationEnabled
+    val otpCodeNotificationRetentionSeconds get() = otp.otpCodeNotificationRetentionSeconds
+    val otpShowCodeToast get() = otp.otpShowCodeToast
+    val otpSmsBlacklist get() = otp.otpSmsBlacklist
+    val otpBlockCodeSmsEnabled get() = otp.otpBlockCodeSmsEnabled
+    val otpMarkSmsReadEnabled get() = otp.otpMarkSmsReadEnabled
+    val otpDeleteSmsAfterExtractEnabled get() = otp.otpDeleteSmsAfterExtractEnabled
+    val otpRecordCodeEnabled get() = otp.otpRecordCodeEnabled
+    val otpRecordPlainSmsEnabled get() = otp.otpRecordPlainSmsEnabled
+    val otpRecordAppNotifyEnabled get() = otp.otpRecordAppNotifyEnabled
+    val otpRecordCodeLimit get() = otp.otpRecordCodeLimit
+    val otpRecordPlainSmsLimit get() = otp.otpRecordPlainSmsLimit
+    val otpRecordAppNotifyLimit get() = otp.otpRecordAppNotifyLimit
+    val otpBlockedPackages get() = otp.otpBlockedPackages
 
     val leftEdgeEnabled get() = edgeTrigger.leftEdgeEnabled
     val rightEdgeEnabled get() = edgeTrigger.rightEdgeEnabled

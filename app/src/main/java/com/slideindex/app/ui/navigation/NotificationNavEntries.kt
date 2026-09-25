@@ -1,11 +1,15 @@
 package com.slideindex.app.ui.navigation
 
 import androidx.compose.runtime.DisposableEffect
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -34,16 +38,18 @@ import com.slideindex.app.ui.NotificationRulesScreen
 import com.slideindex.app.ui.messagestyle.SideBubbleCountPickerScreen
 import com.slideindex.app.ui.NotificationHistoryScreen
 import com.slideindex.app.ui.NotificationHubScreen
-import com.slideindex.app.ui.OtpAutoFillStatsScreen
-import com.slideindex.app.ui.OtpAutoInputSettingsScreen
+import com.slideindex.app.ui.OtpSmsBlacklistScreen
+import com.slideindex.app.ui.OtpExtractionScreen
+import com.slideindex.app.ui.OtpAutoFillScreen
+import com.slideindex.app.ui.OtpRulesScreen
+import com.slideindex.app.ui.OtpRecordsPage
+import com.slideindex.app.ui.ShakeGestureBlacklistScreen
+import com.slideindex.app.ui.picker.ActivityShortcutPickAppScreen
 import com.slideindex.app.ui.OtpHubScreen
-import com.slideindex.app.ui.OtpRecordsScreen
-import com.slideindex.app.ui.OtpRulesListScreen
-import com.slideindex.app.ui.OtpSettingsScreen
+import com.slideindex.app.xposed.bridge.PhoneProcessRestartRequester
 import com.slideindex.app.ui.viewmodel.MessageSettingsViewModel
 import com.slideindex.app.ui.viewmodel.NotificationHistoryViewModel
 import com.slideindex.app.ui.viewmodel.NotificationHubViewModel
-import com.slideindex.app.ui.viewmodel.OtpAutoFillStatsViewModel
 import com.slideindex.app.ui.viewmodel.OtpSettingsViewModel
 import com.slideindex.app.settings.toMinimalAppSettings
 import kotlinx.coroutines.launch
@@ -415,14 +421,12 @@ fun NavEntryBuilder.notificationNavEntries(ctx: MainNavContext) {
 
     hiltEntry<AppNavKey.OtpHub> {
         val viewModel: OtpSettingsViewModel = hiltViewModel()
-        val statsViewModel: OtpAutoFillStatsViewModel = hiltViewModel()
         val otpSettings by viewModel.otpUiSettings.collectAsStateWithLifecycle()
         val settings = otpSettings.toMinimalAppSettings()
-        val stats by statsViewModel.stats.collectAsStateWithLifecycle()
-        val officialRules by viewModel.officialRules.collectAsStateWithLifecycle()
         val permissions = ctx.collectPermissions()
         val context = LocalContext.current
         val scope = rememberCoroutineScope()
+        var statusRefreshKey by remember { mutableIntStateOf(0) }
         val requestAccessibility: () -> Unit = {
             scope.launch {
                 if (!OtpAccessibilitySettingsHelper.ensureAccessibilityEnabled(context)) {
@@ -432,79 +436,45 @@ fun NavEntryBuilder.notificationNavEntries(ctx: MainNavContext) {
         }
         OtpHubScreen(
             settings = settings,
-            officialRules = officialRules,
             accessibilityGranted = permissions.accessibilityGranted,
             onExit = { ctx.navigateBackTo(AppNavKey.NotificationHub) },
-            onCopyToClipboardChange = viewModel::setOtpCopyToClipboard,
-            onKeywordsRegexChange = viewModel::setOtpKeywordsRegex,
-            onRefreshOfficialRules = viewModel::refreshOfficialRules,
-            onOfficialRuleEnabledChange = viewModel::setOtpOfficialRuleEnabled,
-            onUserRulesChange = viewModel::setOtpUserMatchRules,
-            onAutoInputChange = viewModel::setOtpAutoInputEnabled,
-            onAutoConfirmChange = viewModel::setOtpAutoConfirmEnabled,
-            onDelayChange = viewModel::setOtpAutoInputDelayMs,
-            onIntervalChange = viewModel::setOtpAutoInputIntervalMs,
             onRequestAccessibility = requestAccessibility,
-            onLsposedSmsChange = viewModel::setOtpLsposedSmsCaptureEnabled,
-            onLsposedSystemInjectChange = viewModel::setOtpLsposedSystemInjectEnabled,
-            stats = stats,
-            onOpenStats = { ctx.navigate(AppNavKey.OtpAutoFillStats(OtpAutoFillStatsReturn.Hub)) },
-        )
-    }
-
-    hiltEntry<AppNavKey.OtpSettings> {
-        val viewModel: OtpSettingsViewModel = hiltViewModel()
-        val otpSettings by viewModel.otpUiSettings.collectAsStateWithLifecycle()
-        val settings = otpSettings.toMinimalAppSettings()
-        val officialRules by viewModel.officialRules.collectAsStateWithLifecycle()
-        OtpSettingsScreen(
-            settings = settings,
-            officialRules = officialRules,
-            onBack = { ctx.navigateBackTo(AppNavKey.NotificationHub) },
-            onOpenAutoInput = { ctx.navigate(AppNavKey.OtpAutoInput) },
-            onOpenMatchRules = { ctx.navigate(AppNavKey.OtpRulesList) },
-            onOpenRecords = {
-                ctx.navigate(AppNavKey.OtpRecords(OtpRecordsReturn.Settings))
+            onOpenExtraction = { ctx.navigate(AppNavKey.OtpExtraction) },
+            onOpenAutoFill = { ctx.navigate(AppNavKey.OtpAutoFill) },
+            onOpenRules = { ctx.navigate(AppNavKey.OtpRules) },
+            onOpenRecords = { ctx.navigate(AppNavKey.OtpRecords) },
+            statusRefreshKey = statusRefreshKey,
+            onRestartPhoneProcess = {
+                PhoneProcessRestartRequester.request(context.applicationContext)
+                statusRefreshKey++
             },
-            onKeywordsRegexChange = viewModel::setOtpKeywordsRegex,
         )
     }
 
-    hiltEntry<AppNavKey.OtpRecords> { key ->
-        OtpRecordsScreen(
-            onBack = {
-                ctx.navigateBackTo(
-                    when (key.returnTo) {
-                        OtpRecordsReturn.Hub -> AppNavKey.NotificationHub
-                        OtpRecordsReturn.Settings -> AppNavKey.OtpSettings
-                    },
-                )
-            },
-            onOpenTestFlow = { ctx.navigate(AppNavKey.OtpHub) },
-        )
-    }
-
-    hiltEntry<AppNavKey.OtpRulesList> {
+    hiltEntry<AppNavKey.OtpExtraction> {
         val viewModel: OtpSettingsViewModel = hiltViewModel()
         val otpSettings by viewModel.otpUiSettings.collectAsStateWithLifecycle()
-        val officialRules by viewModel.officialRules.collectAsStateWithLifecycle()
-        OtpRulesListScreen(
-            officialRules = officialRules,
-            userRules = otpSettings.otpUserMatchRules,
-            disabledOfficialRuleIds = otpSettings.otpDisabledOfficialRuleIds,
-            onBack = { ctx.navigateBackTo(AppNavKey.OtpSettings) },
-            onRefreshOfficialRules = viewModel::refreshOfficialRules,
-            onOfficialRuleEnabledChange = viewModel::setOtpOfficialRuleEnabled,
-            onUserRulesChange = viewModel::setOtpUserMatchRules,
+        val permissions = ctx.collectPermissions()
+        OtpExtractionScreen(
+            settings = otpSettings.toMinimalAppSettings(),
+            onBack = { ctx.navigateBackTo(AppNavKey.OtpHub) },
+            notificationPermissionGranted = permissions.notificationGranted,
+            onRequestNotificationPermission = { ctx.requestNotificationPermission() },
+            onCodeNotificationChange = viewModel::setOtpCodeNotificationEnabled,
+            onCodeNotificationRetentionChange = viewModel::setOtpCodeNotificationRetentionSeconds,
+            onShowCodeToastChange = viewModel::setOtpShowCodeToast,
+            onCopyToClipboardChange = viewModel::setOtpCopyToClipboard,
+            onBlockCodeSmsChange = viewModel::setOtpBlockCodeSmsEnabled,
+            onMarkSmsReadChange = viewModel::setOtpMarkSmsReadEnabled,
+            onDeleteSmsAfterExtractChange = viewModel::setOtpDeleteSmsAfterExtractEnabled,
+            onOpenSmsBlacklist = { ctx.navigate(AppNavKey.OtpSmsBlacklist) },
+            onOpenBlockedApps = { ctx.navigate(AppNavKey.OtpBlockedApps) },
         )
     }
 
-    hiltEntry<AppNavKey.OtpAutoInput> {
+    hiltEntry<AppNavKey.OtpAutoFill> {
         val viewModel: OtpSettingsViewModel = hiltViewModel()
-        val statsViewModel: OtpAutoFillStatsViewModel = hiltViewModel()
         val otpSettings by viewModel.otpUiSettings.collectAsStateWithLifecycle()
-        val settings = otpSettings.toMinimalAppSettings()
-        val stats by statsViewModel.stats.collectAsStateWithLifecycle()
         val permissions = ctx.collectPermissions()
         val context = LocalContext.current
         val scope = rememberCoroutineScope()
@@ -515,37 +485,108 @@ fun NavEntryBuilder.notificationNavEntries(ctx: MainNavContext) {
                 }
             }
         }
-        OtpAutoInputSettingsScreen(
-            settings = settings,
+        OtpAutoFillScreen(
+            settings = otpSettings.toMinimalAppSettings(),
+            onBack = { ctx.navigateBackTo(AppNavKey.OtpHub) },
             accessibilityGranted = permissions.accessibilityGranted,
-            onBack = { ctx.navigateBackTo(AppNavKey.OtpSettings) },
             onRequestAccessibility = requestAccessibility,
             onAutoInputChange = viewModel::setOtpAutoInputEnabled,
             onAutoConfirmChange = viewModel::setOtpAutoConfirmEnabled,
             onDelayChange = viewModel::setOtpAutoInputDelayMs,
             onIntervalChange = viewModel::setOtpAutoInputIntervalMs,
-            onLsposedSmsChange = viewModel::setOtpLsposedSmsCaptureEnabled,
             onLsposedSystemInjectChange = viewModel::setOtpLsposedSystemInjectEnabled,
-            onCopyToClipboardChange = viewModel::setOtpCopyToClipboard,
-            stats = stats,
-            onOpenStats = { ctx.navigate(AppNavKey.OtpAutoFillStats(OtpAutoFillStatsReturn.AutoInput)) },
         )
     }
 
-    hiltEntry<AppNavKey.OtpAutoFillStats> { key ->
-        val statsViewModel: OtpAutoFillStatsViewModel = hiltViewModel()
-        val stats by statsViewModel.stats.collectAsStateWithLifecycle()
-        OtpAutoFillStatsScreen(
-            stats = stats,
-            onBack = {
-                ctx.navigateBackTo(
-                    when (key.returnTo) {
-                        OtpAutoFillStatsReturn.Hub -> AppNavKey.OtpHub
-                        OtpAutoFillStatsReturn.AutoInput -> AppNavKey.OtpAutoInput
-                    },
-                )
+    hiltEntry<AppNavKey.OtpRules> {
+        val viewModel: OtpSettingsViewModel = hiltViewModel()
+        val otpSettings by viewModel.otpUiSettings.collectAsStateWithLifecycle()
+        val officialRules by viewModel.officialRules.collectAsStateWithLifecycle()
+        val context = LocalContext.current
+        val exportRulesLauncher = rememberLauncherForActivityResult(
+            ActivityResultContracts.CreateDocument("application/json"),
+        ) { uri ->
+            if (uri == null) return@rememberLauncherForActivityResult
+            val json = viewModel.exportUserRulesJson()
+            val written = runCatching {
+                context.contentResolver.openOutputStream(uri)?.use { output ->
+                    output.write(json.toByteArray())
+                } != null
+            }.getOrDefault(false)
+            viewModel.notifyRulesExported(written)
+        }
+        val importRulesLauncher = rememberLauncherForActivityResult(
+            ActivityResultContracts.OpenDocument(),
+        ) { uri ->
+            if (uri == null) return@rememberLauncherForActivityResult
+            val text = runCatching {
+                context.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
+            }.getOrNull()
+            if (text == null) {
+                viewModel.notifyRulesExported(false)
+            } else {
+                viewModel.importUserRulesJson(text)
+            }
+        }
+        OtpRulesScreen(
+            settings = otpSettings.toMinimalAppSettings(),
+            officialRules = officialRules,
+            onBack = { ctx.navigateBackTo(AppNavKey.OtpHub) },
+            onRefreshOfficialRules = viewModel::refreshOfficialRules,
+            onOfficialRuleEnabledChange = viewModel::setOtpOfficialRuleEnabled,
+            onUserRulesChange = viewModel::setOtpUserMatchRules,
+            onKeywordsRegexChange = viewModel::setOtpKeywordsRegex,
+            onExportRules = { exportRulesLauncher.launch("otp-rules.json") },
+            onImportRules = { importRulesLauncher.launch(arrayOf("application/json", "text/plain", "*/*")) },
+        )
+    }
+
+    hiltEntry<AppNavKey.OtpRecords> {
+        OtpRecordsPage(
+            onBack = { ctx.navigateBackTo(AppNavKey.OtpHub) },
+            onOpenTestFlow = { ctx.navigate(AppNavKey.OtpRules) },
+        )
+    }
+
+    hiltEntry<AppNavKey.OtpBlockedApps> {
+        val viewModel: OtpSettingsViewModel = hiltViewModel()
+        val otpSettings by viewModel.otpUiSettings.collectAsStateWithLifecycle()
+        ShakeGestureBlacklistScreen(
+            blacklistedPackages = otpSettings.otpBlockedPackages,
+            onBack = { ctx.navigateBackTo(AppNavKey.OtpHub) },
+            onOpenAddApp = { ctx.navigate(AppNavKey.OtpBlockedAppsPick) },
+            onRemoveBlacklistedApp = viewModel::removeOtpBlockedApp,
+            titleRes = R.string.otp_blocked_apps_title,
+            descriptionRes = R.string.otp_blocked_apps_desc,
+            blockedSectionTitleRes = R.string.otp_blocked_apps_section_blocked,
+            emptyRes = R.string.otp_blocked_apps_empty,
+            removeActionDescriptionRes = R.string.otp_blocked_apps_remove,
+            addSectionTitleRes = R.string.otp_blocked_apps_section_add,
+            showPageHint = false,
+        )
+    }
+
+    hiltEntry<AppNavKey.OtpBlockedAppsPick> {
+        val viewModel: OtpSettingsViewModel = hiltViewModel()
+        val otpSettings by viewModel.otpUiSettings.collectAsStateWithLifecycle()
+        ActivityShortcutPickAppScreen(
+            titleResId = R.string.otp_blocked_apps_section_add,
+            excludePackageNames = otpSettings.otpBlockedPackages,
+            onBack = { ctx.navigateBackTo(AppNavKey.OtpBlockedApps) },
+            onSelectApp = { app ->
+                viewModel.addOtpBlockedApp(app.packageName)
+                ctx.navigateBackTo(AppNavKey.OtpBlockedApps)
             },
-            onResetStats = statsViewModel::resetStats,
+        )
+    }
+
+    hiltEntry<AppNavKey.OtpSmsBlacklist> {
+        val viewModel: OtpSettingsViewModel = hiltViewModel()
+        val otpSettings by viewModel.otpUiSettings.collectAsStateWithLifecycle()
+        OtpSmsBlacklistScreen(
+            settings = otpSettings.toMinimalAppSettings(),
+            onBack = { ctx.navigateBackTo(AppNavKey.OtpHub) },
+            onBlacklistChange = viewModel::setOtpSmsBlacklist,
         )
     }
 }

@@ -4,8 +4,6 @@ import android.content.Context
 import com.slideindex.app.R
 import com.slideindex.app.autofill.OtpAutoInputBroadcastContract
 import com.slideindex.app.settings.AppSettings
-import java.text.DateFormat
-import java.util.Date
 
 object OtpAutoFillUiLabels {
     fun formatRuntimeStatus(
@@ -41,24 +39,6 @@ object OtpAutoFillUiLabels {
         } else {
             context.getString(R.string.otp_fill_method_pipeline_a11y_only)
         }
-    }
-
-    fun formatStatsEntrySubtitle(context: Context, stats: OtpAutoFillStats): String =
-        if (stats.totalAttempts <= 0) {
-            context.getString(R.string.otp_autofill_stats_entry_empty)
-        } else {
-            context.resources.getQuantityString(
-                R.plurals.otp_autofill_stats_summary,
-                stats.totalAttempts,
-                stats.totalAttempts,
-                stats.successRatePercent
-            )
-        }
-
-    fun formatLastAttemptTime(context: Context, epochMs: Long?): String? {
-        epochMs ?: return null
-        val formatter = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
-        return formatter.format(Date(epochMs))
     }
 
     fun formatStrategy(context: Context, strategy: String?): String {
@@ -115,6 +95,7 @@ object OtpAutoFillUiLabels {
             OtpAutoInputBroadcastContract.SystemInjectReason.INVALID_REQUEST ->
                 R.string.otp_autofill_reason_invalid_request
             "receiver_not_ready" -> R.string.otp_autofill_reason_receiver_not_ready
+            "blocked_app" -> R.string.otp_autofill_reason_blocked_app
             else -> return context.getString(R.string.otp_autofill_reason_unknown, key)
         }
         return context.getString(resId)

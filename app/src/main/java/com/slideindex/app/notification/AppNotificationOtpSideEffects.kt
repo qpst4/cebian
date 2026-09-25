@@ -3,6 +3,7 @@ package com.slideindex.app.notification
 import android.content.Context
 import com.slideindex.app.otp.OtpAutoFillController
 import com.slideindex.app.otp.OtpAutoInputOrchestrator
+import com.slideindex.app.otp.OtpCodeAlertPresenter
 import com.slideindex.app.otp.OtpClipboardHelper
 import com.slideindex.app.settings.SettingsRepository
 import javax.inject.Inject
@@ -10,7 +11,8 @@ import javax.inject.Singleton
 
 @Singleton
 class AppNotificationOtpSideEffects @Inject constructor(
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    private val otpCodeAlertPresenter: OtpCodeAlertPresenter,
 ) : NotificationOtpSideEffects {
     override fun onVerificationCodeExtracted(
         context: Context,
@@ -25,8 +27,8 @@ class AppNotificationOtpSideEffects @Inject constructor(
         recordId: String?
     ) {
         val appContext = context.applicationContext
+        val settings = settingsRepository.readSnapshot()
         if (autoInputEnabled) {
-            val settings = settingsRepository.readSnapshot()
             OtpAutoFillController.queueCode(code)
             OtpAutoInputOrchestrator.requestAutoFill(appContext, code, settings, recordId)
         }
@@ -34,5 +36,10 @@ class AppNotificationOtpSideEffects @Inject constructor(
             runCatching { OtpClipboardHelper.copyCode(appContext, code) }
                 .onFailure { android.util.Log.e("OtpSideEffects", "Clipboard copy failed", it) }
         }
+        otpCodeAlertPresenter.present(
+            code = code,
+            sourceLabel = title.ifBlank { packageName },
+            settings = settings,
+        )
     }
 }

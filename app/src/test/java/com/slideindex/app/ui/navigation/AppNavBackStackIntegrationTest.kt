@@ -85,7 +85,7 @@ class AppNavBackStackIntegrationTest {
     @Test
     fun isNotificationBranch_coversOtpAndHistoryRoutes() {
         assertTrue(AppNavKey.NotificationHub.isNotificationBranch())
-        assertTrue(AppNavKey.OtpRecords(OtpRecordsReturn.Hub).isNotificationBranch())
+        assertTrue(AppNavKey.OtpSmsBlacklist.isNotificationBranch())
         assertFalse(AppNavKey.HomeMain.isNotificationBranch())
     }
 
