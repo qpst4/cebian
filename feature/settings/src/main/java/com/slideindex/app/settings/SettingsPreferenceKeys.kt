@@ -459,6 +459,10 @@ internal object SettingsPreferenceKeys {
     val CLIPBOARD_OVERLAY_SCALE_PERCENT = intPreferencesKey("clipboard_overlay_scale_percent")
     val CLIPBOARD_SCREENSHOT_MONITORING = booleanPreferencesKey("clipboard_screenshot_monitoring")
     val CLIPBOARD_LSPOSED_EXTRA_WHITELIST = stringSetPreferencesKey("clipboard_lsposed_extra_whitelist")
+    val CLIPBOARD_MONITORING_CHANNEL = stringPreferencesKey("clipboard_monitoring_channel")
+    val CLIPBOARD_MONITORING_CAPTURE = stringPreferencesKey("clipboard_monitoring_capture")
+    /** 旧版剪贴板白名单遗留键的一次性清理标记。 */
+    val LEGACY_CLIPBOARD_KEYS_CLEANED = booleanPreferencesKey("legacy_clipboard_keys_cleaned")
     val CLIPBOARD_HISTORY_MAX_ENTRIES = intPreferencesKey("clipboard_history_max_entries")
     val CLIPBOARD_HISTORY_FLOAT_ENABLED = booleanPreferencesKey("clipboard_history_float_enabled")
     val CLIPBOARD_HISTORY_FLOAT_ENABLED_LANDSCAPE =

@@ -482,6 +482,23 @@ internal object SettingsSnapshotReader {
             clipboardBackgroundMonitoringMode = ClipboardMonitoringMode.fromStorage(
                 prefs[SettingsPreferenceKeys.CLIPBOARD_BACKGROUND_MONITORING_PATH],
             ),
+            // 旧的单一模式值做迁移兜底：没写过新键时按旧值推导通道与采集方式。
+            clipboardMonitoringChannel = ClipboardMonitoringChannel.fromStorage(
+                prefs[SettingsPreferenceKeys.CLIPBOARD_MONITORING_CHANNEL],
+            ).takeIf { prefs[SettingsPreferenceKeys.CLIPBOARD_MONITORING_CHANNEL] != null }
+                ?: channelOf(
+                    ClipboardMonitoringMode.fromStorage(
+                        prefs[SettingsPreferenceKeys.CLIPBOARD_BACKGROUND_MONITORING_PATH],
+                    ),
+                ),
+            clipboardMonitoringCapture = ClipboardMonitoringCapture.fromStorage(
+                prefs[SettingsPreferenceKeys.CLIPBOARD_MONITORING_CAPTURE],
+            ).takeIf { prefs[SettingsPreferenceKeys.CLIPBOARD_MONITORING_CAPTURE] != null }
+                ?: captureOf(
+                    ClipboardMonitoringMode.fromStorage(
+                        prefs[SettingsPreferenceKeys.CLIPBOARD_BACKGROUND_MONITORING_PATH],
+                    ),
+                ),
             clipboardLsposedWhitelist =
                 prefs[SettingsPreferenceKeys.CLIPBOARD_LSPOSED_WHITELIST]
                     ?: setOf(CLIPBOARD_LSPOSED_SELF_PACKAGE),

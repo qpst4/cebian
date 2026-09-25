@@ -70,6 +70,7 @@ class SettingsRepository @Inject constructor(
 
     init {
         cacheScope.launch {
+            editor.cleanupLegacyClipboardKeysOnce()
             edge.persistOppositeGestureSlotRepairIfNeeded()
             settings.collect { cachedSettings = it }
         }
@@ -715,6 +716,12 @@ class SettingsRepository @Inject constructor(
 
     suspend fun addClipboardLsposedWhitelistPackage(packageName: String) =
         overlay.addClipboardLsposedWhitelistPackage(packageName)
+
+    suspend fun setClipboardMonitoringChannel(channel: ClipboardMonitoringChannel) =
+        overlay.setClipboardMonitoringChannel(channel)
+
+    suspend fun setClipboardMonitoringCapture(capture: ClipboardMonitoringCapture) =
+        overlay.setClipboardMonitoringCapture(capture)
 
     suspend fun removeClipboardLsposedWhitelistPackage(packageName: String) =
         overlay.removeClipboardLsposedWhitelistPackage(packageName)

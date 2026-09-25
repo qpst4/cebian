@@ -298,6 +298,8 @@ data class AppSettings(
 
     val clipboardBackgroundMonitoring get() = clipboard.clipboardBackgroundMonitoring
     val clipboardBackgroundMonitoringMode get() = clipboard.clipboardBackgroundMonitoringMode
+    val clipboardMonitoringChannel get() = clipboard.clipboardMonitoringChannel
+    val clipboardMonitoringCapture get() = clipboard.clipboardMonitoringCapture
     val clipboardLsposedWhitelist get() = clipboard.clipboardLsposedWhitelist
     val clipboardOverlayEnabled get() = clipboard.clipboardOverlayEnabled
     val clipboardOverlayScalePercent get() = clipboard.clipboardOverlayScalePercent

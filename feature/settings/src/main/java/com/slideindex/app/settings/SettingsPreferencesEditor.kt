@@ -112,6 +112,19 @@ class SettingsPreferencesEditor @Inject constructor(
     }
 
     suspend fun readRawPreferences(): Preferences = context.dataStore.data.first()
+
+    /**
+     * 一次性清理旧版剪贴板白名单方案的遗留键（旧 LSPosed 模式，当前代码不再读写）。
+     *
+     * 用标记键保证只跑一次，避免每次启动都写一遍 DataStore。
+     */
+    suspend fun cleanupLegacyClipboardKeysOnce() = runCatching {
+        context.dataStore.edit { prefs ->
+            if (prefs[SettingsPreferenceKeys.LEGACY_CLIPBOARD_KEYS_CLEANED] == true) return@edit
+            prefs.remove(SettingsPreferenceKeys.CLIPBOARD_LSPOSED_EXTRA_WHITELIST)
+            prefs[SettingsPreferenceKeys.LEGACY_CLIPBOARD_KEYS_CLEANED] = true
+        }
+    }
 }
 
 

@@ -1154,6 +1154,36 @@ class OverlaySettingsMutator @Inject constructor(
         it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_BLOCKED_PACKAGES] = current
     }
 
+    /** 切换提权通道：同时把旧的单一模式键写成对应的具体模式（跟随特权时保持 follow）。 */
+    suspend fun setClipboardMonitoringChannel(channel: ClipboardMonitoringChannel) = editor.edit {
+        it[SettingsPreferenceKeys.CLIPBOARD_MONITORING_CHANNEL] = channel.storageValue
+        val capture = ClipboardMonitoringCapture.fromStorage(
+            it[SettingsPreferenceKeys.CLIPBOARD_MONITORING_CAPTURE],
+        )
+        val privilege = PrivilegeMode.fromStorage(it[SettingsPreferenceKeys.PRIVILEGE_MODE])
+        it[SettingsPreferenceKeys.CLIPBOARD_BACKGROUND_MONITORING_PATH] =
+            (if (channel == ClipboardMonitoringChannel.FOLLOW_PRIVILEGE) {
+                ClipboardMonitoringMode.FOLLOW_PRIVILEGE
+            } else {
+                resolveClipboardMonitoringMode(channel, capture, privilege)
+            }).storageValue
+    }
+
+    /** 切换采集方式（隐藏 API / 系统日志）。 */
+    suspend fun setClipboardMonitoringCapture(capture: ClipboardMonitoringCapture) = editor.edit {
+        it[SettingsPreferenceKeys.CLIPBOARD_MONITORING_CAPTURE] = capture.storageValue
+        val channel = ClipboardMonitoringChannel.fromStorage(
+            it[SettingsPreferenceKeys.CLIPBOARD_MONITORING_CHANNEL],
+        )
+        val privilege = PrivilegeMode.fromStorage(it[SettingsPreferenceKeys.PRIVILEGE_MODE])
+        it[SettingsPreferenceKeys.CLIPBOARD_BACKGROUND_MONITORING_PATH] =
+            (if (channel == ClipboardMonitoringChannel.FOLLOW_PRIVILEGE) {
+                ClipboardMonitoringMode.FOLLOW_PRIVILEGE
+            } else {
+                resolveClipboardMonitoringMode(channel, capture, privilege)
+            }).storageValue
+    }
+
     suspend fun addClipboardLsposedWhitelistPackage(packageName: String) = editor.edit {
         // 首次落盘时从默认名单（本应用自身）起算，避免覆盖掉默认项。
         val current = (it[SettingsPreferenceKeys.CLIPBOARD_LSPOSED_WHITELIST]

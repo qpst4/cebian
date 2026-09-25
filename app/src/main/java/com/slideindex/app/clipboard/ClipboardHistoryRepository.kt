@@ -11,6 +11,7 @@ import com.slideindex.app.settings.ClipboardMonitoringMode
 import com.slideindex.app.settings.effectiveClipboardMonitoringMode
 import com.slideindex.app.settings.SettingsRepository
 import com.slideindex.app.xposed.bridge.ModuleBridgeStatusStore
+import com.slideindex.app.xposed.bridge.ModuleBridgeStatusProbe
 import com.slideindex.app.xposed.bridge.ModuleHookBridgeContract
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
@@ -73,6 +74,9 @@ class ClipboardHistoryRepository @Inject constructor(
     val revision: StateFlow<Long> = _revision.asStateFlow()
 
     private val mainHandler = Handler(Looper.getMainLooper())
+
+    /** 上次主动探测 LSPosed 模块状态的时间（节流用）。 */
+    private var lastModuleProbeAtMs = 0L
 
     private var screenshotMonitor: ScreenshotMonitor? = null
     private var lastCapturedKey: String? = null
@@ -248,7 +252,7 @@ class ClipboardHistoryRepository @Inject constructor(
         suppressedOutgoingEntryId = entry.id
         outgoingWriteSuppressUntilMs = System.currentTimeMillis() + 4_000L
         skipIngestRemaining = 3
-        clipboardMonitorController.config.ignoreNextCopy = true
+        clipboardMonitorController.config.ignoreOwnClipboardWrite()
     }
 
     fun promoteById(id: String) {
@@ -399,12 +403,29 @@ class ClipboardHistoryRepository @Inject constructor(
         return ClipboardMonitoringMode.STANDARD
     }
 
-    /** 模块近期有响应即视为可用（状态由模块状态探测写入，设置页可手动刷新）。 */
+    /**
+     * 模块可用性：只要曾经响应过、且状态不是「未就绪」就认为可用。
+     *
+     * 不再设新鲜度上限——否则重启后旧状态过期，「跟随特权模式」就不会退到 LSPosed。
+     * 没有记录或明确未就绪时主动探一次（带节流），探到可用就重新同步监听。
+     */
     private fun isLsposedModuleResponsive(): Boolean {
         val snapshot = ModuleBridgeStatusStore.read(context)
-        if (snapshot.updatedAtMs <= 0L) return false
-        if (System.currentTimeMillis() - snapshot.updatedAtMs > MODULE_STATUS_TTL_MS) return false
-        return snapshot.state != ModuleHookBridgeContract.STATUS_STATE_NOT_READY
+        if (snapshot.updatedAtMs > 0L &&
+            snapshot.state != ModuleHookBridgeContract.STATUS_STATE_NOT_READY
+        ) {
+            return true
+        }
+        val now = System.currentTimeMillis()
+        if (now - lastModuleProbeAtMs >= MODULE_PROBE_THROTTLE_MS) {
+            lastModuleProbeAtMs = now
+            ModuleBridgeStatusProbe.probe(context) { status, _ ->
+                if (status != ModuleBridgeStatusProbe.Status.NotReady) {
+                    syncClipboardMonitoringFromSettings()
+                }
+            }
+        }
+        return false
     }
 
     fun startClipboardListening() {
@@ -659,7 +680,7 @@ class ClipboardHistoryRepository @Inject constructor(
         private const val INDEX_FILE_NAME = "history.json"
         private const val SAME_CLIP_DEDUP_MS = 400L
         private const val SCREENSHOT_TOP_GUARD_MS = 10_000L
-        /** 模块状态超过这个时间没刷新就当作不可用（设置页探测会刷新它）。 */
-        private const val MODULE_STATUS_TTL_MS = 10 * 60_000L
+        /** 主动探测模块状态的节流间隔。 */
+        private const val MODULE_PROBE_THROTTLE_MS = 30_000L
     }
 }

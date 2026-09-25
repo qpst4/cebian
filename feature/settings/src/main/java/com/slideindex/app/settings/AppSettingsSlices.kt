@@ -307,6 +307,10 @@ data class ClipboardSettings(
     /** Background clipboard monitoring via Shizuku/Root privileged listener. */
     val clipboardBackgroundMonitoring: Boolean = true,
     val clipboardBackgroundMonitoringMode: ClipboardMonitoringMode = ClipboardMonitoringMode.FOLLOW_PRIVILEGE,
+    /** 提权通道（UI 主选项）：跟随全局特权 / Shizuku / Root / LSPosed / 标准。 */
+    val clipboardMonitoringChannel: ClipboardMonitoringChannel = ClipboardMonitoringChannel.FOLLOW_PRIVILEGE,
+    /** 采集方式（UI 次选项）：隐藏 API / 系统日志。 */
+    val clipboardMonitoringCapture: ClipboardMonitoringCapture = ClipboardMonitoringCapture.LOGCAT,
     /**
      * LSPosed 模式的白名单：这些包会被系统当作默认输入法放行，可在后台直接读剪贴板。
      * 默认含本应用自身，用户可在设置里移除或添加其它应用。

@@ -39,6 +39,11 @@ import kotlinx.coroutines.runBlocking
 
 @HiltAndroidApp
 class SlideIndexApp : Application() {
+    private companion object {
+        /** 启动期重活延后时间，给前台服务 startForeground 留出窗口。 */
+        const val STARTUP_HEAVY_TASK_DELAY_MS = 1_500L
+    }
+
     @Inject lateinit var deps: AppDependencies
     @Inject lateinit var shizukuInitializer: ShizukuInitializer
     @Inject lateinit var privilegeModeInitializer: PrivilegeModeInitializer
@@ -78,7 +83,11 @@ class SlideIndexApp : Application() {
         FreezerLauncherHelper.cleanupLegacyAlias(this)
         ClipboardMonitorStartup.applicationReady = true
         // 首帧后再做 OCR 校验、分词 warm-up、应用列表扫描，减轻装后首开卡顿
-        ClipboardMonitorStartup.runOnMainWhenIdle {
+        // 延迟执行启动期重活：开机瞬间主线程若被 OCR 校验 / 分词 warm-up / 应用列表扫描占住，
+        // 剪贴板监听前台服务会来不及在 5 秒内 startForeground（实测过一次
+        // ForegroundServiceDidNotStartInTimeException）。
+        ClipboardMonitorStartup.runOnMainWhenReady {
+            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
             ocrInstalledModelStartupVerifier.start()
             JiebaWarmUp.start(this@SlideIndexApp)
             if (deps.settingsRepository.readSnapshot().onboardingCompleted) {
@@ -87,6 +96,7 @@ class SlideIndexApp : Application() {
                     com.slideindex.app.widget.WidgetCatalog.preload(this@SlideIndexApp)
                 }
             }
+            }, STARTUP_HEAVY_TASK_DELAY_MS)
         }
         deps.stashRepository
         deps.clipboardHistoryRepository

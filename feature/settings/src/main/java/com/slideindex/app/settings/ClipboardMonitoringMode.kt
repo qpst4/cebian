@@ -79,7 +79,88 @@ enum class ClipboardMonitoringCaptureKind {
 }
 
 fun AppSettings.effectiveClipboardMonitoringMode(): ClipboardMonitoringMode =
-    clipboardBackgroundMonitoringMode.effective(privilegeMode)
+    resolveClipboardMonitoringMode(
+        channel = clipboardMonitoringChannel,
+        capture = clipboardMonitoringCapture,
+        privilegeMode = privilegeMode,
+    )
+
+/** 提权通道：决定「谁有权限去听」。 */
+enum class ClipboardMonitoringChannel(val storageValue: String) {
+    /** 跟随全局特权设置（Shizuku / Root）。 */
+    FOLLOW_PRIVILEGE("follow_privilege"),
+    SHIZUKU("shizuku"),
+    ROOT("root"),
+    /** LSPosed 模块白名单：把应用伪装成默认输入法，免焦点直接读。 */
+    LSPOSED("lsposed"),
+    /** 免提权的公开 API。 */
+    STANDARD("standard"),
+    ;
+
+    companion object {
+        fun fromStorage(value: String?): ClipboardMonitoringChannel =
+            entries.firstOrNull { it.storageValue == value } ?: FOLLOW_PRIVILEGE
+    }
+}
+
+/** 采集方式：决定「用什么手段拿到变更事件」。仅对 Shizuku / Root 通道有意义。 */
+enum class ClipboardMonitoringCapture(val storageValue: String) {
+    /** 注册系统隐藏剪贴板监听。 */
+    HIDDEN_API("hidden_api"),
+    /** 读取系统 ClipboardService 日志。 */
+    LOGCAT("logcat"),
+    ;
+
+    companion object {
+        fun fromStorage(value: String?): ClipboardMonitoringCapture =
+            entries.firstOrNull { it.storageValue == value } ?: LOGCAT
+    }
+}
+
+fun channelOf(mode: ClipboardMonitoringMode): ClipboardMonitoringChannel = when (mode) {
+    ClipboardMonitoringMode.FOLLOW_PRIVILEGE -> ClipboardMonitoringChannel.FOLLOW_PRIVILEGE
+    ClipboardMonitoringMode.SHIZUKU_LOGS,
+    ClipboardMonitoringMode.SHIZUKU_HIDDEN_API -> ClipboardMonitoringChannel.SHIZUKU
+    ClipboardMonitoringMode.ROOT_LOGS,
+    ClipboardMonitoringMode.ROOT_HIDDEN_API -> ClipboardMonitoringChannel.ROOT
+    ClipboardMonitoringMode.LSPOSED -> ClipboardMonitoringChannel.LSPOSED
+    ClipboardMonitoringMode.STANDARD -> ClipboardMonitoringChannel.STANDARD
+}
+
+fun captureOf(mode: ClipboardMonitoringMode): ClipboardMonitoringCapture = when (mode) {
+    ClipboardMonitoringMode.SHIZUKU_HIDDEN_API,
+    ClipboardMonitoringMode.ROOT_HIDDEN_API -> ClipboardMonitoringCapture.HIDDEN_API
+    // 跟随特权模式的旧语义是「日志」；LSPosed / 标准没有采集方式之分，取默认值即可。
+    else -> ClipboardMonitoringCapture.LOGCAT
+}
+
+/** 通道 + 采集方式 → 内部使用的具体监听模式。 */
+fun resolveClipboardMonitoringMode(
+    channel: ClipboardMonitoringChannel,
+    capture: ClipboardMonitoringCapture,
+    privilegeMode: PrivilegeMode,
+): ClipboardMonitoringMode = when (channel) {
+    ClipboardMonitoringChannel.STANDARD -> ClipboardMonitoringMode.STANDARD
+    ClipboardMonitoringChannel.LSPOSED -> ClipboardMonitoringMode.LSPOSED
+    ClipboardMonitoringChannel.ROOT -> when (capture) {
+        ClipboardMonitoringCapture.HIDDEN_API -> ClipboardMonitoringMode.ROOT_HIDDEN_API
+        ClipboardMonitoringCapture.LOGCAT -> ClipboardMonitoringMode.ROOT_LOGS
+    }
+    ClipboardMonitoringChannel.SHIZUKU -> when (capture) {
+        ClipboardMonitoringCapture.HIDDEN_API -> ClipboardMonitoringMode.SHIZUKU_HIDDEN_API
+        ClipboardMonitoringCapture.LOGCAT -> ClipboardMonitoringMode.SHIZUKU_LOGS
+    }
+    ClipboardMonitoringChannel.FOLLOW_PRIVILEGE -> when (privilegeMode) {
+        PrivilegeMode.ROOT -> when (capture) {
+            ClipboardMonitoringCapture.HIDDEN_API -> ClipboardMonitoringMode.ROOT_HIDDEN_API
+            ClipboardMonitoringCapture.LOGCAT -> ClipboardMonitoringMode.ROOT_LOGS
+        }
+        PrivilegeMode.SHIZUKU -> when (capture) {
+            ClipboardMonitoringCapture.HIDDEN_API -> ClipboardMonitoringMode.SHIZUKU_HIDDEN_API
+            ClipboardMonitoringCapture.LOGCAT -> ClipboardMonitoringMode.SHIZUKU_LOGS
+        }
+    }
+}
 
 /**
  * LSPosed 模式白名单的默认项：本应用自身。

@@ -288,7 +288,14 @@ fun NavEntryBuilder.homeNavEntries(ctx: MainNavContext) {
             privilegedAccessGranted = privilegedAccessGranted,
             onBack = { ctx.navigateBackTo(AppNavKey.HomeMain) },
             onRequestBatteryOptimization = { ctx.requestBatteryOptimization() },
-            onRequestAutoStart = { ctx.openAutoStartSettings() },
+            // 与「剪贴板后台监听」页的「自启动与后台保护管理」一致：直接跳本应用的应用信息/权限详情。
+            onRequestAutoStart = {
+                runCatching {
+                    ctx.activity.startActivity(
+                        com.slideindex.app.util.PermissionHelper.appListSettingsIntent(ctx.activity),
+                    )
+                }
+            },
             onHideFromRecentsChange = viewModel::setHideFromRecents,
             onAccessibilityKeepAliveChange = viewModel::setAccessibilityKeepAliveEnabled,
             onRequestSecureSettingsGrant = { ctx.requestSecureSettingsGrant() },

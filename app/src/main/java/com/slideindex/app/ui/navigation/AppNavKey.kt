@@ -372,6 +372,7 @@ sealed interface AppNavKey : NavKey {
     @Serializable data object FloatingPointer : AppNavKey
     @Serializable data object StashClipboard : AppNavKey
     @Serializable data object ClipboardHistorySettings : AppNavKey
+    @Serializable data object ClipboardMonitoringSettings : AppNavKey
     @Serializable data object StashPanelSettings : AppNavKey
     @Serializable data object ClipboardFloatSettings : AppNavKey
     @Serializable data object ClipboardFloatBlacklist : AppNavKey

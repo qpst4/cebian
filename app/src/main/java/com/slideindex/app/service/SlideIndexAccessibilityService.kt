@@ -828,7 +828,7 @@ class SlideIndexAccessibilityService : AccessibilityService() {
 
     internal fun syncClipboardMonitoring() {
         val repository = ClipboardAccess.repository ?: return
-        ClipboardMonitorStartup.runOnMainWhenIdle {
+        ClipboardMonitorStartup.runOnMainWhenReady {
             repository.syncClipboardMonitoringFromSettings()
         }
     }

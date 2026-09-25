@@ -28,6 +28,11 @@ import com.slideindex.app.clipboard.ClipboardReader
 import com.slideindex.app.util.PermissionHelper
 import java.io.File
 import java.lang.ref.WeakReference
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import rikka.shizuku.Shizuku
 
 class ClipboardMonitorForegroundService : Service() {
@@ -44,6 +49,10 @@ class ClipboardMonitorForegroundService : Service() {
     private var bindGeneration = 0
     private var standardClipListener: ClipboardManager.OnPrimaryClipChangedListener? = null
 
+    /** 通知状态跟随用（见 [startNotificationStateCollector]）。 */
+    private val notificationScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private var notificationCollectorStarted = false
+
     private val clipboardListenerCallback by lazy {
         object : IOnClipboardChanged.Stub() {
             override fun onChanged(logLine: String?) {
@@ -51,11 +60,8 @@ class ClipboardMonitorForegroundService : Service() {
                 if (!shouldTriggerClipboardRead(logLine, controller.config.applicationId)) {
                     return
                 }
-                if (controller.config.ignoreNextCopy) {
-                    controller.config.ignoreNextCopy = false
-                } else {
-                    mainHandler.sendEmptyMessage(MSG_CLIPBOARD_CHANGED)
-                }
+                if (controller.config.shouldIgnoreEvent()) return
+                mainHandler.sendEmptyMessage(MSG_CLIPBOARD_CHANGED)
             }
         }
     }
@@ -111,9 +117,23 @@ class ClipboardMonitorForegroundService : Service() {
             }, CONTROLLER_RETRY_MS)
             return START_NOT_STICKY
         }
+        // 公开监听在所有模式下常驻：作为兜底事件源，特权通道哑掉/漏拍时仍能收到变更。
+        startPrimaryClipChangedListener(controller)
+        startNotificationStateCollector(controller)
+
         // LSPosed 模式走和标准模式同一条读取路径：白名单生效时系统直接放行，不需要焦点探针。
         if (useStandard || useLsposed) {
-            startStandardListening(controller)
+            controller.markListening(true)
+            updateNotification(
+                ClipboardMonitorNotificationTexts.runningTitle(this),
+                ClipboardMonitorNotificationTexts.runningText(
+                    this,
+                    useRoot,
+                    useHiddenApi,
+                    useStandard,
+                    useLsposed,
+                ),
+            )
             return START_NOT_STICKY
         }
         if (!useRoot) {
@@ -234,38 +254,48 @@ class ClipboardMonitorForegroundService : Service() {
         }
     }
 
-    private fun startStandardListening(controller: ClipboardMonitorController) {
-        val clipboard = getSystemService(CLIPBOARD_SERVICE) as? ClipboardManager ?: run {
-            updateNotification(
-                getString(R.string.clipboard_monitor_notification_error_title),
-                getString(R.string.clipboard_monitor_notification_error_unknown),
-            )
-            controller.markListening(false)
-            stopSelf()
-            return
+    /**
+     * 注册公开剪贴板监听（`addPrimaryClipChangedListener`）。
+     *
+     * 与特权通道无关：任何模式下都挂着，作为"变更事件"的兜底来源。
+     * 系统在后台也会派发该回调；能不能读到内容由白名单 / 焦点决定，与这里无关。
+     */
+    /**
+     * 让常驻通知跟着真实监听状态走。
+     *
+     * 任何路径（Shizuku 绑定成功 / Root 就绪 / 标准或 LSPosed 启动）把状态置为「在监听」后，
+     * 这里都会补刷一次「运行中」文案——此前出现过通知停在「正在启动」的情况。
+     */
+    private fun startNotificationStateCollector(controller: ClipboardMonitorController) {
+        if (notificationCollectorStarted) return
+        notificationCollectorStarted = true
+        notificationScope.launch {
+            controller.isListeningFlow.collect { listening ->
+                if (!listening) return@collect
+                updateNotification(
+                    ClipboardMonitorNotificationTexts.runningTitle(this@ClipboardMonitorForegroundService),
+                    ClipboardMonitorNotificationTexts.runningText(
+                        this@ClipboardMonitorForegroundService,
+                        useRoot,
+                        useHiddenApi,
+                        useStandard,
+                        useLsposed,
+                    ),
+                )
+            }
         }
+    }
+
+    private fun startPrimaryClipChangedListener(controller: ClipboardMonitorController) {
+        val clipboard = getSystemService(CLIPBOARD_SERVICE) as? ClipboardManager ?: return
         val listener = ClipboardManager.OnPrimaryClipChangedListener {
             mainHandler.post {
-                if (controller.config.ignoreNextCopy) {
-                    controller.config.ignoreNextCopy = false
-                } else {
-                    mainHandler.sendEmptyMessage(MSG_CLIPBOARD_CHANGED)
-                }
+                if (controller.config.shouldIgnoreEvent()) return@post
+                mainHandler.sendEmptyMessage(MSG_CLIPBOARD_CHANGED)
             }
         }
         standardClipListener = listener
         clipboard.addPrimaryClipChangedListener(listener)
-        controller.markListening(true)
-        updateNotification(
-            ClipboardMonitorNotificationTexts.runningTitle(this),
-            ClipboardMonitorNotificationTexts.runningText(
-                this,
-                useRoot,
-                useHiddenApi,
-                useStandard,
-                useLsposed,
-            ),
-        )
     }
 
     private fun stopStandardListening() {
@@ -316,6 +346,7 @@ class ClipboardMonitorForegroundService : Service() {
 
     override fun onDestroy() {
         bindGeneration++
+        notificationScope.cancel()
         mainHandler.removeCallbacksAndMessages(null)
         stopStandardListening()
         ClipboardMonitorController.peek()?.markListening(false)

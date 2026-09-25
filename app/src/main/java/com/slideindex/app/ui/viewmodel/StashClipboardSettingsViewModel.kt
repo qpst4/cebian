@@ -9,6 +9,8 @@ import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.ClipboardFloatEntryClickAction
 import com.slideindex.app.settings.ClipboardFloatEntryLongPressAction
 import com.slideindex.app.settings.ClipboardMonitoringMode
+import com.slideindex.app.settings.ClipboardMonitoringCapture
+import com.slideindex.app.settings.ClipboardMonitoringChannel
 import com.slideindex.app.settings.ClipboardOverlayScale
 import com.slideindex.app.settings.HistoryFloatHandleWidth
 import com.slideindex.app.settings.SettingsRepository
@@ -282,6 +284,27 @@ class StashClipboardSettingsViewModel @Inject constructor(
         settingsRepository.removeClipboardFloatBlockedPackage(packageName).also { result ->
             if (result.isSuccess) {
                 ClipboardFloatLifecycle.syncFromSettings(appContext, settingsRepository)
+            }
+        }
+    }
+
+    fun setClipboardMonitoringChannel(channel: ClipboardMonitoringChannel) = launchOptimisticSettingsWrite(
+        optimisticUpdate = { it.copy(clipboard = it.clipboard.copy(clipboardMonitoringChannel = channel)) },
+    ) {
+        settingsRepository.setClipboardMonitoringChannel(channel).also { result ->
+            // 通道变了要让监听按新模式重启，否则状态行与常驻通知还停在旧通道。
+            if (result.isSuccess) {
+                restartMonitoring()
+            }
+        }
+    }
+
+    fun setClipboardMonitoringCapture(capture: ClipboardMonitoringCapture) = launchOptimisticSettingsWrite(
+        optimisticUpdate = { it.copy(clipboard = it.clipboard.copy(clipboardMonitoringCapture = capture)) },
+    ) {
+        settingsRepository.setClipboardMonitoringCapture(capture).also { result ->
+            if (result.isSuccess) {
+                restartMonitoring()
             }
         }
     }

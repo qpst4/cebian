@@ -10,6 +10,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.slideindex.app.clipboard.monitor.ClipboardMonitorController
 import com.slideindex.app.settings.AppSettings
 import com.slideindex.app.settings.ClipboardMonitoringMode
@@ -25,6 +26,8 @@ data class ClipboardMonitoringUiState(
     val rootAvailable: Boolean,
     val overlayGranted: Boolean,
     val monitorRunning: Boolean,
+    /** 当前实际在跑的监听模式；未在监听时为 null。 */
+    val activeMode: ClipboardMonitoringMode? = null,
 )
 
 @EntryPoint
@@ -42,18 +45,19 @@ fun rememberClipboardMonitoringUiState(settings: AppSettings): ClipboardMonitori
             ClipboardMonitorControllerEntryPoint::class.java,
         ).clipboardMonitorController()
     }
+    // 监听状态直接跟着 controller 的 StateFlow 走：切换通道后状态行立刻更新，不必等页面 resume。
+    val monitorRunning by controller.isListeningFlow.collectAsStateWithLifecycle()
+    val activeMode by controller.activeModeFlow.collectAsStateWithLifecycle()
     var shizukuGranted by remember { mutableStateOf(controller.hasShizukuPermission()) }
     var rootAvailable by remember { mutableStateOf(controller.isRootAvailable()) }
     var overlayGranted by remember {
         mutableStateOf(PermissionHelper.canDrawOverlays(context))
     }
-    var monitorRunning by remember { mutableStateOf(controller.isListening) }
 
     fun refresh() {
         shizukuGranted = controller.hasShizukuPermission()
         rootAvailable = controller.isRootAvailable()
         overlayGranted = PermissionHelper.canDrawOverlays(context)
-        monitorRunning = controller.isListening
     }
 
     val lifecycle = LocalLifecycleOwner.current.lifecycle
@@ -67,12 +71,13 @@ fun rememberClipboardMonitoringUiState(settings: AppSettings): ClipboardMonitori
         onDispose { lifecycle.removeObserver(observer) }
     }
 
-    return remember(shizukuGranted, rootAvailable, overlayGranted, monitorRunning, settings) {
+    return remember(shizukuGranted, rootAvailable, overlayGranted, monitorRunning, activeMode, settings) {
         ClipboardMonitoringUiState(
             shizukuGranted = shizukuGranted,
             rootAvailable = rootAvailable,
             overlayGranted = overlayGranted,
             monitorRunning = monitorRunning,
+            activeMode = activeMode,
         )
     }
 }

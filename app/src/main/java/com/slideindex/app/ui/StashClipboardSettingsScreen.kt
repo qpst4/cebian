@@ -42,6 +42,7 @@ import com.slideindex.app.ui.settings.clipboard.ClipboardMonitoringUiState
 import com.slideindex.app.ui.settings.clipboard.isClipboardMonitoringBackendReady
 import com.slideindex.app.ui.settings.clipboard.rememberClipboardMonitoringUiState
 import com.slideindex.app.ui.settings.components.SettingDropdownRow
+import com.slideindex.app.ui.settings.components.SettingSwitchNavigationRow
 import com.slideindex.app.ui.settings.components.SettingExpandableSwitchRow
 import com.slideindex.app.ui.settings.components.SettingLinkRow
 import com.slideindex.app.ui.settings.components.SettingNavigationRow
@@ -174,12 +175,11 @@ fun ClipboardHistorySettingsScreen(
     onClearClipboardHistory: () -> Unit,
     onClipboardScreenshotMonitoringChange: (Boolean) -> Unit,
     onClipboardMonitoringChange: (Boolean) -> Unit,
-    onClipboardMonitoringModeChange: (ClipboardMonitoringMode) -> Unit,
     onClipboardOverlayEnabledChange: (Boolean) -> Unit,
     onClipboardOverlayScalePercentChange: (Int) -> Unit,
     onClipboardPasteFvStyleEnabledChange: (Boolean) -> Unit,
     onOpenOverlayPermission: () -> Unit,
-    onOpenClipboardLsposedWhitelist: () -> Unit,
+    onOpenClipboardMonitoringSettings: () -> Unit,
 ) {
     val context = LocalContext.current
     var showClearClipboardDialog by remember { mutableStateOf(false) }
@@ -238,13 +238,131 @@ fun ClipboardHistorySettingsScreen(
     val accessibilityGranted = SlideIndexAccessibilityService.accessibilityInstance() != null
     val screenshotSectionTitle = stringResource(R.string.clipboard_screenshot_monitoring_section)
     val backgroundSectionTitle = stringResource(R.string.clipboard_background_monitoring_section)
-    val modeEntries = ClipboardMonitoringMode.entries
 
     SettingsScreenScaffold(
         title = stringResource(R.string.stash_clipboard_section_clipboard),
         subtitle = stringResource(R.string.clipboard_history_settings_desc),
         onBack = onBack,
     ) {
+        // 后台监听：整段放在剪贴板页最上面（状态与权限诊断在独立页里）。
+        settingsLazySmallTitle(
+            key = "clipboard-background-section",
+            title = backgroundSectionTitle,
+        )
+        groupedCardItems(
+            keyPrefix = "clipboard-background",
+            items = buildList {
+                add(
+                    settingsCardScopeItem("background-monitoring") {
+                        // 与首页「手势动画」同款：一行同时带开关与跳转箭头。
+                        SettingSwitchNavigationRow(
+                            title = stringResource(R.string.clipboard_background_monitoring_title),
+                            subtitle = clipboardMonitoringModeLabel(
+                                settings.clipboardBackgroundMonitoringMode,
+                            ),
+                            checked = settings.clipboardBackgroundMonitoring,
+                            enabled = true,
+                            onCheckedChange = onClipboardMonitoringChange,
+                            onNavigate = onOpenClipboardMonitoringSettings,
+                        )
+                    },
+                )
+                add(
+                    settingsCardScopeItem("clipboard-overlay") {
+                        SettingExpandableSwitchRow(
+                            title = stringResource(R.string.clipboard_overlay_enabled_title),
+                            subtitle = stringResource(R.string.clipboard_overlay_enabled_desc),
+                            checked = settings.clipboardOverlayEnabled,
+                            enabled = settings.clipboardBackgroundMonitoring && monitoringUi.overlayGranted,
+                            onCheckedChange = { enabled ->
+                                if (enabled && !monitoringUi.overlayGranted) {
+                                    onOpenOverlayPermission()
+                                } else {
+                                    onClipboardOverlayEnabledChange(enabled)
+                                }
+                            },
+                        ) {
+                            SettingsSliderRow(
+                                title = stringResource(R.string.clipboard_overlay_preview_size_title),
+                                value = settings.clipboardOverlayScalePercent.toFloat(),
+                                valueRange = ClipboardOverlayScale.MIN_PERCENT.toFloat()..
+                                    ClipboardOverlayScale.MAX_PERCENT.toFloat(),
+                                enabled = true,
+                                label = "${settings.clipboardOverlayScalePercent}%",
+                                formatLabel = { "${it.roundToInt()}%" },
+                                onValueChange = { onClipboardOverlayScalePercentChange(it.roundToInt()) },
+                            )
+                        }
+                    },
+                )
+            },
+        )
+        if (settings.clipboardBackgroundMonitoring) {
+            groupedCardItems(
+                keyPrefix = "clipboard-background-status",
+                items = buildList {
+                    val monitoringMode = settings.effectiveClipboardMonitoringMode()
+                    val backendReady = settings.isClipboardMonitoringBackendReady(monitoringUi)
+                    add(
+                        settingsCardScopeItem("backend-status") {
+                            SettingLinkRow(
+                                title = stringResource(R.string.clipboard_monitor_backend_status_title),
+                                subtitle = when {
+                                    monitoringMode.usesStandardApi ->
+                                        stringResource(R.string.clipboard_monitor_backend_standard_ready)
+                                    monitoringMode.usesRoot && monitoringUi.rootAvailable ->
+                                        stringResource(R.string.clipboard_monitor_backend_root_ready)
+                                    monitoringMode.usesRoot ->
+                                        stringResource(R.string.clipboard_monitor_backend_root_missing)
+                                    monitoringUi.shizukuGranted ->
+                                        stringResource(R.string.clipboard_monitor_backend_shizuku_ready)
+                                    else ->
+                                        stringResource(R.string.clipboard_monitor_backend_shizuku_missing)
+                                },
+                                onClick = {},
+                            )
+                        },
+                    )
+                    add(
+                        settingsCardScopeItem("overlay-status") {
+                            SettingLinkRow(
+                                title = stringResource(R.string.clipboard_monitor_overlay_status_title),
+                                subtitle = if (monitoringUi.overlayGranted) {
+                                    stringResource(R.string.clipboard_monitor_overlay_ready)
+                                } else {
+                                    stringResource(R.string.clipboard_monitor_overlay_missing)
+                                },
+                                onClick = if (!monitoringUi.overlayGranted) onOpenOverlayPermission else ({}),
+                            )
+                        },
+                    )
+                    add(
+                        settingsCardScopeItem("service-status") {
+                            SettingLinkRow(
+                                title = stringResource(R.string.clipboard_monitor_service_status_title),
+                                subtitle = if (monitoringUi.monitorRunning && backendReady) {
+                                    stringResource(R.string.clipboard_monitor_service_running)
+                                } else {
+                                    stringResource(R.string.clipboard_monitor_service_stopped)
+                                },
+                                onClick = {},
+                            )
+                        },
+                    )
+                    if (monitoringMode == ClipboardMonitoringMode.SHIZUKU_LOGS && !readLogsGranted) {
+                        add(
+                            settingsCardScopeItem("read-logs-grant") {
+                                SettingLinkRow(
+                                    title = stringResource(R.string.clipboard_read_logs_shizuku_grant),
+                                    subtitle = null,
+                                    onClick = { showShizukuReadLogsDialog = true },
+                                )
+                            },
+                        )
+                    }
+                },
+            )
+        }
         settingsLazySmallTitle(
             key = "clipboard-history-section",
             title = historySectionTitle,
@@ -255,7 +373,6 @@ fun ClipboardHistorySettingsScreen(
                 add(
                     settingsCardScopeItem("history-capacity") {
                         SettingDropdownRow(
-                            icon = { label -> Icon(Icons.Outlined.History, contentDescription = label) },
                             title = stringResource(R.string.clipboard_history_capacity_title),
                             items = capacityPresets.map { clipboardCapacityLabel(it) },
                             selectedIndex = capacityIndex,
@@ -352,141 +469,6 @@ fun ClipboardHistorySettingsScreen(
                 )
             },
         )
-        settingsLazySmallTitle(
-            key = "clipboard-background-section",
-            title = backgroundSectionTitle,
-        )
-        groupedCardItems(
-            keyPrefix = "clipboard-background",
-            items = buildList {
-                add(
-                    settingsCardScopeItem("background-monitoring") {
-                        SettingExpandableSwitchRow(
-                            title = stringResource(R.string.clipboard_background_monitoring_title),
-                            subtitle = stringResource(R.string.clipboard_background_monitoring_desc),
-                            checked = settings.clipboardBackgroundMonitoring,
-                            enabled = true,
-                            onCheckedChange = onClipboardMonitoringChange,
-                        ) {
-                            SettingDropdownRow(
-                                title = stringResource(R.string.clipboard_background_monitoring_mode_title),
-                                subtitle = clipboardMonitoringModeDescription(
-                                    settings.clipboardBackgroundMonitoringMode,
-                                    settings,
-                                ),
-                                items = modeEntries.map { clipboardMonitoringModeLabel(it) },
-                                selectedIndex = modeEntries.indexOf(settings.clipboardBackgroundMonitoringMode)
-                                    .coerceAtLeast(0),
-                                onSelectedIndexChange = { onClipboardMonitoringModeChange(modeEntries[it]) },
-                            )
-                            if (settings.clipboardBackgroundMonitoringMode ==
-                                ClipboardMonitoringMode.LSPOSED
-                            ) {
-                                SettingLinkRow(
-                                    title = stringResource(R.string.clipboard_lsposed_whitelist),
-                                    subtitle = pluralStringResource(
-                                        R.plurals.clipboard_lsposed_whitelist_desc,
-                                        settings.clipboardLsposedWhitelist.size,
-                                        settings.clipboardLsposedWhitelist.size,
-                                    ),
-                                    onClick = onOpenClipboardLsposedWhitelist,
-                                )
-                            }
-                            SettingExpandableSwitchRow(
-                                title = stringResource(R.string.clipboard_overlay_enabled_title),
-                                subtitle = stringResource(R.string.clipboard_overlay_enabled_desc),
-                                checked = settings.clipboardOverlayEnabled,
-                                enabled = settings.clipboardBackgroundMonitoring && monitoringUi.overlayGranted,
-                                onCheckedChange = { enabled ->
-                                    if (enabled && !monitoringUi.overlayGranted) {
-                                        onOpenOverlayPermission()
-                                    } else {
-                                        onClipboardOverlayEnabledChange(enabled)
-                                    }
-                                },
-                            ) {
-                                SettingsSliderRow(
-                                    title = stringResource(R.string.clipboard_overlay_preview_size_title),
-                                    value = settings.clipboardOverlayScalePercent.toFloat(),
-                                    valueRange = ClipboardOverlayScale.MIN_PERCENT.toFloat()..
-                                        ClipboardOverlayScale.MAX_PERCENT.toFloat(),
-                                    enabled = true,
-                                    label = "${settings.clipboardOverlayScalePercent}%",
-                                    formatLabel = { "${it.roundToInt()}%" },
-                                    onValueChange = { onClipboardOverlayScalePercentChange(it.roundToInt()) },
-                                )
-                            }
-                        }
-                    },
-                )
-            },
-        )
-        if (settings.clipboardBackgroundMonitoring) {
-            groupedCardItems(
-                keyPrefix = "clipboard-background-status",
-                items = buildList {
-                    val monitoringMode = settings.effectiveClipboardMonitoringMode()
-                    val backendReady = settings.isClipboardMonitoringBackendReady(monitoringUi)
-                    add(
-                        settingsCardScopeItem("backend-status") {
-                            SettingLinkRow(
-                                title = stringResource(R.string.clipboard_monitor_backend_status_title),
-                                subtitle = when {
-                                    monitoringMode.usesStandardApi ->
-                                        stringResource(R.string.clipboard_monitor_backend_standard_ready)
-                                    monitoringMode.usesRoot && monitoringUi.rootAvailable ->
-                                        stringResource(R.string.clipboard_monitor_backend_root_ready)
-                                    monitoringMode.usesRoot ->
-                                        stringResource(R.string.clipboard_monitor_backend_root_missing)
-                                    monitoringUi.shizukuGranted ->
-                                        stringResource(R.string.clipboard_monitor_backend_shizuku_ready)
-                                    else ->
-                                        stringResource(R.string.clipboard_monitor_backend_shizuku_missing)
-                                },
-                                onClick = {},
-                            )
-                        },
-                    )
-                    add(
-                        settingsCardScopeItem("overlay-status") {
-                            SettingLinkRow(
-                                title = stringResource(R.string.clipboard_monitor_overlay_status_title),
-                                subtitle = if (monitoringUi.overlayGranted) {
-                                    stringResource(R.string.clipboard_monitor_overlay_ready)
-                                } else {
-                                    stringResource(R.string.clipboard_monitor_overlay_missing)
-                                },
-                                onClick = if (!monitoringUi.overlayGranted) onOpenOverlayPermission else ({}),
-                            )
-                        },
-                    )
-                    add(
-                        settingsCardScopeItem("service-status") {
-                            SettingLinkRow(
-                                title = stringResource(R.string.clipboard_monitor_service_status_title),
-                                subtitle = if (monitoringUi.monitorRunning && backendReady) {
-                                    stringResource(R.string.clipboard_monitor_service_running)
-                                } else {
-                                    stringResource(R.string.clipboard_monitor_service_stopped)
-                                },
-                                onClick = {},
-                            )
-                        },
-                    )
-                    if (monitoringMode == ClipboardMonitoringMode.SHIZUKU_LOGS && !readLogsGranted) {
-                        add(
-                            settingsCardScopeItem("read-logs-grant") {
-                                SettingLinkRow(
-                                    title = stringResource(R.string.clipboard_read_logs_shizuku_grant),
-                                    subtitle = null,
-                                    onClick = { showShizukuReadLogsDialog = true },
-                                )
-                            },
-                        )
-                    }
-                },
-            )
-        }
     }
 
     MiuixConfirmDialog(
@@ -933,7 +915,7 @@ private fun clipboardFloatLongPressActionLabel(action: ClipboardFloatEntryLongPr
 }
 
 @Composable
-private fun clipboardMonitoringModeLabel(mode: ClipboardMonitoringMode): String = when (mode) {
+internal fun clipboardMonitoringModeLabel(mode: ClipboardMonitoringMode): String = when (mode) {
     ClipboardMonitoringMode.FOLLOW_PRIVILEGE ->
         stringResource(R.string.clipboard_monitoring_mode_follow_privilege)
     ClipboardMonitoringMode.SHIZUKU_LOGS ->
@@ -951,7 +933,7 @@ private fun clipboardMonitoringModeLabel(mode: ClipboardMonitoringMode): String 
 }
 
 @Composable
-private fun clipboardMonitoringModeDescription(
+internal fun clipboardMonitoringModeDescription(
     mode: ClipboardMonitoringMode,
     settings: AppSettings,
 ): String = when (mode) {

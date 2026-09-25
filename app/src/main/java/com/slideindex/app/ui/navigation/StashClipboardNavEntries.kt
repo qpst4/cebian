@@ -11,6 +11,7 @@ import com.slideindex.app.clipboard.ClipboardPermissionHelper
 import com.slideindex.app.settings.toMinimalAppSettings
 import com.slideindex.app.util.PermissionHelper
 import com.slideindex.app.ui.ClipboardFloatSettingsScreen
+import com.slideindex.app.ui.ClipboardMonitoringSettingsScreen
 import com.slideindex.app.ui.ClipboardHistorySettingsScreen
 import com.slideindex.app.ui.ShakeGestureBlacklistScreen
 import com.slideindex.app.ui.StashClipboardSettingsScreen
@@ -61,13 +62,26 @@ fun NavEntryBuilder.stashClipboardNavEntries(ctx: MainNavContext) {
             onClearClipboardHistory = viewModel::clearClipboardHistory,
             onClipboardScreenshotMonitoringChange = viewModel::setClipboardScreenshotMonitoring,
             onClipboardMonitoringChange = viewModel::setClipboardBackgroundMonitoring,
-            onClipboardMonitoringModeChange = viewModel::setClipboardBackgroundMonitoringMode,
             onClipboardOverlayEnabledChange = viewModel::setClipboardOverlayEnabled,
             onClipboardOverlayScalePercentChange = viewModel::setClipboardOverlayScalePercent,
             onClipboardPasteFvStyleEnabledChange = viewModel::setClipboardPasteFvStyleEnabled,
             onOpenOverlayPermission = {
                 context.startActivity(PermissionHelper.overlaySettingsIntent(context))
             },
+            onOpenClipboardMonitoringSettings = {
+                ctx.navigate(AppNavKey.ClipboardMonitoringSettings)
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.ClipboardMonitoringSettings> {
+        val viewModel: StashClipboardSettingsViewModel = hiltViewModel()
+        val settings by viewModel.settings.collectAsStateWithLifecycle()
+        ClipboardMonitoringSettingsScreen(
+            settings = settings,
+            onBack = { ctx.navigateBackTo(AppNavKey.ClipboardHistorySettings) },
+            onClipboardMonitoringChannelChange = viewModel::setClipboardMonitoringChannel,
+            onClipboardMonitoringCaptureChange = viewModel::setClipboardMonitoringCapture,
             onOpenClipboardLsposedWhitelist = { ctx.navigate(AppNavKey.ClipboardLsposedWhitelist) },
         )
     }

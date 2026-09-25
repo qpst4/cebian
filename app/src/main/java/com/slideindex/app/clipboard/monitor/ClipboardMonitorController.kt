@@ -19,6 +19,9 @@ import com.slideindex.app.util.TaskManagerUtil
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import rikka.shizuku.Shizuku
 
 @Singleton
@@ -29,12 +32,22 @@ class ClipboardMonitorController @Inject constructor(
         applicationId = appContext.packageName
     }
 
-    @Volatile
-    var isListening: Boolean = false
-        private set
+    private val _isListening = MutableStateFlow(false)
 
-    @Volatile
-    private var activeMode: ClipboardMonitoringMode? = null
+    /** 监听是否处于运行状态（供设置页实时展示）。 */
+    val isListeningFlow: StateFlow<Boolean> = _isListening.asStateFlow()
+
+    val isListening: Boolean
+        get() = _isListening.value
+
+    private val _activeMode = MutableStateFlow<ClipboardMonitoringMode?>(null)
+
+    /** 当前实际在跑的监听模式（供设置页实时展示）。 */
+    val activeModeFlow: StateFlow<ClipboardMonitoringMode?> = _activeMode.asStateFlow()
+
+    /** 当前实际在跑的监听模式（未在监听时为 null）。 */
+    val activeModeOrNull: ClipboardMonitoringMode?
+        get() = _activeMode.value
 
     var listeningServiceArgs: Shizuku.UserServiceArgs? = null
         private set
@@ -51,7 +64,7 @@ class ClipboardMonitorController @Inject constructor(
         pendingMode = null
         unbindListeningService()
         markListening(false)
-        activeMode = mode
+        _activeMode.value = mode
         startForegroundServiceInternal(mode)
     }
 
@@ -66,7 +79,7 @@ class ClipboardMonitorController @Inject constructor(
     }
 
     fun startIfNeeded(mode: ClipboardMonitoringMode): Boolean {
-        if (isListening && activeMode == mode) return true
+        if (isListening && activeModeOrNull == mode) return true
         return restart(mode)
     }
 
@@ -93,10 +106,11 @@ class ClipboardMonitorController @Inject constructor(
             Log.w(TAG, "skip clipboard monitor in subprocess")
             return false
         }
-        if (isListening && activeMode == mode) return true
+        if (isListening && activeModeOrNull == mode) return true
         if (!canStart(mode)) return false
         pendingMode = mode
-        ClipboardMonitorStartup.runOnMainWhenIdle {
+        // 不等主线程 idle：开机时 idle 会被启动期重活拖后，前台服务可能来不及 startForeground。
+        ClipboardMonitorStartup.runOnMainWhenReady {
             mainHandler.removeCallbacks(dispatchStartRunnable)
             mainHandler.post(dispatchStartRunnable)
         }
@@ -136,7 +150,7 @@ class ClipboardMonitorController @Inject constructor(
             ContextCompat.startForegroundService(appContext, intent)
         }.onFailure {
             Log.e(TAG, "start foreground service failed", it)
-            activeMode = null
+            _activeMode.value = null
         }
     }
 
@@ -147,11 +161,11 @@ class ClipboardMonitorController @Inject constructor(
         appContext.stopService(intent)
         unbindListeningService()
         markListening(false)
-        activeMode = null
+        _activeMode.value = null
     }
 
     fun markListening(listening: Boolean) {
-        isListening = listening
+        _isListening.value = listening
     }
 
     fun dispatchPayload(payload: ClipboardPayload) {
