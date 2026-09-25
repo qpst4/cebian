@@ -29,6 +29,8 @@ import com.slideindex.app.ui.settings.components.LazySettingsItem
 import com.slideindex.app.ui.settings.components.settingsLazyTipCard
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
+import com.slideindex.app.ui.settings.components.StatusRow
+import com.slideindex.app.ui.settings.components.StatusTone
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 import com.slideindex.app.util.SecureSettingsHelper
 import com.slideindex.app.util.SystemBackGestureConflictHelper
@@ -128,6 +130,53 @@ fun SystemBackGestureWidthSettingsScreen(
 
     val backGestureSectionTitle = stringResource(R.string.system_back_gesture_width_section)
     val takeoverSectionTitle = stringResource(R.string.system_gesture_takeover_section)
+    // 与「剪贴板后台监听」页同款状态行：色点 + 状态胶囊 + 说明。
+    val moduleStatusPill: String
+    val moduleStatusTone: StatusTone
+    val moduleStatusDetail: String
+    when {
+        moduleChecking -> {
+            moduleStatusPill = stringResource(R.string.system_gesture_takeover_module_pill_checking)
+            moduleStatusTone = StatusTone.Neutral
+            moduleStatusDetail = stringResource(R.string.system_gesture_takeover_module_checking)
+        }
+        moduleCodeStale -> {
+            moduleStatusPill = stringResource(R.string.system_gesture_takeover_module_pill_restart_needed)
+            moduleStatusTone = StatusTone.Bad
+            moduleStatusDetail = stringResource(R.string.system_gesture_takeover_module_restart_needed)
+        }
+        moduleState == ModuleBridgeStatusProbe.Status.Ready -> {
+            moduleStatusPill = stringResource(R.string.system_gesture_takeover_module_pill_ready)
+            moduleStatusTone = StatusTone.Good
+            moduleStatusDetail = stringResource(R.string.system_gesture_takeover_module_ready)
+        }
+        moduleState == ModuleBridgeStatusProbe.Status.Armed -> {
+            moduleStatusPill = stringResource(R.string.system_gesture_takeover_module_pill_armed)
+            moduleStatusTone = StatusTone.Bad
+            moduleStatusDetail =
+                stringResource(R.string.system_gesture_takeover_module_armed) +
+                    moduleDetailSuffix(moduleDetail)
+        }
+        moduleState == ModuleBridgeStatusProbe.Status.SwitchedOff -> {
+            moduleStatusPill = stringResource(R.string.system_gesture_takeover_module_pill_switched_off)
+            moduleStatusTone = StatusTone.Neutral
+            moduleStatusDetail =
+                stringResource(R.string.system_gesture_takeover_module_switched_off) +
+                    moduleDetailSuffix(moduleDetail)
+        }
+        moduleState == ModuleBridgeStatusProbe.Status.NotReady -> {
+            moduleStatusPill = stringResource(R.string.system_gesture_takeover_module_pill_not_ready)
+            moduleStatusTone = StatusTone.Bad
+            moduleStatusDetail =
+                stringResource(R.string.system_gesture_takeover_module_not_ready) +
+                    moduleDetailSuffix(moduleDetail)
+        }
+        else -> {
+            moduleStatusPill = stringResource(R.string.system_gesture_takeover_module_pill_unknown)
+            moduleStatusTone = StatusTone.Neutral
+            moduleStatusDetail = stringResource(R.string.system_gesture_takeover_module_tap_hint)
+        }
+    }
 
     SettingsScreenScaffold(
         title = stringResource(R.string.system_back_gesture_width_title),
@@ -264,25 +313,11 @@ fun SystemBackGestureWidthSettingsScreen(
                 )
                 add(
                     settingsCardScopeItem("module-status") {
-                        SettingLinkRow(
+                        StatusRow(
                             title = stringResource(R.string.system_gesture_takeover_module_status),
-                            subtitle = when {
-                                moduleChecking -> stringResource(R.string.system_gesture_takeover_module_checking)
-                                moduleCodeStale ->
-                                    stringResource(R.string.system_gesture_takeover_module_restart_needed)
-                                moduleState == ModuleBridgeStatusProbe.Status.Ready ->
-                                    stringResource(R.string.system_gesture_takeover_module_ready)
-                                moduleState == ModuleBridgeStatusProbe.Status.Armed ->
-                                    stringResource(R.string.system_gesture_takeover_module_armed) +
-                                        moduleDetailSuffix(moduleDetail)
-                                moduleState == ModuleBridgeStatusProbe.Status.SwitchedOff ->
-                                    stringResource(R.string.system_gesture_takeover_module_switched_off) +
-                                        moduleDetailSuffix(moduleDetail)
-                                moduleState == ModuleBridgeStatusProbe.Status.NotReady ->
-                                    stringResource(R.string.system_gesture_takeover_module_not_ready) +
-                                        moduleDetailSuffix(moduleDetail)
-                                else -> stringResource(R.string.system_gesture_takeover_module_tap_hint)
-                            },
+                            pill = moduleStatusPill,
+                            tone = moduleStatusTone,
+                            detail = moduleStatusDetail,
                             onClick = { runModuleProbe() },
                         )
                     },

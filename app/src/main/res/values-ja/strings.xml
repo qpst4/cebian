@@ -302,6 +302,8 @@
     <string name="privilege_mode_status_root_ready">Root 準備完了</string>
     <string name="privilege_mode_status_root_missing">Root が検出されないか su 未許可</string>
     <string name="privilege_mode_status_title">現在の状態</string>
+    <string name="privilege_mode_status_pill_ready">準備完了</string>
+    <string name="privilege_mode_status_pill_missing">未準備</string>
     <string name="privilege_mode_entry_summary_shizuku_ready">Shizuku · 準備完了</string>
     <string name="privilege_mode_entry_summary_shizuku_missing">Shizuku · 未許可</string>
     <string name="privilege_mode_entry_summary_root_ready">Root · 準備完了</string>
@@ -702,7 +704,14 @@
     <string name="system_gesture_takeover_module_switched_off">未有効：モジュールは準備完了、3 つの引き継ぎスイッチがすべてオフです</string>
     <string name="system_gesture_takeover_module_not_ready">無効：モジュール未読み込み、または android スコープが未選択</string>
     <string name="system_gesture_takeover_module_checking">確認中…</string>
-    <string name="system_gesture_takeover_module_restart_needed">モジュールのコードが古い：system_server では更新前のモジュールが動作中です。再起動後に新しいコードが読み込まれます</string>
+    <string name="system_gesture_takeover_module_restart_needed">モジュールが最新版と同期していません：system_server は更新前のモジュールコードで応答しています。再起動すると新しいコードが確実に反映されます</string>
+    <string name="system_gesture_takeover_module_pill_ready">有効</string>
+    <string name="system_gesture_takeover_module_pill_armed">無効</string>
+    <string name="system_gesture_takeover_module_pill_switched_off">未使用</string>
+    <string name="system_gesture_takeover_module_pill_not_ready">未準備</string>
+    <string name="system_gesture_takeover_module_pill_restart_needed">要再起動</string>
+    <string name="system_gesture_takeover_module_pill_checking">確認中</string>
+    <string name="system_gesture_takeover_module_pill_unknown">未確認</string>
     <string name="system_gesture_takeover_module_tap_hint">タップして LSPosed モジュールの状態を確認</string>
     <string name="system_gesture_takeover_tip" formatted="false">有効にすると、モジュールがシステム入力層でその端のトリガー領域を先に引き継ぎます。領域内のシステムジェスチャ（上部の引き下げ・戻る・上スワイプでホーム）は発動せず、タッチは本アプリが処理します。アクション未設定のタッチはシステムに渡されません。トリガー設定の「システム戻るジェスチャを遮断」やコーナーホイールの「システムナビゲーションジェスチャを上書き」とは別機能です。</string>
     <string name="accessibility_service_name">#Cebian👈</string>

@@ -8,21 +8,14 @@ import android.os.Build
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Text as MaterialText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -32,7 +25,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -61,6 +53,9 @@ import com.slideindex.app.ui.settings.components.SettingSwitchRow
 import com.slideindex.app.ui.settings.components.SettingsCardRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
+import com.slideindex.app.ui.settings.components.StatusPill
+import com.slideindex.app.ui.settings.components.StatusRow
+import com.slideindex.app.ui.settings.components.StatusTone
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 import com.slideindex.app.ui.settings.components.settingsGroupedRowBackground
 import com.slideindex.app.ui.settings.components.settingsLazySmallTitle
@@ -218,11 +213,10 @@ fun ClipboardMonitoringSettingsScreen(
             items = buildList {
                 add(
                     settingsCardScopeItem("monitor-state") {
-                        MonitoringStateRow(
-                            channelLabel = channelLabel,
-                            statusLabel = statusLabel,
-                            statusPill = statusPill,
-                            ok = statusOk,
+                        StatusRow(
+                            title = "$channelLabel · $statusLabel",
+                            pill = statusPill,
+                            tone = if (statusOk) StatusTone.Good else StatusTone.Bad,
                             detail = statusDetail,
                         )
                     },
@@ -432,49 +426,6 @@ internal fun ClipboardBackgroundReadLogsDialog(
 }
 
 @Composable
-private fun SettingsCardScope.MonitoringStateRow(
-    channelLabel: String,
-    statusLabel: String,
-    statusPill: String,
-    ok: Boolean,
-    detail: String,
-) {
-    SettingsCardRow(key = "monitor-state") { position ->
-        Column(
-            modifier = Modifier
-                .settingsGroupedRowBackground(position.index, position.count)
-                .miuixGroupedRowInsets()
-                .fillMaxWidth(),
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier
-                        .size(6.dp)
-                        .clip(CircleShape)
-                        .background(if (ok) MiuixTheme.colorScheme.primary else MiuixTheme.colorScheme.error),
-                )
-                Spacer(Modifier.size(6.dp))
-                Text(
-                    text = "$channelLabel · $statusLabel",
-                    fontSize = MiuixTheme.textStyles.headline1.fontSize,
-                    fontWeight = FontWeight.Medium,
-                    color = MiuixTheme.colorScheme.onBackground,
-                    modifier = Modifier.weight(1f),
-                )
-                Spacer(Modifier.size(8.dp))
-                StatusPill(text = statusPill, ok = ok)
-            }
-            Spacer(Modifier.height(6.dp))
-            Text(
-                text = detail,
-                fontSize = MiuixTheme.textStyles.body2.fontSize,
-                color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-            )
-        }
-    }
-}
-
-@Composable
 private fun SettingsCardScope.DiagnosticRow(
     title: String,
     subtitle: String,
@@ -505,7 +456,11 @@ private fun SettingsCardScope.DiagnosticRow(
                     color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                 )
             }
-            StatusPill(text = pill, ok = ok, onClick = onClick)
+            StatusPill(
+                text = pill,
+                tone = if (ok) StatusTone.Good else StatusTone.Bad,
+                onClick = onClick,
+            )
         }
     }
 }
@@ -524,24 +479,6 @@ private fun SettingsCardScope.WarningRow(text: String) {
                 .fillMaxWidth(),
         )
     }
-}
-
-@Composable
-private fun StatusPill(text: String, ok: Boolean, onClick: (() -> Unit)? = null) {
-    // 用「主色 + 低透明度底」而不是 container 配色：后者在深色主题下会出现蓝底蓝字看不清。
-    val content = if (ok) MiuixTheme.colorScheme.primary else MiuixTheme.colorScheme.error
-    MaterialText(
-        text = text,
-        color = content,
-        fontSize = MiuixTheme.textStyles.footnote2.fontSize,
-        maxLines = 1,
-        softWrap = false,
-        modifier = Modifier
-            .clip(RoundedCornerShape(50))
-            .background(content.copy(alpha = 0.14f))
-            .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier)
-            .padding(horizontal = 8.dp, vertical = 2.dp),
-    )
 }
 
 /** 当前生效链路的「技术原理」说明（状态头与模式区共用）。 */

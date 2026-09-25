@@ -302,6 +302,8 @@
     <string name="privilege_mode_status_root_ready">Root 已就绪</string>
     <string name="privilege_mode_status_root_missing">未检测到 Root 或未授权 su</string>
     <string name="privilege_mode_status_title">当前状态</string>
+    <string name="privilege_mode_status_pill_ready">已就绪</string>
+    <string name="privilege_mode_status_pill_missing">未就绪</string>
     <string name="privilege_mode_entry_summary_shizuku_ready">Shizuku · 已就绪</string>
     <string name="privilege_mode_entry_summary_shizuku_missing">Shizuku · 未授权</string>
     <string name="privilege_mode_entry_summary_root_ready">Root · 已就绪</string>
@@ -704,7 +706,14 @@
     <string name="system_gesture_takeover_module_switched_off">未启用：模块已就绪，三个接管开关都关着</string>
     <string name="system_gesture_takeover_module_not_ready">未生效：模块未加载或未勾选 android 作用域</string>
     <string name="system_gesture_takeover_module_checking">正在检测…</string>
-    <string name="system_gesture_takeover_module_restart_needed">模块代码是旧版：system_server 里跑的还是覆盖安装前的模块，重启手机后才会加载新代码</string>
+    <string name="system_gesture_takeover_module_restart_needed">模块没同步到当前版本：system_server 里回应的还是覆盖安装前的模块代码，重启手机可确保新代码生效</string>
+    <string name="system_gesture_takeover_module_pill_ready">生效中</string>
+    <string name="system_gesture_takeover_module_pill_armed">未生效</string>
+    <string name="system_gesture_takeover_module_pill_switched_off">未启用</string>
+    <string name="system_gesture_takeover_module_pill_not_ready">未就绪</string>
+    <string name="system_gesture_takeover_module_pill_restart_needed">需重启手机</string>
+    <string name="system_gesture_takeover_module_pill_checking">检测中</string>
+    <string name="system_gesture_takeover_module_pill_unknown">未检测</string>
     <string name="system_gesture_takeover_module_tap_hint">点按检测 LSPosed 模块状态</string>
     <string name="system_gesture_takeover_tip" formatted="false">开启后，模块会在系统输入层先接管该边缘的触钮区域：区域内的系统手势（顶部下拉、左右返回、底部上滑回桌面）不再触发，触摸交由本应用处理；未绑定动作的触摸不会传给系统。这与触钮设置里的「拦截系统返回手势」、边角轮盘的「覆盖系统导航手势」不是同一功能。</string>
     <string name="accessibility_service_name">#边栏👈</string>
@@ -2943,7 +2952,7 @@
     <string name="clipboard_lsposed_whitelist_self_missing">未放行本应用，本模式不会生效</string>
     <string name="clipboard_monitoring_lsposed_state_restart_needed">模块待重启</string>
     <string name="clipboard_monitoring_lsposed_pill_restart_needed">需重启手机</string>
-    <string name="clipboard_monitoring_lsposed_detail_restart_needed">system_server 里跑的还是覆盖安装前的模块代码，重启手机后新代码才会生效。</string>
+    <string name="clipboard_monitoring_lsposed_detail_restart_needed">模块没同步到当前版本：system_server 里回应的还是覆盖安装前的模块代码，重启手机可确保新代码生效。</string>
     <string name="clipboard_monitoring_lsposed_state_not_ready">模块未生效</string>
     <string name="clipboard_monitoring_lsposed_pill_not_ready">未就绪</string>
     <string name="clipboard_monitoring_lsposed_detail_not_ready">LSPosed 模块没有回应：确认模块已启用、作用域勾选「系统框架」，然后重启手机。</string>

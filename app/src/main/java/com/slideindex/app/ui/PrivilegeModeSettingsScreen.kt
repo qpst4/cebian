@@ -7,9 +7,10 @@ import androidx.compose.ui.res.stringResource
 import com.slideindex.app.R
 import com.slideindex.app.settings.PrivilegeMode
 import com.slideindex.app.ui.miuix.groupedCardItems
-import com.slideindex.app.ui.settings.components.SettingLinkRow
 import com.slideindex.app.ui.settings.components.SettingsCardScope
 import com.slideindex.app.ui.settings.components.SettingsScreenScaffold
+import com.slideindex.app.ui.settings.components.StatusRow
+import com.slideindex.app.ui.settings.components.StatusTone
 import com.slideindex.app.ui.settings.components.settingsCardScopeItem
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -52,7 +53,11 @@ fun PrivilegeModeSettingsScreen(
                 )
                 add(
                     settingsCardScopeItem("privilege-mode-status") {
-                        val statusText = when (privilegeMode) {
+                        val ready = when (privilegeMode) {
+                            PrivilegeMode.SHIZUKU -> shizukuGranted
+                            PrivilegeMode.ROOT -> rootAvailable
+                        }
+                        val statusDetail = when (privilegeMode) {
                             PrivilegeMode.SHIZUKU ->
                                 if (shizukuGranted) {
                                     stringResource(R.string.privilege_mode_status_shizuku_ready)
@@ -66,13 +71,20 @@ fun PrivilegeModeSettingsScreen(
                                     stringResource(R.string.privilege_mode_status_root_missing)
                                 }
                         }
-                        SettingLinkRow(
+                        // 与「剪贴板后台监听」页同款状态行：色点 + 状态胶囊 + 说明。
+                        StatusRow(
                             title = stringResource(R.string.privilege_mode_status_title),
-                            subtitle = statusText,
-                            onClick = {
-                                if (privilegeMode == PrivilegeMode.SHIZUKU && !shizukuGranted) {
-                                    onRequestShizuku()
-                                }
+                            pill = if (ready) {
+                                stringResource(R.string.privilege_mode_status_pill_ready)
+                            } else {
+                                stringResource(R.string.privilege_mode_status_pill_missing)
+                            },
+                            tone = if (ready) StatusTone.Good else StatusTone.Bad,
+                            detail = statusDetail,
+                            onClick = if (privilegeMode == PrivilegeMode.SHIZUKU && !shizukuGranted) {
+                                { onRequestShizuku() }
+                            } else {
+                                null
                             },
                         )
                     },

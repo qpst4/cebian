@@ -302,6 +302,8 @@
     <string name="privilege_mode_status_root_ready">Root جاهز</string>
     <string name="privilege_mode_status_root_missing">لم يتم اكتشاف Root أو لم تُمنح صلاحية su</string>
     <string name="privilege_mode_status_title">الحالة الحالية</string>
+    <string name="privilege_mode_status_pill_ready">جاهز</string>
+    <string name="privilege_mode_status_pill_missing">غير جاهز</string>
     <string name="privilege_mode_entry_summary_shizuku_ready">Shizuku · جاهز</string>
     <string name="privilege_mode_entry_summary_shizuku_missing">Shizuku · غير مصرح</string>
     <string name="privilege_mode_entry_summary_root_ready">Root · جاهز</string>

@@ -327,6 +327,8 @@
     <string name="privilege_mode_status_root_ready">Root ready</string>
     <string name="privilege_mode_status_root_missing">Root not detected or su not granted</string>
     <string name="privilege_mode_status_title">Current status</string>
+    <string name="privilege_mode_status_pill_ready">Ready</string>
+    <string name="privilege_mode_status_pill_missing">Not ready</string>
     <string name="privilege_mode_entry_summary_shizuku_ready">Shizuku · Ready</string>
     <string name="privilege_mode_entry_summary_shizuku_missing">Shizuku · Not granted</string>
     <string name="privilege_mode_entry_summary_root_ready">Root · Ready</string>
@@ -418,7 +420,14 @@
     <string name="system_gesture_takeover_module_switched_off">Not enabled: module is ready, all three takeover switches are off</string>
     <string name="system_gesture_takeover_module_not_ready">Inactive: module not loaded or “android” scope not enabled</string>
     <string name="system_gesture_takeover_module_checking">Checking…</string>
-    <string name="system_gesture_takeover_module_restart_needed">Module code is stale: system_server still runs the pre-update module, reboot to load the new code</string>
+    <string name="system_gesture_takeover_module_restart_needed">Module out of sync: system_server still answers with the pre-update module code — reboot to make sure the new code is loaded</string>
+    <string name="system_gesture_takeover_module_pill_ready">Active</string>
+    <string name="system_gesture_takeover_module_pill_armed">Inactive</string>
+    <string name="system_gesture_takeover_module_pill_switched_off">Not enabled</string>
+    <string name="system_gesture_takeover_module_pill_not_ready">Not ready</string>
+    <string name="system_gesture_takeover_module_pill_restart_needed">Reboot needed</string>
+    <string name="system_gesture_takeover_module_pill_checking">Checking</string>
+    <string name="system_gesture_takeover_module_pill_unknown">Not checked</string>
     <string name="system_gesture_takeover_module_tap_hint">Tap to check LSPosed module status</string>
     <string name="system_gesture_takeover_tip" formatted="false">When enabled, the module takes over the trigger area of that edge at the system input layer: system gestures there (status bar pull-down, back, swipe up to home) no longer fire and touches are handled by this app. Touches without a bound action are not forwarded to the system. This is not the same as “Intercept system back gesture” in trigger settings or “Override system navigation gestures” in the corner wheel.</string>
     <string name="layout_settings_title">App index</string>
