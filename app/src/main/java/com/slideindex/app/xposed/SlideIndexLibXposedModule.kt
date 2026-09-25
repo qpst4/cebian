@@ -1,6 +1,7 @@
 package com.slideindex.app.xposed
 
 import android.util.Log
+import com.slideindex.app.xposed.hook.ClipboardWhitelistHook
 import com.slideindex.app.xposed.hook.PermissionGranterHook
 import com.slideindex.app.xposed.hook.SmsHandlerHook
 import com.slideindex.app.xposed.hook.SmsProviderHook
@@ -78,6 +79,8 @@ class SlideIndexLibXposedModule : XposedModule() {
       .onFailure { reportStepFailure("inputFilter", it) }
     runCatching { permissionGranterHook.install(this, classLoader) }
       .onFailure { reportStepFailure("permissionGranter", it) }
+    runCatching { clipboardWhitelistHook.install(this, classLoader) }
+      .onFailure { reportStepFailure("clipboardWhitelist", it) }
   }
 
   private fun reportStepFailure(step: String, throwable: Throwable) {
@@ -103,5 +106,6 @@ class SlideIndexLibXposedModule : XposedModule() {
     private val systemInputInjectorHook = SystemInputInjectorHook()
     private val systemInputFilterHook = SystemInputFilterHook()
     private val permissionGranterHook = PermissionGranterHook()
+    private val clipboardWhitelistHook = ClipboardWhitelistHook()
   }
 }

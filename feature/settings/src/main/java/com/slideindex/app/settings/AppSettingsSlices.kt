@@ -307,6 +307,11 @@ data class ClipboardSettings(
     /** Background clipboard monitoring via Shizuku/Root privileged listener. */
     val clipboardBackgroundMonitoring: Boolean = true,
     val clipboardBackgroundMonitoringMode: ClipboardMonitoringMode = ClipboardMonitoringMode.FOLLOW_PRIVILEGE,
+    /**
+     * LSPosed 模式的白名单：这些包会被系统当作默认输入法放行，可在后台直接读剪贴板。
+     * 默认含本应用自身，用户可在设置里移除或添加其它应用。
+     */
+    val clipboardLsposedWhitelist: Set<String> = setOf(CLIPBOARD_LSPOSED_SELF_PACKAGE),
     /** Show AOSP-style clipboard preview overlay when a copy is captured. */
     val clipboardOverlayEnabled: Boolean = false,
     /** Uniform overlay scale, in percent (50–100). */

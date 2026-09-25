@@ -6,6 +6,7 @@ enum class ClipboardMonitoringMode(val storageValue: String) {
     SHIZUKU_HIDDEN_API("shizuku_hidden_api"),
     ROOT_LOGS("root_logs"),
     ROOT_HIDDEN_API("root_hidden_api"),
+    LSPOSED("lsposed"),
     STANDARD("standard"),
     ;
 
@@ -18,6 +19,10 @@ enum class ClipboardMonitoringMode(val storageValue: String) {
     val usesStandardApi: Boolean
         get() = this == STANDARD
 
+    /** LSPosed 白名单：把白名单里的包伪装成默认输入法，从而免焦点后台读剪贴板。 */
+    val usesLsposed: Boolean
+        get() = this == LSPOSED
+
     fun effective(privilegeMode: PrivilegeMode): ClipboardMonitoringMode =
         when (this) {
             FOLLOW_PRIVILEGE -> when (privilegeMode) {
@@ -28,7 +33,7 @@ enum class ClipboardMonitoringMode(val storageValue: String) {
         }
 
     fun remappedForPrivilege(privilegeMode: PrivilegeMode): ClipboardMonitoringMode? {
-        if (this == FOLLOW_PRIVILEGE || this == STANDARD) return null
+        if (this == FOLLOW_PRIVILEGE || this == STANDARD || this == LSPOSED) return null
         val remapped = manualCaptureKind().toStoredMode(privilegeMode)
         return if (remapped == this) null else remapped
     }
@@ -75,3 +80,10 @@ enum class ClipboardMonitoringCaptureKind {
 
 fun AppSettings.effectiveClipboardMonitoringMode(): ClipboardMonitoringMode =
     clipboardBackgroundMonitoringMode.effective(privilegeMode)
+
+/**
+ * LSPosed 模式白名单的默认项：本应用自身。
+ *
+ * 放进去后系统会把它当成默认输入法放行（免焦点读剪贴板）；用户可以在设置里移除。
+ */
+const val CLIPBOARD_LSPOSED_SELF_PACKAGE = "com.slideindex.app"

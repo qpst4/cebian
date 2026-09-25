@@ -7,8 +7,11 @@ import android.os.Handler
 import android.os.Looper
 import com.slideindex.app.clipboard.monitor.ClipboardMonitorController
 import com.slideindex.app.clipboard.monitor.ClipboardMonitorProcess
+import com.slideindex.app.settings.ClipboardMonitoringMode
 import com.slideindex.app.settings.effectiveClipboardMonitoringMode
 import com.slideindex.app.settings.SettingsRepository
+import com.slideindex.app.xposed.bridge.ModuleBridgeStatusStore
+import com.slideindex.app.xposed.bridge.ModuleHookBridgeContract
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
 import java.util.UUID
@@ -364,7 +367,7 @@ class ClipboardHistoryRepository @Inject constructor(
             stopClipboardListening()
             return
         }
-        clipboardMonitorController.startIfNeeded(settings.effectiveClipboardMonitoringMode())
+        clipboardMonitorController.startIfNeeded(resolveClipboardMonitoringMode())
     }
 
     fun restartClipboardMonitoringFromSettings() {
@@ -374,7 +377,34 @@ class ClipboardHistoryRepository @Inject constructor(
             stopClipboardListening()
             return
         }
-        clipboardMonitorController.restart(settings.effectiveClipboardMonitoringMode())
+        clipboardMonitorController.restart(resolveClipboardMonitoringMode())
+    }
+
+    /**
+     * 解析当前该用哪个监听模式。
+     *
+     * - 用户显式选了某个模式：照用；
+     * - 「跟随特权模式」：先 Shizuku / Root（非 root 用户照旧首选），后端起不来时退 LSPosed 白名单，
+     *   模块也没响应才退标准公开 API。
+     */
+    private fun resolveClipboardMonitoringMode(): ClipboardMonitoringMode {
+        val settings = settingsRepository.readSnapshot()
+        val configured = settings.clipboardBackgroundMonitoringMode
+        if (configured != ClipboardMonitoringMode.FOLLOW_PRIVILEGE) {
+            return configured.effective(settings.privilegeMode)
+        }
+        val privileged = configured.effective(settings.privilegeMode)
+        if (clipboardMonitorController.isBackendAvailable(privileged)) return privileged
+        if (isLsposedModuleResponsive()) return ClipboardMonitoringMode.LSPOSED
+        return ClipboardMonitoringMode.STANDARD
+    }
+
+    /** 模块近期有响应即视为可用（状态由模块状态探测写入，设置页可手动刷新）。 */
+    private fun isLsposedModuleResponsive(): Boolean {
+        val snapshot = ModuleBridgeStatusStore.read(context)
+        if (snapshot.updatedAtMs <= 0L) return false
+        if (System.currentTimeMillis() - snapshot.updatedAtMs > MODULE_STATUS_TTL_MS) return false
+        return snapshot.state != ModuleHookBridgeContract.STATUS_STATE_NOT_READY
     }
 
     fun startClipboardListening() {
@@ -629,5 +659,7 @@ class ClipboardHistoryRepository @Inject constructor(
         private const val INDEX_FILE_NAME = "history.json"
         private const val SAME_CLIP_DEDUP_MS = 400L
         private const val SCREENSHOT_TOP_GUARD_MS = 10_000L
+        /** 模块状态超过这个时间没刷新就当作不可用（设置页探测会刷新它）。 */
+        private const val MODULE_STATUS_TTL_MS = 10 * 60_000L
     }
 }

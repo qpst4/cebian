@@ -223,6 +223,7 @@ fun OverlaySettings.toMinimalAppSettings(): AppSettings = AppSettings(
     clipboard = ClipboardSettings(
         clipboardBackgroundMonitoring = clipboardBackgroundMonitoring,
         clipboardBackgroundMonitoringMode = clipboardBackgroundMonitoringMode,
+        clipboardLsposedWhitelist = clipboardLsposedWhitelist,
         clipboardOverlayEnabled = clipboardOverlayEnabled,
         clipboardOverlayScalePercent = clipboardOverlayScalePercent,
         clipboardScreenshotMonitoring = clipboardScreenshotMonitoring,

@@ -482,6 +482,9 @@ internal object SettingsSnapshotReader {
             clipboardBackgroundMonitoringMode = ClipboardMonitoringMode.fromStorage(
                 prefs[SettingsPreferenceKeys.CLIPBOARD_BACKGROUND_MONITORING_PATH],
             ),
+            clipboardLsposedWhitelist =
+                prefs[SettingsPreferenceKeys.CLIPBOARD_LSPOSED_WHITELIST]
+                    ?: setOf(CLIPBOARD_LSPOSED_SELF_PACKAGE),
             clipboardOverlayEnabled = prefs[SettingsPreferenceKeys.CLIPBOARD_OVERLAY_ENABLED] ?: false,
             clipboardOverlayScalePercent = ClipboardOverlayScale.coerce(
                 prefs[SettingsPreferenceKeys.CLIPBOARD_OVERLAY_SCALE_PERCENT]

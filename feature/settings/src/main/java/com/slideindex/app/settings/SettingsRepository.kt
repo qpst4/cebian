@@ -713,6 +713,12 @@ class SettingsRepository @Inject constructor(
     suspend fun removeClipboardFloatBlockedPackage(packageName: String) =
         overlay.removeClipboardFloatBlockedPackage(packageName)
 
+    suspend fun addClipboardLsposedWhitelistPackage(packageName: String) =
+        overlay.addClipboardLsposedWhitelistPackage(packageName)
+
+    suspend fun removeClipboardLsposedWhitelistPackage(packageName: String) =
+        overlay.removeClipboardLsposedWhitelistPackage(packageName)
+
     suspend fun setClipboardFloatPasteHapticEnabled(enabled: Boolean) =
         overlay.setClipboardFloatPasteHapticEnabled(enabled)
 

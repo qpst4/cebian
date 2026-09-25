@@ -68,6 +68,7 @@ fun NavEntryBuilder.stashClipboardNavEntries(ctx: MainNavContext) {
             onOpenOverlayPermission = {
                 context.startActivity(PermissionHelper.overlaySettingsIntent(context))
             },
+            onOpenClipboardLsposedWhitelist = { ctx.navigate(AppNavKey.ClipboardLsposedWhitelist) },
         )
     }
 
@@ -146,6 +147,39 @@ fun NavEntryBuilder.stashClipboardNavEntries(ctx: MainNavContext) {
             onSelectApp = { app ->
                 viewModel.addClipboardFloatBlockedPackage(app.packageName)
                 ctx.navigateBackTo(AppNavKey.ClipboardFloatBlacklist)
+            },
+        )
+    }
+
+    hiltEntry<AppNavKey.ClipboardLsposedWhitelist> {
+        val viewModel: StashClipboardSettingsViewModel = hiltViewModel()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val settings = overlaySettings.toMinimalAppSettings()
+        ShakeGestureBlacklistScreen(
+            blacklistedPackages = settings.clipboardLsposedWhitelist,
+            onBack = { ctx.navigateBackTo(AppNavKey.ClipboardHistorySettings) },
+            onOpenAddApp = { ctx.navigate(AppNavKey.ClipboardLsposedWhitelistPick) },
+            onRemoveBlacklistedApp = viewModel::removeClipboardLsposedWhitelistPackage,
+            titleRes = R.string.clipboard_lsposed_whitelist,
+            descriptionRes = R.string.clipboard_lsposed_whitelist_page_desc,
+            blockedSectionTitleRes = R.string.clipboard_lsposed_whitelist_section,
+            emptyRes = R.string.clipboard_lsposed_whitelist_empty,
+            removeActionDescriptionRes = R.string.clipboard_lsposed_whitelist_remove,
+            addSectionTitleRes = R.string.clipboard_lsposed_whitelist_section_add,
+        )
+    }
+
+    hiltEntry<AppNavKey.ClipboardLsposedWhitelistPick> {
+        val viewModel: StashClipboardSettingsViewModel = hiltViewModel()
+        val overlaySettings by viewModel.overlaySettings.collectAsStateWithLifecycle()
+        val settings = overlaySettings.toMinimalAppSettings()
+        ActivityShortcutPickAppScreen(
+            titleResId = R.string.clipboard_lsposed_whitelist_section_add,
+            excludePackageNames = settings.clipboardLsposedWhitelist,
+            onBack = { ctx.navigateBackTo(AppNavKey.ClipboardLsposedWhitelist) },
+            onSelectApp = { app ->
+                viewModel.addClipboardLsposedWhitelistPackage(app.packageName)
+                ctx.navigateBackTo(AppNavKey.ClipboardLsposedWhitelist)
             },
         )
     }

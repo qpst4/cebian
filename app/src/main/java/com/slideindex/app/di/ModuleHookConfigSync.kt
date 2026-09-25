@@ -67,6 +67,8 @@ class ModuleHookConfigSync @Inject constructor(
     append('|').append(corner.horizontalEdgeWidthDp).append(',').append(corner.horizontalEdgeHeightDp)
     append('|').append(corner.hideInLandscape)
     append('|').append(OverlaySuppression.isLandscape(context))
+    // 剪贴板白名单变化也要重新下发（LSPosed 模式靠它决定放行哪些包）。
+    append('|').append(settings.clipboardLsposedWhitelist.sorted().joinToString(","))
     for (side in listOf(PanelSide.LEFT, PanelSide.RIGHT, PanelSide.BOTTOM, PanelSide.TOP)) {
       append('#').append(side.name)
       append(':').append(settings.interceptWindowWidthDp(side))

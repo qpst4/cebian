@@ -1154,6 +1154,21 @@ class OverlaySettingsMutator @Inject constructor(
         it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_BLOCKED_PACKAGES] = current
     }
 
+    suspend fun addClipboardLsposedWhitelistPackage(packageName: String) = editor.edit {
+        // 首次落盘时从默认名单（本应用自身）起算，避免覆盖掉默认项。
+        val current = (it[SettingsPreferenceKeys.CLIPBOARD_LSPOSED_WHITELIST]
+            ?: setOf(CLIPBOARD_LSPOSED_SELF_PACKAGE)).toMutableSet()
+        current.add(packageName)
+        it[SettingsPreferenceKeys.CLIPBOARD_LSPOSED_WHITELIST] = current
+    }
+
+    suspend fun removeClipboardLsposedWhitelistPackage(packageName: String) = editor.edit {
+        val current = (it[SettingsPreferenceKeys.CLIPBOARD_LSPOSED_WHITELIST]
+            ?: setOf(CLIPBOARD_LSPOSED_SELF_PACKAGE)).toMutableSet()
+        current.remove(packageName)
+        it[SettingsPreferenceKeys.CLIPBOARD_LSPOSED_WHITELIST] = current
+    }
+
     suspend fun setClipboardFloatPasteHapticEnabled(enabled: Boolean) = editor.edit {
         it[SettingsPreferenceKeys.CLIPBOARD_FLOAT_PASTE_HAPTIC_ENABLED] = enabled
     }

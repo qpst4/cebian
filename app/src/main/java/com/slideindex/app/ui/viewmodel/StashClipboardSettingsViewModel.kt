@@ -286,6 +286,15 @@ class StashClipboardSettingsViewModel @Inject constructor(
         }
     }
 
+    fun addClipboardLsposedWhitelistPackage(packageName: String) = launchSettingsWrite {
+        // 白名单变化由 ModuleHookConfigSync 的签名比对自动重新下发，无需额外同步。
+        settingsRepository.addClipboardLsposedWhitelistPackage(packageName)
+    }
+
+    fun removeClipboardLsposedWhitelistPackage(packageName: String) = launchSettingsWrite {
+        settingsRepository.removeClipboardLsposedWhitelistPackage(packageName)
+    }
+
     fun resetClipboardFloatLayout() = launchSettingsWrite {
         settingsRepository.resetClipboardFloatGeometry()
     }

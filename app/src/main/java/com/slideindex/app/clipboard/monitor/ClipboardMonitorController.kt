@@ -104,7 +104,8 @@ class ClipboardMonitorController @Inject constructor(
     }
 
     private fun canStart(mode: ClipboardMonitoringMode): Boolean {
-        if (mode.usesStandardApi) return true
+        // 标准 API 与 LSPosed 白名单都不依赖 Shizuku / Root。
+        if (mode.usesStandardApi || mode.usesLsposed) return true
         if (mode.usesRoot) {
             if (!isRootAvailable()) {
                 Log.w(TAG, "root unavailable")
@@ -117,11 +118,15 @@ class ClipboardMonitorController @Inject constructor(
         return true
     }
 
+    /** 该模式此刻能不能起（供模式优先级解析用）。 */
+    fun isBackendAvailable(mode: ClipboardMonitoringMode): Boolean = canStart(mode)
+
     private fun startForegroundServiceInternal(mode: ClipboardMonitoringMode) {
         if (!canStart(mode)) return
         val intent = Intent(appContext, ClipboardMonitorForegroundService::class.java).apply {
             putExtra(ClipboardMonitorForegroundService.EXTRA_USE_STANDARD, mode.usesStandardApi)
             putExtra(ClipboardMonitorForegroundService.EXTRA_USE_ROOT, mode.usesRoot)
+            putExtra(ClipboardMonitorForegroundService.EXTRA_USE_LSPOSED, mode.usesLsposed)
             putExtra(
                 ClipboardMonitorForegroundService.EXTRA_USE_HIDDEN_API,
                 mode.usesHiddenApi,

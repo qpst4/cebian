@@ -36,6 +36,7 @@ class ClipboardMonitorForegroundService : Service() {
     private var useRoot = false
     private var useHiddenApi = false
     private var useStandard = false
+    private var useLsposed = false
     private var listenerThread: Thread? = null
     private var lastChangedTime = 0L
     private val changedMinIntervalMs = 200L
@@ -70,11 +71,18 @@ class ClipboardMonitorForegroundService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         useStandard = intent?.getBooleanExtra(EXTRA_USE_STANDARD, false) == true
+        useLsposed = intent?.getBooleanExtra(EXTRA_USE_LSPOSED, false) == true
         useRoot = intent?.getBooleanExtra(EXTRA_USE_ROOT, false) == true
         useHiddenApi = intent?.getBooleanExtra(EXTRA_USE_HIDDEN_API, false) == true
         promoteToForeground(
             ClipboardMonitorNotificationTexts.waitingTitle(this),
-            ClipboardMonitorNotificationTexts.waitingText(this, useRoot, useHiddenApi, useStandard),
+            ClipboardMonitorNotificationTexts.waitingText(
+                this,
+                useRoot,
+                useHiddenApi,
+                useStandard,
+                useLsposed,
+            ),
         )
 
         mainHandler.removeCallbacksAndMessages(null)
@@ -103,7 +111,8 @@ class ClipboardMonitorForegroundService : Service() {
             }, CONTROLLER_RETRY_MS)
             return START_NOT_STICKY
         }
-        if (useStandard) {
+        // LSPosed 模式走和标准模式同一条读取路径：白名单生效时系统直接放行，不需要焦点探针。
+        if (useStandard || useLsposed) {
             startStandardListening(controller)
             return START_NOT_STICKY
         }
@@ -249,7 +258,13 @@ class ClipboardMonitorForegroundService : Service() {
         controller.markListening(true)
         updateNotification(
             ClipboardMonitorNotificationTexts.runningTitle(this),
-            ClipboardMonitorNotificationTexts.runningText(this, useRoot, useHiddenApi, useStandard),
+            ClipboardMonitorNotificationTexts.runningText(
+                this,
+                useRoot,
+                useHiddenApi,
+                useStandard,
+                useLsposed,
+            ),
         )
     }
 
@@ -264,7 +279,7 @@ class ClipboardMonitorForegroundService : Service() {
         val now = System.currentTimeMillis()
         if (now - lastChangedTime < changedMinIntervalMs) return
         lastChangedTime = now
-        if (useStandard) {
+        if (useStandard || useLsposed) {
             ClipboardReader.read(applicationContext)?.let { payload ->
                 ClipboardMonitorController.peek()?.dispatchPayload(payload)
             }
@@ -310,7 +325,7 @@ class ClipboardMonitorForegroundService : Service() {
             runCatching { listenerService?.exit() }
         }
         ClipboardMonitorController.peek()?.unbindListeningService()
-        if (!useRoot && !useStandard) {
+        if (!useRoot && !useStandard && !useLsposed) {
             Shizuku.removeBinderReceivedListener(onBinderReceivedListener)
             Shizuku.removeBinderDeadListener(onBinderDeadListener)
         }
@@ -416,6 +431,7 @@ class ClipboardMonitorForegroundService : Service() {
         const val EXTRA_USE_ROOT = "useRoot"
         const val EXTRA_USE_HIDDEN_API = "useHiddenApi"
         const val EXTRA_USE_STANDARD = "useStandard"
+        const val EXTRA_USE_LSPOSED = "useLsposed"
         private const val MSG_CLIPBOARD_CHANGED = 1
         private const val CHANNEL_ID = "clipboard_monitor"
         private const val NOTIFICATION_ID = 4102

@@ -179,6 +179,7 @@ fun ClipboardHistorySettingsScreen(
     onClipboardOverlayScalePercentChange: (Int) -> Unit,
     onClipboardPasteFvStyleEnabledChange: (Boolean) -> Unit,
     onOpenOverlayPermission: () -> Unit,
+    onOpenClipboardLsposedWhitelist: () -> Unit,
 ) {
     val context = LocalContext.current
     var showClearClipboardDialog by remember { mutableStateOf(false) }
@@ -378,6 +379,19 @@ fun ClipboardHistorySettingsScreen(
                                     .coerceAtLeast(0),
                                 onSelectedIndexChange = { onClipboardMonitoringModeChange(modeEntries[it]) },
                             )
+                            if (settings.clipboardBackgroundMonitoringMode ==
+                                ClipboardMonitoringMode.LSPOSED
+                            ) {
+                                SettingLinkRow(
+                                    title = stringResource(R.string.clipboard_lsposed_whitelist),
+                                    subtitle = pluralStringResource(
+                                        R.plurals.clipboard_lsposed_whitelist_desc,
+                                        settings.clipboardLsposedWhitelist.size,
+                                        settings.clipboardLsposedWhitelist.size,
+                                    ),
+                                    onClick = onOpenClipboardLsposedWhitelist,
+                                )
+                            }
                             SettingExpandableSwitchRow(
                                 title = stringResource(R.string.clipboard_overlay_enabled_title),
                                 subtitle = stringResource(R.string.clipboard_overlay_enabled_desc),
@@ -930,6 +944,8 @@ private fun clipboardMonitoringModeLabel(mode: ClipboardMonitoringMode): String 
         stringResource(R.string.clipboard_monitoring_mode_root_logs)
     ClipboardMonitoringMode.ROOT_HIDDEN_API ->
         stringResource(R.string.clipboard_monitoring_mode_root_hidden_api)
+    ClipboardMonitoringMode.LSPOSED ->
+        stringResource(R.string.clipboard_monitoring_mode_lsposed)
     ClipboardMonitoringMode.STANDARD ->
         stringResource(R.string.clipboard_monitoring_mode_standard)
 }
@@ -955,6 +971,8 @@ private fun clipboardMonitoringModeDescription(
         stringResource(R.string.clipboard_monitoring_mode_root_logs_desc)
     ClipboardMonitoringMode.ROOT_HIDDEN_API ->
         stringResource(R.string.clipboard_monitoring_mode_root_hidden_api_desc)
+    ClipboardMonitoringMode.LSPOSED ->
+        stringResource(R.string.clipboard_monitoring_mode_lsposed_desc)
     ClipboardMonitoringMode.STANDARD ->
         stringResource(R.string.clipboard_monitoring_mode_standard_desc)
 }

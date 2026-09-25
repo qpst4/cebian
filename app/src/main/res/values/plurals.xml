@@ -84,6 +84,9 @@
     <plurals name="clipboard_float_app_blacklist_desc">
         <item quantity="other">已屏蔽 %1$d 个应用 · 粘贴成功 %2$d 次 · 失败 %3$d 次</item>
     </plurals>
+    <plurals name="clipboard_lsposed_whitelist_desc">
+        <item quantity="other">已加入 %1$d 个应用</item>
+    </plurals>
     <plurals name="notification_history_group_summary">
         <item quantity="other">%d 条通知</item>
     </plurals>

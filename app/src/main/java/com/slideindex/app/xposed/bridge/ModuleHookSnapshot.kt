@@ -22,6 +22,8 @@ data class ModuleHookSnapshot(
    * 归属哪个开关由 [ModuleHookExtraRect.groups] 单一位决定；列表靠前的矩形优先命中。
    */
   val extraRects: List<ModuleHookExtraRect> = emptyList(),
+  /** 剪贴板白名单（LSPosed 模式）：这些包会被当作默认输入法放行，可在后台读剪贴板。 */
+  val clipboardWhitelist: List<String> = emptyList(),
   val updatedAtMs: Long = 0L,
 ) {
   fun hasGroup(group: Int): Boolean = (takeoverGroups and group) != 0
@@ -49,6 +51,14 @@ data class ModuleHookSnapshot(
         },
       )
     }
+    if (clipboardWhitelist.isNotEmpty()) {
+      put(
+        KEY_CLIPBOARD_WHITELIST,
+        JSONArray().apply {
+          clipboardWhitelist.forEach { put(it) }
+        },
+      )
+    }
   }.toString()
 
   companion object {
@@ -59,6 +69,7 @@ data class ModuleHookSnapshot(
     private const val KEY_DENSITY = "density"
     private const val KEY_SIDES = "sides"
     private const val KEY_EXTRA_RECTS = "extra_rects"
+    private const val KEY_CLIPBOARD_WHITELIST = "clipboard_whitelist"
     private const val KEY_UPDATED_AT = "updated_at"
 
     /** 解析失败的快照一律视为“未配置”，模块据此保持完全放行。 */
@@ -80,6 +91,13 @@ data class ModuleHookSnapshot(
             add(ModuleHookExtraRect.fromJson(item))
           }
         }
+        val clipboardJson = json.optJSONArray(KEY_CLIPBOARD_WHITELIST) ?: JSONArray()
+        val clipboardWhitelist = buildList {
+          for (index in 0 until clipboardJson.length()) {
+            val packageName = clipboardJson.optString(index).orEmpty()
+            if (packageName.isNotBlank()) add(packageName)
+          }
+        }
         ModuleHookSnapshot(
           version = json.optInt(KEY_VERSION, ModuleHookBridgeContract.SNAPSHOT_VERSION),
           takeoverGroups = json.optInt(KEY_GROUPS, 0),
@@ -88,6 +106,7 @@ data class ModuleHookSnapshot(
           density = json.optDouble(KEY_DENSITY, 1.0).toFloat().coerceIn(0.5f, 6f),
           sides = sides,
           extraRects = extraRects,
+          clipboardWhitelist = clipboardWhitelist,
           updatedAtMs = json.optLong(KEY_UPDATED_AT, 0L),
         )
       }.getOrNull()

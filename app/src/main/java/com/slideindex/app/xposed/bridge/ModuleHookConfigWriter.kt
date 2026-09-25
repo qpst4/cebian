@@ -37,6 +37,7 @@ object ModuleHookConfigWriter {
       sides = listOf(PanelSide.LEFT, PanelSide.RIGHT, PanelSide.BOTTOM, PanelSide.TOP)
         .map { side -> settings.toSideSnapshot(side) },
       extraRects = extraRects(context, settings),
+      clipboardWhitelist = settings.clipboardLsposedWhitelist.sorted(),
       updatedAtMs = System.currentTimeMillis(),
     )
 
