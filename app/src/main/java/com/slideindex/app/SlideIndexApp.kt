@@ -116,6 +116,16 @@ class SlideIndexApp : Application() {
             AppLocaleApplier.primeFromStorage(this)
             deps.applicationScope.launch { shizukuInitializer.start() }
             deps.applicationScope.launch { moduleHookConfigSync.start() }
+            if (AppProcess.isOverlay) {
+                // 键盘上方的剪贴板小窗由 :overlay 渲染，开关（clipboardFloatEnabled 等）
+                // 必须在本进程下发：此前只有主进程调 ClipboardFloatLifecycle.syncFromSettings，
+                // 导致 overlay 侧一直是 false → 弹出键盘看不到入口。
+                deps.applicationScope.launch {
+                    deps.settingsRepository.settings.collect { settings ->
+                        com.slideindex.app.clipboardfloat.ClipboardFloatImeCoordinator.applySettings(settings)
+                    }
+                }
+            }
         }
         otpAutoFillStatsInstaller.install()
         otpRecordLimitsInstaller.install()
