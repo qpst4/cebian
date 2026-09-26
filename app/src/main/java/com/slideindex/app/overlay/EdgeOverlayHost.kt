@@ -67,7 +67,10 @@ class EdgeOverlayHost(
                 overlayManager?.syncApps(apps)
             }
         }
-        if (TaskManagerUtil.hasPermission()) {
+        // 启动期只做被动探测：不因为"预热"就把 Shizuku binder 抢过来。
+        // 取 binder 会顺带拉起主进程，并让 :overlay 依赖主进程里的 provider ——
+        // 覆盖安装后主进程启动慢被判死时，:overlay 会被系统连带杀掉（悬浮球消失）。
+        if (TaskManagerUtil.peekPrivilegedAccess()) {
             TaskManagerUtil.warmUpPrivilegedBackend()
         }
         floatBallController = FloatBallController(context, scope, deps.settingsRepository)

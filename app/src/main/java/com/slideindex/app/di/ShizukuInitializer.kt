@@ -50,18 +50,27 @@ class ShizukuInitializer @Inject constructor(
         }
     }
 
-    init {
+    fun start() {
+        // 注意：这里不要放进 init —— 设置流的首个值会让 apply() 立刻去取 Shizuku binder，
+        // 而"取 binder"会顺带拉起主进程并让本进程依赖它（覆盖安装后主进程启动慢被杀时，
+        // :overlay 会被系统连带杀掉）。收集器改为随 start() 一起开始，由调用方决定时机。
+        startCollecting()
+        TaskManagerUtil.initialize(context)
+        apply(ShizukuRequirement.needsShizuku(settingsRepository.readSnapshot()))
+    }
+
+    @Volatile
+    private var collecting = false
+
+    private fun startCollecting() {
+        if (collecting) return
+        collecting = true
         scope.launch {
             settingsRepository.settings
                 .map(ShizukuRequirement::needsShizuku)
                 .distinctUntilChanged()
                 .collect { needed -> apply(needed) }
         }
-    }
-
-    fun start() {
-        TaskManagerUtil.initialize(context)
-        apply(ShizukuRequirement.needsShizuku(settingsRepository.readSnapshot()))
     }
 
     private fun apply(needed: Boolean) {

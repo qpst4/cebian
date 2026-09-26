@@ -35,6 +35,7 @@ import com.slideindex.app.widget.WidgetPanelPage
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -81,13 +82,18 @@ class SlideIndexApp : Application(), androidx.work.Configuration.Provider {
     override fun onCreate() {
         super.onCreate()
         // Shizuku 的 binder 只会投递给声明了 ShizukuProvider 的进程（这里是默认进程）。
-        // 多进程架构下 :overlay 也要用 Shizuku（任务切换器等），必须打开多进程支持并主动取 binder。
         // 注意 enableMultiProcessSupport(flag) 的 flag 含义是"**当前进程**是不是 provider 进程"，
         // 传 true 会被 Shizuku 当成 provider 进程，紧接着的 requestBinderForNonProviderProcess 会直接 return。
+        //
+        // 非主进程**不在启动期取 binder**：取 binder 会顺带把主进程拉起来，并让本进程依赖
+        // 主进程里的这个 provider —— 覆盖安装后主进程启动慢、被 AMS 判成 attach 超时杀掉时，
+        // 本进程（:overlay）会被系统连带杀掉，表现为"装完悬浮球半天不出来"。
+        // 具体策略见 ShizukuBinderBridge（启动期延后补取 + 真正用到时惰性取）。
         runCatching {
-            rikka.shizuku.ShizukuProvider.enableMultiProcessSupport(AppProcess.isMain)
-            if (!AppProcess.isMain) {
-                rikka.shizuku.ShizukuProvider.requestBinderForNonProviderProcess(this)
+            if (AppProcess.isMain) {
+                rikka.shizuku.ShizukuProvider.enableMultiProcessSupport(true)
+            } else {
+                com.slideindex.app.shizuku.ShizukuBinderBridge.scheduleDeferredAcquire(this)
             }
         }
         // 所有进程共有：崩溃记录 + Hidden API 放行 + 引擎运行时接入。
@@ -132,7 +138,14 @@ class SlideIndexApp : Application(), androidx.work.Configuration.Provider {
             // :overlay 等进程：启动期只做廉价操作，把可能阻塞的初始化挪到后台，
             // 保证前台服务的 startForeground 窗口不被挤掉。
             AppLocaleApplier.primeFromStorage(this)
-            deps.applicationScope.launch { shizukuInitializer.start() }
+            // 同上：shizukuInitializer.start() 会立刻去取 binder（= 拉起主进程并形成依赖），
+            // 非主进程要等主进程稳定后再做，否则会把浮层进程一起搭进去。
+            deps.applicationScope.launch {
+                delay(com.slideindex.app.shizuku.ShizukuBinderBridge.DEFERRED_ACQUIRE_DELAY_MS)
+                if (com.slideindex.app.shizuku.ShizukuBinderBridge.isMainProcessAlive(this@SlideIndexApp)) {
+                    shizukuInitializer.start()
+                }
+            }
             deps.applicationScope.launch { moduleHookConfigSync.start() }
             if (AppProcess.isOverlay) {
                 // 键盘上方的剪贴板小窗由 :overlay 渲染，开关（clipboardFloatEnabled 等）

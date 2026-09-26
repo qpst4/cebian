@@ -176,8 +176,15 @@ object TaskManagerUtil {
         forceRestartUserService(appContext())
     }
 
-    fun isShizukuRunning(): Boolean =
-        runCatching { Shizuku.pingBinder() }.getOrDefault(false)
+    fun isShizukuRunning(): Boolean {
+        // 非主进程（:overlay / :clipboard）真正要用 Shizuku 之前先确保 binder 已取到。
+        // 之前是在进程启动期无条件抢着取，会把主进程一并拉起来并让本进程依赖它
+        // （覆盖安装后主进程启动慢被杀时，:overlay 会被连带杀掉）。详见 ShizukuBinderBridge。
+        applicationContext?.let { ctx ->
+            runCatching { com.slideindex.app.shizuku.ShizukuBinderBridge.ensure(ctx) }
+        }
+        return runCatching { Shizuku.pingBinder() }.getOrDefault(false)
+    }
 
     fun hasShizukuPermission(): Boolean =
         isShizukuRunning() &&
@@ -210,8 +217,21 @@ object TaskManagerUtil {
     fun peekPrivilegedAccess(): Boolean =
         when (PrivilegeGateway.mode) {
             PrivilegeMode.ROOT -> cachedRootAccess ?: true
-            PrivilegeMode.SHIZUKU -> hasShizukuPermission()
+            PrivilegeMode.SHIZUKU -> peekShizukuPermission()
         }
+
+    /**
+     * 只读探测：**不**触发"取 Shizuku binder"。
+     *
+     * 取 binder 会顺带把主进程拉起来，并让本进程成为"依赖主进程里 provider"的进程；
+     * 覆盖安装后主进程启动慢被 AMS 判死时，本进程（:overlay）会被系统连带杀掉，
+     * 表现为悬浮球消失。所以启动期/界面渲染期的判断一律用这个被动版本，
+     * 只有真正要执行特权操作时才用 [hasPrivilegedAccess]（它会惰性取 binder）。
+     */
+    fun peekShizukuPermission(): Boolean =
+        runCatching { Shizuku.pingBinder() }.getOrDefault(false) &&
+            runCatching { Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED }
+                .getOrDefault(false)
 
     private fun cachedRootAccess(): Boolean {
         val now = SystemClock.elapsedRealtime()
