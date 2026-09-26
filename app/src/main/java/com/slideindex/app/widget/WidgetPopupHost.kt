@@ -14,6 +14,17 @@ import android.view.View
 object WidgetPopupHost {
   private const val TAG = "WidgetPopupHost"
 
+  /**
+   * AppWidgetHost 的 hostId 全应用共用一个，而 [AppWidgetHost.startListening] 是"注册订阅"语义：
+   * 两个进程都注册时，后注册的一方会抢走 APPWIDGET_UPDATE 投递，另一方视图不再刷新。
+   * 因此注册/反注册与视图创建**只允许在 :overlay 进程**发生；其它进程渲染占位卡。
+   */
+  private fun requireOverlayProcess(operation: String): Boolean {
+    if (com.slideindex.app.util.AppProcess.isOverlay) return true
+    Log.w(TAG, "$operation ignored outside :overlay process (shared hostId would steal widget updates)")
+    return false
+  }
+
   @Volatile
   private var host: SlideIndexAppWidgetHost? = null
 
@@ -33,6 +44,7 @@ object WidgetPopupHost {
     AppWidgetManager.getInstance(context.applicationContext)
 
   fun startListening(context: Context) {
+    if (!requireOverlayProcess("startListening")) return
     synchronized(this) {
       if (listening) return
       runCatching {
@@ -43,6 +55,7 @@ object WidgetPopupHost {
   }
 
   fun stopListening(context: Context) {
+    if (!requireOverlayProcess("stopListening")) return
     synchronized(this) {
       if (!listening) return
       runCatching {
@@ -73,6 +86,7 @@ object WidgetPopupHost {
     runCatching { appWidgetManager(context).getAppWidgetInfo(appWidgetId) }.getOrNull()
 
   fun createView(context: Context, appWidgetId: Int): View? {
+    if (!requireOverlayProcess("createView")) return null
     val manager = appWidgetManager(context)
     val info = manager.getAppWidgetInfo(appWidgetId) ?: return null
     val widgetHost = appWidgetHost(context)

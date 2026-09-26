@@ -213,3 +213,18 @@ interface IOverlayHost {
   `dumpsys activity broadcasts` 中 `OVERLAY_STATE` 已注册且有持续广播。
 - OTP 自动填充同样是跨进程断点（短信接收器在默认进程，注入在 `:overlay`）：已通过 `COMMAND_OTP_AUTOFILL` 转发。
   遗留：OTP 记录仓库若是普通文件，跨进程写仍需按「单写者」原则收口。
+
+### C.2 AppWidget 宿主归属（计划 4.2 方案 A 的落地）
+
+`AppWidgetHost` 的 hostId 全应用共用一个（`0x534944`），而 `startListening()` 是「注册订阅」语义：
+两个进程都注册时后注册的一方会抢走 `APPWIDGET_UPDATE`，另一方的视图不再刷新；
+`MainActivity.onPause` 里的 `stopListening()` 甚至会把 `:overlay` 的订阅注销掉。
+
+已收口为「AppWidget 只在 `:overlay`」：
+
+- `WidgetPopupHost.startListening/stopListening/createView` 加进程守卫，非 `:overlay` 直接忽略并记日志；
+- `WidgetBindTrampolineActivity` 声明 `android:process=":overlay"`，`widgetId` 的分配也从调用方移进该 Activity
+  （调用方可能来自主进程），`WidgetPickerTrampoline.startBindFlow` 不再自己分配；
+- 主进程的小组件编辑器因此不再渲染真实 widget，改为占位卡（`createView` 返回 null）。
+
+遗留：编辑器的占位卡目前复用 `WidgetLoadingPlaceholder`（文案是「加载中…」），后续可换成「在弹出面板中预览」的图标占位。

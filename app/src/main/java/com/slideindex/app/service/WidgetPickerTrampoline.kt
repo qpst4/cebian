@@ -101,9 +101,8 @@ object WidgetPickerTrampoline {
   fun startBindFlow(context: Context, provider: ComponentName) {
     WidgetPopupOverlayWindow.setWidgetAddFlowActive(true)
     val appContext = context.applicationContext
-    WidgetPopupHost.startListening(appContext)
-    val appWidgetId = WidgetPopupHost.allocateAppWidgetId(appContext)
-    val intent = WidgetBindTrampolineActivity.createIntent(appContext, appWidgetId, provider)
+    // widgetId 与 AppWidgetHost 的注册都在 WidgetBindTrampolineActivity 所在的 :overlay 进程完成。
+    val intent = WidgetBindTrampolineActivity.createIntent(appContext, provider)
       .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     appContext.startActivity(intent)
   }

@@ -55,6 +55,10 @@ class WidgetBindTrampolineActivity : ComponentActivity() {
     WidgetPopupHost.startListening(this)
 
     appWidgetId = intent.getIntExtra(EXTRA_WIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID)
+    // 分配必须在本进程（:overlay）完成：AppWidgetHost 实例与视图只在这里存在。
+    if (appWidgetId == AppWidgetManager.INVALID_APPWIDGET_ID) {
+      appWidgetId = WidgetPopupHost.allocateAppWidgetId(this)
+    }
     selectedProvider = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
       intent.getParcelableExtra(EXTRA_PROVIDER, ComponentName::class.java)
     } else {
@@ -152,5 +156,9 @@ class WidgetBindTrampolineActivity : ComponentActivity() {
         putExtra(EXTRA_PROVIDER, provider)
       }
     }
+
+    /** 由调用方给出 provider，widgetId 由本 Activity（:overlay 进程）自行分配。 */
+    fun createIntent(context: Context, provider: ComponentName): Intent =
+      createIntent(context, AppWidgetManager.INVALID_APPWIDGET_ID, provider)
   }
 }
