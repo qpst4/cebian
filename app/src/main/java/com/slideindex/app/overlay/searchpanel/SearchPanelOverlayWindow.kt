@@ -147,6 +147,14 @@ object SearchPanelOverlayWindow {
         ensureWindow(hostContext)
         applyPanelShellActive()
         composeView?.post {
+            // 预热阶段建的壳子可能因宿未就绪而没真正挂上（attached=false）：
+            // 首帧校验一次，必要时销毁重建并重新激活，避免"状态对、画面没有"的幽灵窗口。
+            if (composeView?.isAttachedToWindow != true || composeView?.width == 0) {
+                Log.w(TAG, "show: shell not attached after first frame, rebuilding")
+                destroyWindow()
+                ensureWindow(hostContext)
+                applyPanelShellActive()
+            }
             panelVisibilityState?.targetState = true
         }
         OverlaySceneController.onContentPanelShown()
@@ -356,18 +364,44 @@ object SearchPanelOverlayWindow {
         view.isFocusableInTouchMode = true
         runCatching { wm.updateViewLayout(view, params) }
             .onFailure { Log.w(TAG, "updateViewLayout(active) failed", it) }
+        if (!view.isAttachedToWindow) {
+            Log.w(TAG, "active: view not attached (window likely dropped), flags=0x${params.flags.toString(16)}")
+        }
         view.requestFocus()
+    }
+
+    /**
+     * 面板窗是 TYPE_APPLICATION_OVERLAY（2038），必须用**同类型的 window context** 建窗。
+     * 无障碍服务实例的 token 属于 2032，无障碍一旦重绑旧实例的 token 就失效，
+     * 表现为 BadTokenException / 系统侧 "Failed looking up window session"，窗口永远不可见。
+     */
+    private fun resolvePanelHostContext(fallback: Context): Context {
+        val appContext = fallback.applicationContext
+        val display = runCatching { fallback.display }.getOrNull()
+            ?: runCatching {
+                (appContext.getSystemService(Context.DISPLAY_SERVICE) as? android.hardware.display.DisplayManager)
+                    ?.getDisplay(android.view.Display.DEFAULT_DISPLAY)
+            }.getOrNull()
+            ?: return fallback
+        return runCatching {
+            appContext.createWindowContext(
+                display,
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+                null,
+            )
+        }.getOrNull() ?: fallback
     }
 
     private fun ensureWindow(hostContext: Context) {
         if (composeView != null) return
         appContext = hostContext.applicationContext as android.app.Application
-        windowManager = hostContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+        val panelHostContext = resolvePanelHostContext(hostContext)
+        windowManager = panelHostContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
         panelVisibilityState = MutableTransitionState(false)
 
         owner = OverlayComposeOwner()
 
-        composeView = object : FrameLayout(hostContext) {
+        composeView = object : FrameLayout(panelHostContext) {
             override fun dispatchKeyEvent(event: KeyEvent): Boolean {
                 if (event.keyCode == KeyEvent.KEYCODE_BACK) {
                     if (event.action == KeyEvent.ACTION_UP) {
@@ -387,7 +421,7 @@ object SearchPanelOverlayWindow {
             }
             setViewTreeLifecycleOwner(owner)
             setViewTreeSavedStateRegistryOwner(owner)
-            val cv = OverlayCompose.createComposeView(hostContext, owner!!).apply {
+            val cv = OverlayCompose.createComposeView(panelHostContext, owner!!).apply {
                 setContent {
                     com.slideindex.app.ui.theme.OverlayAwareModuleTheme {
                         OverlayTextToolbarProvider {
@@ -426,6 +460,11 @@ object SearchPanelOverlayWindow {
 
         try {
             windowManager?.addView(composeView, layoutParams)
+            Log.i(
+                TAG,
+                "window added: type=${layoutParams?.type} attached=${composeView?.isAttachedToWindow} " +
+                    "host=${hostContext.javaClass.simpleName}",
+            )
         } catch (e: Exception) {
             Log.e(TAG, "Failed to add window", e)
             destroyWindow()
