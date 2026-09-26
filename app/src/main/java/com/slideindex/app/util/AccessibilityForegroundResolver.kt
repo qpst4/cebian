@@ -16,7 +16,9 @@ object AccessibilityForegroundResolver {
     fun resolve(context: Context): String? {
         val service = context as? AccessibilityService
             ?: SlideIndexAccessibilityService.accessibilityInstance()
-        return service?.let(::resolveHostPackage) ?: OverlayService.foregroundPackage
+        // 主进程没有无障碍实例，改读 overlay 进程广播过来的镜像。
+        return service?.let(::resolveHostPackage)
+            ?: com.slideindex.app.overlay.OverlayStatePort.foregroundPackage()
     }
 
     fun resolveHostPackage(service: AccessibilityService): String? {

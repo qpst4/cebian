@@ -27,6 +27,7 @@ internal class SlideIndexAccessibilityWatchdog(
             when (intent?.action) {
                 Intent.ACTION_SCREEN_OFF -> {
                     TriggerEnvironmentState.lockScreenActive = true
+                    com.slideindex.app.overlay.OverlayStatePort.publish(service, "screenOff")
                     GlobalOverlayDismissHelper.dismissAllPanels()
                     // 触钮 + 悬浮球/边角轮盘一并按锁屏抑制策略刷新，避免解锁后只恢复触钮。
                     overlayHost()?.refreshOverlaySuppression()
@@ -37,6 +38,7 @@ internal class SlideIndexAccessibilityWatchdog(
                 }
                 Intent.ACTION_USER_PRESENT -> {
                     TriggerEnvironmentState.lockScreenActive = false
+                    com.slideindex.app.overlay.OverlayStatePort.publish(service, "userPresent")
                     overlayHost()?.refreshOverlaySuppression()
                 }
             }
@@ -47,6 +49,7 @@ internal class SlideIndexAccessibilityWatchdog(
         val accessibilityWindows = service.windows
         val isLocked = LockScreenState.detectActive(service, accessibilityWindows)
         TriggerEnvironmentState.lockScreenActive = isLocked
+        com.slideindex.app.overlay.OverlayStatePort.publish(service, "syncLockScreenState")
         if (isLocked) {
             GlobalOverlayDismissHelper.dismissAllPanels()
         }
@@ -68,6 +71,7 @@ internal class SlideIndexAccessibilityWatchdog(
         runCatching { service.unregisterReceiver(screenLockReceiver) }
         screenLockReceiverRegistered = false
         TriggerEnvironmentState.lockScreenActive = false
+        com.slideindex.app.overlay.OverlayStatePort.publish(service, "unregisterScreenLockReceiver")
     }
 
     fun toggleKeepScreenOn(): Boolean {

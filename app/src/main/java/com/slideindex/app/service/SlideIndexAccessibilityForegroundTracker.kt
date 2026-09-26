@@ -49,6 +49,7 @@ internal class SlideIndexAccessibilityForegroundTracker(
         }
 
         overlayHost()?.updateForegroundPackage(packageName)
+        com.slideindex.app.overlay.OverlayStatePort.publish(service, "foregroundPackage")
         when (val update = computeWindowStatePackageUpdate(
                 packageName = packageName,
                 selfPackageName = service.applicationContext.packageName,
@@ -74,6 +75,7 @@ internal class SlideIndexAccessibilityForegroundTracker(
         val resolvedPackage = AccessibilityForegroundResolver.resolveHostPackage(service)
         if (resolvedPackage != null) {
             overlayHost()?.updateForegroundPackage(resolvedPackage)
+            com.slideindex.app.overlay.OverlayStatePort.publish(service, "windowsChanged")
         } else {
             overlayHost()?.refreshOverlaySuppression()
         }

@@ -338,6 +338,9 @@ class StashClipboardSettingsViewModel @Inject constructor(
 
     private fun restartMonitoring() {
         clipboardHistoryRepository.restartClipboardMonitoringFromSettings()
-        SlideIndexAccessibilityService.accessibilityInstance()?.syncScreenshotMonitoring()
+        com.slideindex.app.overlay.OverlayStatePort.sendCommand(
+            appContext,
+            com.slideindex.app.overlay.OverlayStatePort.COMMAND_SYNC_SCREENSHOT_MONITORING,
+        )
     }
 }

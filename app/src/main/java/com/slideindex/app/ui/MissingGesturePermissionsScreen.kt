@@ -69,7 +69,10 @@ fun MissingGesturePermissionsScreen(
         missing = GestureActionPermissionAuditor.auditMissingPermissions(context, settings)
         if (granted) {
             if (settings.clipboardScreenshotMonitoring) {
-                SlideIndexAccessibilityService.accessibilityInstance()?.syncScreenshotMonitoring()
+                com.slideindex.app.overlay.OverlayStatePort.sendCommand(
+                    context,
+                    com.slideindex.app.overlay.OverlayStatePort.COMMAND_SYNC_SCREENSHOT_MONITORING,
+                )
             }
         } else {
             val permission = ClipboardPermissionHelper.mediaReadPermission()
@@ -92,7 +95,10 @@ fun MissingGesturePermissionsScreen(
             if (event == Lifecycle.Event.ON_RESUME) {
                 missing = GestureActionPermissionAuditor.auditMissingPermissions(context, settings)
                 if (settings.clipboardScreenshotMonitoring && ClipboardPermissionHelper.hasMediaReadPermission(context)) {
-                    SlideIndexAccessibilityService.accessibilityInstance()?.syncScreenshotMonitoring()
+                    com.slideindex.app.overlay.OverlayStatePort.sendCommand(
+                        context,
+                        com.slideindex.app.overlay.OverlayStatePort.COMMAND_SYNC_SCREENSHOT_MONITORING,
+                    )
                 }
             }
         }

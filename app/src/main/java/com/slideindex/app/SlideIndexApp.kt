@@ -74,6 +74,13 @@ class SlideIndexApp : Application() {
         }
         if (AppProcess.isEngine) return
 
+        // overlay 状态端口：overlay 进程负责接收命令，其它进程维护只读镜像。
+        if (AppProcess.isOverlay) {
+            com.slideindex.app.overlay.OverlayStatePort.startCommandReceiver(this)
+        } else {
+            com.slideindex.app.overlay.OverlayStatePort.startMirroring(this)
+        }
+
         // —— 主进程与 :overlay 共有：常驻交互（无障碍/浮层/模块桥/系统监听）需要用到的部分 ——
         deps.launcherAppsCallbackBridge.register()
         if (AppProcess.isMain) {

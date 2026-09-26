@@ -201,7 +201,10 @@ fun ClipboardHistorySettingsScreen(
                 pendingScreenshotEnable = false
                 onClipboardScreenshotMonitoringChange(true)
             } else if (settings.clipboardScreenshotMonitoring) {
-                SlideIndexAccessibilityService.accessibilityInstance()?.syncScreenshotMonitoring()
+                com.slideindex.app.overlay.OverlayStatePort.sendCommand(
+                    context,
+                    com.slideindex.app.overlay.OverlayStatePort.COMMAND_SYNC_SCREENSHOT_MONITORING,
+                )
             }
         } else {
             pendingScreenshotEnable = false
@@ -217,7 +220,10 @@ fun ClipboardHistorySettingsScreen(
                 pendingScreenshotEnable = false
                 onClipboardScreenshotMonitoringChange(true)
             } else if (settings.clipboardScreenshotMonitoring) {
-                SlideIndexAccessibilityService.accessibilityInstance()?.syncScreenshotMonitoring()
+                com.slideindex.app.overlay.OverlayStatePort.sendCommand(
+                    context,
+                    com.slideindex.app.overlay.OverlayStatePort.COMMAND_SYNC_SCREENSHOT_MONITORING,
+                )
             }
         }
     }
@@ -229,7 +235,7 @@ fun ClipboardHistorySettingsScreen(
     val historySectionTitle = stringResource(R.string.stash_clipboard_section_history)
     val pasteBehaviorSectionTitle = stringResource(R.string.clipboard_paste_behavior_section)
     val pasteFvStyleScopeHint = stringResource(R.string.clipboard_paste_fv_style_scope_hint)
-    val accessibilityGranted = SlideIndexAccessibilityService.accessibilityInstance() != null
+    val accessibilityGranted = com.slideindex.app.overlay.OverlayStatePort.isServiceConnected()
     val screenshotSectionTitle = stringResource(R.string.clipboard_screenshot_monitoring_section)
     val backgroundSectionTitle = stringResource(R.string.clipboard_background_monitoring_section)
 

@@ -663,6 +663,7 @@ class SlideIndexAccessibilityService : AccessibilityService() {
     override fun onServiceConnected() {
         super.onServiceConnected()
         instance = this
+        com.slideindex.app.overlay.OverlayStatePort.publish(this, "onServiceConnected")
         watchdog = SlideIndexAccessibilityWatchdog(this) { edgeOverlayHost }
         foregroundTracker = SlideIndexAccessibilityForegroundTracker(
             service = this,
@@ -753,6 +754,7 @@ class SlideIndexAccessibilityService : AccessibilityService() {
         ScreenSearchFloating.destroy()
         if (::backTapGestureHost.isInitialized) backTapGestureHost.stop()
         instance = null
+        com.slideindex.app.overlay.OverlayStatePort.publish(this, "onUnbind")
         notifyModuleHostState(ready = false)
         return true
     }
@@ -761,6 +763,7 @@ class SlideIndexAccessibilityService : AccessibilityService() {
         super.onRebind(intent)
         Log.i(TAG, "onRebind: accessibility service rebound by system")
         instance = this
+        com.slideindex.app.overlay.OverlayStatePort.publish(this, "onRebind")
         if (edgeOverlayHost == null) {
             edgeOverlayHost = EdgeOverlayHost(this, serviceScope, deps).also { it.start() }
         }
@@ -788,6 +791,7 @@ class SlideIndexAccessibilityService : AccessibilityService() {
         if (::backTapGestureHost.isInitialized) backTapGestureHost.stop()
         serviceScope.cancel()
         instance = null
+        com.slideindex.app.overlay.OverlayStatePort.publish(this, "onDestroy")
         notifyModuleHostState(ready = false)
         super.onDestroy()
     }
