@@ -124,7 +124,8 @@ class SlideIndexApp : Application() {
         // ForegroundServiceDidNotStartInTimeException）。
         ClipboardMonitorStartup.runOnMainWhenReady {
             android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-            ocrInstalledModelStartupVerifier.start()
+            // 引擎包校验 + OCR 冒烟改到 :engine 进程执行（native 库与解压消耗不再压在本进程）
+            com.slideindex.app.service.EngineBootService.start(this@SlideIndexApp)
             JiebaWarmUp.start(this@SlideIndexApp)
             if (deps.settingsRepository.readSnapshot().onboardingCompleted) {
                 deps.applicationScope.launch(Dispatchers.IO) {

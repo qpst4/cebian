@@ -534,13 +534,21 @@
 
         <service
             android:name=".service.OcrModelDownloadService"
+            android:process=":engine"
             android:exported="false"
             android:foregroundServiceType="dataSync" />
 
         <service
             android:name=".service.NativeEnginePackDownloadService"
+            android:process=":engine"
             android:exported="false"
             android:foregroundServiceType="dataSync" />
+
+        <service
+            android:name=".service.EngineBootService"
+            android:process=":engine"
+            android:exported="false"
+            android:stopWithTask="true" />
 
         <service
             android:name=".service.MediaNotificationListener"
