@@ -33,7 +33,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import rikka.shizuku.Shizuku
 
 class ClipboardMonitorForegroundService : Service() {
@@ -60,6 +62,9 @@ class ClipboardMonitorForegroundService : Service() {
 
     /** 通知状态跟随用（见 [startNotificationStateCollector]）。 */
     private val notificationScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+
+    /** 按设置同步监听时用：放到后台线程，Root 可用性探测才不会退化成"未知=false"。 */
+    private val workerScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private var notificationCollectorStarted = false
 
     private val clipboardListenerCallback by lazy {
@@ -110,14 +115,7 @@ class ClipboardMonitorForegroundService : Service() {
                 ClipboardMonitorNotificationTexts.waitingTitle(this),
                 ClipboardMonitorNotificationTexts.waitingText(this, false, false, false, false),
             )
-            val repository = com.slideindex.app.clipboard.ClipboardAccess.repository
-            if (repository == null) {
-                Log.w(tag, "clipboard repository unavailable, stop monitor")
-                stopSelf()
-                return START_NOT_STICKY
-            }
-            // 交给仓库走标准路径：解析模式 → 再用带模式参数的 intent 重新启动本服务。
-            repository.syncClipboardMonitoringFromSettings()
+            syncFromSettingsWithRetries(attempt = 0)
             return START_NOT_STICKY
         }
         useStandard = intent?.getBooleanExtra(EXTRA_USE_STANDARD, false) == true
@@ -214,6 +212,31 @@ class ClipboardMonitorForegroundService : Service() {
             bindShizukuListener(controller, currentBindGeneration)
         }
         return START_NOT_STICKY
+    }
+
+    /**
+     * 按设置同步监听，失败自动重试几次。
+     *
+     * 两个"必须点第二次才生效"的场景都在这里兜住：
+     * - **切到 Root 通道**：`probeDirectRootAvailable()` 在主线程且缓存为空时一律返回 false
+     *   （未知当成不可用），异步探测结果要等下一次调用才用得上 —— 于是第一次点 Root 被判定
+     *   "root unavailable" 直接 stop，第二次点才起来。放 IO 线程做才是真探测，并把结果写进缓存。
+     * - **Shizuku 刚起 / 刚切通道**：binder 与用户服务都需要一点时间，一次不成再来两次。
+     */
+    private fun syncFromSettingsWithRetries(attempt: Int) {
+        workerScope.launch {
+            val repository = com.slideindex.app.clipboard.ClipboardAccess.repository
+            if (repository == null) {
+                Log.w(tag, "clipboard repository unavailable, stop monitor")
+                stopSelf()
+                return@launch
+            }
+            // 交给仓库走标准路径：解析模式 → 再用带模式参数的 intent 重新启动本服务。
+            // 这里**不要**再叠一层"没在监听就重试"：控制器内部（runOnMainWhenCalm + startIfNeeded）
+            // 已经会等主线程空闲并处理时序，外层再重试会起出重复的 Shizuku 用户服务实例，
+            // 反而把切换通道拖慢（真机抓到同一个切换里出现两个 UserService record）。
+            withContext(Dispatchers.IO) { repository.syncClipboardMonitoringFromSettings() }
+        }
     }
 
     private fun bindShizukuListener(
@@ -405,6 +428,7 @@ class ClipboardMonitorForegroundService : Service() {
     override fun onDestroy() {
         bindGeneration++
         notificationScope.cancel()
+        workerScope.cancel()
         mainHandler.removeCallbacks(statusHeartbeatRunnable)
         mainHandler.removeCallbacksAndMessages(null)
         stopStandardListening()
@@ -545,6 +569,8 @@ class ClipboardMonitorForegroundService : Service() {
         private const val STATUS_HEARTBEAT_MS = 20_000L
         private const val MAX_LISTEN_RETRIES = 5
         private const val LISTEN_RETRY_DELAY_MS = 1_500L
+        private const val MAX_FROM_SETTINGS_RETRIES = 2
+        private const val FROM_SETTINGS_RETRY_MS = 1_500L
 
         internal fun shouldTriggerClipboardRead(logLine: String?, applicationId: String): Boolean {
             if (logLine == null) return true
