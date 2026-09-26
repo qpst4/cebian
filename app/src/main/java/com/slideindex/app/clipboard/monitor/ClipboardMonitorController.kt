@@ -84,8 +84,8 @@ class ClipboardMonitorController @Inject constructor(
     }
 
     fun restart(mode: ClipboardMonitoringMode): Boolean {
-        if (!ClipboardMonitorProcess.isMainProcess(appContext)) {
-            Log.w(TAG, "skip clipboard monitor in subprocess")
+        if (!ClipboardMonitorProcess.isMonitorProcess()) {
+            Log.w(TAG, "skip clipboard monitor outside :overlay")
             return false
         }
         if (!canStart(mode)) {
@@ -102,8 +102,8 @@ class ClipboardMonitorController @Inject constructor(
     }
 
     fun start(mode: ClipboardMonitoringMode): Boolean {
-        if (!ClipboardMonitorProcess.isMainProcess(appContext)) {
-            Log.w(TAG, "skip clipboard monitor in subprocess")
+        if (!ClipboardMonitorProcess.isMonitorProcess()) {
+            Log.w(TAG, "skip clipboard monitor outside :overlay")
             return false
         }
         if (isListening && activeModeOrNull == mode) return true

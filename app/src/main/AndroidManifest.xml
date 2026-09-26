@@ -338,6 +338,7 @@
 
         <activity
             android:name=".service.ScreenCapturePermissionActivity"
+            android:process=":overlay"
             android:excludeFromRecents="true"
             android:exported="false"
             android:launchMode="singleTask"

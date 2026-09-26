@@ -212,7 +212,8 @@ class ClipboardHistoryRepository @Inject constructor(
         triggerContext: Context? = null,
         skipWhenListening: Boolean = true,
     ) {
-        if (!ClipboardMonitorProcess.isMainProcess(context)) return
+        // 监听进程（:overlay）与主进程都可能触发补读；只有引擎等旁支进程不参与。
+        if (com.slideindex.app.util.AppProcess.isEngine || com.slideindex.app.util.AppProcess.isOther) return
         if (skipWhenListening) {
             if (!settingsRepository.readSnapshot().clipboardBackgroundMonitoring) return
             if (clipboardMonitorController.isListening) return
@@ -365,7 +366,14 @@ class ClipboardHistoryRepository @Inject constructor(
     }
 
     fun syncClipboardMonitoringFromSettings() {
-        if (!ClipboardMonitorProcess.isMainProcess(context)) return
+        if (!ClipboardMonitorProcess.isMonitorProcess()) {
+            // 主进程不能直接起监听（服务在 :overlay），转发命令。
+            com.slideindex.app.overlay.OverlayStatePort.sendCommand(
+                context,
+                com.slideindex.app.overlay.OverlayStatePort.COMMAND_SYNC_CLIPBOARD_MONITORING,
+            )
+            return
+        }
         val settings = settingsRepository.readSnapshot()
         if (!settings.clipboardBackgroundMonitoring) {
             stopClipboardListening()
@@ -375,7 +383,13 @@ class ClipboardHistoryRepository @Inject constructor(
     }
 
     fun restartClipboardMonitoringFromSettings() {
-        if (!ClipboardMonitorProcess.isMainProcess(context)) return
+        if (!ClipboardMonitorProcess.isMonitorProcess()) {
+            com.slideindex.app.overlay.OverlayStatePort.sendCommand(
+                context,
+                com.slideindex.app.overlay.OverlayStatePort.COMMAND_SYNC_CLIPBOARD_MONITORING,
+            )
+            return
+        }
         val settings = settingsRepository.readSnapshot()
         if (!settings.clipboardBackgroundMonitoring) {
             stopClipboardListening()

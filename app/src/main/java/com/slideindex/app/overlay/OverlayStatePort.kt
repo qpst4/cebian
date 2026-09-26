@@ -33,6 +33,7 @@ object OverlayStatePort {
 
     const val COMMAND_SYNC_SCREENSHOT_MONITORING = "sync_screenshot_monitoring"
     const val COMMAND_OTP_AUTOFILL = "otp_autofill"
+    const val COMMAND_SYNC_CLIPBOARD_MONITORING = "sync_clipboard_monitoring"
 
     private const val EXTRA_OTP_CODE = "otp_code"
     private const val EXTRA_OTP_RECORD_ID = "otp_record_id"
@@ -158,6 +159,12 @@ object OverlayStatePort {
                             )
                         }.onFailure { Log.w(TAG, "otp autofill failed", it) }
                     }
+
+                    COMMAND_SYNC_CLIPBOARD_MONITORING ->
+                        runCatching {
+                            com.slideindex.app.clipboard.ClipboardAccess.repository
+                                ?.syncClipboardMonitoringFromSettings()
+                        }.onFailure { Log.w(TAG, "sync clipboard monitoring failed", it) }
                 }
             }
         }
