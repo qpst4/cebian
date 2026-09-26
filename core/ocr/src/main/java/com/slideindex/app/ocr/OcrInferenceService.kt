@@ -38,8 +38,19 @@ class OcrInferenceService @Inject constructor(
     private var paddleOcr: PaddleOCR? = null
     private var openCvInitialized = false
 
-    /** PP-OCR line boxes for on-screen find (e.g. screen search). Returns null if model is not PP-OCR. */
+    /**
+     * PP-OCR line boxes for on-screen find (e.g. screen search). Returns null if model is not PP-OCR.
+     *
+     * 非 `:engine` 进程优先走跨进程传输（推理在引擎进程执行）；传输未接或失败时本地兜底。
+     */
     suspend fun recognizePpOcrLines(modelId: String, bitmap: Bitmap): List<OcrRecognizedLine>? {
+        if (!com.slideindex.app.util.AppProcess.isEngine) {
+            OcrRemoteBridge.transport?.recognizePpOcrLines(modelId, bitmap)?.let { return it }
+        }
+        return recognizePpOcrLinesLocal(modelId, bitmap)
+    }
+
+    private suspend fun recognizePpOcrLinesLocal(modelId: String, bitmap: Bitmap): List<OcrRecognizedLine>? {
         val entry = catalogProvider.findModel(modelId) ?: return null
         if (entry.engine != OcrEngines.PPOCR) return null
         if (!repository.isInstalled(modelId)) return null
@@ -62,6 +73,13 @@ class OcrInferenceService @Inject constructor(
     }
 
     suspend fun recognizeBitmap(modelId: String, bitmap: Bitmap): OcrRecognizeResult {
+        if (!com.slideindex.app.util.AppProcess.isEngine) {
+            OcrRemoteBridge.transport?.recognizeBitmap(modelId, bitmap)?.let { return it }
+        }
+        return recognizeBitmapLocal(modelId, bitmap)
+    }
+
+    private suspend fun recognizeBitmapLocal(modelId: String, bitmap: Bitmap): OcrRecognizeResult {
         val entry = catalogProvider.findModel(modelId) ?: run {
             Log.w(TAG, "recognize skipped: unknown modelId=$modelId")
             return OcrRecognizeResult.Failure(context.getString(R.string.ocr_error_unknown_model, modelId))

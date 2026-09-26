@@ -12,6 +12,8 @@ import android.app.Application
  *
  * 注意：**静态状态在每个进程各有一份**，跨进程共享必须走显式的接口/快照通道，
  * 不要直接读另一个进程的 object 字段。本类只负责身份判定。
+ *
+ * 放在 `core:common` 是为了让 core 层模块（如 core:ocr）也能做进程判定。
  */
 object AppProcess {
     const val OVERLAY_PROCESS_SUFFIX = ":overlay"
@@ -31,8 +33,8 @@ object AppProcess {
     val isOverlay: Boolean get() = name().endsWith(OVERLAY_PROCESS_SUFFIX)
     val isEngine: Boolean get() = name().endsWith(ENGINE_PROCESS_SUFFIX)
 
-    /** 只有默认进程（进程名 == 包名）才算主进程。 */
-    val isMain: Boolean get() = name() == com.slideindex.app.BuildConfig.APPLICATION_ID
+    /** 默认进程的进程名里没有 ':'（不依赖 BuildConfig，core 层也能用）。 */
+    val isMain: Boolean get() = !name().contains(':')
 
     /**
      * 其它进程（例如 Shizuku 用户服务 `:task_manager_v36`）。

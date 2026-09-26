@@ -21,6 +21,7 @@ android {
 }
 
 dependencies {
+    implementation(project(":core:common"))
     implementation(project(":core:native-engine"))
     implementation(project(":vendor:ppocr-sdk"))
     implementation(libs.mlkit.text.recognition.chinese.unbundled)
