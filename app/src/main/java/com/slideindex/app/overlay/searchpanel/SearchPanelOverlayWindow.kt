@@ -460,11 +460,6 @@ object SearchPanelOverlayWindow {
 
         try {
             windowManager?.addView(composeView, layoutParams)
-            Log.i(
-                TAG,
-                "window added: type=${layoutParams?.type} attached=${composeView?.isAttachedToWindow} " +
-                    "host=${hostContext.javaClass.simpleName}",
-            )
         } catch (e: Exception) {
             Log.e(TAG, "Failed to add window", e)
             destroyWindow()
