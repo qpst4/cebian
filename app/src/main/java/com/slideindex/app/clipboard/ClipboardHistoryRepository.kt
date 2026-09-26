@@ -335,7 +335,7 @@ class ClipboardHistoryRepository @Inject constructor(
     ) {
         if (!showOverlay || fromPassiveRefresh) return
         if (!settingsRepository.readSnapshot().clipboardOverlayEnabled) return
-            mainHandler.post {
+        mainHandler.post {
             com.slideindex.app.clipboardoverlay.ClipboardOverlayWindow.show(context, payload)
         }
     }
