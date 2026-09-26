@@ -3,6 +3,7 @@ package com.slideindex.app.clipboard.monitor
 /**
  * Based on [ClipboardListener](https://github.com/aa2013/ClipboardListener) (MIT).
  */
+import android.util.Log
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
@@ -44,13 +45,20 @@ internal object ClipboardMonitorStartup {
         val postedAt = SystemClock.uptimeMillis()
         mainHandler.post {
             val latencyMs = SystemClock.uptimeMillis() - postedAt
-            if (latencyMs <= CALM_LATENCY_MS || attemptsLeft <= 1) {
+            if (latencyMs <= CALM_LATENCY_MS) {
+                block()
+            } else if (attemptsLeft <= 1) {
+                // 重试用尽：之前这里是**静默放弃**（不启动、不报错），切通道时主线程正忙就会把重启丢掉，
+                // 表现成"点了没反应、要再点一次"。现在先留下证据，再退化成慢速重试而不是丢掉。
+                Log.w(TAG, "main thread busy for ${latencyMs}ms, giving up calm wait and starting anyway")
                 block()
             } else {
                 mainHandler.postDelayed({ measureCalm(block, attemptsLeft - 1) }, CALM_RETRY_MS)
             }
         }
     }
+
+    private const val TAG = "ClipboardMonitorStartup"
 
     private fun postWhenIdle(block: () -> Unit) {
         if (Looper.myLooper() == Looper.getMainLooper()) {
