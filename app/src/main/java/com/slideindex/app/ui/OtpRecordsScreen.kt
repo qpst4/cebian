@@ -32,6 +32,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.slideindex.app.R
 import com.slideindex.app.data.AppInfo
 import com.slideindex.app.otp.OtpAutoFillUiLabels
@@ -88,6 +89,12 @@ fun rememberOtpRecordsUi(
 
     LaunchedEffect(Unit) {
         viewModel.loadApps()
+    }
+
+    // 回到记录页就强制读一次盘：跨进程的写通知可能丢，内存快照会停在旧的"填充中"。
+    LifecycleResumeEffect(Unit) {
+        viewModel.refreshRecords()
+        onPauseOrDispose { }
     }
 
     val packageOptions = remember(records) {

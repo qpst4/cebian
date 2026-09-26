@@ -27,7 +27,7 @@ object OtpAutoInputOrchestrator {
     private const val INJECT_RESULT_TIMEOUT_MS = 2_000L
 
     /** 无障碍服务没连着时的失败原因（要有专门文案，用户才知道去哪儿开）。 */
-    private const val A11Y_NOT_CONNECTED = "a11y_not_connected"
+    private const val A11Y_NOT_CONNECTED = OtpAutoFillReasons.A11Y_NOT_CONNECTED
 
     private val mainHandler = Handler(Looper.getMainLooper())
     private val statsScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -36,6 +36,7 @@ object OtpAutoInputOrchestrator {
     private var pendingCode: String? = null
     private var pendingSettings: AppSettings? = null
     private var pendingRecordId: String? = null
+    private var pendingStartedAtMs = 0L
     private var statsRecorder: (suspend (Boolean, String, String, String?) -> Unit)? = null
 
     fun setStatsRecorder(recorder: suspend (Boolean, String, String, String?) -> Unit) {
@@ -88,6 +89,7 @@ object OtpAutoInputOrchestrator {
         ensureResultReceiver(appContext)
         val attemptId = SystemClock.elapsedRealtimeNanos()
         pendingAttemptId = attemptId
+        pendingStartedAtMs = SystemClock.elapsedRealtime()
         pendingCode = code
         pendingSettings = settings
         pendingRecordId = recordId
@@ -121,7 +123,11 @@ object OtpAutoInputOrchestrator {
                 runAccessibilityStep(attemptId, "inject_timeout")
             }, INJECT_RESULT_TIMEOUT_MS)
         }, delayMs)
-        Log.i(TAG, "Dispatched ordered auto-input broadcast attemptId=$attemptId")
+        Log.i(
+            TAG,
+            "Dispatched auto-input attemptId=$attemptId recordId=$recordId " +
+                "injectEnabled=${settings.otpLsposedSystemInjectEnabled} delay=${delayMs}ms",
+        )
     }
 
     /**
@@ -169,6 +175,7 @@ object OtpAutoInputOrchestrator {
         pendingRecordId = null
         pendingCode = null
         pendingSettings = null
+        pendingStartedAtMs = 0L
         mainHandler.removeCallbacksAndMessages(null)
     }
 
@@ -182,6 +189,18 @@ object OtpAutoInputOrchestrator {
     private fun recordStats(success: Boolean, strategy: String, reason: String) {
         val recorder = statsRecorder ?: return
         val recordId = pendingRecordId
+        // 每次填充都记一行（含记录 id / 走了哪条路 / 耗时）：出问题时不用猜是请求没送到、
+        // 还是送到了但结果写错了记录。
+        val elapsedMs = if (pendingStartedAtMs > 0L) {
+            SystemClock.elapsedRealtime() - pendingStartedAtMs
+        } else {
+            -1L
+        }
+        Log.i(
+            TAG,
+            "fill outcome: success=$success strategy=$strategy reason=$reason " +
+                "recordId=$recordId elapsed=${elapsedMs}ms",
+        )
         statsScope.launch {
             recorder(success, strategy, reason, recordId)
         }

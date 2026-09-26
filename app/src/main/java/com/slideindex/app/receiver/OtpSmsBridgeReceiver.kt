@@ -14,6 +14,7 @@ import com.slideindex.app.R
 import com.slideindex.app.di.AppGraphEntryPoint
 import com.slideindex.app.di.AppDependencies
 import com.slideindex.app.otp.OtpAutoFillController
+import com.slideindex.app.otp.OtpAutoFillDispatch
 import com.slideindex.app.otp.OtpAutoInputOrchestrator
 import com.slideindex.app.otp.OtpCaptureDeduplicator
 import com.slideindex.app.otp.OtpClipboardHelper
@@ -98,10 +99,13 @@ class OtpSmsBridgeReceiver : BroadcastReceiver() {
             if (com.slideindex.app.util.AppProcess.isOverlay) {
                 OtpAutoInputOrchestrator.requestAutoFill(context.applicationContext, code, settings, recordId)
             } else {
-                com.slideindex.app.overlay.OverlayStatePort.sendOtpAutoFill(
+                // 跨进程这条路要防"广播发给空气"（:overlay 没起来时动态接收者不存在），
+                // 见 OtpAutoFillDispatch：先看浮层在不在、不在就顺手拉起并短重试。
+                OtpAutoFillDispatch.request(
                     context = context,
                     code = code,
                     recordId = recordId,
+                    settings = settings,
                 )
             }
         }

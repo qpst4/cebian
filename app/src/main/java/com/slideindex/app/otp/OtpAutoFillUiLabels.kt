@@ -86,7 +86,8 @@ object OtpAutoFillUiLabels {
             "no_key_events" -> R.string.otp_autofill_reason_no_key_events
             "inject_exception" -> R.string.otp_autofill_reason_inject_exception
             "paste_fallback" -> R.string.otp_autofill_reason_paste_fallback
-            "a11y_not_connected" -> R.string.otp_autofill_reason_a11y_not_connected
+            OtpAutoFillReasons.A11Y_NOT_CONNECTED -> R.string.otp_autofill_reason_a11y_not_connected
+            OtpAutoFillReasons.NO_RESULT -> R.string.otp_autofill_reason_no_result
             "probe" -> R.string.otp_autofill_reason_probe
             OtpAutoInputBroadcastContract.SystemInjectReason.UID_REJECTED ->
                 R.string.otp_autofill_reason_uid_rejected

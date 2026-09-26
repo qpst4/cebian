@@ -2762,6 +2762,7 @@
     <string name="otp_autofill_reason_inject_exception">系统注入异常</string>
     <string name="otp_autofill_reason_paste_fallback">按键注入失败，已改用 Ctrl+V 粘贴</string>
     <string name="otp_autofill_reason_a11y_not_connected">无障碍服务未连接：系统注入也未能填入，请确认无障碍服务已开启</string>
+    <string name="otp_autofill_reason_no_result">没等到填充回执（浮层进程可能没起来或请求丢失）</string>
     <string name="otp_autofill_reason_probe">检测探针响应</string>
     <string name="otp_autofill_reason_uid_rejected">发送方 UID 未授权</string>
     <string name="otp_autofill_reason_inject_disabled">应用已关闭系统注入</string>

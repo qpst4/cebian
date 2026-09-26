@@ -48,7 +48,49 @@ class OtpRecordsRepository @Inject constructor(
         }
 
     private suspend fun reloadFromDiskForExternalChange() {
-        mutex.withLock { _records.value = trimByCategory(readFromDisk()) }
+        refreshFromDisk()
+    }
+
+    /**
+     * 强制读一次盘（顺带把"过期的填充中"结掉）。
+     *
+     * 为什么要手动刷：记录状态是跨进程写的，进程之间只靠一条写盘广播互相通知重新读盘 ——
+     * 广播发给了动态注册的接收者，对方没活着 / 还没注册就**直接丢了且不会补发**，
+     * 于是内存快照会停在旧状态（真机现象：文件里早就是"无障碍填充"了，记录页还显示"填充中"，
+     * 等到下一次别的进程写文件才突然变过来）。界面打开/回到前台时调这个方法就不会再骗人。
+     *
+     * 顺带做超时兜底：抓码后 [PENDING_STALE_TIMEOUT_MS] 还没等到任何填充结果 = 请求丢了
+     * （跨进程广播丢、浮层进程被杀等），直接落成失败，而不是永远挂在"填充中"。
+     */
+    suspend fun refreshFromDisk() {
+        mutex.withLock {
+            com.slideindex.app.util.CrossProcessStore.withFileLock(recordsFile) {
+                val loaded = trimByCategory(readFromDisk())
+                val healed = reconcileStalePending(loaded)
+                if (healed != loaded) {
+                    runCatching { writeToDisk(healed) }
+                    com.slideindex.app.util.CrossProcessStore.notifyChanged(appContext, recordsFile)
+                }
+                _records.value = healed
+            }
+        }
+    }
+
+    /** 把"抓码后一直没等到填充结果"的记录结掉，见 [PENDING_STALE_TIMEOUT_MS]。 */
+    private fun reconcileStalePending(
+        items: List<OtpRecord>,
+        nowMs: Long = System.currentTimeMillis(),
+    ): List<OtpRecord> = items.map { record ->
+        if (record.autoFillStatus == OtpRecordFillStatus.PENDING &&
+            nowMs - record.timestampMs >= PENDING_STALE_TIMEOUT_MS
+        ) {
+            record.copy(
+                autoFillStatus = OtpRecordFillStatus.FAILED,
+                autoFillReason = OtpAutoFillReasons.NO_RESULT,
+            )
+        } else {
+            record
+        }
     }
 
     /**
@@ -75,10 +117,11 @@ class OtpRecordsRepository @Inject constructor(
             withCrossProcessWrite {
                 val loaded = readFromDisk()
                 val trimmed = trimByCategory(loaded)
-                if (trimmed.size != loaded.size) {
-                    runCatching { writeToDisk(trimmed) }
+                val healed = reconcileStalePending(trimmed)
+                if (healed != loaded) {
+                    runCatching { writeToDisk(healed) }
                 }
-                _records.value = trimmed
+                _records.value = healed
             }
         }
     }
@@ -233,6 +276,15 @@ class OtpRecordsRepository @Inject constructor(
         private const val RECORDS_FILE_NAME = "otp_records.json"
         const val MAX_RECORDS = 200
         const val DEDUPE_WINDOW_MS = 60_000L
+
+        /**
+         * 抓码后等这么久还是没有填充结果，就判"请求丢了"。
+         *
+         * 正常链路的上限大约是：提取延迟（≤5s，实际 200ms）+ 注入回执 2s + 无障碍填一次（1～2s），
+         * 所以 20s 已经是宽裕的两倍余量；真结果晚到时 [updateAutoFillOutcome] 还会按 id 覆盖回正确状态。
+         */
+        const val PENDING_STALE_TIMEOUT_MS = 20_000L
+
         private val DEFAULT_LIMITS = mapOf(
             OtpRecordCategory.CODE to OtpRecordLimits.DEFAULT,
             OtpRecordCategory.PLAIN_SMS to OtpRecordLimits.DEFAULT,

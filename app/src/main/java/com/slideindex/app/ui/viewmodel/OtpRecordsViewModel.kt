@@ -32,6 +32,23 @@ class OtpRecordsViewModel @Inject constructor(
             initialValue = emptyList(),
         )
 
+    init {
+        refreshRecords()
+    }
+
+    /**
+     * 强制读一次盘。
+     *
+     * 记录状态是跨进程写的，进程之间只靠一条写盘广播通知重新读盘，而那条广播发给的是
+     * 动态注册的接收者 —— 对方没活着 / 还没注册就丢了且不补发。所以打开记录页、回到前台时
+     * 要主动刷一次，顺带让"过期还在填充中"的记录被超时兜底结掉。
+     */
+    fun refreshRecords() {
+        viewModelScope.launch {
+            runCatching { otpRecordsRepository.refreshFromDisk() }
+        }
+    }
+
     fun deleteRecord(id: String) = launchRepositoryWrite {
         otpRecordsRepository.delete(id)
     }
