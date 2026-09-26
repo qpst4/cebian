@@ -178,3 +178,23 @@ interface IOverlayHost {
   → `FlymeThemeHelper.cropTransparentSpace` → `Bitmap.getPixel`（逐像素），伴随 979/1011ms 单帧。
 - 选择器闪退：`WidgetPickerTrampolineActivity` 缺 `LocalAppDependencies` provider（已修，见提交 `e61906b8`）。
 - 崩溃分布：`ForegroundServiceDidNotStartInTimeException` ×13、OOM ×3、`coerceIn` 空区间 ×1（均已归档在设备 `files/crashes`）。
+
+## 附录 C：P2 切进程的实测记录（2026-09-26，MEIZU 21 / Android 16）
+
+已把「常驻交互」一组服务声明为 `android:process=":overlay"`：
+`SlideIndexAccessibilityService`、`ModuleGestureBridgeService`、`OverlayService`、`HistoryFloatService`、
+`ClipboardFloatService`、`MediaNotificationListener`、`ClipboardMonitorForegroundService`、`ClipboardMonitorUserService`。
+
+实测结果：
+
+1. 进程分布正常：`com.slideindex.app`(main) + `com.slideindex.app:overlay` 各自启动；
+   Shizuku 用户服务另有 `:task_manager_v36` 进程（注意 [AppProcess.isMain] 不能简单用「非 overlay/engine」判定）。
+2. 触钮/浮层窗口确实由 `:overlay` 持有：
+   `dumpsys window windows` 中 `mSession=Session{... 26985:u0a10158}`、`ty=ACCESSIBILITY_OVERLAY`。
+3. 无障碍服务在 `:overlay` 被系统重新绑定；通知监听（`NotifHistoryCapture` / `NotifFilterRecorder`）日志出现在 `:overlay`。
+4. 内存代价：main ≈ 1.0GB RSS、`:overlay` ≈ 540MB RSS（单进程时约 500MB 量级）→ 双份 Hilt 图/引擎是明显开销，
+   后续必须裁剪 overlay 进程的初始化（当前它仍会加载 jieba/onnxruntime/opencv）。
+5. 已知缺口（下一步必做）：
+   - 跨进程设置变更通知未做（MultiProcessDataStore 只保证读写安全，不保证另一进程的 flow 会主动 emit）→ 需要写入后广播 + 读方强制刷新，否则「设置改了不生效」。
+   - 主进程侧读取 overlay 状态的 UI（设置页试跑/预览、小组件预览、按应用禁用列表）目前读到的是空状态 → 需要 `OverlayStatePort`。
+   - 小组件 `HOST_ID` 仍被两个进程共用（4.2 的方案 A/B 尚未落地）。

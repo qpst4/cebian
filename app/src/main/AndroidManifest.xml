@@ -487,6 +487,7 @@
 
         <service
             android:name=".service.OverlayService"
+            android:process=":overlay"
             android:exported="false"
             android:foregroundServiceType="specialUse">
             <property
@@ -496,17 +497,20 @@
 
         <service
             android:name=".service.HistoryFloatService"
+            android:process=":overlay"
             android:enabled="true"
             android:exported="false"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden" />
 
         <service
             android:name=".service.ModuleGestureBridgeService"
+            android:process=":overlay"
             android:exported="true"
             tools:ignore="ExportedService" />
 
         <service
             android:name=".service.ClipboardFloatService"
+            android:process=":overlay"
             android:enabled="true"
             android:exported="false"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden" />
@@ -533,6 +537,7 @@
 
         <service
             android:name=".service.MediaNotificationListener"
+            android:process=":overlay"
             android:exported="true"
             android:label="@string/media_notification_listener_name"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
@@ -543,6 +548,7 @@
 
         <service
             android:name=".service.SlideIndexAccessibilityService"
+            android:process=":overlay"
             android:exported="true"
             android:label="@string/accessibility_service_name"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
@@ -597,6 +603,7 @@
 
         <service
             android:name=".clipboard.monitor.ClipboardMonitorForegroundService"
+            android:process=":overlay"
             android:exported="false"
             android:foregroundServiceType="specialUse">
             <property
@@ -606,6 +613,7 @@
 
         <service
             android:name=".clipboard.monitor.ClipboardMonitorUserService"
+            android:process=":overlay"
             android:exported="false"
             tools:ignore="Instantiatable" />
 
