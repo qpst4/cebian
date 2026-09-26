@@ -292,6 +292,16 @@ class ClipboardMonitorForegroundService : Service() {
         }, BIND_DELAY_MS)
     }
 
+    /** 清掉上一代残留的监听子进程（孤儿 app_process / logcat）。best-effort，失败只记日志。 */
+    private fun killLeftoverListenerProcesses() {
+        val pattern = if (useHiddenApi) LISTENER_ZIP_ASSET else "ClipboardService:E"
+        runCatching {
+            val ok = com.slideindex.app.util.TaskManagerUtil
+                .runShellCommand("sh", "-c", "pkill -f '$pattern'")
+            if (!ok) Log.w(tag, "pkill leftover listeners returned false (pattern=$pattern)")
+        }.onFailure { Log.w(tag, "pkill leftover listeners failed (pattern=$pattern)", it) }
+    }
+
     private fun startPrivilegedListening() {
         val service = listenerService ?: return
         listenerThread?.interrupt()
@@ -306,6 +316,9 @@ class ClipboardMonitorForegroundService : Service() {
                         applicationContext.getExternalFilesDir(null),
                         LISTENER_ZIP_ASSET,
                     ).path
+                    // 先清掉上一代残留的监听子进程：用户服务被替换/被杀之后，它起的子进程会变成孤儿，
+                    // 一直占着 logcat / 权限句柄（真机上见过 2~3 个）。best-effort，失败不影响本次启动。
+                    killLeftoverListenerProcesses()
                     service.startListening(clipboardListenerCallback, useRoot, path, useHiddenApi)
                 } catch (e: Exception) {
                     Log.w(tag, "privileged listening failed (attempt=$attempt)", e)
