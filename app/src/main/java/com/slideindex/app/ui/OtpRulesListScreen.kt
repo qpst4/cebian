@@ -251,6 +251,7 @@ private fun OtpRuleRowContent(
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
+@android.annotation.SuppressLint("LocalContextGetResourceValueCall")
 internal fun OtpRuleEditorDialog(
     initialRule: OtpMatchRule?,
     onDismiss: () -> Unit,
@@ -258,6 +259,11 @@ internal fun OtpRuleEditorDialog(
     keywordsRegex: String = OtpKeywords.DEFAULT_KEYWORDS_REGEX,
 ) {
     val context = LocalContext.current
+    // 同上：资源读取跟随配置变化。
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+    val resourceContext = androidx.compose.runtime.remember(configuration) {
+        context.createConfigurationContext(configuration)
+    }
     var sample by remember(initialRule) { mutableStateOf("") }
     var name by remember(initialRule) { mutableStateOf(initialRule?.name.orEmpty()) }
     var keyword by remember(initialRule) { mutableStateOf(initialRule?.keyword.orEmpty()) }
@@ -276,7 +282,7 @@ internal fun OtpRuleEditorDialog(
         inference?.let { result ->
             keyword = result.keyword
             regex = result.regex
-            if (name.isBlank()) name = context.getString(R.string.otp_rules_default_name)
+            if (name.isBlank()) name = resourceContext.getString(R.string.otp_rules_default_name)
         }
     }
 

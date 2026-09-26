@@ -17,7 +17,7 @@ import kotlin.math.roundToInt
 /** 验证码自动填充：开关、自动回车、输入延迟与间隔、系统注入。 */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-@android.annotation.SuppressLint("LocalContextResourcesRead")
+@android.annotation.SuppressLint("LocalContextGetResourceValueCall")
 fun OtpAutoFillScreen(
     settings: AppSettings,
     onBack: () -> Unit,
@@ -30,6 +30,11 @@ fun OtpAutoFillScreen(
     onLsposedSystemInjectChange: (Boolean) -> Unit,
 ) {
     val context = LocalContext.current
+    // 资源读取要跟随配置变化（切语言/改字号/转屏）：用配置感知的派生 Context。
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+    val resourceContext = androidx.compose.runtime.remember(configuration) {
+        context.createConfigurationContext(configuration)
+    }
     val enabled = accessibilityGranted && settings.otpAutoInputEnabled
     val items = listOf(
         settingsCardScopeItem("auto-input-enabled") {
@@ -67,9 +72,9 @@ fun OtpAutoFillScreen(
                 formatLabel = { value ->
                     val ms = value.roundToInt()
                     if (ms <= 0) {
-                        context.getString(R.string.otp_auto_input_delay_zero)
+                        resourceContext.getString(R.string.otp_auto_input_delay_zero)
                     } else {
-                        context.getString(R.string.otp_auto_input_delay_value, ms)
+                        resourceContext.getString(R.string.otp_auto_input_delay_value, ms)
                     }
                 },
                 snapValue = { value -> (value / 100f).roundToInt() * 100f },
@@ -85,7 +90,7 @@ fun OtpAutoFillScreen(
                 enabled = enabled,
                 label = stringResource(R.string.otp_auto_input_interval_value, settings.otpAutoInputIntervalMs),
                 formatLabel = { value ->
-                    context.getString(R.string.otp_auto_input_interval_value, value.roundToInt())
+                    resourceContext.getString(R.string.otp_auto_input_interval_value, value.roundToInt())
                 },
                 snapValue = { value -> (value / 20f).roundToInt() * 20f },
                 onValueChange = { value -> onIntervalChange(((value / 20f).roundToInt() * 20).coerceIn(0, 500)) },
