@@ -42,6 +42,8 @@ class OverlayService : LifecycleService() {
         GestureToggleTileWarmup.requestListening(this, "overlayService")
         shakeGestureHost.start(lifecycleScope)
         faceDownGestureHost.start(lifecycleScope)
+        // 立刻回一帧状态：主进程的看门狗"唤醒 overlay"之后靠这帧判断进程是否真的活着。
+        com.slideindex.app.overlay.OverlayStatePort.publish(this, "serviceStart")
         lifecycleScope.launch {
             OverlayServiceLifecycle.recoverAccessibilityBinding(
                 this@OverlayService,
@@ -55,6 +57,8 @@ class OverlayService : LifecycleService() {
         lifecycleScope.launch {
             while (isActive) {
                 delay(ACCESSIBILITY_WATCHDOG_INTERVAL_MS)
+                // 心跳：主进程以此判断 overlay 进程是否还活着（镜像新鲜度）。
+                com.slideindex.app.overlay.OverlayStatePort.publish(this@OverlayService, "heartbeat")
                 val settings = deps.settingsRepository.settings.first()
                 if (!settings.serviceEnabled) {
                     AccessibilityRecoverNotifier.clearOffline(this@OverlayService)
@@ -80,6 +84,8 @@ class OverlayService : LifecycleService() {
         super.onStartCommand(intent, flags, startId)
         // startForegroundService() requires startForeground() on every delivery, not only in onCreate().
         promoteToForeground()
+        // 每一次被"唤醒"都回一帧状态：主进程看门狗靠这帧判断 :overlay 是否活着。
+        com.slideindex.app.overlay.OverlayStatePort.publish(this, "serviceCommand")
         when (intent?.action) {
             ACTION_RELOAD_APPS -> SlideIndexAccessibilityService.reloadApps()
             ACTION_PREVIEW_START -> {

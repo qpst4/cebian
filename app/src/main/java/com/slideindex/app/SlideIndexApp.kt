@@ -154,6 +154,8 @@ class SlideIndexApp : Application() {
         }
         deps.stashRepository
         deps.clipboardHistoryRepository
+        // 常驻巡检：用户不开 App 时，overlay 掉线/进程被杀也能被自己拉回来。
+        com.slideindex.app.service.OverlayWatchdogJobService.schedule(this)
         deps.applicationScope.launch(Dispatchers.IO) {
             val enabled = deps.settingsRepository.settings.first().serviceEnabled
             ServiceEnabledStore.write(this@SlideIndexApp, enabled)

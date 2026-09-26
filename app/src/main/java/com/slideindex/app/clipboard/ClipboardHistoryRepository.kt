@@ -367,11 +367,7 @@ class ClipboardHistoryRepository @Inject constructor(
 
     fun syncClipboardMonitoringFromSettings() {
         if (!ClipboardMonitorProcess.isMonitorProcess()) {
-            // 主进程不能直接起监听（服务在 :overlay），转发命令。
-            com.slideindex.app.overlay.OverlayStatePort.sendCommand(
-                context,
-                com.slideindex.app.overlay.OverlayStatePort.COMMAND_SYNC_CLIPBOARD_MONITORING,
-            )
+            syncExternalMonitorService()
             return
         }
         val settings = settingsRepository.readSnapshot()
@@ -384,10 +380,7 @@ class ClipboardHistoryRepository @Inject constructor(
 
     fun restartClipboardMonitoringFromSettings() {
         if (!ClipboardMonitorProcess.isMonitorProcess()) {
-            com.slideindex.app.overlay.OverlayStatePort.sendCommand(
-                context,
-                com.slideindex.app.overlay.OverlayStatePort.COMMAND_SYNC_CLIPBOARD_MONITORING,
-            )
+            syncExternalMonitorService()
             return
         }
         val settings = settingsRepository.readSnapshot()
@@ -396,6 +389,20 @@ class ClipboardHistoryRepository @Inject constructor(
             return
         }
         clipboardMonitorController.restart(resolveClipboardMonitoringMode())
+    }
+
+    /**
+     * 非监听进程：按设置启停跑在 `:clipboard-monitor` 的前台服务。
+     *
+     * 模式解析交给监听进程自己（见 [com.slideindex.app.clipboard.monitor.ClipboardMonitorForegroundService]），
+     * 这里只负责"该起就起、该停就停"，不再依赖 overlay 进程转发。
+     */
+    private fun syncExternalMonitorService() {
+        if (!settingsRepository.readSnapshot().clipboardBackgroundMonitoring) {
+            clipboardMonitorController.stopMonitorServiceFromOutside()
+            return
+        }
+        clipboardMonitorController.startMonitorServiceFromOutside()
     }
 
     /**

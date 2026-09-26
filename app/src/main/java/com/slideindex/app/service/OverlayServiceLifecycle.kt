@@ -15,6 +15,23 @@ import kotlinx.coroutines.flow.first
 
 /** 根据 [serviceEnabled] 与权限状态启停 [OverlayService]（磁贴、快捷方式、开机恢复等场景复用）。 */
 object OverlayServiceLifecycle {
+    /**
+     * 唤醒常驻交互进程：`OverlayService` 跑在 `:overlay`，把它拉起来就等于把整个
+     * 无障碍 + 浮层宿主拉起来（其 onCreate 会自己走一遍恢复与状态上报）。
+     *
+     * 后台启动前台服务在部分机型上会被限制（`ForegroundServiceStartNotAllowedException`）；
+     * 这里吞掉异常只记日志，真正的兜底是随后改写系统无障碍条目强制系统重绑。
+     */
+    fun wakeOverlayService(context: Context) {
+        val appContext = context.applicationContext
+        runCatching {
+            androidx.core.content.ContextCompat.startForegroundService(
+                appContext,
+                Intent(appContext, OverlayService::class.java),
+            )
+        }.onFailure { Log.w(TAG, "wakeOverlayService failed", it) }
+    }
+
     suspend fun syncFromSettings(
         context: Context,
         settingsRepository: SettingsRepository,
@@ -49,6 +66,7 @@ object OverlayServiceLifecycle {
      */
     suspend fun recoverAccessibilityBinding(context: Context, settings: AppSettings): AccessibilityRecoverOutcome {
         val appContextForState = context.applicationContext
+        if (!settings.serviceEnabled) return AccessibilityRecoverOutcome.NotNeeded
         // 连接状态的权威值只存在于 :overlay（无障碍实例在那个进程）。
         // 其它进程里 `SlideIndexAccessibilityService.isConnected()` 恒为 false，
         // 直接用它会导致：主进程每次启动都误判「掉线」→ 白白抖断一次绑定（悬浮球/手势短暂消失）
@@ -57,15 +75,15 @@ object OverlayServiceLifecycle {
             if (OverlayStatePort.isServiceConnected()) {
                 return AccessibilityRecoverOutcome.Connected
             }
-            if (!OverlayStatePort.hasServiceState()) {
+            if (!OverlayStatePort.hasServiceState() && OverlayStatePort.isServiceStateFresh()) {
                 // 还没收到过 overlay 的状态广播：状态未知，别乱动（也不要吓用户）。
                 return AccessibilityRecoverOutcome.NotNeeded
             }
-            // 真的掉线：把恢复请求交给 overlay 执行（重绑/授权只有那边做得了）。
+            // 真的掉线（或 overlay 进程已经不在了）：先把它拉起来，再让它在自己进程里恢复。
+            wakeOverlayService(appContextForState)
             OverlayStatePort.sendCommand(appContextForState, OverlayStatePort.COMMAND_RECOVER_ACCESSIBILITY)
             return AccessibilityRecoverOutcome.NotNeeded
         }
-        if (!settings.serviceEnabled) return AccessibilityRecoverOutcome.NotNeeded
         val appContext = context.applicationContext
 
         // 1. 若开启了防被杀，在任何门禁前优先自动写回系统设置，避免因系统断开无障碍而判定为未授权

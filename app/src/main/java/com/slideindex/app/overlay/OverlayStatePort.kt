@@ -33,6 +33,10 @@ import kotlinx.coroutines.launch
 object OverlayStatePort {
     private const val TAG = "OverlayStatePort"
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+    /** 镜像保鲜期：overlay 25s 广播一次心跳，三倍余量足够，也避免误判"进程已死"。 */
+    private const val STATE_STALE_MS = 90_000L
+    const val HEARTBEAT_INTERVAL_HINT_MS = 25_000L
     private const val ACTION_STATE = "com.slideindex.app.action.OVERLAY_STATE"
     private const val ACTION_COMMAND = "com.slideindex.app.action.OVERLAY_COMMAND"
     private const val ACTION_ACTIVE_NOTIFICATIONS = "com.slideindex.app.action.ACTIVE_NOTIFICATIONS"
@@ -65,6 +69,10 @@ object OverlayStatePort {
     /** 是否收到过 overlay 的状态广播：没收过时镜像的 false 只是「未知」，不能当成「掉线」。 */
     @Volatile
     private var mirrorStateReceived = false
+
+    /** 最近一次收到 overlay 状态广播的时刻（本进程 elapsedRealtime）。看门狗用它判断 overlay 是否还活着。 */
+    @Volatile
+    private var mirrorStateAtMs = 0L
 
     /**
      * 通知栏「实时」快照镜像。
@@ -116,6 +124,23 @@ object OverlayStatePort {
      */
     fun hasServiceState(): Boolean = AppProcess.isOverlay || mirrorStateReceived
 
+    /**
+     * 镜像是否「新鲜」。
+     *
+     * overlay 进程每 [HEARTBEAT_INTERVAL_HINT_MS]（由 OverlayService 看门狗每 25s 广播一次）刷一次，
+     * 超过 [maxAgeMs] 没刷新就认为 overlay 进程大概率已经不在了 —— 这是主进程能拿到的、
+     * 判断「overlay 是否还活着」的唯一可靠信号。
+     */
+    fun isServiceStateFresh(
+        nowMs: Long = android.os.SystemClock.elapsedRealtime(),
+        maxAgeMs: Long = STATE_STALE_MS,
+    ): Boolean = mirrorStateReceived && nowMs - mirrorStateAtMs <= maxAgeMs
+
+    /** 距上次收到 overlay 状态广播过了多久；从没收到过返回 null。 */
+    fun millisSinceServiceState(
+        nowMs: Long = android.os.SystemClock.elapsedRealtime(),
+    ): Long? = if (mirrorStateReceived) nowMs - mirrorStateAtMs else null
+
     /** 当前前台包名（主进程读镜像）。 */
     fun foregroundPackage(): String? =
         if (AppProcess.isOverlay) {
@@ -154,6 +179,7 @@ object OverlayStatePort {
                         mirrorLockScreenActive = intent.getBooleanExtra(EXTRA_LOCKED, mirrorLockScreenActive)
                         mirrorForegroundPackage = intent.getStringExtra(EXTRA_FOREGROUND)
                         mirrorStateReceived = true
+                        mirrorStateAtMs = android.os.SystemClock.elapsedRealtime()
                     }
 
                     ACTION_ACTIVE_NOTIFICATIONS -> {

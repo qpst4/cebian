@@ -74,7 +74,9 @@ class ClipboardMonitorController @Inject constructor(
                 appContext.packageName,
                 ClipboardMonitorUserService::class.java.name,
             ),
-        ).daemon(false).processNameSuffix("clipboard-monitor")
+            // 别和前台服务进程 `:clipboard` 撞名：Shizuku 起的用户服务若同名，
+            // 会出现两个同名却性质不同的进程，按进程名判身份（AppProcess）就会互相误认。
+        ).daemon(false).processNameSuffix("clipboarduser")
         bindInstance(this)
     }
 
@@ -139,15 +141,34 @@ class ClipboardMonitorController @Inject constructor(
 
     private fun startForegroundServiceInternal(mode: ClipboardMonitoringMode) {
         if (!canStart(mode)) return
-        val intent = Intent(appContext, ClipboardMonitorForegroundService::class.java).apply {
-            putExtra(ClipboardMonitorForegroundService.EXTRA_USE_STANDARD, mode.usesStandardApi)
-            putExtra(ClipboardMonitorForegroundService.EXTRA_USE_ROOT, mode.usesRoot)
-            putExtra(ClipboardMonitorForegroundService.EXTRA_USE_LSPOSED, mode.usesLsposed)
-            putExtra(
-                ClipboardMonitorForegroundService.EXTRA_USE_HIDDEN_API,
-                mode.usesHiddenApi,
-            )
-        }
+        startMonitorService(ClipboardMonitorForegroundService.modeIntent(appContext, mode))
+    }
+
+    /**
+     * 非监听进程（主进程 / `:overlay`）用：把跑在 `:clipboard-monitor` 的监听前台服务拉起来。
+     *
+     * 故意不带模式参数：由监听进程自己按设置解析（Shizuku / Root 可用性只有那边判定得准）。
+     * 后台启动前台服务在部分机型上会被系统限制，失败只记日志 ——
+     * 下次设置同步 / 看门狗巡检还会再试，不影响其余功能。
+     */
+    fun startMonitorServiceFromOutside() {
+        startMonitorService(
+            Intent(appContext, ClipboardMonitorForegroundService::class.java).apply {
+                putExtra(ClipboardMonitorForegroundService.EXTRA_FROM_SETTINGS, true)
+            },
+        )
+    }
+
+    /** 非监听进程用：按组件名跨进程停掉监听前台服务。 */
+    fun stopMonitorServiceFromOutside() {
+        pendingMode = null
+        mainHandler.removeCallbacks(dispatchStartRunnable)
+        runCatching {
+            appContext.stopService(Intent(appContext, ClipboardMonitorForegroundService::class.java))
+        }.onFailure { Log.w(TAG, "stop monitor service failed", it) }
+    }
+
+    private fun startMonitorService(intent: Intent) {
         runCatching {
             ContextCompat.startForegroundService(appContext, intent)
         }.onFailure {

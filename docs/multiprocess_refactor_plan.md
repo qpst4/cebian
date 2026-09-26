@@ -331,3 +331,53 @@ OTP 填充统计 `OtpAutoFillStatsRepository`、通知过滤规则 `Notification
 
 经验：进程拆分后**任何「进程内静态」都不再等于全局状态**。凡是"是否连接/是否运行"的判断，
 必须区分「overlay 进程读本地」与「其它进程读镜像」，并且镜像未就绪时要当作未知而不是 false。
+
+### C.7 剪贴板监听拆独立进程 + 常驻守护（P4 前的最后两项结构加固）
+
+**1. 剪贴板监听前台服务移出 `:overlay` → 独占 `:clipboard`**
+
+动机：这条服务是历史上唯一反复踩 `ForegroundServiceDidNotStartInTimeException` 的组件，
+和浮层同进程时它一崩就带走悬浮球与全部手势（真机崩溃记录里一天出现 11 次）。
+
+做法：
+
+- 清单：`ClipboardMonitorForegroundService` 改 `android:process=":clipboard"`；
+- 启停改由调用方按组件名跨进程做（不再依赖 overlay 广播转发）：
+  `ClipboardMonitorController.startMonitorServiceFromOutside()/stopMonitorServiceFromOutside()`；
+- **模式解析留在监听进程内**：其它进程只发一个"跟随设置"的 intent
+  （`EXTRA_FROM_SETTINGS`），由服务自己解析 Shizuku/Root/LSPosed 可用性
+  （只有那边判定得准），再走标准启动路径；
+- Shizuku 用户服务进程后缀 `clipboard-monitor` → `clipboarduser`：
+  否则会出现两个同名却性质不同的进程，而 `AppProcess` 是按进程名判身份的。
+
+> ⚠️ 踩坑（实测）：`android:process` 的值**不能带连字符**。
+> `:clipboard-monitor` / `:clipboard-fg` 都会让安装时报
+> `INSTALL_PARSE_FAILED_UNEXPECTED_EXCEPTION: Failed to read manifest ...
+> ParsedServiceImpl cannot be cast to java.lang.String`（Flyme/A16 的 PackageParser 行为），
+> 换成 `:clipboard`、`:clipmonitor` 立刻正常。二分过程：无关属性改动可正常安装，
+> 仅改该进程名即失败；clean build 后依旧失败，排除增量产物问题。
+
+验证（MEIZU 21 / A16）：进程变为 `main / :overlay / :clipboard / :engine / :clipboarduser`；
+`:clipboard` 内 `ClipboardMonitorFg` 正常绑定 Shizuku 用户服务，用户服务日志出现
+`try read logs: logcat -T ... ClipboardService:E *:S`（监听通道在工作）。
+
+**2. 常驻守护：`OverlayWatchdogJobService` + `OverlayGuard`**
+
+动机：多进程之后主进程不再是常驻进程，"用户不开 App 就没有任何东西保证手势能回来"。
+方案是**互拉**：
+
+- `OverlayStatePort` 增加镜像新鲜度（`isServiceStateFresh/millisSinceServiceState`），
+  `OverlayService` 每 25s 心跳广播 + 每次被唤醒（`onStartCommand`）都回一帧状态；
+- 主进程注册 `JobScheduler` 周期任务（15 分钟、`PERSISTED`、开机/覆盖安装/启动都会幂等重排）；
+- 巡检顺序：健康（connected + 新鲜）→ 直接返回；否则**唤醒 `:overlay`**
+  （`startForegroundService(OverlayService)`）并发一条恢复命令；收到新状态帧后若仍掉线，
+  或压根没回应，才改写系统无障碍条目强制系统重绑；最后仍失败才发掉线通知。
+
+> ⚠️ 踩坑（实测）：**存活判定不能只靠心跳**。第一版用"等一帧新鲜状态（20s）"判断，
+> 而 `OverlayService.onStartCommand` 当时不发状态帧，心跳又是 25s 一次 ——
+> 20s 窗口经常等空，于是把一个**健康**的绑定当成掉线去抖断（并弹出误报通知）。
+> 修正：唤醒的同时发恢复命令（命令处理完必然回一帧状态），并在 `onStartCommand` 里补发状态帧。
+> 修正后连续两次手动触发巡检均返回 `watchdog result=Healthy`，overlay 进程 pid 与绑定都没被扰动。
+
+局限（已知）：真机上无法在不 root 的情况下杀掉 `:overlay` 进程，所以"进程已死"这条分支
+只做了代码审查与逻辑推演，未做破坏性验证；健康分支与"任务被调度执行"已实测。

@@ -25,6 +25,7 @@ import com.slideindex.app.MainActivity
 import com.slideindex.app.R
 import com.slideindex.app.clipboard.ClipboardFocusReader
 import com.slideindex.app.clipboard.ClipboardReader
+import com.slideindex.app.settings.ClipboardMonitoringMode
 import com.slideindex.app.util.PermissionHelper
 import java.io.File
 import java.lang.ref.WeakReference
@@ -91,6 +92,23 @@ class ClipboardMonitorForegroundService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        // 由其它进程按"跟随设置"拉起时，不带模式参数：在这里（监听进程内）自己解析模式。
+        // 好处是 Shizuku / Root 可用性、LSPosed 探测都只在本进程判定一次，调用方不用猜。
+        if (intent?.getBooleanExtra(EXTRA_FROM_SETTINGS, false) == true) {
+            promoteToForeground(
+                ClipboardMonitorNotificationTexts.waitingTitle(this),
+                ClipboardMonitorNotificationTexts.waitingText(this, false, false, false, false),
+            )
+            val repository = com.slideindex.app.clipboard.ClipboardAccess.repository
+            if (repository == null) {
+                Log.w(tag, "clipboard repository unavailable, stop monitor")
+                stopSelf()
+                return START_NOT_STICKY
+            }
+            // 交给仓库走标准路径：解析模式 → 再用带模式参数的 intent 重新启动本服务。
+            repository.syncClipboardMonitoringFromSettings()
+            return START_NOT_STICKY
+        }
         useStandard = intent?.getBooleanExtra(EXTRA_USE_STANDARD, false) == true
         useLsposed = intent?.getBooleanExtra(EXTRA_USE_LSPOSED, false) == true
         useRoot = intent?.getBooleanExtra(EXTRA_USE_ROOT, false) == true
@@ -478,6 +496,21 @@ class ClipboardMonitorForegroundService : Service() {
         const val EXTRA_USE_HIDDEN_API = "useHiddenApi"
         const val EXTRA_USE_STANDARD = "useStandard"
         const val EXTRA_USE_LSPOSED = "useLsposed"
+
+        /** 由其它进程发起、模式留给自己解析（见 onStartCommand 开头）。 */
+        const val EXTRA_FROM_SETTINGS = "fromSettings"
+
+        /** 带模式参数的启动 intent（进程内 / 跨进程都用这一个构造点）。 */
+        fun modeIntent(
+            context: android.content.Context,
+            mode: ClipboardMonitoringMode,
+        ): Intent = Intent(context, ClipboardMonitorForegroundService::class.java).apply {
+            putExtra(EXTRA_USE_STANDARD, mode.usesStandardApi)
+            putExtra(EXTRA_USE_ROOT, mode.usesRoot)
+            putExtra(EXTRA_USE_LSPOSED, mode.usesLsposed)
+            putExtra(EXTRA_USE_HIDDEN_API, mode.usesHiddenApi)
+        }
+
         private const val MSG_CLIPBOARD_CHANGED = 1
         private const val CHANNEL_ID = "clipboard_monitor"
         private const val NOTIFICATION_ID = 4102

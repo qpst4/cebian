@@ -41,6 +41,7 @@ class NotificationBootReceiver : BroadcastReceiver() {
                     AppGraphEntryPoint::class.java,
                 ).dependencies()
                 OverlayServiceLifecycle.syncFromSettings(appContext, deps.settingsRepository)
+                com.slideindex.app.service.OverlayWatchdogJobService.schedule(appContext)
                 if (action == Intent.ACTION_MY_PACKAGE_REPLACED) {
                     val settings = deps.settingsRepository.readSnapshot()
                     OverlayServiceLifecycle.recoverAccessibilityBindingWithRetries(

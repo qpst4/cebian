@@ -508,6 +508,11 @@
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden" />
 
         <service
+            android:name=".service.OverlayWatchdogJobService"
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
+
+        <service
             android:name=".service.ModuleGestureBridgeService"
             android:process=":overlay"
             android:exported="true"
@@ -623,7 +628,7 @@
 
         <service
             android:name=".clipboard.monitor.ClipboardMonitorForegroundService"
-            android:process=":overlay"
+            android:process=":clipboard"
             android:exported="false"
             android:foregroundServiceType="specialUse">
             <property
