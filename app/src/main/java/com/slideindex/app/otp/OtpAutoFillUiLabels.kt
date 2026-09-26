@@ -85,6 +85,7 @@ object OtpAutoFillUiLabels {
             "inject_method_unresolved" -> R.string.otp_autofill_reason_inject_method_unresolved
             "no_key_events" -> R.string.otp_autofill_reason_no_key_events
             "inject_exception" -> R.string.otp_autofill_reason_inject_exception
+            "paste_fallback" -> R.string.otp_autofill_reason_paste_fallback
             "probe" -> R.string.otp_autofill_reason_probe
             OtpAutoInputBroadcastContract.SystemInjectReason.UID_REJECTED ->
                 R.string.otp_autofill_reason_uid_rejected

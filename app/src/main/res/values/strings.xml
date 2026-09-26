@@ -2760,6 +2760,7 @@
     <string name="otp_autofill_reason_inject_method_unresolved">系统注入方法不可用</string>
     <string name="otp_autofill_reason_no_key_events">未能生成按键事件</string>
     <string name="otp_autofill_reason_inject_exception">系统注入异常</string>
+    <string name="otp_autofill_reason_paste_fallback">按键注入失败，已改用 Ctrl+V 粘贴</string>
     <string name="otp_autofill_reason_probe">检测探针响应</string>
     <string name="otp_autofill_reason_uid_rejected">发送方 UID 未授权</string>
     <string name="otp_autofill_reason_inject_disabled">应用已关闭系统注入</string>

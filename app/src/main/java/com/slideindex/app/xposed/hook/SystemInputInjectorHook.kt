@@ -279,7 +279,13 @@ class SystemInputInjectorHook {
         )
         XposedLog.i(TAG, "System inject request codeLen=${request.code.length}")
         val interval = request.inputIntervalMs.coerceAtMost(MAX_SYNC_INPUT_INTERVAL_MS)
-        val result = performInjectText(request.code, request.autoEnter, interval, classLoader)
+        val result = performInjectText(
+          request.code,
+          request.autoEnter,
+          interval,
+          request.allowPaste,
+          classLoader,
+        )
         sendAutoInputResult(context, request.attemptId, result.success, result.reason)
         if (result.success) {
           abortBroadcast()
@@ -303,6 +309,7 @@ class SystemInputInjectorHook {
     text: String,
     autoEnter: Boolean,
     intervalMs: Long,
+    allowPaste: Boolean,
     classLoader: ClassLoader,
   ): InjectResult {
     if (!resolveInputInjector(classLoader)) {
@@ -320,17 +327,20 @@ class SystemInputInjectorHook {
       OtpAutoInputBroadcastContract.SystemInjectReason.INJECT_METHOD_UNRESOLVED,
     )
     val mode = resolveInjectMode(classLoader)
-    return runCatching {
+    val direct = runCatching {
       val keyMap = KeyCharacterMap.load(KeyCharacterMap.VIRTUAL_KEYBOARD)
       var injectedCount = 0
-      for (ch in text) {
+      for ((index, ch) in text.withIndex()) {
         val events = keyMap.getEvents(charArrayOf(ch)) ?: continue
         for (event in events) {
           event.source = InputDeviceSourceKeyboard
           if (invokeInject(manager, method, event, mode)) {
             injectedCount++
           }
-          if (intervalMs > 0) Thread.sleep(intervalMs)
+        }
+        // 输入间隔按"每个字符"等一次（不是 down/up 各一次），最后一个字符后不再等。
+        if (intervalMs > 0 && index < text.lastIndex) {
+          Thread.sleep(intervalMs)
         }
       }
       if (autoEnter) {
@@ -347,6 +357,27 @@ class SystemInputInjectorHook {
       Log.e(TAG, "performInjectText failed", it)
       InjectResult(false, OtpAutoInputBroadcastContract.SystemInjectReason.INJECT_EXCEPTION)
     }
+    if (direct.success || !allowPaste) return direct
+    // 第二层降级：按键注入失败时改用 Ctrl+V 粘贴。
+    // 只在 App 侧确认剪贴板里已放入本次验证码（"提取后自动复制"开启）时才允许，
+    // 否则可能把剪贴板里的旧内容粘进输入框。
+    return runCatching {
+      Thread.sleep(PASTE_FALLBACK_DELAY_MS)
+      injectPasteShortcut(manager, method, mode)
+      XposedLog.i(TAG, "Direct inject failed (${direct.reason}), fell back to Ctrl+V paste")
+      InjectResult(true, OtpAutoInputBroadcastContract.SystemInjectReason.PASTE_FALLBACK)
+    }.getOrElse {
+      Log.e(TAG, "Ctrl+V paste fallback failed", it)
+      direct
+    }
+  }
+
+  /** Ctrl+V：两个带 CTRL 修饰的按键事件。 */
+  private fun injectPasteShortcut(manager: Any, method: Method, mode: Int) {
+    val now = SystemClock.uptimeMillis()
+    val meta = KeyEvent.META_CTRL_ON or KeyEvent.META_CTRL_LEFT_ON
+    injectKeyEvent(manager, method, mode, KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_V, now, meta)
+    injectKeyEvent(manager, method, mode, KeyEvent.ACTION_UP, KeyEvent.KEYCODE_V, now, meta)
   }
 
   private fun injectKeyEvent(
@@ -356,14 +387,15 @@ class SystemInputInjectorHook {
     action: Int,
     keyCode: Int,
     eventTime: Long,
+    metaState: Int = 0,
   ) {
     val event = KeyEvent(
       eventTime,
       eventTime,
       action,
       keyCode,
-      0,
-      0,
+      if (metaState != 0) 1 else 0,
+      metaState,
       -1,
       0,
       0,
@@ -444,6 +476,13 @@ class SystemInputInjectorHook {
     return threeArg
   }
 
+  /**
+   * 注入模式：优先 ASYNC —— 不等每次按键派发完成就返回。
+   *
+   * WAIT_FOR_FINISH 模式下每注入一个按键事件都要等它走完"输入法 → 目标应用"整条派发链，
+   * 6 位验证码 12 个事件累加实测 3～5 秒；ASYNC 只把事件交给输入系统，耗时回落到
+   * "每个字符的输入间隔"这一项（新版上游模块用的就是这个模式）。
+   */
   private fun resolveInjectMode(classLoader: ClassLoader): Int {
     val managerClassNames = listOf(
       "android.hardware.input.InputManager",
@@ -453,12 +492,13 @@ class SystemInputInjectorHook {
       val mode = runCatching {
         LibXposedReflect.getStaticIntField(
           LibXposedReflect.findClass(className, classLoader),
-          "INJECT_INPUT_EVENT_MODE_WAIT_FOR_FINISH",
+          "INJECT_INPUT_EVENT_MODE_ASYNC",
         )
       }.getOrNull()
       if (mode != null) return mode
     }
-    return 2
+    // 拿不到 ASYNC 常量时退回 1（WAIT_FOR_FINISH）：慢，但保证事件派发完成。
+    return 1
   }
 
   private fun sendAutoInputResult(
@@ -483,6 +523,8 @@ class SystemInputInjectorHook {
     private const val DELAY_REGISTER_MS = 500L
     private const val MAX_REGISTER_ATTEMPTS = 10
     private const val MAX_SYNC_INPUT_INTERVAL_MS = 200L
+    /** 改用 Ctrl+V 前留一点时间，让 App 侧把验证码写进剪贴板。 */
+    private const val PASTE_FALLBACK_DELAY_MS = 150L
     private const val CACHED_UID_TTL_MS = 10_000L
     private const val InputDeviceSourceKeyboard = android.view.InputDevice.SOURCE_KEYBOARD
     private val TRUSTED_SENDER_PACKAGES = setOf(

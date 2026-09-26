@@ -19,6 +19,8 @@ object OtpAutoInputBroadcastContract {
     const val EXTRA_SMS_SENDER = "sms_sender"
     const val EXTRA_SMS_SLOT = "sms_slot"
     const val EXTRA_ALLOW_SYSTEM_INJECT = "allow_system_inject"
+    /** 剪贴板里已经有本次验证码（App 开了"提取后自动复制"），允许按键注入失败时改用 Ctrl+V。 */
+    const val EXTRA_ALLOW_PASTE = "allow_paste"
     const val EXTRA_PROBE = "probe"
 
     const val RECEIVER_PRIORITY_SYSTEM = 2000
@@ -37,6 +39,8 @@ object OtpAutoInputBroadcastContract {
         const val INJECT_METHOD_UNRESOLVED = "inject_method_unresolved"
         const val NO_KEY_EVENTS = "no_key_events"
         const val INJECT_EXCEPTION = "inject_exception"
+        /** 按键注入失败后的第二层降级：Ctrl+V 粘贴。 */
+        const val PASTE_FALLBACK = "paste_fallback"
     }
 
     data class Request(
@@ -45,6 +49,7 @@ object OtpAutoInputBroadcastContract {
         val inputIntervalMs: Long,
         val attemptId: Long,
         val allowSystemInject: Boolean = true,
+        val allowPaste: Boolean = false,
     )
 
     fun buildRequestIntent(request: Request): Intent =
@@ -54,6 +59,7 @@ object OtpAutoInputBroadcastContract {
             putExtra(EXTRA_INPUT_INTERVAL_MS, request.inputIntervalMs)
             putExtra(EXTRA_ATTEMPT_ID, request.attemptId)
             putExtra(EXTRA_ALLOW_SYSTEM_INJECT, request.allowSystemInject)
+            putExtra(EXTRA_ALLOW_PASTE, request.allowPaste)
         }
 
     fun buildProbeIntent(attemptId: Long): Intent =
@@ -72,6 +78,7 @@ object OtpAutoInputBroadcastContract {
             inputIntervalMs = intent.getLongExtra(EXTRA_INPUT_INTERVAL_MS, 0L),
             attemptId = intent.getLongExtra(EXTRA_ATTEMPT_ID, 0L),
             allowSystemInject = intent.getBooleanExtra(EXTRA_ALLOW_SYSTEM_INJECT, true),
+            allowPaste = intent.getBooleanExtra(EXTRA_ALLOW_PASTE, false),
         )
     }
 

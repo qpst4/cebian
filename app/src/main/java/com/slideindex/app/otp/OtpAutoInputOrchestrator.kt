@@ -104,7 +104,9 @@ object OtpAutoInputOrchestrator {
             autoEnter = settings.otpAutoConfirmEnabled,
             inputIntervalMs = settings.otpAutoInputIntervalMs.toLong(),
             attemptId = attemptId,
-            allowSystemInject = settings.otpLsposedSystemInjectEnabled
+            allowSystemInject = settings.otpLsposedSystemInjectEnabled,
+            // 只有开了"提取后自动复制"，剪贴板里才有本次验证码，注入失败时才能退化成 Ctrl+V。
+            allowPaste = settings.otpCopyToClipboard,
         )
         val delayMs = settings.otpAutoInputDelayMs.coerceAtLeast(0).toLong()
         mainHandler.postDelayed({
