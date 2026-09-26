@@ -2,6 +2,7 @@ package com.slideindex.app.ui.settings.clipboard
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,6 +39,9 @@ interface ClipboardMonitorControllerEntryPoint {
     fun clipboardMonitorController(): ClipboardMonitorController
 }
 
+/** 状态轮询间隔：只做兜底，1s 足够，也不至于浪费电。 */
+private const val STATUS_POLL_INTERVAL_MS = 1_000L
+
 @Composable
 fun rememberClipboardMonitoringUiState(settings: AppSettings): ClipboardMonitoringUiState {
     val context = LocalContext.current
@@ -52,11 +56,27 @@ fun rememberClipboardMonitoringUiState(settings: AppSettings): ClipboardMonitori
     val localMode by controller.activeModeFlow.collectAsStateWithLifecycle()
     // 监听服务跑在 :clipboard 进程，设置页在主进程：优先用跨进程镜像，
     // 没收到镜像时（例如就在监听进程内）再回退到本进程 controller。
-    // 只保留"订阅"这一种读法：镜像一变就重组；新数据靠打开页面/回到前台时 requestStatus 主动要一帧。
-    // （曾短暂加过 1s 轮询兜底，但轮询与订阅读的是同一份镜像，两者"打架"只会显示旧值，故删掉。）
-    val portStatus by ClipboardMonitorStatusPort.status.collectAsStateWithLifecycle()
-    val monitorRunning = portStatus?.listening ?: localRunning
-    val activeMode = if (portStatus != null) portStatus?.mode else localMode
+    //
+    // 状态只有一个槽：推送（订阅）与轮询都往同一个槽写"当前值"，
+    // 所以不会出现"旧值优先"——两条路径写进去的都是同一份镜像的当前内容，
+    // 推送负责即时、轮询负责兜底（切换模式时主线程最忙，推送最容易晚到）。
+    var liveStatus by remember { mutableStateOf(ClipboardMonitorStatusPort.status.value) }
+    LaunchedEffect(Unit) {
+        ClipboardMonitorStatusPort.status.collect { liveStatus = it }
+    }
+    LaunchedEffect(Unit) {
+        while (true) {
+            val latest = ClipboardMonitorStatusPort.status.value
+            if (latest != liveStatus) liveStatus = latest
+            kotlinx.coroutines.delay(STATUS_POLL_INTERVAL_MS)
+        }
+    }
+    // 切通道/切采集方式时立刻要一帧，缩短"刚切换完还显示旧状态"的窗口。
+    LaunchedEffect(settings.clipboardMonitoringChannel, settings.clipboardMonitoringCapture) {
+        ClipboardMonitorStatusPort.requestStatus(context)
+    }
+    val monitorRunning = liveStatus?.listening ?: localRunning
+    val activeMode = liveStatus?.mode ?: localMode
     var shizukuGranted by remember { mutableStateOf(controller.hasShizukuPermission()) }
     var rootAvailable by remember { mutableStateOf(controller.isRootAvailable()) }
     var overlayGranted by remember {
