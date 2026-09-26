@@ -36,6 +36,11 @@ fun OtpExtractionScreen(
     onOpenBlockedApps: () -> Unit,
 ) {
     val context = LocalContext.current
+    // 资源读取要跟随配置变化（切语言/改字号/转屏）：用配置感知的派生 Context。
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+    val resourceContext = androidx.compose.runtime.remember(configuration) {
+        context.createConfigurationContext(configuration)
+    }
     val alertsItems = listOf(
         settingsCardScopeItem("code-notification") {
             SettingSwitchRow(
@@ -76,9 +81,9 @@ fun OtpExtractionScreen(
                     formatLabel = { value ->
                         val seconds = value.roundToInt()
                         if (seconds <= OtpCodeAlertPolicy.RETENTION_NEVER_SECONDS) {
-                            context.getString(R.string.otp_code_notification_retention_never)
+                            resourceContext.getString(R.string.otp_code_notification_retention_never)
                         } else {
-                            context.getString(R.string.otp_code_notification_retention_value, seconds)
+                            resourceContext.getString(R.string.otp_code_notification_retention_value, seconds)
                         }
                     },
                     snapValue = { value -> (value / 5f).roundToInt() * 5f },
