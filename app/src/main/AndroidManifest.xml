@@ -629,6 +629,23 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
+        <!--
+          按需初始化 WorkManager：SlideIndexApp 实现了 androidx.work.Configuration.Provider
+          （为了声明 JobScheduler 的编号范围，避免和自建的常驻巡检任务撞号），
+          因此必须移除 androidx.startup 默认的 WorkManagerInitializer，否则 WorkManager 会被初始化两次
+          （lint: RemoveWorkManagerInitializer）。
+        -->
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                android:value="androidx.startup"
+                tools:node="remove" />
+        </provider>
+
         <service
             android:name=".clipboard.monitor.ClipboardMonitorForegroundService"
             android:process=":clipboard"
