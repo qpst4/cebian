@@ -716,6 +716,7 @@ class BackPanelController(
                 previousXTranslationOnActiveOffset = previousXTranslation
                 updateRestingArrowDimens()
                 if (previousState != GestureState.ENTRY || activationThresholdOverridePx == null) {
+                    //noinspection NewApi
                     performHaptic(HapticFeedbackConstants.GESTURE_THRESHOLD_ACTIVATE)
                 }
                 val popVelocity = if (previousState == GestureState.INACTIVE) {

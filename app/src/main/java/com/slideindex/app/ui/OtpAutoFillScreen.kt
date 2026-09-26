@@ -66,6 +66,7 @@ fun OtpAutoFillScreen(
                 formatLabel = { value ->
                     val ms = value.roundToInt()
                     if (ms <= 0) {
+                        //noinspection LocalContextResourcesRead
                         context.getString(R.string.otp_auto_input_delay_zero)
                     } else {
                         context.getString(R.string.otp_auto_input_delay_value, ms)

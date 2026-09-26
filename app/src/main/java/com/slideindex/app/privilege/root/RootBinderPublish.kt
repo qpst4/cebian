@@ -14,7 +14,8 @@ internal object RootBinderPublish {
 
     fun publish(name: String, binder: IBinder): Boolean {
         return runCatching {
-            val sm = Class.forName("android.os.ServiceManager")
+            //noinspection PrivateApi
+            val sm = Class.forName("android.os.ServiceManager")
             val added = invokeAddService(sm, name, binder)
             if (added) {
                 Log.i(TAG, "published name=$name")
@@ -54,4 +55,4 @@ internal object RootBinderPublish {
         throw NoSuchMethodException("ServiceManager.addService")
     }
 }
-
+

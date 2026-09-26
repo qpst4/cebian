@@ -83,6 +83,7 @@ internal class LocalFrostedGlassDrawable(private val viewProvider: () -> View?) 
         val view = viewProvider() ?: return null
         if (!view.isAttachedToWindow) return null
         val currentVri = runCatching {
+            //noinspection PrivateApi
             val getViewRootImplMethod = View::class.java.getDeclaredMethod("getViewRootImpl")
             getViewRootImplMethod.isAccessible = true
             getViewRootImplMethod.invoke(view)

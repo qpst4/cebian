@@ -83,6 +83,7 @@ class OtpCodeAlertPresenter @Inject constructor(
                 if (retentionMs > 0L) setTimeoutAfter(retentionMs)
             }
             .build()
+        //noinspection MissingPermission
         NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, notification)
     }
 

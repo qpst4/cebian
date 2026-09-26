@@ -105,6 +105,7 @@
 
     <application
         android:name=".SlideIndexApp"
+        tools:targetApi="33"
         android:allowBackup="true"
         android:enableOnBackInvokedCallback="true"
         android:description="@string/xposed_module_description"
