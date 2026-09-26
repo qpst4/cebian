@@ -70,26 +70,29 @@ class SettingsRepository @Inject constructor(
 
     init {
         cacheScope.launch {
-            val proc = com.slideindex.app.util.AppProcess.name()
-            android.util.Log.i("SettingsRepository", "collector start ($proc)")
             // 修复动作失败不能拖死快照收集：否则 readSnapshot() 永远停在默认值
             // （历史上表现为 overlay 进程按默认手势动作执行，例如短滑=返回）。
             runCatching {
                 editor.cleanupLegacyClipboardKeysOnce()
                 edge.persistOppositeGestureSlotRepairIfNeeded()
-            }.onFailure { android.util.Log.w("SettingsRepository", "repair failed ($proc)", it) }
+            }.onFailure {
+                android.util.Log.w(
+                    "SettingsRepository",
+                    "repair failed (${com.slideindex.app.util.AppProcess.name()})",
+                    it,
+                )
+            }
             runCatching {
                 settings.collect { snapshot ->
                     cachedSettings = snapshot
-                    if (!loggedFirstSnapshot) {
-                        loggedFirstSnapshot = true
-                        android.util.Log.i(
-                            "SettingsRepository",
-                            "first snapshot ($proc): enabled=${snapshot.serviceEnabled} lang=${snapshot.appUiLanguageTag} hash=${snapshot.hashCode()}",
-                        )
-                    }
                 }
-            }.onFailure { android.util.Log.e("SettingsRepository", "collect failed ($proc)", it) }
+            }.onFailure {
+                android.util.Log.e(
+                    "SettingsRepository",
+                    "collect failed (${com.slideindex.app.util.AppProcess.name()})",
+                    it,
+                )
+            }
         }
         cacheScope.launch {
             settings
@@ -100,9 +103,6 @@ class SettingsRepository @Inject constructor(
     }
 
     fun readSnapshot(): AppSettings = cachedSettings
-
-    @Volatile
-    private var loggedFirstSnapshot = false
 
     suspend fun readFreshSnapshot(): AppSettings =
         SettingsSnapshotReader.read(editor.readRawPreferences(), context)

@@ -32,13 +32,6 @@ import com.slideindex.app.util.PermissionHelper
 import kotlin.math.roundToInt
 
 object SearchPanelOverlayWindow {
-
-    /** 临时诊断：搜索面板"呼出无反应"排查用（记录谁把窗口打回被动）。 */
-    private fun diag(message: String) {
-        val caller = Thread.currentThread().stackTrace.getOrNull(4)
-            ?.let { "${it.className.substringAfterLast('.')}.${it.methodName}" } ?: "?"
-        android.util.Log.i("SearchPanelWin", "$message [caller=$caller]")
-    }
     private const val TAG = "SearchPanelOverlay"
     private const val IME_RETRY_DELAY_MS = 90L
     private const val IME_MAX_ATTEMPTS = 4
@@ -103,7 +96,6 @@ object SearchPanelOverlayWindow {
             mainHandler.post { warmUp(context) }
             return
         }
-        diag("warmUp: isShowing=$isShowing visible=${composeView?.visibility}")
         // 预热必须等无障碍宿主就绪：早于它建窗会拿到无效 token（BadTokenException），
         // 之后 show() 的 updateViewLayout 全部失败，面板就变成"窗口在但永远不可见"。
         val hostContext = OverlayDependencyAccess.overlayHostContext() ?: return
@@ -124,10 +116,9 @@ object SearchPanelOverlayWindow {
             runCatching { latch.await(500, java.util.concurrent.TimeUnit.MILLISECONDS) }
             return result
         }
-        diag("show: isShowing=$isShowing visible=${composeView?.visibility}")
         // 之前建窗失败或被系统摘掉的壳子先销毁重建，否则会在死状态里打转。
         if (composeView != null && composeView?.isAttachedToWindow != true) {
-            diag("show: stale shell (not attached) → rebuild")
+            Log.w(TAG, "show: stale shell not attached, rebuilding window")
             destroyWindow()
         }
         ++dismissToken
@@ -168,7 +159,6 @@ object SearchPanelOverlayWindow {
             mainHandler.post { dismiss() }
             return
         }
-        diag("dismiss")
         ++bringAboveToken
         cancelBringAboveRetries()
         val token = ++dismissToken
@@ -197,7 +187,6 @@ object SearchPanelOverlayWindow {
             mainHandler.post { hide() }
             return
         }
-        diag("hide")
         applyPanelShellPassive()
     }
 
@@ -345,7 +334,6 @@ object SearchPanelOverlayWindow {
 
     /** Invisible prefetch shell: must not intercept touches beneath the system UI. */
     private fun applyPanelShellPassive() {
-        diag("applyPanelShellPassive")
         val wm = windowManager ?: return
         val view = composeView ?: return
         val params = layoutParams ?: return
@@ -358,7 +346,6 @@ object SearchPanelOverlayWindow {
     }
 
     private fun applyPanelShellActive() {
-        diag("applyPanelShellActive")
         val wm = windowManager ?: return
         val view = composeView ?: return
         val params = layoutParams ?: return
@@ -368,7 +355,7 @@ object SearchPanelOverlayWindow {
         view.isFocusable = true
         view.isFocusableInTouchMode = true
         runCatching { wm.updateViewLayout(view, params) }
-            .onFailure { diag("updateViewLayout(active) failed: $it") }
+            .onFailure { Log.w(TAG, "updateViewLayout(active) failed", it) }
         view.requestFocus()
     }
 
