@@ -250,3 +250,25 @@ OTP 填充统计 `OtpAutoFillStatsRepository`、通知过滤规则 `Notification
 
 - 剪贴板历史是 SQLite（`ClipboardHistoryStore`），跨进程本身安全，不需要收口。
 - 通知监听在 `:overlay` 能正常被系统绑定；早前一次"不在 live 列表"是因为两个进程当时都被系统回收了。
+
+### C.4 搜索面板"呼出无反应"（已修，含排查方法）
+
+症状：悬浮球侧滑长 / 边角轮盘触发"搜索面板"，毫无反应且无任何报错（短滑的返回动作却正常）。
+
+排查结论（日志实证）：
+
+- `show()` 确实被调用（`caller=ActionExecutorOverlayPanels.showSearchPanel`），视图也被设为 VISIBLE；
+- 系统侧出现 `E WindowManager: Couldn't add view: ComposeView ... BadTokenException: token ... is not valid`；
+- 之后每次 show 的系统日志是 `W WindowManager: Failed looking up window session=...<overlay pid>`；
+- `dumpsys window windows` 里该窗口停在**被动态**：`fl=NOT_FOCUSABLE NOT_TOUCHABLE`、`alpha=0.8`、`mViewVisibility=0x8`。
+
+根因：`warmUp()` 在**无障碍宿主未就绪**时用 `applicationContext` 兜底建窗 → token 无效建窗失败，
+但 `composeView` 半成品被留下；随后 `show()` 里 `applyPanelShellActive()` 的 `updateViewLayout`
+失败被 `runCatching` 静默吞掉 → 窗口永远停在被动状态，且不报错。
+
+修复：`warmUp()` 宿主未就绪直接返回；`show()` 发现 `composeView` 未附着则 `destroyWindow()` 重建；
+`updateViewLayout` 失败改为记日志。顺带修：`SettingsRepository.init` 的修复动作失败会拖死快照收集协程
+（导致 `readSnapshot()` 永远默认值），已用 `runCatching` 包住并记日志。
+
+经验：**窗口壳子的建立必须以宿主就绪为前提；任何 `updateViewLayout`/`addView` 失败都不允许静默吞掉**，
+否则会变成"状态对、画面没有"的幽灵窗口，排查代价极高。
