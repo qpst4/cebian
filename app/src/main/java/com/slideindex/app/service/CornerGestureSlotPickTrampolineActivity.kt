@@ -85,6 +85,12 @@ class CornerGestureSlotPickTrampolineActivity : ComponentActivity() {
         @Suppress("DEPRECATION")
         overridePendingTransition(0, 0)
         CornerGestureHost.resumeAfterSlotPicker()
+        // 本 Activity 跑在主进程，而轮盘宿主在 :overlay —— 上面那次调用在本进程其实是空操作，
+        // 必须再跨进程通知 overlay 进程恢复可视层，否则轮盘会"看不见但震动还在"。
+        com.slideindex.app.overlay.OverlayStatePort.sendCommand(
+            applicationContext,
+            com.slideindex.app.overlay.OverlayStatePort.COMMAND_RESUME_CORNER_OVERLAY,
+        )
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

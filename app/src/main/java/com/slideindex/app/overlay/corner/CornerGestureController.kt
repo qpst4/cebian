@@ -663,6 +663,13 @@ internal class CornerGestureController(
         val view = overlayView ?: return false
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
+                // 从外部编辑页（槽位编辑等）返回后可能仍处于"可视层已暂停"状态：
+                // 旧实现靠进程内静态回调恢复，拆进程后那个回调落在主进程、这里是空操作，
+                // 结果就是"轮盘不显示但槽位震动还在"（捕获窗是独立窗口，仍可触摸）。
+                // 新会话开始时自愈一次，保证下一次触发一定能看到轮盘。
+                if (suspendedForExternalActivity) {
+                    resumeOverlayAfterExternalActivity()
+                }
                 if (view.isWheelPinned()) {
                     ensureOverlayAttached()
                     return view.handlePinnedTouchEvent(event)
