@@ -32,6 +32,13 @@ import com.slideindex.app.util.PermissionHelper
 import kotlin.math.roundToInt
 
 object SearchPanelOverlayWindow {
+
+    /** 临时诊断：搜索面板"呼出无反应"排查用（记录谁把窗口打回被动）。 */
+    private fun diag(message: String) {
+        val caller = Thread.currentThread().stackTrace.getOrNull(4)
+            ?.let { "${it.className.substringAfterLast('.')}.${it.methodName}" } ?: "?"
+        android.util.Log.i("SearchPanelWin", "$message [caller=$caller]")
+    }
     private const val TAG = "SearchPanelOverlay"
     private const val IME_RETRY_DELAY_MS = 90L
     private const val IME_MAX_ATTEMPTS = 4
@@ -96,6 +103,7 @@ object SearchPanelOverlayWindow {
             mainHandler.post { warmUp(context) }
             return
         }
+        diag("warmUp: isShowing=$isShowing visible=${composeView?.visibility}")
         val hostContext = OverlayDependencyAccess.overlayHostContext() ?: context.applicationContext
         ensureWindow(hostContext)
         if (!isShowing) {
@@ -114,6 +122,7 @@ object SearchPanelOverlayWindow {
             runCatching { latch.await(500, java.util.concurrent.TimeUnit.MILLISECONDS) }
             return result
         }
+        diag("show: isShowing=$isShowing visible=${composeView?.visibility}")
         ++dismissToken
         if (isShowing) {
             applyPanelShellActive()
@@ -152,6 +161,7 @@ object SearchPanelOverlayWindow {
             mainHandler.post { dismiss() }
             return
         }
+        diag("dismiss")
         ++bringAboveToken
         cancelBringAboveRetries()
         val token = ++dismissToken
@@ -180,6 +190,7 @@ object SearchPanelOverlayWindow {
             mainHandler.post { hide() }
             return
         }
+        diag("hide")
         applyPanelShellPassive()
     }
 
@@ -327,6 +338,7 @@ object SearchPanelOverlayWindow {
 
     /** Invisible prefetch shell: must not intercept touches beneath the system UI. */
     private fun applyPanelShellPassive() {
+        diag("applyPanelShellPassive")
         val wm = windowManager ?: return
         val view = composeView ?: return
         val params = layoutParams ?: return
@@ -339,6 +351,7 @@ object SearchPanelOverlayWindow {
     }
 
     private fun applyPanelShellActive() {
+        diag("applyPanelShellActive")
         val wm = windowManager ?: return
         val view = composeView ?: return
         val params = layoutParams ?: return
