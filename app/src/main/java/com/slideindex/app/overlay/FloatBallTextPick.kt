@@ -13,7 +13,6 @@ import android.os.Handler
 import android.os.Looper
 import android.provider.MediaStore
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
 import com.slideindex.app.clipboard.ClipboardAccess
@@ -235,38 +234,61 @@ object FloatBallTextPick {
             return openBuiltinImageEditor(context, bitmap, screenRect, layoutMeta, pickReturnContext)
         }
         if (targetPackage.isNullOrBlank()) {
-            showImageViewerPicker(context, bitmap, screenRect, layoutMeta, pickReturnContext)
-            return true
+            // "每次都询问" = 交给系统弹"打开方式"，不再自己画列表。
+            return openSystemImageChooser(context, bitmap, screenRect, layoutMeta, pickReturnContext)
         }
         return viewScreenshotWithPackage(context, bitmap, targetPackage)
     }
 
-    private fun showImageViewerPicker(
+    /**
+     * "每次都询问"：用系统 chooser（ACTION_VIEW + createChooser）来问。
+     *
+     * 以前这里是自己画一个列表对话框，用的是 AppCompat 的 AlertDialog 配浮层那套主题
+     * （`android:Theme.Material.Light.NoActionBar`）。那套主题里没有 AppCompat 的
+     * `alertDialogTheme/listLayout`，列表布局解析成资源 id 0 → `inflate(0)` 抛
+     * `Resources$NotFoundException`；而浮层和无障碍服务同在 `:overlay` 进程，
+     * 等于点一下图片就把无障碍服务一起带走（真机 crash_20260927_003149 已确认）。
+     *
+     * 系统 chooser 由系统绘制，不受我们的主题影响，而且自带"仅此一次 / 始终"——
+     * 这才是"每次都询问"本来的语义。
+     */
+    private fun openSystemImageChooser(
         context: Context,
         bitmap: Bitmap,
         screenRect: Rect? = null,
         layoutMeta: ScreenshotLayoutMeta? = null,
         pickReturnContext: ImageEditorPickReturnContext? = null,
-    ) {
-        val options = com.slideindex.app.ui.viewmodel.FloatBallPickSettingsViewModel
-            .buildImageViewerOptions(context)
-        if (options.isEmpty()) {
-            Toast.makeText(context, R.string.float_ball_action_failed, Toast.LENGTH_SHORT).show()
-            return
-        }
-        val labels = options.map { it.label }.toTypedArray()
-        AlertDialog.Builder(context)
-            .setTitle(R.string.float_ball_action_open_image)
-            .setItems(labels) { _, which ->
-                val selected = options.getOrNull(which) ?: return@setItems
-                when (val pkg = selected.packageName) {
-                    com.slideindex.app.imageeditor.ImageEditorOpenTargets.BUILTIN_PACKAGE ->
-                        openBuiltinImageEditor(context, bitmap, screenRect, layoutMeta, pickReturnContext)
-                    null -> showImageViewerPicker(context, bitmap, screenRect, layoutMeta, pickReturnContext)
-                    else -> viewScreenshotWithPackage(context, bitmap, pkg)
-                }
+    ): Boolean {
+        val uri = createShareImageUri(context, bitmap)
+            ?: run {
+                Toast.makeText(context, R.string.float_ball_action_failed, Toast.LENGTH_SHORT).show()
+                return false
             }
-            .show()
+        val target = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(uri, "image/*")
+            clipData = ClipData.newUri(context.contentResolver, "image", uri)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        // 系统里一个能看图的 App 都没有时，chooser 会是空的：回退到内置编辑器，别让用户点了没反应。
+        val hasExternalViewer = runCatching {
+            context.packageManager.queryIntentActivities(target, 0).isNotEmpty()
+        }.getOrDefault(true)
+        if (!hasExternalViewer) {
+            deleteShareImageUri(context, uri)
+            return openBuiltinImageEditor(context, bitmap, screenRect, layoutMeta, pickReturnContext)
+        }
+        return runCatching {
+            val chooser = Intent.createChooser(
+                target,
+                context.getString(R.string.float_ball_action_open_image),
+            ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(chooser)
+            true
+        }.getOrElse {
+            deleteShareImageUri(context, uri)
+            Toast.makeText(context, R.string.float_ball_action_failed, Toast.LENGTH_SHORT).show()
+            false
+        }
     }
 
     private fun viewScreenshotWithPackage(context: Context, bitmap: Bitmap, targetPackage: String): Boolean {

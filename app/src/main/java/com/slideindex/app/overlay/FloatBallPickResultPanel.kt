@@ -1048,25 +1048,31 @@ object FloatBallPickResultPanel {
                     searchEngineShowLabels = settings.searchEngineShowLabels,
                     appSettings = settings,
                     onImageClick = {
-                        screenshot?.let { bmp ->
-                            val ctx = appContext ?: overlayContext
-                            val meta = layoutMeta ?: buildScreenshotLayoutMeta(
-                                bitmap = bmp,
-                                screenWidthPx = overlayContext.resources.displayMetrics.widthPixels,
-                                screenHeightPx = overlayContext.resources.displayMetrics.heightPixels,
-                            )
-                            val pickReturnContext = capturePickReturnContextForEditor()
-                            val opened = FloatBallTextPick.viewScreenshot(
-                                ctx,
-                                bmp,
-                                settings.defaultImageViewerPackage,
-                                screenRect,
-                                meta,
-                                pickReturnContext,
-                            )
-                            if (opened) {
-                                dismiss()
+                        // 这个回调不能把异常抛回主线程：浮层与无障碍服务同在 :overlay 进程，
+                        // 一个未捕获异常就会连无障碍一起带走（真机踩过：弹窗布局解析失败 → 无障碍掉线）。
+                        runCatching {
+                            screenshot?.let { bmp ->
+                                val ctx = appContext ?: overlayContext
+                                val meta = layoutMeta ?: buildScreenshotLayoutMeta(
+                                    bitmap = bmp,
+                                    screenWidthPx = overlayContext.resources.displayMetrics.widthPixels,
+                                    screenHeightPx = overlayContext.resources.displayMetrics.heightPixels,
+                                )
+                                val pickReturnContext = capturePickReturnContextForEditor()
+                                val opened = FloatBallTextPick.viewScreenshot(
+                                    ctx,
+                                    bmp,
+                                    settings.defaultImageViewerPackage,
+                                    screenRect,
+                                    meta,
+                                    pickReturnContext,
+                                )
+                                if (opened) {
+                                    dismiss()
+                                }
                             }
+                        }.onFailure {
+                            android.util.Log.w(TAG, "onImageClick failed", it)
                         }
                     },
                     onImageIndexChange = { index ->
