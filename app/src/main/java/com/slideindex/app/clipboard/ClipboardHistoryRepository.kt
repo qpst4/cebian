@@ -426,6 +426,21 @@ class ClipboardHistoryRepository @Inject constructor(
         ) {
             return settings.effectiveClipboardMonitoringMode().effective(settings.privilegeMode)
         }
+        // 「跟随特权模式」：Shizuku 可能只是**还没就绪**（监听进程刚起/binder 刚断重连），
+        // 这时不该立刻降级到别的通道（用户会看到"我选的跟随特权，怎么跑在 LSPosed 上"）。
+        // 先等一小会儿再判，等不到才降级。
+        runCatching {
+            if (settings.privilegeMode == com.slideindex.app.settings.PrivilegeMode.SHIZUKU &&
+                !rikka.shizuku.Shizuku.pingBinder()
+            ) {
+                val deadline = android.os.SystemClock.elapsedRealtime() + SHIZUKU_READY_WAIT_MS
+                while (android.os.SystemClock.elapsedRealtime() < deadline &&
+                    !rikka.shizuku.Shizuku.pingBinder()
+                ) {
+                    Thread.sleep(SHIZUKU_READY_POLL_MS)
+                }
+            }
+        }
         val privileged = settings.effectiveClipboardMonitoringMode().effective(settings.privilegeMode)
         if (clipboardMonitorController.isBackendAvailable(privileged)) return privileged
         if (isLsposedModuleResponsive()) return ClipboardMonitoringMode.LSPOSED
@@ -447,7 +462,7 @@ class ClipboardHistoryRepository @Inject constructor(
         }
         val now = System.currentTimeMillis()
         if (now - lastModuleProbeAtMs >= MODULE_PROBE_THROTTLE_MS) {
-            lastModuleProbeAtMs = now
+        lastModuleProbeAtMs = now
             ModuleBridgeStatusProbe.probe(context) { status, _ ->
                 if (status != ModuleBridgeStatusProbe.Status.NotReady) {
                     syncClipboardMonitoringFromSettings()
@@ -711,5 +726,8 @@ class ClipboardHistoryRepository @Inject constructor(
         private const val SCREENSHOT_TOP_GUARD_MS = 10_000L
         /** 主动探测模块状态的节流间隔。 */
         private const val MODULE_PROBE_THROTTLE_MS = 30_000L
+        /** 「跟随特权」时等 Shizuku 就绪的上限与轮询间隔（避免刚启动就被判定不可用而降级）。 */
+        private const val SHIZUKU_READY_WAIT_MS = 3_000L
+        private const val SHIZUKU_READY_POLL_MS = 200L
     }
 }
