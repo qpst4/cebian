@@ -39,6 +39,10 @@ class NotificationHistoryRepository @Inject constructor(
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var persistJob: Job? = null
 
+    /** 等待落盘的最新快照（跨进程合并时以本进程这份为准在前）。 */
+    @Volatile
+    private var pendingPersistItems: List<NotificationHistoryItem>? = null
+
     @Volatile
     private var isLoaded = false
 
@@ -49,7 +53,44 @@ class NotificationHistoryRepository @Inject constructor(
     private var storageItems: List<NotificationHistoryItem> = emptyList()
 
     init {
+        // 另一个进程改了这个文件时重载缓存（跨进程写用文件锁串行）。
+        com.slideindex.app.util.CrossProcessStore.registerListener(appContext) { changed ->
+            if (changed.absolutePath == historyFile.absolutePath) {
+                scope.launch { reloadFromDiskForExternalChange() }
+            }
+        }
         scope.launch { ensureLoaded() }
+    }
+
+    /**
+     * 读-改-写整套在跨进程文件锁内完成：以磁盘最新内容为基准做 [transform]，
+     * 写完广播通知其它进程重载，避免两边各按自己的内存副本写回导致丢数据。
+     */
+    private suspend fun mutateOnDisk(
+        transform: (List<NotificationHistoryItem>) -> List<NotificationHistoryItem>,
+    ): List<NotificationHistoryItem> {
+        val next = com.slideindex.app.util.CrossProcessStore.mutate(
+            file = historyFile,
+            read = {
+                runCatching {
+                    if (historyFile.exists()) NotificationHistoryCodec.decode(historyFile.readText())
+                    else emptyList()
+                }.getOrDefault(emptyList())
+            },
+            write = { items -> historyFile.writeText(NotificationHistoryCodec.encode(items)) },
+            transform = transform,
+        )
+        com.slideindex.app.util.CrossProcessStore.notifyChanged(appContext, historyFile)
+        return next
+    }
+
+    private suspend fun reloadFromDiskForExternalChange() {
+        mutex.withLock {
+            val maxCount = filterPreferences.readSnapshot().notificationHistoryMaxCount
+            val loaded = readFromDisk().take(maxCount)
+            publishItems(loaded)
+            isLoaded = true
+        }
     }
 
     private suspend fun ensureLoaded() {
@@ -106,12 +147,17 @@ class NotificationHistoryRepository @Inject constructor(
     }
 
     private fun schedulePersist(items: List<NotificationHistoryItem>) {
+        pendingPersistItems = items
         persistJob?.cancel()
         persistJob = scope.launch {
             delay(PERSIST_DEBOUNCE_MS)
-            mutex.withLock {
-                runCatching { writeToDisk(items) }
+            val pending = pendingPersistItems ?: return@launch
+            val maxCount = filterPreferences.readSnapshot().notificationHistoryMaxCount
+            // 以磁盘为基准合并：另一个进程期间写入的条目不会被这次落盘覆盖。
+            val merged = mutateOnDisk { disk ->
+                (pending + disk).distinctBy { it.id }.take(maxCount)
             }
+            mutex.withLock { publishItems(merged) }
         }
     }
 
@@ -142,35 +188,36 @@ class NotificationHistoryRepository @Inject constructor(
 
     fun updateCapture(notificationKey: String, captured: NotificationHistoryIntentCapture.CapturedIntent) {
         scope.launch {
-            ensureLoaded()
-            mutex.withLock {
-                val current = storageItems
+            val next = mutateOnDisk { current ->
                 val index = current.indexOfFirst { it.notificationKey == notificationKey }
-                if (index < 0) return@withLock
-                val existing = current[index]
-                val updated = existing.copy(
-                    intentUri = captured.intentUri ?: existing.intentUri,
-                    intentParcelBase64 = captured.intentParcelBase64 ?: existing.intentParcelBase64,
-                    intentExtrasBase64 = captured.intentExtrasBase64 ?: existing.intentExtrasBase64,
-                    pendingIntentBase64 = captured.pendingIntentBase64 ?: existing.pendingIntentBase64,
-                    extrasBase64 = captured.extrasBase64 ?: existing.extrasBase64,
-                )
-                if (updated == existing) return@withLock
-                val next = current.toMutableList()
-                next[index] = updated
-                storageItems = next
-                schedulePersist(next)
+                if (index < 0) {
+                    current
+                } else {
+                    val existing = current[index]
+                    val updated = existing.copy(
+                        intentUri = captured.intentUri ?: existing.intentUri,
+                        intentParcelBase64 = captured.intentParcelBase64 ?: existing.intentParcelBase64,
+                        intentExtrasBase64 = captured.intentExtrasBase64 ?: existing.intentExtrasBase64,
+                        pendingIntentBase64 = captured.pendingIntentBase64 ?: existing.pendingIntentBase64,
+                        extrasBase64 = captured.extrasBase64 ?: existing.extrasBase64,
+                    )
+                    if (updated == existing) {
+                        current
+                    } else {
+                        current.toMutableList().also { it[index] = updated }
+                    }
+                }
             }
+            mutex.withLock { publishItems(next) }
         }
     }
 
     suspend fun delete(id: String): Result<Unit> {
         ensureLoaded()
         persistJob?.cancel()
-        return mutex.withLock {
-            val next = storageItems.filterNot { it.id == id }
-            publishItems(next)
-            repositoryRunCatching { writeToDisk(next) }
+        return repositoryRunCatching {
+            val next = mutateOnDisk { current -> current.filterNot { it.id == id } }
+            mutex.withLock { publishItems(next) }
         }
     }
 
@@ -185,13 +232,12 @@ class NotificationHistoryRepository @Inject constructor(
     suspend fun importRawJson(json: String): Result<Unit> {
         ensureLoaded()
         persistJob?.cancel()
-        return mutex.withLock {
-            repositoryRunCatching {
-                val decoded = NotificationHistoryCodec.decode(json)
-                val maxCount = filterPreferences.readSnapshot().notificationHistoryMaxCount
-                val trimmed = decoded.take(maxCount)
-                writeToDisk(trimmed)
-                publishItems(trimmed)
+        return repositoryRunCatching {
+            val maxCount = filterPreferences.readSnapshot().notificationHistoryMaxCount
+            val decoded = NotificationHistoryCodec.decode(json)
+            val next = mutateOnDisk { decoded.take(maxCount) }
+            mutex.withLock {
+                publishItems(next)
                 isLoaded = true
             }
         }
@@ -200,23 +246,17 @@ class NotificationHistoryRepository @Inject constructor(
     suspend fun clearAll(): Result<Unit> {
         ensureLoaded()
         persistJob?.cancel()
-        return mutex.withLock {
-            publishItems(emptyList())
-            repositoryRunCatching { writeToDisk(emptyList()) }
+        return repositoryRunCatching {
+            mutateOnDisk { emptyList() }
+            mutex.withLock { publishItems(emptyList()) }
         }
     }
 
     suspend fun applyMaxCountLimit(maxCount: Int): Result<Unit> {
         ensureLoaded()
-        return mutex.withLock {
-            val current = storageItems
-            val trimmed = current.take(maxCount)
-            if (trimmed.size != current.size) {
-                publishItems(trimmed)
-                persistNow(trimmed)
-            } else {
-                Result.success(Unit)
-            }
+        return repositoryRunCatching {
+            val next = mutateOnDisk { current -> current.take(maxCount) }
+            mutex.withLock { publishItems(next) }
         }
     }
 

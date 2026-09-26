@@ -228,3 +228,25 @@ interface IOverlayHost {
 - 主进程的小组件编辑器因此不再渲染真实 widget，改为占位卡（`createView` 返回 null）。
 
 遗留：编辑器的占位卡目前复用 `WidgetLoadingPlaceholder`（文案是「加载中…」），后续可换成「在弹出面板中预览」的图标占位。
+
+### C.3 文件型存储的跨进程收口（进行中）
+
+这些仓库都是「读文件 → 改内存 → 写回」的 JSON 存储，原先只有进程内 Mutex，两进程同时改会互相覆盖。
+已加入通用工具 `CrossProcessStore`（core/common）：`mutate` 在跨进程文件锁内重新读盘再计算、
+写完后广播通知；接收方按文件路径重载缓存，并跳过自己发出的通知。
+
+已接入：
+
+- **通知历史**（`NotificationHistoryRepository`）：`record` 的落盘改为「磁盘为基准 + 本进程待写合并」，
+  `delete/clearAll/applyMaxCountLimit/importRawJson/updateCapture` 全部走锁内读改写；并注册了外部变更重载。
+  真机验证：`:overlay` 内 `MediaNotificationListener` 在 live 列表、`NotifHistoryCapture` 正常采集、
+  `notification_history.json` 与 `.lock` 在采集后更新、无新增崩溃。
+
+待接入（同一模式，逐个做）：暂存 `StashRepository`、OTP 记录 `OtpRecordsRepository`、
+搜索历史 `SearchHistoryRepository`、Shell 输出历史 `ShellOutputHistoryRepository`、
+OTP 填充统计 `OtpAutoFillStatsRepository`、通知过滤规则 `NotificationFilterRepository`。
+
+另外两条实测结论：
+
+- 剪贴板历史是 SQLite（`ClipboardHistoryStore`），跨进程本身安全，不需要收口。
+- 通知监听在 `:overlay` 能正常被系统绑定；早前一次"不在 live 列表"是因为两个进程当时都被系统回收了。
