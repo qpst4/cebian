@@ -39,6 +39,8 @@ import com.slideindex.app.overlay.PanelSide
 import com.slideindex.app.overlay.corner.CornerAnchor
 import com.slideindex.app.overlay.corner.CornerGestureHost
 import com.slideindex.app.xposed.bridge.ModuleHookBridgeContract
+import com.slideindex.app.otp.OtpAutoFillController
+import com.slideindex.app.settings.AppSettings
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -57,7 +59,6 @@ class SlideIndexAccessibilityService : AccessibilityService() {
     /** 当前由输入层接管并转发过来的目标（SIDE_* / TARGET_*），用于会话结束时精确取消。 */
     private var activeForwardedTarget: Int = NO_FORWARDED_TARGET
 
-    private lateinit var otpCoordinator: SlideIndexAccessibilityOtpCoordinator
     private lateinit var foregroundTracker: SlideIndexAccessibilityForegroundTracker
     private lateinit var watchdog: SlideIndexAccessibilityWatchdog
     private var lastOrientation = Configuration.ORIENTATION_UNDEFINED
@@ -76,10 +77,6 @@ class SlideIndexAccessibilityService : AccessibilityService() {
                 ClipboardFloatImeCoordinator.onWindowsChanged(this)
                 KeyboardTriggerImeCoordinator.onWindowsChanged(this)
             }
-            AccessibilityEvent.TYPE_VIEW_FOCUSED,
-            AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED,
-            AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED,
-            -> otpCoordinator.maybeAutoFillOtp()
         }
     }
 
@@ -647,8 +644,15 @@ class SlideIndexAccessibilityService : AccessibilityService() {
 
         fun currentForegroundPackage(): String? = instance?.foregroundPackageName()
 
-        fun scheduleOtpAutoFill() {
-            instance?.scheduleOtpAutoFillInternal()
+        /**
+         * 编排在注入失败/被关闭后调用：同步做一次无障碍填充。
+         *
+         * 返回 null 表示无障碍服务没连着；返回结果里的 success/strategy/reason 直接用于记账。
+         * 必须由主线程调用（编排的 handler 就是主线程）。
+         */
+        fun fillOtpNow(code: String, settings: AppSettings): OtpAutoFillController.FillOutcome? {
+            val service = instance ?: return null
+            return OtpAutoFillController.fillNow(service, settings, code)
         }
 
         private const val TAG = "SlideIndexA11y"
@@ -660,11 +664,10 @@ class SlideIndexAccessibilityService : AccessibilityService() {
         super.onServiceConnected()
         instance = this
         watchdog = SlideIndexAccessibilityWatchdog(this) { edgeOverlayHost }
-        otpCoordinator = SlideIndexAccessibilityOtpCoordinator(this, deps)
         foregroundTracker = SlideIndexAccessibilityForegroundTracker(
             service = this,
             overlayHost = { edgeOverlayHost },
-            onMaybeOtp = { otpCoordinator.maybeAutoFillOtp() },
+            onMaybeOtp = {},
             onSyncLockScreen = { watchdog.syncLockScreenState() },
             excludedPackageProvider = {
                 deps.settingsRepository.readSnapshot().previousAppExcludedPackages
@@ -673,7 +676,6 @@ class SlideIndexAccessibilityService : AccessibilityService() {
         watchdog.syncLockScreenState()
         edgeOverlayHost = EdgeOverlayHost(this, serviceScope, deps).also { it.start() }
         watchdog.registerScreenLockReceiver()
-        otpCoordinator.registerReceiver()
         lastOrientation = resources.configuration.orientation
         syncMonitoring()
         backTapGestureHost.start(serviceScope)
@@ -748,7 +750,6 @@ class SlideIndexAccessibilityService : AccessibilityService() {
             watchdog.unregisterScreenLockReceiver()
             watchdog.releaseWakeLock()
         }
-        if (::otpCoordinator.isInitialized) otpCoordinator.unregisterReceiver()
         ScreenSearchFloating.destroy()
         if (::backTapGestureHost.isInitialized) backTapGestureHost.stop()
         instance = null
@@ -767,7 +768,6 @@ class SlideIndexAccessibilityService : AccessibilityService() {
             watchdog.registerScreenLockReceiver()
             watchdog.syncLockScreenState()
         }
-        if (::otpCoordinator.isInitialized) otpCoordinator.registerReceiver()
         if (::backTapGestureHost.isInitialized) backTapGestureHost.start(serviceScope)
         syncMonitoring()
         GestureToggleTileWarmup.requestListening(this, "a11yRebound")
@@ -778,7 +778,6 @@ class SlideIndexAccessibilityService : AccessibilityService() {
         mainHandler.removeCallbacks(configChangeSuppressionRunnable)
         mainHandler.removeCallbacks(configChangeFinalSettleRunnable)
         ClipboardAccess.repository?.stopListening()
-        if (::otpCoordinator.isInitialized) otpCoordinator.unregisterReceiver()
         if (::watchdog.isInitialized) {
             watchdog.unregisterScreenLockReceiver()
             watchdog.releaseWakeLock()
@@ -814,10 +813,6 @@ class SlideIndexAccessibilityService : AccessibilityService() {
 
     internal fun foregroundPackageName(): String? =
         if (::foregroundTracker.isInitialized) foregroundTracker.currPackageName else null
-
-    internal fun scheduleOtpAutoFillInternal() {
-        if (::otpCoordinator.isInitialized) otpCoordinator.scheduleAutoFill()
-    }
 
     internal fun toggleKeepScreenOn(): Boolean = watchdog.toggleKeepScreenOn()
 

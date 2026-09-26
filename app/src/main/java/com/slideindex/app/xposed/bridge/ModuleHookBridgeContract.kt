@@ -55,8 +55,20 @@ object ModuleHookBridgeContract {
   /** 模块侧持久化目录（system_server 自身可读写）。 */
   const val SYSTEM_SNAPSHOT_DIR = "/data/system/slideindex"
 
-  /** 系统侧读取 app 快照的兜底路径（`/data/user_de/0/<pkg>/files/`）。 */
+  /** 系统侧读取 app 快照的兜底路径（`/data/user_de/0/<pkg>/files/`）；多数机型上电话进程读不到。 */
   const val APP_SNAPSHOT_PATH = "/data/user_de/0/$MODULE_PACKAGE/files/$SNAPSHOT_FILE_NAME"
+
+  /**
+   * app 对外导出的快照（外部存储私有目录 `/storage/emulated/0/Android/data/<pkg>/files/`）。
+   *
+   * app 写自己的外部文件目录不需要任何权限；这份文件属于 media_rw_data_file，
+   * 电话进程 / system_server 侧可以读取，是模块冷启动时恢复策略的主要来源。
+   *
+   * 之前模块侧往 [SYSTEM_SNAPSHOT_DIR] 写盘（持久化）在电话进程里恒失败：
+   * `hook_config.json.tmp: open failed: EACCES`，所以持久化改成由 app 负责导出。
+   */
+  const val APP_EXTERNAL_SNAPSHOT_PATH =
+    "/storage/emulated/0/Android/data/$MODULE_PACKAGE/files/$SNAPSHOT_FILE_NAME"
 
   /**
    * 3 起新增 `otp` 段（短信黑名单 / 屏蔽 / 标记已读 / 提取后删除策略）。

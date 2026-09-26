@@ -8,8 +8,11 @@ import java.io.File
 /**
  * 模块侧（system_server）配置读取器。
  *
- * 读取顺序：本进程持久化文件 → app 设备保护目录快照 → 保持“无配置”（即完全放行）。
+ * 读取顺序：app 导出的外部快照 → 本进程目录 → app 设备保护目录 → 保持“无配置”（即完全放行）。
  * 带 TTL 缓存，避免每条输入事件都读盘；读不到时反向请求 app 重新下发。
+ *
+ * 持久化由 app 负责（写外部私有目录不需要权限）；模块侧不再写盘——
+ * 电话进程往 /data/system 写会恒 EACCES。
  */
 class HookConfigReader(
   private val log: (String) -> Unit = {},
@@ -42,7 +45,6 @@ class HookConfigReader(
     val parsed = ModuleHookSnapshot.parse(json) ?: return
     cached = parsed
     lastLoadAtMs = SystemClock.elapsedRealtime()
-    persistForRestart(json)
     log("hook config applied: groups=${parsed.takeoverGroups}")
   }
 
@@ -72,13 +74,22 @@ class HookConfigReader(
   }
 
   private fun loadFromDisk(): ModuleHookSnapshot? {
-    val fromSystem = runCatching { readText(systemSnapshotFile()) }.getOrNull()
-    val fromApp = if (fromSystem == null) {
+    // 读取顺序：app 导出的外部快照 → 本进程目录（system_server 可写）→ 设备保护目录。
+    // 外部那份是冷启动恢复的主要来源：app 写它不需要权限，模块侧读得到。
+    val fromExternal = runCatching {
+      readText(File(ModuleHookBridgeContract.APP_EXTERNAL_SNAPSHOT_PATH))
+    }.getOrNull()
+    val fromSystem = if (fromExternal == null) {
+      runCatching { readText(systemSnapshotFile()) }.getOrNull()
+    } else {
+      null
+    }
+    val fromApp = if (fromExternal == null && fromSystem == null) {
       runCatching { readText(File(ModuleHookBridgeContract.APP_SNAPSHOT_PATH)) }.getOrNull()
     } else {
       null
     }
-    val parsed = ModuleHookSnapshot.parse(fromSystem ?: fromApp)
+    val parsed = ModuleHookSnapshot.parse(fromExternal ?: fromSystem ?: fromApp)
     lastLoadAtMs = SystemClock.elapsedRealtime()
     // 只在真的解析出配置时覆盖缓存，避免"读不到文件"把已下发的配置顶掉。
     if (parsed != null) cached = parsed
@@ -89,21 +100,6 @@ class HookConfigReader(
     if (!file.isFile || !file.canRead()) return null
     val text = file.readText()
     return text.ifBlank { null }
-  }
-
-  private fun persistForRestart(json: String?) {
-    if (json.isNullOrBlank()) return
-    runCatching {
-      val dir = File(ModuleHookBridgeContract.SYSTEM_SNAPSHOT_DIR)
-      dir.mkdirs()
-      val file = File(dir, ModuleHookBridgeContract.SNAPSHOT_FILE_NAME)
-      val temp = File(dir, "${file.name}.tmp")
-      temp.writeText(json)
-      if (!temp.renameTo(file)) {
-        temp.copyTo(file, overwrite = true)
-        temp.delete()
-      }
-    }.onFailure { log("hook config persist failed: ${it.message}") }
   }
 
   private fun systemSnapshotFile(): File =

@@ -11,7 +11,6 @@ import android.os.SystemClock
 import android.util.Log
 import androidx.core.content.ContextCompat
 import com.slideindex.app.autofill.OtpAutoInputBroadcastContract
-import com.slideindex.app.autofill.OtpAutoInputFallbackPolicy
 import com.slideindex.app.otp.OtpCaptureDeduplicator
 import com.slideindex.app.service.SlideIndexAccessibilityService
 import com.slideindex.app.settings.AppSettings
@@ -23,7 +22,12 @@ import kotlinx.coroutines.launch
 @SuppressLint("StaticFieldLeak") // Pending context held only for in-flight auto-input attempt
 object OtpAutoInputOrchestrator {
     private const val TAG = "OtpAutoInput"
-    private const val RESULT_TIMEOUT_MS = 3_000L
+
+    /** 等注入回执的上限。注入已改成 ASYNC，正常情况下 0.5 秒内必回，这里只兜"钩子没响应"。 */
+    private const val INJECT_RESULT_TIMEOUT_MS = 2_000L
+
+    /** 无障碍服务没连着时的失败原因（要有专门文案，用户才知道去哪儿开）。 */
+    private const val A11Y_NOT_CONNECTED = "a11y_not_connected"
 
     private val mainHandler = Handler(Looper.getMainLooper())
     private val statsScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -31,9 +35,7 @@ object OtpAutoInputOrchestrator {
     private var pendingAttemptId: Long? = null
     private var pendingCode: String? = null
     private var pendingSettings: AppSettings? = null
-    private var pendingContext: Context? = null
     private var pendingRecordId: String? = null
-    private var deferredSystemInjectReason: String? = null
     private var statsRecorder: (suspend (Boolean, String, String, String?) -> Unit)? = null
 
     fun setStatsRecorder(recorder: suspend (Boolean, String, String, String?) -> Unit) {
@@ -49,21 +51,13 @@ object OtpAutoInputOrchestrator {
             val strategy = intent.getStringExtra(OtpAutoInputBroadcastContract.EXTRA_STRATEGY).orEmpty()
             val reason = intent.getStringExtra(OtpAutoInputBroadcastContract.EXTRA_REASON).orEmpty()
             Log.i(TAG, "Auto-input result: success=$success strategy=$strategy reason=$reason")
-            if (
-                !success &&
-                strategy == OtpAutoInputBroadcastContract.STRATEGY_SYSTEM_INJECT
-            ) {
-                deferredSystemInjectReason = reason
-                Log.w(TAG, "System inject path failed: reason=$reason (waiting for accessibility)")
-                return
-            }
-            recordStats(success, strategy, reason)
-            clearPendingAttempt()
             if (success) {
-                OtpAutoFillController.clearPending()
+                recordStats(true, strategy, reason)
+                clearPendingAttempt()
                 return
             }
-            handleFailure(context, reason, strategy)
+            // 注入失败（含被开关关掉、无按键事件、权限被拒）：立刻走无障碍，不等超时。
+            runAccessibilityStep(attemptId, "inject:${reason.ifBlank { "unknown" }}")
         }
     }
 
@@ -96,9 +90,7 @@ object OtpAutoInputOrchestrator {
         pendingAttemptId = attemptId
         pendingCode = code
         pendingSettings = settings
-        pendingContext = appContext
         pendingRecordId = recordId
-        deferredSystemInjectReason = null
         val request = OtpAutoInputBroadcastContract.Request(
             code = code,
             autoEnter = settings.otpAutoConfirmEnabled,
@@ -110,41 +102,74 @@ object OtpAutoInputOrchestrator {
         )
         val delayMs = settings.otpAutoInputDelayMs.coerceAtLeast(0).toLong()
         mainHandler.postDelayed({
+            if (pendingAttemptId != attemptId) return@postDelayed
+            if (!settings.otpLsposedSystemInjectEnabled) {
+                Log.i(TAG, "System inject disabled by setting, going straight to accessibility")
+                runAccessibilityStep(attemptId, "inject_disabled")
+                return@postDelayed
+            }
             appContext.sendOrderedBroadcast(
                 OtpAutoInputBroadcastContract.buildRequestIntent(request),
                 null
             )
             mainHandler.postDelayed({
-                if (pendingAttemptId == attemptId) {
-                    Log.w(TAG, "Auto-input timed out, trying fallbacks")
-                    val deferredReason = deferredSystemInjectReason
-                    val strategy = if (deferredReason != null) {
-                        OtpAutoInputBroadcastContract.STRATEGY_SYSTEM_INJECT
-                    } else {
-                        "none"
-                    }
-                    val reason = deferredReason ?: "timeout"
-                    recordStats(success = false, strategy = strategy, reason = reason)
-                    clearPendingAttempt()
-                    handleFailure(appContext, reason, strategy)
-                }
-            }, RESULT_TIMEOUT_MS)
+                if (pendingAttemptId != attemptId) return@postDelayed
+                Log.w(
+                    TAG,
+                    "No inject result in ${INJECT_RESULT_TIMEOUT_MS}ms, falling back to accessibility",
+                )
+                runAccessibilityStep(attemptId, "inject_timeout")
+            }, INJECT_RESULT_TIMEOUT_MS)
         }, delayMs)
         Log.i(TAG, "Dispatched ordered auto-input broadcast attemptId=$attemptId")
     }
 
-    private fun handleFailure(context: Context, reason: String, strategy: String) {
-        pendingCode ?: return
-        pendingSettings ?: return
-        when {
-            OtpAutoInputFallbackPolicy.shouldRetryAccessibility(reason) -> {
-                SlideIndexAccessibilityService.scheduleOtpAutoFill()
-            }
-            else -> Log.w(TAG, "Auto-input failed without fallback: reason=$reason strategy=$strategy")
+    /**
+     * 注入失败/被关闭/超时之后：在进程内同步做一次无障碍填充，成败都由这里记账。
+     *
+     * 这是整条链路唯一的"回退"入口——事件触发的直填已经删掉，所以不会出现两条路同时填。
+     */
+    private fun runAccessibilityStep(attemptId: Long, fallbackFrom: String) {
+        if (pendingAttemptId != attemptId) return
+        val code = pendingCode
+        val settings = pendingSettings
+        if (code == null || settings == null) {
+            clearPendingAttempt()
+            return
         }
+        val outcome = SlideIndexAccessibilityService.fillOtpNow(code, settings)
+        // 等无障碍这几百毫秒里注入的回执可能到了并已结案，这里不能再覆盖结果。
+        if (pendingAttemptId != attemptId) return
+        if (outcome == null) {
+            Log.w(TAG, "Accessibility service not connected, cannot fill ($fallbackFrom)")
+            finalizeFailure(A11Y_NOT_CONNECTED)
+            return
+        }
+        if (outcome.success) {
+            Log.i(TAG, "Accessibility fill succeeded via ${outcome.strategy} ($fallbackFrom)")
+            recordStats(true, outcome.strategy, outcome.reason)
+            clearPendingAttempt()
+            return
+        }
+        Log.w(TAG, "Accessibility fill failed: ${outcome.reason} ($fallbackFrom)")
+        // 两条路都填不进去：这时无障碍给的原因更贴近事实（例如"没找到可编辑输入框"）。
+        finalizeFailure(outcome.reason.ifBlank { fallbackFrom })
+    }
+
+    private fun finalizeFailure(reason: String) {
+        recordStats(success = false, strategy = "none", reason = reason)
+        clearPendingAttempt()
+    }
+
+    /** 有填充尝试在途。 */
+    fun isAttemptInFlight(): Boolean = pendingAttemptId != null
+
+    private fun clearPendingAttempt() {
+        pendingAttemptId = null
+        pendingRecordId = null
         pendingCode = null
         pendingSettings = null
-        pendingContext = null
+        mainHandler.removeCallbacksAndMessages(null)
     }
 
     private fun ensureResultReceiver(context: Context) {
@@ -152,13 +177,6 @@ object OtpAutoInputOrchestrator {
         val filter = IntentFilter(OtpAutoInputBroadcastContract.ACTION_AUTO_INPUT_RESULT)
         ContextCompat.registerReceiver(context, resultReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
         resultReceiverRegistered = true
-    }
-
-    private fun clearPendingAttempt() {
-        pendingAttemptId = null
-        pendingRecordId = null
-        deferredSystemInjectReason = null
-        mainHandler.removeCallbacksAndMessages(null)
     }
 
     private fun recordStats(success: Boolean, strategy: String, reason: String) {

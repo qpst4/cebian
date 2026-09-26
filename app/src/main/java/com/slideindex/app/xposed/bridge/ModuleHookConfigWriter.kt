@@ -27,6 +27,17 @@ object ModuleHookConfigWriter {
       ModuleHookBridgeContract.SNAPSHOT_FILE_NAME,
     )
 
+  /**
+   * 对外导出的快照路径（`/storage/emulated/0/Android/data/<pkg>/files/`）。
+   *
+   * 设备保护目录那份在多数机型上电话进程读不到，模块自己的持久化又恒 EACCES，
+   * 所以由 app 再导出一份到外部私有目录：写它不需要权限，模块侧能读。
+   */
+  fun externalSnapshotFile(context: Context): File? =
+    context.getExternalFilesDir(null)?.let { dir ->
+      File(dir, ModuleHookBridgeContract.SNAPSHOT_FILE_NAME)
+    }
+
   fun buildSnapshot(context: Context, settings: AppSettings): ModuleHookSnapshot =
     ModuleHookSnapshot(
       version = ModuleHookBridgeContract.SNAPSHOT_VERSION,
@@ -77,6 +88,7 @@ object ModuleHookConfigWriter {
   fun write(context: Context, settings: AppSettings): String {
     val json = buildSnapshot(context, settings).toJson()
     runCatching { writeSnapshotFile(snapshotFile(context), json) }
+    runCatching { externalSnapshotFile(context)?.let { writeSnapshotFile(it, json) } }
     return json
   }
 

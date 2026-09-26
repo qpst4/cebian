@@ -94,7 +94,6 @@ class OtpSmsBridgeReceiver : BroadcastReceiver() {
             null
         }
         if (settings.otpAutoInputEnabled) {
-            OtpAutoFillController.queueCode(code)
             OtpAutoInputOrchestrator.requestAutoFill(context.applicationContext, code, settings, recordId)
         }
         if (settings.otpCopyToClipboard) {

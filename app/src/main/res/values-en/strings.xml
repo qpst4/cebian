@@ -2736,6 +2736,7 @@ Questions: open a GitHub Issue on the project repository.</string>
     <string name="otp_autofill_reason_no_key_events">Could not generate key events</string>
     <string name="otp_autofill_reason_inject_exception">System inject exception</string>
     <string name="otp_autofill_reason_paste_fallback">Key injection failed; fell back to Ctrl+V paste</string>
+    <string name="otp_autofill_reason_a11y_not_connected">Accessibility service is not connected and system inject could not fill the code</string>
     <string name="otp_autofill_reason_probe">Probe response</string>
     <string name="otp_autofill_reason_uid_rejected">Sender UID not authorized</string>
     <string name="otp_autofill_reason_inject_disabled">System inject disabled in app settings</string>
