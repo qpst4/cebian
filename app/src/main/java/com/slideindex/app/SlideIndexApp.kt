@@ -66,8 +66,10 @@ class SlideIndexApp : Application() {
         super.onCreate()
         // Shizuku 的 binder 只会投递给声明了 ShizukuProvider 的进程（这里是默认进程）。
         // 多进程架构下 :overlay 也要用 Shizuku（任务切换器等），必须打开多进程支持并主动取 binder。
+        // 注意 enableMultiProcessSupport(flag) 的 flag 含义是"**当前进程**是不是 provider 进程"，
+        // 传 true 会被 Shizuku 当成 provider 进程，紧接着的 requestBinderForNonProviderProcess 会直接 return。
         runCatching {
-            rikka.shizuku.ShizukuProvider.enableMultiProcessSupport(true)
+            rikka.shizuku.ShizukuProvider.enableMultiProcessSupport(AppProcess.isMain)
             if (!AppProcess.isMain) {
                 rikka.shizuku.ShizukuProvider.requestBinderForNonProviderProcess(this)
             }
