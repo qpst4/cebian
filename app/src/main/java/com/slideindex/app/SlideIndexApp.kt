@@ -40,11 +40,27 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 @HiltAndroidApp
-class SlideIndexApp : Application() {
+class SlideIndexApp : Application(), androidx.work.Configuration.Provider {
     private companion object {
         /** 启动期重活延后时间，给前台服务 startForeground 留出窗口。 */
         const val STARTUP_HEAVY_TASK_DELAY_MS = 1_500L
+
+        /**
+         * 给 WorkManager 声明的 JobScheduler id 范围（lint: SpecifyJobSchedulerIdRange）。
+         *
+         * 本应用除了 WorkManager，还自己直接用 JobScheduler（[com.slideindex.app.service.OverlayWatchdogJobService]
+         * 的 id 是 0x5101 = 20737，必须落在下面这个范围之外，否则两边编号可能撞车）。
+         * WorkManager 默认范围是 [0, Int.MAX_VALUE]，等于"整段都可以用"，所以必须显式收窄；
+         * 收窄后老的 WorkManager 任务仍落在新范围内（它们用的是很小的自增编号），不会被漏掉。
+         */
+        const val WORK_MANAGER_JOB_ID_MIN = 0
+        const val WORK_MANAGER_JOB_ID_MAX = 20_000
     }
+
+    override val workManagerConfiguration: androidx.work.Configuration
+        get() = androidx.work.Configuration.Builder()
+            .setJobSchedulerJobIdRange(WORK_MANAGER_JOB_ID_MIN, WORK_MANAGER_JOB_ID_MAX)
+            .build()
 
     @Inject lateinit var deps: AppDependencies
     @Inject lateinit var shizukuInitializer: ShizukuInitializer
