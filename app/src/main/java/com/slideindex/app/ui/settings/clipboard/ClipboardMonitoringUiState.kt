@@ -2,7 +2,6 @@ package com.slideindex.app.ui.settings.clipboard
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,20 +52,11 @@ fun rememberClipboardMonitoringUiState(settings: AppSettings): ClipboardMonitori
     val localMode by controller.activeModeFlow.collectAsStateWithLifecycle()
     // 监听服务跑在 :clipboard 进程，设置页在主进程：优先用跨进程镜像，
     // 没收到镜像时（例如就在监听进程内）再回退到本进程 controller。
+    // 只保留"订阅"这一种读法：镜像一变就重组；新数据靠打开页面/回到前台时 requestStatus 主动要一帧。
+    // （曾短暂加过 1s 轮询兜底，但轮询与订阅读的是同一份镜像，两者"打架"只会显示旧值，故删掉。）
     val portStatus by ClipboardMonitorStatusPort.status.collectAsStateWithLifecycle()
-    // 再挂一个 1s 轮询兜底：广播镜像偶发丢帧/时序不对时，设置页也能在一秒内自愈，
-    // 不至于"明明在监听却显示未在监听"（打开页面时先显示未监听、再跳到正常监听的首帧窗口也靠它缩短）。
-    var polledStatus by remember { mutableStateOf(ClipboardMonitorStatusPort.status.value) }
-    LaunchedEffect(Unit) {
-        while (true) {
-            val latest = ClipboardMonitorStatusPort.status.value
-            if (latest != polledStatus) polledStatus = latest
-            kotlinx.coroutines.delay(1_000)
-        }
-    }
-    val effectiveStatus = portStatus ?: polledStatus
-    val monitorRunning = effectiveStatus?.listening ?: localRunning
-    val activeMode = if (effectiveStatus != null) effectiveStatus.mode else localMode
+    val monitorRunning = portStatus?.listening ?: localRunning
+    val activeMode = if (portStatus != null) portStatus?.mode else localMode
     var shizukuGranted by remember { mutableStateOf(controller.hasShizukuPermission()) }
     var rootAvailable by remember { mutableStateOf(controller.isRootAvailable()) }
     var overlayGranted by remember {
