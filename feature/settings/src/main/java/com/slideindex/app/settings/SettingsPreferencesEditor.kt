@@ -12,7 +12,11 @@ import androidx.datastore.preferences.core.Preferences
 
 import androidx.datastore.preferences.core.edit
 
-import androidx.datastore.preferences.preferencesDataStore
+import androidx.datastore.core.MultiProcessDataStoreFactory
+
+import androidx.datastore.preferences.core.PreferencesFileSerializer
+
+import androidx.datastore.preferences.preferencesDataStoreFile
 
 import com.slideindex.app.message.MessageSettings
 
@@ -29,7 +33,25 @@ import kotlinx.coroutines.flow.map
 
 
 
-private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "slide_index_settings")
+private const val SETTINGS_STORE_NAME = "slide_index_settings"
+
+/**
+ * 多进程安全的设置存储。
+ *
+ * 目标架构下无障碍与浮层运行在 `:overlay` 进程，主进程与它都要读写设置。
+ * 默认的 `preferencesDataStore` 委托只支持单进程（两个进程同时打开同一文件会互相看不到写入，
+ * 甚至报 "multiple DataStores active for the same file"），因此这里显式使用
+ * [MultiProcessDataStoreFactory]，并且保证每个进程内只有一个实例。
+ */
+private val dataStoreHolder = java.util.concurrent.atomic.AtomicReference<DataStore<Preferences>>()
+
+private val Context.dataStore: DataStore<Preferences>
+    get() = dataStoreHolder.get() ?: synchronized(dataStoreHolder) {
+        dataStoreHolder.get() ?: MultiProcessDataStoreFactory.create<Preferences>(
+            serializer = PreferencesFileSerializer,
+            produceFile = { preferencesDataStoreFile(SETTINGS_STORE_NAME) },
+        ).also { dataStoreHolder.set(it) }
+    }
 
 
 

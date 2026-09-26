@@ -24,6 +24,7 @@ import com.slideindex.app.service.GestureToggleTileWarmup
 import com.slideindex.app.service.HistoryFloatLifecycle
 import com.slideindex.app.service.OverlayServiceLifecycle
 import com.slideindex.app.util.HiddenApiBootstrap
+import com.slideindex.app.util.AppProcess
 import com.slideindex.app.util.AppLocaleApplier
 import com.slideindex.app.util.PredictiveBackHelper
 import com.slideindex.app.util.ServiceEnabledStore
@@ -63,13 +64,7 @@ class SlideIndexApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        deps.launcherAppsCallbackBridge.register()
-        runBlocking(Dispatchers.IO) {
-            val language = AppUiLanguage.fromStorageTag(
-                runCatching { deps.settingsRepository.readFreshSnapshot().appUiLanguageTag }.getOrDefault("")
-            )
-            AppLocaleApplier.apply(this@SlideIndexApp, language)
-        }
+        // 所有进程共有：崩溃记录 + Hidden API 放行 + 引擎运行时接入。
         com.slideindex.app.util.LocalCrashHandler.install(this)
         HiddenApiBootstrap.install()
         NativeEngineRuntime.coordinator = nativeEnginePackCoordinator
@@ -77,14 +72,26 @@ class SlideIndexApp : Application() {
         NativeEngineRuntime.onOcrEnginePackInvalidated = {
             OcrDependencyAccess.inferenceService(this)?.invalidateEngineBlocking()
         }
-        ocrEnginePackMigrationStartup.start()
+        if (AppProcess.isEngine) return
+
+        // —— 主进程与 :overlay 共有：常驻交互（无障碍/浮层/模块桥/系统监听）需要用到的部分 ——
+        deps.launcherAppsCallbackBridge.register()
+        runBlocking(Dispatchers.IO) {
+            val language = AppUiLanguage.fromStorageTag(
+                runCatching { deps.settingsRepository.readFreshSnapshot().appUiLanguageTag }.getOrDefault("")
+            )
+            AppLocaleApplier.apply(this@SlideIndexApp, language)
+        }
         shizukuInitializer.start()
         moduleHookConfigSync.start()
         otpAutoFillStatsInstaller.install()
         otpRecordLimitsInstaller.install()
         com.slideindex.app.ui.icon.AppIconTheme.ensureSelectedThemeEnabled(this)
-        FreezerLauncherHelper.cleanupLegacyAlias(this)
         ClipboardMonitorStartup.applicationReady = true
+
+        // —— 仅主进程：启动期重活、调度、拉起常驻服务 ——
+        // :overlay 进程不跑这些，否则它自己就成了"启动期卡顿"的下一个受害者。
+        if (AppProcess.isMain) {
         // 首帧后再做 OCR 校验、分词 warm-up、应用列表扫描，减轻装后首开卡顿
         // 延迟执行启动期重活：开机瞬间主线程若被 OCR 校验 / 分词 warm-up / 应用列表扫描占住，
         // 剪贴板监听前台服务会来不及在 5 秒内 startForeground（实测过一次
@@ -129,6 +136,9 @@ class SlideIndexApp : Application() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             val enabled = deps.settingsRepository.readSnapshot().predictiveBackEnabled
             PredictiveBackHelper.applyEnabled(applicationInfo, enabled)
+        }
+            ocrEnginePackMigrationStartup.start()
+            FreezerLauncherHelper.cleanupLegacyAlias(this)
         }
     }
 
