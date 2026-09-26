@@ -86,8 +86,13 @@ object OverlayServiceLifecycle {
         }
         val appContext = context.applicationContext
 
-        // 1. 若开启了防被杀，在任何门禁前优先自动写回系统设置，避免因系统断开无障碍而判定为未授权
-        if (settings.accessibilityKeepAliveEnabled) {
+        // 1. 覆盖安装 / 被系统杀过之后，无障碍常见状态是"系统设置里还开着、实际却没连上"。
+        //    只要有写系统设置的权限（本进程已有，或经 Shizuku 获取），就直接自动写回并重绑，
+        //    不再要求用户先打开「辅助功能防被杀」、也不再只提示"完全关闭后重新打开本应用"。
+        //    （防被杀开关的作用降级为控制看门狗后续重复重试的强度。）
+        if (settings.accessibilityKeepAliveEnabled ||
+            PermissionHelper.isAccessibilityServiceEnabled(appContext)
+        ) {
             if (!SecureSettingsHelper.hasWriteSecureSettings(appContext)) {
                 SecureSettingsHelper.grantViaShizuku(appContext)
             }

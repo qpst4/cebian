@@ -408,3 +408,50 @@ OTP 填充统计 `OtpAutoFillStatsRepository`、通知过滤规则 `Notification
 > 排查教训：**Compose 界面用 `uiautomator dump` 读到的文字可能是陈旧的语义节点**。
 > 本次就是被它带偏了半个多小时（dump 一直显示"未在监听"，截图其实是"正常监听中"）。
 > 校验 Compose 文本状态时以截图为准，dump 只用来定位控件坐标。
+
+### C.9 通道切换"卡住/要点第二次"的真实根因：解析读错了字段
+
+现象：设置页把通道勾成 Root，状态行却仍显示 `Shizuku · 系统日志 · 正常监听中`（勾选与实际矛盾），
+用户体感是"切不过去、要再点一次"。
+
+根因：设置页写的是新字段 `clipboardMonitoringChannel` / `clipboardMonitoringCapture`，
+而监听启动前的 `ClipboardHistoryRepository.resolveClipboardMonitoringMode()` 读的是**历史字段**
+`clipboardBackgroundMonitoringMode`（一直是默认 FOLLOW_PRIVILEGE）→ 无论勾哪个通道，
+实际都按"跟随特权 → Shizuku"启动。
+
+修复：解析与设置页共用同一来源（`settings.effectiveClipboardMonitoringMode()`）；
+显式选了通道就照用，只有"跟随特权模式"才走"先特权、再 LSPosed、再标准"的降级链；
+历史字段仅在被显式设成具体模式时尊重。**用户真机复验：来回切各模式均及时生效，不再卡。**
+
+追加：跟随特权分支在 Shizuku 未就绪时会先轮询等待最多 3s 再判（避免刚启动就被判"不可用"而误降级）。
+实测本机加等待后仍降级到 LSPosed → 说明是 **Shizuku 授权失效**（反复 install -r 所致），并非时序问题；
+重新授权 Shizuku 即会使用 Shizuku 通道。**降级链本身是原有设计，本次未改动。**
+
+### C.10 `ClipboardMonitorStartup` 的"fail-open"其实没改行为
+
+曾怀疑"等主线程空闲"重试用尽后会静默丢弃启动，从而造成上面那个卡顿，于是动手改成"照常启动"。
+逐行比对后确认：**原实现最后一次重试本来就是照常执行**，改动只多了一行日志，行为完全一致
+（所以该日志从未触发）。结论：该项无需回退，日志保留作诊断。
+
+### C.11 P4 收尾：进程内静态审查 + jieba 取舍（本轮记录）
+
+审查口径：凡是"是否连接/是否存在"这类**进程内静态**，都必须区分「`:overlay` 读本地」与
+「其它进程读镜像/端口」；镜像未就绪时按"未知"处理，不能当 false。
+
+本轮按 grep 出的高危调用点逐个核对（`SlideIndexAccessibilityService.accessibilityInstance()/isConnected()`、
+`MediaNotificationListener.instance`、`ClipboardMonitorController.isListeningFlow`）：
+
+- `ClipboardFloatImeCoordinator`、`ActionExecutor`、`FloatBallOverlay`、`SearchEngineLauncher`、
+  `AppShakePorts`、`FloatingPointer*` 等调用点都落在 `:overlay` 进程内（服务/浮层/Shake 宿主都在那边）→ 无问题；
+- `AppPortsModule.listenerOrNull()` 在主进程返回 null 属预期，实时列表/键集合已改走
+  `activeNotificationSnapshotsOrNull()`（`:overlay` 广播的快照镜像）；
+- 已修的跨进程误用：`OverlayServiceLifecycle` / `SecureSettingsHelper`（原用进程内 `isConnected()` 判掉线，
+  主进程恒 false → 误报并抖断绑定）、剪贴板监听状态（改为 `ClipboardMonitorStatusPort` 镜像）。
+
+结论：本轮未发现新的必须修改项；后续新代码必须遵守上面口径（这条已并入本文档 3. 状态归属表的精神）。
+
+jieba：实测四个进程（main / `:overlay` / `:engine` / `:clipboard`）的 `/proc/<pid>/maps` 中
+`jieba / pinyin / tesseract / onnx / opencv` 命中均为 0 —— 属于**懒加载**，空闲时谁都不占。
+因此"并入 `:engine`"对常驻内存无收益，只降低"浮层首次取词时加载几 MB 原生库"的影响，
+但会为每次分词增加一次跨进程往返（engine 冷启动时首次调用更慢）。
+**决定：暂不做**（优先级最低）；将来若要抠浮层内存，按 OCR 那套加 `:engine` 分词 AIDL 并预热 engine。
