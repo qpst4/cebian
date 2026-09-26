@@ -272,3 +272,18 @@ OTP 填充统计 `OtpAutoFillStatsRepository`、通知过滤规则 `Notification
 
 经验：**窗口壳子的建立必须以宿主就绪为前提；任何 `updateViewLayout`/`addView` 失败都不允许静默吞掉**，
 否则会变成"状态对、画面没有"的幽灵窗口，排查代价极高。
+
+### C.5 OCR 引擎隔离实测（P3 第一步成果）
+
+截图取词实测后按进程统计 native 库映射（`/proc/<pid>/maps` 中 `libonnxruntime` / `libopencv_java5` / `libtesseract` 的条目数）：
+
+| 进程 | onnxruntime | opencv_java5 | tesseract |
+| --- | --- | --- | --- |
+| `:overlay`（常驻交互） | 0 | 0 | 0 |
+| `:engine` | 3 | 3 | 3 |
+| main（UI） | 0 | 0 | 0 |
+
+结论：OCR 推理已完全落在 `:engine`，调用方通过 `IEngineOcr`（AIDL + Bitmap 走 ashmem）拿结果，
+失败时回退本地推理。**OCR 的内存峰值与 OOM 不再牵动手势/浮层进程**。
+
+待办：jieba 分词仍在调用方进程（占用不大，可并入 `:engine` 或保持现状）。
