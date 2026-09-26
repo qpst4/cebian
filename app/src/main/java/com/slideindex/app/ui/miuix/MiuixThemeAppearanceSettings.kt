@@ -77,6 +77,7 @@ fun themeAppearanceSettingsCardItems(
     val topAppBarBlurStyle = TopAppBarBlurStyle.fromId(topAppBarBlurStyleId)
     val spec2025Supported = paletteStyle.supportsMiuixSpec2025()
     val effectiveColorSpec = if (spec2025Supported) colorSpec else AppColorSpec.SPEC_2021
+    @android.annotation.SuppressLint("LocalContextResourcesRead")
     val resources = LocalContext.current.resources
     var showSeedColorPicker by remember { mutableStateOf(false) }
 

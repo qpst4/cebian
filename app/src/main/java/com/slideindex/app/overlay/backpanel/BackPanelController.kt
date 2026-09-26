@@ -716,7 +716,6 @@ class BackPanelController(
                 previousXTranslationOnActiveOffset = previousXTranslation
                 updateRestingArrowDimens()
                 if (previousState != GestureState.ENTRY || activationThresholdOverridePx == null) {
-                    //noinspection NewApi
                     performHaptic(HapticFeedbackConstants.GESTURE_THRESHOLD_ACTIVATE)
                 }
                 val popVelocity = if (previousState == GestureState.INACTIVE) {
@@ -769,6 +768,8 @@ class BackPanelController(
         }
     }
 
+    // 触感常量：GESTURE_THRESHOLD_ACTIVATE 是 API 34 新增的编译期常量（内联，运行时不访问字段）。
+    @android.annotation.SuppressLint("NewApi")
     private fun performHaptic(constant: Int) {
         panel.performHapticFeedback(constant, HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING)
     }

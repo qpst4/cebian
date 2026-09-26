@@ -12,9 +12,10 @@ internal object RootBinderPublish {
         return "slideindex.$hash.taskmgr"
     }
 
-    fun publish(name: String, binder: IBinder): Boolean {
+    // 反射访问 ServiceManager.addService：root 侧发布 binder 的必要手段，失败已有 runCatching 兜底。
+    @android.annotation.SuppressLint("PrivateApi")
+    fun publish(name: String, binder: IBinder): Boolean {
         return runCatching {
-            //noinspection PrivateApi
             val sm = Class.forName("android.os.ServiceManager")
             val added = invokeAddService(sm, name, binder)
             if (added) {

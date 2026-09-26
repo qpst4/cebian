@@ -17,6 +17,7 @@ import kotlin.math.roundToInt
 /** 验证码自动填充：开关、自动回车、输入延迟与间隔、系统注入。 */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
+@android.annotation.SuppressLint("LocalContextResourcesRead")
 fun OtpAutoFillScreen(
     settings: AppSettings,
     onBack: () -> Unit,
@@ -66,7 +67,6 @@ fun OtpAutoFillScreen(
                 formatLabel = { value ->
                     val ms = value.roundToInt()
                     if (ms <= 0) {
-                        //noinspection LocalContextResourcesRead
                         context.getString(R.string.otp_auto_input_delay_zero)
                     } else {
                         context.getString(R.string.otp_auto_input_delay_value, ms)

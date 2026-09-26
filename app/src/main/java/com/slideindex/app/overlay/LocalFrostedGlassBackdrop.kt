@@ -79,11 +79,12 @@ internal class LocalFrostedGlassDrawable(private val viewProvider: () -> View?) 
         lastViewRootImpl = null
     }
 
+    // 反射取 ViewRootImpl：拿系统私有字段做模糊背景，失败已用 runCatching 兜住。
+    @android.annotation.SuppressLint("PrivateApi")
     private fun ensureDrawable(): Drawable? {
         val view = viewProvider() ?: return null
         if (!view.isAttachedToWindow) return null
         val currentVri = runCatching {
-            //noinspection PrivateApi
             val getViewRootImplMethod = View::class.java.getDeclaredMethod("getViewRootImpl")
             getViewRootImplMethod.isAccessible = true
             getViewRootImplMethod.invoke(view)

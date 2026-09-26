@@ -63,6 +63,8 @@ class OtpCodeAlertPresenter @Inject constructor(
         }
     }
 
+    // 通知前不查权限：本仓库其它通知点同款处理（调用方已保证通知开关可用），失败不致命。
+    @android.annotation.SuppressLint("MissingPermission")
     private fun postNotification(code: String, sourceLabel: String, retentionSeconds: Int) {
         if (!PermissionHelper.hasNotificationPermission(context)) return
         val manager = context.getSystemService(NotificationManager::class.java) ?: return
@@ -83,7 +85,6 @@ class OtpCodeAlertPresenter @Inject constructor(
                 if (retentionMs > 0L) setTimeoutAfter(retentionMs)
             }
             .build()
-        //noinspection MissingPermission
         NotificationManagerCompat.from(context).notify(NOTIFICATION_ID, notification)
     }
 

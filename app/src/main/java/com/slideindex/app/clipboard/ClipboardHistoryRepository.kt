@@ -462,7 +462,7 @@ class ClipboardHistoryRepository @Inject constructor(
         }
         val now = System.currentTimeMillis()
         if (now - lastModuleProbeAtMs >= MODULE_PROBE_THROTTLE_MS) {
-        lastModuleProbeAtMs = now
+            lastModuleProbeAtMs = now
             ModuleBridgeStatusProbe.probe(context) { status, _ ->
                 if (status != ModuleBridgeStatusProbe.Status.NotReady) {
                     syncClipboardMonitoringFromSettings()

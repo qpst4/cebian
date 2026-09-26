@@ -250,6 +250,8 @@ private fun ClipboardLinkPickerContent(
     val sheetShape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
     val cornerPx = with(density) { 28.dp.toPx() }
     val sheetTint = if (isDark) 0x991C1C1E.toInt() else 0x99F5F5F7.toInt()
+    // 弹窗高度按当前配置取屏幕高度的 60%（跟随 LocalConfiguration，已随配置变化重组）。
+    @android.annotation.SuppressLint("ConfigurationScreenWidthHeight")
     val maxListHeight = (LocalConfiguration.current.screenHeightDp * 0.6f).dp
     val scrimInteraction = remember { MutableInteractionSource() }
     val sheetInteraction = remember { MutableInteractionSource() }
