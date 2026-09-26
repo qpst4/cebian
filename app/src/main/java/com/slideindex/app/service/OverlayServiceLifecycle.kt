@@ -39,6 +39,18 @@ object OverlayServiceLifecycle {
     ) {
         val appContext = context.applicationContext
         val settings = settingsRepository.settings.first()
+        // 先把常驻服务拉起来/停掉：这一步直接决定"球多久出现"，不能排在可能带等待与重试的
+        // 无障碍恢复之后（真机回归：安装后要等近一分钟球才出现，以前 5 秒内）。
+        val shouldRun = settings.serviceEnabled &&
+            PermissionHelper.isAccessibilityServiceEnabled(appContext) &&
+            PermissionHelper.hasNotificationPermission(appContext)
+        val serviceIntent = Intent(appContext, OverlayService::class.java)
+        if (shouldRun) {
+            runCatching { appContext.startForegroundService(serviceIntent) }
+                .onFailure { Log.w(TAG, "start OverlayService failed", it) }
+        } else {
+            runCatching { appContext.stopService(serviceIntent) }
+        }
         val outcome = if (accessibilityRecoverRetries) {
             recoverAccessibilityBindingWithRetries(appContext, settings)
         } else {
@@ -46,15 +58,6 @@ object OverlayServiceLifecycle {
         }
         if (accessibilityRecoverRetries) {
             AccessibilityRecoverNotifier.maybeShowReopenHint(appContext, outcome, settings)
-        }
-        val shouldRun = settings.serviceEnabled &&
-            PermissionHelper.isAccessibilityServiceEnabled(appContext) &&
-            PermissionHelper.hasNotificationPermission(appContext)
-        val serviceIntent = Intent(appContext, OverlayService::class.java)
-        if (shouldRun) {
-            appContext.startForegroundService(serviceIntent)
-        } else {
-            appContext.stopService(serviceIntent)
         }
     }
 
@@ -86,13 +89,18 @@ object OverlayServiceLifecycle {
         }
         val appContext = context.applicationContext
 
-        // 1. 覆盖安装 / 被系统杀过之后，无障碍常见状态是"系统设置里还开着、实际却没连上"。
-        //    只要有写系统设置的权限（本进程已有，或经 Shizuku 获取），就直接自动写回并重绑，
-        //    不再要求用户先打开「辅助功能防被杀」、也不再只提示"完全关闭后重新打开本应用"。
-        //    （防被杀开关的作用降级为控制看门狗后续重复重试的强度。）
-        if (settings.accessibilityKeepAliveEnabled ||
-            PermissionHelper.isAccessibilityServiceEnabled(appContext)
-        ) {
+        // 1. 覆盖安装 / 被系统杀过之后，AMS 通常会**自己**把无障碍服务绑回来（几秒级）——
+        //    先给系统这个时间，期间不动系统设置。
+        //    （教训：之前这里"乐观地"立刻改写无障碍设置，等于强制解绑再重绑，
+        //     把系统那条快路径换成了带退避的慢路径 —— 真机实测安装后要等近一分钟球才出现，
+        //     改回"先等系统"之前是 5 秒内出现。）
+        if (!OverlayStatePort.isServiceConnected()) {
+            awaitAccessibilityConnected(timeoutMs = SYSTEM_REBIND_GRACE_MS)
+        }
+
+        // 2. 只有"系统确实没绑上"，且用户开了「辅助功能防被杀」时，才主动写回设置兜底重绑。
+        //    开关关着就不插手，避免无谓地把系统自己的重绑拖慢。
+        if (settings.accessibilityKeepAliveEnabled && !OverlayStatePort.isServiceConnected()) {
             if (!SecureSettingsHelper.hasWriteSecureSettings(appContext)) {
                 SecureSettingsHelper.grantViaShizuku(appContext)
             }
@@ -192,6 +200,8 @@ object OverlayServiceLifecycle {
     private val APP_LAUNCH_REBIND_DELAYS_MS = longArrayOf(800L, 2_000L, 5_000L)
 
     private const val REBIND_VERIFY_TIMEOUT_MS = 5_000L
+    /** 覆盖安装/被杀之后，先给系统这么多时间自己重绑无障碍（期间不动系统设置），避免把快路径换成慢路径。 */
+    private const val SYSTEM_REBIND_GRACE_MS = 5_000L
     private const val REBIND_VERIFY_POLL_MS = 250L
 
     private const val TAG = "OverlayServiceLifecycle"
