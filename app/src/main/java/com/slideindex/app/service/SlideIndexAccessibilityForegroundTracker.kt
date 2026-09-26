@@ -53,8 +53,14 @@ internal class SlideIndexAccessibilityForegroundTracker(
         // 前台已切到**别的应用**，说明"为外部编辑页让位"的挂起态该结束了：
         // 若圆环/轮盘还卡在挂起态（跨进程回调丢失、或编辑页没走正常返回），在这里兜底恢复，
         // 避免出现"圆环/轮盘不显示、悬浮球也不见"的悬挂状态。
-        runCatching { com.slideindex.app.overlay.appswitcher.AppSwitcherOverlayWindow.selfHealAfterExternalActivity() }
-        runCatching { com.slideindex.app.overlay.corner.CornerGestureHost.selfHealAfterExternalActivity() }
+        //
+        // 注意：必须确认"我们自己的界面也不在前台"才允许自愈。
+        // 进编辑页的那一瞬间，前台事件里先到的是过渡态的"非本应用"包名，
+        // 若不加这层判断，会把刚挂起的圆环立刻恢复出来（真机：第一次进自定义图标页圆环不收起）。
+        if (!isSelfAppForeground()) {
+            runCatching { com.slideindex.app.overlay.appswitcher.AppSwitcherOverlayWindow.selfHealAfterExternalActivity() }
+            runCatching { com.slideindex.app.overlay.corner.CornerGestureHost.selfHealAfterExternalActivity() }
+        }
         when (val update = computeWindowStatePackageUpdate(
                 packageName = packageName,
                 selfPackageName = service.applicationContext.packageName,
@@ -74,6 +80,23 @@ internal class SlideIndexAccessibilityForegroundTracker(
             }
         }
     }
+
+    /**
+     * 本应用（主进程，编辑页等 UI 所在进程）此刻是否在前台。
+     *
+     * 用来避免"前台事件过渡态"误判：进入自己的编辑页那一瞬间，前台事件里可能先到
+     * 一个非本应用的包名，这时不能当成"外部编辑页已经离开"，否则会把刚挂起的
+     * 圆环 / 轮盘立刻恢复出来。
+     */
+    private fun isSelfAppForeground(): Boolean = runCatching {
+        val manager = service.getSystemService(android.app.ActivityManager::class.java)
+            ?: return@runCatching false
+        val selfPackage = service.applicationContext.packageName
+        manager.runningAppProcesses?.any { info ->
+            info.processName == selfPackage &&
+                info.importance <= android.app.ActivityManager.RunningAppProcessInfo.IMPORTANCE_FOREGROUND
+        } ?: false
+    }.getOrDefault(false)
 
     fun handleWindowsChanged() {
         onSyncLockScreen()
