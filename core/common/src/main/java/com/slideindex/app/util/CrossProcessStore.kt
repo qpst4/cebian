@@ -50,8 +50,11 @@ object CrossProcessStore {
         }
     }
 
-    /** 需要在锁内做更复杂的操作时使用（调用方自己保证锁内重新读盘）。 */
-    suspend fun <T> withFileLock(file: File, block: () -> T): T = withContext(Dispatchers.IO) {
+    /**
+     * 需要在锁内做更复杂的操作时使用（调用方自己保证锁内重新读盘）。
+     * block 允许挂起：仓库内部的读写都是 `withContext(IO)`，嵌套不会破锁。
+     */
+    suspend fun <T> withFileLock(file: File, block: suspend () -> T): T = withContext(Dispatchers.IO) {
         lockOf(file).use { lock ->
             lock.channel.lock().use { block() }
         }

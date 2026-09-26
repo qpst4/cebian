@@ -35,6 +35,23 @@ class OtpRecordsRepository @Inject constructor(
     private var limits: Map<OtpRecordCategory, Int> = DEFAULT_LIMITS
 
     /**
+     * 写操作统一入口：进程内 mutex + **跨进程文件锁**；写完广播通知其它进程重载。
+     * 各写方法内部是"锁内重新读盘再计算"，套上这层即可跨进程安全。
+     */
+    private suspend fun <T> withCrossProcessWrite(block: suspend () -> T): T =
+        mutex.withLock {
+            com.slideindex.app.util.CrossProcessStore.withFileLock(recordsFile) {
+                val result = block()
+                com.slideindex.app.util.CrossProcessStore.notifyChanged(appContext, recordsFile)
+                result
+            }
+        }
+
+    private suspend fun reloadFromDiskForExternalChange() {
+        mutex.withLock { _records.value = trimByCategory(readFromDisk()) }
+    }
+
+    /**
      * 由 App 侧设置同步器推入每类记录条数上限；0 表示该类不记录。
      *
      * 仓库位于 `:feature:otp`，不依赖 `:feature:settings`，因此上限通过推入方式下发。
@@ -49,8 +66,13 @@ class OtpRecordsRepository @Inject constructor(
     }
 
     init {
+        com.slideindex.app.util.CrossProcessStore.registerListener(appContext) { changed ->
+            if (changed.absolutePath == recordsFile.absolutePath) {
+                scope.launch { reloadFromDiskForExternalChange() }
+            }
+        }
         scope.launch {
-            mutex.withLock {
+            withCrossProcessWrite {
                 val loaded = readFromDisk()
                 val trimmed = trimByCategory(loaded)
                 if (trimmed.size != loaded.size) {
@@ -100,7 +122,7 @@ class OtpRecordsRepository @Inject constructor(
         autoFillStatus: OtpRecordFillStatus = OtpRecordFillStatus.NONE,
         category: OtpRecordCategory = if (isTest) OtpRecordCategory.TEST else OtpRecordCategory.CODE,
         simSlot: Int = -1,
-    ): Result<String?> = mutex.withLock {
+    ): Result<String?> = withCrossProcessWrite {
         repositoryRunCatching {
             val limit = limits[category] ?: OtpRecordLimits.DEFAULT
             if (limit <= 0) return@repositoryRunCatching null
@@ -137,7 +159,7 @@ class OtpRecordsRepository @Inject constructor(
         success: Boolean,
         strategy: String,
         reason: String = "",
-    ): Result<Unit> = mutex.withLock {
+    ): Result<Unit> = withCrossProcessWrite {
         repositoryRunCatching {
             val status = OtpRecordFillStatus.fromFillResult(success, strategy)
             val fillReason = if (!success) reason.takeIf { it.isNotBlank() } else null
@@ -153,7 +175,7 @@ class OtpRecordsRepository @Inject constructor(
         }
     }
 
-    suspend fun delete(id: String): Result<Unit> = mutex.withLock {
+    suspend fun delete(id: String): Result<Unit> = withCrossProcessWrite {
         repositoryRunCatching {
             val next = readFromDisk().filterNot { it.id == id }
             writeToDisk(next)
@@ -161,12 +183,12 @@ class OtpRecordsRepository @Inject constructor(
         }
     }
 
-    suspend fun exportRawJson(): String? = mutex.withLock {
-        if (!recordsFile.exists()) return@withLock null
+    suspend fun exportRawJson(): String? = withCrossProcessWrite {
+        if (!recordsFile.exists()) return@withCrossProcessWrite null
         withContext(Dispatchers.IO) { recordsFile.readText() }
     }
 
-    suspend fun importRawJson(json: String): Result<Unit> = mutex.withLock {
+    suspend fun importRawJson(json: String): Result<Unit> = withCrossProcessWrite {
         repositoryRunCatching {
             val decoded = OtpRecordCodec.decode(json)
             val trimmed = decoded.take(MAX_RECORDS)
@@ -175,7 +197,7 @@ class OtpRecordsRepository @Inject constructor(
         }
     }
 
-    suspend fun clearAll(): Result<Unit> = mutex.withLock {
+    suspend fun clearAll(): Result<Unit> = withCrossProcessWrite {
         repositoryRunCatching {
             writeToDisk(emptyList())
             _records.value = emptyList()

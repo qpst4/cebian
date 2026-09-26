@@ -17,6 +17,9 @@ import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -42,7 +45,31 @@ class StashRepository @Inject constructor(
     private val _entries = MutableStateFlow<List<StashEntry>>(emptyList())
     val entries: StateFlow<List<StashEntry>> = _entries.asStateFlow()
 
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    /**
+     * 写操作统一入口：进程内 mutex + **跨进程文件锁**；写完广播通知其它进程重载。
+     * 各写方法内部本来就是"锁内重新读盘再计算"，套上这层即可跨进程安全。
+     */
+    private suspend fun <T> withCrossProcessWrite(block: suspend () -> T): T =
+        mutex.withLock {
+            com.slideindex.app.util.CrossProcessStore.withFileLock(indexFile) {
+                val result = block()
+                com.slideindex.app.util.CrossProcessStore.notifyChanged(appContext, indexFile)
+                result
+            }
+        }
+
+    private suspend fun reloadFromDiskForExternalChange() {
+        mutex.withLock { _entries.value = trimToMax(readFromDiskSync()) }
+    }
+
     init {
+        com.slideindex.app.util.CrossProcessStore.registerListener(appContext) { changed ->
+            if (changed.absolutePath == indexFile.absolutePath) {
+                scope.launch { reloadFromDiskForExternalChange() }
+            }
+        }
         val loaded = readFromDiskSync()
         val trimmed = trimToMax(loaded)
         if (trimmed.size != loaded.size) {
@@ -56,7 +83,7 @@ class StashRepository @Inject constructor(
         val trimmed = text.trim()
         if (trimmed.isEmpty()) return null
         return withContext(Dispatchers.IO) {
-            mutex.withLock {
+            withCrossProcessWrite {
                 val entry = StashEntry(
                     id = UUID.randomUUID().toString(),
                     type = StashEntryType.TEXT,
@@ -77,10 +104,10 @@ class StashRepository @Inject constructor(
         pinDisplayHeightPx: Int? = null
     ): StashEntry? {
         return withContext(Dispatchers.IO) {
-            mutex.withLock {
+            withCrossProcessWrite {
                 val id = UUID.randomUUID().toString()
                 val fileName = "$id.png"
-                val saved = saveImage(fileName, bitmap) ?: return@withLock null
+                val saved = saveImage(fileName, bitmap) ?: return@withCrossProcessWrite null
                 val entry = StashEntry(
                     id = id,
                     type = StashEntryType.IMAGE,
@@ -103,7 +130,7 @@ class StashRepository @Inject constructor(
     ): StashEntry? {
         if (parts.isEmpty()) return null
         return withContext(Dispatchers.IO) {
-            mutex.withLock {
+            withCrossProcessWrite {
                 val id = UUID.randomUUID().toString()
                 val imageTotal = parts.count { it is StashRichPart.Image }
                 var imageIndex = 0
@@ -135,7 +162,7 @@ class StashRepository @Inject constructor(
 
                 if (contentBlocks.isEmpty()) {
                     savedFiles.forEach { File(imageDir, it).delete() }
-                    return@withLock null
+                    return@withCrossProcessWrite null
                 }
 
                 val entry = StashEntry(
@@ -159,9 +186,9 @@ class StashRepository @Inject constructor(
 
     suspend fun delete(id: String) {
         withContext(Dispatchers.IO) {
-            mutex.withLock {
+            withCrossProcessWrite {
                 val current = readFromDisk()
-                val removed = current.firstOrNull { it.id == id } ?: return@withLock
+                val removed = current.firstOrNull { it.id == id } ?: return@withCrossProcessWrite
                 deleteEntryImages(removed)
                 val next = current.filterNot { it.id == id }
                 writeToDisk(next)
@@ -172,7 +199,7 @@ class StashRepository @Inject constructor(
 
     suspend fun clearAll() {
         withContext(Dispatchers.IO) {
-            mutex.withLock {
+            withCrossProcessWrite {
                 val current = readFromDisk()
                 current.forEach { deleteEntryImages(it) }
                 writeToDisk(emptyList())
@@ -183,7 +210,7 @@ class StashRepository @Inject constructor(
 
     suspend fun toggleStar(id: String) {
         withContext(Dispatchers.IO) {
-            mutex.withLock {
+            withCrossProcessWrite {
                 val next = readFromDisk().map { entry ->
                     if (entry.id == id) entry.copy(starred = !entry.starred) else entry
                 }
