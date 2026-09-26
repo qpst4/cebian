@@ -81,6 +81,12 @@ class SlideIndexApp : Application(), androidx.work.Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
+        // TaskManagerUtil 只是"存一下 app context"，不做任何跨进程动作，必须在每个进程一开始就喂上。
+        // 它此前只被 ShizukuInitializer 顺带初始化，而 :overlay 侧的 Shizuku 初始化现在是"延后且
+        // 主进程活着才做"——只要没走到那一步，:overlay 里所有特权调用都会抛
+        // "TaskManagerUtil.initialize() must be called before use"：任务切换器空、小窗动作失效
+        // （真机 01:01 日志）。惰性化只该针对"取 Shizuku binder"，不该连这个纯赋值初始化一起拖。
+        com.slideindex.app.util.TaskManagerUtil.initialize(this)
         // Shizuku 的 binder 只会投递给声明了 ShizukuProvider 的进程（这里是默认进程）。
         // 注意 enableMultiProcessSupport(flag) 的 flag 含义是"**当前进程**是不是 provider 进程"，
         // 传 true 会被 Shizuku 当成 provider 进程，紧接着的 requestBinderForNonProviderProcess 会直接 return。
