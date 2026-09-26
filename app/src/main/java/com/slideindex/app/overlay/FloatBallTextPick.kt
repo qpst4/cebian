@@ -300,13 +300,14 @@ object FloatBallTextPick {
     ): Boolean {
         return runCatching {
             val copy = bitmap.copy(Bitmap.Config.ARGB_8888, false) ?: return false
-            com.slideindex.app.imageeditor.ImageEditorLaunchCache.put(
+            val editorPath = com.slideindex.app.imageeditor.ImageEditorLaunchCache.put(
+                context,
                 copy,
                 screenRect,
                 layoutMeta,
                 pickReturnContext,
             )
-            com.slideindex.app.imageeditor.SlideIndexImageEditorActivity.launch(context)
+            com.slideindex.app.imageeditor.SlideIndexImageEditorActivity.launch(context, editorPath)
             true
         }.getOrElse {
             Toast.makeText(context, R.string.float_ball_action_failed, Toast.LENGTH_SHORT).show()

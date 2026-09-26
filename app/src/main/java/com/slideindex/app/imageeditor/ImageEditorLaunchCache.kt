@@ -16,11 +16,12 @@ object ImageEditorLaunchCache {
     private var pending: ImageEditorLaunchPayload? = null
 
     fun put(
+        context: android.content.Context,
         bitmap: Bitmap,
         screenRect: Rect? = null,
         layoutMeta: ScreenshotLayoutMeta? = null,
         pickReturnContext: ImageEditorPickReturnContext? = null,
-    ) {
+    ): String? {
         pending?.bitmap?.takeIf { !it.isRecycled && it !== bitmap }?.recycle()
         pending?.pickReturnContext?.recycleImageCopies()
         pending = ImageEditorLaunchPayload(
@@ -29,6 +30,17 @@ object ImageEditorLaunchCache {
             layoutMeta = layoutMeta?.copy(),
             pickReturnContext = pickReturnContext,
         )
+        // 同时落盘并把路径交出去：编辑器跑在主进程，读不到本进程的静态缓存
+        // （真机现象：悬浮球区域截图 → 点图片 → 编辑器报"图片加载失败"，而图片其实已经在 cache 里）。
+        return runCatching {
+            val dir = java.io.File(context.applicationContext.cacheDir, "image_editor_inbox")
+                .apply { mkdirs() }
+            val now = System.currentTimeMillis()
+            dir.listFiles()?.filter { now - it.lastModified() > 10 * 60 * 1000L }?.forEach { it.delete() }
+            val file = java.io.File(dir, "editor_$now.png")
+            file.outputStream().use { out -> bitmap.compress(Bitmap.CompressFormat.PNG, 100, out) }
+            file.absolutePath
+        }.onFailure { android.util.Log.w("ImageEditorLaunch", "write launch image failed", it) }.getOrNull()
     }
 
     fun take(): ImageEditorLaunchPayload? {

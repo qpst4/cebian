@@ -62,8 +62,8 @@ internal object ClipboardOverlayIntents {
     }
 
     fun launchBuiltinImageEditor(context: Context, bitmap: android.graphics.Bitmap) {
-        ImageEditorLaunchCache.put(bitmap)
-        SlideIndexImageEditorActivity.launch(context)
+        val editorPath = ImageEditorLaunchCache.put(context, bitmap)
+        SlideIndexImageEditorActivity.launch(context, editorPath)
     }
 
     fun resolveRemoteCopyIntent(clipData: ClipData, context: Context): Intent? {

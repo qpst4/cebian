@@ -336,8 +336,24 @@ class SlideIndexImageEditorActivity : AppCompatActivity() {
                 ImageEditorLaunchCache.take()
             }
             if (payload == null) {
-                toast(R.string.inspire_image_edit_load_failed)
-                finish()
+                val crossPath = intent.getStringExtra(EXTRA_IMAGE_CACHE_PATH)
+                val decoded = crossPath?.takeIf { it.isNotBlank() }?.let { path ->
+                    withContext(Dispatchers.Default) { android.graphics.BitmapFactory.decodeFile(path) }
+                        ?.also { runCatching { java.io.File(path).delete() } }
+                }
+                if (decoded == null) {
+                    toast(R.string.inspire_image_edit_load_failed)
+                    finish()
+                    return@launch
+                }
+                pinScreenRect = null
+                pinLayoutMeta = null
+                pickReturnContext = null
+                val crossHandle = ManagedBitmap.from(decoded)
+                sourceBitmapHandle = crossHandle.acquire()
+                binding.editorView.setImageBitmap(crossHandle)
+                applyAdaptiveBrushSizeIfNeeded()
+                runEnterAnimationIfNeeded()
                 return@launch
             }
             pinScreenRect = payload.screenRect
@@ -761,9 +777,11 @@ class SlideIndexImageEditorActivity : AppCompatActivity() {
         private val IMAGE_ENTER_INTERPOLATOR = PathInterpolator(0.16f, 0f, 0f, 1f)
         private val BAR_ENTER_INTERPOLATOR = PathInterpolator(0.2f, 0f, 0f, 1f)
 
-        fun launch(context: Context) {
+        /** [imageCachePath] 为调用方落盘的图片路径（跨进程必传：调用方在 :overlay，静态缓存读不到）。 */
+        fun launch(context: Context, imageCachePath: String? = null) {
             context.startActivity(Intent(context, SlideIndexImageEditorActivity::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                imageCachePath?.takeIf { it.isNotBlank() }?.let { putExtra(EXTRA_IMAGE_CACHE_PATH, it) }
             })
         }
     }
