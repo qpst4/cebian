@@ -65,6 +65,7 @@ class ClipboardMonitorController @Inject constructor(
         unbindListeningService()
         markListening(false)
         _activeMode.value = mode
+        republishStatus()
         startForegroundServiceInternal(mode)
     }
 
@@ -185,10 +186,17 @@ class ClipboardMonitorController @Inject constructor(
         unbindListeningService()
         markListening(false)
         _activeMode.value = null
+        republishStatus()
     }
 
     fun markListening(listening: Boolean) {
         _isListening.value = listening
+        republishStatus()
+    }
+
+    /** 把当前真实状态广播给其它进程（设置页在主进程，读不到本进程单例）。 */
+    fun republishStatus() {
+        ClipboardMonitorStatusPort.publish(appContext, _isListening.value, _activeMode.value)
     }
 
     fun dispatchPayload(payload: ClipboardPayload) {

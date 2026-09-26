@@ -97,6 +97,8 @@ class SlideIndexApp : Application() {
         } else {
             com.slideindex.app.overlay.OverlayStatePort.startMirroring(this)
         }
+        // 剪贴板监听状态镜像：监听进程发布，其它进程（设置页）读。
+        com.slideindex.app.clipboard.monitor.ClipboardMonitorStatusPort.start(this)
 
         // —— 主进程与 :overlay 共有：常驻交互（无障碍/浮层/模块桥/系统监听）需要用到的部分 ——
         deps.launcherAppsCallbackBridge.register()

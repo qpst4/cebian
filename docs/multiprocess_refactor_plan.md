@@ -381,3 +381,30 @@ OTP 填充统计 `OtpAutoFillStatsRepository`、通知过滤规则 `Notification
 
 局限（已知）：真机上无法在不 root 的情况下杀掉 `:overlay` 进程，所以"进程已死"这条分支
 只做了代码审查与逻辑推演，未做破坏性验证；健康分支与"任务被调度执行"已实测。
+
+### C.8 剪贴板后台监听"显示未在监听"的排查（拆进程后的连带修复）
+
+现象：设置页 `后台监听状态` 显示"未在监听 / 未启动"，但复制内容后历史里其实有记录。
+顺着"状态从哪来"查下来是三个独立问题叠在一起：
+
+1. **状态是跨进程读的（显示层）**：监听服务在 `:clipboard`（此前 `:overlay`），
+   设置页在主进程，`ClipboardMonitorController.isListeningFlow` 读的是**本进程单例**，永远是 false。
+   修：新增 `ClipboardMonitorStatusPort` —— 监听进程广播真实状态（listening + mode），
+   其它进程维护镜像；设置页优先读镜像（1s 轮询兜底，广播丢帧也能自愈），
+   打开页面时再主动要一帧。监听进程侧另有 20s 状态心跳。
+
+2. **Shizuku 用户服务的 `stopped` 标志没复位（真·没在监听）**：
+   `ClipboardListenerService` 的实例会被复用，`stopListening()` 把 `stopped=true` 永久置位，
+   而 `startListening()` 开头没有复位 → 同一实例之后每次 start 都在 `tryRunAndWait` 开头
+   `if (stopped) return true` 直接返回（宿主侧 finally 立刻把状态标成已停止）。
+   修：`startListening` 开头 `stopped = false`。
+
+3. **重启时旧线程翻状态（状态抖动）**：旧的监听线程从阻塞的 Binder 调用里返回后，
+   它的 `finally` 会把新一代刚建立的状态又翻回"已停止"。
+   修：`startPrivilegedListening` 带代次（generation）守卫，旧代次不再改状态；
+   通道刚起就断（用户服务重启 / logcat 被杀 / 隐藏接口报错）时自动重连（最多 5 次、每次 1.5s），
+   只有重连都失败才落"已停止"。
+
+> 排查教训：**Compose 界面用 `uiautomator dump` 读到的文字可能是陈旧的语义节点**。
+> 本次就是被它带偏了半个多小时（dump 一直显示"未在监听"，截图其实是"正常监听中"）。
+> 校验 Compose 文本状态时以截图为准，dump 只用来定位控件坐标。

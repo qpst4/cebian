@@ -50,6 +50,14 @@ class ClipboardMonitorForegroundService : Service() {
     private var bindGeneration = 0
     private var standardClipListener: ClipboardManager.OnPrimaryClipChangedListener? = null
 
+    /** 周期把监听状态广播出去，让主进程（设置页）的镜像收敛到真实状态。 */
+    private val statusHeartbeatRunnable = object : Runnable {
+        override fun run() {
+            ClipboardMonitorController.peek()?.republishStatus()
+            mainHandler.postDelayed(this, STATUS_HEARTBEAT_MS)
+        }
+    }
+
     /** 通知状态跟随用（见 [startNotificationStateCollector]）。 */
     private val notificationScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var notificationCollectorStarted = false
@@ -69,6 +77,9 @@ class ClipboardMonitorForegroundService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        // 状态心跳：设置页在主进程，只能靠广播镜像；周期重发保证镜像一定收敛（丢帧/时序问题自愈）。
+        mainHandler.post(statusHeartbeatRunnable)
+        mainHandler.postDelayed(statusHeartbeatRunnable, STATUS_HEARTBEAT_MS)
         // 先把进程标记成前台：冷启动 / 装机替换 / 开机重活期间，5 秒窗口很容易被挤掉
         // （历史 ForegroundServiceDidNotStartInTimeException 的成因）。
         // 渠道与正式文案随后补齐，这里用最小通知占位，失败也只记日志。
@@ -261,26 +272,40 @@ class ClipboardMonitorForegroundService : Service() {
     private fun startPrivilegedListening() {
         val service = listenerService ?: return
         listenerThread?.interrupt()
+        // 有了新的一代启动就别再被上一代的收尾改状态：重启时旧线程会从阻塞的 Binder 调用里返回，
+        // 它的 finally 若不判代次，会把刚建立的新状态又翻回"已停止"。
+        val generation = bindGeneration
         listenerThread = Thread({
-            try {
-                val path = File(
-                    applicationContext.getExternalFilesDir(null),
-                    LISTENER_ZIP_ASSET,
-                ).path
-                service.startListening(clipboardListenerCallback, useRoot, path, useHiddenApi)
-            } catch (e: Exception) {
-                Log.w(tag, "privileged listening failed", e)
-                updateNotification(
-                    getString(R.string.clipboard_monitor_notification_error_title),
-                    e.message ?: getString(R.string.clipboard_monitor_notification_error_unknown),
-                )
-            } finally {
-                ClipboardMonitorController.peek()?.markListening(false)
-                updateNotification(
-                    getString(R.string.clipboard_monitor_notification_stopped_title),
-                    getString(R.string.clipboard_monitor_notification_stopped_text),
-                )
+            var attempt = 0
+            while (true) {
+                try {
+                    val path = File(
+                        applicationContext.getExternalFilesDir(null),
+                        LISTENER_ZIP_ASSET,
+                    ).path
+                    service.startListening(clipboardListenerCallback, useRoot, path, useHiddenApi)
+                } catch (e: Exception) {
+                    Log.w(tag, "privileged listening failed (attempt=$attempt)", e)
+                }
+                // 上一代已作废（重启/停止）就别再管状态。
+                if (generation != bindGeneration) return@Thread
+                // 通道刚起就断（用户服务重启、logcat 被杀、隐藏接口报错）时自动重连，
+                // 否则状态会"运行中→未在监听"来回跳，用户看到的就是"没在监听"。
+                if (attempt >= MAX_LISTEN_RETRIES) break
+                attempt++
+                Log.w(tag, "restarting privileged listening (attempt=$attempt)")
+                try {
+                    Thread.sleep(LISTEN_RETRY_DELAY_MS)
+                } catch (_: InterruptedException) {
+                    return@Thread
+                }
+                if (generation != bindGeneration) return@Thread
             }
+            ClipboardMonitorController.peek()?.markListening(false)
+            updateNotification(
+                getString(R.string.clipboard_monitor_notification_stopped_title),
+                getString(R.string.clipboard_monitor_notification_stopped_text),
+            )
         }, "ClipboardPrivilegedListener").also {
             it.isDaemon = true
             it.start()
@@ -380,6 +405,7 @@ class ClipboardMonitorForegroundService : Service() {
     override fun onDestroy() {
         bindGeneration++
         notificationScope.cancel()
+        mainHandler.removeCallbacks(statusHeartbeatRunnable)
         mainHandler.removeCallbacksAndMessages(null)
         stopStandardListening()
         ClipboardMonitorController.peek()?.markListening(false)
@@ -516,6 +542,9 @@ class ClipboardMonitorForegroundService : Service() {
         private const val NOTIFICATION_ID = 4102
         private const val CONTROLLER_RETRY_MS = 400L
         private const val BIND_DELAY_MS = 500L
+        private const val STATUS_HEARTBEAT_MS = 20_000L
+        private const val MAX_LISTEN_RETRIES = 5
+        private const val LISTEN_RETRY_DELAY_MS = 1_500L
 
         internal fun shouldTriggerClipboardRead(logLine: String?, applicationId: String): Boolean {
             if (logLine == null) return true

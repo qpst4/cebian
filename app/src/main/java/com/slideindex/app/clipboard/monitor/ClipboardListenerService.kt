@@ -32,6 +32,10 @@ open class ClipboardListenerService : IClipboardListenerService.Stub() {
         filePath: String,
         useHiddenApi: Boolean,
     ) {
+        // Shizuku 用户服务实例会被复用（同一个 Binder 实例反复 startListening/stopListening）。
+        // stopListening() 会把 stopped 永久置位，若这里不复位，**同一实例之后再 start 会立刻 return**，
+        // 表现就是"重启监听后一直未在监听"（宿主侧 finally 也会立刻把状态标成已停止）。
+        stopped = false
         isRootMode = useRoot
         this.useHiddenApi = useHiddenApi
         val success = if (useHiddenApi) {
