@@ -436,6 +436,29 @@ class ClipboardMonitorForegroundService : Service() {
             getString(R.string.clipboard_monitor_notification_shizuku_disconnected_title),
             getString(R.string.clipboard_monitor_notification_shizuku_disconnected_text),
         )
+        // 关键：用户服务断连（被系统/Shizuku 杀掉）后不会自己回来，会留下监听空窗 ——
+        // 这里按退避自动重绑，而不是干等外部触发（打开 App / binder 事件）。真机复现过：
+        // kill 掉用户服务后它一直不回来，只有重新打开 App 才恢复。
+        scheduleRebindAfterDisconnect()
+    }
+
+    private var rebindAttempt = 0
+
+    private fun scheduleRebindAfterDisconnect() {
+        if (rebindAttempt >= MAX_DISCONNECT_REBINDS) return
+        rebindAttempt++
+        val attempt = rebindAttempt
+        mainHandler.postDelayed({
+            if (ClipboardMonitorController.peek()?.isListening == true) {
+                rebindAttempt = 0
+                return@postDelayed
+            }
+            Log.w(tag, "rebinding after disconnect (attempt=$attempt)")
+            syncFromSettingsWithRetries(attempt = 0)
+            mainHandler.postDelayed({
+                if (ClipboardMonitorController.peek()?.isListening != true) scheduleRebindAfterDisconnect()
+            }, DISCONNECT_REBIND_VERIFY_MS)
+        }, DISCONNECT_REBIND_STEP_MS * attempt)
     }
 
     override fun onDestroy() {
@@ -584,6 +607,9 @@ class ClipboardMonitorForegroundService : Service() {
         private const val LISTEN_RETRY_DELAY_MS = 1_500L
         private const val MAX_FROM_SETTINGS_RETRIES = 2
         private const val FROM_SETTINGS_RETRY_MS = 1_500L
+        private const val MAX_DISCONNECT_REBINDS = 6
+        private const val DISCONNECT_REBIND_STEP_MS = 3_000L
+        private const val DISCONNECT_REBIND_VERIFY_MS = 2_500L
 
         internal fun shouldTriggerClipboardRead(logLine: String?, applicationId: String): Boolean {
             if (logLine == null) return true
