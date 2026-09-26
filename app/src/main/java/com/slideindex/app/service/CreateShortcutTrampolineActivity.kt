@@ -2,6 +2,7 @@ package com.slideindex.app.service
 
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
@@ -63,7 +64,7 @@ class CreateShortcutTrampolineActivity : ComponentActivity() {
     override fun onDestroy() {
         if (!resultDelivered && pendingHostPackage != null) {
             pendingHostPackage = null
-            CreateShortcutTrampoline.deliver(null)
+            finishWithResult(null)
         }
         super.onDestroy()
     }
@@ -72,7 +73,21 @@ class CreateShortcutTrampolineActivity : ComponentActivity() {
         if (resultDelivered) return
         resultDelivered = true
         pendingHostPackage = null
-        CreateShortcutTrampoline.deliver(created)
+        // 结果经跨进程通道回给发起方（发起方可能在 :overlay，不能依赖进程内静态回调）。
+        val token = intent.getStringExtra(com.slideindex.app.util.TrampolineResultPort.EXTRA_TOKEN)
+        if (!token.isNullOrBlank()) {
+            val payload = Bundle().apply {
+                putBoolean(com.slideindex.app.util.TrampolineResultPort.EXTRA_CANCELLED, created == null)
+                if (created != null) {
+                    putString(EXTRA_RESULT_HOST_PACKAGE, created.hostPackageName)
+                    putString(EXTRA_RESULT_LABEL, created.label)
+                    putString(EXTRA_RESULT_COMPONENT_FLAT, created.componentFlat)
+                    putString(EXTRA_RESULT_INTENT_URI, created.intentUri)
+                    putParcelable(EXTRA_RESULT_SHORTCUT_INTENT, created.shortcutIntent)
+                }
+            }
+            com.slideindex.app.util.TrampolineResultPort.deliver(this, token, payload)
+        }
         finish()
         @Suppress("DEPRECATION")
         overridePendingTransition(0, 0)
@@ -83,50 +98,66 @@ class CreateShortcutTrampolineActivity : ComponentActivity() {
         private const val EXTRA_HOST_CLASS = "host_class"
         private const val STATE_RESULT_DELIVERED = "result_delivered"
 
-        fun createIntent(context: Context, host: AppShortcutLoader.CreateShortcutHost): Intent =
+        internal const val EXTRA_RESULT_HOST_PACKAGE = "result_host_package"
+        internal const val EXTRA_RESULT_LABEL = "result_label"
+        internal const val EXTRA_RESULT_COMPONENT_FLAT = "result_component_flat"
+        internal const val EXTRA_RESULT_INTENT_URI = "result_intent_uri"
+        internal const val EXTRA_RESULT_SHORTCUT_INTENT = "result_shortcut_intent"
+
+        fun createIntent(
+            context: Context,
+            host: AppShortcutLoader.CreateShortcutHost,
+            token: String? = null,
+        ): Intent =
             Intent(context, CreateShortcutTrampolineActivity::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 putExtra(EXTRA_HOST_PACKAGE, host.packageName)
                 putExtra(EXTRA_HOST_CLASS, host.className)
+                if (!token.isNullOrBlank()) {
+                    putExtra(com.slideindex.app.util.TrampolineResultPort.EXTRA_TOKEN, token)
+                }
             }
+
+        internal fun decodeResult(payload: Bundle): AppShortcutLoader.CreatedShortcut? {
+            if (payload.getBoolean(com.slideindex.app.util.TrampolineResultPort.EXTRA_CANCELLED, false)) return null
+            val shortcutIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                payload.getParcelable(EXTRA_RESULT_SHORTCUT_INTENT, Intent::class.java)
+            } else {
+                @Suppress("DEPRECATION")
+                payload.getParcelable(EXTRA_RESULT_SHORTCUT_INTENT)
+            }
+            return AppShortcutLoader.CreatedShortcut(
+                hostPackageName = payload.getString(EXTRA_RESULT_HOST_PACKAGE).orEmpty(),
+                label = payload.getString(EXTRA_RESULT_LABEL).orEmpty(),
+                componentFlat = payload.getString(EXTRA_RESULT_COMPONENT_FLAT),
+                intentUri = payload.getString(EXTRA_RESULT_INTENT_URI),
+                shortcutIntent = shortcutIntent,
+            )
+        }
     }
 }
 
 object CreateShortcutTrampoline {
-    private var onPrepare: (() -> Unit)? = null
-    private var onResult: ((AppShortcutLoader.CreatedShortcut?) -> Unit)? = null
-    private var delivered = false
-
     fun launch(
         context: Context,
         host: AppShortcutLoader.CreateShortcutHost,
         onPrepare: () -> Unit,
         onResult: (AppShortcutLoader.CreatedShortcut?) -> Unit
     ) {
-        cancelPending()
-        delivered = false
-        this.onPrepare = onPrepare
-        this.onResult = onResult
+        val appContext = context.applicationContext
         onPrepare()
+        val token = java.util.UUID.randomUUID().toString()
+        com.slideindex.app.util.TrampolineResultPort.register(appContext, token) { payload ->
+            onResult(CreateShortcutTrampolineActivity.decodeResult(payload))
+        }
         runCatching {
-            context.startActivity(CreateShortcutTrampolineActivity.createIntent(context, host))
+            context.startActivity(CreateShortcutTrampolineActivity.createIntent(context, host, token))
         }.onFailure {
-            deliver(null)
+            com.slideindex.app.util.TrampolineResultPort.clearToken(token)
+            onResult(null)
         }
     }
 
-    internal fun deliver(created: AppShortcutLoader.CreatedShortcut?) {
-        if (delivered) return
-        delivered = true
-        val listener = onResult
-        onPrepare = null
-        onResult = null
-        listener?.invoke(created)
-    }
-
-    fun cancelPending() {
-        delivered = true
-        onPrepare = null
-        onResult = null
-    }
+    /** 兼容旧调用点；回调已改为按 token 回传，无需外部取消。 */
+    fun cancelPending() = Unit
 }
