@@ -94,7 +94,16 @@ class OtpSmsBridgeReceiver : BroadcastReceiver() {
             null
         }
         if (settings.otpAutoInputEnabled) {
-            OtpAutoInputOrchestrator.requestAutoFill(context.applicationContext, code, settings, recordId)
+            // 注入依赖无障碍实例（在 :overlay 进程）；主进程只能转发请求。
+            if (com.slideindex.app.util.AppProcess.isOverlay) {
+                OtpAutoInputOrchestrator.requestAutoFill(context.applicationContext, code, settings, recordId)
+            } else {
+                com.slideindex.app.overlay.OverlayStatePort.sendOtpAutoFill(
+                    context = context,
+                    code = code,
+                    recordId = recordId,
+                )
+            }
         }
         if (settings.otpCopyToClipboard) {
             runCatching { OtpClipboardHelper.copyCode(context.applicationContext, code) }

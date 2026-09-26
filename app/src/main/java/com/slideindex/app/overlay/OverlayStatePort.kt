@@ -32,6 +32,10 @@ object OverlayStatePort {
     private const val EXTRA_COMMAND = "command"
 
     const val COMMAND_SYNC_SCREENSHOT_MONITORING = "sync_screenshot_monitoring"
+    const val COMMAND_OTP_AUTOFILL = "otp_autofill"
+
+    private const val EXTRA_OTP_CODE = "otp_code"
+    private const val EXTRA_OTP_RECORD_ID = "otp_record_id"
 
     // —— 主进程（及 :engine 等）持有的镜像 ——
     @Volatile
@@ -110,6 +114,21 @@ object OverlayStatePort {
             .onFailure { Log.w(TAG, "sendCommand($command) failed", it) }
     }
 
+    /**
+     * 验证码注入只能在 overlay 进程做（无障碍实例在那里）。
+     * 短信接收器在默认进程，因此把注入请求转过来。
+     */
+    fun sendOtpAutoFill(context: Context, code: String, recordId: String?) {
+        val intent = Intent(ACTION_COMMAND).apply {
+            setPackage(context.packageName)
+            putExtra(EXTRA_COMMAND, COMMAND_OTP_AUTOFILL)
+            putExtra(EXTRA_OTP_CODE, code)
+            putExtra(EXTRA_OTP_RECORD_ID, recordId)
+        }
+        runCatching { context.applicationContext.sendBroadcast(intent) }
+            .onFailure { Log.w(TAG, "sendOtpAutoFill failed", it) }
+    }
+
     /** overlay 进程启动时调用，接收来自主进程的命令。 */
     fun startCommandReceiver(context: Context) {
         if (!AppProcess.isOverlay || commandReceiver != null) return
@@ -119,6 +138,26 @@ object OverlayStatePort {
                 when (intent.getStringExtra(EXTRA_COMMAND)) {
                     COMMAND_SYNC_SCREENSHOT_MONITORING ->
                         runCatching { SlideIndexAccessibilityService.accessibilityInstance()?.syncScreenshotMonitoring() }
+
+                    COMMAND_OTP_AUTOFILL -> {
+                        val code = intent.getStringExtra(EXTRA_OTP_CODE) ?: return
+                        val recordId = intent.getStringExtra(EXTRA_OTP_RECORD_ID)
+                        val appContext = (ctx ?: context).applicationContext
+                        val deps = runCatching {
+                            dagger.hilt.android.EntryPointAccessors.fromApplication(
+                                appContext,
+                                com.slideindex.app.di.AppGraphEntryPoint::class.java,
+                            ).dependencies()
+                        }.getOrNull() ?: return
+                        runCatching {
+                            com.slideindex.app.otp.OtpAutoInputOrchestrator.requestAutoFill(
+                                context = appContext,
+                                code = code,
+                                settings = deps.settingsRepository.readSnapshot(),
+                                recordId = recordId,
+                            )
+                        }.onFailure { Log.w(TAG, "otp autofill failed", it) }
+                    }
                 }
             }
         }

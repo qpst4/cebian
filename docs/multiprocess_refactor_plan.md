@@ -198,3 +198,18 @@ interface IOverlayHost {
    - 跨进程设置变更通知未做（MultiProcessDataStore 只保证读写安全，不保证另一进程的 flow 会主动 emit）→ 需要写入后广播 + 读方强制刷新，否则「设置改了不生效」。
    - 主进程侧读取 overlay 状态的 UI（设置页试跑/预览、小组件预览、按应用禁用列表）目前读到的是空状态 → 需要 `OverlayStatePort`。
    - 小组件 `HOST_ID` 仍被两个进程共用（4.2 的方案 A/B 尚未落地）。
+
+### C.1 后续实测补充
+
+- 跨进程设置生效：实测「设置页改手势动画 → 手势立即按新设置走」成立，说明 MultiProcessDataStore 的变更在本机是可传播的；
+  仍建议补广播刷新作为兜底（避免依赖实现细节）。
+- 截屏/取词预览丢失：根因是 `ScreenCaptureService` 留在主进程，`:overlay` 侧读它的静态 `sessionActive`/`captureDisplayBitmap`
+  永远为 false → 持续触发时画不出悬浮球/加号。已把 `ScreenCaptureService`/`ScreenRecordService` 一并移入 `:overlay`。
+- 前台服务启动窗口：`:overlay` 冷启时同步读 DataStore + 写系统 LocaleManager 会挤掉 `startForeground` 的窗口
+  （历史 13 次的 `ForegroundServiceDidNotStartInTimeException`）。已改为 `AppLocaleApplier.primeFromStorage`（SharedPreferences）
+  并把 Shizuku / 模块同步挪到后台。
+- `OverlayStatePort` 已落地（广播镜像 + 命令通道）：服务连接态、前台包名、锁屏态的发布点覆盖无障碍服务连接/断开/重绑/销毁、
+  ForegroundTracker、Watchdog；主进程 3 个 UI 点与 `AccessibilityForegroundResolver` 已改走镜像。系统侧可见
+  `dumpsys activity broadcasts` 中 `OVERLAY_STATE` 已注册且有持续广播。
+- OTP 自动填充同样是跨进程断点（短信接收器在默认进程，注入在 `:overlay`）：已通过 `COMMAND_OTP_AUTOFILL` 转发。
+  遗留：OTP 记录仓库若是普通文件，跨进程写仍需按「单写者」原则收口。
