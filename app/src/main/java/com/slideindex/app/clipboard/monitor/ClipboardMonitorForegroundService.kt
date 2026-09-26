@@ -68,6 +68,21 @@ class ClipboardMonitorForegroundService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        // 先把进程标记成前台：冷启动 / 装机替换 / 开机重活期间，5 秒窗口很容易被挤掉
+        // （历史 ForegroundServiceDidNotStartInTimeException 的成因）。
+        // 渠道与正式文案随后补齐，这里用最小通知占位，失败也只记日志。
+        runCatching {
+            val bootstrap = NotificationCompat.Builder(this, CHANNEL_ID)
+                .setSmallIcon(android.R.drawable.ic_menu_info_details)
+                .setContentTitle("")
+                .setOngoing(true)
+                .build()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                startForeground(NOTIFICATION_ID, bootstrap, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
+            } else {
+                startForeground(NOTIFICATION_ID, bootstrap)
+            }
+        }.onFailure { Log.w(tag, "bootstrap startForeground failed", it) }
         ensureChannel()
         promoteToForeground(
             getString(R.string.clipboard_monitor_notification_waiting_title),

@@ -31,13 +31,17 @@ class ShellOutputHistoryRepository @Inject constructor(
 ) {
     private val appContext = context.applicationContext
     private val historyFile = File(appContext.filesDir, HISTORY_FILE_NAME)
-    private val mutex = Mutex()
+    // 跨进程安全：进程内互斥 + 跨进程文件锁 + 写完广播（调用点无需改动）。
+    private val mutex = com.slideindex.app.util.CrossProcessStore.CrossProcessMutex(appContext, historyFile)
     private val json = Json { ignoreUnknownKeys = true }
 
     private val _entries = MutableStateFlow<List<ShellOutputHistoryEntry>>(emptyList())
     val entries: StateFlow<List<ShellOutputHistoryEntry>> = _entries.asStateFlow()
 
     init {
+        com.slideindex.app.util.CrossProcessStore.registerListener(appContext, historyFile) {
+            reloadFromDisk()
+        }
         _entries.value = readFromDiskSync()
     }
 

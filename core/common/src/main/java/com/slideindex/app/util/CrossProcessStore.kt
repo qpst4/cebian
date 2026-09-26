@@ -8,7 +8,11 @@ import android.util.Log
 import androidx.core.content.ContextCompat
 import java.io.File
 import java.io.RandomAccessFile
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 /**
@@ -30,6 +34,20 @@ object CrossProcessStore {
 
     private var receiver: BroadcastReceiver? = null
 
+    /** 重载缓存用；放在工具里，调用方不必自带 scope。 */
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    /**
+     * 同一进程内按文件路径串行化。
+     *
+     * `FileChannel.lock()` 的重叠检测是**进程级**的：同一 JVM 内两个线程同时对同一文件加锁会抛
+     * [java.nio.channels.OverlappingFileLockException]，而不是阻塞等待。所以文件锁之前必须先拿进程内锁。
+     */
+    private val localLocks = java.util.concurrent.ConcurrentHashMap<String, kotlinx.coroutines.sync.Mutex>()
+
+    private fun localLockFor(file: File): kotlinx.coroutines.sync.Mutex =
+        localLocks.computeIfAbsent(file.absolutePath) { kotlinx.coroutines.sync.Mutex() }
+
     /**
      * 读-改-写整套在跨进程文件锁内完成。[read] 必须重新从磁盘读取（不要用内存缓存），
      * [write] 需要是原子写（临时文件 + rename，或覆盖写后 fsync）。
@@ -39,13 +57,15 @@ object CrossProcessStore {
         read: () -> T,
         write: (T) -> Unit,
         transform: (T) -> T,
-    ): T = withContext(Dispatchers.IO) {
-        lockOf(file).use { lock ->
-            lock.channel.lock().use {
-                val current = read()
-                val next = transform(current)
-                write(next)
-                next
+    ): T = localLockFor(file).withLock {
+        withContext(Dispatchers.IO) {
+            lockOf(file).use { lock ->
+                lock.channel.lock().use {
+                    val current = read()
+                    val next = transform(current)
+                    write(next)
+                    next
+                }
             }
         }
     }
@@ -54,9 +74,11 @@ object CrossProcessStore {
      * 需要在锁内做更复杂的操作时使用（调用方自己保证锁内重新读盘）。
      * block 允许挂起：仓库内部的读写都是 `withContext(IO)`，嵌套不会破锁。
      */
-    suspend fun <T> withFileLock(file: File, block: suspend () -> T): T = withContext(Dispatchers.IO) {
-        lockOf(file).use { lock ->
-            lock.channel.lock().use { block() }
+    suspend fun <T> withFileLock(file: File, block: suspend () -> T): T = localLockFor(file).withLock {
+        withContext(Dispatchers.IO) {
+            lockOf(file).use { lock ->
+                lock.channel.lock().use { block() }
+            }
         }
     }
 
@@ -91,6 +113,15 @@ object CrossProcessStore {
         }.onFailure { Log.w(TAG, "registerListener failed", it) }
     }
 
+    /** 只关心某个文件时的重载写法（回调在后台线程执行，可直接做磁盘读取）。 */
+    fun registerListener(context: Context, file: File, onChanged: suspend () -> Unit) {
+        registerListener(context) { changed ->
+            if (changed.absolutePath == file.absolutePath) {
+                scope.launch { onChanged() }
+            }
+        }
+    }
+
     private fun lockOf(file: File): RandomAccessFile {
         val lockFile = File(file.parentFile ?: file, "${file.name}.lock")
         lockFile.parentFile?.mkdirs()
@@ -99,4 +130,25 @@ object CrossProcessStore {
 
     private fun currentProcessName(): String =
         runCatching { android.app.Application.getProcessName() }.getOrNull().orEmpty()
+
+    /**
+     * 与 [kotlinx.coroutines.sync.Mutex] 同形的包装：进程内互斥 + 跨进程文件锁，
+     * 并在临界区结束后广播一次变更通知。这样仓库里既有的 `mutex.withLock { }`
+     * 调用点（含 `return@withLock`）一行都不用改就获得跨进程安全。
+     */
+    class CrossProcessMutex(
+        context: Context,
+        private val file: File,
+    ) {
+        private val appContext = context.applicationContext
+        private val local = kotlinx.coroutines.sync.Mutex()
+
+        suspend fun <T> withLock(block: suspend () -> T): T = local.withLock {
+            withFileLock(file) {
+                val result = block()
+                notifyChanged(appContext, file)
+                result
+            }
+        }
+    }
 }

@@ -29,13 +29,17 @@ class NotificationFilterRepository @Inject constructor(
 ) {
     private val appContext = context.applicationContext
     private val rulesFile = File(appContext.filesDir, RULES_FILE_NAME)
-    private val mutex = Mutex()
+    // 跨进程安全：进程内互斥 + 跨进程文件锁 + 写完广播（调用点无需改动）。
+    private val mutex = com.slideindex.app.util.CrossProcessStore.CrossProcessMutex(appContext, rulesFile)
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val _rules = MutableStateFlow<List<NotificationFilterRule>>(emptyList())
     val rules: StateFlow<List<NotificationFilterRule>> = _rules.asStateFlow()
 
     init {
+        com.slideindex.app.util.CrossProcessStore.registerListener(appContext, rulesFile) {
+            _rules.value = readFromDisk()
+        }
         scope.launch { _rules.value = readFromDisk() }
     }
 

@@ -39,13 +39,17 @@ class OtpAutoFillStatsRepository @Inject constructor(
 ) {
     private val appContext = context.applicationContext
     private val statsFile = File(appContext.filesDir, STATS_FILE_NAME)
-    private val mutex = Mutex()
+    // 跨进程安全：进程内互斥 + 跨进程文件锁 + 写完广播（调用点无需改动）。
+    private val mutex = com.slideindex.app.util.CrossProcessStore.CrossProcessMutex(appContext, statsFile)
     private val json = Json { ignoreUnknownKeys = true }
 
     private val _stats = MutableStateFlow(OtpAutoFillStats())
     val stats: StateFlow<OtpAutoFillStats> = _stats.asStateFlow()
 
     init {
+        com.slideindex.app.util.CrossProcessStore.registerListener(appContext, statsFile) {
+            reloadFromDisk()
+        }
         _stats.value = readFromDiskSync()
     }
 
