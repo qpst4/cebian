@@ -36,6 +36,15 @@ class CornerGestureHost(
             host.controller?.resumeAfterSlotPicker()
             host.controller?.applySettings(host.deps.settingsRepository.readSnapshot())
         }
+
+        /** 外部编辑页已离开前台但轮盘仍卡在挂起态时自愈（由 `:overlay` 侧前台变化时调用）。 */
+        fun selfHealAfterExternalActivity() {
+            val host = active ?: return
+            val controller = host.controller ?: return
+            if (!controller.isSuspendedForExternalActivity()) return
+            host.controller?.resumeAfterSlotPicker()
+            host.controller?.applySettings(host.deps.settingsRepository.readSnapshot())
+        }
     }
 
     /** 输入层转发来的触摸：直接喂给既有会话流程（与窗口触摸同一条路径）。 */

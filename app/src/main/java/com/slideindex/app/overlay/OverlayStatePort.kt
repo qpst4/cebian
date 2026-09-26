@@ -54,6 +54,8 @@ object OverlayStatePort {
     const val COMMAND_RECOVER_ACCESSIBILITY = "recover_accessibility"
     /** 外部编辑页返回后，让 :overlay 恢复边角轮盘的可视层（旧实现是进程内静态回调，拆进程后失效）。 */
     const val COMMAND_RESUME_CORNER_OVERLAY = "resume_corner_overlay"
+    /** 外部编辑页（自定义图标等）返回后，让 :overlay 恢复圆环启动器与悬浮球。 */
+    const val COMMAND_RESUME_APP_SWITCHER_OVERLAY = "resume_app_switcher_overlay"
 
     private const val EXTRA_OTP_CODE = "otp_code"
     private const val EXTRA_OTP_RECORD_ID = "otp_record_id"
@@ -275,6 +277,12 @@ object OverlayStatePort {
                         runCatching {
                             com.slideindex.app.overlay.corner.CornerGestureHost.resumeAfterSlotPicker()
                         }.onFailure { Log.w(TAG, "resume corner overlay failed", it) }
+
+                    COMMAND_RESUME_APP_SWITCHER_OVERLAY ->
+                        runCatching {
+                            com.slideindex.app.overlay.appswitcher.AppSwitcherOverlayWindow
+                                .resumeAfterSlotIconEditor()
+                        }.onFailure { Log.w(TAG, "resume app switcher overlay failed", it) }
 
                     COMMAND_RECOVER_ACCESSIBILITY -> {
                         val appContext = (ctx ?: context).applicationContext

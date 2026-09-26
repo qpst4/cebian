@@ -210,6 +210,9 @@ internal class AppSwitcherOverlayController(
         }
     }
 
+    /** 是否仍处于"为外部编辑页让位"的挂起态（供 overlay 侧前台变化时判断要不要自愈）。 */
+    fun isSuspendedForExternalActivity(): Boolean = suspendedForExternalActivity
+
     fun resumeAfterExternalActivity() {
         val current = view ?: return
         if (!attached || !suspendedForExternalActivity) return

@@ -211,6 +211,12 @@ class AppSwitcherSlotIconEditorTrampolineActivity : ComponentActivity() {
         overridePendingTransition(0, 0)
 
         AppSwitcherOverlayWindow.resumeAfterSlotIconEditor()
+        // 本 Activity 跑在主进程，而圆环/悬浮球宿主在 :overlay —— 上面那次调用在主进程其实是空操作，
+        // 必须跨进程通知 overlay 进程恢复（否则返回后圆环与悬浮球都不见了）。
+        com.slideindex.app.overlay.OverlayStatePort.sendCommand(
+            applicationContext,
+            com.slideindex.app.overlay.OverlayStatePort.COMMAND_RESUME_APP_SWITCHER_OVERLAY,
+        )
 
     }
 

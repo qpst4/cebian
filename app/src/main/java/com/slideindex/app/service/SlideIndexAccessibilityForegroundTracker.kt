@@ -50,6 +50,11 @@ internal class SlideIndexAccessibilityForegroundTracker(
 
         overlayHost()?.updateForegroundPackage(packageName)
         com.slideindex.app.overlay.OverlayStatePort.publish(service, "foregroundPackage")
+        // 前台已切到**别的应用**，说明"为外部编辑页让位"的挂起态该结束了：
+        // 若圆环/轮盘还卡在挂起态（跨进程回调丢失、或编辑页没走正常返回），在这里兜底恢复，
+        // 避免出现"圆环/轮盘不显示、悬浮球也不见"的悬挂状态。
+        runCatching { com.slideindex.app.overlay.appswitcher.AppSwitcherOverlayWindow.selfHealAfterExternalActivity() }
+        runCatching { com.slideindex.app.overlay.corner.CornerGestureHost.selfHealAfterExternalActivity() }
         when (val update = computeWindowStatePackageUpdate(
                 packageName = packageName,
                 selfPackageName = service.applicationContext.packageName,

@@ -71,6 +71,10 @@ object AppSwitcherOverlayWindow {
         slotConfigDialogHost?.dismiss()
         slotConfigDialogHost = null
         controller?.suspendForExternalActivity()
+        // 圆环让位给外部编辑页（自定义图标等）时，悬浮球要还回来：
+        // 球本来只在**圆环展示期间**才需要收起（避免挡住圆环与它的触摸），
+        // 编辑页是普通页面，球消失反而是 bug（真机反馈：一进自定义图标页球就没了）。
+        FloatBallOverlay.restoreChromeAfterAppSwitcher()
     }
 
     fun resumeAfterSlotIconEditor() {
@@ -80,6 +84,30 @@ object AppSwitcherOverlayWindow {
         }
         controller?.resumeAfterExternalActivity()
         refreshFromSettings()
+        // 圆环回到屏幕上了 → 按原设计重新收起悬浮球；若圆环没能恢复（比如已被释放），则把球还回来，
+        // 避免出现"圆环没了、球也没了"的悬挂状态。
+        if (isShowing) {
+            FloatBallOverlay.hideChromeForAppSwitcher()
+        } else {
+            FloatBallOverlay.restoreChromeAfterAppSwitcher()
+        }
+    }
+
+    /**
+     * 外部编辑页已经离开前台，但圆环仍卡在"为它让位"的挂起态时自愈。
+     *
+     * 进编辑页是主进程的 trampoline，返回时的 [resumeAfterSlotIconEditor] 调用落在主进程，
+     * 而本 object 的状态在 `:overlay` —— 那个调用等于空操作（跨进程静态），
+     * 于是圆环一直 GONE、悬浮球一直是隐藏态。这里由 `:overlay` 侧在前台变化时兜底恢复。
+     */
+    fun selfHealAfterExternalActivity() {
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            mainHandler.post { selfHealAfterExternalActivity() }
+            return
+        }
+        val current = controller ?: return
+        if (!current.isSuspendedForExternalActivity()) return
+        resumeAfterSlotIconEditor()
     }
 
     fun openSlotPicker(slotIndex: Int) {
