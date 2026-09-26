@@ -8,9 +8,11 @@ import android.util.Log
 import androidx.core.content.ContextCompat
 import java.io.File
 import java.io.RandomAccessFile
+import java.nio.channels.FileLock
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -46,7 +48,7 @@ object CrossProcessStore {
     private val localLocks = java.util.concurrent.ConcurrentHashMap<String, kotlinx.coroutines.sync.Mutex>()
 
     private fun localLockFor(file: File): kotlinx.coroutines.sync.Mutex =
-        localLocks.computeIfAbsent(file.absolutePath) { kotlinx.coroutines.sync.Mutex() }
+        localLocks.computeIfAbsent(file.canonicalPathOrAbsolute()) { kotlinx.coroutines.sync.Mutex() }
 
     /**
      * 读-改-写整套在跨进程文件锁内完成。[read] 必须重新从磁盘读取（不要用内存缓存），
@@ -59,13 +61,11 @@ object CrossProcessStore {
         transform: (T) -> T,
     ): T = localLockFor(file).withLock {
         withContext(Dispatchers.IO) {
-            lockOf(file).use { lock ->
-                lock.channel.lock().use {
-                    val current = read()
-                    val next = transform(current)
-                    write(next)
-                    next
-                }
+            withStoreFileLock(file) {
+                val current = read()
+                val next = transform(current)
+                write(next)
+                next
             }
         }
     }
@@ -76,10 +76,62 @@ object CrossProcessStore {
      */
     suspend fun <T> withFileLock(file: File, block: suspend () -> T): T = localLockFor(file).withLock {
         withContext(Dispatchers.IO) {
-            lockOf(file).use { lock ->
-                lock.channel.lock().use { block() }
-            }
+            withStoreFileLock(file) { block() }
         }
+    }
+
+    /**
+     * 跨进程文件锁（带重试）。
+     *
+     * 以前直接调 `channel.lock()`：它在「同一 JVM 内已经有线程**阻塞在 lock() 里**」或「本 JVM
+     * 已持有重叠锁」时会抛 [java.nio.channels.OverlappingFileLockException]，而不是排队等待。
+     * 该异常发生在用户协程里没人接，会直接打死整个进程（真机：通知历史 updateCapture 写盘 →
+     * OverlappingFileLockException → `:overlay` 进程死亡 → 悬浮球与手势整片消失）。
+     *
+     * 改成 `tryLock()` 轮询：拿不到锁就等一会儿再试，连重叠异常也一起吞掉重试；
+     * 连续失败很多次之后退化成「只进程内互斥」，**保证调用方不会因为锁而崩溃**。
+     */
+    private suspend fun <T> withStoreFileLock(file: File, block: suspend () -> T): T {
+        var attempt = 0
+        while (true) {
+            val holder = LockHolder<T>()
+            var acquired = false
+            val outcome = runCatching {
+                lockOf(file).use { handle ->
+                    val lock = try {
+                        handle.channel.tryLock()
+                    } catch (overlap: java.nio.channels.OverlappingFileLockException) {
+                        Log.w(TAG, "overlapping file lock on ${file.name}, retrying", overlap)
+                        null
+                    }
+                    if (lock == null) return@use
+                    acquired = true
+                    lock.use { holder.value = block() }
+                }
+            }
+            if (acquired && outcome.isSuccess) {
+                @Suppress("UNCHECKED_CAST")
+                return holder.value as T
+            }
+            val error = outcome.exceptionOrNull()
+            // 锁已经拿到、业务代码自己抛异常：原样往上抛（不能吞掉调用方的错误）。
+            if (acquired && error != null) throw error
+            attempt++
+            if (attempt >= MAX_LOCK_ATTEMPTS) {
+                Log.w(
+                    TAG,
+                    "file lock unavailable after $attempt attempts for ${file.name}; " +
+                        "continuing with in-process lock only",
+                    error,
+                )
+                return block()
+            }
+            delay(LOCK_RETRY_DELAY_MS)
+        }
+    }
+
+    private class LockHolder<T> {
+        var value: T? = null
     }
 
     fun notifyChanged(context: Context?, file: File) {
@@ -127,6 +179,13 @@ object CrossProcessStore {
         lockFile.parentFile?.mkdirs()
         return RandomAccessFile(lockFile, "rw")
     }
+
+    private fun File.canonicalPathOrAbsolute(): String =
+        runCatching { canonicalPath }.getOrElse { absolutePath }
+
+    private const val LOCK_RETRY_DELAY_MS = 8L
+    /** 轮询上限：约 12 秒。超过才退化到「只进程内互斥」，避免真的丢写。 */
+    private const val MAX_LOCK_ATTEMPTS = 1_500
 
     private fun currentProcessName(): String =
         runCatching { android.app.Application.getProcessName() }.getOrNull().orEmpty()

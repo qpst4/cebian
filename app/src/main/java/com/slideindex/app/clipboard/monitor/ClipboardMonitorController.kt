@@ -94,7 +94,7 @@ class ClipboardMonitorController @Inject constructor(
             return false
         }
         pendingMode = mode
-        ClipboardMonitorStartup.runOnMainWhenReady {
+        ClipboardMonitorStartup.runOnMainWhenCalm {
             mainHandler.removeCallbacks(dispatchStartRunnable)
             mainHandler.post(dispatchStartRunnable)
         }
@@ -110,7 +110,9 @@ class ClipboardMonitorController @Inject constructor(
         if (!canStart(mode)) return false
         pendingMode = mode
         // 不等主线程 idle：开机时 idle 会被启动期重活拖后，前台服务可能来不及 startForeground。
-        ClipboardMonitorStartup.runOnMainWhenReady {
+        // 现在改为「等主线程不忙」：既避免被启动期重活挤掉 startForeground 窗口，
+        // 也不至于像纯 idle 那样在事件风暴下永远等不到。
+        ClipboardMonitorStartup.runOnMainWhenCalm {
             mainHandler.removeCallbacks(dispatchStartRunnable)
             mainHandler.post(dispatchStartRunnable)
         }

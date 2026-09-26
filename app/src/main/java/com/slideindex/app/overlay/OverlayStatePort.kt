@@ -6,10 +6,19 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.util.Log
 import androidx.core.content.ContextCompat
+import com.slideindex.app.notification.ActiveNotificationSnapshot
+import com.slideindex.app.notification.ActiveNotificationSnapshotCodec
 import com.slideindex.app.service.OverlayService
 import com.slideindex.app.service.SlideIndexAccessibilityService
 import com.slideindex.app.util.AppProcess
 import com.slideindex.app.util.TriggerEnvironmentState
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 /**
  * 跨进程的 overlay 状态端口。
@@ -23,17 +32,22 @@ import com.slideindex.app.util.TriggerEnvironmentState
  */
 object OverlayStatePort {
     private const val TAG = "OverlayStatePort"
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private const val ACTION_STATE = "com.slideindex.app.action.OVERLAY_STATE"
     private const val ACTION_COMMAND = "com.slideindex.app.action.OVERLAY_COMMAND"
+    private const val ACTION_ACTIVE_NOTIFICATIONS = "com.slideindex.app.action.ACTIVE_NOTIFICATIONS"
 
     private const val EXTRA_CONNECTED = "connected"
     private const val EXTRA_FOREGROUND = "foreground"
     private const val EXTRA_LOCKED = "locked"
     private const val EXTRA_COMMAND = "command"
+    private const val EXTRA_ACTIVE_NOTIFICATIONS_JSON = "active_notifications_json"
 
     const val COMMAND_SYNC_SCREENSHOT_MONITORING = "sync_screenshot_monitoring"
     const val COMMAND_OTP_AUTOFILL = "otp_autofill"
     const val COMMAND_SYNC_CLIPBOARD_MONITORING = "sync_clipboard_monitoring"
+    const val COMMAND_PUBLISH_ACTIVE_NOTIFICATIONS = "publish_active_notifications"
+    const val COMMAND_RECOVER_ACCESSIBILITY = "recover_accessibility"
 
     private const val EXTRA_OTP_CODE = "otp_code"
     private const val EXTRA_OTP_RECORD_ID = "otp_record_id"
@@ -48,12 +62,59 @@ object OverlayStatePort {
     @Volatile
     private var mirrorLockScreenActive = false
 
+    /** 是否收到过 overlay 的状态广播：没收过时镜像的 false 只是「未知」，不能当成「掉线」。 */
+    @Volatile
+    private var mirrorStateReceived = false
+
+    /**
+     * 通知栏「实时」快照镜像。
+     *
+     * 监听服务只在 `:overlay`，UI 在主进程：以前主进程直接读 `MediaNotificationListener.instance`
+     * 永远是 null，「通知滤盒 → 实时」tab 一直显示「通知栏暂无通知」。
+     * 现在 overlay 进程把快照广播出来，主进程存这份镜像给 UI 用。
+     */
+    private val _activeNotificationSnapshots =
+        MutableStateFlow<List<ActiveNotificationSnapshot>?>(null)
+    val activeNotificationSnapshots: StateFlow<List<ActiveNotificationSnapshot>?> =
+        _activeNotificationSnapshots.asStateFlow()
+
     private var stateReceiver: BroadcastReceiver? = null
     private var commandReceiver: BroadcastReceiver? = null
+
+    /** 非 overlay 进程读镜像；overlay 进程自己直接问监听实例（见实现方）。 */
+    fun mirroredActiveNotificationSnapshots(): List<ActiveNotificationSnapshot>? =
+        _activeNotificationSnapshots.value
+
+    /** overlay 进程：把当前通知栏快照广播给其它进程。 */
+    fun publishActiveNotifications(context: Context, snapshots: List<ActiveNotificationSnapshot>) {
+        if (!AppProcess.isOverlay) return
+        _activeNotificationSnapshots.value = snapshots
+        val intent = Intent(ACTION_ACTIVE_NOTIFICATIONS).apply {
+            setPackage(context.packageName)
+            putExtra(EXTRA_ACTIVE_NOTIFICATIONS_JSON, ActiveNotificationSnapshotCodec.encode(snapshots))
+        }
+        runCatching { context.applicationContext.sendBroadcast(intent) }
+            .onFailure { Log.w(TAG, "publishActiveNotifications failed", it) }
+    }
+
+    /** 非 overlay 进程：请 overlay 立即重发一次快照（刚打开实时 tab / 刷新时用）。 */
+    fun requestActiveNotificationsPublish(context: Context) {
+        if (AppProcess.isOverlay) return
+        sendCommand(context, COMMAND_PUBLISH_ACTIVE_NOTIFICATIONS)
+    }
 
     /** 无障碍服务是否连接（主进程读镜像）。 */
     fun isServiceConnected(): Boolean =
         if (AppProcess.isOverlay) SlideIndexAccessibilityService.isConnected() else mirrorConnected
+
+    /**
+     * 镜像当前是否可信。
+     *
+     * overlay 进程永远可信（读本地静态）；其它进程只有在收到过一次状态广播之后才可信 ——
+     * 否则 `mirrorConnected=false` 会被误当成「无障碍掉线」，
+     * 导致主进程去抖断一个其实健康的绑定（真机现象：弹出「边缘手势未连接」但手势其实正常）。
+     */
+    fun hasServiceState(): Boolean = AppProcess.isOverlay || mirrorStateReceived
 
     /** 当前前台包名（主进程读镜像）。 */
     fun foregroundPackage(): String? =
@@ -87,13 +148,22 @@ object OverlayStatePort {
         if (AppProcess.isOverlay || stateReceiver != null) return
         val receiver = object : BroadcastReceiver() {
             override fun onReceive(ctx: Context?, intent: Intent?) {
-                if (intent?.action != ACTION_STATE) return
-                mirrorConnected = intent.getBooleanExtra(EXTRA_CONNECTED, mirrorConnected)
-                mirrorLockScreenActive = intent.getBooleanExtra(EXTRA_LOCKED, mirrorLockScreenActive)
-                mirrorForegroundPackage = intent.getStringExtra(EXTRA_FOREGROUND)
+                when (intent?.action) {
+                    ACTION_STATE -> {
+                        mirrorConnected = intent.getBooleanExtra(EXTRA_CONNECTED, mirrorConnected)
+                        mirrorLockScreenActive = intent.getBooleanExtra(EXTRA_LOCKED, mirrorLockScreenActive)
+                        mirrorForegroundPackage = intent.getStringExtra(EXTRA_FOREGROUND)
+                        mirrorStateReceived = true
+                    }
+
+                    ACTION_ACTIVE_NOTIFICATIONS -> {
+                        val json = intent.getStringExtra(EXTRA_ACTIVE_NOTIFICATIONS_JSON)
+                        _activeNotificationSnapshots.value = ActiveNotificationSnapshotCodec.decode(json)
+                    }
+                }
             }
         }
-        val filter = IntentFilter(ACTION_STATE)
+        val filter = IntentFilter(ACTION_STATE).apply { addAction(ACTION_ACTIVE_NOTIFICATIONS) }
         runCatching {
             ContextCompat.registerReceiver(
                 context.applicationContext,
@@ -165,6 +235,34 @@ object OverlayStatePort {
                             com.slideindex.app.clipboard.ClipboardAccess.repository
                                 ?.syncClipboardMonitoringFromSettings()
                         }.onFailure { Log.w(TAG, "sync clipboard monitoring failed", it) }
+
+                    COMMAND_PUBLISH_ACTIVE_NOTIFICATIONS ->
+                        runCatching {
+                            com.slideindex.app.service.MediaNotificationListener
+                                .publishActiveNotificationsSnapshot((ctx ?: context).applicationContext)
+                        }.onFailure { Log.w(TAG, "publish active notifications failed", it) }
+
+                    // 恢复/重绑只能在 overlay 进程做：无障碍实例与权威的连接状态都在这里。
+                    COMMAND_RECOVER_ACCESSIBILITY -> {
+                        val appContext = (ctx ?: context).applicationContext
+                        scope.launch {
+                            val deps = runCatching {
+                                dagger.hilt.android.EntryPointAccessors.fromApplication(
+                                    appContext,
+                                    com.slideindex.app.di.AppGraphEntryPoint::class.java,
+                                ).dependencies()
+                            }.getOrNull() ?: return@launch
+                            runCatching {
+                                com.slideindex.app.service.OverlayServiceLifecycle
+                                    .recoverAccessibilityBinding(
+                                        appContext,
+                                        deps.settingsRepository.readSnapshot(),
+                                    )
+                            }.onFailure { Log.w(TAG, "recover accessibility failed", it) }
+                            // 恢复完立刻回一帧状态，其它进程的镜像才不会一直停在「未知」。
+                            publish(appContext, "recoverAccessibility")
+                        }
+                    }
                 }
             }
         }

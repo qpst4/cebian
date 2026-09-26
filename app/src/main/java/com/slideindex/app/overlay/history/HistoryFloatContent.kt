@@ -86,16 +86,28 @@ private fun HistoryFloatHandle(
             .height(handleHeight)
             .pointerInput(Unit) {
                 var totalX = 0f
+                // 拖动到底或中途被系统手势（边缘返回）抢走都会走收尾：
+                // 之前只处理 onDragEnd，被抢走时 onDragCancel 不打开面板 → 「拖动打不开」。
+                val finishDrag = {
+                    if (totalX <= OPEN_DRAG_THRESHOLD_X) {
+                        onOpenPanel()
+                    }
+                    onMoveHandleEnd()
+                }
                 detectDragGestures(
                     onDragStart = {
                         totalX = 0f
                         active = true
                     },
                     onDragEnd = {
-                        if (totalX < -20f) {
-                            onOpenPanel()
+                        finishDrag()
+                        scope.launch {
+                            delay(500)
+                            active = false
                         }
-                        onMoveHandleEnd()
+                    },
+                    onDragCancel = {
+                        finishDrag()
                         scope.launch {
                             delay(500)
                             active = false
@@ -110,7 +122,8 @@ private fun HistoryFloatHandle(
             .combinedClickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
-                onClick = {},
+                // 单击也能打开：边缘横向拖动会被系统返回手势抢走，点按永远能到应用手里。
+                onClick = { onOpenPanel() },
                 onDoubleClick = {
                     active = true
                     scope.launch {
@@ -152,3 +165,6 @@ private fun HistoryFloatHandle(
         }
     }
 }
+
+/** 向左拖动超过这个距离就认为用户想拉出收纳面板。 */
+private const val OPEN_DRAG_THRESHOLD_X = -20f

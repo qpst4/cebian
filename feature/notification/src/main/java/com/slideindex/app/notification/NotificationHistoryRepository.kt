@@ -278,6 +278,9 @@ class NotificationHistoryRepository @Inject constructor(
     }
 
     fun getActiveNotificationKeys(): Set<String> {
+        listenerPort.activeNotificationSnapshotsOrNull()?.let { snapshots ->
+            return snapshots.map { it.key }.toSet()
+        }
         val listener = listenerPort.listenerOrNull() ?: return emptySet()
         return runCatching {
             listener.activeNotifications?.map { it.key }.orEmpty().toSet()
@@ -285,12 +288,35 @@ class NotificationHistoryRepository @Inject constructor(
     }
 
     fun getActiveNotifications(historyItems: List<NotificationHistoryItem>): List<ActiveNotificationEntry> {
-        val listener = listenerPort.listenerOrNull() ?: return emptyList()
         val selfPackage = appContext.packageName
-        val active = runCatching { listener.activeNotifications?.toList() }.getOrNull().orEmpty()
         val historyByKey = historyItems.mapNotNull { item ->
             item.notificationKey?.let { key -> key to item }
         }.toMap()
+
+        // 监听服务在 :overlay，UI 在主进程时用跨进程镜像；镜像到了就不必也不该再看本进程实例。
+        listenerPort.activeNotificationSnapshotsOrNull()?.let { snapshots ->
+            return snapshots
+                .asSequence()
+                .filter { it.packageName != selfPackage }
+                .filter { it.title.isNotBlank() || it.text.isNotBlank() }
+                .map { snapshot ->
+                    val historyItem = historyByKey[snapshot.key]
+                    ActiveNotificationEntry(
+                        key = snapshot.key,
+                        packageName = snapshot.packageName,
+                        title = snapshot.title,
+                        text = snapshot.text,
+                        postedAtMs = snapshot.postedAtMs,
+                        historyItem = historyItem,
+                        channelId = snapshot.channelId ?: historyItem?.channelId,
+                    )
+                }
+                .sortedByDescending { it.postedAtMs }
+                .toList()
+        }
+
+        val listener = listenerPort.listenerOrNull() ?: return emptyList()
+        val active = runCatching { listener.activeNotifications?.toList() }.getOrNull().orEmpty()
         return active
             .asSequence()
             .filter { it.packageName != selfPackage }

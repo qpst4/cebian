@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.provider.Settings
 import android.text.TextUtils
+import com.slideindex.app.overlay.OverlayStatePort
 import com.slideindex.app.service.SlideIndexAccessibilityService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -92,7 +93,8 @@ object SecureSettingsHelper {
     private fun nudgeAccessibilityRebindBlocking(context: Context, gapMs: Long): Boolean {
         if (!hasWriteSecureSettings(context)) return false
         if (!PermissionHelper.isAccessibilityServiceEnabled(context)) return false
-        if (SlideIndexAccessibilityService.isConnected()) return true
+        // 进程无关的连接判定：本文件也可能在非 overlay 进程被调用（那里 isConnected() 恒 false）。
+        if (OverlayStatePort.isServiceConnected()) return true
 
         val component = ComponentName(context, SlideIndexAccessibilityService::class.java)
         val serviceId = component.flattenToString()

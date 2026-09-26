@@ -61,6 +61,16 @@ class NotificationHistoryViewModel @Inject constructor(
     private val _refreshGeneration = MutableStateFlow(0)
     val refreshGeneration: StateFlow<Int> = _refreshGeneration.asStateFlow()
 
+    init {
+        // 「实时」tab 的数据来自 :overlay 广播的镜像：镜像到达后重算一次，
+        // 否则首次进入页面时会停留在空列表（镜像比首帧慢）。
+        viewModelScope.launch {
+            com.slideindex.app.overlay.OverlayStatePort.activeNotificationSnapshots.collect { snapshots ->
+                if (snapshots != null) _refreshGeneration.value += 1
+            }
+        }
+    }
+
     private val _replayOpenAppDialog = MutableStateFlow<NotificationReplayResult.Failure?>(null)
     val replayOpenAppDialog: StateFlow<NotificationReplayResult.Failure?> = _replayOpenAppDialog.asStateFlow()
 
@@ -73,6 +83,10 @@ class NotificationHistoryViewModel @Inject constructor(
     }
 
     fun refreshActive() {
+        // 让 :overlay 重新广播一次通知栏快照（刚进页面 / 隐藏&恢复后）。主进程自己读不到监听实例。
+        if (!com.slideindex.app.util.AppProcess.isOverlay) {
+            com.slideindex.app.overlay.OverlayStatePort.requestActiveNotificationsPublish(appContext)
+        }
         _refreshGeneration.value += 1
     }
 

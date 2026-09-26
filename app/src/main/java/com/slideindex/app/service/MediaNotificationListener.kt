@@ -6,7 +6,10 @@ import android.os.Looper
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import com.slideindex.app.message.MessageReminderOrchestrator
+import com.slideindex.app.notification.ActiveNotificationSnapshot
+import com.slideindex.app.notification.NotificationChannelSupport
 import com.slideindex.app.notification.NotificationShadeHider
+import com.slideindex.app.overlay.OverlayStatePort
 import com.slideindex.app.util.MediaSessionTracker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -49,6 +52,7 @@ class MediaNotificationListener : NotificationListenerService() {
         instance = this
         mainHandler.post { MediaSessionTracker.onListenerConnected(this) }
         registerUnlockReceiver()
+        scheduleActiveNotificationPublish()
         workerScope.launch {
             val notifications = runCatching { activeNotifications }.getOrNull() ?: emptyArray()
             deps.notificationHistoryRecorder.onListenerConnected(
@@ -63,6 +67,8 @@ class MediaNotificationListener : NotificationListenerService() {
         MediaSessionTracker.onListenerDisconnected()
         unregisterUnlockReceiver()
         if (instance === this) instance = null
+        // 监听断开：通知栏快照作废，主进程的「实时」tab 不能继续显示旧数据。
+        OverlayStatePort.publishActiveNotifications(applicationContext, emptyList())
     }
 
     private fun registerUnlockReceiver() {
@@ -84,6 +90,7 @@ class MediaNotificationListener : NotificationListenerService() {
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
         mainHandler.post { MediaSessionTracker.onNotificationsChanged(this) }
+        scheduleActiveNotificationPublish()
         val listener = this
         workerScope.launch {
             messageReminderOrchestrator.onNotificationPosted(applicationContext, listener, sbn)
@@ -98,6 +105,7 @@ class MediaNotificationListener : NotificationListenerService() {
     ) {
         super.onNotificationRemoved(sbn, rankingMap, reason)
         mainHandler.post { MediaSessionTracker.onNotificationsChanged(this) }
+        scheduleActiveNotificationPublish()
         workerScope.launch {
             messageReminderOrchestrator.onNotificationRemoved(
                 applicationContext,
@@ -111,9 +119,59 @@ class MediaNotificationListener : NotificationListenerService() {
 
     fun restoreNotificationToShade(key: String): Boolean = shadeHider.unsnoozeNotification(key)
 
+    private fun scheduleActiveNotificationPublish() {
+        if (snapshotPublishScheduled) return
+        snapshotPublishScheduled = true
+        mainHandler.postDelayed(
+            {
+                snapshotPublishScheduled = false
+                workerScope.launch { publishActiveNotificationsSnapshot(applicationContext) }
+            },
+            ACTIVE_SNAPSHOT_DEBOUNCE_MS,
+        )
+    }
+
+    /** 本进程（`:overlay`）读通知栏，映射成可跨进程传输的快照。 */
+    private fun currentActiveNotificationSnapshots(): List<ActiveNotificationSnapshot> =
+        runCatching { activeNotifications?.toList() }.getOrNull().orEmpty().mapNotNull { sbn ->
+            val notification = sbn.notification ?: return@mapNotNull null
+            val extras = notification.extras ?: return@mapNotNull null
+            val title = extras.getCharSequence(android.app.Notification.EXTRA_TITLE)?.toString().orEmpty()
+            val text = extras.getCharSequence(android.app.Notification.EXTRA_TEXT)?.toString()
+                ?: extras.getCharSequence(android.app.Notification.EXTRA_BIG_TEXT)?.toString()
+                ?: extras.getCharSequence(android.app.Notification.EXTRA_SUMMARY_TEXT)?.toString()
+                ?: ""
+            if (title.isBlank() && text.isBlank()) return@mapNotNull null
+            ActiveNotificationSnapshot(
+                key = sbn.key,
+                packageName = sbn.packageName,
+                title = title,
+                text = text,
+                postedAtMs = sbn.postTime.takeIf { it > 0L } ?: System.currentTimeMillis(),
+                channelId = NotificationChannelSupport.channelIdFrom(notification),
+            )
+        }
+
+    private var snapshotPublishScheduled = false
+
     companion object {
         @Volatile
         var instance: MediaNotificationListener? = null
             private set
+
+        private const val ACTIVE_SNAPSHOT_DEBOUNCE_MS = 120L
+
+        /** 把通知栏当前内容广播出去，供主进程的「实时」tab 读取。 */
+        fun publishActiveNotificationsSnapshot(context: Context) {
+            val listener = instance
+            OverlayStatePort.publishActiveNotifications(
+                context = context,
+                snapshots = listener?.currentActiveNotificationSnapshots().orEmpty(),
+            )
+        }
+
+        /** 供端口读取：本进程（overlay）的通知栏快照；实例不在时返回空列表（＝此刻没有）。 */
+        fun snapshotOf(listener: MediaNotificationListener?): List<ActiveNotificationSnapshot> =
+            listener?.currentActiveNotificationSnapshots().orEmpty()
     }
 }

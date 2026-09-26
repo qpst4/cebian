@@ -287,3 +287,47 @@ OTP 填充统计 `OtpAutoFillStatsRepository`、通知过滤规则 `Notification
 失败时回退本地推理。**OCR 的内存峰值与 OOM 不再牵动手势/浮层进程**。
 
 待办：jieba 分词仍在调用方进程（占用不大，可并入 `:engine` 或保持现状）。
+
+### C.6 回归修复：收纳把手 / 剪贴板小窗 / 实时通知 / 悬浮球消失
+
+四条真机回归的根因与修法（均已装机验证）：
+
+1. **收纳面板贴边把手「拖动打不开」**
+   把手窗口在屏幕最右侧（贴边），横向拖动一旦被系统的边缘手势（返回）抢走，Compose 只收到取消事件，
+   而原实现只在 `onDragEnd` 里判断位移 → 抬手也不打开。
+   修复：抽出一个收尾闭包，`onDragEnd` 与 `onDragCancel` 都走它；同时把**单击**也接成打开面板
+   （点击永远不会被边缘手势吞掉，作为兜底入口）。
+
+2. **弹出键盘看不到剪贴板小窗入口**
+   小窗由 `:overlay` 渲染，但开关（`clipboardFloatEnabled` 等）只被主进程下发给
+   `ClipboardFloatImeCoordinator`，overlay 侧恒为 false。
+   修复：`SlideIndexApp` 在 overlay 进程自己订阅 settings 并下发（提交 `09d675dc`）。
+
+3. **通知滤盒「实时」tab 空着**
+   监听服务（`NotificationListenerService`）随常驻交互搬进了 `:overlay`，而 UI 在主进程：
+   `MediaNotificationListenerPort.listenerOrNull()` 在主进程恒为 null → 实时列表永远是空。
+   修复：overlay 进程把通知栏快照（key/包名/标题/正文/时间/渠道，JSON）广播出来，
+   主进程维护镜像并给 UI 用；`NotificationListenerPort` 新增 `activeNotificationSnapshotsOrNull()`，
+   进页面 / 刷新时用 `COMMAND_PUBLISH_ACTIVE_NOTIFICATIONS` 让 overlay 立即重发一帧。
+
+4. **悬浮球消失、手势失效（偶发）** —— 三条独立成因，全部处理：
+   - **主进程误判「无障碍掉线」**：`SlideIndexAccessibilityService.isConnected()` 读的是**进程内静态**，
+     无障碍实例在 `:overlay`，所以主进程恒为 false → 每次启动都以为掉线，弹
+     「边缘手势未连接，请完全关闭后重新打开本应用」（用户实测：**提示出现但手势其实是好的**），
+     并且（有 WRITE_SECURE_SETTINGS 时）会真的去抖断/重绑一次系统绑定 → 悬浮球与手势瞬间消失。
+     修复：恢复逻辑的连通性判定改用 `OverlayStatePort.isServiceConnected()`（overlay 读本地、其它进程读镜像），
+     非 overlay 进程一律不自己重绑，只发 `COMMAND_RECOVER_ACCESSIBILITY` 交给 overlay；
+     镜像还没收到时视为「未知」，不许动系统设置。
+   - **`CrossProcessStore` 文件锁崩溃**：`FileChannel.lock()` 在同一 JVM 已有线程阻塞/持锁时会抛
+     `OverlappingFileLockException`，异常发生在用户协程里没人接 → 直接打死整个进程
+     （真机崩溃：`notification_history` 的 `updateCapture` 写盘）。
+     修复：改成 `tryLock()` 轮询 + 重试，重叠异常一并吞掉，连续失败才退化为「只进程内互斥」，
+     调用方永远不会因为锁而崩溃。
+   - **剪贴板监听前台服务启动超时**：`startForegroundService()` 之后系统给的 5~10 秒窗口
+     如果被主线程队列里的启动期重活挤掉，就会 `ForegroundServiceDidNotStartInTimeException`
+     → 整个 `:overlay` 进程被系统干掉（悬浮球 + 手势一起消失）。
+     修复：`ClipboardMonitorStartup.runOnMainWhenCalm()` —— 先等主线程空闲，再投递探测任务量一次
+     队列延迟，确实不忙了才发起 `startForegroundService`，否则延后重试（最多 8 次）。
+
+经验：进程拆分后**任何「进程内静态」都不再等于全局状态**。凡是"是否连接/是否运行"的判断，
+必须区分「overlay 进程读本地」与「其它进程读镜像」，并且镜像未就绪时要当作未知而不是 false。

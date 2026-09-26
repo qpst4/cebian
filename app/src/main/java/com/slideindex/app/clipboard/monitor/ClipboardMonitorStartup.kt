@@ -5,6 +5,7 @@ package com.slideindex.app.clipboard.monitor
  */
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 
 /** Gates clipboard FGS startup until the main process Application has finished onCreate. */
 internal object ClipboardMonitorStartup {
@@ -16,6 +17,38 @@ internal object ClipboardMonitorStartup {
     fun runOnMainWhenIdle(block: () -> Unit) {
         runOnMainWhenReady {
             postWhenIdle(block)
+        }
+    }
+
+    /**
+     * 主线程「空闲且不忙」时才启动前台服务。
+     *
+     * `startForegroundService()` 之后，系统要求前台服务在 5~10 秒内 `startForeground()`；
+     * 这条 service 创建消息排在主线程队列里，如果此刻队列里压着启动期重活（进程冷启动、
+     * 无障碍事件批量回调、设置读写等），窗口就会被吃掉 →
+     * `ForegroundServiceDidNotStartInTimeException` → **整个 `:overlay` 进程被系统干掉**
+     * （用户看到悬浮球消失、手势全失效，要重新打开 App 才恢复）。
+     *
+     * 这里先等空闲，再探一次队列：投递的探测任务如果等待超过 [CALM_LATENCY_MS] 就说明主线程还忙着，
+     * 稍后重试，直到真的闲下来再发起启动。
+     */
+    fun runOnMainWhenCalm(block: () -> Unit) {
+        runOnMainWhenReady {
+            postWhenIdle {
+                measureCalm(block, attemptsLeft = CALM_ATTEMPTS)
+            }
+        }
+    }
+
+    private fun measureCalm(block: () -> Unit, attemptsLeft: Int) {
+        val postedAt = SystemClock.uptimeMillis()
+        mainHandler.post {
+            val latencyMs = SystemClock.uptimeMillis() - postedAt
+            if (latencyMs <= CALM_LATENCY_MS || attemptsLeft <= 1) {
+                block()
+            } else {
+                mainHandler.postDelayed({ measureCalm(block, attemptsLeft - 1) }, CALM_RETRY_MS)
+            }
         }
     }
 
@@ -49,4 +82,7 @@ internal object ClipboardMonitorStartup {
     }
 
     private const val RETRY_MS = 200L
+    private const val CALM_LATENCY_MS = 250L
+    private const val CALM_RETRY_MS = 400L
+    private const val CALM_ATTEMPTS = 8
 }
