@@ -104,7 +104,9 @@ object SearchPanelOverlayWindow {
             return
         }
         diag("warmUp: isShowing=$isShowing visible=${composeView?.visibility}")
-        val hostContext = OverlayDependencyAccess.overlayHostContext() ?: context.applicationContext
+        // 预热必须等无障碍宿主就绪：早于它建窗会拿到无效 token（BadTokenException），
+        // 之后 show() 的 updateViewLayout 全部失败，面板就变成"窗口在但永远不可见"。
+        val hostContext = OverlayDependencyAccess.overlayHostContext() ?: return
         ensureWindow(hostContext)
         if (!isShowing) {
             applyPanelShellPassive()
@@ -123,6 +125,11 @@ object SearchPanelOverlayWindow {
             return result
         }
         diag("show: isShowing=$isShowing visible=${composeView?.visibility}")
+        // 之前建窗失败或被系统摘掉的壳子先销毁重建，否则会在死状态里打转。
+        if (composeView != null && composeView?.isAttachedToWindow != true) {
+            diag("show: stale shell (not attached) → rebuild")
+            destroyWindow()
+        }
         ++dismissToken
         if (isShowing) {
             applyPanelShellActive()
@@ -361,6 +368,7 @@ object SearchPanelOverlayWindow {
         view.isFocusable = true
         view.isFocusableInTouchMode = true
         runCatching { wm.updateViewLayout(view, params) }
+            .onFailure { diag("updateViewLayout(active) failed: $it") }
         view.requestFocus()
     }
 
