@@ -363,10 +363,18 @@ class WidgetPopupCardLayout(
     }
 
     fun updatePages(updated: List<WidgetPanelPage>) {
-        val previousSize = pages.size
-        pages = WidgetPanelDefaults.effectivePages(updated)
+        val next = WidgetPanelDefaults.effectivePages(updated)
             .map { WidgetPanelGridLogic.fitPageToGrid(it) }
-            .toMutableList()
+        if (next == pages) {
+            // 内容未变（典型是 show 之后 settings 流的首次回灌）：只刷新指示器与背景，
+            // 否则刚绑好的卡片会立刻把所有系统小组件/应用图标重做一遍，首帧白等几百毫秒。
+            updateDots()
+            updateHeader()
+            applyCardBackground()
+            return
+        }
+        val previousSize = pages.size
+        pages = next.toMutableList()
         if (currentPageIndex >= pages.size) {
             currentPageIndex = (pages.size - 1).coerceAtLeast(0)
         }

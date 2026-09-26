@@ -109,11 +109,20 @@ class WidgetCardContainer(
               if (info != null) {
                 launcherApps.getShortcutIconDrawable(info, resources.displayMetrics.densityDpi)
               } else null
-            }.getOrNull() ?: runCatching { context.packageManager.getApplicationIcon(item.packageName) }.getOrNull()
-          } else if (item.packageName.isNotEmpty()) {
-            runCatching { context.packageManager.getApplicationIcon(item.packageName) }.getOrNull()
+            }.getOrNull()
           } else null
           setImageDrawable(icon)
+          // 应用图标不在构造期同步取：PackageManager 在部分 OEM（Flyme）上会走主题引擎逐像素重绘，
+          // 主线程同步调用会让面板首帧卡住数百毫秒。这里统一走缓存 + 后台线程。
+          if (icon == null && item.packageName.isNotEmpty()) {
+            val iconPackage = item.packageName
+            tag = iconPackage
+            WidgetAppIconCache.load(context, iconPackage) { bitmap ->
+              if (tag == iconPackage) {
+                setImageDrawable(bitmap.toDrawable(resources))
+              }
+            }
+          }
         }
         val iconSize = (44 * density).roundToInt()
         addView(iconView, LayoutParams(iconSize, iconSize))

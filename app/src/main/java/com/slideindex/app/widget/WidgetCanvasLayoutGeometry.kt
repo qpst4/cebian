@@ -102,7 +102,11 @@ internal object WidgetCanvasLayoutGeometry {
         val item = layout.draggingItem ?: return
         val topLeftX = x - layout.dragTouchOffsetX - layout.paddingLeft
         val topLeftY = y - layout.dragTouchOffsetY - layout.paddingTop
-        val newHoverX = kotlin.math.round(topLeftX / step).toInt().coerceIn(0, layout.pageColumnCount - item.spanX)
+        // spanX 可能大于当前列数（例如切到更窄的列数设置后残留的宽卡片），
+        // 此时 coerceIn 的上界为负会抛 "Cannot coerce value to an empty range"。
+        val newHoverX = kotlin.math.round(topLeftX / step)
+            .toInt()
+            .coerceIn(0, (layout.pageColumnCount - item.spanX).coerceAtLeast(0))
         val candidateHoverY = kotlin.math.round(topLeftY / step).toInt().coerceAtLeast(0)
         layout.ensureBufferRowsBelow(candidateHoverY + item.spanY)
         val newHoverY = candidateHoverY.coerceIn(0, (layout.pageRowCount - item.spanY).coerceAtLeast(0))

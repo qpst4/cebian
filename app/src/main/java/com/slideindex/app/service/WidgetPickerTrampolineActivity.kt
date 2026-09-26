@@ -7,10 +7,12 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.slideindex.app.settings.AppSettings
+import com.slideindex.app.ui.compose.LocalAppDependencies
 import com.slideindex.app.ui.WidgetPickerScreen
 import com.slideindex.app.ui.miuix.theme.ModuleTheme
 import com.slideindex.app.widget.WidgetProviderEntry
@@ -34,23 +36,27 @@ class WidgetPickerTrampolineActivity : ComponentActivity() {
     var appSettings by mutableStateOf(deps.settingsRepository.readSnapshot())
 
     setContent {
-      ModuleTheme(settings = appSettings) {
-        WidgetPickerScreen(
-          onBack = {
-            WidgetPickerTrampoline.deliverCancel()
-            finish()
-          },
-          onWidgetSelected = { entry -> onWidgetPicked(entry) },
-          onAppSelected = { app ->
-            WidgetPickerTrampoline.deliverAppSuccess(app.packageName, app.className, app.appLabel)
-            finish()
-          },
-          onShortcutSelected = { sc ->
-            WidgetPickerTrampoline.deliverShortcutSuccess(sc.packageName, sc.shortcutId, sc.label, sc.intentUri)
-            finish()
-          },
-          enableBackHandler = true
-        )
+      // WidgetPickerScreen 内部通过 rememberSettingsRepository/rememberAppRepository 取依赖，
+      // 缺这层 provider 会在组合期直接抛 IllegalStateException（选器 Activity 一进就闪退）。
+      CompositionLocalProvider(LocalAppDependencies provides deps) {
+        ModuleTheme(settings = appSettings) {
+          WidgetPickerScreen(
+            onBack = {
+              WidgetPickerTrampoline.deliverCancel()
+              finish()
+            },
+            onWidgetSelected = { entry -> onWidgetPicked(entry) },
+            onAppSelected = { app ->
+              WidgetPickerTrampoline.deliverAppSuccess(app.packageName, app.className, app.appLabel)
+              finish()
+            },
+            onShortcutSelected = { sc ->
+              WidgetPickerTrampoline.deliverShortcutSuccess(sc.packageName, sc.shortcutId, sc.label, sc.intentUri)
+              finish()
+            },
+            enableBackHandler = true
+          )
+        }
       }
     }
   }
