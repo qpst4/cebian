@@ -414,11 +414,19 @@ class ClipboardHistoryRepository @Inject constructor(
      */
     private fun resolveClipboardMonitoringMode(): ClipboardMonitoringMode {
         val settings = settingsRepository.readSnapshot()
-        val configured = settings.clipboardBackgroundMonitoringMode
-        if (configured != ClipboardMonitoringMode.FOLLOW_PRIVILEGE) {
-            return configured.effective(settings.privilegeMode)
+        // 旧字段 clipboardBackgroundMonitoringMode 只是历史遗留（老版本 UI 直接选具体模式时写的）；
+        // 只有它被显式设成具体模式才尊重它，否则一律按新的 channel + capture 解析 ——
+        // 否则设置页勾了 Root、监听却仍按旧字段以 Shizuku 启动（真机现象：勾选 Root / 状态显示 Shizuku）。
+        val legacy = settings.clipboardBackgroundMonitoringMode
+        if (legacy != ClipboardMonitoringMode.FOLLOW_PRIVILEGE) {
+            return legacy.effective(settings.privilegeMode)
         }
-        val privileged = configured.effective(settings.privilegeMode)
+        if (settings.clipboardMonitoringChannel !=
+            com.slideindex.app.settings.ClipboardMonitoringChannel.FOLLOW_PRIVILEGE
+        ) {
+            return settings.effectiveClipboardMonitoringMode().effective(settings.privilegeMode)
+        }
+        val privileged = settings.effectiveClipboardMonitoringMode().effective(settings.privilegeMode)
         if (clipboardMonitorController.isBackendAvailable(privileged)) return privileged
         if (isLsposedModuleResponsive()) return ClipboardMonitoringMode.LSPOSED
         return ClipboardMonitoringMode.STANDARD
