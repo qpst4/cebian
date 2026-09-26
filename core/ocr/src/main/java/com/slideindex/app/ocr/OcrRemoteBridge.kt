@@ -15,7 +15,14 @@ interface OcrRemoteTransport {
     /** 返回 null 表示"没走通"，调用方回退本地推理。 */
     suspend fun recognizeBitmap(modelId: String, bitmap: Bitmap): OcrRecognizeResult?
 
-    suspend fun recognizePpOcrLines(modelId: String, bitmap: Bitmap): List<OcrRecognizedLine>?
+    /**
+     * `Result.success(lines)`：已由引擎进程处理（lines 可为 null = 非 PP-OCR/无结果）。
+     * `Result.failure`：没走通，调用方回退本地推理。
+     */
+    suspend fun recognizePpOcrLines(
+        modelId: String,
+        bitmap: Bitmap,
+    ): Result<List<OcrRecognizedLine>?>
 }
 
 object OcrRemoteBridge {

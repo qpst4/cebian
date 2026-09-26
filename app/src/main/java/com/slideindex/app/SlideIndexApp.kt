@@ -84,6 +84,13 @@ class SlideIndexApp : Application() {
         }
         if (AppProcess.isEngine) return
 
+        // OCR 推理改由 :engine 进程执行（onnxruntime/opencv 不再常驻调用方进程）；
+        // 传输未接或失败时 OcrInferenceService 会自动回退本地推理。
+        if (!AppProcess.isEngine) {
+            com.slideindex.app.ocr.OcrRemoteBridge.transport =
+                com.slideindex.app.engine.EngineOcrTransport(this)
+        }
+
         // overlay 状态端口：overlay 进程负责接收命令，其它进程维护只读镜像。
         if (AppProcess.isOverlay) {
             com.slideindex.app.overlay.OverlayStatePort.startCommandReceiver(this)

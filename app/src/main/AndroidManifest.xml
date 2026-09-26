@@ -551,6 +551,11 @@
             android:stopWithTask="true" />
 
         <service
+            android:name=".engine.EngineOcrService"
+            android:process=":engine"
+            android:exported="false" />
+
+        <service
             android:name=".service.MediaNotificationListener"
             android:process=":overlay"
             android:exported="true"

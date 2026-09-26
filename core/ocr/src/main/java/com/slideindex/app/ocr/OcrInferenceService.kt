@@ -45,7 +45,8 @@ class OcrInferenceService @Inject constructor(
      */
     suspend fun recognizePpOcrLines(modelId: String, bitmap: Bitmap): List<OcrRecognizedLine>? {
         if (!com.slideindex.app.util.AppProcess.isEngine) {
-            OcrRemoteBridge.transport?.recognizePpOcrLines(modelId, bitmap)?.let { return it }
+            val remote = OcrRemoteBridge.transport?.recognizePpOcrLines(modelId, bitmap)
+            if (remote != null && remote.isSuccess) return remote.getOrNull()
         }
         return recognizePpOcrLinesLocal(modelId, bitmap)
     }
