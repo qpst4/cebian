@@ -10,14 +10,34 @@ import com.slideindex.app.settings.AppUiLanguage
 import java.util.Locale
 
 object AppLocaleApplier {
+    private const val PREFS_NAME = "app_locale_cache"
+    private const val KEY_STORAGE_TAG = "app_ui_language_tag"
+
     @Volatile
     private var lastApplied: AppUiLanguage = AppUiLanguage.SYSTEM
 
     fun currentLanguage(): AppUiLanguage = lastApplied
 
+    /**
+     * 非主进程启动时用：只读一个 SharedPreferences。
+     *
+     * `:overlay` 进程启动路径上不能同步读 DataStore、也不该再写一次系统 LocaleManager，
+     * 否则冷启时前台服务可能来不及 startForeground（实测会抛
+     * ForegroundServiceDidNotStartInTimeException）。主进程在应用语言时会缓存这个 tag。
+     */
+    fun primeFromStorage(context: Context) {
+        val tag = runCatching {
+            context.applicationContext
+                .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .getString(KEY_STORAGE_TAG, null)
+        }.getOrNull()
+        lastApplied = AppUiLanguage.fromStorageTag(tag)
+    }
+
     fun apply(context: Context, language: AppUiLanguage, refreshOverlays: Boolean = false) {
         val changed = language != lastApplied
         lastApplied = language
+        persistStorageTag(context, language)
         val tags = language.toLanguageTags()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             val localeManager = context.applicationContext.getSystemService(
@@ -63,5 +83,15 @@ object AppLocaleApplier {
     private fun resolveAppLocale(): Locale? {
         val tags = lastApplied.toLanguageTags() ?: return null
         return Locale.forLanguageTag(tags)
+    }
+
+    private fun persistStorageTag(context: Context, language: AppUiLanguage) {
+        runCatching {
+            context.applicationContext
+                .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .edit()
+                .putString(KEY_STORAGE_TAG, language.toStorageTag())
+                .apply()
+        }
     }
 }

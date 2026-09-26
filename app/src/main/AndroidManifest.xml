@@ -517,11 +517,13 @@
 
         <service
             android:name=".service.ScreenRecordService"
+            android:process=":overlay"
             android:exported="false"
             android:foregroundServiceType="mediaProjection" />
 
         <service
             android:name=".service.ScreenCaptureService"
+            android:process=":overlay"
             android:exported="false"
             android:foregroundServiceType="mediaProjection" />
 

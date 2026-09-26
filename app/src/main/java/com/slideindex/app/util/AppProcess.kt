@@ -30,7 +30,15 @@ object AppProcess {
 
     val isOverlay: Boolean get() = name().endsWith(OVERLAY_PROCESS_SUFFIX)
     val isEngine: Boolean get() = name().endsWith(ENGINE_PROCESS_SUFFIX)
-    val isMain: Boolean get() = !isOverlay && !isEngine
+
+    /** 只有默认进程（进程名 == 包名）才算主进程。 */
+    val isMain: Boolean get() = name() == com.slideindex.app.BuildConfig.APPLICATION_ID
+
+    /**
+     * 其它进程（例如 Shizuku 用户服务 `:task_manager_v36`）。
+     * 这类进程既不是主进程也不是 overlay/engine，初始化要按最小集合处理。
+     */
+    val isOther: Boolean get() = !isMain && !isOverlay && !isEngine
 
     private fun detect(): String {
         runCatching { Application.getProcessName() }
